@@ -1534,7 +1534,9 @@ public class RepoJobStore implements JobStore {
      * </p>
      */
     public List<TriggerFiredResult> triggersFired(List<OperableTrigger> firedTriggers) throws JobPersistenceException {
-    	
+
+    	return null;
+/*
     	OperationResult result = createOperationResult("triggersFired");
 
         List<TriggerFiredResult> results = new ArrayList<TriggerFiredResult>();
@@ -1579,6 +1581,7 @@ public class RepoJobStore implements JobStore {
             results.add(new TriggerFiredResult(bndle));
         }
         return results;
+*/
     }
 
     /**

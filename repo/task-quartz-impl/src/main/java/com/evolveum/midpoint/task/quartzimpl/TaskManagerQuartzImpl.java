@@ -36,6 +36,7 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.TriggerKey;
 import org.quartz.UnableToInterruptJobException;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.BeansException;
@@ -60,8 +61,6 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.quartzimpl.jobstore.RepoJobStore;
-import com.evolveum.midpoint.task.quartzimpl.jobstore.RepoJobStoreUtil;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -90,7 +89,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
-	
+
 	@Autowired(required=true)
 	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	
@@ -122,13 +121,14 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		NoOpTaskHandler.instantiateAndRegister(this);
 		
 		// hacks...
-		RepoJobStore.setTaskManagerQuartzImpl(this);
+//		RepoJobStore.setTaskManagerQuartzImpl(this);
 		JobExecutor.setTaskManagerQuartzImpl(this);
 		
 		StdSchedulerFactory sf = new StdSchedulerFactory();
 		
 		Properties qprops = new Properties();
-		qprops.put("org.quartz.jobStore.class", RepoJobStore.class.getName());
+//		qprops.put("org.quartz.jobStore.class", RepoJobStore.class.getName());
+		qprops.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
 		qprops.put("org.quartz.scheduler.instanceName", "midPointScheduler");
 		qprops.put("org.quartz.scheduler.instanceId", "AUTO");
 		qprops.put("org.quartz.scheduler.skipUpdateCheck", "true");
@@ -280,7 +280,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 	}
 
-	private void persist(Task task,OperationResult parentResult)  {
+	private void persist(Task task, OperationResult parentResult)  {
 		if (task.getPersistenceStatus()==TaskPersistenceStatus.PERSISTENT) {
 			// Task already persistent. Nothing to do.
 			return;
@@ -292,18 +292,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 		
 		((TaskQuartzImpl) task).setPersistenceStatusTransient(TaskPersistenceStatus.PERSISTENT);
-		PrismObject<TaskType> taskPrism = task.getTaskPrismObject();
-		try {
-			String oid = repositoryService.addObject(taskPrism, parentResult);
-			((TaskQuartzImpl) task).setOid(oid);
-		} catch (ObjectAlreadyExistsException ex) {
-			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
-			throw new IllegalStateException("Got ObjectAlreadyExistsException while not expecting it (task:"+task+")",ex);
-		} catch (SchemaException ex) {
-			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
-			throw new IllegalStateException("Got SchemaException while not expecting it (task:"+task+")",ex);
-		}
-		
+
 		// Make sure that the task has repository service instance, so it can fully work as "persistent"
 		if (task instanceof TaskQuartzImpl) {
 			TaskQuartzImpl taskImpl = (TaskQuartzImpl)task;
@@ -312,8 +301,36 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 				taskImpl.setRepositoryService(repoService);
 			}
 		}
+
+		try {
+			addTaskToRepositoryAndQuartz(task, parentResult);
+		} catch (ObjectAlreadyExistsException ex) {
+			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
+			throw new IllegalStateException("Got ObjectAlreadyExistsException while not expecting it (task:"+task+")",ex);
+		} catch (SchemaException ex) {
+			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
+			throw new IllegalStateException("Got SchemaException while not expecting it (task:"+task+")",ex);
+		}
 		
 	}
+	
+	@Override
+	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+		Task task = createTaskInstance(taskPrism, parentResult);			// perhaps redundant, but it's more convenient to work with Task than with Task prism 
+		return addTaskToRepositoryAndQuartz(task, parentResult);
+	}
+
+	private String addTaskToRepositoryAndQuartz(Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+		
+		PrismObject<TaskType> taskPrism = task.getTaskPrismObject();		
+		String oid = repositoryService.addObject(taskPrism, parentResult);
+		((TaskQuartzImpl) task).setOid(oid);
+		
+		((TaskQuartzImpl) task).addOrReplaceQuartzTask();
+		
+		return oid;
+	}
+	
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#registerHandler(java.lang.String, com.evolveum.midpoint.task.api.TaskHandler)
@@ -334,6 +351,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	
 	@Override
 	public Set<Task> getRunningTasks() {
+		
+		OperationResult result = createOperationResult("getRunningTasks");		// temporary, until moved to interface 
+		
 		Set<Task> retval = new HashSet<Task>();
 		
 		List<JobExecutionContext> jecs;
@@ -341,34 +361,38 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 			jecs = quartzScheduler.getCurrentlyExecutingJobs();
 		} catch (SchedulerException e1) {
 			LoggingUtils.logException(LOGGER, "Cannot get the list of currently executing jobs.", e1);
-			throw new SystemException("Cannot get the list of currently executing jobs.", e1);
+			throw new SystemException("Cannot get the list of currently executing jobs.", e1);				// or return empty list?
 		}
 		
-		for (JobExecutionContext jec : jecs)
-			retval.add(RepoJobStoreUtil.getTaskFromTrigger(jec.getTrigger()));
+		for (JobExecutionContext jec : jecs) {
+			String oid = jec.getJobDetail().getKey().getName();
+			try {
+				retval.add(getTask(oid, result));
+			} catch (ObjectNotFoundException e) {
+				LoggingUtils.logException(LOGGER, "Cannot get the task with OID {} as it no longer exists", e, oid);
+			} catch (SchemaException e) {
+				LoggingUtils.logException(LOGGER, "Cannot get the task with OID {} due to schema problems", e, oid);			
+			}
+		}
 		
 		return retval;
 	}
 
-	@Override
-	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
-		String oid = repositoryService.addObject(taskPrism, parentResult);
-		return oid;
-	}
 
 	@Override
 	@Deprecated			// specific task setters should be used instead
 	public void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
-		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
+		throw new UnsupportedOperationException("Generic modification of a task is not supported; please use specific setters instead. OID = " + oid);
+//		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
 	}
 
 	@Override
 	@Deprecated
 	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException {
 		repositoryService.deleteObject(TaskType.class, oid, parentResult);
+//		throw new UnsupportedOperationException("Explicit deletion of a task is not supported. OID = " + oid);
 	}
-
 
 	PrismObjectDefinition<TaskType> getTaskObjectDefinition() {
 		if (taskPrismDefinition == null) {
@@ -380,15 +404,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	public void claimTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
 			ConcurrencyException, SchemaException {
-		// TODO Auto-generated method stub
-		
+		throw new UnsupportedOperationException("Claiming and releasing tasks is implemented by Quartz scheduler.");
 	}
 
 	@Override
 	public void releaseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
-		// TODO Auto-generated method stub
-		
+		throw new UnsupportedOperationException("Claiming and releasing tasks is implemented by Quartz scheduler.");
 	}
 
 	@Override
@@ -399,44 +421,22 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 		if (task.getOid() == null)
 			throw new IllegalArgumentException("Only persistent tasks can be suspended (for now).");
+		
+		task.setExecutionStatusImmediate(TaskExecutionStatus.SUSPENDED, parentResult);
 
-		JobKey jobKey = RepoJobStoreUtil.createJobKeyForTask(task);
+		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
 		
-		// TODO: this has to be thought out better....
-		
-		// First, we mark the task as suspended (to prevent it from running again, after stopping it)
-		// a more correct solution here would be to set a 'being suspended' flag ...
-		if (task.getExecutionStatus() != TaskExecutionStatus.CLOSED)
-			task.setExecutionStatusImmediate(TaskExecutionStatus.SUSPENDED, parentResult);
-			
-		// Second, we stop the task
-		boolean isStopped = shutdownTaskAndWait(task, waitTime);
-		
-		// Third, we definitely mark it as suspended (first attempt would be possibly overwritten by task handler, as it executes concurrently with this thread)
-		// this time we use quartz
 		try {
 			quartzScheduler.pauseJob(jobKey);
-		} catch (SchedulerException e) {
-			LoggingUtils.logException(LOGGER, "Unable to pause the task {}", e, task);
+			// Stop current task execution
+			return shutdownTaskAndWait(task, waitTime);
+			
+		} catch (SchedulerException e1) {
+			LoggingUtils.logException(LOGGER, "Cannot pause the Quartz job corresponding to task {}", e1, task);
+			shutdownTaskAndWait(task, waitTime);			// if it is running...
+			throw new SystemException("Cannot pause the Quartz job corresponding to task " + task, e1);
 		}
 		
-		
-		return isStopped;
-
-//		task.setExecutionStatus(TaskExecutionStatus.SUSPENDED);
-//		task.savePendingModifications(parentResult);
-//		
-//		TaskRunner runner = findRunner(task.getTaskIdentifier());
-//		LOGGER.trace("Suspending task " + task + ", runner = " + runner);
-//		if (runner != null) {
-//			shutdownRunnerAndWait(runner, waitTime);
-//			LOGGER.trace("Suspending task " + task + ", runner.thread = " + runner.thread + ", isAlive: " + runner.thread.isAlive());
-//		}
-//		
-//		boolean retval = runner == null || !runner.thread.isAlive();
-//		LOGGER.info("Suspending task " + task + ": done (is down = " + retval + ")");
-//		return retval;
-
 	}
 	
 	private boolean shutdownTasksAndWait(Collection<Task> tasks, long waitTime) {
@@ -464,7 +464,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		LOGGER.info("Signalling shutdown to task " + task + " (via quartz)");
 		
 		try {
-			quartzScheduler.interrupt(RepoJobStoreUtil.createJobKeyForTask(task));
+			quartzScheduler.interrupt(TaskQuartzImplUtil.createJobKeyForTask(task));
 		} catch (UnableToInterruptJobException e) {
 			LoggingUtils.logException(LOGGER, "Unable to interrupt the task {}", e, task);			// however, we continue (to suspend the task)
 		}
@@ -528,10 +528,27 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
 			ConcurrencyException, SchemaException {
 
-		if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED)
-			task.setExecutionStatusImmediate(TaskExecutionStatus.RUNNING, parentResult);
-		else
+		if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED) {
 			LOGGER.warn("Attempting to resume a task that is not in a SUSPENDED state (task = " + task + ", state = " + task.getExecutionStatus());
+			return;
+		}
+			
+		task.setExecutionStatusImmediate(TaskExecutionStatus.RUNNING, parentResult);
+			
+		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
+		TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
+		try {
+			
+			// if there is no trigger for this task, let us create one (there is no need to resume it in such a case)
+			if (!quartzScheduler.checkExists(triggerKey))
+				((TaskQuartzImpl) task).addOrReplaceQuartzTask();
+			else
+				quartzScheduler.resumeJob(jobKey);			// resumes existing trigger
+			
+		} catch (SchedulerException e) {
+			LoggingUtils.logException(LOGGER, "Cannot resume the Quartz job corresponding to task {}", e, task);
+			throw new SystemException("Cannot resume the Quartz job corresponding to task " + task, e);			
+		}
 	}
 
 	@Override
@@ -570,10 +587,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		return false;
 	}
 
-	// TEMPORARY!!!
-	public void scan() throws SchedulerException {
-		quartzScheduler.resumeAll();
+    private OperationResult createOperationResult(String methodName) {
+		return new OperationResult(TaskManagerQuartzImpl.class.getName() + "." + methodName);
 	}
 
+	Scheduler getQuartzScheduler() {
+		return quartzScheduler;
+	}
 
 }

@@ -21,14 +21,23 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import java.math.BigInteger;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.TriggerKey;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -53,6 +62,7 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -60,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -105,7 +114,7 @@ public class TaskQuartzImpl implements Task {
 		
 		setTaskIdentifier(taskIdentifier.toString());
 		setExecutionStatusTransient(TaskExecutionStatus.RUNNING);
-		setExclusivityStatusTransient(TaskExclusivityStatus.CLAIMED);
+//		setExclusivityStatusTransient(TaskExclusivityStatus.CLAIMED);
 		setPersistenceStatusTransient(TaskPersistenceStatus.TRANSIENT);
 		setRecurrenceStatusTransient(TaskRecurrence.SINGLE);
 		setBindingTransient(DEFAULT_BINDING_TYPE);
@@ -198,18 +207,102 @@ public class TaskQuartzImpl implements Task {
 		if (pendingModifications != null) {
 			synchronized (pendingModifications) {		// perhaps we should put something like this at more places here...
 				if (!pendingModifications.isEmpty()) {
+					
 					repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
+					addOrReplaceQuartzTaskIfNeeded(pendingModifications);
 					pendingModifications.clear();
 				}
 			}
 		}
 	}
 	
+	public void addOrReplaceQuartzTask() {
+
+		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(this);
+		JobDetail job = TaskQuartzImplUtil.createJobDetailForTask(this);
+		TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(this);
+		Trigger trigger;
+		try {
+			trigger = TaskQuartzImplUtil.createTriggerForTask(this);
+		} catch (ParseException e1) {
+			LoggingUtils.logException(LOGGER, "Cannot add/replace a task {} because of a cron expression parsing exception", e1, this);
+			throw new SystemException("Cannot add/replace a task because of a cron expression parsing exception", e1);
+		}
+		
+		Scheduler quartzScheduler = taskManager.getQuartzScheduler();
+		
+		try {
+
+			/*
+			 * TODO: this has to be rethought again -- how to map execution states (and their changes) to quartz task/triggers
+			 * 
+			 * Currently, task in any state maps to a quartz job
+			 * However, trigger is created only if task is RUNNING.
+			 * 
+			 * But, for a task suspended through API, its trigger is not deleted, but paused. 
+			 * So a suspended task can have no trigger (if the task was created as suspended), or paused one (if it was suspended after creation).
+			 */
+
+			// if the job does not exist, create it (and schedule trigger at the same time, if there is any)
+			if (!quartzScheduler.checkExists(jobKey)) {
+				
+				if (trigger != null) {
+					LOGGER.trace("Adding quartz job and trigger for task " + this);
+					quartzScheduler.scheduleJob(job, trigger);
+				} else {
+					LOGGER.trace("Adding quartz job (without a trigger) for task " + this);
+					quartzScheduler.addJob(job, false);
+				}
+
+			} else {  // job exists
+				
+				if (quartzScheduler.checkExists(triggerKey)) {
+					
+					if (trigger == null) {
+						LOGGER.trace("Removing existing quartz trigger for task " + this);
+						quartzScheduler.unscheduleJob(triggerKey);
+					} else {
+						LOGGER.trace("Replacing quartz trigger for task " + this);
+						quartzScheduler.rescheduleJob(triggerKey, trigger);
+					}
+				
+				} else {
+					
+					if (trigger != null) {
+						LOGGER.trace("Adding quartz trigger for task " + this);
+						quartzScheduler.scheduleJob(trigger);
+					}
+				}
+			}
+
+			
+		} catch (SchedulerException e) {
+			throw new SystemException("Cannot create or update quartz job and/or trigger for task " + this, e);
+		}
+	}
+
+	private static Set<QName> quartzRelatedProperties = new HashSet<QName>();
+	static {
+		quartzRelatedProperties.add(TaskType.F_BINDING);
+		quartzRelatedProperties.add(TaskType.F_RECURRENCE);
+		quartzRelatedProperties.add(TaskType.F_SCHEDULE);
+	}
+	
+	private void addOrReplaceQuartzTaskIfNeeded(Collection<PropertyDelta<?>> deltas) {
+		for (PropertyDelta<?> delta : deltas) {
+			if (delta.getParentPath().isEmpty() && quartzRelatedProperties.contains(delta.getName())) {
+				addOrReplaceQuartzTask();
+				return;
+			}
+		}
+	}
+
 	private void processModificationNow(PropertyDelta<?> delta, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		if (delta != null) {
 			Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>(1);
 			deltas.add(delta);
 			repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
+			addOrReplaceQuartzTaskIfNeeded(deltas);
 		}
 	}
 
@@ -398,6 +491,25 @@ public class TaskQuartzImpl implements Task {
 			setOtherHandlersUriStack(stack);
 		}
 	}
+	
+	@Override
+	public void finishHandler(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+
+		// let us drop the current handler URI and nominate the top of the other
+		// handlers stack as the current one
+		
+		UriStack otherHandlersUriStack = getOtherHandlersUriStack();
+		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUri().isEmpty()) {
+			setHandlerUri(popFromOtherHandlersUriStack());
+		} else {
+			setHandlerUri(null);
+			close();			// if there are no more handlers, let us close this task
+		}
+		savePendingModifications(parentResult);
+		
+		LOGGER.trace("finishHandler: new current handler uri = {}, new number of handlers = {}", getHandlerUri(), getHandlersCount());
+	}
+
 
 	public int getHandlersCount() {
 		checkHandlerUriConsistency();
@@ -430,6 +542,11 @@ public class TaskQuartzImpl implements Task {
 	public void setPersistenceStatusTransient(TaskPersistenceStatus persistenceStatus) {
 		this.persistenceStatus = persistenceStatus;
 	}
+	
+	public boolean isPersistent() {
+		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
+	}
+
 	
 	// obviously, there are no "persistent" versions of setPersistenceStatus
 
@@ -468,6 +585,9 @@ public class TaskQuartzImpl implements Task {
 	
 	/* 
 	 * Execution status
+	 * 
+	 * IMPORTANT: do not set this attribute explicitly (due to the need of synchronization with Quartz scheduler).
+	 * Use task life-cycle methods, like close(), suspendTask(), resumeTask(), and so on.
 	 */
 	
 	@Override
@@ -503,6 +623,28 @@ public class TaskQuartzImpl implements Task {
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_EXECUTION_STATUS, value.toTaskType()) : null;
 	}
+	
+	@Override
+	@Deprecated
+	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		setExecutionStatusImmediate(TaskExecutionStatus.CLOSED, parentResult);
+	}
+
+	public void close() throws ObjectNotFoundException, SchemaException {
+		
+		setExecutionStatus(TaskExecutionStatus.CLOSED);
+		
+		// remove the trigger, if it exists
+		Scheduler scheduler = taskManager.getQuartzScheduler();
+		TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(this);
+		
+		try {
+			if (scheduler.checkExists(triggerKey))
+				scheduler.unscheduleJob(triggerKey);
+		} catch(SchedulerException e) {
+			LoggingUtils.logException(LOGGER, "Cannot remove trigger for task {}", e, this);
+		}
+	}
 
 	/* 
 	 * Exclusivity status
@@ -510,38 +652,19 @@ public class TaskQuartzImpl implements Task {
 	
 	@Override
 	public TaskExclusivityStatus getExclusivityStatus() {
-		TaskExclusivityStatusType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_EXCLUSIVITY_STATUS, TaskExclusivityStatusType.class);
-		if (xmlValue == null) {
-			return null;
-		}
-		return TaskExclusivityStatus.fromTaskType(xmlValue);
+		throw new UnsupportedOperationException("Task claiming and releasing is managed by Quartz Scheduler.");
 	}
 
 	@Override
 	public void setExclusivityStatus(TaskExclusivityStatus value) {
-		processModificationBatched(setExclusivityStatusAndPrepareDelta(value));
+		throw new UnsupportedOperationException("Task claiming and releasing is managed by Quartz Scheduler.");
 	}
 
 	@Override
 	public void setExclusivityStatusImmediate(TaskExclusivityStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setExclusivityStatusAndPrepareDelta(value), parentResult);
+		throw new UnsupportedOperationException("Task claiming and releasing is managed by Quartz Scheduler.");
 	}
 
-	public void setExclusivityStatusTransient(TaskExclusivityStatus exclusivityStatus) {
-		try {
-			taskPrism.setPropertyRealValue(TaskType.F_EXCLUSIVITY_STATUS, exclusivityStatus.toTaskType());
-		} catch (SchemaException e) {
-			// This should not happen
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
-	}
-	
-	private PropertyDelta<?> setExclusivityStatusAndPrepareDelta(TaskExclusivityStatus value) {
-		setExclusivityStatusTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDelta(
-					taskManager.getTaskObjectDefinition(), TaskType.F_EXCLUSIVITY_STATUS, value.toTaskType()) : null;
-	}
-	
 	/*
 	 * Recurrence status
 	 */
@@ -587,6 +710,18 @@ public class TaskQuartzImpl implements Task {
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_RECURRENCE, value.toTaskType()) : null;
 	}
+	
+	public void makeRecurrent(long interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException 
+	{
+		setRecurrenceStatus(TaskRecurrence.RECURRING);
+
+		ScheduleType schedule = new ScheduleType();
+		schedule.setInterval(BigInteger.valueOf(interval));
+		
+		setSchedule(schedule);
+		savePendingModifications(parentResult);
+	}
+
 	
 	/*
 	 * Schedule
@@ -932,33 +1067,8 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public Long getNextRunStartTime() {
-		XMLGregorianCalendar gc = taskPrism.asObjectable().getNextRunStartTime();
-		return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
+		throw new UnsupportedOperationException("Task scheduling is managed by Quartz Scheduler.");
 	}
-	
-	public void setNextRunStartTime(Long value) {
-		processModificationBatched(setNextRunStartTimeAndPrepareDelta(value));
-	}
-
-	public void setNextRunStartTimeImmediate(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setNextRunStartTimeAndPrepareDelta(value), parentResult);
-	}
-
-	public void setNextRunStartTimeTransient(Long value) {
-		taskPrism.asObjectable().setNextRunStartTime(
-				value != null ? XmlTypeConverter.createXMLGregorianCalendar(value) : null);
-	}
-	
-	private PropertyDelta<?> setNextRunStartTimeAndPrepareDelta(Long value) {
-		setNextRunStartTimeTransient(value);
-		
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
-									taskManager.getTaskObjectDefinition(), 
-									TaskType.F_NEXT_RUN_START_TIME, 
-									taskPrism.asObjectable().getNextRunStartTime()) 
-							  : null;
-	}
-
 	
 	@Override
 	public String dump() {
@@ -982,28 +1092,7 @@ public class TaskQuartzImpl implements Task {
 	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		setLastRunStartTimestamp(System.currentTimeMillis());
-//		setNextRunStartTime(ScheduleEvaluator.determineNextRunStartTime(this));
 		savePendingModifications(parentResult);
-		
-
-//		// This is all we need to do for transient tasks
-//		if (!isPersistent()) {
-//			return;
-//		}
-//		GregorianCalendar cal = new GregorianCalendar();
-//		cal.setTimeInMillis(currentTimestamp);
-//		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-//				TaskType.F_LAST_RUN_START_TIMESTAMP, 
-//				getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
-//				cal);
-//
-//		Long nextRunStartTime = getNextRunStartTime();
-//		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
-//		if (nextRunStartTime > 0) {
-//			((Collection)modifications).add(taskManager.createNextRunStartTimeModification(nextRunStartTime));
-//		}
-//		
-//		repositoryService.modifyObject(TaskType.class, getOid(), modifications, parentResult);
 	}
 
 	@Override
@@ -1015,7 +1104,7 @@ public class TaskQuartzImpl implements Task {
 		
 		savePendingModifications(parentResult);
 		
-		// TODO: Also save the OpResult
+		// TODO: Also save the OpResult (?)
 	}
 	
 	
@@ -1047,49 +1136,14 @@ public class TaskQuartzImpl implements Task {
 	
 	@Override
 	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		PropertyDelta.applyTo(modifications, taskPrism);
-		if (isPersistent()) {
-			getRepositoryService().modifyObject(TaskType.class, getOid(), modifications, parentResult);
-		}
-	}
-
-//	public void modify(ItemDelta<?> modification, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-//		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
-//		modifications.add(modification);
-//		modify(modifications, parentResult);
-//	}
-
-	private boolean isPersistent() {
-		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
-	}
-
-	@Override
-	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(Task.class.getName()+".close");
-		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
-		result.addContext(OperationResult.CONTEXT_OID, getOid());
-		
-		// Close the task
-		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-				TaskType.F_EXECUTION_STATUS, 
-				getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
-				TaskExecutionStatusType.CLOSED.value());
-		try {
-			repositoryService.modifyObject(TaskType.class, getOid(), modifications, result);
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Object not found", ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			result.recordFatalError("Schema error", ex);
-			throw ex;
-		}		
+		throw new UnsupportedOperationException("Generic task modification is not supported. Please use concrete setter methods to modify a task");
+//		PropertyDelta.applyTo(modifications, taskPrism);
+//		if (isPersistent()) {
+//			getRepositoryService().modifyObject(TaskType.class, getOid(), modifications, parentResult);
+//		}
 	}
 
 
-	
-
-	
-	
 	
 	/**
 	 * Signal the task to shut down.
@@ -1146,41 +1200,11 @@ public class TaskQuartzImpl implements Task {
 		return true;
 	}
 
-	public void makeRecurrent(long interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException 
-	{
-		setRecurrenceStatus(TaskRecurrence.RECURRING);
-
-		ScheduleType schedule = new ScheduleType();
-		schedule.setInterval(BigInteger.valueOf(interval));
-		
-		setSchedule(schedule);
-		savePendingModifications(parentResult);
-	}
-
-	@Override
-	public void finishHandler(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-
-		// let us drop the current handler URI and nominate the top of the other
-		// handlers stack as the current one
-		int handlers;
-		
-		UriStack otherHandlersUriStack = getOtherHandlersUriStack();
-		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUri().isEmpty()) {
-			setHandlerUri(popFromOtherHandlersUriStack());
-			handlers = getOtherHandlersUriStack().getUri().size() + 1;
-		} else {
-			setHandlerUri(null);
-			handlers = 0;
-		}
-		savePendingModifications(parentResult);
-		
-		LOGGER.trace("finishHandler: new current handler uri = {}, new number of handlers = {}", getHandlerUri(), handlers);
-	}
-	
 
 	private PrismContext getPrismContext() {
 		return taskManager.getPrismContext();
 	}
+
 
 
 

@@ -2,6 +2,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import java.math.BigInteger;
 
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.InterruptableJob;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+@DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
 
 	private static TaskManagerQuartzImpl taskManagerImpl;
@@ -46,7 +48,17 @@ public class JobExecutor implements InterruptableJob {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		
-        task = (TaskQuartzImpl) RepoJobStoreUtil.getTaskFromTrigger(context.getTrigger());
+		OperationResult executionResult = createOperationResult("execute");
+
+		// get the task instance
+		String oid = context.getJobDetail().getKey().getName();
+        try {
+			task = (TaskQuartzImpl) taskManagerImpl.getTask(oid, executionResult);
+		} catch (Exception e) {
+			LoggingUtils.logException(LOGGER, "Task with OID {} could not be retrieved, exiting the execution routine.", e, oid);
+			return;
+		}
+		
         executingThread = Thread.currentThread();
         
 		LOGGER.trace("execute called; task = " + task + ", thread = " + executingThread);
@@ -66,9 +78,9 @@ public class JobExecutor implements InterruptableJob {
 					LOGGER.error("Recurrent tasks cannot have more than one task handler; task = {}", task);
 					throw new JobExecutionException("Recurrent tasks cannot have more than one task handler; task = " + task);
 				}
-				executeRecurrentTask(handler);
+				executeRecurrentTask(handler, executionResult);
 			} else if (task.isSingle()) {
-				executeSingleTask(handler);
+				executeSingleTask(handler, executionResult);
 			} else {
 				LOGGER.error("Tasks must be either recurrent or single-run. This one is neither. Sorry.");
 			}
@@ -80,26 +92,26 @@ public class JobExecutor implements InterruptableJob {
 
 	}
 
-	private void executeSingleTask(TaskHandler handler) throws JobExecutionException {
+	private void executeSingleTask(TaskHandler handler, OperationResult executionResult) throws JobExecutionException {
 
 		try {
 			
 			RepositoryCache.enter();
 			
-			// This is NOT the result of the run itself. That can be found in the RunResult
-			// this is a result of the runner, used to record "overhead" things like recording the run status
-			
-			OperationResult runnerRunOpResult = createOperationResult("executeSingleTask");
 			TaskRunResult runResult = null;
 
-			recordCycleRunStart(runnerRunOpResult);
+			recordCycleRunStart(executionResult);
 			
 			// here we execute the whole handler stack
 			// FIXME do a better run result reporting! (currently only the last runResult gets reported)
 			
 			while (handler != null && task.canRun()) {
 				runResult = executeHandler(handler);
-				task.finishHandler(runnerRunOpResult);
+				
+				if (task.canRun())
+					task.finishHandler(executionResult);			// closes the task, if there are no remaining handlers
+				else
+					break;											// in case of suspension/shutdown, we expect that the task will be restarted in the future, so we will not close it
 				
 				if (runResult.getOperationResult().isError())
 					break;
@@ -107,7 +119,7 @@ public class JobExecutor implements InterruptableJob {
 				handler = taskManagerImpl.getHandler(task.getHandlerUri());
 			}
 
-			recordCycleRunFinish(runResult, runnerRunOpResult);
+			recordCycleRunFinish(runResult, executionResult);
 
 		} catch (Throwable t) {
 			LoggingUtils.logException(LOGGER, "An exception occurred during processing of task {}", t, task);
@@ -117,10 +129,8 @@ public class JobExecutor implements InterruptableJob {
 		}
 	}
 	
-	private void executeRecurrentTask(TaskHandler handler) throws JobExecutionException {
+	private void executeRecurrentTask(TaskHandler handler, OperationResult executionResult) throws JobExecutionException {
 
-		OperationResult runnerRunOpResult = createOperationResult("executeRecurrentTask");
-		
 		try {
 
 			while (task.canRun()) {
@@ -129,9 +139,9 @@ public class JobExecutor implements InterruptableJob {
 
 				RepositoryCache.enter();
 
-				recordCycleRunStart(runnerRunOpResult);
+				recordCycleRunStart(executionResult);
 				TaskRunResult runResult = executeHandler(handler);
-				boolean canContinue = recordCycleRunFinish(runResult, runnerRunOpResult);
+				boolean canContinue = recordCycleRunFinish(runResult, executionResult);
 					
 				RepositoryCache.exit();
 
@@ -170,7 +180,7 @@ public class JobExecutor implements InterruptableJob {
 				}
 
 				try {
-					task.refresh(runnerRunOpResult);
+					task.refresh(executionResult);
 				} catch (ObjectNotFoundException ex) {
 					LOGGER.error("Error refreshing task "+task+": Object not found: "+ex.getMessage(),ex);
 					return;			// The task object in repo is gone. Therefore this task should not run any more. Therefore commit seppuku

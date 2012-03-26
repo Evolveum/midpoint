@@ -43,7 +43,7 @@
 	<recurrence>recurring</recurrence>
 	<binding>loose</binding>
 	<schedule>
-		<cronLikePattern>* * * * *</cronLikePattern>
+		<cronLikePattern>0/2 * * * * ?</cronLikePattern>
 	</schedule>
 
 </task>

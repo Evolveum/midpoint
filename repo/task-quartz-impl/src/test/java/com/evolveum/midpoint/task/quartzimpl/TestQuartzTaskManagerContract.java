@@ -59,7 +59,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
@@ -198,8 +197,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         long currentTime2 = currentTime + 25000;
         task.setLastRunStartTimestamp(currentTime);
         task.setLastRunFinishTimestamp(currentTime1);
-        task.setNextRunStartTime(currentTime2);
-        task.setExclusivityStatus(TaskExclusivityStatus.CLAIMED);
+//        task.setExclusivityStatus(TaskExclusivityStatus.CLAIMED);
         task.setExecutionStatus(TaskExecutionStatus.SUSPENDED);
         task.setHandlerUri("http://no-handler.org/");
         task.pushHandlerUri("http://no-handler.org/1");
@@ -224,9 +222,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue(currentTime == task001.getLastRunStartTimestamp());
         AssertJUnit.assertNotNull(task001.getLastRunFinishTimestamp());
         AssertJUnit.assertTrue(currentTime1 == task001.getLastRunFinishTimestamp());        
-        AssertJUnit.assertNotNull(task001.getNextRunStartTime());
-        AssertJUnit.assertTrue(currentTime2 == task001.getNextRunStartTime());
-        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task001.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task001.getExclusivityStatus());
         AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task001.getExecutionStatus());
         AssertJUnit.assertEquals("http://no-handler.org/2", task001.getHandlerUri());
         AssertJUnit.assertEquals("Number of handlers is not OK", 3, task.getHandlersCount());
@@ -272,8 +268,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this
         // task
        	
-       	((TaskManagerQuartzImpl) taskManager).scan();
-       	
         logger.info("Waiting for task manager to pick up the task and run it");
         Thread.sleep(2000);
         logger.info("... done");
@@ -292,7 +286,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task1.getExecutionStatus());
 
         // .. and released
-        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task1.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task1.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task1.getLastRunStartTimestamp());
@@ -366,8 +360,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
         // task
-        ((TaskManagerQuartzImpl) taskManager).scan();
-        
         LOGGER.trace("Waiting for task manager to pick up the task");
         Thread.sleep(3000);
         LOGGER.trace("... done");
@@ -386,7 +378,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
 
         // .. and claimed
-        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -427,7 +419,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         addObjectFromFile(taskFilename(test));
 
-        ((TaskManagerQuartzImpl) taskManager).scan();
         logger.info("Waiting for task manager to pick up the task and run it");
         Thread.sleep(2000);
         logger.info("... done");
@@ -446,7 +437,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 
         // .. and released
-        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -487,7 +478,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this task
         
         LOGGER.trace("Waiting for task manager to pick up the task");
-        ((TaskManagerQuartzImpl) taskManager).scan();
         Thread.sleep(5000);
         LOGGER.trace("... done");
 
@@ -503,18 +493,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // .. it should be running
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-
-        // .. and released
-        
-        // if task is claimed, wait a while and check again
-        if (TaskExclusivityStatus.CLAIMED.equals(task.getExclusivityStatus())) {
-        	Thread.sleep(1000);
-        	task = taskManager.getTask(taskOid(test), result);	// now it should not be claimed for sure!
-            AssertJUnit.assertNotNull(task);
-            System.out.println(task.dump());
-        }
-
-//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -539,7 +517,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     	
     }
 
-    @Test(enabled = false)			// takes ~130 seconds to run
+    @Test(enabled = false)
     public void test010CycleCronLoose() throws Exception {
     	
     	String test = "010CycleCronLoose";
@@ -548,10 +526,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         // We have to wait sufficiently long in order for the task to be processed at least twice
-        ((TaskManagerQuartzImpl) taskManager).scan();
         
         System.out.println("Waiting for task manager to pick up the task");
-        Thread.sleep(130000);
+        Thread.sleep(10000);
         System.out.println("... done");
 
         // Check task status
@@ -561,19 +538,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        // if task is claimed, wait a while and check again
-        if (TaskExclusivityStatus.CLAIMED.equals(task.getExclusivityStatus())) {
-        	Thread.sleep(20000);
-        	task = taskManager.getTask(taskOid(test), result);	// now it should not be claimed for sure!
-            AssertJUnit.assertNotNull(task);
-            System.out.println(task.dump());
-        }
-
         TaskType t = repositoryService.getObject(TaskType.class, taskOid(test), null, result).getValue().getValue();
         System.out.println(ObjectTypeUtil.dump(t));
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// should be released, as it is loosely bound one
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -592,14 +560,13 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
-        
     }
     
     /*
      * This task should NOT be processed (more handlers with recurrent tasks are not supported, because can lead to unpredictable results)
      */
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test011CycleMoreHandlers() throws Exception {
     	
     	String test = "011CycleMoreHandlers";
@@ -610,7 +577,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         TaskQuartzImpl task = (TaskQuartzImpl) taskManager.getTask(taskOid(test), result);
         
         System.out.println("Waiting for task manager to pick up the task");
-        ((TaskManagerQuartzImpl) taskManager).scan();
         Thread.sleep(2000);
         System.out.println("... done");
 
@@ -649,7 +615,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
       	addObjectFromFile(taskFilename(test));
 
         System.out.println("Waiting for task manager to pick up the task");
-        ((TaskManagerQuartzImpl) taskManager).scan();
         Thread.sleep(2000);
         System.out.println("... done");
 
@@ -661,7 +626,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         System.out.println(task.dump());
         
         AssertJUnit.assertEquals("Task is not running", TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-        AssertJUnit.assertEquals("Task is not claimed", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals("Task is not claimed", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
         
         // Now suspend the task
 
@@ -679,10 +644,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // The progress should be more than 0
         AssertJUnit.assertTrue("Task has not reported any progress", task.getProgress() > 0);
 
-        Thread.sleep(200);		// give the scheduler a chance to release the task
+//        Thread.sleep(200);		// give the scheduler a chance to release the task
         
-        task.refresh(result);
-        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+//        task.refresh(result);
+//        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
     }
 
     @Test(enabled = true)
@@ -701,7 +666,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
         System.out.println("Waiting for task manager to pick up the task");
-        ((TaskManagerQuartzImpl) taskManager).scan();
         Thread.sleep(3000);
         System.out.println("... done");
 
@@ -727,7 +691,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Task is not stopped", stopped);
         
         AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
-        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
         
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
@@ -735,9 +699,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
         AssertJUnit.assertTrue(task.getProgress() > 0);
 	    
-        Thread.sleep(200);		// give the scheduler a chance to release the task
-        task.refresh(result);
-        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+//        Thread.sleep(200);		// give the scheduler a chance to release the task
+//        task.refresh(result);
+//        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
     }
 
@@ -754,7 +718,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         System.out.println("After setup: " + task.dump());
         
         System.out.println("Waiting for task manager to pick up the task");
-        ((TaskManagerQuartzImpl) taskManager).scan();
         Thread.sleep(2000);		// task itself takes 8 seconds to finish
         System.out.println("... done");
 
@@ -763,7 +726,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         System.out.println("After refresh: " + task.dump());
         
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
@@ -777,7 +740,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertFalse("Task is stopped (it should be running for now)", stopped);
         
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
-        AssertJUnit.assertEquals("Task should be still claimed, as it is not definitely stopped", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals("Task should be still claimed, as it is not definitely stopped", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
@@ -800,9 +763,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertFalse("Last run finish time is zero", task.getLastRunStartTimestamp().longValue() == 0);
         AssertJUnit.assertTrue("Progress is not reported", task.getProgress() > 0);
 
-        Thread.sleep(200);		// give the scheduler a chance to release the task
-        task.refresh(result);
-        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+//        Thread.sleep(200);		// give the scheduler a chance to release the task
+//        task.refresh(result);
+//        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
     }
 
     // UTILITY METHODS
