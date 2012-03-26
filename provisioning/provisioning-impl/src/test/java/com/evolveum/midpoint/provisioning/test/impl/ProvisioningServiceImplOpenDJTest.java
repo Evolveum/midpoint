@@ -289,14 +289,15 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		displayTestTile("test004ResourceAndConnectorCaching");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ResourceAndConnectorCaching");
-		resource = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		ResourceType resourceType = resource.asObjectable();
 		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(resource.asObjectable(), result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
 		
 		// WHEN
-		PrismObject<ResourceType> resourceAgain = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		
 		// THEN
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
@@ -310,6 +311,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
 		assertNotNull("No resource schema (again)", resourceSchemaAgain);
+		assertEquals("Schema serial number mismatch", resourceType.getSchema().getCachingMetadata().getSerialNumber(),
+				resourceTypeAgain.getSchema().getCachingMetadata().getSerialNumber());
 		assertTrue("Resource schema was not cached", resourceSchema == resourceSchemaAgain);
 		
 		// Now we stick our nose deep inside the provisioning impl. But we need to make sure that the

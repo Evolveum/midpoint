@@ -71,16 +71,23 @@ public class ResourceSchemaCache {
 			serial = xmlSchemaType.getCachingMetadata().getSerialNumber();
 		}
 		
+		if (serial == null) {
+			// No caching metadata or no serial number. We can't do anything with cache
+			// in this case. Just return the original resource.
+			return resourceType;
+		}
+		
 		if (cache.containsKey(oid)) {
 			// There is already an entry in the cache. Check serial number
 			ResourceSchemaCacheEntry entry = cache.get(oid);
-			if (serial != null && !(serial.equals(entry.serialNumber))) {
-				// The new object has different serial number.
-				// Delete the old entry, there is obviously new version of schema
-				cache.remove(oid);
-			} else {
+			if (serial.equals(entry.serialNumber)) {
+				// Same serial number. We have a hit
 				RefinedResourceSchema.setParsedResourceSchemaConditional(resourceType, entry.parsedSchema);
 				return resourceType;
+			} else {
+				// The new object has different serial number.
+				// Delete the old entry, there is obviously new version of schema
+				cache.remove(oid);				
 			}
 		}
 		
