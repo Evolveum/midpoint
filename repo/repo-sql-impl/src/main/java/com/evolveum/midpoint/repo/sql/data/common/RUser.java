@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -47,18 +47,26 @@ public class RUser extends RObject {
 
     @QueryAttribute
     private String fullName;
+    @QueryAttribute
     private String givenName;
+    @QueryAttribute
     private String familyName;
     private Set<String> additionalNames;
+    @QueryAttribute
     private String honorificPrefix;
+    @QueryAttribute
     private String honorificSuffix;
     private Set<String> emailAddress;
     private Set<String> telephoneNumber;
+    @QueryAttribute
     private String employeeNumber;
     private Set<String> employeeType;
     private Set<String> organizationalUnit;
+    @QueryAttribute
     private String locality;
+    @QueryEntity(embedded = true)
     private RCredentials credentials;
+    @QueryEntity(embedded = true)
     private RActivation activation;
 
     private Set<RObjectReference> accountRefs;

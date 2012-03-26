@@ -185,7 +185,12 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void queryResourceStateByResourceRef() throws Exception {
-        //todo query-resource-state-by-resource-ref.xml file
+        //todo query-resource-state-by-resource-ref.xml file        
+    }
+    
+    @Test
+    public void queryEmail() throws Exception {
+        //todo query some Set<String> stuff and embedded stuff and Set<RObjectReference> value
     }
 
     private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
