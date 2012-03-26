@@ -1020,13 +1020,13 @@ public class TestSanity extends AbstractIntegrationTest {
 
             @Override
             public boolean handle(PrismObject<ObjectType> prismObject, OperationResult parentResult) {
-                ObjectType object = prismObject.asObjectable();
-                objects.add(object);
+                ObjectType objectType = prismObject.asObjectable();
+                objects.add(objectType);
 
-                display("Found object", object);
+                display("Found object", objectType);
 
-                assertTrue(object instanceof AccountShadowType);
-                AccountShadowType shadow = (AccountShadowType) object;
+                assertTrue(objectType instanceof AccountShadowType);
+                AccountShadowType shadow = (AccountShadowType) objectType;
                 assertNotNull(shadow.getOid());
                 assertNotNull(shadow.getName());
                 assertEquals(new QName(resourceTypeOpenDjrepo.getNamespace(), "AccountObjectClass"), shadow.getObjectClass());

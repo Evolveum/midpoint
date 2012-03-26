@@ -7,6 +7,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -112,9 +113,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/object/resource-dummy.xml";
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-	private static final String FILENAME_ACCOUNT = "src/test/resources/impl/account-dummy.xml";
-	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
-	private static final String ACCOUNT_NEW_ICF_UID = "will";
+	private static final String FILENAME_ACCOUNT_WILL = "src/test/resources/impl/account-dummy.xml";
+	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
+	private static final String ACCOUNT_WILL_ICF_UID = "will";
+	private static final String FILENAME_ACCOUNT_MORGAN = "src/test/resources/impl/account-dummy-noname.xml";
+	private static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
+	private static final String ACCOUNT_MORGAN_NAME = "morgan";
 	private static final String FILENAME_ACCOUNT_SCRIPT = "src/test/resources/impl/account-dummy-script.xml";
 	private static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
 	private static final String FILENAME_ENABLE_ACCOUNT = "src/test/resources/impl/enable-account.xml";
@@ -348,6 +352,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// Also test if the utility method returns the same thing
 		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+		
+		display("Parsed resource schema", returnedSchema);
 
 		// Check whether it is reusing the existing schema and not parsing it all over again
 		// Not equals() but == ... we want to really know if exactly the same
@@ -490,7 +496,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test010AddAccount");
 
-		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
+		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_WILL, AccountShadowType.class);
 
 		display("Adding shadow", account.asPrismObject());
 
@@ -501,14 +507,14 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		result.computeStatus();
 		display("add object result", result);
 		assertSuccess("addObject has failed (result)", result);
-		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
+		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
+		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID,
 				new PropertyReferenceListType(), result).asObjectable();
 		assertEquals("will", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_OID, new PropertyReferenceListType(), result).asObjectable();
+				ACCOUNT_WILL_OID, new PropertyReferenceListType(), result).asObjectable();
 		display("account from provisioning",provisioningAccountType);
 		assertEquals("will", provisioningAccountType.getName());
 		
@@ -530,6 +536,54 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		checkConsistency();
 	}
+	
+	@Test
+	public void test011AddAccountWithoutName() throws Exception {
+		displayTestTile("test011AddAccountWithoutName");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test010Atest011AddAccountWithoutNameddAccount");
+
+		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_MORGAN, AccountShadowType.class);
+
+		display("Adding shadow", account.asPrismObject());
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, result);
+
+		// THEN
+		result.computeStatus();
+		display("add object result", result);
+		assertSuccess("addObject has failed (result)", result);
+		assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
+
+		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_MORGAN_OID,
+				new PropertyReferenceListType(), result).asObjectable();
+		assertEquals("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
+
+		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
+				ACCOUNT_MORGAN_OID, new PropertyReferenceListType(), result).asObjectable();
+		display("account from provisioning",provisioningAccountType);
+		assertEquals("Account name was not generated (provisioning)", ACCOUNT_MORGAN_NAME, provisioningAccountType.getName());
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow",
+				ResourceObjectShadowUtil.getAttributeValues(provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
+
+		// Check if the account was created in the dummy resource
+
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_MORGAN_NAME);
+		assertNotNull("No dummy account", dummyAccount);
+		assertEquals("Fullname is wrong", "Captain Morgan", dummyAccount.getAttributeValue("fullname"));
+		assertTrue("The account is not enabled", dummyAccount.isEnabled());
+		assertEquals("Wrong password", "sh1verM3T1mb3rs", dummyAccount.getPassword());
+		
+		// Check if the shadow is in the repo
+		PrismObject<AccountShadowType> shadowFromRepo = repositoryService.getObject(AccountShadowType.class, addedObjectOid, null, result);
+		assertNotNull("Shadow was not created in the repository",shadowFromRepo);
+		display("Repository shadow", shadowFromRepo.dump());
+		
+		checkConsistency();
+	}
 
 	@Test
 	public void test011GetAccount() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
@@ -540,7 +594,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		AccountShadowType shadow = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_OID, null, result).asObjectable();
+				ACCOUNT_WILL_OID, null, result).asObjectable();
 
 		// THEN
 		display("Retrieved account shadow", shadow);
@@ -572,7 +626,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 			@Override
 			public boolean handle(PrismObject<AccountShadowType> object, OperationResult parentResult) {
 				foundObjects.add(object.asObjectable());
-				return true;
+		
+				ObjectType objectType = object.asObjectable();
+				assertTrue(objectType instanceof AccountShadowType);
+                AccountShadowType shadow = (AccountShadowType) objectType;
+                checkShadow(shadow);
+                return true;
 			}
 		};
 		
@@ -581,28 +640,29 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		// THEN
 		
-		assertEquals(1,foundObjects.size());
-		
-		AccountShadowType shadow = foundObjects.get(0);
-		display("Found object",shadow);
-		checkShadow(shadow);
-		
+		assertEquals(2,foundObjects.size());
+				
 		checkConsistency();
 	}
 		
 	private void checkShadow(AccountShadowType shadow) {
 		assertNotNull("no OID",shadow.getOid());
 		assertNotNull("no name",shadow.getName());
+		assertEquals(new QName(resourceType.getNamespace(), "AccountObjectClass"), shadow.getObjectClass());
+        assertEquals(RESOURCE_DUMMY_OID, shadow.getResourceRef().getOid());
 		ResourceAttributeContainer attrs = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 		assertNotNull("no attributes",attrs);
 		assertFalse("empty attributes",attrs.isEmpty());
-		assertNotNull("no ICF UID",ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_UID));
-		assertNotNull("no ICF NAME",ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_NAME));
-		assertEquals("Will Turner",
-				ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
+		String icfUid = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_UID);
+        assertNotNull("No ICF UID", icfUid);
+        String icfName = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_NAME);
+        assertNotNull("No ICF NAME", icfName);
+        assertEquals("Wrong shadow name", shadow.getName(), icfName);
+        assertNotNull("Missing fullname attribute", ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
 						new QName(resourceType.getNamespace(), "fullname")));
 		assertNotNull("no activation",shadow.getActivation());
 		assertNotNull("no activation/enabled",shadow.getActivation().isEnabled());
+		assertTrue("not enabled",shadow.getActivation().isEnabled());
 	}
 
 	@Test
@@ -615,7 +675,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test021EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_OID, null, result).asObjectable();
+				ACCOUNT_WILL_OID, null, result).asObjectable();
 		assertNotNull(accountType);
 
 		// THEN
@@ -649,7 +709,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test022EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_OID, null, result).asObjectable();
+				ACCOUNT_WILL_OID, null, result).asObjectable();
 		assertNotNull(accountType);
 
 		// THEN
@@ -822,12 +882,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		QueryType query = new QueryType();
 		Document doc = DOMUtil.getDocument();
 		XPathHolder xpath = new XPathHolder(SchemaConstants.I_ATTRIBUTES);
-		query.setFilter(QueryUtil.createEqualFilter(doc, xpath, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_NEW_ICF_UID));
-		System.out.println("Looking for shadows of \""+ACCOUNT_NEW_ICF_UID+"\" with filter "+DOMUtil.serializeDOMToString(query.getFilter()));
-		display("Looking for shadows of \""+ACCOUNT_NEW_ICF_UID+"\" with filter "+DOMUtil.serializeDOMToString(query.getFilter()));
+		query.setFilter(QueryUtil.createEqualFilter(doc, xpath, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_WILL_ICF_UID));
+		System.out.println("Looking for shadows of \""+ACCOUNT_WILL_ICF_UID+"\" with filter "+DOMUtil.serializeDOMToString(query.getFilter()));
+		display("Looking for shadows of \""+ACCOUNT_WILL_ICF_UID+"\" with filter "+DOMUtil.serializeDOMToString(query.getFilter()));
 		ResultList<PrismObject<AccountShadowType>> objects = repositoryService.searchObjects(AccountShadowType.class, query , null, result);
 		
-		assertEquals("Wrong number of shadows for ICF UID \"" + ACCOUNT_NEW_ICF_UID + "\"", 1, objects.size());
+		assertEquals("Wrong number of shadows for ICF UID \"" + ACCOUNT_WILL_ICF_UID + "\"", 1, objects.size());
 		
 	}
 

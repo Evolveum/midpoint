@@ -218,6 +218,9 @@ public class IntegrationTestTools {
 			return null;
 		}
 		PrismProperty attrProp = attrCont.findProperty(name);
+		if (attrProp == null) {
+			return null;
+		}
 		return attrProp.getRealValues(String.class);
 	}
 
