@@ -50,10 +50,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -821,6 +824,59 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			}
 		}
 	}
+	
+	@Test
+    public void test016SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException {
+        displayTestTile("test016SearchAccountsIterative");
+
+        // GIVEN
+        OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName() + ".test016SearchAccountsIterative");
+
+        final String resourceNamespace = resource.asObjectable().getNamespace();
+        QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+        QueryType query = QueryUtil.createResourceAndAccountQuery(resource.asObjectable(), objectClass, null);
+
+        final Collection<ObjectType> objects = new HashSet<ObjectType>();
+
+        ResultHandler handler = new ResultHandler<ObjectType>() {
+
+            @Override
+            public boolean handle(PrismObject<ObjectType> prismObject, OperationResult parentResult) {
+                ObjectType objectType = prismObject.asObjectable();
+                objects.add(objectType);
+
+                display("Found object", objectType);
+
+                assertTrue(objectType instanceof AccountShadowType);
+                AccountShadowType shadow = (AccountShadowType) objectType;
+                assertNotNull(shadow.getOid());
+                assertNotNull(shadow.getName());
+                assertEquals(new QName(resourceNamespace, "AccountObjectClass"), shadow.getObjectClass());
+                assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
+                String icfUid = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "uid"));
+                assertNotNull("No ICF UID", icfUid);
+                String icfName = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "name"));
+                assertNotNull("No ICF NAME", icfName);
+                assertEquals("Wrong shadow name", shadow.getName(), icfName);
+                assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
+                assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
+                assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));
+                assertNotNull("Missing activation", shadow.getActivation());
+                assertNotNull("Missing activation/enabled", shadow.getActivation().isEnabled());
+                assertTrue("Not enabled", shadow.getActivation().isEnabled());
+                return true;
+            }
+        };
+
+        // WHEN
+
+        provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, result);
+
+        // THEN
+
+        display("Count", objects.size());
+    }
 
 	
 	@Test

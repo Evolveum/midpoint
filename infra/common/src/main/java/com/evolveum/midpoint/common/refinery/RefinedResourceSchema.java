@@ -118,6 +118,10 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	 */
 	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
 		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		return getRefinedSchema(resource, prismContext);
+	}
+	
+	public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException {
 		Object userDataEntry = resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA);
 		if (userDataEntry != null) {
 			if (userDataEntry instanceof RefinedResourceSchema) {
@@ -127,7 +131,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 						"in "+resource+", but got "+userDataEntry.getClass());
 			}
 		} else {
-			RefinedResourceSchema refinedSchema = parse(resourceType, prismContext);
+			RefinedResourceSchema refinedSchema = parse(resource, prismContext);
 			resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema);
 			return refinedSchema;
 		}
@@ -179,6 +183,10 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return resource.getUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA) != null;
 	}
 
+	public static RefinedResourceSchema parse(PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException {
+		return parse(resource.asObjectable(), prismContext);
+	}
+	
 	public static RefinedResourceSchema parse(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
 		
 		ResourceSchema originalResourceSchema = getResourceSchema(resourceType, prismContext);
