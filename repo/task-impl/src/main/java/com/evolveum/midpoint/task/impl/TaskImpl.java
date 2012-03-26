@@ -501,12 +501,10 @@ public class TaskImpl implements Task {
 		}
 	}
 
-	@Override
 	public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		processModificationNow(setExecutionStatusAndPrepareDelta(value), parentResult);
 	}
 
-	@Override
 	public void setExecutionStatus(TaskExecutionStatus value) {
 		processModificationBatched(setExecutionStatusAndPrepareDelta(value));
 	}
@@ -521,7 +519,6 @@ public class TaskImpl implements Task {
 	 * Exclusivity status
 	 */
 	
-	@Override
 	public TaskExclusivityStatus getExclusivityStatus() {
 		TaskExclusivityStatusType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_EXCLUSIVITY_STATUS, TaskExclusivityStatusType.class);
 		if (xmlValue == null) {
@@ -530,12 +527,10 @@ public class TaskImpl implements Task {
 		return TaskExclusivityStatus.fromTaskType(xmlValue);
 	}
 
-	@Override
 	public void setExclusivityStatus(TaskExclusivityStatus value) {
 		processModificationBatched(setExclusivityStatusAndPrepareDelta(value));
 	}
 
-	@Override
 	public void setExclusivityStatusImmediate(TaskExclusivityStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		processModificationNow(setExclusivityStatusAndPrepareDelta(value), parentResult);
 	}
@@ -991,7 +986,6 @@ public class TaskImpl implements Task {
 		return sb.toString();
 	}
 
-	@Override
 	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		setLastRunStartTimestamp(System.currentTimeMillis());
@@ -1019,7 +1013,6 @@ public class TaskImpl implements Task {
 //		repositoryService.modifyObject(TaskType.class, getOid(), modifications, parentResult);
 	}
 
-	@Override
 	public void recordRunFinish(TaskRunResult runResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		setProgress(runResult.getProgress()); 
@@ -1058,7 +1051,6 @@ public class TaskImpl implements Task {
 		result.recordSuccess();
 	}
 	
-	@Override
 	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		PropertyDelta.applyTo(modifications, taskPrism);
 		if (isPersistent()) {
@@ -1076,7 +1068,6 @@ public class TaskImpl implements Task {
 		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
 	}
 
-	@Override
 	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(Task.class.getName()+".close");
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
@@ -1170,7 +1161,6 @@ public class TaskImpl implements Task {
 		savePendingModifications(parentResult);
 	}
 
-	@Override
 	public void finishHandler(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		// let us drop the current handler URI and nominate the top of the other

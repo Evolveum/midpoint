@@ -373,20 +373,20 @@ public class TaskDetailsController implements Serializable {
 
     public void releaseTaskPerformed(ActionEvent evt) {
         // TODO: check on input values
-        OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".releaseTask");
-        try {
-            Task taskToRelease = taskManager.getTask(task.getOid(), result);
-
-            taskManager.releaseTask(taskToRelease, result);
-            FacesUtils.addSuccessMessage("Task released successfully");
-        } catch (Exception ex) {
-            FacesUtils.addErrorMessage("Failed to release task. Reason: " + ex.getMessage(), ex);
-        } finally {
-            result.computeStatus();
-            if (!result.isSuccess()) {
-                FacesUtils.addMessage(result);
-            }
-        }
+//        OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".releaseTask");
+//        try {
+//            Task taskToRelease = taskManager.getTask(task.getOid(), result);
+//
+//            taskManager.releaseTask(taskToRelease, result);
+//            FacesUtils.addSuccessMessage("Task released successfully");
+//        } catch (Exception ex) {
+//            FacesUtils.addErrorMessage("Failed to release task. Reason: " + ex.getMessage(), ex);
+//        } finally {
+//            result.computeStatus();
+//            if (!result.isSuccess()) {
+//                FacesUtils.addMessage(result);
+//            }
+//        }
     }
 
     public String addPerformed() {

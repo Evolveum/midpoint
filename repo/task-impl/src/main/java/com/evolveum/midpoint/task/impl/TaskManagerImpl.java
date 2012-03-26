@@ -286,8 +286,8 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#claimTask(com.evolveum.midpoint.task.api.Task)
 	 */
-	@Override
-	public void claimTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException {
+	public void claimTask(Task task0, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException {
+		TaskImpl task = (TaskImpl) task0;
 		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".claimTask");
 		result.addParam(OperationResult.PARAM_OID, task.getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
@@ -324,8 +324,8 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#releaseTask(com.evolveum.midpoint.task.api.Task)
 	 */
-	@Override
-	public void releaseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public void releaseTask(Task task0, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		TaskImpl task = (TaskImpl) task0;
 		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".releaseTask");
 		result.addParam(OperationResult.PARAM_OID, task.getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
@@ -351,7 +351,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 * @see com.evolveum.midpoint.task.api.TaskManager#switchToBackground(com.evolveum.midpoint.task.api.Task)
 	 */
 	@Override
-	public void switchToBackground(final Task task, OperationResult parentResult) {
+	public void switchToBackground(final Task task0, OperationResult parentResult) {
+		
+		TaskImpl task = (TaskImpl) task0;
 		
 		parentResult.recordStatus(OperationResultStatus.IN_PROGRESS, "Task switched to background");
 		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".switchToBackground");
@@ -710,7 +712,6 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		return query;
 	}
 
-	@Override
 	public Long determineNextRunStartTime(TaskType taskType) {
 		return ScheduleEvaluator.determineNextRunStartTime(taskType);
 	}
@@ -729,7 +730,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		if (task.getOid() == null)
 			throw new IllegalArgumentException("Only persistent tasks can be suspended (for now).");
 
-		task.setExecutionStatus(TaskExecutionStatus.SUSPENDED);
+		((TaskImpl) task).setExecutionStatus(TaskExecutionStatus.SUSPENDED);
 		task.savePendingModifications(parentResult);
 		
 		TaskRunner runner = findRunner(task.getTaskIdentifier());
@@ -771,22 +772,8 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		
 		// TODO: check whether task is suspended
 		// TODO: recompute next running time
-		
-//		try {
-//			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-//				SchemaConstants.C_TASK_EXECUTION_STATUS, 
-//				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
-//				TaskExecutionStatusType.RUNNING.value());
-//			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
-//		} catch (ObjectNotFoundException ex) {
-//			result.recordFatalError("Cannot resume task, as it was not found", ex);
-//			throw ex;
-//		} catch (SchemaException ex) {
-//			result.recordPartialError("Cannot resume task due to schema error", ex);
-//			throw ex;
-//		}
-		
-		task.setExecutionStatusImmediate(TaskExecutionStatus.RUNNING, result);
+				
+		((TaskImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNING, result);
 		
 		// Wake up scanner thread, this task may need to be processed
 		scannerThread.scan();

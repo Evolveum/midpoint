@@ -73,7 +73,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 @ContextConfiguration(locations = {"classpath:application-context-model-unit-test.xml",
         "classpath:application-context-model.xml",
         "classpath:application-context-configuration-test-no-repo.xml",
-        "classpath:application-context-task.xml"})
+        "classpath:application-context-task.xml",
+        "classpath:application-context-audit.xml"})
 public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
     private static final File TEST_FOLDER_CONTROLLER = new File("./src/test/resources/controller");

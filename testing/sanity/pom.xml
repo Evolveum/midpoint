@@ -84,7 +84,12 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>task-impl</artifactId>
+			<artifactId>task-quartz-impl</artifactId>
+			<version>2.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>audit-impl</artifactId>
 			<version>2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>

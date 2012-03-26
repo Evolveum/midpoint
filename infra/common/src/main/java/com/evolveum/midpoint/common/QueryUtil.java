@@ -271,7 +271,10 @@ public class QueryUtil {
 	public static String dump(QueryType query) {
 		StringBuilder sb = new StringBuilder("Query(");
 		sb.append(query.getDescription()).append("):\n");
-		sb.append(DOMUtil.serializeDOMToString(query.getFilter()));
+		if (query.getFilter() != null)
+			sb.append(DOMUtil.serializeDOMToString(query.getFilter()));
+		else
+			sb.append("(no filter)");
 		return sb.toString();
 	}
 

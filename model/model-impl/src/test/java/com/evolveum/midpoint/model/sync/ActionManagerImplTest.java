@@ -35,7 +35,8 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", 
 		"classpath:application-context-configuration-test-no-repo.xml",
-		"classpath:application-context-task.xml" })
+		"classpath:application-context-task.xml",
+		"classpath:application-context-audit.xml" })
 public class ActionManagerImplTest extends AbstractTestNGSpringContextTests  {
 
 	@Autowired(required = true)

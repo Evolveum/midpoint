@@ -29,9 +29,4 @@
 			<class name="com.evolveum.midpoint.task.impl.TestTaskManagerContract"/>
 		</classes>
 	</test>
- 	<test name="audit" preserve-order="false" enabled="true">
-		<classes>
-			<class name="com.evolveum.midpoint.audit.impl.TestAuditServiceImpl"/>
-		</classes>
-	</test>
 </suite>

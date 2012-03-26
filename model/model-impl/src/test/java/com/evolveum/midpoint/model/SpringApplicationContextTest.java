@@ -41,7 +41,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 		"classpath:application-context-configuration-test.xml",
 		"classpath:application-context-model.xml",
 		"classpath:application-context-provisioning.xml",
-		"classpath:application-context-task.xml" 
+		"classpath:application-context-task.xml",
+		"classpath:application-context-audit.xml"
 		})
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests  {
 

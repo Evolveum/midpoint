@@ -856,9 +856,9 @@ public class XmlRepositoryService implements RepositoryService {
 			throw new IllegalArgumentException("Provided null query");
 		}
 
-		if (null == query.getFilter()) {
-			throw new IllegalArgumentException("No filter in query");
-		}
+//		if (null == query.getFilter()) {
+//			throw new IllegalArgumentException("No filter in query");
+//		}
 	}
 
 	private void errorLogRecordAndRethrow(String message, OperationResult result, Exception ex) {

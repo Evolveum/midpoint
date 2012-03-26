@@ -102,7 +102,7 @@ public interface Task extends Dumpable {
 	 * 
 	 * @param executionStatus new task execution status.
 	 */
-	public void setExecutionStatus(TaskExecutionStatus value);
+//	public void setExecutionStatus(TaskExecutionStatus value);
 
 	/**
 	 * Sets task execution status, in memory as well as in repository (for persistent tasks). 
@@ -111,7 +111,7 @@ public interface Task extends Dumpable {
 	 * 
 	 * @param executionStatus new task execution status.
 	 */
-	public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult result) throws ObjectNotFoundException, SchemaException;
+//	public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult result) throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Returns task persistence status.
@@ -129,12 +129,12 @@ public interface Task extends Dumpable {
 	 * 
 	 * @return task exclusivity status.
 	 */
-	public TaskExclusivityStatus getExclusivityStatus();
+//	public TaskExclusivityStatus getExclusivityStatus();
 	
-	void setExclusivityStatus(TaskExclusivityStatus value);
+//	void setExclusivityStatus(TaskExclusivityStatus value);
 
-	void setExclusivityStatusImmediate(TaskExclusivityStatus value, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
+//	void setExclusivityStatusImmediate(TaskExclusivityStatus value, OperationResult parentResult)
+//			throws ObjectNotFoundException, SchemaException;
 
 
 
@@ -377,9 +377,9 @@ public interface Task extends Dumpable {
 	/*
 	 * Please do not use this method; use specific setters (e.g. setName, setExtensionProperty, and so on) instead.
 	 */
-	@Deprecated
-	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) 
-			throws ObjectNotFoundException, SchemaException;
+//	@Deprecated
+//	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) 
+//			throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Record finish of the last "run" of the task
@@ -390,9 +390,9 @@ public interface Task extends Dumpable {
 	 * @throws SchemaException 
 	 * @throws ObjectNotFoundException 
 	 */
-	public void recordRunFinish(TaskRunResult runResult,OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+//	public void recordRunFinish(TaskRunResult runResult,OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
-	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+//	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	
 	/**
@@ -413,7 +413,7 @@ public interface Task extends Dumpable {
 	 * @throws ObjectNotFoundException 
 	 * @throws SchemaException 
 	 */
-	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+//	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 
 	/**
@@ -432,8 +432,8 @@ public interface Task extends Dumpable {
 	 * returns from run() method) or explicitly by task handler, in case of CycleRunner.
 	 * TODO this has to be thought out a bit. 
 	 */
-	public void finishHandler(OperationResult parentResult) throws ObjectNotFoundException,
-	SchemaException;
+//	public void finishHandler(OperationResult parentResult) throws ObjectNotFoundException,
+//	SchemaException;
 	
 	// TODO
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,

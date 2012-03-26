@@ -50,6 +50,7 @@ import static org.testng.AssertJUnit.assertNotNull;
         "classpath:application-context-repo-cache.xml",
         "classpath:application-context-repository.xml",
         "classpath:application-context-task.xml",
+        "classpath:application-context-audit.xml",
         "classpath:application-context-configuration-test.xml"})
 //        // TODO: if these two contexts are initilized then the test fails for
 //        // unknown reason

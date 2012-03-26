@@ -313,7 +313,6 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue(currentTime1 == task001.getLastRunFinishTimestamp());        
         AssertJUnit.assertNotNull(task001.getNextRunStartTime());
         AssertJUnit.assertTrue(currentTime2 == task001.getNextRunStartTime());
-        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task001.getExclusivityStatus());
         AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task001.getExecutionStatus());
         AssertJUnit.assertEquals("http://no-handler.org/2", task001.getHandlerUri());
         AssertJUnit.assertEquals("Number of handlers is not OK", 3, task.getHandlersCount());
@@ -374,9 +373,6 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
         // .. it should be closed
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task1.getExecutionStatus());
-
-        // .. and released
-        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task1.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task1.getLastRunStartTimestamp());
@@ -470,7 +466,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
 
         // .. and claimed
-        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -621,7 +617,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 
         // .. and released
-        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -682,7 +678,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
 
         // .. and claimed
-        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -725,18 +721,18 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         System.out.println(task.dump());
 
         // if task is claimed, wait a while and check again
-        if (TaskExclusivityStatus.CLAIMED.equals(task.getExclusivityStatus())) {
-        	Thread.sleep(20000);
-        	task = taskManager.getTask(taskOid(test), result);	// now it should not be claimed for sure!
-            AssertJUnit.assertNotNull(task);
-            System.out.println(task.dump());
-        }
+//        if (TaskExclusivityStatus.CLAIMED.equals(task.getExclusivityStatus())) {
+//        	Thread.sleep(20000);
+//        	task = taskManager.getTask(taskOid(test), result);	// now it should not be claimed for sure!
+//            AssertJUnit.assertNotNull(task);
+//            System.out.println(task.dump());
+//        }
 
         TaskType t = repositoryService.getObject(TaskType.class, taskOid(test), null, result).getValue().getValue();
         System.out.println(ObjectTypeUtil.dump(t));
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// should be released, as it is loosely bound one
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// should be released, as it is loosely bound one
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -823,7 +819,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         System.out.println(task.dump());
         
         AssertJUnit.assertEquals("Task is not running", TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-        AssertJUnit.assertEquals("Task is not claimed", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals("Task is not claimed", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
         
         // Now suspend the task
 
@@ -835,7 +831,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue("Task is not stopped", stopped);
         
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
-        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull("Task last start time is null", task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse("Task last start time is 0", task.getLastRunStartTimestamp().longValue() == 0);
@@ -869,7 +865,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         System.out.println("After refresh: " + task.dump());
         
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// task cycle is 1000 ms, so it should be released now 
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// task cycle is 1000 ms, so it should be released now 
 
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp().longValue() == 0);
@@ -886,7 +882,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue("Task is not stopped", stopped);
         
         AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
-        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
@@ -916,7 +912,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         System.out.println("After refresh: " + task.dump());
         
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
@@ -930,7 +926,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertFalse("Task is stopped (it should be running for now)", stopped);
         
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
-        AssertJUnit.assertEquals("Task should be still claimed, as it is not definitely stopped", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals("Task should be still claimed, as it is not definitely stopped", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
@@ -946,7 +942,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue("Task is not stopped", stopped);
         
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
-        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+//        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);

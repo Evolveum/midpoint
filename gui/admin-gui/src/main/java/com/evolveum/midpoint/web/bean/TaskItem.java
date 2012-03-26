@@ -83,8 +83,7 @@ public class TaskItem extends SelectableBean {
         this.nextRunStartTimeLong = task.getNextRunStartTime();
         this.executionStatus = TaskItemExecutionStatus.fromTask(task
                 .getExecutionStatus());
-        this.exclusivityStatus = TaskItemExclusivityStatus.fromTask(task
-                .getExclusivityStatus());
+        //this.exclusivityStatus = TaskItemExclusivityStatus.fromTask(task.getExclusivityStatus());
         this.binding = TaskItemBinding.fromTask(task.getBinding());
         
         this.scheduleInterval = null;
@@ -205,9 +204,9 @@ public class TaskItem extends SelectableBean {
         // here we must compute when the task is to be run next (for recurring tasks);
         // beware that the schedule & recurring type must be known for this taskType
         {
-        	Long nextRunTime = taskManager.determineNextRunStartTime(taskType);		// for single-run tasks returns 0
-        	if (nextRunTime != null && nextRunTime > 0)
-        		taskType.setNextRunStartTime(XmlTypeConverter.createXMLGregorianCalendar(nextRunTime));
+//        	Long nextRunTime = taskManager.determineNextRunStartTime(taskType);		// for single-run tasks returns 0
+//        	if (nextRunTime != null && nextRunTime > 0)
+//        		taskType.setNextRunStartTime(XmlTypeConverter.createXMLGregorianCalendar(nextRunTime));
         }
         
         if (getResult() != null) {
@@ -226,14 +225,14 @@ public class TaskItem extends SelectableBean {
         return taskType;
     }
 
-    public void setExclusivityStatus(Task task) {
-        if (task.getExclusivityStatus().equals(TaskExclusivityStatus.CLAIMED)) {
-            exclusivityStatus = TaskItemExclusivityStatus.CLAIMED;
-        }
-        if (task.getExclusivityStatus().equals(TaskExclusivityStatus.RELEASED)) {
-            exclusivityStatus = TaskItemExclusivityStatus.RELEASED;
-        }
-    }
+//    public void setExclusivityStatus(Task task) {
+//        if (task.getExclusivityStatus().equals(TaskExclusivityStatus.CLAIMED)) {
+//            exclusivityStatus = TaskItemExclusivityStatus.CLAIMED;
+//        }
+//        if (task.getExclusivityStatus().equals(TaskExclusivityStatus.RELEASED)) {
+//            exclusivityStatus = TaskItemExclusivityStatus.RELEASED;
+//        }
+//    }
 
     public TaskItemExecutionStatus getExecutionStatus() {
         return executionStatus;

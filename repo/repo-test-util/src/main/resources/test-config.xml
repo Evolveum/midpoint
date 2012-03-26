@@ -24,17 +24,22 @@
         <global>
             <extensionDir>./src/test/resources/schema</extensionDir>
         </global>
+<!--         <repository> -->
+<!--         <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass> -->
+<!--         <embedded>true</embedded> -->
+<!--         <asServer>false</asServer> -->
+<!--         <baseDir>.</baseDir> -->
+<!--         </repository> -->
 		<repository>
 			<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory</repositoryServiceFactoryClass>
 			<runServer>true</runServer>
-			<embedded>true</embedded> <!-- embedded is applicable only if runServer > true -->
+			<embedded>true</embedded> 
 			<shutdown>true</shutdown>
 			<dropDatabase>true</dropDatabase>
 			<debug>true</debug>
-			<initialDataPath></initialDataPath> <!-- initialDataPath - path containing xmls that should be loaded into DB -->
-			<databaseName>midPoint-test</databaseName> <!-- database name -->
+			<initialDataPath></initialDataPath> 
+			<databaseName>midPoint-test</databaseName> 
 			<serverPath>target/basex-data</serverPath>
-			<!-- client connection properties -->
 			<host>localhost</host>
 			<port>19840</port>
 			<eventPort>19850</eventPort>

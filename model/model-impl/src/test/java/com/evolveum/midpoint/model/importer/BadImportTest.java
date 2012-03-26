@@ -59,7 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml",
 		"classpath:application-context-provisioning.xml",
-		"classpath:application-context-task.xml" })
+		"classpath:application-context-task.xml",
+		"classpath:application-context-audit.xml" })
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class BadImportTest extends AbstractTestNGSpringContextTests {
 	
