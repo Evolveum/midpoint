@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -56,7 +57,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -69,7 +69,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
@@ -100,6 +102,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	private static final long WAIT_FOR_COMPLETION_INITIAL = 100;			// initial waiting time (for task or tasks to be finished); it is doubled at each step 
 	private static final long WAIT_FOR_COMPLETION_MAX = 1600;				// max waiting time (in one step) for task(s) to be finished
 	
+	private static boolean jdbcJobStore = false;
+	
+	private static int START_DELAY_TIME = 1;								// delay time - how long to wait before starting the scheduler
+	
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -121,14 +127,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		NoOpTaskHandler.instantiateAndRegister(this);
 		
 		// hacks...
-//		RepoJobStore.setTaskManagerQuartzImpl(this);
 		JobExecutor.setTaskManagerQuartzImpl(this);
 		
 		StdSchedulerFactory sf = new StdSchedulerFactory();
-		
+
+		// TODO: take some of the properties from midpoint configuration 
 		Properties qprops = new Properties();
-//		qprops.put("org.quartz.jobStore.class", RepoJobStore.class.getName());
-		qprops.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
+		
+		if (jdbcJobStore)
+			qprops.put("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
+		else
+			qprops.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
 		qprops.put("org.quartz.scheduler.instanceName", "midPointScheduler");
 		qprops.put("org.quartz.scheduler.instanceId", "AUTO");
 		qprops.put("org.quartz.scheduler.skipUpdateCheck", "true");
@@ -138,18 +147,52 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		try {
 			sf.initialize(qprops);
 			quartzScheduler = sf.getScheduler();
-			
-			quartzScheduler.start();
+			quartzScheduler.startDelayed(START_DELAY_TIME);
 		} catch (SchedulerException e) {
 			LoggingUtils.logException(LOGGER, "Cannot get or start Quartz scheduler", e);
 			throw new SystemException("Cannot get or start Quartz scheduler", e);
 		}
+		
+//		if (!jdbcJobStore)
+//			importQuartzJobs();
 		
 		LOGGER.trace("Quartz scheduler initialized and started; it is " + quartzScheduler);
 		
 		LOGGER.info("Task Manager initialized");
 	}
 	
+	
+	// imports Quartz jobs, reading them from repository 
+	private void importQuartzJobs() {
+		
+		OperationResult result = createOperationResult("importQuartzJobs");
+		
+		LOGGER.trace("Importing existing tasks into volatile Quartz job store.");
+		
+		PagingType paging = new PagingType();
+		QueryType query = new QueryType();
+		List<PrismObject<TaskType>> tasks = null;
+		try {
+			tasks = repositoryService.searchObjects(TaskType.class, query, paging, result);
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "Task Manager cannot search for tasks", e);
+			throw new SystemException("Task Manager cannot search for tasks", e);
+		}
+
+		for (PrismObject<TaskType> taskPrism : tasks) {
+			TaskQuartzImpl task;
+			try {
+				task = (TaskQuartzImpl) createTaskInstance(taskPrism, result);
+			} catch (SchemaException e) {
+				LoggingUtils.logException(LOGGER, "Task Manager cannot create task instance from task stored in repository due to schema exception; OID = {}", e, taskPrism.getOid());
+				throw new SystemException("Task Manager cannot create task instance from task stored in repository due to schema exception; OID = " + taskPrism.getOid(), e);
+			}
+			task.addOrReplaceQuartzTask();
+		}
+		
+		LOGGER.trace("Import existing tasks into volatile Quartz job store finished: " + tasks.size() + " task(s) processed.");
+	}
+
 	@PreDestroy
 	public void shutdown() {
 		LOGGER.info("Task Manager shutdown");
@@ -170,12 +213,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 				LoggingUtils.logException(LOGGER, "Cannot shutdown tasks", e);
 			}
 			
-			LOGGER.trace("Shutting down Quartz scheduler");
-			try {
-				quartzScheduler.shutdown(true);
-			} catch (SchedulerException e) {
-				LoggingUtils.logException(LOGGER, "Cannot shutdown Quartz scheduler", e);
-			}
+//			LOGGER.trace("Shutting down Quartz scheduler");
+//			try {
+//				quartzScheduler.shutdown(true);
+//			} catch (SchedulerException e) {
+//				LoggingUtils.logException(LOGGER, "Cannot shutdown Quartz scheduler", e);
+//			}
 		}
 		LOGGER.info("Task Manager shutdown finished");
 	}
@@ -271,7 +314,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		try {
 			
 			result.recordSuccess();
-			task.setExclusivityStatus(TaskExclusivityStatus.RELEASED);
 			persist(task, result);
 			
 		} catch (RuntimeException ex) {
@@ -401,17 +443,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		return taskPrismDefinition;
 	}
 
-	@Override
-	public void claimTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			ConcurrencyException, SchemaException {
-		throw new UnsupportedOperationException("Claiming and releasing tasks is implemented by Quartz scheduler.");
-	}
-
-	@Override
-	public void releaseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException {
-		throw new UnsupportedOperationException("Claiming and releasing tasks is implemented by Quartz scheduler.");
-	}
 
 	@Override
 	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult)
@@ -422,7 +453,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		if (task.getOid() == null)
 			throw new IllegalArgumentException("Only persistent tasks can be suspended (for now).");
 		
-		task.setExecutionStatusImmediate(TaskExecutionStatus.SUSPENDED, parentResult);
+		((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.SUSPENDED, parentResult);
 
 		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
 		
@@ -533,7 +564,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 			return;
 		}
 			
-		task.setExecutionStatusImmediate(TaskExecutionStatus.RUNNING, parentResult);
+		((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNING, parentResult);
 			
 		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
 		TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
@@ -575,11 +606,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		return false;
 	}
 
-	@Override
-	public Long determineNextRunStartTime(TaskType taskType) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public boolean isTaskThreadActive(String taskIdentifier) {

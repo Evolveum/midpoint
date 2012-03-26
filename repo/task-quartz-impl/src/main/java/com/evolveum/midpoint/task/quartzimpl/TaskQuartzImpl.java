@@ -492,7 +492,6 @@ public class TaskQuartzImpl implements Task {
 		}
 	}
 	
-	@Override
 	public void finishHandler(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		// let us drop the current handler URI and nominate the top of the other
@@ -608,12 +607,10 @@ public class TaskQuartzImpl implements Task {
 		}
 	}
 
-	@Override
 	public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		processModificationNow(setExecutionStatusAndPrepareDelta(value), parentResult);
 	}
 
-	@Override
 	public void setExecutionStatus(TaskExecutionStatus value) {
 		processModificationBatched(setExecutionStatusAndPrepareDelta(value));
 	}
@@ -624,11 +621,6 @@ public class TaskQuartzImpl implements Task {
 					taskManager.getTaskObjectDefinition(), TaskType.F_EXECUTION_STATUS, value.toTaskType()) : null;
 	}
 	
-	@Override
-	@Deprecated
-	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		setExecutionStatusImmediate(TaskExecutionStatus.CLOSED, parentResult);
-	}
 
 	public void close() throws ObjectNotFoundException, SchemaException {
 		
@@ -644,25 +636,6 @@ public class TaskQuartzImpl implements Task {
 		} catch(SchedulerException e) {
 			LoggingUtils.logException(LOGGER, "Cannot remove trigger for task {}", e, this);
 		}
-	}
-
-	/* 
-	 * Exclusivity status
-	 */
-	
-	@Override
-	public TaskExclusivityStatus getExclusivityStatus() {
-		throw new UnsupportedOperationException("Task claiming and releasing is managed by Quartz Scheduler.");
-	}
-
-	@Override
-	public void setExclusivityStatus(TaskExclusivityStatus value) {
-		throw new UnsupportedOperationException("Task claiming and releasing is managed by Quartz Scheduler.");
-	}
-
-	@Override
-	public void setExclusivityStatusImmediate(TaskExclusivityStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		throw new UnsupportedOperationException("Task claiming and releasing is managed by Quartz Scheduler.");
 	}
 
 	/*
@@ -1088,14 +1061,12 @@ public class TaskQuartzImpl implements Task {
 		return sb.toString();
 	}
 
-	@Override
 	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		setLastRunStartTimestamp(System.currentTimeMillis());
 		savePendingModifications(parentResult);
 	}
 
-	@Override
 	public void recordRunFinish(TaskRunResult runResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		setProgress(runResult.getProgress()); 
@@ -1134,14 +1105,13 @@ public class TaskQuartzImpl implements Task {
 		result.recordSuccess();
 	}
 	
-	@Override
-	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		throw new UnsupportedOperationException("Generic task modification is not supported. Please use concrete setter methods to modify a task");
+//	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+//		throw new UnsupportedOperationException("Generic task modification is not supported. Please use concrete setter methods to modify a task");
 //		PropertyDelta.applyTo(modifications, taskPrism);
 //		if (isPersistent()) {
 //			getRepositoryService().modifyObject(TaskType.class, getOid(), modifications, parentResult);
 //		}
-	}
+//	}
 
 
 	
