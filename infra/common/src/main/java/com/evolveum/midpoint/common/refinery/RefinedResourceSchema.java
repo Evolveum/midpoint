@@ -139,11 +139,15 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 	
 	public static ResourceSchema getResourceSchema(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceType);
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		return getResourceSchema(resource, prismContext);
+	}
+	
+	public static ResourceSchema getResourceSchema(PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException {
+		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
 		if (resourceXsdSchema == null) {
 			return null;
 		}
-		PrismObject<ResourceType> resource = resourceType.asPrismObject();
 		Object userDataEntry = resource.getUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA);
 		if (userDataEntry != null) {
 			if (userDataEntry instanceof ResourceSchema) {
