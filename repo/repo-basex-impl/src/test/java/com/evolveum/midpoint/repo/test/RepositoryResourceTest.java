@@ -180,31 +180,32 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			}
 		}
 	}
-	
-	@Test
-	public void testResourceLoop() throws Exception {
-		for(int i=0; i<NUM_TESTS; i++) {
-			testResource();
-		}
-	}
 
-	@Test
-	public void testReadLoop() throws Exception {
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_FILE);
-		checkResource(resource, "before add");
-		// ADD resource
-		repositoryService.addObject(resource, new OperationResult("test"));
-		checkResource(resource, "after add");
-
-		for(int i=0; i<NUM_TESTS*2; i++) {			
-			// GET resource
-			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, RESOURCE_OID,
-					new PropertyReferenceListType(), new OperationResult("test"));
-			checkResource(retrievedObject, "after get");
-		}
-		
-		repositoryService.deleteObject(ResourceType.class, RESOURCE_OID, new OperationResult("test"));
-	}
+// These two tests take too much time. Use only if really necessary
+//	@Test
+//	public void testResourceLoop() throws Exception {
+//		for(int i=0; i<NUM_TESTS; i++) {
+//			testResource();
+//		}
+//	}
+//
+//	@Test
+//	public void testReadLoop() throws Exception {
+//		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_FILE);
+//		checkResource(resource, "before add");
+//		// ADD resource
+//		repositoryService.addObject(resource, new OperationResult("test"));
+//		checkResource(resource, "after add");
+//
+//		for(int i=0; i<NUM_TESTS*2; i++) {			
+//			// GET resource
+//			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, RESOURCE_OID,
+//					new PropertyReferenceListType(), new OperationResult("test"));
+//			checkResource(retrievedObject, "after get");
+//		}
+//		
+//		repositoryService.deleteObject(ResourceType.class, RESOURCE_OID, new OperationResult("test"));
+//	}
 
 	
 	private void checkResource(PrismObject<ResourceType> resource, String desc) {
