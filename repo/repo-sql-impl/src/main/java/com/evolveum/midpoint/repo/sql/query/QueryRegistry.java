@@ -23,16 +23,19 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.repo.sql.ClassMapper;
 import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.Index;
 
 import javax.xml.namespace.QName;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -72,47 +75,37 @@ public class QueryRegistry {
      */
     private void init() throws QueryException {
         LOGGER.debug("Initializing query definition registry.");
+//        EntityDefinition account = new EntityDefinition();
+//        account.setName(SchemaConstants.C_ACCOUNT);
+//        account.setType(AccountShadowType.COMPLEX_TYPE);
+//        definitions.put(SchemaConstants.C_ACCOUNT, account);
+//
+//        AttributeDefinition accountType = new AttributeDefinition();
+//        accountType.setName(AccountShadowType.F_ACCOUNT_TYPE);
+//        accountType.setType(DOMUtil.XSD_STRING);
+//        account.putDefinition(AccountShadowType.F_ACCOUNT_TYPE, accountType);
+//
+//        EntityDefinition extension = new EntityDefinition();
+//        extension.setAny(true);
+//        extension.setName(ObjectType.F_EXTENSION);
+//        extension.setType(ExtensionType.COMPLEX_TYPE);
+//        account.putDefinition(ObjectType.F_EXTENSION, extension);
+//
+//        EntityDefinition attributes = new EntityDefinition();
+//        attributes.setAny(true);
+//        attributes.setName(ResourceObjectShadowType.F_ATTRIBUTES);
+//        attributes.setType(ResourceObjectShadowType.COMPLEX_TYPE);
+//        account.putDefinition(ResourceObjectShadowType.F_ATTRIBUTES, attributes);
+//
+//        AttributeDefinition resourceRef = new AttributeDefinition();
+//        resourceRef.setReference(true);
+//        resourceRef.setName(ResourceObjectShadowType.F_RESOURCE_REF);
+//        resourceRef.setType(ObjectReferenceType.COMPLEX_TYPE);
+//        account.putDefinition(resourceRef.getName(), resourceRef);
+
         Collection<RContainerType> types = ClassMapper.getKnownTypes();
-
-        EntityDefinition account = new EntityDefinition();
-        account.setName(SchemaConstants.C_ACCOUNT);
-        account.setType(AccountShadowType.COMPLEX_TYPE);
-        definitions.put(SchemaConstants.C_ACCOUNT, account);
-
-        AttributeDefinition accountType = new AttributeDefinition();
-        accountType.setName(AccountShadowType.F_ACCOUNT_TYPE);
-        accountType.setType(DOMUtil.XSD_STRING);
-        account.addDefinition(AccountShadowType.F_ACCOUNT_TYPE, accountType);
-
-        EntityDefinition extension = new EntityDefinition();
-        extension.setAny(true);
-        extension.setName(ObjectType.F_EXTENSION);
-        extension.setType(ExtensionType.COMPLEX_TYPE);
-        account.addDefinition(ObjectType.F_EXTENSION, extension);
-
-        EntityDefinition attributes = new EntityDefinition();
-        attributes.setAny(true);
-        attributes.setName(ResourceObjectShadowType.F_ATTRIBUTES);
-        attributes.setType(ResourceObjectShadowType.COMPLEX_TYPE);
-        account.addDefinition(ResourceObjectShadowType.F_ATTRIBUTES, attributes);
-
-        AttributeDefinition resourceRef = new AttributeDefinition();
-        resourceRef.setReference(true);
-        resourceRef.setName(ResourceObjectShadowType.F_RESOURCE_REF);
-        resourceRef.setType(ObjectReferenceType.COMPLEX_TYPE);
-        account.addDefinition(resourceRef.getName(), resourceRef);
-
-        if (1 == 1) {
-            return;
-        }
-
-        List<Class> processedClasses = new ArrayList<Class>();
-
-        System.out.println("START");
-        //todo implement
         for (RContainerType type : types) {
             Class clazz = type.getClazz();
-            processedClasses.add(clazz);
 
             EntityDefinition entityDef = new EntityDefinition();
             ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(type);
@@ -122,10 +115,9 @@ public class QueryRegistry {
 
             List<Field> fields = getFields(clazz);
 
-            System.out.println(clazz.getName());
+            LOGGER.trace("Processing {}, fields count: {}.", new Object[]{clazz.getName(), fields.size()});
             for (Field field : fields) {
-
-                System.out.println(field.getName());
+                createDefinition(entityDef, field);
             }
         }
 
@@ -134,6 +126,40 @@ public class QueryRegistry {
         LOGGER.trace("Registry dump\n{}", new Object[]{builder.toString()});
 
         LOGGER.debug("Query definition registry initialization finished.");
+    }
+
+    private void createDefinition(EntityDefinition parent, Field field) {
+        if (hasAnnotation(field, QueryEntity.class)) {
+            LOGGER.trace("Entity {}", new Object[]{field.getName()});
+            QueryEntity queryEntity = field.getAnnotation(QueryEntity.class);
+            String name = StringUtils.isNotEmpty(queryEntity.name()) ? queryEntity.name() : field.getName();
+            String namespace = StringUtils.isNotEmpty(queryEntity.namespace()) ?
+                    queryEntity.namespace() : SchemaConstants.NS_COMMON;
+
+            EntityDefinition entityDef = new EntityDefinition();
+            entityDef.setName(new QName(namespace, name));
+            entityDef.setAny(queryEntity.any());
+            entityDef.setEmbedded(queryEntity.embedded());
+            parent.putDefinition(entityDef.getName(), entityDef);
+        } else if (hasAnnotation(field, QueryAttribute.class)) {
+            LOGGER.trace("Attribute {}", new Object[]{field.getName()});
+            QueryAttribute queryAttribute = field.getAnnotation(QueryAttribute.class);
+            String name = StringUtils.isNotEmpty(queryAttribute.name()) ? queryAttribute.name() : field.getName();
+            String namespace = StringUtils.isNotEmpty(queryAttribute.namespace()) ?
+                    queryAttribute.namespace() : SchemaConstants.NS_COMMON;
+
+            AttributeDefinition attrDef = new AttributeDefinition();
+            attrDef.setName(new QName(namespace, name));
+            attrDef.setIndexed(hasAnnotation(field, Index.class));
+            if (RObjectReference.class.isAssignableFrom(field.getType())) {
+                attrDef.setReference(true);
+            }
+            parent.putDefinition(attrDef.getName(), attrDef);
+        }
+    }
+
+    private boolean hasAnnotation(Field field, Class<? extends Annotation> type) {
+        return field.getAnnotation(type) != null;
     }
 
     /**
@@ -153,8 +179,6 @@ public class QueryRegistry {
             }
             fields.add(field);
         }
-
-        fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
 
         return fields;
     }

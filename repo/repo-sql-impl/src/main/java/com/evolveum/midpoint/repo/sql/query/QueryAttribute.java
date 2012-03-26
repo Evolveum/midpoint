@@ -36,5 +36,6 @@ import java.lang.annotation.Target;
 public @interface QueryAttribute {
 
     String name() default "";
+
     String namespace() default "";
 }

@@ -227,8 +227,9 @@ public class SimpleOp extends Op {
             //get entity query definition
             definition = definition.findDefinition(qname);
             if (definition == null || !definition.isEntity()) {
-                throw new QueryException("This definition is not entity definition, we can't query attribute " +
-                        "in attribute. Please check your path in query, or query entity/attribute mappings.");
+                throw new QueryException("This definition '" + definition + "' is not entity definition, " +
+                        "we can't query attribute in attribute. Please check your path in query, or query " +
+                        "entity/attribute mappings.");
             }
 
             EntityDefinition entityDefinition = (EntityDefinition) definition;

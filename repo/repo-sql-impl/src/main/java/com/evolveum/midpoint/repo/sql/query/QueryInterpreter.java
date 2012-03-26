@@ -82,8 +82,10 @@ public class QueryInterpreter {
 
             return criteria;
         } catch (QueryException ex) {
+            LOGGER.trace(ex.getMessage(), ex);
             throw ex;
         } catch (Exception ex) {
+            LOGGER.trace(ex.getMessage(), ex);
             throw new QueryException(ex.getMessage(), ex);
         }
     }

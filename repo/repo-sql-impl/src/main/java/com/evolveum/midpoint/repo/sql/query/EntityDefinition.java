@@ -82,14 +82,13 @@ public class EntityDefinition extends Definition implements DebugDumpable {
         return true;
     }
 
-    @Deprecated
-    public void addDefinition(QName qname, Definition definition) {
+    void putDefinition(QName qname, Definition definition) {
         definitions.put(qname, definition);
     }
 
     @Override
     public String toString() {
-        return getType().toString();
+        return debugDump();
     }
 
     @Override
@@ -103,7 +102,14 @@ public class EntityDefinition extends Definition implements DebugDumpable {
         for (int i = 0; i < indent; i++) {
             sb.append(DebugDumpable.INDENT_STRING);
         }
-        sb.append(toString());
+        sb.append("n: ");
+        sb.append(getName());
+        sb.append(", t: ");
+        sb.append(getType());
+        sb.append(", a: ");
+        sb.append(isAny());
+        sb.append(", e: ");
+        sb.append(isEmbedded());
         sb.append("\n");
         DebugUtil.debugDumpMapMultiLine(sb, definitions, indent + 1);
         return sb.toString();

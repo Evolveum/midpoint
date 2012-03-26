@@ -36,7 +36,10 @@ import java.lang.annotation.Target;
 public @interface QueryEntity {
 
     String name() default "";
+
     String namespace() default "";
+
     boolean any() default false;
+
     boolean embedded() default false;
 }

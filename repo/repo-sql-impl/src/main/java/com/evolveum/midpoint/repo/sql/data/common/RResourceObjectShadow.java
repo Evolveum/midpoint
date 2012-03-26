@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,6 +51,7 @@ public class RResourceObjectShadow extends RObject {
     private QName objectClass;
     private RActivation activation;
     private ROperationResult result;
+    @QueryAttribute
     private RObjectReference resourceRef;
     private String objectChange;
     private Integer attemptNumber;

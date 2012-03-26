@@ -21,13 +21,14 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
 import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
-public class AttributeDefinition extends Definition {
-
+public class AttributeDefinition extends Definition implements DebugDumpable {
     private boolean indexed;
     private boolean reference;
 
@@ -64,6 +65,29 @@ public class AttributeDefinition extends Definition {
 
     @Override
     public String toString() {
-        return getType().toString();
+        return debugDump();
+    }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append(DebugDumpable.INDENT_STRING);
+        }
+        sb.append("n: ");
+        sb.append(getName());
+        sb.append(", t: ");
+        sb.append(getType());
+        sb.append(", i: ");
+        sb.append(isIndexed());
+        sb.append(", r: ");
+        sb.append(isReference());
+
+        return sb.toString();
     }
 }
