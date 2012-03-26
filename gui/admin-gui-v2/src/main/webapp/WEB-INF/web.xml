@@ -32,6 +32,7 @@
             classpath:application-context-common.xml
             classpath:application-context-configuration.xml
             classpath*:application-context-repository.xml,
+            classpath:application-context-repo-cache.xml,
             classpath:application-context-task.xml,
             classpath:application-context-provisioning.xml,
             classpath:application-context-model.xml,
