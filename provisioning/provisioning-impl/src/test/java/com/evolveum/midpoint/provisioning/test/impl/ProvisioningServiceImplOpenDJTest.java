@@ -54,6 +54,9 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -63,6 +66,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -163,6 +167,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	private ConnectorTypeManager connectorTypeManager;
 	@Autowired(required = true)
 	private ConnectorFactory connectorFactoryIcfImpl;
+	
+	private PrismObject<ResourceType> resource;
+	private PrismObject<ConnectorType> connector;
 
 	private static Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplOpenDJTest.class);
 
@@ -234,14 +241,13 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		displayTestTile("test003Connection");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test003Connection");
-		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
-		assertNotNull("No connector ref",resourceBefore.getConnectorRef());
-		assertNotNull("No connector ref OID",resourceBefore.getConnectorRef().getOid());
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore.getConnectorRef().getOid(), null,
-				result).asObjectable();
-		assertNotNull(connector);
-		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
-		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
+		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
+		assertNotNull("No connector ref OID",resourceTypeBefore.getConnectorRef().getOid());
+		connector = repositoryService.getObject(ConnectorType.class, resourceTypeBefore.getConnectorRef().getOid(), null, result);
+		ConnectorType connectorType = connector.asObjectable();
+		assertNotNull(connectorType);
+		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 		
 		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
@@ -249,15 +255,16 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		display("Test connection result",operationResult);
 		assertSuccess("Test connection failed",operationResult);
 
-		ResourceType resourceAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 		
-		display("Resource after testResource (repository)",resourceAfter);
+		display("Resource after testResource (repository)",resourceTypeRepoAfter);
 		
-		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceAfter.asPrismObject()));
+		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject()));
 		
-		XmlSchemaType xmlSchemaTypeAfter = resourceAfter.getSchema();
+		XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
 		assertNotNull("No schema after test connection",xmlSchemaTypeAfter);
-		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceAfter);
+		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 		
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
@@ -265,7 +272,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNotNull("No retrievalTimestamp",cachingMetadata.getRetrievalTimestamp());
 		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
 		
-		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resourceAfter);
+		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
@@ -273,8 +280,42 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(
 				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 		assertNull("The userPassword attribute sneaked into schema", accountDefinition.findAttributeDefinition(
-				new QName(resourceAfter.getNamespace(),"userPassword")));
+				new QName(resourceTypeRepoAfter.getNamespace(),"userPassword")));
 		
+	}
+	
+	@Test
+	public void test004ResourceAndConnectorCaching() throws Exception {
+		displayTestTile("test004ResourceAndConnectorCaching");
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ResourceAndConnectorCaching");
+		resource = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(resource.asObjectable(), result);
+		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		assertNotNull("No resource schema", resourceSchema);
+		
+		// WHEN
+		PrismObject<ResourceType> resourceAgain = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		
+		// THEN
+		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
+		assertNotNull("No connector ref",resourceTypeAgain.getConnectorRef());
+		assertNotNull("No connector ref OID",resourceTypeAgain.getConnectorRef().getOid());
+		
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainerAgain = resourceAgain.findContainer(ResourceType.F_CONFIGURATION);		
+		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
+		assertTrue("Configurations not equals", configurationContainer.equals(configurationContainerAgain));
+
+		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
+		assertNotNull("No resource schema (again)", resourceSchemaAgain);
+		assertTrue("Resource schema was not cached", resourceSchema == resourceSchemaAgain);
+		
+		// Now we stick our nose deep inside the provisioning impl. But we need to make sure that the
+		// configured connector is properly cached
+		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(resourceTypeAgain, result);
+		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 	}
 	
 	@Test

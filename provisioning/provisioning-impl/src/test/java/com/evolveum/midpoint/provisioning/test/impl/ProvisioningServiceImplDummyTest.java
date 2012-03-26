@@ -35,6 +35,8 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -45,7 +47,9 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
+import com.evolveum.midpoint.provisioning.impl.ResourceSchemaCache;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultList;
@@ -128,10 +132,14 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	
 	@Autowired(required=true)
 	private ProvisioningService provisioningService;
+	
+	// Used to make sure that the connector is cached
 	@Autowired(required=true)
 	private ConnectorTypeManager connectorTypeManager;
+	
 	@Autowired(required=true)
 	private SynchornizationServiceMock syncServiceMock; 
+	
 
 	/**
 	 * @throws JAXBException
@@ -283,12 +291,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("Test result", testResult);
 		assertSuccess("Test resource failed (result)", testResult);
 
-		resourceType = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result).asObjectable();
-		display("Resource after test", resourceType);
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable(); 
+		display("Resource after test", resourceTypeRepoAfter);
 
-		XmlSchemaType xmlSchemaTypeAfter = resourceType.getSchema();
+		XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
 		assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceType);
+		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
@@ -302,18 +311,36 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// schema will be checked in next test
 	}
-
+	
 	@Test
-	public void test004ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
-		displayTestTile("test004ParsedSchema");
+	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+		displayTestTile("test004Configuration");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test004ParsedSchema");
+				+ ".test004Configuration");
 
 		// WHEN
-		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
-				result);
-		ResourceType resourceType = resource.asObjectable();
+		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		resourceType = resource.asObjectable();
+
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		assertNotNull("No configuration container", configurationContainer);
+		PrismContainerDefinition confContDef = configurationContainer.getDefinition();
+		assertNotNull("No configuration container definition", confContDef);
+		PrismContainer confingurationPropertiesContainer = 
+			configurationContainer.findContainer(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+		assertNotNull("No configuration properties container", confingurationPropertiesContainer);
+		PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();
+		assertNotNull("No configuration properties container definition", confPropDef);
+		
+	}
+
+	@Test
+	public void test005ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+		displayTestTile("test005ParsedSchema");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test005ParsedSchema");
 
 		// THEN
 		// The returned type should have the schema pre-parsed
@@ -364,23 +391,23 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, JAXBException, ConfigurationException {
-		displayTestTile("test005Capabilities");
+	public void test006Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, JAXBException, ConfigurationException {
+		displayTestTile("test006Capabilities");
 
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test005Capabilities");
+				+ ".test006Capabilities");
 
 		// WHEN
-		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
+		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
 				result).asObjectable();
 
 		// THEN
 
 		// Check native capabilities
-		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
+		CapabilitiesType nativeCapabilities = resourceType.getNativeCapabilities();
 		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
-		System.out.println("resource: " + resource.asPrismObject().dump());
+		System.out.println("resource: " + resourceType.asPrismObject().dump());
 		List<Object> capabilities = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", capabilities.isEmpty());
 		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities,
@@ -401,19 +428,59 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// TODO: better look inside
 
 		// Check effective capabilites
-		capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+		capCred = ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class);
 		assertNotNull("password capability not found", capCred.getPassword());
 		// Although connector does not support activation, the resource
 		// specifies a way how to simulate it.
 		// Therefore the following should succeed
-		capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+		capAct = ResourceTypeUtil.getEffectiveCapability(resourceType, ActivationCapabilityType.class);
 		assertNotNull("activation capability not found", capCred.getPassword());
 
-		List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+		List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resourceType);
 		for (Object capability : effectiveCapabilities) {
 			System.out.println("Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : "
 					+ capability);
 		}
+	}
+	
+	@Test
+	public void test007ResourceAndConnectorCaching() throws Exception {
+		displayTestTile("test007ResourceAndConnectorCaching");
+
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test007ResourceAndConnectorCaching");
+		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(resourceType, result);
+		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		assertNotNull("No resource schema", resourceSchema);
+		
+		// WHEN
+		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_DUMMY_OID, null, result);
+		
+		//THEN
+		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
+		assertNotNull("No connector ref",resourceTypeAgain.getConnectorRef());
+		assertNotNull("No connector ref OID",resourceTypeAgain.getConnectorRef().getOid());
+
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainerAgain = resourceAgain.findContainer(ResourceType.F_CONFIGURATION);		
+		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
+		
+		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
+		assertNotNull("No resource schema (again)", resourceSchemaAgain);
+		assertTrue("Resource schema was not cached", resourceSchema == resourceSchemaAgain);
+		
+		// Now we stick our nose deep inside the provisioning impl. But we need to make sure that the
+		// configured connector is properly cached
+		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(resourceTypeAgain, result);
+		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstance);
+		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
+		
+		// Check if the connector still works
+		OperationResult testResult = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test007ResourceAndConnectorCaching.test");
+		configuredConnectorInstanceAgain.test(testResult);
+		testResult.computeStatus();
+		assertSuccess("Connector test failed", testResult);
 	}
 
 	@Test
