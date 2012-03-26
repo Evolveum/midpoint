@@ -19,26 +19,20 @@
   ~
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
-<c:query xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-         xsi:schemaLocation="/standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd"
-        >
+<c:query xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 
-   <!-- Query filter example -->
-	
     <c:and>
-        <c:equal>
-            <c:path>c:attributes</c:path>
-            <c:value>
-                <s:__NAME__ xmlns:s='http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd'>uid=jbond,ou=People,dc=example,dc=com</s:__NAME__>
-            </c:value>
-        </c:equal>
         <c:equal>
             <c:value>
                 <c:resourceRef oid="aae7be60-df56-11df-8608-0002a5d5c51b"/>
             </c:value>
         </c:equal>
+        <c:equal>
+            <c:path>c:attributes</c:path>
+            <c:value>
+                <s:foo xsi:type="xsd:string" xmlns:s="http://midpoint.evolveum.com/blabla">uid=jbond,ou=People,dc=example,dc=com</s:foo>
+            </c:value>
+        </c:equal>
     </c:and>
-
 </c:query>

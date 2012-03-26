@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
+import com.evolveum.midpoint.repo.sql.data.common.RConnector;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.Criteria;
@@ -61,6 +63,7 @@ import java.io.File;
 public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddGetObjectTest.class);
+    private static final File TEST_DIR = new File("./src/test/resources/query");
     @Autowired(required = true)
     RepositoryService repositoryService;
     @Autowired(required = true)
@@ -105,7 +108,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
 
         String expected = HibernateToSqlTranslator.toSql(main);
         String real = getInterpretedQuery(session, AccountShadowType.class,
-                new File("./src/test/resources/query/query-or-composite.xml"));
+                new File(TEST_DIR, "query-or-composite.xml"));
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
@@ -114,7 +117,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void queryUserFullName() throws Exception {
+    public void queryUserByFullName() throws Exception {
         Session session = open();
 
         Criteria main = session.createCriteria(RUser.class, "u");
@@ -122,12 +125,67 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         String expected = HibernateToSqlTranslator.toSql(main);
 
         String real = getInterpretedQuery(session, UserType.class,
-                new File("./src/test/resources/query/query-user-by-fullName.xml"));
+                new File(TEST_DIR, "query-user-by-fullName.xml"));
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
 
         close(session);
+    }
+
+    @Test
+    public void queryConnectorByType() throws Exception {
+        Session session = open();
+
+        Criteria main = session.createCriteria(RConnector.class, "c");
+        main.add(Restrictions.eq("connectorType", "org.identityconnectors.ldap.LdapConnector"));
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        String real = getInterpretedQuery(session, ConnectorType.class,
+                new File(TEST_DIR, "query-connector-by-type.xml"));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryAccountByAttributesAndResourceRef() throws Exception {
+        Session session = open();
+        Criteria main = session.createCriteria(RAccountShadow.class, "a");
+
+        Criteria resourceRef = main.createCriteria("resourceRef", "r");
+
+        Criteria attributes = main.createCriteria("attributes", "a1");
+        Criteria stringAttr = attributes.createCriteria("strings", "s");
+
+        //and
+        Criterion c1 = Restrictions.eq("r.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b");
+        //and
+        Conjunction c2 = Restrictions.conjunction();
+        c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
+        c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+        c2.add(Restrictions.eq("s.type", new QName(null, "string")));
+
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(c1);
+        conjunction.add(c2);
+        main.add(conjunction);
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        String real = getInterpretedQuery(session, AccountShadowType.class,
+                new File(TEST_DIR, "query-account-by-attributes-and-resource-ref.xml"));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryResourceStateByResourceRef() throws Exception {
+        //todo query-resource-state-by-resource-ref.xml file
     }
 
     private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
