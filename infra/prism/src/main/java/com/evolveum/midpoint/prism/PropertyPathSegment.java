@@ -23,11 +23,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public class PropertyPathSegment {
+public class PropertyPathSegment implements Serializable {
 	
 	private QName name;
 	private String id;

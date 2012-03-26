@@ -95,19 +95,24 @@ public final class ClassMapper {
         throw new IllegalArgumentException("Couldn't find hql type for qname " + qname);
     }
 
-    public static QName getQNameForHQLType(RContainerType type) {
+    public static ObjectTypes getObjectTypeForHQLType(RContainerType type) {
         if (type == null) {
             return null;
         }
         for (Map.Entry<ObjectTypes, RContainerType> entry : types.entrySet()) {
             if (entry.getValue().equals(type)) {
-                return entry.getKey().getTypeQName();
+                return entry.getKey();
             }
         }
 
         throw new IllegalArgumentException("Couldn't find qname for hql type " + type);
     }
-    
+
+    public static QName getQNameForHQLType(RContainerType type) {
+        ObjectTypes types = getObjectTypeForHQLType(type);
+        return types == null ? null : types.getTypeQName();
+    }
+
     public static Collection<RContainerType> getKnownTypes() {
         return types.values();
     }

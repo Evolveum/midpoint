@@ -21,22 +21,18 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -49,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -81,10 +76,10 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Criteria attributes = main.createCriteria("attributes", "a1");
         Criteria stringAttr = attributes.createCriteria("strings", "s");
 
-//        Criteria resourceRef = main.createCriteria("resourceRef", "r");
-
         Criteria extension = main.createCriteria("extension", "e");
         Criteria stringExt = extension.createCriteria("strings", "s1");
+
+        Criteria resourceRef = main.createCriteria("resourceRef", "r");
 
         //or
         Criterion c1 = Restrictions.eq("accountType", "some account type");
@@ -99,13 +94,13 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
         c3.add(Restrictions.eq("s1.type", new QName(null, "string")));
         //or
-//        Criterion c4 = Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
+        Criterion c4 = Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
         Disjunction disjunction = Restrictions.disjunction();
         disjunction.add(c1);
         disjunction.add(c2);
         disjunction.add(c3);
-//        disjunction.add(c4);
+        disjunction.add(c4);
         main.add(disjunction);
 
         String expected = HibernateToSqlTranslator.toSql(main);

@@ -29,6 +29,15 @@ import javax.xml.namespace.QName;
 public class AttributeDefinition extends Definition {
 
     private boolean indexed;
+    private boolean reference;
+
+    public boolean isReference() {
+        return reference;
+    }
+
+    public void setReference(boolean reference) {
+        this.reference = reference;
+    }
 
     public boolean isIndexed() {
         return indexed;

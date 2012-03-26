@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -30,7 +33,7 @@ import java.util.Map;
 /**
  * @author lazyman
  */
-public class EntityDefinition extends Definition {
+public class EntityDefinition extends Definition implements DebugDumpable {
 
     private Map<QName, Definition> definitions = new HashMap<QName, Definition>();
     private boolean any;
@@ -87,5 +90,22 @@ public class EntityDefinition extends Definition {
     @Override
     public String toString() {
         return getType().toString();
+    }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append(DebugDumpable.INDENT_STRING);
+        }
+        sb.append(toString());
+        sb.append("\n");
+        DebugUtil.debugDumpMapMultiLine(sb, definitions, indent + 1);
+        return sb.toString();
     }
 }

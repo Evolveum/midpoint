@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,7 +32,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author semancik
  *
  */
-public class PropertyPath {
+public class PropertyPath implements Serializable {
 	
 	public static final PropertyPath EMPTY_PATH = new PropertyPath();
 	

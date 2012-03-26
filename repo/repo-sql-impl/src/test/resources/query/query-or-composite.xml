@@ -43,11 +43,11 @@
                 <p:stringType xmlns:p="http://example.com/p">uid=test,dc=example,dc=com</p:stringType>
             </value>
         </equal>
-        <!--<equal>-->
-            <!--<value>-->
-                <!--<resourceRef oid="d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"/>-->
-            <!--</value>-->
-        <!--</equal>-->
+        <equal>
+            <value>
+                <resourceRef oid="d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"/>
+            </value>
+        </equal>
     </or>
 </query>
 

@@ -78,16 +78,18 @@ public class SimpleOp extends Op {
         QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
         SimpleItem conditionItem = updateConditionItem(condQName, propertyPath);
         LOGGER.trace("Condition item updated, updating value type.");
-        //todo change to real value....
-        Object testedValue = condition.getTextContent();
-        LOGGER.trace("Value updated to type '{}'",
-                new Object[]{(testedValue == null ? null : testedValue.getClass().getName())});
+        Criterion criterion = null;
+        if (!conditionItem.isReference) {
+            //todo change to real value, probably user RAnyConverter somehow
+            Object testedValue = condition.getTextContent();
+            LOGGER.trace("Value updated to type '{}'",
+                    new Object[]{(testedValue == null ? null : testedValue.getClass().getName())});
 
-        Criterion criterion;
-        if (pushNot) {
-            criterion = Restrictions.ne(conditionItem.getQueryableItem(), testedValue);
-        } else {
-            criterion = Restrictions.eq(conditionItem.getQueryableItem(), testedValue);
+            if (pushNot) {
+                criterion = Restrictions.ne(conditionItem.getQueryableItem(), testedValue);
+            } else {
+                criterion = Restrictions.eq(conditionItem.getQueryableItem(), testedValue);
+            }
         }
 
         if (conditionItem.isAny) {
@@ -112,6 +114,12 @@ public class SimpleOp extends Op {
             conjunction.add(Restrictions.eq(conditionItem.alias + ".type", QNameType.optimizeQName(type)));
 
             criterion = conjunction;
+        } else if (conditionItem.isReference) {
+            String targetOid = condition.getAttribute("oid");
+            if (StringUtils.isEmpty(targetOid)) {
+                throw new QueryException("Couldn't find target oid in reference in query value element.");
+            }
+            criterion = Restrictions.eq(conditionItem.getQueryableItem(), targetOid);
         }
 
         return criterion;
@@ -138,24 +146,37 @@ public class SimpleOp extends Op {
                 addNewCriteriaToContext(propertyPath, anyTypeName);
             }
 
-            String alias = getInterpreter().getAlias(propertyPath);
-            LOGGER.trace("Found alias '{}' for path.", new Object[]{alias});
-            if (StringUtils.isNotEmpty(alias)) {
-                item.alias = alias;
-            }
+            item.alias = getInterpreter().getAlias(propertyPath);
+            LOGGER.trace("Found alias '{}' for path.", new Object[]{item.alias});
         }
 
         if (definition.isAny()) {
             item.item = "value";
         } else {
-            Definition attrDef = definition.findDefinition(conditionItem);
-            if (attrDef == null) {
+            Definition def = definition.findDefinition(conditionItem);
+            if (def == null) {
                 throw new QueryException("Couldn't find query definition for condition item '" + conditionItem + "'.");
             }
-            if (attrDef.isEntity()) {
+            if (def.isEntity()) {
                 throw new QueryException("Can't query entity for value, only attribute can be queried for value.");
             }
-            item.item = attrDef.getRealName();
+
+            AttributeDefinition attrDef = (AttributeDefinition) def;
+            if (attrDef.isReference()) {
+                PropertyPath propPath = propertyPath;
+                String realName = attrDef.getRealName();
+                if (propPath == null) {
+                    //used in references from main criteria
+                    propPath = new PropertyPath(new QName(RUtil.NS_SQL_REPO, realName));
+                }
+                addNewCriteriaToContext(propPath, realName);
+                item.isReference = true;
+                item.alias = getInterpreter().getAlias(propPath);
+                LOGGER.trace("Found alias '{}' for path.", new Object[]{item.alias});
+                item.item = "targetOid";
+            } else {
+                item.item = attrDef.getRealName();
+            }
         }
 
         return item;
@@ -233,7 +254,7 @@ public class SimpleOp extends Op {
         Criteria pCriteria = getInterpreter().getCriteria(lastPropPath);
         // create new criteria for this relationship
         String alias = getInterpreter().createAlias(propPath.last().getName());
-        LOGGER.trace(">>>> create '{}', alias '{}'", new Object[]{realName, alias});
+        LOGGER.trace(">>>> create '{}', alias '{}', path\n{}", new Object[]{realName, alias, propPath});
         Criteria criteria = pCriteria.createCriteria(realName, alias);
         //save criteria and alias to our query context
         getInterpreter().setCriteria(propPath, criteria);
@@ -245,6 +266,7 @@ public class SimpleOp extends Op {
         String item;
         String alias;
         boolean isAny;
+        boolean isReference;
 
         String getQueryableItem() {
             StringBuilder builder = new StringBuilder();

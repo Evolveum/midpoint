@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.query.QueryRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
@@ -96,6 +97,12 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             LOGGER.info("Repository is not running in embedded mode.");
         }
 
+        try {
+            QueryRegistry.getInstance();
+        } catch (Exception ex) {
+            throw new RepositoryServiceFactoryException("Couldn't initialize query registry, reason: "
+                    + ex.getMessage(), ex);
+        }
         LOGGER.info("Repository initialization finished.");
     }
 
