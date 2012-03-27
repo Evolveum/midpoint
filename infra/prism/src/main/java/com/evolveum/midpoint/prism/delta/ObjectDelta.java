@@ -127,15 +127,15 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         modifications.addAll((Collection)propertyDeltas);
     }
     
-    public PropertyDelta getPropertyDelta(PropertyPath propertyPath) {
-    	return getItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class);
+    public PropertyDelta findPropertyDelta(PropertyPath propertyPath) {
+    	return findItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class);
     }
     
-    public <X extends Containerable> ContainerDelta<X> getContainerDelta(PropertyPath propertyPath) {
-    	return getItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
+    public <X extends Containerable> ContainerDelta<X> findContainerDelta(PropertyPath propertyPath) {
+    	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
     }
 
-    private <D extends ItemDelta, I extends Item> D getItemDelta(PropertyPath propertyPath, Class<D> deltaType, Class<I> itemType) {
+    private <D extends ItemDelta, I extends Item> D findItemDelta(PropertyPath propertyPath, Class<D> deltaType, Class<I> itemType) {
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);
             if (item == null) {
@@ -176,12 +176,12 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     /**
      * Top-level path is assumed.
      */
-    public PropertyDelta getPropertyDelta(QName propertyName) {
-        return getPropertyDelta(new PropertyPath(propertyName));
+    public PropertyDelta findPropertyDelta(QName propertyName) {
+        return findPropertyDelta(new PropertyPath(propertyName));
     }
 
-    public PropertyDelta getPropertyDelta(PropertyPath parentPath, QName propertyName) {
-        return getPropertyDelta(new PropertyPath(parentPath, propertyName));
+    public PropertyDelta findPropertyDelta(PropertyPath parentPath, QName propertyName) {
+        return findPropertyDelta(new PropertyPath(parentPath, propertyName));
     }
 
     private <D extends ItemDelta> D findModification(PropertyPath propertyPath, Class<D> deltaType) {

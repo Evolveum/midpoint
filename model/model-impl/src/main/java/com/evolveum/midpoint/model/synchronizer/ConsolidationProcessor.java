@@ -289,7 +289,7 @@ public class ConsolidationProcessor {
             return consolidateWithSyncAbsolute(accCtx, delta);
         }
 
-        PropertyDelta alreadyDoneDelta = syncDelta.getPropertyDelta(delta.getPath());
+        PropertyDelta alreadyDoneDelta = syncDelta.findPropertyDelta(delta.getPath());
         if (alreadyDoneDelta == null) {
             return delta;
         }

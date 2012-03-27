@@ -21,15 +21,24 @@
 
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertTrue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -51,6 +60,10 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestDeltaConverter {
 	
 	private static final File TEST_DIR = new File("src/test/resources/deltaconverter");
+	private static final File COMMON_TEST_DIR = new File("src/test/resources/common");
+	
+	private static final PropertyPath CREDENTIALS_PASSWORD_PROTECTED_STRING_PATH = 
+		new PropertyPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_PROTECTED_STRING);
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -76,5 +89,35 @@ public class TestDeltaConverter {
     	assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
     	PrismReferenceValue accountRefVal = valuesToAdd.iterator().next();
     	assertNotNull("No object in accountRef value", accountRefVal.getObject());
+    }
+    
+    @Test
+    public void testPasswordChange() throws SchemaException, FileNotFoundException, JAXBException {
+    	System.out.println("===[ testPasswordChange ]====");
+    	
+    	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-password.xml"),
+    			ObjectModificationType.class);
+    	
+    	// WHEN
+    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
+    			PrismTestUtil.getPrismContext());
+    	
+    	// THEN
+    	assertNotNull("No object delta", objectDelta);
+    	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
+    	PropertyDelta<ProtectedStringType> protectedStringDelta = objectDelta.findPropertyDelta(CREDENTIALS_PASSWORD_PROTECTED_STRING_PATH);
+    	assertNotNull("No protectedString delta", protectedStringDelta);
+    	Collection<PrismPropertyValue<ProtectedStringType>> valuesToReplace = protectedStringDelta.getValuesToReplace();
+    	assertEquals("Wrong number of values to add", 1, valuesToReplace.size());
+    	PrismPropertyValue<ProtectedStringType> protectedStringVal = valuesToReplace.iterator().next();
+    	assertNotNull("Null value in protectedStringDelta", protectedStringVal);
+    	
+    	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(COMMON_TEST_DIR, "user-jack.xml"));
+    	// apply to user
+    	objectDelta.applyTo(user);
+    	
+    	PrismProperty<ProtectedStringType> protectedStringProperty = user.findProperty(CREDENTIALS_PASSWORD_PROTECTED_STRING_PATH);
+    	PrismPropertyValue<ProtectedStringType> protectedStringPropertyValue = protectedStringProperty.getValue();
+    	assertTrue("protectedString not equivalent", protectedStringPropertyValue.equalsRealValue(protectedStringVal));
     }
 }

@@ -70,7 +70,7 @@ public class CredentialsProcessor {
         ObjectDelta<UserType> userDelta = context.getUserDelta();
         PropertyDelta passwordValueDelta = null;
         if (userDelta != null) {
-        	passwordValueDelta = userDelta.getPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+        	passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
         }
 //            LOGGER.trace("userDelta is null, skipping credentials processing");
 //            return;

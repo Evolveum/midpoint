@@ -291,7 +291,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
         if (userDelta == null) {
             return createEmptyAssignmentDelta();
         }
-        ContainerDelta<AssignmentType> assignmentDelta = userDelta.getContainerDelta(new PropertyPath(SchemaConstants.C_ASSIGNMENT));
+        ContainerDelta<AssignmentType> assignmentDelta = userDelta.findContainerDelta(new PropertyPath(SchemaConstants.C_ASSIGNMENT));
         if (assignmentDelta == null) { 
             return createEmptyAssignmentDelta();
         }

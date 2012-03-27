@@ -173,43 +173,43 @@ public class PrismAsserts {
 	// DELTA asserts
 	
 	public static void assertPropertyReplace(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
+		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertSet(propertyName, propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
+		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertSet(propertyName, propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
+		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertSet(propertyName, propertyDelta.getValuesToDelete(), expectedValues);
 	}
 
 	public static void assertPropertyReplace(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
+		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
+		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
+		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
 	}
 	
 	public static ContainerDelta<?> assertContainerAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath) {
-		ContainerDelta<?> delta = userDelta.getContainerDelta(propertyPath);
+		ContainerDelta<?> delta = userDelta.findContainerDelta(propertyPath);
 		assertNotNull("Container delta for "+propertyPath+" not found",delta);
 		assert !delta.isEmpty() : "Container delta for "+propertyPath+" is empty";
 		return delta;

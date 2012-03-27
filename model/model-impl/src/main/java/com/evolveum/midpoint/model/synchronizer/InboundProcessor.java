@@ -140,7 +140,7 @@ public class InboundProcessor {
             LOGGER.trace("Processing inbound for {}", name);
             PropertyDelta propertyDelta = null;
             if (syncDelta != null) {
-                propertyDelta = syncDelta.getPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
+                propertyDelta = syncDelta.findPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                 if (propertyDelta == null) {
                     LOGGER.trace("Account sync delta exists, but doesn't have change for processed property, skipping.");
                     continue;
@@ -310,7 +310,7 @@ public class InboundProcessor {
             return;
         }
 
-        PropertyDelta<?> delta = userSecondaryDelta.getPropertyDelta(path);
+        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(path);
         if (delta != null) {
             //remove delta if exists, it will be handled by inbound
             userSecondaryDelta.getModifications().remove(delta);

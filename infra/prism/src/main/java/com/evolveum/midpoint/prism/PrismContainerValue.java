@@ -427,30 +427,30 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	PropertyPath rest = propPath.rest();
     	for (Item<?> item : items) {
             if (first.getName().equals(item.getName())) {
-            	if (type.isAssignableFrom(item.getClass())) {
-            		if (rest.isEmpty()) {
+            	if (rest.isEmpty()) {
+            		if (type.isAssignableFrom(item.getClass())) {
             			return (I)item;
+            		} else {
+            			if (create) {
+            				throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
+            						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getName()+")");
+            			} else {
+            				return null;
+            			}
             		}
+            	} else {
             		// Go deeper
 	            	if (item instanceof PrismContainer) {
 	            		return ((PrismContainer<?>)item).findCreateItem(propPath, type, itemDefinition, create);
 	            	} else {
             			if (create) {
-            				throw new IllegalStateException("Cannot create " + type.getSimpleName() + " under a "
-            						+ item.getClass().getSimpleName() + " ("+item.getName()+")");
+            				throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
+            						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getName()+")");
             			} else {
             				return null;
             			}
 	            	}
-            	} else {
-            		if (create) {
-            			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
-        						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getName()+")");
-            		} else {
-            			return null;
-            		}
-            	}
-                
+            	}        
             }
         }
     	if (create) {

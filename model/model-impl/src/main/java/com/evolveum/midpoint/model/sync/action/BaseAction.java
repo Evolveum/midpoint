@@ -326,7 +326,7 @@ public abstract class BaseAction implements Action {
         LOGGER.debug("Updating activation for {}, activation decision {}, old value was {}",
                 new Object[]{objectDelta.getClass().getSimpleName(), activationDecision, oldValue});
 
-        PropertyDelta delta = objectDelta.getPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        PropertyDelta delta = objectDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
         if (delta == null) {
             delta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, ResourceObjectShadowType.class,
             		getPrismContext());

@@ -70,7 +70,7 @@ public class ActivationProcessor {
             LOGGER.trace("userDelta is null, skipping activation processing");
             return;
         }
-        PropertyDelta enabledValueDelta = userDelta.getPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        PropertyDelta enabledValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
         PrismObject<UserType> userNew = context.getUserNew();
         if (userNew == null) {
