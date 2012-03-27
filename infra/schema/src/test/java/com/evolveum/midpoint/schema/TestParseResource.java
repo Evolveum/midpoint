@@ -257,8 +257,11 @@ public class TestParseResource {
 		
 		PrismContainer<?> ldapConfigPropertiesContainer = configurationContainer.findContainer(ICFC_CONFIGURATION_PROPERTIES);
 		assertNotNull("No icfcldap:configurationProperties container", ldapConfigPropertiesContainer);
+		PrismContainerDefinition<?> ldapConfigPropertiesContainerDef = ldapConfigPropertiesContainer.getDefinition();
+		assertNotNull("No icfcldap:configurationProperties container definition", ldapConfigPropertiesContainerDef);
+		assertEquals("icfcldap:configurationProperties container definition maxOccurs", 1, ldapConfigPropertiesContainerDef.getMaxOccurs());
 		List<Item<?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
-		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());				
+		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());
 	}
 	
 	private void assertResourceJaxb(ResourceType resourceType) {

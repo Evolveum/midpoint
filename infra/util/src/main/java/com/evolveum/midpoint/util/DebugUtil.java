@@ -361,7 +361,7 @@ public class DebugUtil implements ObjectFormatter {
 		if (displayTag) {
 			sb.append("<");
 			if (element.getLocalName() != null) {
-				sb.append(new QName(element.getNamespaceURI(), element.getLocalName()));
+				sb.append(prettyPrint(new QName(element.getNamespaceURI(), element.getLocalName())));
 			} else {
 				sb.append("<null>");
 			}

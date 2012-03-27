@@ -59,7 +59,13 @@
 			<xsd:any namespace="##any" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
 		</xsd:sequence>
 	</xsd:complexType>
-	<xsd:element name="configurationProperties" type="tns:ConfigurationPropertiesType"/>
+	<xsd:element name="configurationProperties" type="tns:ConfigurationPropertiesType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:maxOccurs>1</a:maxOccurs>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
     
     <xsd:complexType name="ConnectorPoolConfigurationType">
 		<xsd:annotation>
@@ -115,6 +121,9 @@
 			<xsd:documentation>
 				Element that contains configuration of ICF connector pools.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<a:maxOccurs>1</a:maxOccurs>
+			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:element>
 	
@@ -123,6 +132,9 @@
 			<xsd:documentation>
 				TODO
 			</xsd:documentation>
+			<xsd:appinfo>
+				<a:maxOccurs>1</a:maxOccurs>
+			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:element>
 	
@@ -131,6 +143,9 @@
 			<xsd:documentation>
 				TODO
 			</xsd:documentation>
+			<xsd:appinfo>
+				<a:maxOccurs>1</a:maxOccurs>
+			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:element>
 		

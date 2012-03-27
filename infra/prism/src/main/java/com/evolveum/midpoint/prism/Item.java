@@ -305,11 +305,26 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     }
     
     public boolean removeAll(Collection<V> newValues) {
-    	return values.removeAll(newValues);
+    	boolean changed = false;
+    	for (V val: newValues) {
+    		if (remove(val)) {
+    			changed = true;
+    		}
+    	}
+    	return changed;
     }
 
     public boolean remove(V newValue) {
-    	return values.remove(newValue);
+    	boolean changed = false;
+    	Iterator<V> iterator = values.iterator();
+    	while (iterator.hasNext()) {
+    		V val = iterator.next();
+    		if (val.equalsRealValue(newValue)) {
+    			iterator.remove();
+    			changed = true;
+    		}
+    	}
+    	return changed;
     }
     
     public V remove(int index) {

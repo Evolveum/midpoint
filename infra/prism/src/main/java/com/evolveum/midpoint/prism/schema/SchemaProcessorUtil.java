@@ -54,6 +54,9 @@ public class SchemaProcessorUtil {
 	}
 	
 	public static Element getAnnotationElement(XSAnnotation annotation, QName qname) {
+		if (annotation == null) {
+			return null;
+		}
 		List<Element> elements = getAnnotationElements(annotation, qname);
 		if (elements.isEmpty()) {
 			return null;

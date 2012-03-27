@@ -447,14 +447,21 @@ class DomToSchemaProcessor {
 			QName targetType = DOMUtil.getQNameValue(targetTypeAnnotationElement);
 			definition.setTargetTypeName(targetType);
 		}
-		setMultiplicity(definition, elementParticle, false);
+		setMultiplicity(definition, elementParticle, annotation, false);
 		return definition;
 	}
 
-	private void setMultiplicity(ItemDefinition itemDef, XSParticle particle, boolean topLevel) {
+	private void setMultiplicity(ItemDefinition itemDef, XSParticle particle, XSAnnotation annotation, boolean topLevel) {
 		if (topLevel || particle == null) {
 			itemDef.setMinOccurs(0);
-			itemDef.setMaxOccurs(-1);
+			Element maxOccursAnnotation = SchemaProcessorUtil.getAnnotationElement(annotation, A_MAX_OCCURS);
+			if (maxOccursAnnotation != null) {
+				String maxOccursString = maxOccursAnnotation.getTextContent();
+				int maxOccurs = Integer.parseInt(maxOccursString);
+				itemDef.setMaxOccurs(maxOccurs);
+			} else {
+				itemDef.setMaxOccurs(-1);
+			}
 		} else {
 			itemDef.setMinOccurs(particle.getMinOccurs());
 			itemDef.setMaxOccurs(particle.getMaxOccurs());
@@ -667,7 +674,7 @@ class DomToSchemaProcessor {
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private PrismContainerDefinition<?> createPropertyContainerDefinition(XSType xsType, XSElementDecl elementDecl, 
-			ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, XSParticle elementParticle,
+			ComplexTypeDefinition complexTypeDefinition, XSAnnotation complexTypeAnnotation, XSParticle elementParticle,
 			boolean topLevel) throws SchemaException {
 		
 		QName elementName = new QName(elementDecl.getTargetNamespace(), elementDecl.getName());
@@ -681,18 +688,18 @@ class DomToSchemaProcessor {
 				compileTimeClass = getSchemaRegistry().determineCompileTimeClass(elementName, complexTypeDefinition);
 			}
 			pcd = definitionFactory.createObjectDefinition(elementName, complexTypeDefinition, prismContext, 
-					compileTimeClass, annotation, elementParticle);
+					compileTimeClass, complexTypeAnnotation, elementParticle);
 			// Multiplicity is fixed to a single-value here
 			pcd.setMinOccurs(1);
 			pcd.setMaxOccurs(1);
 		} else {
 			pcd = definitionFactory.createContainerDefinition(elementName, complexTypeDefinition, prismContext, 
-					annotation, elementParticle);
-			setMultiplicity(pcd, elementParticle, topLevel);
+					complexTypeAnnotation, elementParticle);
+			setMultiplicity(pcd, elementParticle, elementDecl.getAnnotation(), topLevel);
 		}
 		
 		// ignore		
-		List<Element> ignore = SchemaProcessorUtil.getAnnotationElements(annotation, A_IGNORE);
+		List<Element> ignore = SchemaProcessorUtil.getAnnotationElements(complexTypeAnnotation, A_IGNORE);
 		if (ignore != null && !ignore.isEmpty()) {
 			if (ignore.size() != 1) {
 				// TODO: error!
@@ -722,7 +729,7 @@ class DomToSchemaProcessor {
 		
 		propDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext, annotation, elementParticle);
 		
-		setMultiplicity(propDef, elementParticle, ctd == null);
+		setMultiplicity(propDef, elementParticle, annotation, ctd == null);
 		
 		// Process generic annotations
 		

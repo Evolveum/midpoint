@@ -240,10 +240,10 @@ public class TestSchemaSanity {
 		System.out.println(icfSchema.dump());
 		
 		
-		PrismContainerDefinition configurationPropertiesContainer = icfSchema.findContainerDefinitionByElementName(ICFC_CONFIGURATION_PROPERTIES);
-		PrismAsserts.assertDefinition(configurationPropertiesContainer, ICFC_CONFIGURATION_PROPERTIES, ICFC_CONFIGURATION_PROPERTIES_TYPE, 0, -1);
-		assertTrue("configurationPropertiesContainer definition is NOT marked as runtime", configurationPropertiesContainer.isRuntimeSchema());
-				
+		PrismContainerDefinition configurationPropertiesContainerDef = icfSchema.findContainerDefinitionByElementName(ICFC_CONFIGURATION_PROPERTIES);
+		PrismAsserts.assertDefinition(configurationPropertiesContainerDef, ICFC_CONFIGURATION_PROPERTIES, ICFC_CONFIGURATION_PROPERTIES_TYPE, 0, 1);
+		assertTrue("configurationPropertiesContainer definition is NOT marked as runtime", configurationPropertiesContainerDef.isRuntimeSchema());
+		
 	}
 	
 	/**

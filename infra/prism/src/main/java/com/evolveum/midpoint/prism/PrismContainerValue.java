@@ -621,6 +621,15 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 				}
 			}
 		}
+		if (other.getParent() != null) {
+			PrismContainerDefinition definition = other.getParent().getDefinition();
+			if (definition != null) {
+				if (definition.isSingleValue()) {
+					// There is only one value, therefore it always represents the same thing
+					return true;
+				}
+			}
+		}
 		if (this.getId() != null && other.getId() != null) {
 			return this.getId().equals(other.getId());
 		}

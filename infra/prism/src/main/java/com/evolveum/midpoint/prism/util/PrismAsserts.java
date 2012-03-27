@@ -208,13 +208,32 @@ public class PrismAsserts {
 		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
 	}
 	
-	public static ContainerDelta<?> assertContainerAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath) {
-		ContainerDelta<?> delta = userDelta.findContainerDelta(propertyPath);
-		assertNotNull("Container delta for "+propertyPath+" not found",delta);
-		assert !delta.isEmpty() : "Container delta for "+propertyPath+" is empty";
-		return delta;
+	public static ContainerDelta<?> assertContainerAdd(ObjectDelta<?> objectDelta, QName name) {
+		return assertContainerAdd(objectDelta, new PropertyPath(name));
 	}
 	
+	public static ContainerDelta<?> assertContainerAdd(ObjectDelta<?> objectDelta, PropertyPath propertyPath) {
+		ContainerDelta<?> delta = objectDelta.findContainerDelta(propertyPath);
+		assertNotNull("Container delta for "+propertyPath+" not found",delta);
+		assert !delta.isEmpty() : "Container delta for "+propertyPath+" is empty";
+		assert delta.getValuesToAdd() != null : "Container delta for "+propertyPath+" has null values to add";
+		assert !delta.getValuesToAdd().isEmpty() : "Container delta for "+propertyPath+" has empty values to add";
+		return delta;
+	}
+
+	public static ContainerDelta<?> assertContainerDelete(ObjectDelta<?> objectDelta, QName name) {
+		return assertContainerDelete(objectDelta, new PropertyPath(name));
+	}
+	
+	public static ContainerDelta<?> assertContainerDelete(ObjectDelta<?> objectDelta, PropertyPath propertyPath) {
+		ContainerDelta<?> delta = objectDelta.findContainerDelta(propertyPath);
+		assertNotNull("Container delta for "+propertyPath+" not found",delta);
+		assert !delta.isEmpty() : "Container delta for "+propertyPath+" is empty";
+		assert delta.getValuesToDelete() != null : "Container delta for "+propertyPath+" has null values to delete";
+		assert !delta.getValuesToDelete().isEmpty() : "Container delta for "+propertyPath+" has empty values to delete";
+		return delta;
+	}
+
 	// Calendar asserts
 	
 	public static void assertEquals(String message, XMLGregorianCalendar expected, Object actual) {

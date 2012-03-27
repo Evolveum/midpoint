@@ -134,33 +134,6 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		clone.rawElement = this.rawElement;
 	}
 
-	@Override
-	public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("PPV(");
-        // getValue() must not be here. getValue() contains exception that in turn causes a call to toString()
-        if (value != null) {
-        	builder.append(value.getClass().getSimpleName()).append(":");
-            builder.append(DebugUtil.prettyPrint(value));
-        } else {
-            builder.append("null");
-        }
-        if (getType() != null) {
-	        builder.append(", type: ");
-	        builder.append(getType());
-        }
-        if (getSource() != null) {
-	        builder.append(", source: ");
-	        builder.append(getSource());
-        }
-        if (getRawElement() != null) {
-	        builder.append(", raw element");
-        }
-        builder.append(")");
-
-        return builder.toString();
-    }
-
     @Override
 	public int hashCode() {
 		final int prime = 31;
@@ -311,5 +284,33 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     @Override
     public String dump() {
         return toString();
+    }
+    
+	@Override
+	public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("PPV(");
+        // getValue() must not be here. getValue() contains exception that in turn causes a call to toString()
+        if (value != null) {
+        	builder.append(value.getClass().getSimpleName()).append(":");
+            builder.append(DebugUtil.prettyPrint(value));
+        } else {
+            builder.append("null");
+        }
+        if (getType() != null) {
+	        builder.append(", type: ");
+	        builder.append(getType());
+        }
+        if (getSource() != null) {
+	        builder.append(", source: ");
+	        builder.append(getSource());
+        }
+        if (getRawElement() != null) {
+	        builder.append(", raw element: ");
+	        builder.append(DebugUtil.prettyPrint(getRawElement()));
+        }
+        builder.append(")");
+
+        return builder.toString();
     }
 }

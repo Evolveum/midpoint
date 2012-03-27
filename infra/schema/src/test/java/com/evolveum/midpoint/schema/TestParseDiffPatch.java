@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -231,7 +232,58 @@ public class TestParseDiffPatch {
         assertTrue("Roundtrip delta is not empty",roundTripDelta.isEmpty());
         
 	}
+
+	@Test
+	public void testResource() throws SchemaException, SAXException, IOException, JAXBException {
+		System.out.println("===[ testResource ]===");
+		
+		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));                
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after.xml"));
+        
+        // sanity
+        assertFalse("Equals does not work", resourceBefore.equals(resourceAfter));
+        
+        // WHEN
+        
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter);
+        
+        // THEN
+        
+        System.out.println("DELTA:");
+        System.out.println(resourceDelta.dump());
+        
+        assertEquals("Wrong delta OID", "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", resourceDelta.getOid());
+        assertEquals("Wrong change type", ChangeType.MODIFY, resourceDelta.getChangeType());
+        Collection<? extends ItemDelta> modifications = resourceDelta.getModifications();
+        assertEquals("Unexpected number of modifications", 6, modifications.size());
+        PrismAsserts.assertContainerDelete(resourceDelta, ResourceType.F_SCHEMA);
+        PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("update"), 3);
+        PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("scriptOnResource"), 4);
+        PrismAsserts.assertPropertyDelete(resourceDelta, 
+        		new PropertyPath(ResourceType.F_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
+        		100);
+        // Configuration properties changes
+        assertConfigurationPropertyChange(resourceDelta, "principal");
+        assertConfigurationPropertyChange(resourceDelta, "credentials");
+	}
+
 	
+	private void assertConfigurationPropertyChange(ObjectDelta<ResourceType> resourceDelta, String propName) {
+		PropertyDelta propertyDelta = resourceDelta.findPropertyDelta(pathConfigProperties(propName));
+		assertNotNull("No delta for configuration property "+propName, propertyDelta);
+		// TODO
+	}
+
+	private PropertyPath pathConfigProperties(String propName) {
+		return new PropertyPath(ResourceType.F_CONFIGURATION, SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
+				new QName(SchemaTestConstants.NS_ICFC_LDAP, propName));
+	}
+
+	private PropertyPath pathTimeouts(String last) {
+		return new PropertyPath(ResourceType.F_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "timeouts"),
+				new QName(SchemaTestConstants.NS_ICFC, last));
+	}
+
 	@Test
 	public void testResourceRoundTrip() throws SchemaException, SAXException, IOException, JAXBException {
 		System.out.println("===[ testResourceRoundTrip ]===");

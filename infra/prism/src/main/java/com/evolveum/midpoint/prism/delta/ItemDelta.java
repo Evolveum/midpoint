@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -217,7 +218,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	private Collection<V> newValueCollection() {
-		return new HashSet<V>();
+		return new ArrayList<V>();
 	}
 
 	public boolean isValueToAdd(V value) {
