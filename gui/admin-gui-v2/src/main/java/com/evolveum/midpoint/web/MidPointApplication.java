@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.MountedMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,6 +48,7 @@ public class MidPointApplication extends WebApplication {
     @Autowired
     ModelService model;
     @Autowired
+    @Qualifier("repositoryService")
     RepositoryService repository;
     @Autowired
     TaskManager taskManager;
