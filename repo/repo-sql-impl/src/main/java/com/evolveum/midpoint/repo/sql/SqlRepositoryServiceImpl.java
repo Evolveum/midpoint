@@ -226,16 +226,18 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
         LOGGER.debug("Adding object type '{}'", new Object[]{object.getClass().getSimpleName()});
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Object\n{}", new Object[]{prismContext.silentMarshalObject(object.asObjectable())});
-        }
 
         String oid = null;
         OperationResult subResult = result.createSubresult(ADD_OBJECT);
         Session session = null;
         try {
+            ObjectType objectType = object.asObjectable();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Object\n{}", new Object[]{prismContext.silentMarshalObject(objectType)});
+            }
+
             LOGGER.debug("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(object.asObjectable());
+            RObject rObject = createDataObjectFromJAXB(objectType);
 
             LOGGER.debug("Saving object.");
             session = beginTransaction();

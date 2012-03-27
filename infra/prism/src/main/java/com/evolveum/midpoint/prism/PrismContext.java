@@ -22,6 +22,7 @@ package com.evolveum.midpoint.prism;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,17 +43,17 @@ import javax.xml.namespace.QName;
  *
  */
 public class PrismContext {
-	
+
     private static final Trace LOGGER = TraceManager.getTrace(PrismContext.class);
 	private SchemaRegistry schemaRegistry;
 	private PrismJaxbProcessor prismJaxbProcessor;
 	private PrismDomProcessor prismDomProcessor;
 	private SchemaDefinitionFactory definitionFactory;
-	
+
 	private PrismContext() {
 		// empty
 	}
-	
+
 	public static PrismContext create(SchemaRegistry schemaRegistry) {
 		PrismContext prismContext = new PrismContext();
 		prismContext.schemaRegistry = schemaRegistry;
@@ -61,14 +62,14 @@ public class PrismContext {
 		PrismJaxbProcessor prismJaxbProcessor = new PrismJaxbProcessor(prismContext);
 		prismJaxbProcessor.initialize();
 		prismContext.prismJaxbProcessor = prismJaxbProcessor;
-		
+
 		PrismDomProcessor prismDomProcessor = new PrismDomProcessor(schemaRegistry);
 		prismDomProcessor.setPrismContext(prismContext);
 		prismContext.prismDomProcessor = prismDomProcessor;
-		
+
 		return prismContext;
 	}
-	
+
 	public void initialize() throws SchemaException, SAXException, IOException {
 		schemaRegistry.initialize();
 	}
@@ -88,7 +89,7 @@ public class PrismContext {
 	public void setPrismJaxbProcessor(PrismJaxbProcessor prismJaxbProcessor) {
 		this.prismJaxbProcessor = prismJaxbProcessor;
 	}
-	
+
 	public PrismDomProcessor getPrismDomProcessor() {
 		return prismDomProcessor;
 	}
@@ -109,28 +110,28 @@ public class PrismContext {
 	}
 
 	/**
-	 * Parses a DOM object and creates a prism from it. It copies data from the original object to the prism.  
+	 * Parses a DOM object and creates a prism from it. It copies data from the original object to the prism.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
 		return prismDomProcessor.parseObject(objectElement);
 	}
-	
+
 	/**
-	 * Parses a file and creates a prism from it.  
+	 * Parses a file and creates a prism from it.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException {
 		// Use DOM now. We will switch to StAX later.
 		return prismDomProcessor.parseObject(file);
 	}
-	
+
 	/**
-	 * Parses a string and creates a prism from it.  
+	 * Parses a string and creates a prism from it.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(String xmlString) throws SchemaException {
 		// Use DOM now. We will switch to StAX later.
 		return prismDomProcessor.parseObject(xmlString);
 	}
-	
+
 	/**
 	 * Set up the specified object with prism context instance and schema definition.
 	 */
@@ -138,7 +139,7 @@ public class PrismContext {
 		object.revive(this);
 		getSchemaRegistry().applyDefinition(object, declaredType);
 	}
-	
+
 	public void adopt(Objectable objectable) throws SchemaException {
 		adopt(objectable.asPrismObject(), objectable.getClass());
 	}
@@ -151,11 +152,15 @@ public class PrismContext {
     public String silentMarshalObject(Object object) {
         String xml = null;
         try {
+            QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
             if (object instanceof Objectable) {
-                xml = prismJaxbProcessor.marshalToString((Objectable) object);
+                xml = prismDomProcessor.serializeObjectToString(((Objectable) object).asPrismObject());
+            } else if (object instanceof Containerable) {
+                Element fakeParent = DOMUtil.createElement(DOMUtil.getDocument(), fakeQName);
+                xml = prismDomProcessor.serializeObjectToString(((Containerable) object).asPrismContainerValue(),
+                        fakeParent);
             } else {
-                xml = prismJaxbProcessor.marshalElementToString(new JAXBElement<Object>(
-                    new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject"), Object.class, object));
+                xml = prismJaxbProcessor.marshalElementToString(new JAXBElement<Object>(fakeQName, Object.class, object));
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't marshal element to string {}", ex, object);
