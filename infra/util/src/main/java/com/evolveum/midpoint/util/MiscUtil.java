@@ -117,25 +117,25 @@ public class MiscUtil {
 		} catch (SecurityException e) {
 			throw new IllegalArgumentException("Security error getting getter for property "+propertyName+": "+e.getMessage(),e);
 		} catch (NoSuchMethodException e) {
-			throw new IllegalArgumentException("No getter for property "+propertyName);
+			throw new IllegalArgumentException("No getter for property "+propertyName+" in "+object+" ("+object.getClass()+")");
 		}
 		if (method == null) {
-			throw new IllegalArgumentException("No getter for property "+propertyName);
+			throw new IllegalArgumentException("No getter for property "+propertyName+" in "+object+" ("+object.getClass()+")");
 		}
-		if (method.getReturnType() != propetyClass) {
+		if (!propetyClass.isAssignableFrom(method.getReturnType())) {
 			throw new IllegalArgumentException("The getter for property " + propertyName + " returns " + method.getReturnType() +
-					", expected " + propetyClass);
+					", expected " + propetyClass+" in "+object+" ("+object.getClass()+")");
 		}
 		try {
 			return (T) method.invoke(object);
 		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+": "
+			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+" in "+object+" ("+object.getClass()+"): "
 					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
 		} catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+": "
+			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+" in "+object+" ("+object.getClass()+"): "
 					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
 		} catch (InvocationTargetException e) {
-			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+": "
+			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+" in "+object+" ("+object.getClass()+"): "
 					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
 		}
 	}

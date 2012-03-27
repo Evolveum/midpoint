@@ -564,6 +564,8 @@ public class PrismDomProcessor {
         		// This is "real" reference (oid type and nothing more)
 	        	if (valueElement instanceof Element) {
 	        		ref.add(parseReferenceValue((Element)valueElement));
+	        	} else if (valueElement instanceof JAXBElement) {
+	        		ref.add(parseReferenceValueFromObject(((JAXBElement<?>)valueElement).getValue()));
 	        	} else {
 	        		ref.add(parseReferenceValueFromObject(valueElement));
 	        	}
