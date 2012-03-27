@@ -243,7 +243,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             oid = containerId.getOid();
             session.getTransaction().commit();
 
-            LOGGER.debug("Saved object '{}' with oid '{}'", new Object[]{object.getClass().getSimpleName(), oid});
+            LOGGER.debug("Saved object '{}' with oid '{}'",
+                    new Object[]{object.getCompileTimeClass().getSimpleName(), oid});
         } catch (SystemException ex) {
             rollbackTransaction(session);
             throw ex;
@@ -569,7 +570,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
             return;
         }
-        
+
         session.getTransaction().rollback();
     }
 

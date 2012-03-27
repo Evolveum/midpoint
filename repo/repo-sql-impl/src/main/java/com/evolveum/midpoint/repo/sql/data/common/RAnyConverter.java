@@ -306,6 +306,9 @@ class RAnyConverter {
             }
         }
 
+        LOGGER.trace("Couln't create real value of type '{}' from '{}'",
+                new Object[]{rValue.getType(), rValue.getValue()});
+
         throw new IllegalStateException("Can't create real value of type '" + rValue.getType()
                 + "' from value saved in DB as '" + rValue.getClass().getSimpleName() + "'.");
     }

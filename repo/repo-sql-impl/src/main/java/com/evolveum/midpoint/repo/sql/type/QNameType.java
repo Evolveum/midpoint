@@ -21,13 +21,11 @@
 
 package com.evolveum.midpoint.repo.sql.type;
 
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.type.StringType;
 import org.hibernate.usertype.UserType;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -115,33 +113,40 @@ public class QNameType implements UserType {
     }
 
     public static QName optimizeQName(QName qname) {
-        if (qname == null) {
-            return null;
-        }
+        return qname;
 
-        return optimizeQName(qname.getNamespaceURI(), qname.getLocalPart());
+//        //todo optimize later
+//        if (qname == null) {
+//            return null;
+//        }
+//
+//        return optimizeQName(qname.getNamespaceURI(), qname.getLocalPart());
     }
 
-    public static QName optimizeQName(String namespaceURI, String localPart) {
-        if (XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(namespaceURI)) {
-            namespaceURI = null;
-        }
+//    private static QName optimizeQName(String namespaceURI, String localPart) {
+//        if (XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(namespaceURI)) {
+//            namespaceURI = null;
+//        }
+//
+//        if (StringUtils.isEmpty(localPart)) {
+//            return null;
+//        }
+//
+//        if (namespaceURI == null) {
+//            return new QName(localPart);
+//        }
+//
+//        return new QName(namespaceURI, localPart);
+//    }
 
-        if (StringUtils.isEmpty(localPart)) {
-            return null;
-        }
-
-        return new QName(namespaceURI, localPart);
-    }
-
-    public static QName recreateQName(String namespaceURI, String localPart) {
-        if (namespaceURI == null) {
-            namespaceURI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
-        }
-
-        if (StringUtils.isEmpty(localPart)) {
-            return null;
-        }
+    private static QName recreateQName(String namespaceURI, String localPart) {
+//        if (namespaceURI == null) {
+//            namespaceURI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
+//        }
+//
+//        if (StringUtils.isEmpty(localPart)) {
+//            return null;
+//        }
 
         return new QName(namespaceURI, localPart);
     }

@@ -308,7 +308,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
                 LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1), delta.getModifications().size(),
                         newObject.toString(), delta.debugDump(3)});
                 if (delta.getModifications().size() > 0) {
-                    LOGGER.error("{}", newObject.debugDump(3));
+                    LOGGER.error("{}", prismContext.getPrismDomProcessor().serializeObjectToString(newObject));
                 }
             } catch (Exception ex) {
                 LOGGER.error("Exception occured", ex);
