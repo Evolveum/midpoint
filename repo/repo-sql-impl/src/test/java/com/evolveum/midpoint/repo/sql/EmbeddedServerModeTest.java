@@ -29,7 +29,11 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
 
 /**
  * @author lazyman
@@ -48,9 +52,23 @@ public class EmbeddedServerModeTest extends AbstractTestNGSpringContextTests {
     PrismContext prismContext;
     @Autowired
     SessionFactory factory;
+    @Autowired
+    SqlRepositoryFactory sqlFactory;
 
     @Test
-    public void testServerMode() {
-        //todo test server mode somehow...
+    public void testServerMode() throws Exception {
+        Connection connection = null;
+        try {
+            SqlRepositoryConfiguration config = sqlFactory.getSqlConfiguration();
+
+            Class.forName(config.getDriverClassName());
+            connection = DriverManager.getConnection(config.getJdbcUrl(),
+                    config.getJdbcUsername(), config.getJdbcPassword());
+            AssertJUnit.assertNotNull(connection);
+        } finally {
+            if (connection != null) {
+                connection.close();
+            }
+        }
     }
 }

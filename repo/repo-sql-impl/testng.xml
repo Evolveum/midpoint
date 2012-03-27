@@ -25,8 +25,8 @@
 		<classes>
 			<class name="com.evolveum.midpoint.repo.sql.SpringApplicationContextTest" />
             <class name="com.evolveum.midpoint.repo.sql.EmbeddedServerModeTest" />
-            <!--<class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest" />-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.AddGetObjectTest" />-->
+            <class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest" />
+            <class name="com.evolveum.midpoint.repo.sql.AddGetObjectTest" />
 		</classes>
 	</test>
 </suite>
