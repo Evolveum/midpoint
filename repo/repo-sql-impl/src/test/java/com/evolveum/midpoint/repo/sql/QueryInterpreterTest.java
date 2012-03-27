@@ -57,7 +57,9 @@ import java.io.File;
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../application-context-repository.xml",
+@ContextConfiguration(locations = {
+        "../../../../../application-context-sql-no-server-mode-test.xml",
+        "../../../../../application-context-repository.xml",
         "classpath:application-context-repo-cache.xml",
         "../../../../../application-context-configuration-sql-test.xml"})
 public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
@@ -181,11 +183,6 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertEquals(expected, real);
 
         close(session);
-    }
-
-    @Test
-    public void queryResourceStateByResourceRef() throws Exception {
-        //todo query-resource-state-by-resource-ref.xml file        
     }
     
     @Test

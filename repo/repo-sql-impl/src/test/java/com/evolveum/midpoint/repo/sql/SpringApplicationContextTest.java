@@ -37,7 +37,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../application-context-repository.xml",
+@ContextConfiguration(locations = {
+        "../../../../../application-context-sql-no-server-mode-test.xml",
+        "../../../../../application-context-repository.xml",
         "classpath:application-context-repo-cache.xml",
         "../../../../../application-context-configuration-sql-test.xml"})
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {

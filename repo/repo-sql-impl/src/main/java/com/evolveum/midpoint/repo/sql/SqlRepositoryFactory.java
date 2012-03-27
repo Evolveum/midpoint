@@ -38,6 +38,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -92,7 +93,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             } else {
                 LOGGER.info("H2 prepared to run in local mode (from file).");
             }
-            LOGGER.info("H2 files are in '{}'.", new Object[]{sqlConfiguration.getBaseDir()});
+            LOGGER.info("H2 files are in '{}'.",
+                    new Object[]{new File(sqlConfiguration.getBaseDir()).getAbsolutePath()});
         } else {
             LOGGER.info("Repository is not running in embedded mode.");
         }
@@ -124,6 +126,10 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             return;
         }
 
+        if (StringUtils.isEmpty(config.getFileName())) {
+            config.setFileName("midpoint");
+        }
+
         File baseDir = new File(config.getBaseDir());
         if (!baseDir.exists() || !baseDir.isDirectory()) {
             throw new RepositoryServiceFactoryException("File '" + config.getBaseDir()
@@ -135,13 +141,17 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             //jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>
             jdbcUrl.append("tcp://127.0.0.1:");
             jdbcUrl.append(config.getPort());
+            jdbcUrl.append("/");
+            jdbcUrl.append(config.getFileName());
         } else {
             //jdbc:h2:[file:][<path>]<databaseName>
             jdbcUrl.append("file:");
+
+            File databaseFile = new File(config.getBaseDir(), config.getFileName());
+            jdbcUrl.append(databaseFile.getAbsolutePath());
         }
-        jdbcUrl.append(baseDir.getAbsolutePath());
-        jdbcUrl.append("/midpoint");
         config.setJdbcUrl(jdbcUrl.toString());
+        LOGGER.trace("JDBC url created: {}", new Object[]{config.getJdbcUrl()});
 
         config.setJdbcUsername("sa");
         config.setJdbcPassword("");
@@ -149,6 +159,10 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         config.setDriverClassName("org.h2.Driver");
         config.setHibernateDialect("org.hibernate.dialect.H2Dialect");
         config.setHibernateHbm2ddl("update");
+    }
+    
+    private String getRelativeBaseDirPath(String baseDir) {
+        return new File(".").toURI().relativize(new File(baseDir).toURI()).getPath();
     }
 
     private void checkPort(int port) throws RepositoryServiceFactoryException {
@@ -216,7 +230,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         List<String> args = new ArrayList<String>();
         if (StringUtils.isNotEmpty(config.getBaseDir())) {
             args.add("-baseDir");
-            args.add("\"" + config.getBaseDir() + "\"");
+            args.add(getRelativeBaseDirPath(config.getBaseDir()));
         }
         if (config.isTcpSSL()) {
             args.add("-tcpSSL");

@@ -28,10 +28,6 @@
      http://www.springframework.org/schema/context/spring-context-3.0.xsd"
        default-lazy-init="false" default-autowire="byName">
 
-    <bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
-        <constructor-arg value="sql-config.xml" />
-    </bean>
-
     <!-- todo move this beans configuration to some common xml (used also by basex and other implementations) -->
 
     <bean name="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory" init-method="init"

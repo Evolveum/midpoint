@@ -34,7 +34,9 @@ import org.testng.annotations.Test;
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../application-context-repository.xml",
+@ContextConfiguration(locations = {
+        "../../../../../application-context-sql-server-mode-test.xml",
+        "../../../../../application-context-repository.xml",
         "classpath:application-context-repo-cache.xml",
         "../../../../../application-context-configuration-sql-test.xml"})
 public class EmbeddedServerModeTest extends AbstractTestNGSpringContextTests {

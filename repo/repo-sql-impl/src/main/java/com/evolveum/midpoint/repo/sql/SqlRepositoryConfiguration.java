@@ -36,11 +36,12 @@ public class SqlRepositoryConfiguration {
     private boolean embedded = true;
     private boolean asServer = false;
     private String baseDir;
+    private String fileName;
     private boolean tcpSSL = false;
     private int port = 5437;
     //embedded jdbc url configuration properties
     //CACHE_SIZE
-    private int cacheSize;
+    private int cacheSize;        //todo use in initialization
 
     //connection for hibernate
     private String driverClassName;
@@ -62,6 +63,7 @@ public class SqlRepositoryConfiguration {
         setJdbcUsername(configuration.getString("jdbcUsername", jdbcUsername));
         setPort(configuration.getInt("port", port));
         setTcpSSL(configuration.getBoolean("tcpSSL", tcpSSL));
+        setFileName(configuration.getString("fileName", fileName));
     }
 
     public void validate() throws RepositoryServiceFactoryException {
@@ -198,5 +200,18 @@ public class SqlRepositoryConfiguration {
 
     public void setCacheSize(int cacheSize) {
         this.cacheSize = cacheSize;
+    }
+
+    /**
+     * Used in embedded mode to define h2 database file name. Default will be "midpoint".
+     *
+     * @return name of DB file
+     */
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 }
