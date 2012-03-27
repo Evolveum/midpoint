@@ -57,6 +57,8 @@ public class EmbeddedServerModeTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testServerMode() throws Exception {
+        LOGGER.info("testServerMode");
+
         Connection connection = null;
         try {
             SqlRepositoryConfiguration config = sqlFactory.getSqlConfiguration();

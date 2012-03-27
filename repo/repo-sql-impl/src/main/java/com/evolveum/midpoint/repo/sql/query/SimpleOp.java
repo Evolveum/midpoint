@@ -47,6 +47,8 @@ import java.util.List;
  */
 public class SimpleOp extends Op {
 
+    private static enum Operation {EQUAL}
+
     private static final Trace LOGGER = TraceManager.getTrace(SimpleOp.class);
 
     public SimpleOp(QueryInterpreter interpreter) {
@@ -56,6 +58,14 @@ public class SimpleOp extends Op {
     @Override
     protected QName[] canHandle() {
         return new QName[]{SchemaConstants.C_EQUAL};
+    }
+
+    private Operation getOperationType(Element filterPart) throws QueryException {
+        if (DOMUtil.isElementName(filterPart, SchemaConstants.C_EQUAL)) {
+            return Operation.EQUAL;
+        }
+
+        throw new QueryException("Unknown filter type '" + DOMUtil.getQNameWithoutPrefix(filterPart) + "'.");
     }
 
     @Override
@@ -77,6 +87,8 @@ public class SimpleOp extends Op {
         Element condition = DOMUtil.listChildElements(value).get(0);
         QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
         SimpleItem conditionItem = updateConditionItem(condQName, propertyPath);
+
+        Operation operation = getOperationType(filter);
         LOGGER.trace("Condition item updated, updating value type.");
         Criterion criterion = null;
         if (!conditionItem.isReference) {
@@ -119,6 +131,7 @@ public class SimpleOp extends Op {
             if (StringUtils.isEmpty(targetOid)) {
                 throw new QueryException("Couldn't find target oid in reference in query value element.");
             }
+            //todo type
             criterion = Restrictions.eq(conditionItem.getQueryableItem(), targetOid);
         }
 
