@@ -30,10 +30,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -411,6 +413,24 @@ public class SyncContext implements Dumpable, DebugDumpable {
         AccountSyncContext accountSyncContext = new AccountSyncContext(rat, prismContext);
         addAccountSyncContext(rat, accountSyncContext);
         return accountSyncContext;
+    }
+    
+    public void assertConsistence() {
+    	if (userOld != null) {
+    		PrismAsserts.assertParentConsistency(userOld);
+    	}
+    	if (userNew != null) {
+    		PrismAsserts.assertParentConsistency(userNew);
+    	}
+    	if (userPrimaryDelta != null) {
+    		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
+    			if (userPrimaryDelta.getObjectToAdd() != null) {
+    				PrismAsserts.assertParentConsistency(userPrimaryDelta.getObjectToAdd());
+    			} else {
+    				throw new IllegalStateException("User primary delta is ADD, but there is not object to add");
+    			}
+    		}
+    	}
     }
 
 

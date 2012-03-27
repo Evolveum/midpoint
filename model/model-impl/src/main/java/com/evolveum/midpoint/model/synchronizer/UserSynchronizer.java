@@ -102,27 +102,37 @@ public class UserSynchronizer {
 
     @Autowired(required = true)
     private PrismContext prismContext;
+    
+    private boolean consistenceChecks = true;
 
     public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
+    	if (consistenceChecks) context.assertConsistence();
+    	
         loadUser(context, result);
         loadFromSystemConfig(context, result);
         context.recomputeUserNew();
 
+        if (consistenceChecks) context.assertConsistence();
+        
         loadAccountRefs(context, result);
         context.recomputeUserNew();
+        
+        if (consistenceChecks) context.assertConsistence();
 
         // Check reconcile flag in account sync context and set accountOld
         // variable if it's not set (from provisioning)
         checkAccountContextReconciliation(context, result);
 
         traceContext("Context after LOAD and recompute:\n{}", context);
-
+        if (consistenceChecks) context.assertConsistence();
+        
         // Loop through the account changes, apply inbound expressions
         inboundProcessor.processInbound(context, result);
         context.recomputeUserNew();
         traceContext("inbound", context);
+        if (consistenceChecks) context.assertConsistence();
 
         userPolicyProcessor.processUserPolicy(context, result);
         context.recomputeUserNew();
@@ -130,30 +140,37 @@ public class UserSynchronizer {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("User delta:\n{}", context.getUserDelta() == null ? "null" : context.getUserDelta().dump());
         }
+        if (consistenceChecks) context.assertConsistence();
 
         assignmentProcessor.processAssignments(context, result);
         context.recomputeNew();
         traceContext("assignments", context);
+        if (consistenceChecks) context.assertConsistence();
 
         outboundProcessor.processOutbound(context, result);
         context.recomputeNew();
         traceContext("outbound", context);
+        if (consistenceChecks) context.assertConsistence();
 
         consolidationProcessor.consolidateValues(context, result);
         context.recomputeNew();
         traceContext("consolidation", context);
+        if (consistenceChecks) context.assertConsistence();
 
         credentialsProcessor.processCredentials(context, result);
         context.recomputeNew();
         traceContext("credentials", context);
+        if (consistenceChecks) context.assertConsistence();
 
         activationProcessor.processActivation(context, result);
         context.recomputeNew();
         traceContext("activation", context);
+        if (consistenceChecks) context.assertConsistence();
 
         reconciliationProcessor.processReconciliation(context, result);
         context.recomputeNew();
         traceContext("reconciliation", context);
+        if (consistenceChecks) context.assertConsistence();
 
     }
 

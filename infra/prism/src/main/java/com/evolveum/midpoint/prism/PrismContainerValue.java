@@ -454,17 +454,13 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
             }
         }
     	if (create) {
-    		I subItem = createSubItem(first.getName(), type, itemDefinition);
     		if (rest.isEmpty()) {
-    			return (I)subItem;
+    			return createSubItem(first.getName(), type, itemDefinition);
+    		} else {
+	    		// Go deeper
+    			PrismContainer<?> subItem = createSubItem(first.getName(), PrismContainer.class, null);
+	        	return subItem.findCreateItem(propPath, type, itemDefinition, create);
     		}
-    		// Go deeper
-        	if (subItem instanceof PrismContainer) {
-        		return ((PrismContainer<?>)subItem).findCreateItem(propPath, type, itemDefinition, create);
-        	} else {
-				throw new IllegalStateException("Cannot create " + type.getSimpleName() + " under a "
-						+ subItem.getClass().getSimpleName() + " ("+subItem.getName()+")");
-        	}
     	} else {
     		return null;
     	}

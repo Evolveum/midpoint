@@ -281,6 +281,13 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	throw new IllegalStateException("The value "+value+" is not any of "+this+" values, therefore cannot determine next value");
     }
 
+    public Collection<V> getClonedValues() {
+    	Collection<V> clonedValues = new ArrayList<V>(getValues().size());
+    	for (V val: getValues()) {
+    		clonedValues.add((V)val.clone());
+    	}
+		return clonedValues;
+	}
     
     public boolean addAll(Collection<V> newValues) throws SchemaException {
     	boolean changed = false;

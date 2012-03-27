@@ -57,7 +57,10 @@ public class AsIsValueConstructor implements ValueConstructor {
         //AsIsValueConstructorType constructorType = (AsIsValueConstructorType)constructorTypeObject;
 
         // Nothing to do, just use input
-        return input;
+        if (input == null) {
+        	return null;
+        }
+        return input.clone();
     }
 
 }

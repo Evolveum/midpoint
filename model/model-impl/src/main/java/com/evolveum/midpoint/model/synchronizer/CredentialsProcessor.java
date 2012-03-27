@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -66,7 +67,7 @@ public class CredentialsProcessor {
     private ValueConstructionFactory valueConstructionFactory;
 
     public void processCredentials(SyncContext context, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-
+    	
         ObjectDelta<UserType> userDelta = context.getUserDelta();
         PropertyDelta passwordValueDelta = null;
         if (userDelta != null) {
@@ -82,7 +83,7 @@ public class CredentialsProcessor {
             return;
         }
         PrismProperty userPasswordNew = context.getUserNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
-
+        
         PrismObjectDefinition<AccountShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
         PrismPropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
@@ -119,6 +120,7 @@ public class CredentialsProcessor {
                 LOGGER.trace("No outbound definition in password definition in credentials in account type {}, skipping credentials processing", rat);
                 continue;
             }
+            
             // TODO: is the parentPath correct (null)?
             ValueConstruction passwordConstruction = valueConstructionFactory.createValueConstruction(outbound, 
             		accountPasswordPropertyDefinition, "outbound password in account type " + rat);
@@ -130,7 +132,7 @@ public class CredentialsProcessor {
                 continue;
             }
             PropertyDelta accountPasswordDelta = new PropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
-            accountPasswordDelta.setValuesToReplace(accountPasswordNew.getValues());
+            accountPasswordDelta.setValuesToReplace(accountPasswordNew.getClonedValues());
             LOGGER.trace("Adding new password delta for account {}", rat);
             accCtx.addToSecondaryDelta(accountPasswordDelta);
         }

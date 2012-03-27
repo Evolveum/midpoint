@@ -127,14 +127,6 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         modifications.addAll((Collection)propertyDeltas);
     }
     
-    public PropertyDelta findPropertyDelta(PropertyPath propertyPath) {
-    	return findItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class);
-    }
-    
-    public <X extends Containerable> ContainerDelta<X> findContainerDelta(PropertyPath propertyPath) {
-    	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
-    }
-
     private <D extends ItemDelta, I extends Item> D findItemDelta(PropertyPath propertyPath, Class<D> deltaType, Class<I> itemType) {
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);
@@ -142,7 +134,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
                 return null;
             }
             D itemDelta = createEmptyDelta(propertyPath, item.getDefinition(), deltaType, itemType);
-            itemDelta.addValuesToAdd(item.getValues());
+            itemDelta.addValuesToAdd(item.getClonedValues());
             return itemDelta;
         } else if (changeType == ChangeType.MODIFY) {
             return findModification(propertyPath, deltaType);
@@ -183,6 +175,15 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     public PropertyDelta findPropertyDelta(PropertyPath parentPath, QName propertyName) {
         return findPropertyDelta(new PropertyPath(parentPath, propertyName));
     }
+    
+    public PropertyDelta findPropertyDelta(PropertyPath propertyPath) {
+    	return findItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class);
+    }
+    
+    public <X extends Containerable> ContainerDelta<X> findContainerDelta(PropertyPath propertyPath) {
+    	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
+    }
+
 
     private <D extends ItemDelta> D findModification(PropertyPath propertyPath, Class<D> deltaType) {
         if (modifications == null) {
