@@ -209,6 +209,10 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
 
     public boolean isEmpty() {
+    	if (getChangeType() == ChangeType.DELETE) {
+    		// Delete delta is never empty
+    		return true;
+    	}
         return (objectToAdd == null && (modifications == null || modifications.isEmpty()));
     }
     

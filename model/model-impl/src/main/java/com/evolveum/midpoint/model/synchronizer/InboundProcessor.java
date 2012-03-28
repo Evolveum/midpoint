@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -177,9 +178,9 @@ public class InboundProcessor {
             }
         }
         processCustomPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
-                context.getUserNew(), accContext, accountDefinition, userDelta, result);
+                context.getUserNew(), accContext, accountDefinition, context, result);
         processCustomPropertyInbound(accountDefinition.getActivationInbound(), SchemaConstants.PATH_ACTIVATION_ENABLE,
-                context.getUserNew(), accContext, accountDefinition, userDelta, result);
+                context.getUserNew(), accContext, accountDefinition, context, result);
     }
 
     private boolean checkInitialSkip(ValueAssignmentType inbound, PrismObject<UserType> newUser) {
@@ -202,7 +203,10 @@ public class InboundProcessor {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
         PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
-        PrismProperty targetUserProperty = newUser.findProperty(targetUserPropertyPath);
+        PrismProperty targetUserProperty = null;
+        if (newUser != null) {
+        	targetUserProperty = newUser.findProperty(targetUserPropertyPath);
+        }
 
         PropertyDelta delta = null;
         if (targetUserProperty != null) {
@@ -296,7 +300,7 @@ public class InboundProcessor {
 
     private void processCustomPropertyInbound(ValueAssignmentType inbound, PropertyPath path,
             PrismObject<UserType> newUser, AccountSyncContext accContext, RefinedAccountDefinition accountDefinition,
-            ObjectDelta<UserType> userSecondaryDelta, OperationResult opResult) throws SchemaException {
+            SyncContext context, OperationResult opResult) throws SchemaException {
         if (inbound == null || newUser == null) {
             return;
         }
@@ -309,7 +313,17 @@ public class InboundProcessor {
             //inbound will be constructed only if initial == false or initial == true and value doesn't exist
             return;
         }
+        
+        ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
+        if (userPrimaryDelta != null) {
+        	PropertyDelta primaryPropDelta = userPrimaryDelta.findPropertyDelta(path);
+        	if (primaryPropDelta != null && primaryPropDelta.isReplace()) {
+        		// Replace primary delta overrides any inbound
+        		return;
+        	}
+        }
 
+        ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
         PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(path);
         if (delta != null) {
             //remove delta if exists, it will be handled by inbound
@@ -346,8 +360,8 @@ public class InboundProcessor {
         }
 
         delta = property.diff(result, path);
-        delta.setParentPath(path.allExceptLast());
-        if (!delta.isEmpty()) {
+        if (delta != null && !delta.isEmpty()) {
+        	delta.setParentPath(path.allExceptLast());
             userSecondaryDelta.addModification(delta);
         }
     }

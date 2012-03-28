@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -162,7 +163,8 @@ public class OutboundProcessor {
         // TODO: is the parentPath correct (null)?
         ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(outboundValueConstructionType, 
         		refinedAttributeDefinition,
-                "outbound expression for " + refinedAttributeDefinition.getName() + " in " + ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
+                "outbound expression for " + DebugUtil.prettyPrint(refinedAttributeDefinition.getName())
+                + " in " + ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
 
         valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
         valueConstruction.setRootNode(user);

@@ -19,4 +19,7 @@
 			<element name="description" type="string" minOccurs="0"/>
 		</sequence>
 	</complexType>
+	
+	<element name="shipName" type="string"/>
+	
 </schema>

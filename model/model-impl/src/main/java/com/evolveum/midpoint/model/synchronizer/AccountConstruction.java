@@ -181,8 +181,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 
 	private void evaluateAttributes(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		attributeConstructions = new HashSet<ValueConstruction<?>>();
-		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
-				assignments.size(), assignments});
+//		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
+//				assignments.size(), assignments});
 		for (ValueConstructionType attributeConstructionType : accountConstructionType.getAttribute()) {
 			ValueConstruction<?> attributeConstruction = evaluateAttribute(attributeConstructionType, result);
 			attributeConstructions.add(attributeConstruction);

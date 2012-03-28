@@ -174,6 +174,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public void addValueToAdd(V newValue) {
+		if (valuesToReplace != null) {
+			throw new IllegalStateException("Delta "+this+" already has values to replace, attempt to add value to add");
+		}
 		if (valuesToAdd == null) {
 			valuesToAdd = newValueCollection();
 		}
@@ -188,6 +191,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public void addValueToDelete(V newValue) {
+		if (valuesToReplace != null) {
+			throw new IllegalStateException("Delta "+this+" already has values to replace, attempt to add value to delete");
+		}
 		if (valuesToDelete == null) {
 			valuesToDelete = newValueCollection();
 		}
@@ -196,6 +202,12 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public void setValuesToReplace(Collection<V> newValues) {
+		if (valuesToAdd != null) {
+			throw new IllegalStateException("Delta "+this+" already has values to add, attempt to set value to replace");
+		}
+		if (valuesToDelete != null) {
+			throw new IllegalStateException("Delta "+this+" already has values to delete, attempt to set value to replace");
+		}
 		if (valuesToReplace == null) {
 			valuesToReplace = newValueCollection();
 		} else {
@@ -208,6 +220,12 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public void setValueToReplace(V newValue) {
+		if (valuesToAdd != null) {
+			throw new IllegalStateException("Delta "+this+" already has values to add, attempt to set value to replace");
+		}
+		if (valuesToDelete != null) {
+			throw new IllegalStateException("Delta "+this+" already has values to delete, attempt to set value to replace");
+		}
 		if (valuesToReplace == null) {
 			valuesToReplace = newValueCollection();
 		} else {
@@ -316,8 +334,12 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			this.valuesToReplace = newValueCollection();
 			this.valuesToReplace.addAll(deltaToMerge.valuesToReplace);
 		} else {
-			addValuesToAdd(deltaToMerge.valuesToAdd);
-			addValuesToDelete(deltaToMerge.valuesToDelete);
+			if (deltaToMerge.valuesToAdd != null) {
+				addValuesToAdd(deltaToMerge.valuesToAdd);
+			}
+			if (deltaToMerge.valuesToDelete != null) {
+				addValuesToDelete(deltaToMerge.valuesToDelete);
+			}
 		}
 	}
 

@@ -212,7 +212,7 @@ public class UserSynchronizer {
     	}
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Synchronization context:\n"+
-            		"------[ Context after {} ]-----------------------------\n"+
+            		"---[ CONTEXT after {} ]--------------------------------\n"+
             		"{}\n",
             		phase, context.dump());
         }
@@ -287,7 +287,8 @@ public class UserSynchronizer {
 	            // Fetching from repository instead of provisioning so we avoid reading in a full account
 	            account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
         	}
-        	AccountSyncContext accountSyncContext = getOrCreateAccountContext(context, account, result);        	
+        	AccountSyncContext accountSyncContext = getOrCreateAccountContext(context, account, result);  
+        	accountSyncContext.setAccountOld(account);
             if (accountSyncContext.getPolicyDecision() == null) {
                 accountSyncContext.setPolicyDecision(policyDecision);
             }
@@ -353,6 +354,7 @@ public class UserSynchronizer {
 						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
 						// Create account context from retrieved object
 						accountSyncContext = getOrCreateAccountContext(context, account, result);
+						accountSyncContext.setAccountOld(account);
 					} catch (ObjectNotFoundException e) {
 						if (refVal.getObject() == null) {
 							// account does not exist, no compisite account in ref -> this is really an error
@@ -385,6 +387,7 @@ public class UserSynchronizer {
 						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
 						// Create account context from retrieved object
 						accountSyncContext = getOrCreateAccountContext(context, account, result);
+						accountSyncContext.setAccountOld(account);
 					} catch (ObjectNotFoundException e) {
 						// This is still OK. It means deleting an accountRef that points to non-existing object
 						// just log a warning
