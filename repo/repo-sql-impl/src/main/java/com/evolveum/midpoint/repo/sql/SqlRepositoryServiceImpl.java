@@ -23,13 +23,17 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.query.*;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -39,7 +43,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
@@ -79,8 +85,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Session session = null;
         try {
             session = beginTransaction();
-            Query query = session.createQuery("from " + ClassMapper.getHQLType(type) + " o where o.oid = :oid and o.id = 0");
-            query.setString("oid", oid);
+
+            Criteria query = session.createCriteria(ClassMapper.getHQLType(type));
+            query.add(Restrictions.eq("oid", oid));
+            query.add(Restrictions.eq("id", 0L));
+            updateResultFetchInCriteria(query, type, resolve);
 
             RObject object = (RObject) query.uniqueResult();
             if (object == null) {
@@ -91,9 +100,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.debug("Transforming data to JAXB type.");
             objectType = object.toJAXB(prismContext).asPrismObject();
 
-            if (resolve != null && !resolve.getProperty().isEmpty()) {
-                //todo we have to resolve something...
-            }
             session.getTransaction().commit();
 
             validateObjectType(objectType, type);
@@ -119,6 +125,36 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return objectType;
     }
 
+    private <T extends ObjectType> void updateResultFetchInCriteria(Criteria criteria, Class<T> type,
+            PropertyReferenceListType resolve) {
+
+        if (resolve == null || resolve.getProperty().isEmpty()) {
+            return;
+        }
+
+        //resolving properties
+        try {
+            QueryRegistry registry = QueryRegistry.getInstance();
+            EntityDefinition definition = registry.findDefinition(ObjectTypes.getObjectType(type).getQName());
+            for (PropertyReferenceType property : resolve.getProperty()) {
+                PropertyPath path = new XPathHolder(property.getProperty()).toPropertyPath();
+                if (path == null || path.size() != 1) {
+                    LOGGER.warn("Resolving property path with size not equal 1 is not supported '"
+                            + path + "'.");
+                    continue;
+                }
+                Definition def = definition.findDefinition(path.first().getName());
+                if (def == null) {
+                    LOGGER.warn("Unknown path '" + path + "', couldn't find definition for it, will not be resolved.");
+                    continue;
+                }
+                criteria.setFetchMode(def.getRealName(), FetchMode.JOIN);
+            }
+        } catch (QueryException ex) {
+            throw new SystemException(ex.getMessage(), ex);
+        }
+    }
+
     @Override
     public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
             OperationResult result) {
@@ -139,15 +175,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.debug("Selecting total count.");
             Query query = session.createQuery("select count(o) from " + ClassMapper.getHQLType(type) + " as o");
             Long count = (Long) query.uniqueResult();
-            results.setTotalResultCount(count.intValue());  //todo ResultList must have long value
+            results.setTotalResultCount(count.intValue());
 
-            //todo sort by and asc or desc
             LOGGER.debug("Count is {}, selecting objects.", new Object[]{count});
-            query = session.createQuery("from " + ClassMapper.getHQLType(type) + " as o");
-            query = updatePaging(query, paging);
+            Criteria criteria = session.createCriteria(ClassMapper.getHQLType(type));
+            criteria = updatePagingAndSorting(criteria, type, paging);
 
             LOGGER.debug("Transforming data to JAXB types.");
-            List<? extends RObject> objects = query.list();
+            List<? extends RObject> objects = criteria.list();
             if (objects != null) {
                 for (RObject object : objects) {
                     ObjectType objectType = object.toJAXB(prismContext);
@@ -350,7 +385,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             LOGGER.debug("Total count is {}, listing object based on paging.", new Object[]{count});
             criteria.setProjection(null);
-            criteria = updatePaging(criteria, paging);
+            criteria = updatePagingAndSorting(criteria, type, paging);
 
             List<RObject> objects = criteria.list();
             LOGGER.debug("Found {} objects, translating to JAXB.",
@@ -513,26 +548,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type) {
-        //todo probably will not be used anymore...
-//        if (prismObject == null || type.isAssignableFrom(prismObject.getCompileTimeClass())) {
-//            throw new SystemException("Result ('" + prismObject.toDebugName() + "') is not assignable to '"
-//                    + type.getSimpleName() + "' [really should not happen].");
-//        }
-    }
-
-    private Criteria updatePaging(Criteria criteria, PagingType paging) {
-        if (paging == null) {
-            return criteria;
+        if (prismObject == null || prismObject.getCompileTimeClass().isAssignableFrom(type)) {
+            throw new SystemException("Result ('" + prismObject.toDebugName() + "') is not assignable to '"
+                    + type.getSimpleName() + "' [really should not happen].");
         }
-
-        if (paging.getOffset() != null) {
-            criteria = criteria.setFirstResult(paging.getOffset());
-        }
-        if (paging.getMaxSize() != null) {
-            criteria = criteria.setMaxResults(paging.getMaxSize());
-        }
-
-        return criteria;
     }
 
     private <T extends ObjectType> RObject createDataObjectFromJAXB(T object) throws InstantiationException,
@@ -547,7 +566,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return rObject;
     }
 
-    private Query updatePaging(Query query, PagingType paging) {
+    private <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, PagingType paging) {
         if (paging == null) {
             return query;
         }
@@ -556,6 +575,37 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
         if (paging.getMaxSize() != null) {
             query = query.setMaxResults(paging.getMaxSize());
+        }
+
+        if (paging.getOrderDirection() == null && paging.getOrderBy() == null) {
+            return query;
+        }
+
+        try {
+            QueryRegistry registry = QueryRegistry.getInstance();
+            PropertyPath path = new XPathHolder(paging.getOrderBy().getProperty()).toPropertyPath();
+            if (path == null || path.size() != 1) {
+                LOGGER.warn("Ordering by property path with size not equal 1 is not supported '"
+                        + path + "'.");
+                return query;
+            }
+            EntityDefinition definition = registry.findDefinition(ObjectTypes.getObjectType(type).getQName());
+            Definition def = definition.findDefinition(path.first().getName());
+            if (def == null) {
+                LOGGER.warn("Unknown path '" + path + "', couldn't find definition for it, "
+                        + "list will not be ordered by it.");
+                return query;
+            }
+
+            switch (paging.getOrderDirection()) {
+                case ASCENDING:
+                    query = query.addOrder(Order.asc(def.getRealName()));
+                    break;
+                case DESCENDING:
+                    query = query.addOrder(Order.desc(def.getRealName()));
+            }
+        } catch (QueryException ex) {
+            throw new SystemException(ex.getMessage(), ex);
         }
 
         return query;
