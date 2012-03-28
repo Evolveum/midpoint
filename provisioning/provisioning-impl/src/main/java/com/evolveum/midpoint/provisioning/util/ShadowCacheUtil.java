@@ -355,11 +355,17 @@ public class ShadowCacheUtil {
         for (PrismProperty p : identifiers) {
         	repoAttributesContainer.getValue().add(p);
         }
+        
+      
 
         // We don't want to store credentials in the repo
         ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         if (repoShadowType instanceof AccountShadowType) {
             ((AccountShadowType) repoShadowType).setCredentials(null);
+        }
+        
+        if (repoShadowType.getName() == null){
+        	repoShadowType.setName(determineShadowName(shadowType));
         }
 
         return repoShadowType;
