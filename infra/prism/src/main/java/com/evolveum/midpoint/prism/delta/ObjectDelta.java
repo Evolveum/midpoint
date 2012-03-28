@@ -184,6 +184,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
     }
 
+    public <X extends Containerable> ContainerDelta<X> findContainerDelta(QName name) {
+    	return findContainerDelta(new PropertyPath(name));
+    }
 
     private <D extends ItemDelta> D findModification(PropertyPath propertyPath, Class<D> deltaType) {
         if (modifications == null) {

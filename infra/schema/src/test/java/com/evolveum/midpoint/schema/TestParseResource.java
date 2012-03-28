@@ -29,10 +29,14 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
@@ -248,6 +252,15 @@ public class TestParseResource {
 		assertPropertyDefinition(resource, "name", DOMUtil.XSD_STRING, 0, 1);		
 		assertPropertyValue(resource, "namespace", RESOURCE_NAMESPACE);
 		assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 1, 1);
+		
+		PrismReference connectorRef = resource.findReference(ResourceType.F_CONNECTOR_REF);
+		assertNotNull("No connectorRef", connectorRef);
+    	PrismReferenceValue connectorRefVal = connectorRef.getValue();
+    	assertNotNull("No connectorRef value", connectorRefVal);
+    	assertEquals("Wrong type in connectorRef value", ConnectorType.COMPLEX_TYPE, connectorRefVal.getTargetType());
+    	// TODO: MID-650
+//    	Element filter = connectorRefVal.getFilter();
+//    	assertNotNull("No filter in connectorRef value", filter);
 				
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ResourceConfigurationType.COMPLEX_TYPE, 1, 1);
@@ -268,6 +281,15 @@ public class TestParseResource {
 		assertEquals("Wrong oid (JAXB)", RESOURCE_OID, resourceType.getOid());
 		assertEquals("Wrong name (JAXB)", "Embedded Test OpenDJ", resourceType.getName());
 		assertEquals("Wrong namespace (JAXB)", RESOURCE_NAMESPACE, resourceType.getNamespace());
+		
+		ObjectReferenceType connectorRef = resourceType.getConnectorRef();
+		assertNotNull("No connectorRef (JAXB)", connectorRef);
+		assertEquals("Wrong type in connectorRef (JAXB)", ConnectorType.COMPLEX_TYPE, connectorRef.getType());
+		// TODO: MID-650
+//    	Filter filter = connectorRef.getFilter();
+//    	assertNotNull("No filter in connectorRef (JAXB)", filter);
+//    	Element filterElement = filter.getFilter();
+//    	assertNotNull("No filter element in connectorRef (JAXB)", filterElement);
 		
 		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
 		assertNotNull("No schema handling (JAXB)", schemaHandling);

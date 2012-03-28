@@ -102,8 +102,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_SET_FIELD_CONTAINER_VALUE = "setFieldContainerValue";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE = "getReference";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_VALUE = "getReferenceValue";
-    private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE = "setReferenceValue";
-    private static final String METHOD_PRISM_UTIL_SET_REFERENCE_OBJECT = "setReferenceObject";
+    private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_REF = "setReferenceValueAsRef";
+    private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_OBJECT = "setReferenceValueAsObject";
     private static final String METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE = "objectableAsReferenceValue";
 	private static final String METHOD_PRISM_UTIL_SETUP_CONTAINER_VALUE = "setupContainerValue";
     
@@ -213,10 +213,10 @@ public class SchemaProcessor implements Processor {
         updateObjectReferenceOid(definedClass, getReference);
         //update for type methods
         updateObjectReferenceType(definedClass, getReference);
+        updateObjectReferenceDescription(definedClass, getReference);
+        // TODO: filter: MID-650
 
         //add xml element annotation to description getter, these methods will be fixed later
-        annotateMethodWithXmlElement(findMethod(definedClass, "getDescription"),
-                definedClass.fields().get("description"));
         JFieldVar filter = definedClass.fields().get("filter");
         copyAnnotations(findMethod(definedClass, "getFilter"), filter);
         List<JAnnotationUse> existingAnnotations = getAnnotations(filter, false);
@@ -251,6 +251,20 @@ public class SchemaProcessor implements Processor {
         body = setOid.body();
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), setOid.name());
         invocation.arg(setOid.listParams()[0]);
+    }
+    
+    private void updateObjectReferenceDescription(JDefinedClass definedClass, JMethod getReference) {
+        JFieldVar descriptionField = definedClass.fields().get("description");
+        JMethod getDescription = recreateMethod(findMethod(definedClass, "getDescription"), definedClass);
+        copyAnnotations(getDescription, descriptionField);
+        definedClass.removeField(descriptionField);
+        JBlock body = getDescription.body();
+        body._return(JExpr.invoke(JExpr.invoke(getReference), getDescription.name()));
+
+        JMethod setDescription = recreateMethod(findMethod(definedClass, "setDescription"), definedClass);
+        body = setDescription.body();
+        JInvocation invocation = body.invoke(JExpr.invoke(getReference), setDescription.name());
+        invocation.arg(setDescription.listParams()[0]);
     }
 
     private JMethod findMethod(JDefinedClass definedClass, String methodName) {
@@ -954,7 +968,7 @@ public class SchemaProcessor implements Processor {
         JVar cont = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_VALUE_FIELD_NAME,
                 JOp.cond(param.ne(JExpr._null()), JExpr.invoke(param, METHOD_AS_REFERENCE_VALUE), JExpr._null()));
         JInvocation invocation = body.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class),
-                METHOD_PRISM_UTIL_SET_REFERENCE_VALUE);
+        		METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_REF);
         invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(cont);
@@ -1089,7 +1103,7 @@ public class SchemaProcessor implements Processor {
         JVar cont = body.decl(CLASS_MAP.get(PrismObject.class), OBJECT_LOCAL_FIELD_NAME, JOp.cond(param.ne(JExpr._null()),
                 JExpr.invoke(param, METHOD_AS_PRISM_CONTAINER), JExpr._null()));
         JInvocation invocation = body.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class),
-                METHOD_PRISM_UTIL_SET_REFERENCE_OBJECT);
+        		METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_OBJECT);
         invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
 
         JFieldVar referencedField = getReferencedField(field, classOutline);

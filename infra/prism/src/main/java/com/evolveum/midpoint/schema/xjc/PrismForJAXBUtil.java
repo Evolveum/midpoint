@@ -231,39 +231,57 @@ public final class PrismForJAXBUtil {
         return parent.findReference(name);
     }
 
-    public static void setReferenceValue(PrismContainerValue<?> parent, QName name,
+    /**
+     * This method must merge new value with potential existing value of the reference.
+     * E.g. it is possible to call setResource(..) and then setResourceRef(..) with the
+     * same OID. In that case the result should be one reference that has both OID/type/filter
+     * and object.
+     * Assumes single-value reference
+     */
+    public static void setReferenceValueAsRef(PrismContainerValue<?> parentValue, QName referenceName,
             PrismReferenceValue value) {
-        Validate.notNull(parent, "Prism container value must not be null.");
-        Validate.notNull(name, "QName must not be null.");
+        Validate.notNull(parentValue, "Prism container value must not be null.");
+        Validate.notNull(referenceName, "QName must not be null.");
 
         PrismReference reference;
 		try {
-			reference = parent.findOrCreateItem(name, PrismReference.class);
+			reference = parentValue.findOrCreateItem(referenceName, PrismReference.class);
 		} catch (SchemaException e) {
 			// This should not happen. Code generator and compiler should take care of that.
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
-        if (reference != null) {
-            if (value == null) {
-            	if (reference.getValue() != null) {
-            		reference.getValue().setObject(null);
-            	}
-	        } else {
-	        	if (reference.getValue() == null) {
-	        		reference.add(new PrismReferenceValue());
-	        	}
-	            reference.getValue().setObject(value.getObject());
-                reference.getValue().setOid(value.getOid());
-	        }
+		if (reference == null) {
+        	throw new IllegalArgumentException("No reference "+referenceName+" in "+parentValue);
         }
+    	if (reference.isEmpty()) {
+    		reference.add(value);
+    	} else {
+            if (value == null) {
+                reference.getValue().setOid(null);
+                reference.getValue().setTargetType(null);
+                reference.getValue().setFilter(null);
+                reference.getValue().setDescription(null);	            	
+	        } else {
+                reference.getValue().setOid(value.getOid());
+                reference.getValue().setTargetType(value.getTargetType());
+                reference.getValue().setFilter(value.getFilter());
+                reference.getValue().setDescription(value.getDescription());
+	        }
+    	}
+    }
+    
+    public static void setReferenceValueAsRef(PrismContainer parent, QName name, PrismReferenceValue value) {
+        setReferenceValueAsRef(parent.getValue(), name, value);
     }
 
-    public static void setReferenceValue(PrismContainer parent, QName name, PrismReferenceValue value) {
-        setReferenceValue(parent.getValue(), name, value);
-    }
-
-    // Assumes single-value reference
-    public static void setReferenceObject(PrismContainerValue parentValue, QName referenceQName, PrismObject targetObject) {
+    /**
+     * This method must merge new value with potential existing value of the reference.
+     * E.g. it is possible to call setResource(..) and then setResourceRef(..) with the
+     * same OID. In that case the result should be one reference that has both OID/type/filter
+     * and object.
+     * Assumes single-value reference
+     */
+    public static void setReferenceValueAsObject(PrismContainerValue parentValue, QName referenceQName, PrismObject targetObject) {
         Validate.notNull(parentValue, "Prism container value must not be null.");
         Validate.notNull(referenceQName, "QName must not be null.");
 
@@ -278,16 +296,12 @@ public final class PrismForJAXBUtil {
         	throw new IllegalArgumentException("No reference "+referenceQName+" in "+parentValue);
         }
         PrismReferenceValue referenceValue = reference.getValue();
-        if (referenceValue == null) {
-        	referenceValue = new PrismReferenceValue();
-        	reference.add(referenceValue);
-        }
         referenceValue.setObject(targetObject);
     }
 
     // Assumes single-value reference
-    public static void setReferenceObject(PrismContainer parent, QName referenceQName, PrismObject targetObject) {
-        setReferenceObject(parent.getValue(), referenceQName, targetObject);
+    public static void setReferenceValueAsObject(PrismContainer parent, QName referenceQName, PrismObject targetObject) {
+    	setReferenceValueAsObject(parent.getValue(), referenceQName, targetObject);
     }
     
     public static <T extends Objectable> PrismReferenceValue objectableAsReferenceValue(T objectable, PrismReference reference ) {

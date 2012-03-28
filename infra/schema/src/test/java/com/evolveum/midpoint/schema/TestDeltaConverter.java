@@ -22,11 +22,16 @@
 package com.evolveum.midpoint.schema;
 
 import static org.testng.AssertJUnit.assertTrue;
+
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -35,10 +40,12 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -119,5 +126,43 @@ public class TestDeltaConverter {
     	PrismProperty<ProtectedStringType> protectedStringProperty = user.findProperty(CREDENTIALS_PASSWORD_PROTECTED_STRING_PATH);
     	PrismPropertyValue<ProtectedStringType> protectedStringPropertyValue = protectedStringProperty.getValue();
     	assertTrue("protectedString not equivalent", protectedStringPropertyValue.equalsRealValue(protectedStringVal));
+    }
+    
+    @Test
+    public void testAddAssignment() throws SchemaException, FileNotFoundException, JAXBException {
+    	System.out.println("===[ testAddAssignment ]====");
+    	
+    	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-add-role-pirate.xml"),
+    			ObjectModificationType.class);
+    	
+    	// WHEN
+    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
+    			PrismTestUtil.getPrismContext());
+    	
+    	System.out.println("Delta:");
+    	System.out.println(objectDelta.dump());
+    	
+    	// THEN
+    	assertNotNull("No object delta", objectDelta);
+    	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
+    	ContainerDelta<AssignmentType> assignmentDelta = objectDelta.findContainerDelta(UserType.F_ASSIGNMENT);
+    	assertNotNull("No assignment delta", assignmentDelta);
+    	Collection<PrismContainerValue<AssignmentType>> valuesToAdd = assignmentDelta.getValuesToAdd();
+    	assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
+    	PrismContainerValue<AssignmentType> assignmentVal = valuesToAdd.iterator().next();
+    	assertNotNull("Null value in protectedStringDelta", assignmentVal);
+    	
+    	PrismReference targetRef = assignmentVal.findReference(AssignmentType.F_TARGET_REF);
+    	assertNotNull("No targetRef in assignment", targetRef);
+    	PrismReferenceValue targetRefVal = targetRef.getValue();
+    	assertNotNull("No targetRef value in assignment", targetRefVal);
+    	assertEquals("Wrong OID in targetRef value", "12345678-d34d-b33f-f00d-987987987988", targetRefVal.getOid());
+    	assertEquals("Wrong type in targetRef value", RoleType.COMPLEX_TYPE, targetRefVal.getTargetType());
+    	
+    	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(COMMON_TEST_DIR, "user-jack.xml"));
+    	// apply to user
+    	objectDelta.applyTo(user);
+
+    	// TODO
     }
 }

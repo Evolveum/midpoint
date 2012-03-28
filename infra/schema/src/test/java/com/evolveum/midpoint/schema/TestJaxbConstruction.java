@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
@@ -31,12 +32,15 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -46,15 +50,18 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType.Filter;
 
 /**
  * @author semancik
@@ -62,6 +69,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionTyp
  */
 public class TestJaxbConstruction {
 	
+	private static final String FAUX_RESOURCE_OID = "fuuuuuuuuuuu";
+	private static final String ACCOUNT_NAME = "jack";
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -93,6 +103,50 @@ public class TestJaxbConstruction {
 		PrismContainerValue<ExtensionType> extensionValueFromJaxb = extension.asPrismContainerValue();
 		assertNotNull("No extension container after setExtension (prism)", extensionValueFromJaxb);
 		assertNotNull("No extension definition after setExtension (prism)", extensionValueFromJaxb.getParent().getDefinition());
+
+	}
+	
+	@Test
+	public void testAccountConstruction() throws JAXBException, SchemaException {
+		System.out.println("\n\n ===[ testAccountConstruction ]===\n");
+		
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		AccountShadowType accountType = new AccountShadowType();
+		prismContext.adopt(accountType);
+		
+		PrismObject<AccountShadowType> account = accountType.asPrismObject();
+		assertNotNull("No object definition after adopt", account.getDefinition());
+		
+		// WHEN
+		accountType.setName(ACCOUNT_NAME);
+		ObjectReferenceType resourceRefType = new ObjectReferenceType();
+		resourceRefType.setOid(FAUX_RESOURCE_OID);
+		resourceRefType.setType(ResourceType.COMPLEX_TYPE);
+		accountType.setResourceRef(resourceRefType);
+		
+		// THEN (prism)
+		PrismAsserts.assertPropertyValue(account, AccountShadowType.F_NAME, ACCOUNT_NAME);
+		PrismReference resourceRef = account.findReference(AccountShadowType.F_RESOURCE_REF);
+		assertNotNull("No resourceRef", resourceRef);
+    	PrismReferenceValue resourceRefVal = resourceRef.getValue();
+    	assertNotNull("No resourceRef value", resourceRefVal);
+    	assertEquals("Wrong OID in resourceRef value", FAUX_RESOURCE_OID, resourceRefVal.getOid());
+    	assertEquals("Wrong type in resourceRef value", ResourceType.COMPLEX_TYPE, resourceRefVal.getTargetType());
+//    	Element filter = resourceRefVal.getFilter();
+//    	assertNotNull("No filter in resourceRef value", filter);
+		
+		// THEN (JAXB)
+		assertEquals("Wrong name (JAXB)", ACCOUNT_NAME, accountType.getName());
+		resourceRefType = accountType.getResourceRef();
+		assertNotNull("No resourceRef (JAXB)", resourceRefType);
+		assertEquals("Wrong OID in resourceRef (JAXB)", FAUX_RESOURCE_OID, resourceRefType.getOid());
+		assertEquals("Wrong type in resourceRef (JAXB)", ResourceType.COMPLEX_TYPE, resourceRefType.getType());
+//    	Filter filter = connectorRef.getFilter();
+//    	assertNotNull("No filter in connectorRef value (JAXB)", filter);
+//    	Element filterElement = filter.getFilter();
+//    	assertNotNull("No filter element in connectorRef value (JAXB)", filterElement);
 
 	}
     

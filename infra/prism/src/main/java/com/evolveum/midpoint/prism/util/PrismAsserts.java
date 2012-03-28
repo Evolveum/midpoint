@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -163,7 +164,7 @@ public class PrismAsserts {
 
 	public static void assertParentConsistency(Item<?> item) {
 		for (PrismValue pval: item.getValues()) {
-			assert pval.getParent() == item : "Wrong parent in "+pval;
+			assert pval.getParent() == item : "Wrong parent of "+pval+" in "+DebugUtil.prettyPrint(item.getName());
 			if (pval instanceof PrismContainerValue) {
 				assertParentConsistency((PrismContainerValue)pval);
 			}
