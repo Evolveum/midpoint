@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
@@ -34,23 +33,19 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -74,6 +69,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private Collection<ValueConstruction<?>> attributeConstructions;
 	private RefinedAccountDefinition refinedAccountDefinition;
 	private PrismContext prismContext;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AccountConstruction.class);
 	
 	public AccountConstruction(AccountConstructionType accountConstructionType, ObjectType source) {
 		this.accountConstructionType = accountConstructionType;
@@ -184,6 +181,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 
 	private void evaluateAttributes(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		attributeConstructions = new HashSet<ValueConstruction<?>>();
+		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
+				assignments.size(), assignments});
 		for (ValueConstructionType attributeConstructionType : accountConstructionType.getAttribute()) {
 			ValueConstruction<?> attributeConstruction = evaluateAttribute(attributeConstructionType, result);
 			attributeConstructions.add(attributeConstruction);
@@ -200,7 +199,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (outputDefinition == null) {
 			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
-		ValueConstruction<?> attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, "in "+ObjectTypeUtil.toShortString(source));
+		ValueConstruction<?> attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, 
+				"for attribute " + DebugUtil.prettyPrint(attrName)  + " in "+source);
 		attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
 		attributeConstruction.setRootNode(user);
 		if (!assignments.isEmpty()) {

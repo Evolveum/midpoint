@@ -776,9 +776,12 @@ public class PrismDomProcessor {
     
     public Element serializeValueToDom(PrismValue pval, QName elementName) throws SchemaException {
     	Document document = DOMUtil.getDocument();
-    	Element element = document.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
-    	serializeValueToDom(pval, element);
-    	return element;
+    	// This is kind of a hack. The  serializeValueToDom method will place the element that we want below the
+    	// "parent" element that we need to provide. So we create fake element and then extract the real element
+    	// from it.
+    	Element fakeElement = document.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
+    	serializeValueToDom(pval, fakeElement);
+    	return DOMUtil.getFirstChildElement(fakeElement);
     }
     
     public void serializeValueToDom(PrismValue pval, Element parentElement) throws SchemaException {

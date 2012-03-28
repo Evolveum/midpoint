@@ -29,6 +29,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathVariableResolver;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Objectable;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -137,7 +139,15 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         if (!(variableValue instanceof Node) && !(variableValue.getClass().getPackage().getName().startsWith("java."))) {
         	throw new SchemaException("Unable to convert value of variable "+variableName+" to XML, still got "+variableValue+" value at the end");
         }
-//        System.out.println("VAR "+name+" - "+retval.getClass().getName()+":\n"+DebugUtil.prettyPrint(retval));
+        
+        // DEBUG hack
+//        System.out.println("VAR "+variableName+" - "+variableValue.getClass().getName()+":");
+//        if (variableValue instanceof Node) {
+//        	System.out.println(DOMUtil.serializeDOMToString((Node)variableValue));
+//        } else {
+//        	System.out.println(DebugUtil.prettyPrint(variableValue));
+//        }
+        
         return variableValue;
     }
 }

@@ -203,7 +203,13 @@ public class Expression {
 
     private void traceExpressionSuccess(String returnContext, Class<?> returnType, Object returnValue) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("EXPRESSION in {}\nLanguage: {}\nReturn type: {} ({})\nVariables:\n{}\nCode:\n{}\nResult: {}", new Object[]{
+        	LOGGER.trace("Expression trace:\n"+
+            		"---[ EXPRESSION {}]---------------------------\n"+
+            		"Language: {}\n"+
+            		"Return type: {} ({})\n"+
+            		"Variables:\n{}\n"+
+            		"Code:\n{}\n"+
+            		"Result: {}", new Object[]{
                     shortDesc, evaluator.getLanguageName(), returnType, returnContext, formatVariables(), formatCode(),
                     SchemaDebugUtil.prettyPrint(returnValue)
             });
@@ -213,7 +219,13 @@ public class Expression {
     private void traceExpressionFailure(String returnContext, Class<?> returnType, Exception exception) {
         LOGGER.error("Expression error: {}", exception.getMessage(), exception);
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("EXPRESSION in {}\nLanguage: {}\nReturn type: {} ({})\nVariables:\n{}\nCode:\n{}\nError: {}", new Object[]{
+            LOGGER.trace("Expression trace:\n"+
+            		"---[ EXPRESSION {}]---------------------------\n"+
+            		"Language: {}\n"+
+            		"Return type: {} ({})\n"+
+            		"Variables:\n{}\n"+
+            		"Code:\n{}\n"+
+            		"Error: {}", new Object[]{
                     shortDesc, evaluator.getLanguageName(), returnType, returnContext, formatVariables(), formatCode(),
                     SchemaDebugUtil.prettyPrint(exception)
             });

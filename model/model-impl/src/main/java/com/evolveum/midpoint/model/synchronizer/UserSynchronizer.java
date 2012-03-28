@@ -125,7 +125,7 @@ public class UserSynchronizer {
         // variable if it's not set (from provisioning)
         checkAccountContextReconciliation(context, result);
 
-        traceContext("Context after LOAD and recompute:\n{}", context);
+        traceContext("load", context);
         if (consistenceChecks) context.assertConsistence();
         
         // Loop through the account changes, apply inbound expressions
@@ -211,7 +211,10 @@ public class UserSynchronizer {
     		LOGGER.debug(sb.toString());
     	}
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after {} and recompute:\n{}", phase, context.dump());
+            LOGGER.trace("Synchronization context:\n"+
+            		"------[ Context after {} ]-----------------------------\n"+
+            		"{}\n",
+            		phase, context.dump());
         }
     }
 
