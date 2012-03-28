@@ -125,18 +125,18 @@ public class UserSynchronizer {
         // variable if it's not set (from provisioning)
         checkAccountContextReconciliation(context, result);
 
-        traceContext("load", context);
+        traceContext("load", context, false);
         if (consistenceChecks) context.assertConsistence();
         
         // Loop through the account changes, apply inbound expressions
         inboundProcessor.processInbound(context, result);
         context.recomputeUserNew();
-        traceContext("inbound", context);
+        traceContext("inbound", context, false);
         if (consistenceChecks) context.assertConsistence();
 
         userPolicyProcessor.processUserPolicy(context, result);
         context.recomputeUserNew();
-        traceContext("user policy", context);
+        traceContext("user policy", context, false);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("User delta:\n{}", context.getUserDelta() == null ? "null" : context.getUserDelta().dump());
         }
@@ -144,32 +144,32 @@ public class UserSynchronizer {
 
         assignmentProcessor.processAssignments(context, result);
         context.recomputeNew();
-        traceContext("assignments", context);
+        traceContext("assignments", context, true);
         if (consistenceChecks) context.assertConsistence();
 
         outboundProcessor.processOutbound(context, result);
         context.recomputeNew();
-        traceContext("outbound", context);
+        traceContext("outbound", context, true);
         if (consistenceChecks) context.assertConsistence();
 
         consolidationProcessor.consolidateValues(context, result);
         context.recomputeNew();
-        traceContext("consolidation", context);
+        traceContext("consolidation", context, false);
         if (consistenceChecks) context.assertConsistence();
 
         credentialsProcessor.processCredentials(context, result);
         context.recomputeNew();
-        traceContext("credentials", context);
+        traceContext("credentials", context, false);
         if (consistenceChecks) context.assertConsistence();
 
         activationProcessor.processActivation(context, result);
         context.recomputeNew();
-        traceContext("activation", context);
+        traceContext("activation", context, false);
         if (consistenceChecks) context.assertConsistence();
 
         reconciliationProcessor.processReconciliation(context, result);
         context.recomputeNew();
-        traceContext("reconciliation", context);
+        traceContext("reconciliation", context, false);
         if (consistenceChecks) context.assertConsistence();
 
     }
@@ -199,7 +199,7 @@ public class UserSynchronizer {
         }
     }
 
-    private void traceContext(String phase, SyncContext context) {
+    private void traceContext(String phase, SyncContext context, boolean showTriples) {
     	if (LOGGER.isDebugEnabled()) {
     		StringBuilder sb = new StringBuilder("After ");
     		sb.append(phase);
@@ -214,7 +214,7 @@ public class UserSynchronizer {
             LOGGER.trace("Synchronization context:\n"+
             		"---[ CONTEXT after {} ]--------------------------------\n"+
             		"{}\n",
-            		phase, context.dump());
+            		phase, context.dump(showTriples));
         }
     }
 

@@ -296,9 +296,13 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     public String debugDump() {
         return debugDump(0);
     }
-
+    
     @Override
     public String debugDump(int indent) {
+    	return debugDump(indent, true);
+    }
+    
+    public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
         SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("OID: ").append(oid);
@@ -355,14 +359,16 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
             sb.append(accountSyncDelta.debugDump(indent + 1));
         }
 
-        sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent);
-        sb.append("ACCOUNT attribute DeltaSetTriple map:");
-        if (attributeValueDeltaSetTripleMap == null) {
-            sb.append(" null");
-        } else {
-            sb.append("\n");
-            SchemaDebugUtil.debugDumpMapMultiLine(sb, attributeValueDeltaSetTripleMap, indent + 1);
+        if (showTriples) {
+	        sb.append("\n");
+	        SchemaDebugUtil.indentDebugDump(sb, indent);
+	        sb.append("ACCOUNT attribute DeltaSetTriple map:");
+	        if (attributeValueDeltaSetTripleMap == null) {
+	            sb.append(" null");
+	        } else {
+	            sb.append("\n");
+	            SchemaDebugUtil.debugDumpMapMultiLine(sb, attributeValueDeltaSetTripleMap, indent + 1);
+	        }
         }
 
         return sb.toString();

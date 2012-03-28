@@ -443,9 +443,17 @@ public class SyncContext implements Dumpable, DebugDumpable {
     public String dump() {
         return debugDump(0);
     }
+    
+    public String dump(boolean showTriples) {
+        return debugDump(0, showTriples);
+    }
 
     @Override
     public String debugDump(int indent) {
+    	return debugDump(indent, true);
+    }
+    
+    public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
         indent(sb, indent);
         sb.append("SyncContext\n");
@@ -510,7 +518,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
                 indent(sb, indent + 2);
                 sb.append("ACCOUNT ");
                 sb.append(entry.getKey()).append(":\n");
-                sb.append(entry.getValue().debugDump(indent + 3));
+                sb.append(entry.getValue().debugDump(indent + 3, showTriples));
             }
         }
 

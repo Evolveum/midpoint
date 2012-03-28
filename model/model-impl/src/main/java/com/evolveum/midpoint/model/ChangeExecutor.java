@@ -104,7 +104,10 @@ public class ChangeExecutor {
         for (AccountSyncContext accCtx : syncContext.getAccountContexts()) {
             ObjectDelta<AccountShadowType> accDelta = accCtx.getAccountDelta();
             if (accDelta == null || accDelta.isEmpty()) {
-                LOGGER.trace("No change for account " + accCtx.getResourceAccountType());
+                if (LOGGER.isTraceEnabled()) {
+                	LOGGER.trace("No change for account " + accCtx.getResourceAccountType());
+                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
+                }
                 accCtx.setOid(getOidFromContext(accCtx));
                 updateAccountLinks(syncContext.getUserNew(), accCtx, result);
                 continue;
