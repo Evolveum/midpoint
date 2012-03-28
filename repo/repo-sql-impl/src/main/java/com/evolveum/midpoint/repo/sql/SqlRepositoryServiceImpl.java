@@ -86,7 +86,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             session = beginTransaction();
 
-            Criteria query = session.createCriteria(ClassMapper.getHQLType(type));
+            Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             query.add(Restrictions.eq("oid", oid));
             query.add(Restrictions.eq("id", 0L));
             updateResultFetchInCriteria(query, type, resolve);
@@ -178,7 +178,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             results.setTotalResultCount(count.intValue());
 
             LOGGER.debug("Count is {}, selecting objects.", new Object[]{count});
-            Criteria criteria = session.createCriteria(ClassMapper.getHQLType(type));
+            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             criteria = updatePagingAndSorting(criteria, type, paging);
 
             LOGGER.debug("Transforming data to JAXB types.");
@@ -548,7 +548,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type) {
-        if (prismObject == null || prismObject.getCompileTimeClass().isAssignableFrom(type)) {
+        if (prismObject == null || !prismObject.getCompileTimeClass().isAssignableFrom(type)) {
             throw new SystemException("Result ('" + prismObject.toDebugName() + "') is not assignable to '"
                     + type.getSimpleName() + "' [really should not happen].");
         }
