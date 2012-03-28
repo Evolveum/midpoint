@@ -388,8 +388,9 @@ public class UserSynchronizer {
 						LOGGER.warn("Deleting accountRef of " + user + " that points to non-existing OID " + oid);
 					}				
 				}
-				if (context.isDoReconciliationForAllAccounts()) {
-					if (accountSyncContext != null) {
+				if (accountSyncContext != null) {
+					accountSyncContext.setPolicyDecision(PolicyDecision.UNLINK);
+					if (context.isDoReconciliationForAllAccounts()) {
 						accountSyncContext.setDoReconciliation(true);
 					}
 	            }
