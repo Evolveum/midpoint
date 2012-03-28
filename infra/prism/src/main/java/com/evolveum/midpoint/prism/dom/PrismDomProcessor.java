@@ -773,6 +773,18 @@ public class PrismDomProcessor {
         Element element = serializeToDom(object, parentElement);
         return DOMUtil.serializeDOMToString(element);
     }
+    
+    public Element serializeValueToDom(PrismValue pval, QName elementName) throws SchemaException {
+    	Document document = DOMUtil.getDocument();
+    	Element element = document.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
+    	serializeValueToDom(pval, element);
+    	return element;
+    }
+    
+    public void serializeValueToDom(PrismValue pval, Element parentElement) throws SchemaException {
+		DomSerializer domSerializer = new DomSerializer(getPrismContext());
+		domSerializer.serialize(pval, parentElement);
+	}
 
 	/**
 	 * Determines proper name for the element with specified local name.

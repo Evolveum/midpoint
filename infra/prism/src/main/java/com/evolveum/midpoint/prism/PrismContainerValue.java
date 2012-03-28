@@ -716,7 +716,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			if (thisItem == null) {
 				// Other has an item that we don't have, this must be an add
 				ItemDelta itemDelta = otherItem.createDelta(otherItem.getPath(pathPrefix));
-				itemDelta.addValuesToAdd(otherItem.getValues());
+				itemDelta.addValuesToAdd(otherItem.getClonedValues());
 				if (!itemDelta.isEmpty()) {
 					((Collection)deltas).add(itemDelta);
 				}

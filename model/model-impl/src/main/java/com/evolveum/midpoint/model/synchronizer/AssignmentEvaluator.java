@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.SimpleDelta;
@@ -133,7 +134,7 @@ public class AssignmentEvaluator {
 			evaluateTarget(assignment,assignmentType.getTarget(), source, assignmentPath, result);
 			
 		} else if (assignmentType.getTargetRef() != null) {
-
+			
 			evaluateTargetRef(assignment,assignmentType.getTargetRef(), source, assignmentPath, result);
 
 		} else {
@@ -146,6 +147,7 @@ public class AssignmentEvaluator {
 	private void evaluateConstruction(Assignment assignment, AssignmentType assignmentType, ObjectType source, 
 			List<AssignmentType> assignmentPath, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, assignment);
+		
 		AccountConstruction accContruction = new AccountConstruction(assignmentType.getAccountConstruction(),
 				source);
 		accContruction.addAssignments(assignmentPath);
@@ -162,6 +164,7 @@ public class AssignmentEvaluator {
 	private void evaluateTargetRef(Assignment assignment, ObjectReferenceType targetRef, ObjectType source,
 			List<AssignmentType> assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
+		
 		String oid = targetRef.getOid();
 		if (oid == null) {
 			throw new SchemaException("The OID is null in assignment targetRef in "+ObjectTypeUtil.toShortString(source));
@@ -185,6 +188,7 @@ public class AssignmentEvaluator {
 		} catch (ObjectNotFoundException ex) {
 			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+ObjectTypeUtil.toShortString(source),ex);
 		}
+		
 		evaluateTarget(assignment, target.asObjectable(), source, assignmentPath, result);
 	}
 

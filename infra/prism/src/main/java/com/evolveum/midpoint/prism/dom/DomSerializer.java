@@ -243,7 +243,10 @@ public class DomSerializer {
 		}
 	}
 	
-	private void serialize(PrismValue pval, Element parentElement) throws SchemaException {
+	void serialize(PrismValue pval, Element parentElement) throws SchemaException {
+		if (doc == null) {
+			doc = parentElement.getOwnerDocument();
+		}
 		if (pval instanceof PrismContainerValue) {
 			serialize((PrismContainerValue)pval, parentElement);
 		} else if (pval instanceof PrismPropertyValue) {

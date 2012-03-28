@@ -164,14 +164,15 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
      * Kind of convenience magic. Try few obvious variables and set them as the root node
      * for evaluation. This allow to use "fullName" instead of "$user/fullName".
      */
-    private Object determineRootNode(XPathVariableResolver variableResolver) {
+    private Object determineRootNode(XPathVariableResolver variableResolver) throws SchemaException {
         Object rootNode = variableResolver.resolveVariable(null);
         if (rootNode == null) {
         	// Add empty document instead of null so the expressions don't die with exception.
         	// This is necessary e.g. on deletes in sync when there may be nothing to evaluate.
-        	rootNode = DOMUtil.getDocument();
+        	return DOMUtil.getDocument();
+        } else {
+        	return LazyXPathVariableResolver.convertToXml(rootNode, null);
         }
-        return rootNode;
     }
 
     private QName determineRerturnType(Class<?> type) throws ExpressionEvaluationException {

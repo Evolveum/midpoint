@@ -419,9 +419,6 @@ public class SyncContext implements Dumpable, DebugDumpable {
     	if (userOld != null) {
     		PrismAsserts.assertParentConsistency(userOld);
     	}
-    	if (userNew != null) {
-    		PrismAsserts.assertParentConsistency(userNew);
-    	}
     	if (userPrimaryDelta != null) {
     		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
     			if (userPrimaryDelta.getObjectToAdd() != null) {
@@ -430,6 +427,9 @@ public class SyncContext implements Dumpable, DebugDumpable {
     				throw new IllegalStateException("User primary delta is ADD, but there is not object to add");
     			}
     		}
+    	}
+    	if (userNew != null) {
+    		PrismAsserts.assertParentConsistency(userNew);
     	}
     }
 

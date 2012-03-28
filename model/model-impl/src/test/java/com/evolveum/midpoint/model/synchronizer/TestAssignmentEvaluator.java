@@ -35,6 +35,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -78,6 +79,7 @@ public class TestAssignmentEvaluator extends AbstractModelIntegrationTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestAssignmentEvaluator.class.getName() + ".testDirect");
 		AssignmentEvaluator assignmentEvaluator = createAssignmentEvaluator();
+		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
 		AssignmentType assignmentType = unmarshallJaxbFromFile(TEST_RESOURCE_DIR_NAME + "/assignment-direct.xml", AssignmentType.class);
 		
@@ -88,6 +90,7 @@ public class TestAssignmentEvaluator extends AbstractModelIntegrationTest {
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment",evaluatedAssignment.dump());
 		assertEquals(1,evaluatedAssignment.getAccountConstructions().size());
+		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 	}
 	
 	private AssignmentEvaluator createAssignmentEvaluator() throws ObjectNotFoundException, SchemaException {

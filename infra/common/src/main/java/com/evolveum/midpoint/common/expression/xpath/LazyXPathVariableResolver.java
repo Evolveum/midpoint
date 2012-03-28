@@ -32,7 +32,9 @@ import javax.xml.xpath.XPathVariableResolver;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -105,41 +107,36 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 				}
         	}
         }
+     
+        try {
+        	return convertToXml(variableValue, name);
+        } catch (SchemaException e) {
+			throw new TunnelException(e);
+		}
+    }
         
+    // May return primitive types or DOM Node
+    public static Object convertToXml(Object variableValue, QName variableName) throws SchemaException {
+    	
         if (variableValue instanceof Objectable) {
         	variableValue = ((Objectable)variableValue).asPrismObject();
         }
-//        	try {
-//				variableValue = JAXBUtil.marshallObjectType((ObjectType)variableValue);
-//			} catch (JAXBException e) {
-//				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
-//				throw new TunnelException(newEx);
-//			} catch (IllegalArgumentException e) {
-//				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
-//				throw new TunnelException(newEx);
-//			}
-//        }
         
         if (variableValue instanceof PrismObject) {
-        	PrismObject mObject = (PrismObject)variableValue;
-        	PrismDomProcessor domProcessor = mObject.getPrismContext().getPrismDomProcessor();
-        	try {
-				variableValue = domProcessor.serializeToDom(mObject);
-			} catch (SchemaException e) {
-				new TunnelException(e);
-			}
-//        	try {
-//				Node domNode = mObject.serializeToDom();
-//				variableValue = DOMUtil.getFirstChildElement(domNode);
-//			} catch (SchemaException e) {
-//				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
-//				throw new TunnelException(newEx);
-//			} catch (IllegalArgumentException e) {
-//				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
-//				throw new TunnelException(newEx);
-//			}
+        	PrismObject<?> prismObject = (PrismObject<?>)variableValue;
+        	PrismDomProcessor domProcessor = prismObject.getPrismContext().getPrismDomProcessor();
+			variableValue = domProcessor.serializeToDom(prismObject);
+			
+        } else if (variableValue instanceof PrismValue) {
+        	PrismValue pval = (PrismValue)variableValue;
+        	PrismContext prismContext = pval.getPrismContext();
+        	PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        	variableValue = domProcessor.serializeValueToDom(pval, variableName);
         }
         
+        if (!(variableValue instanceof Node) && !(variableValue.getClass().getPackage().getName().startsWith("java."))) {
+        	throw new SchemaException("Unable to convert value of variable "+variableName+" to XML, still got "+variableValue+" value at the end");
+        }
 //        System.out.println("VAR "+name+" - "+retval.getClass().getName()+":\n"+DebugUtil.prettyPrint(retval));
         return variableValue;
     }

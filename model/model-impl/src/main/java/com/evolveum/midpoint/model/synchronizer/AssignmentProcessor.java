@@ -93,7 +93,7 @@ public class AssignmentProcessor {
                 return;
             }
         }
-
+        
         Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new HashSet<PrismContainerValue<AssignmentType>>();
         if (context.getUserOld() != null) {
             PrismContainer<AssignmentType> assignmentContainer = context.getUserOld().findContainer(UserType.F_ASSIGNMENT);
@@ -129,7 +129,7 @@ public class AssignmentProcessor {
         } else if (context.getUserNew() != null){
             source = context.getUserNew().asObjectable();
         }
-
+        
         Collection<AssignmentType> newAssignments = new HashSet<AssignmentType>();
         Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
         for (PrismContainerValue<AssignmentType> propertyValue : allAssignments) {
@@ -138,7 +138,7 @@ public class AssignmentProcessor {
             LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));
 
             Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, result);
-
+            
             if (assignmentsOld.contains(propertyValue)) {
                 // TODO: remember old state
             }
@@ -162,7 +162,7 @@ public class AssignmentProcessor {
                 newAssignments.add(assignmentType);
             }
         }
-
+        
         if (LOGGER.isTraceEnabled()) {
             // Dump the maps
             LOGGER.trace("Account maps:\nZERO:\n{}\nPLUS:\n{}\nMINUS:\n{}\n", new Object[]{dumpAccountMap(zeroAccountMap),

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -70,7 +71,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
 	private ValueConstructionFactory valueConstructionFactory;
-	private Collection<ValueConstruction> attributeConstructions;
+	private Collection<ValueConstruction<?>> attributeConstructions;
 	private RefinedAccountDefinition refinedAccountDefinition;
 	private PrismContext prismContext;
 	
@@ -120,7 +121,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		return refinedAccountDefinition.getAccountTypeName();
 	}
 	
-	public Collection<ValueConstruction> getAttributeConstructions() {
+	public Collection<ValueConstruction<?>> getAttributeConstructions() {
 		return attributeConstructions;
 	}
 
@@ -182,14 +183,14 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	}
 
 	private void evaluateAttributes(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		attributeConstructions = new HashSet<ValueConstruction>();
+		attributeConstructions = new HashSet<ValueConstruction<?>>();
 		for (ValueConstructionType attributeConstructionType : accountConstructionType.getAttribute()) {
-			ValueConstruction attributeConstruction = evaluateAttribute(attributeConstructionType, result);
+			ValueConstruction<?> attributeConstruction = evaluateAttribute(attributeConstructionType, result);
 			attributeConstructions.add(attributeConstruction);
 		}
 	}
 
-	private ValueConstruction evaluateAttribute(ValueConstructionType attributeConstructionType, OperationResult result) 
+	private ValueConstruction<?> evaluateAttribute(ValueConstructionType attributeConstructionType, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		QName attrName = attributeConstructionType.getRef();
 		if (attrName == null) {
@@ -199,8 +200,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (outputDefinition == null) {
 			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
-		// TODO: is the parentPath correct (null)?
-		ValueConstruction attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, "in "+ObjectTypeUtil.toShortString(source));
+		ValueConstruction<?> attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, "in "+ObjectTypeUtil.toShortString(source));
 		attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
 		attributeConstruction.setRootNode(user);
 		if (!assignments.isEmpty()) {
