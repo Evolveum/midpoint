@@ -25,10 +25,7 @@ import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.*;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -73,22 +70,30 @@ public class LogicalOp extends Op {
                         throw new QueryException("Can't create filter NOT (unary) with more than one element.");
                     case AND:
                         Conjunction conjunction = Restrictions.conjunction();
-                        for (Element element : elements) {
-                            conjunction.add(getInterpreter().interpret(element, pushNot));
-                        }
+                        updateJunction(elements, pushNot, conjunction);
 
                         return conjunction;
                     case OR:
                         Disjunction disjunction = Restrictions.disjunction();
-                        for (Element element : elements) {
-                            disjunction.add(getInterpreter().interpret(element, pushNot));
-                        }
+                        updateJunction(elements, pushNot, disjunction);
 
                         return disjunction;
                 }
         }
 
         throw new QueryException("Unknown state in logical filter.");
+    }
+
+    private Junction updateJunction(List<Element> elements, boolean pushNot, Junction junction) throws QueryException {
+        for (Element element : elements) {
+            if (SchemaConstants.C_TYPE.equals(DOMUtil.getQNameWithoutPrefix(element))) {
+                LOGGER.warn("Unsupported (unused) element '" + SchemaConstants.C_TYPE + "' in logical filter in query.");
+                continue;
+            }
+            junction.add(getInterpreter().interpret(element, pushNot));
+        }
+
+        return junction;
     }
 
     private Operation getOperationType(Element filterPart) throws QueryException {

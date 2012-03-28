@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public abstract class PrismValue implements Visitable {
+public abstract class PrismValue implements Visitable, Serializable {
 	
 	private SourceType type;
     private Objectable source;

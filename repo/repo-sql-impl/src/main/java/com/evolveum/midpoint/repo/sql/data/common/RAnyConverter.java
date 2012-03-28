@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -58,6 +59,8 @@ class RAnyConverter {
         TYPE_MAP.put(DOMUtil.XSD_SHORT, ValueType.LONG);
 
         TYPE_MAP.put(DOMUtil.XSD_STRING, ValueType.STRING);
+        TYPE_MAP.put(DOMUtil.XSD_DOUBLE, ValueType.STRING);
+        TYPE_MAP.put(DOMUtil.XSD_FLOAT, ValueType.STRING);
 
         TYPE_MAP.put(DOMUtil.XSD_DATETIME, ValueType.DATE);
     }
@@ -68,6 +71,7 @@ class RAnyConverter {
 
     Set<RValue> convertToValue(Item item) throws DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
+        Validate.notNull(item.getDefinition(), "Item '" + item.getName() + "' without definition can't be saved.");
 
         Set<RValue> rValues = new HashSet<RValue>();
         try {
@@ -225,6 +229,7 @@ class RAnyConverter {
         if (type == null) {
             return ValueType.STRING;
         }
+
         return type;
     }
 
