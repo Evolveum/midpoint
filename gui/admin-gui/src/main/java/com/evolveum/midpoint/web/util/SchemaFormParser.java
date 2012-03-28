@@ -21,10 +21,13 @@
 package com.evolveum.midpoint.web.util;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -36,6 +39,8 @@ import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -95,7 +100,7 @@ public class SchemaFormParser {
         return valueMap.get(key);
     }
 
-    private FormAttributeDefinition createFormAttributeDefinition(ResourceAttributeDefinition def) {
+    private FormAttributeDefinition createFormAttributeDefinition(PrismPropertyDefinition def) {
         FormAttributeDefinitionBuilder builder = new FormAttributeDefinitionBuilder();
         if (def.getAllowedValues() != null) {
             List<Object> availableValues = new ArrayList<Object>();
@@ -211,16 +216,19 @@ public class SchemaFormParser {
         ResourceDto resource = account.getResource();
         PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource.getXmlObject(), prismContext);
         // schema.updateSchemaAccess(resource.getXmlObject().getSchemaHandling());
-        ResourceAttributeContainerDefinition definition = (ResourceAttributeContainerDefinition) schema
-                .findContainerDefinitionByType(accountType);
+//        ResourceAttributeContainerDefinition definition = (ResourceAttributeContainerDefinition) schema
+//                .findComplexTypeDefinition(accountType).findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+        ObjectClassComplexTypeDefinition definition = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(accountType);
+//        ResourceAttributeContainerDefinition definition = (ResourceAttributeContainerDefinition) complexDefinition.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
         if (definition == null) {
             throw new SchemaException("Account definition for type '" + accountType + "' was not found.");
         }
+      
 
         FormObject object = new FormObject(definition.getTypeName(), getDisplayName(resource, definition));
         Map<List<QName>, List<Object>> valueMap = createAttributeValueMap(account.getAttributes());
-        for (PrismPropertyDefinition property : definition.getPropertyDefinitions()) {
-            if (!(property instanceof ResourceAttributeDefinition)) {
+        for (ItemDefinition property : definition.getDefinitions()) {
+            if (!(property instanceof PrismPropertyDefinition)) {
                 continue;
             }
             if (property.isIgnored()) {
@@ -229,7 +237,7 @@ public class SchemaFormParser {
             }
             LOGGER.trace("Attr. definition: " + property.getName());
 
-            FormAttributeDefinition attrDefinition = createFormAttributeDefinition((ResourceAttributeDefinition) property);
+            FormAttributeDefinition attrDefinition = createFormAttributeDefinition((PrismPropertyDefinition)property);
             List<Object> values = getAttributeValues(valueMap, property.getName());
             object.getAttributes().add(new FormAttribute(attrDefinition, values));
         }
@@ -238,7 +246,7 @@ public class SchemaFormParser {
         return object;
     }
 
-    private String getDisplayName(ResourceDto resource, ResourceAttributeContainerDefinition definition) {
+    private String getDisplayName(ResourceDto resource, ComplexTypeDefinition definition) {
         StringBuilder displayName = new StringBuilder();
         displayName.append(resource.getName());
         displayName.append(": ");
