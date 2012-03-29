@@ -102,6 +102,20 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	private static final long WAIT_FOR_COMPLETION_INITIAL = 100;			// initial waiting time (for task or tasks to be finished); it is doubled at each step 
 	private static final long WAIT_FOR_COMPLETION_MAX = 1600;				// max waiting time (in one step) for task(s) to be finished
 	
+	/*
+	 * Whether to allow reusing quartz scheduler after task manager shutdown.
+	 * 
+	 * Concretely, if it is set to 'true', quartz scheduler will not be shut down, only paused.
+	 * This allows for restarting it (scheduler cannot be started, if it was shut down: 
+	 * http://quartz-scheduler.org/api/2.1.0/org/quartz/Scheduler.html#shutdown())
+	 *
+	 * By default, if run within TestNG (determined by seeing SUREFIRE_PRESENCE_PROPERTY set), we allow the reuse.
+	 * If run within Tomcat, we do not, because pausing the scheduler does NOT stop the execution threads.
+	 */
+	private boolean reusableQuartzScheduler = false;
+	
+	private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
+	
 	private static boolean jdbcJobStore = false;
 	
 	private static int START_DELAY_TIME = 1;								// delay time - how long to wait before starting the scheduler
@@ -143,6 +157,18 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		qprops.put("org.quartz.scheduler.skipUpdateCheck", "true");
 		qprops.put("org.quartz.threadPool.threadCount", "5");
 		qprops.put("org.quartz.scheduler.idleWaitTime", "10000");
+
+		Properties sp = System.getProperties();
+		if (sp.containsKey(SUREFIRE_PRESENCE_PROPERTY)) {
+			LOGGER.info("Determined to run in a test environment, setting reusableQuartzScheduler to 'true'.");
+			reusableQuartzScheduler = true;
+		}
+		
+		if (reusableQuartzScheduler) {
+			LOGGER.info("ReusableQuartzScheduer is set: the task manager threads will NOT be stopped on shutdown. Also, scheduler threads will run as daemon ones.");
+			qprops.put("org.quartz.scheduler.makeSchedulerThreadDaemon", "true");
+			qprops.put("org.quartz.threadPool.makeThreadsDaemons", "true");
+		}
 		
 		try {
 			sf.initialize(qprops);
@@ -153,8 +179,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 			throw new SystemException("Cannot get or start Quartz scheduler", e);
 		}
 		
-//		if (!jdbcJobStore)
-//			importQuartzJobs();
+		if (!jdbcJobStore)
+			importQuartzJobs();
 		
 		LOGGER.trace("Quartz scheduler initialized and started; it is " + quartzScheduler);
 		
@@ -170,27 +196,30 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		LOGGER.trace("Importing existing tasks into volatile Quartz job store.");
 		
 		PagingType paging = new PagingType();
-		QueryType query = new QueryType();
 		List<PrismObject<TaskType>> tasks = null;
-		try {
-			tasks = repositoryService.searchObjects(TaskType.class, query, paging, result);
-		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Task Manager cannot search for tasks", e);
-			throw new SystemException("Task Manager cannot search for tasks", e);
-		}
+		tasks = repositoryService.listObjects(TaskType.class, paging, result);
 
-		for (PrismObject<TaskType> taskPrism : tasks) {
-			TaskQuartzImpl task;
-			try {
-				task = (TaskQuartzImpl) createTaskInstance(taskPrism, result);
-			} catch (SchemaException e) {
-				LoggingUtils.logException(LOGGER, "Task Manager cannot create task instance from task stored in repository due to schema exception; OID = {}", e, taskPrism.getOid());
-				throw new SystemException("Task Manager cannot create task instance from task stored in repository due to schema exception; OID = " + taskPrism.getOid(), e);
+		if (tasks != null) {
+			
+			int errors = 0;
+			for (PrismObject<TaskType> taskPrism : tasks) {
+				TaskQuartzImpl task = null;
+				try {
+					task = (TaskQuartzImpl) createTaskInstance(taskPrism, result);
+					task.addOrReplaceQuartzTask();
+				} catch (SchemaException e) {
+					LoggingUtils.logException(LOGGER, "Task Manager cannot create task instance from task stored in repository due to schema exception; OID = {}", e, taskPrism.getOid());
+					errors++;
+				} catch (Exception e) {		// FIXME: correct exception handling
+					LoggingUtils.logException(LOGGER, "Cannot create quartz job for task {}", e, task);
+					errors++;
+				}
 			}
-			task.addOrReplaceQuartzTask();
-		}
 		
-		LOGGER.trace("Import existing tasks into volatile Quartz job store finished: " + tasks.size() + " task(s) processed.");
+			LOGGER.info("Import existing tasks into volatile Quartz job store finished: " + (tasks.size()-errors) + " task(s) successfully imported. Import of " + errors + " task(s) failed.");
+		} else {
+			LOGGER.info("No tasks to import.");
+		}
 	}
 
 	@PreDestroy
@@ -199,26 +228,30 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		
 		if (quartzScheduler != null) {
 			
-			LOGGER.trace("Putting Quartz scheduler into standby mode");
+			LOGGER.info("Putting Quartz scheduler into standby mode");
 			try {
 				quartzScheduler.standby();
 			} catch (SchedulerException e1) {
 				LoggingUtils.logException(LOGGER, "Cannot put Quartz scheduler into standby mode", e1);
 			}
 			
-			LOGGER.trace("Interrupting all tasks");
+			LOGGER.info("Interrupting all tasks");
 			try {
 				shutdownTasksAndWait(getRunningTasks(), 0);
 			} catch(Exception e) {		// FIXME
 				LoggingUtils.logException(LOGGER, "Cannot shutdown tasks", e);
 			}
-			
-//			LOGGER.trace("Shutting down Quartz scheduler");
-//			try {
-//				quartzScheduler.shutdown(true);
-//			} catch (SchedulerException e) {
-//				LoggingUtils.logException(LOGGER, "Cannot shutdown Quartz scheduler", e);
-//			}
+
+			if (reusableQuartzScheduler) {
+				LOGGER.info("Quartz scheduler will NOT be shutdown. It stays in paused mode.");
+			} else {
+				LOGGER.info("Shutting down Quartz scheduler");
+				try {
+					quartzScheduler.shutdown(true);
+				} catch (SchedulerException e) {
+					LoggingUtils.logException(LOGGER, "Cannot shutdown Quartz scheduler", e);
+				}
+			}
 		}
 		LOGGER.info("Task Manager shutdown finished");
 	}
