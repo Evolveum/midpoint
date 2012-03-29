@@ -23,8 +23,14 @@ package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.web.MidPointApplication;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
+import com.evolveum.midpoint.web.component.menu.left.LeftMenu;
+import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenu;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
+import com.evolveum.midpoint.web.component.menu.top2.BottomMenuItem;
+import com.evolveum.midpoint.web.component.menu.top2.TopMenu2;
+
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.markup.html.WebPage;
 
@@ -36,27 +42,27 @@ import java.util.List;
  */
 public abstract class PageBase extends WebPage {
 
-    public PageBase() {
-        initLayout();
-    }
+	public PageBase() {
+        List<TopMenuItem> topMenuItems = getTopMenuItems();
+        Validate.notNull(topMenuItems, "Top menu item list must not be null.");
 
-    private void initLayout() {
-        DebugBar debugBar = new DebugBar("debugPanel");
-        debugBar.setVisible(getApplication().usesDevelopmentConfig());
-        add(debugBar);
+        List<BottomMenuItem> bottomMenuItems = getBottomMenuItems();
+        Validate.notNull(bottomMenuItems, "Bottom menu item list must not be null.");
+
+//        add(new TopMenu("topMenu", topMenuItems));
+        add(new TopMenu2("topMenu2", topMenuItems, bottomMenuItems));
+        add(new LeftMenu("leftMenu", getLeftMenuItems()));
 
         add(new LoginPanel("loginPanel"));
-
-        List<TopMenuItem> topMenuItems = getTopMenuItems();
-        if (topMenuItems == null) {
-            topMenuItems = new ArrayList<TopMenuItem>();
-        }
-        add(new TopMenu("topMenu", topMenuItems));
     }
 
-    public MidPointApplication getMidpointApplication() {
+    protected MidPointApplication getMidpointApplication() {
         return (MidPointApplication) getApplication();
     }
 
     public abstract List<TopMenuItem> getTopMenuItems();
+
+    public abstract List<BottomMenuItem> getBottomMenuItems();
+
+    public abstract List<LeftMenuItem> getLeftMenuItems();
 }

@@ -21,24 +21,20 @@
 
 package com.evolveum.midpoint.web.component.xml.ace;
 
-import org.apache.wicket.markup.html.IHeaderContributor;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.wicketstuff.jslibraries.JSLib;
-import org.wicketstuff.jslibraries.Library;
-import org.wicketstuff.jslibraries.VersionDescriptor;
 
 public class AceEditor<T> extends TextArea<T> {
 
     public static final String F_READONLY = "readonly";
     private static final String EDITOR_SUFFIX = "_edit";
-    private static final String THEME = "eclipse";
+    private static final String THEME = "textmate";
     private static final String MODE = "xml";
     private String editorId;
-    private String width = "1000px";
-    private String height = "350px";
+    private String width = "100%";
+    private String height = "auto";
     private boolean readonly = false;
 
     public AceEditor(String id, IModel<T> model) {
@@ -51,60 +47,40 @@ public class AceEditor<T> extends TextArea<T> {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new PackageResourceReference(AceEditor.class, "style-ace.css"));
-        response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "ace.js"));
+        response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "ace-script.js"));
         response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "mode-xml.js"));
-        response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "theme-eclipse.js"));
+        response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "textmate.js"));
+        response.renderCSSReference(new PackageResourceReference(AceEditor.class, "style-ace.css"));
 
-        IHeaderContributor header = JSLib.getHeaderContribution(VersionDescriptor.alwaysLatest(Library.JQUERY));
-        header.renderHead(response);
+        /*IHeaderContributor header = JSLib.getHeaderContribution(VersionDescriptor.alwaysLatest(Library.JQUERY));
+        header.renderHead(response);*/
         response.renderOnLoadJavaScript(createOnLoadJavascript());
     }
 
-    /**
-     * if (jQuery('#aceEditor3_edit').length == 0) {
-     * jQuery("<div id='aceEditor3_edit' class='aceEditor' style='width: 90%; height: 250px;'></div>")
-     * .insertAfter(jQuery('#aceEditor3'));
-     * jQuery('#aceEditor3_edit').text(jQuery('#aceEditor3').val());
-     * aceEditor3_edit = ace.edit('aceEditor3_edit');
-     * aceEditor3_edit.setTheme('ace/theme/eclipse');
-     * var Mode = require('ace/mode/xml').Mode;
-     * aceEditor3_edit.getSession().setMode(new Mode());
-     * jQuery('#aceEditor3').hide();
-     * aceEditor3_edit.setShowPrintMargin(false);
-     * aceEditor3_edit.setReadOnly(false);
-     * aceEditor3_edit.on('blur', function() {
-     * jQuery('#aceEditor3').val(aceEditor3_edit.getSession().getValue());
-     * jQuery('#aceEditor3').trigger('onBlur');
-     * });
-     * }
-     */
     private String createOnLoadJavascript() {
         StringBuilder script = new StringBuilder();
-        script.append("if (jQuery('#").append(editorId).append("').length == 0) {");
-        script.append("jQuery(\"<div id='").append(editorId).append("' class='aceEditor' style='width: ")
+        script.append("if ($('#").append(editorId).append("').length == 0) {");
+        script.append("$(\"<div id='").append(editorId).append("'></div>\").insertAfter($('#")
+        .append(this.getMarkupId()).append("')); ");
+        /*script.append("jQuery(\"<div id='").append(editorId).append("' class='aceEditor' style='width: ")
                 .append(width).append("; height: ").append(height).append(";'></div>\").insertAfter(jQuery('#")
-                .append(this.getMarkupId()).append("')); ");
-        script.append(" jQuery('#").append(editorId).append("').text(jQuery('#").append(this.getMarkupId())
+                .append(this.getMarkupId()).append("')); ");*/
+        script.append(" $('#").append(editorId).append("').text($('#").append(this.getMarkupId())
                 .append("').val());");
-        script.append(editorId).append(" = ace.edit('").append(editorId).append("'); ");
-        script.append(editorId).append(".setTheme('ace/theme/").append(THEME).append("');");
-        script.append("var Mode = require('ace/mode/").append(MODE).append("').Mode; ");
-        script.append(editorId).append(".getSession().setMode(new Mode());");
-        script.append("jQuery('#").append(this.getMarkupId()).append("').hide();");
+        script.append("var ").append(editorId).append(" = ace.edit(\"").append(editorId).append("\"); ");
+        script.append(editorId).append(".setTheme(\"ace/theme/").append(THEME).append("\");");
+        script.append("var XmlMode = require(\"ace/mode/").append(MODE).append("\").Mode; ");
+        script.append(editorId).append(".getSession().setMode(new XmlMode());");
+        script.append("$('#").append(this.getMarkupId()).append("').hide();");
         script.append(editorId).append(".setShowPrintMargin(false); ");
         script.append(editorId).append(".setReadOnly(").append(readonly).append("); ");
         script.append(editorId).append(".on('blur', function() { ");
-        script.append("jQuery('#").append(getMarkupId()).append("').val(").append(editorId)
+        script.append("$('#").append(getMarkupId()).append("').val(").append(editorId)
                 .append(".getSession().getValue()); ");
-        script.append("jQuery('#").append(getMarkupId()).append("').trigger('onBlur'); });");
-
-//        script.append("jQuery('#").append(this.getForm().getMarkupId()).append("').bind('submit', function() { jQuery('#').val(")
-//                .append(EDITOR_ID)
-//                .append(".getSession().getValue()); });");
-
+        script.append("$('#").append(getMarkupId()).append("').trigger('onBlur'); });");
+        
         script.append(" }");
-        System.out.println(script.toString());
+        //System.out.println(script.toString());
         return script.toString();
     }
 

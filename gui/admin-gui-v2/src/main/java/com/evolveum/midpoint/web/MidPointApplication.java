@@ -21,23 +21,22 @@
 
 package com.evolveum.midpoint.web;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.web.page.admin.home.PageHome;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.error.PageForbidden;
-import com.evolveum.midpoint.web.page.error.PageNotFound;
-import com.evolveum.midpoint.web.page.error.PageServerError;
-import com.evolveum.midpoint.web.page.error.PageUnauthorized;
-import com.evolveum.midpoint.web.util.DefaultPageParametersEncoder;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.MountedMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.error.PageForbidden;
+import com.evolveum.midpoint.web.page.error.PageNotFound;
+import com.evolveum.midpoint.web.page.error.PageServerError;
+import com.evolveum.midpoint.web.page.error.PageUnauthorized;
+import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 
 /**
  * @author lazyman
@@ -66,10 +65,9 @@ public class MidPointApplication extends WebApplication {
         getResourceSettings().setThrowExceptionOnMissingResource(false);
 
         //pretty url
-        DefaultPageParametersEncoder encoder = new DefaultPageParametersEncoder();
+        MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();
         mount(new MountedMapper("/home", PageHome.class, encoder));
         mount(new MountedMapper("/users", PageUsers.class, encoder));
-        mount(new MountedMapper("/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
 
         //error pages
         mount(new MountedMapper("/error/401", PageUnauthorized.class, encoder));

@@ -1,0 +1,18 @@
+.acc {width: auto; list-style-type:none; list-style-image:none; color:#000000; margin:0px; padding:0px;}
+.acc h3 {position:relative; padding:0px; width: auto; border:1px solid #757575; -moz-border-radius: 4px; -webkit-border-radius: 4px; -khtml-border-radius: 4px; border-radius: 4px; padding:8px 6px 8px 0px;font-size:14px; font-weight: normal; color:#FFFFFF; margin:0px; margin-top:2px; cursor:pointer; background:url(images/ui-bg_highlight-soft_75_333333_1x100.png) repeat-x scroll 50% 50% #333333;}
+.acc h3:hover {background:url(images/ui-bg_highlight-soft_75_4f4f4f_1x100.png) repeat-x scroll 50% 50% #4F4F4F;}
+.acc h3 .headerText {margin-left:35px;}
+.acc .acc-section {overflow:hidden; background:#fff;}
+.acc .acc-content {width:auto; margin-top: 0px; padding:15px; border:1px solid #757575; border-top:none; background:#fff; -moz-border-radius-bottomleft: 4px; -webkit-border-bottom-left-radius: 4px; -khtml-border-bottom-left-radius: 4px; border-bottom-left-radius: 4px; -moz-border-radius-bottomright: 4px; -webkit-border-bottom-right-radius: 4px; -khtml-border-bottom-right-radius: 4px; border-bottom-right-radius: 4px; }
+.acc .acc-selected {background:#9F9F9F; border-bottom:none; -moz-border-radius: 0px; -webkit-border-radius: 0px; -khtml-border-radius: 0px; border-radius: 0px; -moz-border-radius-topright: 4px; -webkit-border-top-right-radius: 4px; -khtml-border-top-right-radius: 4px; border-top-right-radius: 4px; -moz-border-radius-topleft: 4px; -webkit-border-top-left-radius: 4px; -khtml-border-top-left-radius: 4px; border-top-left-radius: 4px; }
+.acc .acc-selected:hover {background:#9F9F9F;}
+.acc .acc-arrow {position:absolute; background:url(images/ui-arrow.png); background-position: 0px 0px; width:16px; height:16px; left: 10px; display: inline-block;}
+.acc .acc-selected .acc-arrow {background-position: 0px -16px;}
+
+
+/* * {margin:0; padding:0;}
+.acc {width:457px; list-style:none; color:#033; margin:0 auto 40px}
+.acc h3 {width:443px; border:1px solid #9ac1c9; padding:6px 6px 8px; font-weight:bold; margin-top:5px; cursor:pointer; background:url(images/header.gif)}
+.acc h3:hover {background:url(images/header_over.gif)}
+.acc .acc-section {overflow:hidden; background:#fff}
+.acc .acc-content {width:425px; padding:15px; border:1px solid #9ac1c9; border-top:none; background:#fff} */

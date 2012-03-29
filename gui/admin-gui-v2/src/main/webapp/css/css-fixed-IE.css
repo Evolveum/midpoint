@@ -1,0 +1,114 @@
+/** A WebReflection Solution */
+.position-fixed-top {
+    position: absolute !important;
+    top: expression(((document.documentElement.scrollTop || document.body.scrollTop) + (!this.offsetHeight && 0)) + "px");
+}
+.position-fixed-center {
+    position: absolute !important;
+    top: expression(((document.documentElement.scrollTop || document.body.scrollTop) + ((((document.documentElement.clientHeight || document.body.clientHeight) + (!this.offsetHeight && 0)) / 2) >> 0)) + "px");
+}
+.position-fixed-bottom {
+    position: absolute !important;
+    top: expression(((document.documentElement.scrollTop || document.body.scrollTop) + (document.documentElement.clientHeight || document.body.clientHeight) - this.offsetHeight) + "px");
+}
+
+div.objectForm .tableForm input {
+	outline: none;
+	margin: 8px 0px 4px 10px;
+	font-size: 15px;
+	border: 1px solid #8D9095;
+	padding: 0 0 0 5px;
+}
+
+div.objectForm .tableForm tbody .objectFormInput .yui-skin-sam .yui-calcontainer {
+	width: 252px;
+	z-index: 99999;
+}
+
+div.objectForm .tableForm tbody .objectFormInput .yui-skin-sam  .yui-calcontainer table {
+	width: 230px;
+	z-index: 99999;
+}
+
+.sortedTable .addSortedTableSettings {
+	background: #8eb3ba;
+}
+
+.sortedTable .addSortedTableSettings select, .sortedTable .addSortedTableSettings .searchPanel {
+	color: #6e6e6e;
+	font: bold 12px Helvetica, Arial, sans-serif;
+	text-decoration: none;
+	position: relative;
+	display: inline-block;
+	border: solid 1px #dcdcdc;
+	outline: none;
+	margin-top: 6px;
+	background: #FFFFFF;
+}
+
+.sortedTable .addSortedTableSettings .button {
+	background-color: #F5F5F5;
+}
+
+.sortedTable table thead th div {
+	position: relative;
+	height: 21px;
+    padding: 3px 0 0 0;
+}
+
+/* .sortedTable table thead .sortable .sortableArrowIcon {
+	background-position: center;
+    position: absolute;
+    right: 10px;
+    width: 8px;
+    height: 10px;
+    float: right;
+    background-repeat: no-repeat;
+    margin-top: 0px;
+    top: 0px;
+} */
+
+.sortedTable table thead .sortable a:hover {
+	cursor: pointer;
+}
+
+.sortedTable table thead .asc .sortableArrowIcon {
+	background-image: url("../img/sortableArrowUp.png");
+}
+
+.sortedTable table thead .desc .sortableArrowIcon {
+	background-image: url("../img/sortableArrowDown.png");
+}
+
+.sortedTable .pagerNavigator .goto em {
+	padding: 0px;
+	display: inline-block;
+	margin: 0px;
+	position: relative;
+	width: 15px;
+}
+
+.sortedTable .pagerNavigator .goto em span {
+	padding: 0px 2px;
+	position: relative;
+	display: inline-block;
+	color: #333333;
+}
+
+
+.sortedTable .pagerNavigator a {
+	color: #52AACC;;
+}
+
+.sortedTable .addSortedTableSettings .showEntries {
+	float: right;
+	position: relative;
+}
+
+.sortedTable .pagerNavigator .goto {
+    margin-right: 2px;
+}
+
+div.top-menu {
+    width: auto;
+}
