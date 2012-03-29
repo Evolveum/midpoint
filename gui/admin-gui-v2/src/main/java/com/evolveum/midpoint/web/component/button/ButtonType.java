@@ -19,18 +19,12 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.home;
-
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
+package com.evolveum.midpoint.web.component.button;
 
 /**
  * @author lazyman
  */
-public class PageHome extends PageAdmin {
+public enum ButtonType {
 
-    public PageHome() {
-        
-    }
-
-    
+    SIMPLE, LEFT, MIDDLE, RIGHT
 }

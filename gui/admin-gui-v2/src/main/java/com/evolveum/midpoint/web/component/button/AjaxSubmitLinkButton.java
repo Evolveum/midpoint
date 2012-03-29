@@ -23,72 +23,41 @@ package com.evolveum.midpoint.web.component.button;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 /**
  * @author lazyman
  */
-public abstract class AjaxLinkButton extends AjaxLink<String> {
+public abstract class AjaxSubmitLinkButton extends AjaxSubmitLink {
 
+    private IModel<String> label;
     private ButtonType type;
 
-    public AjaxLinkButton(String id, IModel<String> label) {
+    public AjaxSubmitLinkButton(String id, IModel<String> label) {
         this(id, ButtonType.SIMPLE, label);
     }
 
-    public AjaxLinkButton(String id, ButtonType type, IModel<String> label) {
+    public AjaxSubmitLinkButton(String id, ButtonType type, IModel<String> label) {
         this(id, type, label, null);
     }
 
-    public AjaxLinkButton(String id, ButtonType type, IModel<String> label, String image) {
-        super(id, label);
+    public AjaxSubmitLinkButton(String id, ButtonType type, IModel<String> label, String image) {
+        super(id);
+        Validate.notNull(label, "Label model must not be null.");
         Validate.notNull(type, "Button type must not be null.");
+        this.label = label;
 
-        add(new AttributeAppender("class", getTypeModel(type), " "));
+        add(new AttributeAppender("class", AjaxLinkButton.getTypeModel(type), " "));
         if (StringUtils.isNotEmpty(image)) {
-            add(new AttributeAppender("style", getImgModel(image), " "));
+            add(new AttributeAppender("style", AjaxLinkButton.getImgModel(image), " "));
         }
-    }
-
-    static IModel<String> getImgModel(String image) {
-        StringBuilder model = new StringBuilder();
-        model.append("padding-left: 30px; background: url('");
-        model.append(WebApplication.get().getServletContext().getContextPath());
-        if (!image.startsWith("/")) {
-            model.append("/");
-        }
-        model.append(image);
-        model.append("') no-repeat 7px 7px #F3F3F3;");
-
-        return new Model<String>(model.toString());
-    }
-
-    static IModel<String> getTypeModel(ButtonType type) {
-        StringBuilder model = new StringBuilder();
-        model.append("button");
-
-        switch (type) {
-            case LEFT:
-                model.append(" left");
-                break;
-            case MIDDLE:
-                model.append(" middle");
-                break;
-            case RIGHT:
-                model.append(" right");
-                break;
-        }
-
-        return new Model<String>(model.toString());
     }
 
     @Override
@@ -100,7 +69,7 @@ public abstract class AjaxLinkButton extends AjaxLink<String> {
 
     @Override
     public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
-        replaceComponentTagBody(markupStream, openTag, getDefaultModelObjectAsString());
+        replaceComponentTagBody(markupStream, openTag, label.getObject());
     }
 
     @Override

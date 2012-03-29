@@ -52,8 +52,12 @@ public abstract class PageBase extends WebPage {
 //        add(new TopMenu("topMenu", topMenuItems));
         add(new TopMenu2("topMenu2", topMenuItems, bottomMenuItems));
         add(new LeftMenu("leftMenu", getLeftMenuItems()));
-
-        add(new LoginPanel("loginPanel"));
+        
+        LoginPanel loginPanel = new LoginPanel("loginPanel");
+        /*if(loginPanel.getIsAdminLoggedIn()){
+        	add(loginPanel);
+        }*/
+        add(loginPanel);
     }
 
     protected MidPointApplication getMidpointApplication() {

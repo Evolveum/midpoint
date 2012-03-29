@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2011 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2011 [name of copyright owner]
+  -->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+	<wicket:extend>
+		<div class="content">
+			<h1>Login</h1>
+			<form method="post" action="j_spring_security_check">
+				<div class="objectForm">
+					<table align="center" class="tableForm" cellspacing="0" border="0">
+						<thead>
+							<tr>
+								<td class="objectFormHeader" colspan="2">
+									<img class="objectFormHeaderIcon" alt="" src="img/formIcon/Key.png" />
+									<div class="objectFormHeaderText">
+										<span class="objectFormHeaderName">Login form</span> <br>
+										<span class="objectFormHeaderDescription">Please fill in the the following details.</span>
+									</div>
+								</td>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td class="objectFormLabel">
+									<div class="objectFormLabelName">
+										<span wicket:id="userNameLabel" />:
+									</div>
+								</td>
+								<td class="objectFormValues">
+									<div class="objectFormValue">
+										<div class="objectFormInput">
+											<input type="text" id="j_username" size="42" />
+										</div>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="objectFormLabel">
+									<div class="objectFormLabelName">
+										<span wicket:id="passwordLabel" />:
+									</div>
+								</td>
+								<td class="objectFormValues">
+									<div class="objectFormValue">
+										<div class="objectFormInput">
+											<input type="password" id="j_password" size="42" />
+										</div>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+						<tfoot>
+							<tr>
+								<td colspan="2" align="center" style="padding: 5px 0;">
+									<input type="submit" class="button"	wicket:message="value:pageLogin.submit" />
+								</td>
+							</tr>
+						</tfoot>
+	
+					</table>
+				</div>
+			</form>
+		</div>
+		<script type="text/javascript">
+			$("#j_username").focus();
+		</script>
+	</wicket:extend>
+
+</body>
+</html>

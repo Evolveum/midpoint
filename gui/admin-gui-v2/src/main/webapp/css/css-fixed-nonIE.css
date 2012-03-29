@@ -12,7 +12,7 @@
     bottom:0;
 }
 
-div.objectForm .tableForm input {
+div.objectForm .tableForm input[type='text'], div.objectForm .tableForm input[type='password'], div.objectForm .tableForm input[type='checkbox'] {
 	outline: none;
 	margin: 4px 0px 4px 10px;
 	padding: 5px;
