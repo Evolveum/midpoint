@@ -26,10 +26,12 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -426,14 +428,30 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         return new ArrayList<PropertyDelta>();
     }
     
+    public <X> PropertyDelta<X> createPropertyModification(QName name, PrismPropertyDefinition propertyDefinition) {
+    	PropertyDelta<X> propertyDelta = new PropertyDelta<X>(name, propertyDefinition);
+    	addModification(propertyDelta);
+    	return propertyDelta;
+    }
+    
     /**
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
      * to justify a separate method. 
      */
-    public static <T extends Objectable> ObjectDelta<T> createModificationReplaceProperty(String oid, QName propertyName,
-    		Object... propertyValues) {
-    	// TODO
-    	throw new UnsupportedOperationException();
+    public static <O extends Objectable, X> ObjectDelta<O> createModificationReplaceProperty(Class<O> type, String oid, QName propertyName,
+    		PrismContext prismContext, X... propertyValues) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY);
+    	objectDelta.setOid(oid);
+    	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+    	PrismPropertyDefinition propDef = objDef.findPropertyDefinition(propertyName);
+    	PropertyDelta<X> propertyDelta = objectDelta.createPropertyModification(propertyName, propDef);
+    	Collection<PrismPropertyValue<X>> valuesToReplace = new ArrayList<PrismPropertyValue<X>>(propertyValues.length);
+    	for (X val: propertyValues) {
+    		PrismPropertyValue<X> pval = new PrismPropertyValue<X>(val);
+    		valuesToReplace.add(pval);
+    	}
+    	propertyDelta.setValuesToReplace(valuesToReplace);
+    	return objectDelta;
     }
     
     public static <T extends Objectable> ObjectDelta<T> createModifyDelta(String oid, Collection<? extends ItemDelta> modifications,

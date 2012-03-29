@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
@@ -1638,14 +1639,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		// Uid is always there
 		Uid uid = co.getUid();
-		// PropertyDefinition propDef = new
-		// PropertyDefinition(SchemaConstants.ICFS_NAME,
-		// SchemaConstants.XSD_STRING);
-		// Property p = propDef.instantiate();
-		ResourceAttribute uidRoa = createUidAttribute(uid, getUidDefinition(attributesDefinition));
-		// p = setUidAttribute(uid);
+		ResourceAttribute<?> uidRoa = createUidAttribute(uid, getUidDefinition(attributesDefinition));
 		attributesContainer.getValue().add(uidRoa);
-		// ro.getProperties().add(p);
 
 		for (Attribute icfAttr : co.getAttributes()) {
 			if (icfAttr.getName().equals(Uid.NAME)) {
@@ -1689,7 +1684,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SchemaException("Unknown attribute {}. Cannot create definition.", qname);
 			}
 			
-			ResourceAttribute roa = attributeDefinition.instantiate(qname);
+			ResourceAttribute resourceAttribute = attributeDefinition.instantiate(qname);
 
 			// if true, we need to convert whole connector object to the
 			// resource object also with the null-values attributes
@@ -1700,11 +1695,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					// of them may need it (e.g. GuardedString)
 					for (Object icfValue : icfAttr.getValue()) {
 						Object value = convertValueFromIcf(icfValue, qname);
-						roa.getValues().add(new PrismPropertyValue<Object>(value));
+						resourceAttribute.add(new PrismPropertyValue<Object>(value));
 					}
 				}
 
-				attributesContainer.getValue().add(roa);
+				attributesContainer.getValue().add(resourceAttribute);
 
 				// in this case when false, we need only the attributes with the
 				// non-null values.
@@ -1715,11 +1710,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					// of them may need it (e.g. GuardedString)
 					for (Object icfValue : icfAttr.getValue()) {
 						Object value = convertValueFromIcf(icfValue, qname);
-						roa.getValues().add(new PrismPropertyValue<Object>(value));
+						resourceAttribute.add(new PrismPropertyValue<Object>(value));
 
 					}
 
-					attributesContainer.getValue().add(roa);
+					attributesContainer.getValue().add(resourceAttribute);
 
 				}
 			}

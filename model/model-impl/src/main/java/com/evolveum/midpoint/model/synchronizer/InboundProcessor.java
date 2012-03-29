@@ -203,12 +203,12 @@ public class InboundProcessor {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
         PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
-        PrismProperty targetUserProperty = null;
+        PrismProperty<?> targetUserProperty = null;
         if (newUser != null) {
         	targetUserProperty = newUser.findProperty(targetUserPropertyPath);
         }
 
-        PropertyDelta delta = null;
+        PropertyDelta<?> delta = null;
         if (targetUserProperty != null) {
             LOGGER.trace("Simple property comparing user property {} to old account property {} ",
                     new Object[]{targetUserProperty, oldAccountProperty});
@@ -220,7 +220,7 @@ public class InboundProcessor {
             if (oldAccountProperty != null) {
                 LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
                 //if user property doesn't exist we have to add it (as delta), because inbound say so
-                delta = new PropertyDelta(targetUserPropertyPath, targetUserProperty.getDefinition());
+                delta = PropertyDelta.createDelta(targetUserPropertyPath, newUser.getDefinition());
                 delta.addValuesToAdd(oldAccountProperty.getValues());
             }
             //we don't have to create delta, because everything is alright

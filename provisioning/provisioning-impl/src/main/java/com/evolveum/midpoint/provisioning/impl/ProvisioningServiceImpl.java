@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -376,7 +377,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			// for each change from the connector create change description
 			for (Change change : changes) {
-
+				
 				// this is the case,when we want to skip processing of change,
 				// because the shadow was not created or found to the resource
 				// object
@@ -395,6 +396,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
 						change, resourceType);
+				
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
 							SchemaDebugUtil.prettyPrint(shadowChangeDescription));
@@ -1070,7 +1072,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ShadowCacheUtil.getResourceObjectShadowDefinition(prismContext);
 		
 		ObjectDelta<? extends ResourceObjectShadowType> shadowModification = ObjectDelta.createModificationReplaceProperty(
-				shadowOid, SchemaConstants.C_RESULT, shadowResult.createOperationResultType());
+				ResourceObjectShadowType.class, shadowOid, SchemaConstants.C_RESULT, prismContext, 
+				shadowResult.createOperationResultType());
 
 		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
 			PrismPropertyDefinition failedOperationTypePropDef =

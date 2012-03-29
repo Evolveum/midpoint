@@ -168,6 +168,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	@BeforeClass
 	public static void initResource() throws Exception {
 		dummyResource = DummyResource.getInstance();
+		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
 	}
 

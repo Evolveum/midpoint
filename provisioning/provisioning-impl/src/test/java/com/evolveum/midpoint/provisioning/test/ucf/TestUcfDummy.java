@@ -49,6 +49,9 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -58,6 +61,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -72,6 +77,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -87,6 +93,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
@@ -112,6 +119,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	private ConnectorType connectorType;
 	private ConnectorInstance cc;
 	private ResourceSchema resourceSchema;
+	private static DummyResource dummyResource;
 
 	@Autowired(required = true)
 	ConnectorFactory connectorFactoryIcfImpl;
@@ -126,6 +134,10 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 		
+		dummyResource = DummyResource.getInstance();
+		dummyResource.reset();
+		dummyResource.populateWithDefaultSchema();
+		
 		manager = connectorFactoryIcfImpl;
 
 		resource = PrismTestUtil.parseObject(new File(FILENAME_RESOURCE_DUMMY));
@@ -134,7 +146,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		PrismObject<ConnectorType> connector = PrismTestUtil.parseObject(new File (FILENAME_CONNECTOR_DUMMY));
 		connectorType = connector.asObjectable();
 	}
-	
+		
 	@Test
 	public void test000PrismContextSanity() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test000PrismContextSanity");
@@ -289,7 +301,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	public void test100FetchEmptyChanges() throws Exception {
 		displayTestTile(this, "test100FetchEmptyChanges");
 
-		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
+		OperationResult result = new OperationResult(this.getClass().getName() + ".test100FetchEmptyChanges");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
 		
 		// WHEN
@@ -309,6 +321,39 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, result);
 		
 		AssertJUnit.assertEquals(0, changes.size());
+	}
+	
+	@Test
+	public void test101FetchAddChange() throws Exception {
+		displayTestTile(this, "test101FetchAddChange");
+
+		OperationResult result = new OperationResult(this.getClass().getName() + ".test101FetchAddChange");
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		
+		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, result);
+		assertNotNull("No last sync token", lastToken);
+
+		// Add account to the resource
+		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		DummyAccount newAccount = new DummyAccount("blackbeard");
+		newAccount.addAttributeValues("fullname", "Edward Teach");
+		newAccount.setEnabled(true);
+		newAccount.setPassword("shiverMEtimbers");
+		dummyResource.addAccount(newAccount);
+		
+		// WHEN
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		
+		AssertJUnit.assertEquals(1, changes.size());
+		Change change = changes.get(0);
+		assertNotNull("null change", change);
+		PrismObject<? extends ResourceObjectShadowType> currentShadow = change.getCurrentShadow();
+		assertNotNull("null current shadow", currentShadow);
+		PrismAsserts.assertParentConsistency(currentShadow);
+		Set<ResourceAttribute> identifiers = change.getIdentifiers();
+		assertNotNull("null identifiers", identifiers);
+		assertFalse("empty identifiers", identifiers.isEmpty());
+		
 	}
 
 

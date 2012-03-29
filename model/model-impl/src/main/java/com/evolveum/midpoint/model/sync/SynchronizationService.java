@@ -28,9 +28,11 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -83,6 +85,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     private ChangeNotificationDispatcher notificationManager;
     @Autowired(required = true)
     private AuditService auditService;
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
     @PostConstruct
     public void registerForResourceObjectChangeNotifications() {
@@ -102,7 +106,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         Validate.notNull(change.getResource(), "Resource in change must not be null.");
         Validate.notNull(parentResult, "Parent operation result must not be null.");
         LOGGER.debug("SYNC NEW CHANGE NOTIFICATION");
-
+        
         OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
         try {
             ResourceType resource = change.getResource().asObjectable();
@@ -227,6 +231,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         }
 
         ResourceObjectShadowType resourceShadow = change.getCurrentShadow().asObjectable();
+        
         ObjectDelta syncDelta = change.getObjectDelta();
         if (resourceShadow == null && syncDelta != null
                 && ChangeType.ADD.equals(syncDelta.getChangeType())) {
@@ -489,7 +494,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         if (filter == null) {
             return null;
         }
-
+        
         try {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Transforming search filter from:\n{}",
@@ -522,7 +527,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     Element value = document.createElementNS(SchemaConstants.NS_C, "value");
                     equal.appendChild(value);
                     Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
-                    ExpressionType valueExpression = XmlTypeConverter.toJavaValue(valueExpressionElement,
+                    ExpressionType valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(valueExpressionElement,
                             ExpressionType.class);
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Filter transformed to expression\n{}", valueExpression);

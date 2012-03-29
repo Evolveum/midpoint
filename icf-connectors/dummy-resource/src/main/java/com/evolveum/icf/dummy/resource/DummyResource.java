@@ -80,6 +80,18 @@ public class DummyResource {
 		latestSyncToken = 0;
 	}
 	
+	/**
+	 * Clears everything, just like the resouce was just created.
+	 */
+	public void reset() {
+		accounts.clear();
+		scriptHistory.clear();
+		accountObjectClass = new DummyObjectClass();
+		syncStyle = DummySyncStyle.NONE;
+		deltas.clear();
+		latestSyncToken = 0;
+	}
+	
 	public static DummyResource getInstance() {
 		if (instance == null) {
 			instance = new DummyResource();
