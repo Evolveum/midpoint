@@ -159,6 +159,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	private static final String ACCOUNT_SEARCH_OID = "c0c010c0-d34d-b44f-f11d-333222777777";
 	private static final String FILENAME_ACCOUNT_NEW_WITH_PASSWORD = "src/test/resources/impl/account-new-with-password.xml";;
 	private static final String ACCOUNT_NEW_WITH_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222124422";
+	private static final String FILENAME_ACCOUNT_DISABLE_SIMULATED = "src/test/resources/impl/account-disable-simulated-opendj.xml";
+	private static final String ACCOUNT_DISABLE_SIMULATED_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1aaaa";
 	private static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"AccountObjectClass");
@@ -878,6 +880,70 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
         display("Count", objects.size());
     }
 
+	@Test
+	public void test017DisableAccount() throws Exception{
+		display("test017DisableAccount");
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+"test017DisableAccount");
+		try {
+
+			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_DISABLE_SIMULATED, AccountShadowType.class);
+
+			System.out.println(SchemaDebugUtil.prettyPrint(object));
+			System.out.println(object.asPrismObject().dump());
+
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			assertEquals(ACCOUNT_DISABLE_SIMULATED_OID, addedObjectOid);
+			
+
+			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
+					new File("src/test/resources/impl/disable-account-simulated.xml"), ObjectModificationType.class);
+			ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
+			display("Object change",delta);
+
+			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
+					delta.getModifications(), null, result);
+			
+			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
+					ACCOUNT_DISABLE_SIMULATED_OID, new PropertyReferenceListType(), result).asObjectable();
+			
+			display("Object after change",accountType);
+			
+//			assertFalse("Account was not disabled.", accountType.getActivation().isEnabled());
+			
+			String uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
+
+			
+			assertNotNull(uid);
+			
+			// Check if object was modified in LDAP
+			
+			SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);
+			display("LDAP account", response);
+			
+			String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
+			assertNotNull(disabled);
+
+	        System.out.println("ds-pwp-account-disabled after change: " + disabled);
+
+	        assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", disabled);
+			
+		} finally {
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_DISABLE_SIMULATED_OID, result);
+			} catch (Exception ex) {
+			}
+		}
+
+
+	}
 	
 	@Test
 	public void testListObjects() throws Exception {

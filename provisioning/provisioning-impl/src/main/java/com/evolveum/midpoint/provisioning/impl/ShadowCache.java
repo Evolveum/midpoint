@@ -401,7 +401,7 @@ public class ShadowCache {
 						.asPrismObject().dump());
 			}
 
-			Set<Operation> changes = new HashSet<Operation>();
+			
 			// if (shadow instanceof AccountShadowType) {
 			//
 			// // Look for password change
@@ -419,7 +419,7 @@ public class ShadowCache {
 			// changes.add(activationOperation);
 			// }
 			// }
-
+			Set<Operation> changes = new HashSet<Operation>();
 			addExecuteScriptOperation(changes, OperationTypeType.MODIFY, scripts, parentResult);
 
 			if (LOGGER.isTraceEnabled()) {

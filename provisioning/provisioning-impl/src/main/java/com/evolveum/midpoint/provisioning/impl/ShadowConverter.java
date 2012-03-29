@@ -304,32 +304,33 @@ public class ShadowConverter {
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow.getObjectClass());
 		
 		ShadowCacheUtil.convertToUcfShadow(shadow.asPrismObject(), schema);
-		
+//		ResourceAttributeContainerDefinition resourceAttributeDefinition = objectClassDefinition.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil.getObjectClassDefinition(shadow);;
 		
-		Set<Operation> changes = new HashSet<Operation>();
+		
 		if (shadow instanceof AccountShadowType) {
 
 			// Look for password change
 			PasswordChangeOperation passwordChangeOp = determinePasswordChange(objectChanges, shadow);
 			if (passwordChangeOp != null) {
-				changes.add(passwordChangeOp);
+				operations.add(passwordChangeOp);
 			}
 			
 			// look for activation change
 			Operation activationOperation = determineActivationChange(objectChanges, resource, resourceAttributeDefinition);
 			if (activationOperation != null) {
-				changes.add(activationOperation);
+				operations.add(activationOperation);
 			}
 		}
 
 		
 		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow); 
 
-		Set<Operation> attributeChanges = getAttributeChanges(objectChanges, operations, objectClassDefinition);
-		if (attributeChanges != null) {
-			operations.addAll(attributeChanges);
-		}
+		getAttributeChanges(objectChanges, operations, objectClassDefinition);
+		
+//		if (attributeChanges != null) {
+//			operations.addAll(attributeChanges);
+//		}
 		Set<PropertyModificationOperation> sideEffectChanges = null;
 		try {
 
@@ -583,20 +584,24 @@ public class ShadowConverter {
 
 
 
-	private Set<Operation> getAttributeChanges(Collection<? extends ItemDelta> objectChange, Set<Operation> changes,
+	private void getAttributeChanges(Collection<? extends ItemDelta> objectChange, Set<Operation> changes,
 			ObjectClassComplexTypeDefinition rod) throws SchemaException {
 		if (changes == null) {
 			changes = new HashSet<Operation>();
 		}
 		for (ItemDelta itemDelta : objectChange) {
 			if (itemDelta instanceof PropertyDelta) {
+				//we need to skip activation change, because it was actually processed
+				if (itemDelta.getParentPath().equals(AccountShadowType.F_ACTIVATION)){
+					continue;
+				}
 				PropertyModificationOperation attributeModification = new PropertyModificationOperation((PropertyDelta)itemDelta);
 				changes.add(attributeModification);
 			} else {
 				throw new UnsupportedOperationException("Not supported delta: "+itemDelta);
 			}
 		}
-		return changes;
+//		return changes;
 	}
 	
 	private PropertyModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled, 
@@ -615,6 +620,7 @@ public class ShadowConverter {
 		}
 
 		QName enableAttributeName = enableDisable.getAttribute();
+		LOGGER.debug("Simulated attribute name: {}", enableAttributeName);
 		if (enableAttributeName == null) {
 			throw new SchemaException(
 					"Resource " + ObjectTypeUtil.toShortString(resource)
@@ -646,8 +652,10 @@ public class ShadowConverter {
 		}
 		String disableValue = enableDisable.getDisableValue().iterator().next();
 		if (enabled) {
+			LOGGER.trace("enable attribute delta: {}", enableValue);
 			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(enableValue));
 		} else {
+			LOGGER.trace("enable attribute delta: {}", disableValue);
 			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(disableValue));
 		}
 		

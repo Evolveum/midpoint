@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -165,13 +166,19 @@ public class ShadowCacheUtil {
 				ActivationCapabilityType.class);
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(shadow);
-		PrismProperty activationProperty = attributesContainer.findProperty(activationCapability
+		
+//		List<Object> values = ResourceObjectShadowUtil.getAttributeValues(shadow, activationCapability
+//				.getEnableDisable().getAttribute());
+		ResourceAttribute activationProperty = attributesContainer.findAttribute(activationCapability
 				.getEnableDisable().getAttribute());
+//		LOGGER.trace("activation property: {}", activationProperty.dump());
 		// if (activationProperty == null) {
 		// LOGGER.debug("No simulated activation attribute was defined for the account.");
 		// return null;
 		// }
+		
 		Collection<Object> values = null;
+		
 		if (activationProperty != null) {
 			values = activationProperty.getRealValues(Object.class);
 		}
