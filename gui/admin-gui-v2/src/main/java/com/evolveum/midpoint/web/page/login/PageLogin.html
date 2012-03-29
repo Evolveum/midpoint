@@ -27,7 +27,7 @@
 	<wicket:extend>
 		<div class="content">
 			<h1>Login</h1>
-			<form method="post" action="j_spring_security_check">
+			<form method="post" action="j_spring_security_check" name="loginForm">
 				<div class="objectForm">
 					<table align="center" class="tableForm" cellspacing="0" border="0">
 						<thead>
@@ -74,6 +74,8 @@
 						<tfoot>
 							<tr>
 								<td colspan="2" align="center" style="padding: 5px 0;">
+									<!-- TODO: error check -->
+									<wicket:message key="SPRING_SECURITY_LAST_EXCEPTION.message"></wicket:message>
 									<input type="submit" class="button"	wicket:message="value:pageLogin.submit" />
 								</td>
 							</tr>
