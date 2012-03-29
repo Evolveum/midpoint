@@ -33,11 +33,9 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.apache.derby.impl.sql.compile.TestConstraintNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -57,14 +55,13 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultList;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.quartzimpl.NoOpTaskHandler;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -72,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -99,6 +97,10 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	private static final String CONNECTOR_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
 	private static final File IMPORT_RESOURCE_FILE = new File(TEST_FOLDER_COMMON, "resource-derby.xml");
 	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
+	
+	private static final File IMPORT_TASK_FILE = new File(TEST_FILE_DIRECTORY, "import-task.xml");
+	private static final String TASK1_OID = "00000000-0000-0000-0000-123450000001";
+	private static final String TASK1_OWNER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	
 	@Autowired(required = true)
 	ModelService modelService;
@@ -376,6 +378,38 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 				assertEquals("Herman is confused", "Toothrot", userType.getFamilyName());
 			}	
 		}
+	}
+
+	@Test
+	public void test007ImportTask() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
+		displayTestTile(this, "test007ImportTask");
+		// GIVEN
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(ImportTest.class.getName() + "test007ImportTask");
+		FileInputStream stream = new FileInputStream(IMPORT_TASK_FILE);
+		
+		// well, let's check whether task owner really exists
+		PrismObject<UserType> ownerPrism = repositoryService.getObject(UserType.class, TASK1_OWNER_OID, null, result);
+		assertEquals("Task owner does not exist or has an unexpected OID", TASK1_OWNER_OID, ownerPrism.getOid());
+		
+		// WHEN
+		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Result after good import", result);
+		assertSuccess("Import has failed (result)", result);
+
+		// Check import
+		PrismObject<TaskType> task1AsPrism = repositoryService.getObject(TaskType.class, TASK1_OID, null, result);
+		TaskType task1AsType = task1AsPrism.asObjectable();
+		assertNotNull(task1AsType);
+		assertEquals("Task name not imported correctly", "Task1: basic single-run task (takes 3x60 sec)", task1AsType.getName());
+		
+		Task task1 = taskManager.createTaskInstance(task1AsPrism, result);
+        PrismProperty<Integer> delayProp = (PrismProperty<Integer>) task1.getExtension(new QName(NoOpTaskHandler.EXT_SCHEMA_URI, "delay"));
+        assertEquals("xsi:type'd property has incorrect type", Integer.class, delayProp.getValues().get(0).getValue().getClass());
+        assertEquals("xsi:type'd property not imported correctly", Integer.valueOf(60000), delayProp.getValues().get(0).getValue());
 	}
 
 }
