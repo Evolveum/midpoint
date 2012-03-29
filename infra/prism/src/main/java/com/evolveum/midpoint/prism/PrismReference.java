@@ -80,7 +80,8 @@ public class PrismReference extends Item {
     }
 
     public PrismReferenceValue getValue() {
-    	if (getDefinition() != null) {
+    	// We are not sure about multiplicity if there is no definition or the definition is dynamic
+    	if (getDefinition() != null && !getDefinition().isDynamic()) {
     		if (getDefinition().isMultiValue()) {
     			throw new IllegalStateException("Attempt to get single value from property " + name
                         + " with multiple values");

@@ -507,7 +507,8 @@ class DomToSchemaProcessor {
 				} else {
 					
 					// Create a top-level property definition (even if this is a XSD complex type)
-					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeQName, null, annotation, null);
+					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeQName, null, 
+							xsElementDecl.getAnnotation(), null);
 					schema.getDefinitions().add(propDef);
 				}
 				
@@ -702,7 +703,7 @@ class DomToSchemaProcessor {
 		List<Element> ignore = SchemaProcessorUtil.getAnnotationElements(complexTypeAnnotation, A_IGNORE);
 		if (ignore != null && !ignore.isEmpty()) {
 			if (ignore.size() != 1) {
-				// TODO: error!
+				throw new SchemaException("More than one "+A_IGNORE.getLocalPart()+" annotation on declaration of element "+elementName);
 			}
 			String ignoreString = ignore.get(0).getTextContent();
 			if (StringUtils.isEmpty(ignoreString)) {

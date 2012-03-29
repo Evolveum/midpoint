@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.repo.test;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -41,14 +42,20 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -189,12 +196,44 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));	
 	}
 
-	// TODO: is this supposed to work? (apostrophes in object names)
 	@Test
 	public void nameWithApostrophe() throws Exception {
 		PrismObject<TaskType> task = PrismTestUtil.parseObject(new File(
 				"src/test/resources/task-with-apostrophe.xml"));		// task name contains an apostrophe
-		repositoryService.addObject(task, new OperationResult("test"));
+		String oid = repositoryService.addObject(task, new OperationResult("test"));
+		
+		// cleanup
+		repositoryService.deleteObject(TaskType.class, oid, new OperationResult("test"));
+	}
+	
+	@Test
+	public void testDynamicExtension() throws Exception {
+		PrismObject<TaskType> task = PrismTestUtil.parseObject(new File(
+				"src/test/resources/task-with-apostrophe.xml"));		// task name contains an apostrophe
+		PrismContainer<?> extensionContainer = task.getExtension();
+		
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(SchemaConstants.SYNC_TOKEN,
+				SchemaConstants.SYNC_TOKEN, DOMUtil.XSD_INTEGER, PrismTestUtil.getPrismContext());
+		propDef.setDynamic(true);
+		PrismProperty<Integer> tokenProperty = propDef.instantiate();
+		tokenProperty.addValue(new PrismPropertyValue<Integer>(42));
+		extensionContainer.add(tokenProperty);
+		
+		String oid = repositoryService.addObject(task, new OperationResult("test"));
+		
+		// WHEN
+		PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, oid, null, new OperationResult("test"));
+		PrismContainer<?> repoExtensionContainer = repoTask.getExtension();
+		PrismProperty<Integer> repoTokenProperty = repoExtensionContainer.findProperty(SchemaConstants.SYNC_TOKEN);
+		assertNotNull("No token after reading from repo", repoTokenProperty);
+		PrismPropertyDefinition repoTokenDef = repoTokenProperty.getDefinition();
+		assertNotNull("No token definition after reading from repo", repoTokenDef);
+		assertEquals("Wrong type in token definition after reading from repo", DOMUtil.XSD_INTEGER, repoTokenDef.getTypeName());
+		assertTrue("Token definition is not dynamic after reading from repo", repoTokenDef.isDynamic());
+		assertEquals("Wrong token value after reading from repo", (Integer)42, repoTokenProperty.getValues().iterator().next().getValue());
+		
+		// cleanup
+		repositoryService.deleteObject(TaskType.class, oid, new OperationResult("test"));
 	}
 
 }

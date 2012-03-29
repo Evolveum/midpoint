@@ -118,6 +118,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	// extension.xsd
 	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
+	public static final QName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "singleStringType");
+	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
+	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
 	
 	// user-extension
 	public static final QName USER_EXT_BAR_ELEMENT = new QName(NS_USER_EXT, "bar");

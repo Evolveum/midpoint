@@ -28,9 +28,18 @@
             targetNamespace="http://midpoint.evolveum.com/xml/ns/test/extension"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/extension"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
     <xsd:element name="stringType" type="xsd:string"/>
+    
+    <xsd:element name="singleStringType" type="xsd:string">
+	    <xsd:annotation>
+			<xsd:appinfo>
+				<a:maxOccurs>1</a:maxOccurs>
+			</xsd:appinfo>
+		</xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="doubleType" type="xsd:double"/>
 
@@ -41,6 +50,14 @@
     <xsd:element name="dateType" type="xsd:dateTime"/>
 
     <xsd:element name="locations" type="tns:LocationsType"/>
+    
+    <xsd:element name="ignoredType" type="xsd:string">
+	    <xsd:annotation>
+			<xsd:appinfo>
+				<a:ignore/>
+			</xsd:appinfo>
+		</xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="LocationsType">
         <xsd:sequence>

@@ -85,6 +85,15 @@
         </xsd:annotation>
     </xsd:element>
     
+    <xsd:attribute name="maxOccurs" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Same as normal maxOccurs XSD attribute, but can also be used
+                with dynamic elements similarly to xsi:type.
+            </xsd:documentation>
+        </xsd:annotation>    
+    </xsd:attribute>
+    
 
 </xsd:schema>
 

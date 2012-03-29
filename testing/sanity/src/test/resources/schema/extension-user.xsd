@@ -22,4 +22,15 @@
 	
 	<element name="shipName" type="string"/>
 	
+	<element name="shipState" type="string">
+		<annotation>
+			<appinfo>
+				<a:maxOccurs>1</a:maxOccurs>
+			</appinfo>
+		</annotation>
+	</element>
+	
+	<!-- element "dead" is not defined here by purpose. It is supposed to have
+		a run-time type (xsi:type) -->
+	
 </schema>

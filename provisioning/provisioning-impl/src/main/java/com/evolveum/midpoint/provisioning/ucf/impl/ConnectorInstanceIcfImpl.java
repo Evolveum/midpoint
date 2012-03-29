@@ -1926,19 +1926,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return syncToken;
 	}
 
-	private PrismProperty getToken(SyncToken syncToken) {
+	private PrismProperty<?> getToken(SyncToken syncToken) {
 		Object object = syncToken.getValue();
 		return createTokenProperty(object);
 	}
 
-	private PrismProperty createTokenProperty(Object object) {
+	private <T> PrismProperty<T> createTokenProperty(T object) {
 		QName type = XsdTypeMapper.toXsdType(object.getClass());
 
-		Set<PrismPropertyValue<Object>> syncTokenValues = new HashSet<PrismPropertyValue<Object>>();
-		syncTokenValues.add(new PrismPropertyValue<Object>(object));
+		Set<PrismPropertyValue<T>> syncTokenValues = new HashSet<PrismPropertyValue<T>>();
+		syncTokenValues.add(new PrismPropertyValue<T>(object));
 		PrismPropertyDefinition propDef = new PrismPropertyDefinition(SchemaConstants.SYNC_TOKEN,
 				SchemaConstants.SYNC_TOKEN, type, prismContext);
-		PrismProperty property = propDef.instantiate();
+		propDef.setDynamic(true);
+		PrismProperty<T> property = propDef.instantiate();
 		property.addValues(syncTokenValues);
 		return property;
 	}

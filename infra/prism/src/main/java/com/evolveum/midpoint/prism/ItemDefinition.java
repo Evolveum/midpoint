@@ -189,7 +189,10 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 
 	/**
 	 * Returns true if definition was created during the runtime based on a dynamic information
-	 * such as xsi:type attributes in XML.
+	 * such as xsi:type attributes in XML. This means that the definition needs to be stored
+	 * alongside the data to have a successful serialization "roundtrip". The definition is not
+	 * part of any schema and therefore cannot be determined. It may even be different for every
+	 * instance of the associated item (element name).
 	 */
 	public boolean isDynamic() {
 		return dynamic;

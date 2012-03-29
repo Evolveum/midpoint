@@ -113,7 +113,8 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	if (getValues().size() > 1) {
     		throw new IllegalStateException("Attempt to get single value from a multivalued container "+getName());
     	}
-    	if (getDefinition() != null) {
+    	// We are not sure about multiplicity if there is no definition or the definition is dynamic
+    	if (getDefinition() != null && !getDefinition().isDynamic()) {
 			if (getDefinition().isSingleValue()) {
 				// Insert first empty value. This simulates empty single-valued container. It the container exists
 		        // it is clear that it has at least one value (and that value is empty).

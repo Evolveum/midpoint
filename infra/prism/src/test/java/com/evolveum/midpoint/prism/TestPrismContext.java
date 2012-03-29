@@ -211,6 +211,33 @@ public class TestPrismContext {
 	}
 	
 	@Test
+	public void testExtensionSchema() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testExtensionSchema ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		assertNotNull("No prism context", prismContext);
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+		assertNotNull("No schema registry in context", schemaRegistry);
+		
+		PrismPropertyDefinition ignoredTypeDef = schemaRegistry.findPropertyDefinitionByElementName(EXTENSION_IGNORED_TYPE_ELEMENT);
+		PrismAsserts.assertDefinition(ignoredTypeDef, EXTENSION_IGNORED_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+		assertTrue("Element "+EXTENSION_IGNORED_TYPE_ELEMENT+" is NOT ignored", ignoredTypeDef.isIgnored());
+		
+		PrismPropertyDefinition stringTypeDef = schemaRegistry.findPropertyDefinitionByElementName(EXTENSION_STRING_TYPE_ELEMENT);
+		PrismAsserts.assertDefinition(stringTypeDef, EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+		assertFalse("Element "+EXTENSION_STRING_TYPE_ELEMENT+" is ignored", stringTypeDef.isIgnored());
+		
+		PrismPropertyDefinition singleStringTypeDef = schemaRegistry.findPropertyDefinitionByElementName(EXTENSION_SINGLE_STRING_TYPE_ELEMENT);
+		PrismAsserts.assertDefinition(singleStringTypeDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, 1);
+		assertFalse("Element "+EXTENSION_SINGLE_STRING_TYPE_ELEMENT+" is ignored", singleStringTypeDef.isIgnored());
+		
+		PrismPropertyDefinition intTypeDef = schemaRegistry.findPropertyDefinitionByElementName(EXTENSION_INT_TYPE_ELEMENT);
+		PrismAsserts.assertDefinition(intTypeDef, EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INTEGER, 0, -1);
+		assertFalse("Element "+EXTENSION_INT_TYPE_ELEMENT+" is ignored", intTypeDef.isIgnored());
+	}
+	
+	@Test
 	public void testSchemaToDom() throws SchemaException, SAXException, IOException {
 		System.out.println("===[ testSchemaToDom ]===");
 		

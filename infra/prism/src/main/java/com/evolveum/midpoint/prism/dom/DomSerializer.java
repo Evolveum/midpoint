@@ -128,11 +128,6 @@ public class DomSerializer {
 			return;
 		}
 		Class<? extends Object> type = value.getValue().getClass();
-		boolean recordType = false;
-		ItemDefinition definition = parent.getDefinition();
-		if (definition != null) {
-			recordType = definition.isDynamic();
-		}
 		if (value.getValue() instanceof Element) {
 			// No conversion needed, just adopt the element
 			Element originalValueElement = (Element)value.getValue();
@@ -147,7 +142,15 @@ public class DomSerializer {
 			// Primitive value
 			Element element = createElement(elementName);
 			parentElement.appendChild(element);
-			XmlTypeConverter.toXsdElement(value.getValue(), element, recordType);
+			XmlTypeConverter.toXsdElement(value.getValue(), element, false);
+			ItemDefinition definition = parent.getDefinition();
+			if (definition != null && definition.isDynamic()) {
+				DOMUtil.setXsiType(element, definition.getTypeName());
+				// We cannot do this as simple types cannot have attributes
+//				element.setAttributeNS(PrismConstants.A_MAX_OCCURS.getNamespaceURI(), 
+//						PrismConstants.A_MAX_OCCURS.getLocalPart(), multiplicityToString(definition.getMaxOccurs()));
+			}
+
 		} else {
 			// JAXB value
 			PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
@@ -163,6 +166,13 @@ public class DomSerializer {
 		}
 	}
 	
+	private String multiplicityToString(int maxOccurs) {
+		if (maxOccurs<0) {
+			return PrismConstants.MULTIPLICITY_UNBONUNDED;
+		}
+		return String.valueOf(maxOccurs);
+	}
+
 	private void serializeRawElement(Object rawElement, Element parentElement) throws SchemaException {
 		if (rawElement instanceof Element) {
 			Document ownerDocument = parentElement.getOwnerDocument();
@@ -225,7 +235,12 @@ public class DomSerializer {
 		if (definition == null) {
 			throw new SchemaException("Cannot serialize object in reference "+parent+" as the reference has no definition");
 		}
-		serialize(value.getObject(), definition.getCompositeObjectElementName(), parentElement);
+		QName compositeObjectElementName = definition.getCompositeObjectElementName();
+		if (compositeObjectElementName == null) {
+			throw new SchemaException("Cannot serialize composite object in "+DOMUtil.getQName(parentElement)+" because the composite element" +
+					"name for reference "+definition+" is not defined");
+		}
+		serialize(value.getObject(), compositeObjectElementName, parentElement);
 	}
 
 	private void serializeItems(List<Item<?>> items, Element parentElement) throws SchemaException {

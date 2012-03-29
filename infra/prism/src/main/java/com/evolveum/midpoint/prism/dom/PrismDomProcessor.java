@@ -372,9 +372,11 @@ public class PrismDomProcessor {
 	 * Try to locate xsi:type definition in the elements and return appropriate ItemDefinition.
 	 */
 	private ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, List<Element> valueElements, 
-			PrismContext prismContext) {
+			PrismContext prismContext) throws SchemaException {
 		QName typeName = null;
 		QName elementName = null;
+		// Set it to multi-value to be on the safe side
+		int maxOccurs = -1;
 		for (Object element: valueElements) {
 			if (elementName == null) {
 				elementName = JAXBUtil.getElementQName(element);
@@ -385,6 +387,10 @@ public class PrismDomProcessor {
 				if (DOMUtil.hasXsiType(domElement)) {
 					typeName = DOMUtil.resolveXsiType(domElement);
 					if (typeName != null) {
+						String maxOccursString = domElement.getAttributeNS(PrismConstants.A_MAX_OCCURS.getNamespaceURI(), PrismConstants.A_MAX_OCCURS.getLocalPart());
+						if (!StringUtils.isBlank(maxOccursString)) {
+							maxOccurs = parseMultiplicity(maxOccursString, elementName);
+						}
 						break;
 					}
 				}
@@ -395,12 +401,26 @@ public class PrismDomProcessor {
 			return null;
 		}
 		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, elementName, typeName, prismContext);
-		// Set it to multi-value to be on the safe side
-		propDef.setMaxOccurs(-1);
+		propDef.setMaxOccurs(maxOccurs);
 		propDef.setDynamic(true);
 		return propDef;
 	}
 		
+	private int parseMultiplicity(String maxOccursString, QName elementName) throws SchemaException {
+		if (PrismConstants.MULTIPLICITY_UNBONUNDED.equals(maxOccursString)) {
+			return -1;
+		}
+		if (maxOccursString.startsWith("-")) {
+			return -1;
+		}
+		if (StringUtils.isNumeric(maxOccursString)) {
+			return Integer.valueOf(maxOccursString);
+		} else {
+			throw new SchemaException("Expecetd numeric value for "+PrismConstants.A_MAX_OCCURS.getLocalPart()
+					+" attribute on "+elementName+" but got "+maxOccursString);
+		}
+	}
+
 	private <T> PrismProperty<T> parsePrismPropertyRaw(List<? extends Object> valueElements, QName itemName) throws SchemaException {
 		Object firstElement = valueElements.get(0);
 		QName propertyName = JAXBUtil.getElementQName(firstElement);
@@ -521,7 +541,7 @@ public class PrismDomProcessor {
 	}
 
 	private <T extends Containerable> ItemDefinition locateItemDefinition(PrismContainerDefinition<T> containerDefinition, QName elementQName,
-			List<? extends Object> valueElements) {
+			List<? extends Object> valueElements) throws SchemaException {
 		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);
 		if (def != null) {
 			return def;

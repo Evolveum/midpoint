@@ -17,6 +17,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import static org.testng.AssertJUnit.assertFalse;
@@ -38,6 +39,7 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -54,11 +56,14 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -66,9 +71,11 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -99,10 +106,12 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/object/resource-dummy.xml";
 	private static final String FILENAME_CONNECTOR_DUMMY = "src/test/resources/ucf/connector-dummy.xml";
 
-	ConnectorFactory manager;
-	PrismObject<ResourceType> resource;
-	ResourceType resourceType;
-	ConnectorType connectorType;
+	private ConnectorFactory manager;
+	private PrismObject<ResourceType> resource;
+	private ResourceType resourceType;
+	private ConnectorType connectorType;
+	private ConnectorInstance cc;
+	private ResourceSchema resourceSchema;
 
 	@Autowired(required = true)
 	ConnectorFactory connectorFactoryIcfImpl;
@@ -252,7 +261,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
 		
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
+		cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
 		assertNotNull("Failed to instantiate connector", cc);
 		
 		PrismContainerValue configContainer = resourceType.getConfiguration().asPrismContainerValue();
@@ -260,7 +269,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		cc.configure(configContainer, result);
 		
 		// WHEN
-		ResourceSchema resourceSchema = cc.getResourceSchema(result);
+		resourceSchema = cc.getResourceSchema(result);
 		
 		// THEN
 		display("Generated resource schema", resourceSchema);
@@ -274,6 +283,32 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		// Try to re-parse
 		PrismSchema reparsedResourceSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), PrismTestUtil.getPrismContext());
 		assertEquals("Unexpected number of definitions in re-parsed schema", 1, reparsedResourceSchema.getDefinitions().size());		
+	}
+	
+	@Test
+	public void test100FetchEmptyChanges() throws Exception {
+		displayTestTile(this, "test100FetchEmptyChanges");
+
+		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		
+		// WHEN
+		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, result);
+
+		assertNotNull("No last sync token", lastToken);
+		
+		System.out.println("Property:");
+		System.out.println(lastToken.dump());
+		
+		PrismPropertyDefinition lastTokenDef = lastToken.getDefinition();
+		assertNotNull("No last sync token definition", lastTokenDef);
+		assertEquals("Last sync token definition has wrong type", DOMUtil.XSD_INTEGER, lastTokenDef.getTypeName());
+		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
+		
+		// WHEN
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		
+		AssertJUnit.assertEquals(0, changes.size());
 	}
 
 

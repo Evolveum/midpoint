@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.BeforeSuite;
@@ -194,28 +195,31 @@ public class TestPrismParsing {
 		assertPropertyValue(user, "name", "jack");
 		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
 		
-		PrismContainer extension = user.getExtension();
+		PrismContainer<?> extension = user.getExtension();
 		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
-		PrismContainerValue extensionValue = extension.getValue();
+		PrismContainerValue<?> extensionValue = extension.getValue();
 		assertTrue("Extension parent", extensionValue.getParent() == extension);
 		assertNull("Extension ID", extensionValue.getId());
-		PrismAsserts.assertPropertyValue(extension, new QName(NS_USER_EXT, "bar"), "BAR");
+		PrismAsserts.assertPropertyValue(extension, USER_EXT_BAR_ELEMENT, "BAR");
 		PrismAsserts.assertPropertyValue(extension, new QName(NS_USER_EXT, "num"), 42);
 		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_USER_EXT, "multi")).getValues();
 		assertEquals("Multi",3,multiPVals.size());
 		
-		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), new QName(NS_USER_EXT,"bar"));
-		PrismProperty barProperty = user.findProperty(barPath);
+		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), USER_EXT_BAR_ELEMENT);
+		PrismProperty<String> barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
 		PrismAsserts.assertPropertyValue(barProperty, "BAR");
+		PrismPropertyDefinition barPropertyDef = barProperty.getDefinition();
+		assertNotNull("No definition for bar", barPropertyDef);
+		PrismAsserts.assertDefinition(barPropertyDef, USER_EXT_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
 		
 		PropertyPath enabledPath = USER_ENABLED_PATH;
-		PrismProperty enabledProperty1 = user.findProperty(enabledPath);
+		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);
 		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
 		PrismAsserts.assertPropertyValue(enabledProperty1, true);
 		
-		PrismProperty validFromProperty = user.findProperty(USER_VALID_FROM_PATH);
+		PrismProperty<XMLGregorianCalendar> validFromProperty = user.findProperty(USER_VALID_FROM_PATH);
 		assertNotNull("Property "+USER_VALID_FROM_PATH+" not found", validFromProperty);
 		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
 				

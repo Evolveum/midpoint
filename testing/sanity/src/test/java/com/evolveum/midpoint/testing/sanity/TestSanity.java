@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -153,7 +154,7 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String CONNECTOR_BROKEN_FILENAME = "src/test/resources/repo/connector-broken.xml";
     private static final String CONNECTOR_BROKEN_OID = "cccccccc-76e0-59e2-ffff-ffffffffffff";
 
-    private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/opendj-sync-task.xml";
+    private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/task-opendj-sync.xml";
     private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
     private static final String TASK_USER_RECOMPUTE_FILENAME = "src/test/resources/repo/task-user-recompute.xml";
@@ -233,6 +234,10 @@ public class TestSanity extends AbstractIntegrationTest {
             "AccountObjectClass");
 
     private static final Trace LOGGER = TraceManager.getTrace(TestSanity.class);
+
+	private static final String NS_MY = "http://whatever.com/my";
+	private static final QName MY_SHIP_STATE = new QName(NS_MY, "shipState");
+	private static final QName MY_DEAD = new QName(NS_MY, "dead");
 
     /**
      * Unmarshalled resource definition to reach the embedded OpenDJ instance.
@@ -348,7 +353,15 @@ public class TestSanity extends AbstractIntegrationTest {
         assertNotNull(repositoryService);
         assertTrue(isSystemInitialized());
         assertNotNull(taskManager);
-
+        
+        assertNotNull(prismContext);
+        SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+        assertNotNull(schemaRegistry);
+        // This is defined in extra schema. So this effectively checks whether the extra schema was loaded
+        PrismPropertyDefinition shipStateDefinition = schemaRegistry.findPropertyDefinitionByElementName(MY_SHIP_STATE);
+        assertNotNull("No my:shipState definition", shipStateDefinition);
+        assertEquals("Wrong maxOccurs in my:shipState definition", 1, shipStateDefinition.getMaxOccurs());
+        
         assertCache();
 
         OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
@@ -2288,7 +2301,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
-    @Test(enabled=false)
+    @Test
     public void test100LiveSyncInit() throws Exception {
         displayTestTile("test100LiveSyncInit");
         // Now it is the right time to add task definition to the repository
@@ -2353,16 +2366,15 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Test for extension. This will also roughly test extension processor
         // and schema processor
-        PrismContainer taskExtension = task.getExtension();
+        PrismContainer<?> taskExtension = task.getExtension();
         AssertJUnit.assertNotNull(taskExtension);
         display("Task extension", taskExtension);
-        PrismProperty shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever",
-                "shipState"));
-        AssertJUnit.assertEquals("capsized", shipStateProp.getValue(String.class).getValue());
-        PrismProperty<Integer> deadProp = taskExtension
-                .findProperty(new QName("http://myself.me/schemas/whatever", "dead"));
-        AssertJUnit.assertEquals(Integer.class, deadProp.getValues().iterator().next().getValue().getClass());
-        AssertJUnit.assertEquals(Integer.valueOf(42), deadProp.getValue(Integer.class).getValue());
+        PrismProperty<String> shipStateProp = taskExtension.findProperty(MY_SHIP_STATE);
+        AssertJUnit.assertEquals("Wrong 'shipState' property value", "capsized", shipStateProp.getValue().getValue());
+        PrismProperty<Integer> deadProp = taskExtension.findProperty(MY_DEAD);
+        PrismPropertyValue<Integer> deadPVal = deadProp.getValues().iterator().next();
+        AssertJUnit.assertEquals("Wrong 'dead' property class", Integer.class, deadPVal.getValue().getClass());
+        AssertJUnit.assertEquals("Wrong 'dead' property value", Integer.valueOf(42), deadPVal.getValue());
 
         // The progress should be 0, as there were no changes yet
         AssertJUnit.assertEquals(0, task.getProgress());
@@ -2385,7 +2397,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
-    @Test(enabled=false)
+    @Test
     public void test101LiveSyncCreate() throws Exception {
         displayTestTile("test101LiveSyncCreate");
         // Sync task should be running (tested in previous test), so just create
@@ -2418,7 +2430,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
-    @Test(enabled=false)
+    @Test
     public void test102LiveSyncModify() throws Exception {
         displayTestTile("test102LiveSyncModify");
 
@@ -2453,7 +2465,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
-    @Test(enabled=false)
+    @Test
     public void test103LiveSyncLink() throws Exception {
         displayTestTile("test103LiveSyncLink");
 
@@ -2514,7 +2526,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
-    @Test(enabled=false)
+    @Test
     public void test104LiveSyncCreate() throws Exception {
         displayTestTile("test104LiveSyncCreate");
         // Sync task should be running (tested in previous test), so just create
@@ -2554,9 +2566,13 @@ public class TestSanity extends AbstractIntegrationTest {
 
     private Object findSyncToken(Task syncCycle) {
         Object token = null;
-        PrismProperty tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+        PrismProperty<?> tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
         if (tokenProperty != null) {
-            token = tokenProperty.getValue();
+        	Collection<?> values = tokenProperty.getRealValues();
+        	if (values.size() > 1) {
+        		throw new IllegalStateException("Too must values in token "+tokenProperty);
+        	}
+            token = values.iterator().next();
         }
 
         return token;
@@ -2643,7 +2659,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
-    @Test(enabled=false)
+    @Test
     public void test199LiveSyncCleanup() throws ObjectNotFoundException {
         displayTestTile("test199LiveSyncCleanup");
         final OperationResult result = new OperationResult(TestSanity.class.getName()
@@ -2656,7 +2672,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
-    @Test(enabled=false)
+    @Test
     public void test200ImportFromResource() throws Exception {
         displayTestTile("test200ImportFromResource");
         // GIVEN
@@ -2884,7 +2900,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
-    @Test(enabled=false)
+    @Test
     public void test300RecomputeUsers() throws Exception {
         displayTestTile("test300RecomputeUsers");
         // GIVEN
@@ -3043,7 +3059,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
-    @Test(enabled=false)
+    @Test
     public void test310ReconcileResourceOpenDj() throws Exception {
         displayTestTile("test310ReconcileResourceOpenDj");
         // GIVEN
