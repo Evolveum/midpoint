@@ -22,8 +22,12 @@
 package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PropertyPathSegment;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.repo.sql.ClassMapper;
+import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RUtil;
 import com.evolveum.midpoint.repo.sql.type.QNameType;
 import com.evolveum.midpoint.schema.SchemaConstants;
@@ -88,51 +92,87 @@ public class SimpleOp extends Op {
         QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
         SimpleItem conditionItem = updateConditionItem(condQName, propertyPath);
 
-        Operation operation = getOperationType(filter);
         LOGGER.trace("Condition item updated, updating value type.");
         Criterion criterion = null;
         if (!conditionItem.isReference) {
-            //todo change to real value, probably user RAnyConverter somehow
-            Object testedValue = condition.getTextContent();
+            Object testedValue = createRealTestedValue(propertyPath, condition);
             LOGGER.trace("Value updated to type '{}'",
                     new Object[]{(testedValue == null ? null : testedValue.getClass().getName())});
 
-            if (pushNot) {
-                criterion = Restrictions.ne(conditionItem.getQueryableItem(), testedValue);
-            } else {
-                criterion = Restrictions.eq(conditionItem.getQueryableItem(), testedValue);
-            }
+            criterion = createBaseCriteria(filter, pushNot, conditionItem.getQueryableItem(), testedValue);
         }
 
         if (conditionItem.isAny) {
-            LOGGER.trace("Condition is type of any, creating conjunction for value and QName name, type");
-            ItemDefinition itemDefinition = getInterpreter().findDefinition(path, condQName);
-            QName name, type;
-            if (itemDefinition == null) {
-                name = condQName;
-                type = DOMUtil.resolveXsiType(condition);
-            } else {
-                name = itemDefinition.getName();
-                type = itemDefinition.getTypeName();
-            }
+            criterion = interpretAny(condition, conditionItem, path, criterion);
+        } else if (conditionItem.isReference) {
+            criterion = interpretReference(condition, conditionItem, filter, pushNot);
+        }
 
-            if (name == null || type == null) {
-                throw new QueryException("Couldn't get name or type for queried item '" + condQName + "'");
-            }
+        return criterion;
+    }
 
+    private Criterion createBaseCriteria(Element filter, boolean pushNot, String name, Object testedValue) throws
+            QueryException {
+        //will be used later to support other filters than <equal>
+        Operation operation = getOperationType(filter);
+        switch (operation) {
+            case EQUAL:
+                if (pushNot) {
+                    return Restrictions.ne(name, testedValue);
+                } else {
+                    return Restrictions.eq(name, testedValue);
+                }
+        }
+
+        throw new IllegalStateException("Couldn't create base criteria for filter '"
+                + DOMUtil.getQNameWithoutPrefix(filter) + "' and pushNot '" + pushNot + "'.");
+    }
+
+    private Criterion interpretAny(Element condition, SimpleItem conditionItem, Element path, Criterion baseCriterion)
+            throws QueryException {
+        LOGGER.trace("Condition is type of any, creating conjunction for value and QName name, type");
+        QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
+        ItemDefinition itemDefinition = getInterpreter().findDefinition(path, condQName);
+
+        QName name, type;
+        if (itemDefinition == null) {
+            name = condQName;
+            type = DOMUtil.resolveXsiType(condition);
+        } else {
+            name = itemDefinition.getName();
+            type = itemDefinition.getTypeName();
+        }
+
+        if (name == null || type == null) {
+            throw new QueryException("Couldn't get name or type for queried item '" + condQName + "'");
+        }
+
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(baseCriterion);
+        conjunction.add(Restrictions.eq(conditionItem.alias + ".name", QNameType.optimizeQName(name)));
+        conjunction.add(Restrictions.eq(conditionItem.alias + ".type", QNameType.optimizeQName(type)));
+
+        return conjunction;
+    }
+
+    private Criterion interpretReference(Element condition, SimpleItem conditionItem, Element filter, boolean pushNot)
+            throws QueryException {
+        String targetOid = condition.getAttribute("oid");
+        if (StringUtils.isEmpty(targetOid)) {
+            throw new QueryException("Couldn't find target oid in reference in query value element.");
+        }
+
+        PrismDomProcessor domProcessor = getInterpreter().getPrismContext().getPrismDomProcessor();
+        PrismReferenceValue refValue = domProcessor.parseReferenceValue(condition);
+        QName type = refValue.getTargetType();
+        Criterion criterion = createBaseCriteria(filter, pushNot, conditionItem.getQueryableItem(), targetOid);
+
+        if (type != null) {
             Conjunction conjunction = Restrictions.conjunction();
             conjunction.add(criterion);
-            conjunction.add(Restrictions.eq(conditionItem.alias + ".name", QNameType.optimizeQName(name)));
-            conjunction.add(Restrictions.eq(conditionItem.alias + ".type", QNameType.optimizeQName(type)));
+            conjunction.add(Restrictions.eq("type", ClassMapper.getHQLTypeForQName(type)));
 
             criterion = conjunction;
-        } else if (conditionItem.isReference) {
-            String targetOid = condition.getAttribute("oid");
-            if (StringUtils.isEmpty(targetOid)) {
-                throw new QueryException("Couldn't find target oid in reference in query value element.");
-            }
-            //todo type
-            criterion = Restrictions.eq(conditionItem.getQueryableItem(), targetOid);
         }
 
         return criterion;
@@ -148,9 +188,7 @@ public class SimpleOp extends Op {
             if (definition.isAny()) {
                 item.isAny = true;
                 List<PropertyPathSegment> segments = propertyPath.getSegments();
-                //todo get from somewhere - from RAnyConverter, somehow
-                //strings | longs | dates | clobs
-                String anyTypeName = "strings";
+                String anyTypeName = RAnyConverter.getAnySetType();
                 segments.add(new PropertyPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
 
                 propertyPath = new PropertyPath(segments);
@@ -271,11 +309,15 @@ public class SimpleOp extends Op {
         Criteria pCriteria = getInterpreter().getCriteria(lastPropPath);
         // create new criteria for this relationship
         String alias = getInterpreter().createAlias(propPath.last().getName());
-        LOGGER.trace(">>>> create '{}', alias '{}', path\n{}", new Object[]{realName, alias, propPath});
         Criteria criteria = pCriteria.createCriteria(realName, alias);
         //save criteria and alias to our query context
         getInterpreter().setCriteria(propPath, criteria);
         getInterpreter().setAlias(propPath, alias);
+    }
+
+    private Object createRealTestedValue(PropertyPath path, Element condition) {
+        //todo change to real value, probably user RAnyConverter somehow
+        return condition.getTextContent();
     }
 
     private static class SimpleItem {

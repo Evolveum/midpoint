@@ -42,7 +42,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
-class RAnyConverter {
+public class RAnyConverter {
 
     private static enum ValueType {
         LONG, STRING, DATE
@@ -284,7 +284,6 @@ class RAnyConverter {
     private Object createRealValue(RValue rValue, ItemDefinition definition) throws SchemaException {
         if (rValue instanceof RClobValue) {
             RClobValue clob = (RClobValue) rValue;
-            //todo maybe use prismcontext parser to get value from clob...
             return DOMUtil.parseDocument(clob.getValue()).getDocumentElement();
         }
 
@@ -311,10 +310,16 @@ class RAnyConverter {
             }
         }
 
-        LOGGER.trace("Couln't create real value of type '{}' from '{}'",
+        LOGGER.trace("Couldn't create real value of type '{}' from '{}'",
                 new Object[]{rValue.getType(), rValue.getValue()});
 
         throw new IllegalStateException("Can't create real value of type '" + rValue.getType()
                 + "' from value saved in DB as '" + rValue.getClass().getSimpleName() + "'.");
+    }
+
+    //todo get from somewhere - from RAnyConverter, somehow
+    //strings | longs | dates | clobs
+    public static String getAnySetType(){
+        return "strings";
     }
 }
