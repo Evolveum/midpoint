@@ -25,12 +25,12 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -69,7 +69,7 @@ public class RAnyConverter {
         this.prismContext = prismContext;
     }
 
-    Set<RValue> convertToValue(Item item) throws DtoTranslationException {
+    Set<RValue> convertToRValue(Item item) throws DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getName() + "' without definition can't be saved.");
 
@@ -120,7 +120,7 @@ public class RAnyConverter {
         return rValues;
     }
 
-    private boolean isIndexable(ItemDefinition definition) {
+    private static boolean isIndexable(ItemDefinition definition) {
         if (definition instanceof PrismContainerDefinition) {
             return false;
         } else if (definition instanceof PrismReferenceDefinition) {
@@ -221,7 +221,7 @@ public class RAnyConverter {
         throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
     }
 
-    private ValueType getValueType(QName qname) {
+    private static ValueType getValueType(QName qname) {
         if (qname == null) {
             return ValueType.STRING;
         }
@@ -233,7 +233,7 @@ public class RAnyConverter {
         return type;
     }
 
-    void convertFromValue(RValue value, PrismContainerValue any) throws DtoTranslationException {
+    void convertFromRValue(RValue value, PrismContainerValue any) throws DtoTranslationException {
         Validate.notNull(value, "Value for converting must not be null.");
         Validate.notNull(any, "Parent prism container value must not be null.");
 
@@ -319,7 +319,31 @@ public class RAnyConverter {
 
     //todo get from somewhere - from RAnyConverter, somehow
     //strings | longs | dates | clobs
-    public static String getAnySetType(){
-        return "strings";
+    public static <T extends ObjectType> String getAnySetType(Class<T> type, PropertyPath path, Element value) {
+        if (1 == 1) {
+            return "strings";
+        }
+        Object realValue = getRealValue(type, path, value);
+        ItemDefinition definition = null;
+
+        ValueType valueType = getValueType(definition.getTypeName());
+        switch (valueType) {
+            case DATE:
+                return "dates";
+            case LONG:
+                return "longs";
+            case STRING:
+            default:
+                if (isIndexable(definition)) {
+                    return "strings";
+                } else {
+                    return "clobs";
+                }
+        }
+    }
+
+    public static <T extends ObjectType> Object getRealValue(Class<T> type, PropertyPath path, Element value) {
+        //todo check if it's not indexable and it's string -> it's clob, throw exception
+        return value.getTextContent();
     }
 }

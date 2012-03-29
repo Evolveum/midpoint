@@ -89,13 +89,12 @@ public class SimpleOp extends Op {
         }
 
         Element condition = DOMUtil.listChildElements(value).get(0);
-        QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
-        SimpleItem conditionItem = updateConditionItem(condQName, propertyPath);
+        SimpleItem conditionItem = updateConditionItem(condition, propertyPath);
 
         LOGGER.trace("Condition item updated, updating value type.");
         Criterion criterion = null;
         if (!conditionItem.isReference) {
-            Object testedValue = createRealTestedValue(propertyPath, condition);
+            Object testedValue = RAnyConverter.getRealValue(getInterpreter().getType(), propertyPath, condition);
             LOGGER.trace("Value updated to type '{}'",
                     new Object[]{(testedValue == null ? null : testedValue.getClass().getName())});
 
@@ -178,7 +177,8 @@ public class SimpleOp extends Op {
         return criterion;
     }
 
-    private SimpleItem updateConditionItem(QName conditionItem, PropertyPath propertyPath) throws QueryException {
+    private SimpleItem updateConditionItem(Element condition, PropertyPath propertyPath) throws QueryException {
+        QName conditionItem = DOMUtil.getQNameWithoutPrefix(condition);
         LOGGER.debug("Updating condition item '{}' on property path\n{}",
                 new Object[]{conditionItem, propertyPath});
         SimpleItem item = new SimpleItem();
@@ -188,7 +188,7 @@ public class SimpleOp extends Op {
             if (definition.isAny()) {
                 item.isAny = true;
                 List<PropertyPathSegment> segments = propertyPath.getSegments();
-                String anyTypeName = RAnyConverter.getAnySetType();
+                String anyTypeName = RAnyConverter.getAnySetType(getInterpreter().getType(), propertyPath, condition);
                 segments.add(new PropertyPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
 
                 propertyPath = new PropertyPath(segments);
@@ -313,11 +313,6 @@ public class SimpleOp extends Op {
         //save criteria and alias to our query context
         getInterpreter().setCriteria(propPath, criteria);
         getInterpreter().setAlias(propPath, alias);
-    }
-
-    private Object createRealTestedValue(PropertyPath path, Element condition) {
-        //todo change to real value, probably user RAnyConverter somehow
-        return condition.getTextContent();
     }
 
     private static class SimpleItem {

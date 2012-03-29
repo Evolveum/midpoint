@@ -175,22 +175,22 @@ public class RAnyContainer implements Serializable {
         RAnyConverter converter = new RAnyConverter(prismContext);
         if (repo.getClobs() != null) {
             for (RClobValue value : repo.getClobs()) {
-                converter.convertFromValue(value, containerValue);
+                converter.convertFromRValue(value, containerValue);
             }
         }
         if (repo.getDates() != null) {
             for (RDateValue value : repo.getDates()) {
-                converter.convertFromValue(value, containerValue);
+                converter.convertFromRValue(value, containerValue);
             }
         }
         if (repo.getLongs() != null) {
             for (RLongValue value : repo.getLongs()) {
-                converter.convertFromValue(value, containerValue);
+                converter.convertFromRValue(value, containerValue);
             }
         }
         if (repo.getStrings() != null) {
             for (RStringValue value : repo.getStrings()) {
-                converter.convertFromValue(value, containerValue);
+                converter.convertFromRValue(value, containerValue);
             }
         }
     }
@@ -221,7 +221,7 @@ public class RAnyContainer implements Serializable {
         try {
             List<Item> items = containerValue.getItems();
             for (Item item : items) {
-                values.addAll(converter.convertToValue(item));
+                values.addAll(converter.convertToRValue(item));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

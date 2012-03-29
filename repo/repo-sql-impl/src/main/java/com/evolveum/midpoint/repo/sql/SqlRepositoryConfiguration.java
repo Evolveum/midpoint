@@ -34,15 +34,11 @@ public class SqlRepositoryConfiguration {
 
     //embedded configuration
     private boolean embedded = true;
-    private boolean asServer = false;
+    private boolean asServer;
     private String baseDir;
     private String fileName;
-    private boolean tcpSSL = false;
+    private boolean tcpSSL;
     private int port = 5437;
-    //embedded jdbc url configuration properties
-    //CACHE_SIZE
-    private int cacheSize;        //todo use in initialization
-
     //connection for hibernate
     private String driverClassName;
     private String jdbcUrl;
@@ -66,6 +62,12 @@ public class SqlRepositoryConfiguration {
         setFileName(configuration.getString("fileName", fileName));
     }
 
+    /**
+     * Configuration validation.
+     *
+     * @throws RepositoryServiceFactoryException
+     *          if configuration is invalid.
+     */
     public void validate() throws RepositoryServiceFactoryException {
         notEmpty(getJdbcUrl(), "JDBC Url is empty or not defined.");
         notEmpty(getJdbcUsername(), "JDBC user name is empty or not defined.");
@@ -98,6 +100,9 @@ public class SqlRepositoryConfiguration {
         }
     }
 
+    /**
+     * @return Returns true if repository is running in embedded server mode, otherwise false. Default is false.
+     */
     public boolean isAsServer() {
         return asServer;
     }
@@ -154,6 +159,9 @@ public class SqlRepositoryConfiguration {
         this.hibernateHbm2ddl = hibernateHbm2ddl;
     }
 
+    /**
+     * @return Password for JDBC connection. (Optional)
+     */
     public String getJdbcPassword() {
         return jdbcPassword;
     }
@@ -162,6 +170,9 @@ public class SqlRepositoryConfiguration {
         this.jdbcPassword = jdbcPassword;
     }
 
+    /**
+     * @return JDBC URL connection string for hibernate data source. (for embedded mode it's created automatically).
+     */
     public String getJdbcUrl() {
         return jdbcUrl;
     }
@@ -170,6 +181,9 @@ public class SqlRepositoryConfiguration {
         this.jdbcUrl = jdbcUrl;
     }
 
+    /**
+     * @return Username for JDBC connection. (Optional)
+     */
     public String getJdbcUsername() {
         return jdbcUsername;
     }
@@ -178,6 +192,9 @@ public class SqlRepositoryConfiguration {
         this.jdbcUsername = jdbcUsername;
     }
 
+    /**
+     * @return Port number if repository is running in embedded server mode. Default is 5437.
+     */
     public int getPort() {
         return port;
     }
@@ -186,20 +203,17 @@ public class SqlRepositoryConfiguration {
         this.port = port;
     }
 
+    /**
+     * Value represents repository running in embedded server mode with SSL turned on/off. Default value is false.
+     *
+     * @return Returns true if repository is running in embedded server mode and SSL turned on.
+     */
     public boolean isTcpSSL() {
         return tcpSSL;
     }
 
     public void setTcpSSL(boolean tcpSSL) {
         this.tcpSSL = tcpSSL;
-    }
-
-    public int getCacheSize() {
-        return cacheSize;
-    }
-
-    public void setCacheSize(int cacheSize) {
-        this.cacheSize = cacheSize;
     }
 
     /**

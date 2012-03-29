@@ -38,7 +38,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -160,7 +159,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         config.setHibernateDialect("org.hibernate.dialect.H2Dialect");
         config.setHibernateHbm2ddl("update");
     }
-    
+
     private String getRelativeBaseDirPath(String baseDir) {
         return new File(".").toURI().relativize(new File(baseDir).toURI()).getPath();
     }
@@ -239,8 +238,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             args.add("-tcpPort");
             args.add(Integer.toString(config.getPort()));
         }
-        // todo with this we can't create database on first start..
-        // args.add("-ifExists");
 
         return args.toArray(new String[args.size()]);
     }
