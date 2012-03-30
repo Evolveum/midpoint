@@ -1476,6 +1476,45 @@
         </xsd:sequence>
     </xsd:complexType>
 
+
+	<xsd:complexType name="NodeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Node describes a single installation of midPoint. MidPoint installations can work in cluster.
+                The Node objects are the way how the nodes in cluster know about each other.
+                
+                EXPERIMENTAL
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="nodeIdentifier" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Short, cluster-wide identifier of the node. It may be a hostname or a short number node ID.
+                                Very short string is advised as this identifier is used to generate other identifiers
+                                (e.g. lightweight IDs), it is used in audit records, etc. 
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="hostname" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Hostname of the node that can be used by other nodes to contact this node over the
+                                network.
+                                
+                                TODO: this is just an idea. It has no use now.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+            	</xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="node" type="tns:NodeType" substitutionGroup="c:object"/>
+
     <xsd:complexType name="TaskType">
         <xsd:annotation>
             <xsd:documentation>
