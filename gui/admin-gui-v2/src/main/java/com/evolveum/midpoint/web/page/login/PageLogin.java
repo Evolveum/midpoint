@@ -29,6 +29,7 @@ import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -51,6 +52,7 @@ public class PageLogin extends PageBase {
 	public PageLogin() {
         add(new Label("userNameLabel", new Model<String>("User")));
         add(new Label("passwordLabel", new Model<String>("Password")));
+        add(new FeedbackPanel("feedback"));
 	}
 	
 	@Override
