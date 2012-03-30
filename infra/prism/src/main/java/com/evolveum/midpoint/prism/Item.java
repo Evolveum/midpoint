@@ -491,8 +491,8 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     				throw new IllegalStateException("Null parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+")");
     			}
     			if (val.getParent() != this) {
-    				throw new IllegalStateException("Wrong parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+"): "+
-    						val.getParent());
+    				throw new IllegalStateException("Wrong parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+"), "+
+    						"bad parent: " + val.getParent());
     			}
     			val.checkConsistenceInternal(rootItem, path);
     		}

@@ -175,7 +175,7 @@ public class InboundProcessor {
 
                 if (delta != null && !delta.isEmpty()) {
                     LOGGER.trace("Created delta \n{}", new Object[]{delta.debugDump(3)});
-                    userDelta.addModification(delta);
+                    userDelta.swallow(delta);
                     context.recomputeUserNew();
                 } else {
                     LOGGER.trace("Created delta was null or empty.");
@@ -219,14 +219,16 @@ public class InboundProcessor {
                     new Object[]{targetUserProperty, oldAccountProperty});
             //simple property comparing if user property exists
             delta = targetUserProperty.diff(oldAccountProperty, targetUserPropertyPath);
-            delta.setName(targetUserPropertyPath.last().getName());
-            delta.setParentPath(targetUserPropertyPath.allExceptLast());
+            if (delta != null) {
+	            delta.setName(targetUserPropertyPath.last().getName());
+	            delta.setParentPath(targetUserPropertyPath.allExceptLast());
+            }
         } else {
             if (oldAccountProperty != null) {
                 LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
                 //if user property doesn't exist we have to add it (as delta), because inbound say so
                 delta = PropertyDelta.createDelta(targetUserPropertyPath, newUser.getDefinition());
-                delta.addValuesToAdd(oldAccountProperty.getValues());
+                delta.addValuesToAdd(oldAccountProperty.getClonedValues());
             }
             //we don't have to create delta, because everything is alright
             LOGGER.trace("We don't have to create delta, everything is alright.");
@@ -367,7 +369,7 @@ public class InboundProcessor {
         delta = property.diff(result, path);
         if (delta != null && !delta.isEmpty()) {
         	delta.setParentPath(path.allExceptLast());
-            userSecondaryDelta.addModification(delta);
+            userSecondaryDelta.swallow(delta);
         }
     }
 }

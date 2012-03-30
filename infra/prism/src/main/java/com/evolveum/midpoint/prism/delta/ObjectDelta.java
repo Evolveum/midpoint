@@ -112,6 +112,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
 
     public void setObjectToAdd(PrismObject<T> objectToAdd) {
+    	if (getChangeType() != ChangeType.ADD) {
+    		throw new IllegalStateException("Cannot set object to "+getChangeType()+" delta");
+    	}
         this.objectToAdd = objectToAdd;
         if (objectToAdd != null) {
             this.objectTypeClass = objectToAdd.getCompileTimeClass();
@@ -123,6 +126,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
 
     public void addModification(ItemDelta itemDelta) {
+    	if (getChangeType() != ChangeType.MODIFY) {
+    		throw new IllegalStateException("Cannot add modifications to "+getChangeType()+" delta");
+    	}
         ((Collection)modifications).add(itemDelta);
     }
     
@@ -414,21 +420,21 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      * Incorporates the property delta into the existing property deltas
      * (regardless of the change type).
      */
-    public void swallow(PropertyDelta newPropertyDelta) throws SchemaException {
+    public void swallow(ItemDelta<?> newItemDelta) throws SchemaException {
         if (changeType == ChangeType.MODIFY) {
             // TODO: check for conflict
-            addModification(newPropertyDelta);
+            addModification(newItemDelta);
         } else if (changeType == ChangeType.ADD) {
 //        	Class<?> valueClass = newPropertyDelta.getValueClass();
-            PrismProperty<?> property = objectToAdd.findOrCreateProperty(new PropertyPath(newPropertyDelta.getParentPath(), newPropertyDelta.getName()));
-            newPropertyDelta.applyTo(property);
+            PrismProperty<?> property = objectToAdd.findOrCreateProperty(new PropertyPath(newItemDelta.getParentPath(), newItemDelta.getName()));
+            newItemDelta.applyTo(property);
         }
         // nothing to do for DELETE
     }
 
-    private Collection<PropertyDelta> createEmptyModifications() {
+    private Collection<? extends ItemDelta> createEmptyModifications() {
     	// Lists are easier to debug
-        return new ArrayList<PropertyDelta>();
+        return new ArrayList<ItemDelta>();
     }
     
     public <X> PropertyDelta<X> createPropertyModification(QName name, PrismPropertyDefinition propertyDefinition) {
@@ -541,14 +547,15 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("ObjectDelta<").append(objectTypeClass.getSimpleName()).append(">:");
         sb.append(oid).append(",").append(changeType).append("):\n");
-        if (changeType == ChangeType.ADD) {
-            if (objectToAdd == null) {
-            	DebugUtil.indentDebugDump(sb, indent + 1);
-                sb.append("null");
-            } else {
-                sb.append(objectToAdd.debugDump(indent + 1));
-            }
-        } else if (changeType == ChangeType.MODIFY) {
+        if (objectToAdd == null) {
+        	if (changeType == ChangeType.ADD) {
+	        	DebugUtil.indentDebugDump(sb, indent + 1);
+	            sb.append("null");
+        	}
+        } else {
+            sb.append(objectToAdd.debugDump(indent + 1));
+        }
+        if (modifications != null) {
             Iterator<? extends ItemDelta> i = modifications.iterator();
             while (i.hasNext()) {
                 sb.append(i.next().debugDump(indent + 1));

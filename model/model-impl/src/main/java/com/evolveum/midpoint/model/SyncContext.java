@@ -420,9 +420,9 @@ public class SyncContext implements Dumpable, DebugDumpable {
     		try {
     			userOld.checkConsistence();
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+" in old user in SyncContext", e);
+				throw new IllegalArgumentException(e.getMessage()+"; in old user in SyncContext", e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+" in old user in SyncContext", e);
+				throw new IllegalStateException(e.getMessage()+"; in old user in SyncContext", e);
 			}
     		if (userOld.getDefinition() == null) {
     			throw new IllegalStateException("No old user definition in "+this);
@@ -432,9 +432,9 @@ public class SyncContext implements Dumpable, DebugDumpable {
     		try {
     			userPrimaryDelta.checkConsistence();
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+" in user primary delta in SyncContext", e);
+				throw new IllegalArgumentException(e.getMessage()+"; in user primary delta in SyncContext", e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+" in user primary delta in SyncContext", e);
+				throw new IllegalStateException(e.getMessage()+"; in user primary delta in SyncContext", e);
 			}
     	}
     	if (userSecondaryDelta != null) {
@@ -443,18 +443,18 @@ public class SyncContext implements Dumpable, DebugDumpable {
 	    		boolean requireOid = userPrimaryDelta == null;
 	    		userSecondaryDelta.checkConsistence(requireOid);
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+" in user secondary delta in SyncContext", e);
+				throw new IllegalArgumentException(e.getMessage()+"; in user secondary delta in SyncContext", e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+" in user secondary delta in SyncContext", e);
+				throw new IllegalStateException(e.getMessage()+"; in user secondary delta in SyncContext", e);
 			}
     	}
     	if (userNew != null) {
     		try {
     			userNew.checkConsistence();
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+" in new user in SyncContext", e);
+				throw new IllegalArgumentException(e.getMessage()+"; in new user in SyncContext", e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+" in new user in SyncContext", e);
+				throw new IllegalStateException(e.getMessage()+"; in new user in SyncContext", e);
 			}
     		if (userNew.getDefinition() == null) {
     			throw new IllegalStateException("No new user definition in "+this);

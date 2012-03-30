@@ -824,8 +824,8 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 					throw new IllegalStateException("No parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+")");
 				}
 				if (item.getParent() != this) {
-					throw new IllegalStateException("Wrong parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+"): "+
-							item.getParent());
+					throw new IllegalStateException("Wrong parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+"), " +
+							"bad parent: "+ item.getParent());
 				}
 				item.checkConsistenceInternal(rootItem, myPath);
 			}

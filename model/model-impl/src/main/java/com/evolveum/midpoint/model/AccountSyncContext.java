@@ -312,9 +312,9 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     		try {
     			accountOld.checkConsistence();
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+" in old account in "+this, e);
+				throw new IllegalArgumentException(e.getMessage()+"; in old account in "+this, e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+" in old account in "+this, e);
+				throw new IllegalStateException(e.getMessage()+"; in old account in "+this, e);
 			}
     		if (accountOld.getDefinition() == null) {
     			throw new IllegalStateException("No old account definition in "+this);
@@ -324,9 +324,9 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     		try {
     			accountPrimaryDelta.checkConsistence();
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+" in account primary delta in "+this, e);
+				throw new IllegalArgumentException(e.getMessage()+"; in account primary delta in "+this, e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+" in account primary delta in "+this, e);
+				throw new IllegalStateException(e.getMessage()+"; in account primary delta in "+this, e);
 			}
     	}
     	if (accountSecondaryDelta != null) {
@@ -335,9 +335,9 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	    		boolean requireOid = accountPrimaryDelta == null;
 	    		accountSecondaryDelta.checkConsistence(requireOid);
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+" in account secondary delta in "+this, e);
+				throw new IllegalArgumentException(e.getMessage()+"; in account secondary delta in "+this, e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+" in account secondary delta in "+this, e);
+				throw new IllegalStateException(e.getMessage()+"; in account secondary delta in "+this, e);
 			}
 
     	}
@@ -345,18 +345,18 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     		try {
     			accountSecondaryDelta.checkConsistence();
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+" in account sync delta in "+this, e);
+				throw new IllegalArgumentException(e.getMessage()+"; in account sync delta in "+this, e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+" in account sync delta in "+this, e);
+				throw new IllegalStateException(e.getMessage()+"; in account sync delta in "+this, e);
 			}
     	}
     	if (accountNew != null) {
     		try {
     			accountNew.checkConsistence();
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+" in new account in "+this, e);
+				throw new IllegalArgumentException(e.getMessage()+"; in new account in "+this, e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+" in new account in "+this, e);
+				throw new IllegalStateException(e.getMessage()+"; in new account in "+this, e);
 			}
     		if (accountNew.getDefinition() == null) {
     			throw new IllegalStateException("No new account definition in "+this);
