@@ -186,7 +186,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 //			}
 			
 			try {
-				change.assertCorrectness();
+				change.checkConsistence();
 			} catch (RuntimeException ex) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Change:\n{}",change.dump());

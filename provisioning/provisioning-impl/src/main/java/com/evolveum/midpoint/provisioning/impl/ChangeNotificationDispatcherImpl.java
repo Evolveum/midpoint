@@ -81,6 +81,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", change.dump());
 		}
 		
+		change.checkConsistence();
+		
 		if ((null != listeners) && (!listeners.isEmpty())) {
 			for (ResourceObjectChangeListener listener : listeners) {
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());

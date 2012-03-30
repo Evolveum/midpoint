@@ -188,6 +188,8 @@ public class TestParseTask {
 	
 	private void assertTask(PrismObject<TaskType> task) {
 		
+		task.checkConsistence();
+		
 		assertEquals("Wrong oid", "44444444-4444-4444-4444-000000001111", task.getOid());
 //		assertEquals("Wrong version", "42", user.getVersion());
 		PrismObjectDefinition<TaskType> usedDefinition = task.getDefinition();

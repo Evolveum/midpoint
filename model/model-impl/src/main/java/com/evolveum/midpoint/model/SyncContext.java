@@ -415,21 +415,53 @@ public class SyncContext implements Dumpable, DebugDumpable {
         return accountSyncContext;
     }
     
-    public void assertConsistence() {
+    public void checkConsistence() {
     	if (userOld != null) {
-    		PrismAsserts.assertParentConsistency(userOld);
-    	}
-    	if (userPrimaryDelta != null) {
-    		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
-    			if (userPrimaryDelta.getObjectToAdd() != null) {
-    				PrismAsserts.assertParentConsistency(userPrimaryDelta.getObjectToAdd());
-    			} else {
-    				throw new IllegalStateException("User primary delta is ADD, but there is not object to add");
-    			}
+    		try {
+    			userOld.checkConsistence();
+    		} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in old user in SyncContext", e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in old user in SyncContext", e);
+			}
+    		if (userOld.getDefinition() == null) {
+    			throw new IllegalStateException("No old user definition in "+this);
     		}
     	}
+    	if (userPrimaryDelta != null) {
+    		try {
+    			userPrimaryDelta.checkConsistence();
+    		} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in user primary delta in SyncContext", e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in user primary delta in SyncContext", e);
+			}
+    	}
+    	if (userSecondaryDelta != null) {
+    		try {
+	    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
+	    		boolean requireOid = userPrimaryDelta == null;
+	    		userSecondaryDelta.checkConsistence(requireOid);
+    		} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in user secondary delta in SyncContext", e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in user secondary delta in SyncContext", e);
+			}
+    	}
     	if (userNew != null) {
-    		PrismAsserts.assertParentConsistency(userNew);
+    		try {
+    			userNew.checkConsistence();
+    		} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in new user in SyncContext", e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in new user in SyncContext", e);
+			}
+    		if (userNew.getDefinition() == null) {
+    			throw new IllegalStateException("No new user definition in "+this);
+    		}
+    	}
+    	for (AccountSyncContext accCtx: getAccountContexts()) {
+    		accCtx.checkConsistence();
     	}
     }
 

@@ -278,6 +278,9 @@ public class TestPrismObjectConstruction {
 	private void assertUserDrake(PrismObject<UserType> user, boolean assertDefinitions) {
 		assertEquals("Wrong OID", USER_OID, user.getOid());
 		assertEquals("Wrong compileTimeClass", UserType.class, user.getCompileTimeClass());
+		
+		user.checkConsistence();
+		
 		// fullName
 		PrismProperty fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
 		if (assertDefinitions) PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);

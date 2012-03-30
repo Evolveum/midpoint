@@ -175,6 +175,7 @@ public class TestPrismParsing {
 //	}
 	
 	private void assertUser(PrismObject<UserType> user) {
+		user.checkConsistence();
 		assertUserContent(user);
 		assertVisitor(user);
 	}

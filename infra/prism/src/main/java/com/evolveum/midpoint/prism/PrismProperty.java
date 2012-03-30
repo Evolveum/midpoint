@@ -314,16 +314,7 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     	// TODO: How to determine value class?????
     	return PrismConstants.DEFAULT_VALUE_CLASS;
     }
-    
-	@Override
-	public void applyDefinition(ItemDefinition definition) throws SchemaException {
-		// null definition is OK here. It means "runtime", or "determine your own definition".
-		if (definition != null && !(definition instanceof PrismPropertyDefinition)) {
-			throw new IllegalArgumentException("Cannot apply "+definition+" to property");
-		}
-		super.applyDefinition(definition);
-	}
-	
+    	
     @Override
 	public PropertyDelta<V> createDelta(PropertyPath path) {
     	if (path == null || path.isEmpty()) {
@@ -348,117 +339,12 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     	return (PropertyDelta<V>)deltas.get(0);
     }
 
-//    @Override
-//    public void serializeToDom(Node parentNode) throws SchemaException {
-//        serializeToDom(parentNode, null, null, false);
-//    }
-
-	public void serializeToDom(Node parentNode, PrismPropertyDefinition propDef, Set<PrismPropertyValue<V>> alternateValues,
-            boolean recordType) throws SchemaException {
-
-        if (propDef == null) {
-            propDef = getDefinition();
-        }
-
-        Collection<PrismPropertyValue<V>> serializeValues = getValues();
-        if (alternateValues != null) {
-            serializeValues = alternateValues;
-        }
-
-        for (PrismPropertyValue<V> val : serializeValues) {
-            // If we have a definition then try to use it. The conversion may be more realiable
-            // Otherwise the conversion will be governed by Java type
-            QName xsdType = null;
-            if (propDef != null) {
-                xsdType = propDef.getTypeName();
-            }
-            try {
-                XmlTypeConverter.appendBelowNode(val.getValue(), xsdType, getName(), parentNode, recordType);
-            } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + ", while converting " + propDef.getTypeName(), e);
-            }
-        }
-    }
-
-    /**
-     * Serializes property to DOM or JAXB element(s).
-     * <p/>
-     * The property name will be used as an element QName.
-     * The values will be in the element content. Single-value
-     * properties will produce one element (on none), multi-valued
-     * properies may produce several elements. All of the elements will
-     * have the same QName.
-     * <p/>
-     * The property must have a definition (getDefinition() must not
-     * return null).
-     *
-     * @param doc DOM Document
-     * @return property serialized to DOM Element or JAXBElement
-     * @throws SchemaException No definition or inconsistent definition
-     */
-    public List<Object> serializeToJaxb(Document doc) throws SchemaException {
-        return serializeToJaxb(doc, null, null, false);
-    }
-
-    /**
-     * Same as serializeToDom(Document doc) but allows external definition.
-     * <p/>
-     * Package-private. Useful for some internal calls inside schema processor.
-     */
-    List<Object> serializeToJaxb(Document doc, PrismPropertyDefinition propDef) throws SchemaException {
-        // No need to record types, we have schema definition here
-        return serializeToJaxb(doc, propDef, null, false);
-    }
-
-    /**
-     * Same as serializeToDom(Document doc) but allows external definition.
-     * <p/>
-     * Allows alternate values.
-     * Allows option to record type in the serialized output (using xsi:type)
-     * <p/>
-     * Package-private. Useful for some internal calls inside schema processor.
-     */
-    List<Object> serializeToJaxb(Document doc, PrismPropertyDefinition propDef, Set<PrismPropertyValue<V>> alternateValues,
-            boolean recordType) throws SchemaException {
-
-
-        // Try to locate definition
-        List<Object> elements = new ArrayList<Object>();
-
-        //check if the property has value..if not, return empty elemnts list..
-
-        if (propDef == null) {
-            propDef = getDefinition();
-        }
-
-        Collection<PrismPropertyValue<V>> serializeValues = getValues();
-        if (alternateValues != null) {
-            serializeValues = alternateValues;
-        }
-
-
-        for (PrismPropertyValue<V> val : serializeValues) {
-            // If we have a definition then try to use it. The conversion may be more realiable
-            // Otherwise the conversion will be governed by Java type
-            QName xsdType = null;
-            if (propDef != null) {
-                xsdType = propDef.getTypeName();
-                //FIXME: we do not want to send ignored attribute to the other layers..
-                //but this place is maybe not suitable to skip the ignored property..
-                if (propDef.isIgnored()) {
-                    continue;
-                }
-            }
-
-            try {
-                elements.add(XmlTypeConverter.toXsdElement(val.getValue(), xsdType, getName(), doc, recordType));
-            } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + ", while converting " + propDef.getTypeName(), e);
-            }
-
-        }
-        return elements;
-    }
+	@Override
+	protected void checkDefinition(ItemDefinition def) {
+		if (!(def instanceof PrismPropertyDefinition)) {
+			throw new IllegalArgumentException("Definition "+def+" cannot be applied to property "+this);
+		}
+	}
 
 	@Override
     public PrismProperty<V> clone() {

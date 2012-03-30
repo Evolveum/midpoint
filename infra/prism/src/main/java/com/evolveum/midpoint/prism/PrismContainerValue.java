@@ -484,8 +484,14 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		
 		if (itemDefinition != null) {
 			newItem = itemDefinition.instantiate(name);
+			if (newItem instanceof PrismObject) {
+				throw new IllegalStateException("PrismObject instantiated as a subItem in "+this+" from definition "+itemDefinition);
+			}
 		} else {
 			newItem = Item.createNewDefinitionlessItem(name, type);
+			if (newItem instanceof PrismObject) {
+				throw new IllegalStateException("PrismObject instantiated as a subItem in "+this+" as definitionless instance of class "+type);
+			}
 		}
 		
 		if (type.isAssignableFrom(newItem.getClass())) {
@@ -800,7 +806,33 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         return items.isEmpty();
     }
     
-    public PrismContainerValue<T> clone() {
+    @Override
+	public void checkConsistenceInternal(Item<?> rootItem, PropertyPath parentPath) {
+		PropertyPath myPath = getPath(parentPath);
+		if (items == null && rawElements == null) {
+			throw new IllegalStateException("Neither items nor raw elements specified in container value "+this+" ("+myPath+" in "+rootItem+")");
+		}
+		if (items != null && rawElements != null) {
+			throw new IllegalStateException("Both items and raw elements specified in container value "+this+" ("+myPath+" in "+rootItem+")");
+		}
+		if (items != null) {
+			for (Item<?> item: items) {
+				if (item == null) {
+					throw new IllegalStateException("Null item in container value "+this+" ("+myPath+" in "+rootItem+")");
+				}
+				if (item.getParent() == null) {
+					throw new IllegalStateException("No parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+")");
+				}
+				if (item.getParent() != this) {
+					throw new IllegalStateException("Wrong parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+"): "+
+							item.getParent());
+				}
+				item.checkConsistenceInternal(rootItem, myPath);
+			}
+		}
+	}
+
+	public PrismContainerValue<T> clone() {
     	PrismContainerValue<T> clone = new PrismContainerValue<T>(getType(), getSource(), getParent(), getId());
     	copyValues(clone);
         return clone;

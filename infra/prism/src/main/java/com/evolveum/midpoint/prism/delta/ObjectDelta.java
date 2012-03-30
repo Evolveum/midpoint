@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -121,12 +122,14 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         return modifications;
     }
 
-    public void addModification(ItemDelta propertyDelta) {
-        ((Collection)modifications).add(propertyDelta);
+    public void addModification(ItemDelta itemDelta) {
+        ((Collection)modifications).add(itemDelta);
     }
     
-    public void addModifications(Collection<? extends ItemDelta> propertyDeltas) {
-        modifications.addAll((Collection)propertyDeltas);
+    public void addModifications(Collection<? extends ItemDelta> itemDeltas) {
+    	for (ItemDelta modDelta: itemDeltas) {
+    		addModification(modDelta);
+    	}
     }
     
     private <D extends ItemDelta, I extends Item> D findItemDelta(PropertyPath propertyPath, Class<D> deltaType, Class<I> itemType) {
@@ -460,6 +463,46 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	objectDelta.addModifications(modifications);
     	objectDelta.setOid(oid);
     	return objectDelta;
+    }
+    
+    public void checkConsistence() {
+    	checkConsistence(true);
+    }
+    
+    public void checkConsistence(boolean requireOid) {
+    	if (getChangeType() == ChangeType.ADD) {
+			if (getModifications() != null && !getModifications().isEmpty()) {
+				throw new IllegalStateException("Modifications present in ADD delta "+this);
+			}
+			if (getObjectToAdd() != null) {
+				PrismAsserts.assertParentConsistency(getObjectToAdd());
+			} else {
+				throw new IllegalStateException("User primary delta is ADD, but there is not object to add in "+this);
+			}
+		} else if (getChangeType() == ChangeType.MODIFY) {
+	    	if (requireOid && getOid() == null) {
+	    		throw new IllegalStateException("Null oid in delta "+this);
+	    	}
+			if (getObjectToAdd() != null) {
+				throw new IllegalStateException("Object to add present in MODIFY delta "+this);
+			}
+			if (getModifications() == null) {
+				throw new IllegalStateException("Null modification in MODIFY delta "+this);
+			}
+			ItemDelta.checkConsistence(getModifications());
+		} else if (getChangeType() == ChangeType.DELETE) {
+	    	if (requireOid && getOid() == null) {
+	    		throw new IllegalStateException("Null oid in delta "+this);
+	    	}
+			if (getObjectToAdd() != null) {
+				throw new IllegalStateException("Object to add present in DELETE delta "+this);
+			}
+			if (getModifications() != null && !getModifications().isEmpty()) {
+				throw new IllegalStateException("Modifications present in DELETE delta "+this);
+			}			
+		} else {
+			throw new IllegalStateException("Unknown change type "+getChangeType()+" in delta "+this);
+		}
     }
 
     @Override

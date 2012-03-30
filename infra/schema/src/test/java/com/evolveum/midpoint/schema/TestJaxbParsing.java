@@ -87,6 +87,7 @@ public class TestJaxbParsing {
         System.out.println("Parsed user:");
         System.out.println(user.dump());
 
+        user.checkConsistence();
         assertPropertyValue(user, SchemaConstants.C_NAME, "jack");
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "fullName"), "Jack Sparrow");
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "givenName"), "Jack");
@@ -116,7 +117,7 @@ public class TestJaxbParsing {
         // TODO: more asserts
     }
 
-    @Test(enabled = true)
+    @Test
     public void testParseAccountFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -130,6 +131,7 @@ public class TestJaxbParsing {
         System.out.println("Parsed account:");
         System.out.println(account.dump());
 
+        account.checkConsistence();
         assertPropertyValue(account, SchemaConstants.C_NAME, "jack");
         assertPropertyValue(account, AccountShadowType.F_ACCOUNT_TYPE, "user");
 
@@ -148,6 +150,7 @@ public class TestJaxbParsing {
         PrismObject<GenericObjectType> prism = object.asPrismObject();
         prism.revive(prismContext);
 
+        prism.checkConsistence();
         assertPropertyValue(prism, GenericObjectType.F_NAME, "My Sample Config Object");
         assertPropertyValue(prism, GenericObjectType.F_DESCRIPTION, "Sample description");
         assertPropertyValue(prism, GenericObjectType.F_OBJECT_TYPE, "http://midpoint.evolveum.com/xml/ns/test/extension#SampleConfigType");

@@ -97,7 +97,12 @@ public class InboundProcessor {
 
         try {
             for (AccountSyncContext accountContext : context.getAccountContexts()) {
-                ResourceAccountType rat = accountContext.getResourceAccountType();
+            	ResourceAccountType rat = accountContext.getResourceAccountType();
+            	
+            	if (!accountContext.isDoReconciliation() && accountContext.getAccountSyncDelta() == null) {
+            		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no sync delta", rat);
+            		continue;
+            	}
                 LOGGER.trace("Processing inbound expressions for account {} starting", rat);
 
                 RefinedAccountDefinition accountDefinition = context.getRefinedAccountDefinition(rat);
@@ -139,7 +144,7 @@ public class InboundProcessor {
         PrismObject<AccountShadowType> oldAccount = accContext.getAccountOld();
         for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             LOGGER.trace("Processing inbound for {}", name);
-            PropertyDelta propertyDelta = null;
+            PropertyDelta<?> propertyDelta = null;
             if (syncDelta != null) {
                 propertyDelta = syncDelta.findPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                 if (propertyDelta == null) {
@@ -158,13 +163,13 @@ public class InboundProcessor {
                     continue;
                 }
 
-                PropertyDelta delta = null;
+                PropertyDelta<?> delta = null;
                 if (syncDelta != null) {
                     LOGGER.debug("Processing inbound from account sync delta.");
                     delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
                 } else if (oldAccount != null) {
                     LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
-                    PrismProperty oldAccountProperty = oldAccount.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, name));
+                    PrismProperty<?> oldAccountProperty = oldAccount.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, name));
                     delta = createUserPropertyDelta(inbound, oldAccountProperty, context.getUserNew());
                 }
 
@@ -190,7 +195,7 @@ public class InboundProcessor {
         }
 
         boolean initial = valueConstruction.isInitial() == null ? false : valueConstruction.isInitial();
-        PrismProperty property = newUser.findProperty(createUserPropertyPath(inbound));
+        PrismProperty<?> property = newUser.findProperty(createUserPropertyPath(inbound));
         if (initial && (property == null || property.isEmpty())) {
             return true;
         }
@@ -198,17 +203,17 @@ public class InboundProcessor {
         return false;
     }
 
-    private PropertyDelta createUserPropertyDelta(ValueAssignmentType inbound, PrismProperty oldAccountProperty,
+    private <T> PropertyDelta<T> createUserPropertyDelta(ValueAssignmentType inbound, PrismProperty<T> oldAccountProperty,
             PrismObject<UserType> newUser) {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
         PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
-        PrismProperty<?> targetUserProperty = null;
+        PrismProperty<T> targetUserProperty = null;
         if (newUser != null) {
         	targetUserProperty = newUser.findProperty(targetUserPropertyPath);
         }
 
-        PropertyDelta<?> delta = null;
+        PropertyDelta<T> delta = null;
         if (targetUserProperty != null) {
             LOGGER.trace("Simple property comparing user property {} to old account property {} ",
                     new Object[]{targetUserProperty, oldAccountProperty});
@@ -275,7 +280,7 @@ public class InboundProcessor {
     private PropertyPath createUserPropertyPath(ValueAssignmentType inbound) {
         PropertyPath path = new XPathHolder(inbound.getTarget()).toPropertyPath();
         List<PropertyPathSegment> segments = path.getSegments();
-        if (!segments.isEmpty() && SchemaConstants.I_USER.equals(segments.get(0))) {
+        if (!segments.isEmpty() && SchemaConstants.I_USER.equals(segments.get(0).getName())) {
             segments.remove(0);
         }
 

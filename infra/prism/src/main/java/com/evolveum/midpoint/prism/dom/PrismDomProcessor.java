@@ -597,7 +597,7 @@ public class PrismDomProcessor {
         return ref;
     }
 
-	private PrismValue parseReferenceAsCompositeObject(Object valueElement, PrismReferenceDefinition referenceDefinition) throws SchemaException {
+	private PrismReferenceValue parseReferenceAsCompositeObject(Object valueElement, PrismReferenceDefinition referenceDefinition) throws SchemaException {
 		QName targetTypeName = referenceDefinition.getTargetTypeName();
 		PrismObjectDefinition<Objectable> schemaObjectDefinition = null;
 		if (targetTypeName != null) {
@@ -795,7 +795,10 @@ public class PrismDomProcessor {
     }
     
     public Element serializeValueToDom(PrismValue pval, QName elementName) throws SchemaException {
-    	Document document = DOMUtil.getDocument();
+    	return serializeValueToDom(pval, elementName, DOMUtil.getDocument());
+    }
+    
+    public Element serializeValueToDom(PrismValue pval, QName elementName, Document document) throws SchemaException {
     	// This is kind of a hack. The  serializeValueToDom method will place the element that we want below the
     	// "parent" element that we need to provide. So we create fake element and then extract the real element
     	// from it.
@@ -807,6 +810,25 @@ public class PrismDomProcessor {
     public void serializeValueToDom(PrismValue pval, Element parentElement) throws SchemaException {
 		DomSerializer domSerializer = new DomSerializer(getPrismContext());
 		domSerializer.serialize(pval, parentElement);
+	}
+    
+    public List<Element> serializeItemToDom(Item<?> item) throws SchemaException {
+    	return serializeItemToDom(item, DOMUtil.getDocument());
+    }
+    
+    public List<Element> serializeItemToDom(Item<?> item, Document document) throws SchemaException {
+    	QName elementName = item.getName();
+    	// This is kind of a hack. The  serializeValueToDom method will place the element that we want below the
+    	// "parent" element that we need to provide. So we create fake element and then extract the real element
+    	// from it.
+    	Element fakeElement = document.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
+    	serializeItemToDom(item, fakeElement);
+    	return DOMUtil.listChildElements(fakeElement);
+    }
+    
+    public void serializeItemToDom(Item<?> item, Element parentElement) throws SchemaException {
+		DomSerializer domSerializer = new DomSerializer(getPrismContext());
+		domSerializer.serialize(item, parentElement);
 	}
 
 	/**

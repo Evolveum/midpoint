@@ -2359,10 +2359,10 @@ public class TestSanity extends AbstractIntegrationTest {
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
-        assertNotNull(task.getLastRunStartTimestamp());
-        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
-        assertNotNull(task.getLastRunFinishTimestamp());
-        AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        assertNotNull("No lastRunStartTimestamp", task.getLastRunStartTimestamp());
+        assertFalse("Zero lastRunStartTimestamp", task.getLastRunStartTimestamp().longValue() == 0);
+        assertNotNull("No lastRunFinishedTimestamp", task.getLastRunFinishTimestamp());
+        assertFalse("Zero lastRunFinishedTimestamp", task.getLastRunFinishTimestamp().longValue() == 0);
 
         // Test for extension. This will also roughly test extension processor
         // and schema processor

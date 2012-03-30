@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -94,12 +95,14 @@ import javax.xml.namespace.QName;
 @Component
 public class ShadowCache {
 
-	@Autowired
+	@Autowired(required=true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	@Autowired
+	@Autowired(required=true)
 	private ShadowConverter shadowConverter;
-	@Autowired
+	@Autowired(required=true)
+	private PrismContext prismContext;
+	@Autowired(required=true)
 	private ErrorHandlerFactory errorHandlerFactory;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
@@ -817,7 +820,7 @@ public class ShadowCache {
 	private List<PrismObject<AccountShadowType>> searchAccountByIdenifiers(Change change,
 			OperationResult parentResult) throws SchemaException {
 
-		QueryType query = ShadowCacheUtil.createSearchShadowQuery(change.getIdentifiers(), parentResult);
+		QueryType query = ShadowCacheUtil.createSearchShadowQuery(change.getIdentifiers(), prismContext, parentResult);
 
 		List<PrismObject<AccountShadowType>> accountList = null;
 		try {

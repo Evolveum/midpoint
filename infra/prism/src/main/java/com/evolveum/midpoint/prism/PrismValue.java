@@ -114,6 +114,8 @@ public abstract class PrismValue implements Visitable, Serializable {
 		domElement = null;
 	}
 	
+	public abstract void checkConsistenceInternal(Item<?> rootItem, PropertyPath parentPath);
+		
 	/**
 	 * Returns true if this and other value represent the same value.
 	 * E.g. if they have the same IDs, OIDs or it is otherwise know

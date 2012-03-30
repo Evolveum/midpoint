@@ -422,6 +422,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     // The "definition" parameter provides definition of item to create, in case that the container does not have
     // the definition (e.g. in case of "extension" containers)
     public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type, ItemDefinition definition) throws SchemaException {
+    	if (PrismObject.class.isAssignableFrom(type)) {
+    		throw new IllegalArgumentException("It makes no sense to find object in a container (class)");
+    	}
+    	if (definition instanceof PrismObjectDefinition<?>) {
+    		throw new IllegalArgumentException("It makes no sense to find object in a container (definition)");
+    	}
         return findCreateItem(containerPath, type, definition, true);
     }
     
@@ -515,8 +521,15 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         }
         return true;
     }
+    
+	@Override
+	protected void checkDefinition(ItemDefinition def) {
+		if (!(def instanceof PrismContainerDefinition<?>)) {
+			throw new IllegalArgumentException("Definition "+def+" cannot be applied to container "+this);
+		}
+	}
 
-    @Override
+	@Override
     public PrismContainer<V> clone() {
     	PrismContainer<V> clone = new PrismContainer<V>(getName(), getDefinition(), prismContext);
         copyValues(clone);

@@ -54,7 +54,6 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 */
 	protected PropertyPath parentPath;
 	protected ItemDefinition definition;
-	protected PrismContext prismContext;
 
 	protected Collection<V> valuesToReplace = null;
 	protected Collection<V> valuesToAdd = null;
@@ -146,11 +145,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public PrismContext getPrismContext() {
-		return prismContext;
-	}
-
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
+		return definition.getPrismContext();
 	}
 
 	public abstract Class<? extends Item> getItemClass();
@@ -277,14 +272,44 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		valuesToAdd = null;
 		valuesToDelete = null;
 	}
+	
+	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
+		for (ItemDelta<?> delta: deltas) {
+			delta.checkConsistence();
+		}
+	}
 
 	public void checkConsistence() {
+		if (parentPath == null) {
+			throw new IllegalStateException("Null parent path in "+this);
+		}
+//		if (definition == null) {
+//			throw new IllegalStateException("Null definition in "+this);
+//		}
 		if (valuesToReplace != null && (valuesToAdd != null || valuesToDelete != null)) {
 			throw new IllegalStateException(
 					"The delta cannot be both 'replace' and 'add/delete' at the same time");
 		}
+		assertSetConsistence(valuesToReplace, "replace");
+		assertSetConsistence(valuesToAdd, "add");
+		assertSetConsistence(valuesToDelete, "delete");
 	}
 	
+	private void assertSetConsistence(Collection<V> values, String type) {
+		if (values == null) {
+			return;
+		}
+//		This may be not be 100% correct but we can tolerate it now
+//		if (values.isEmpty()) {
+//			throw new IllegalStateException("The "+type+" values set in "+this+" is not-null but it is empty");
+//		}
+		for (V val: values) {
+			if (val == null) {
+				throw new IllegalStateException("Null value in the "+type+" values set in "+this);
+			}
+		}
+	}
+
 	/**
 	 * Distributes the replace values of this delta to add and delete with respect to provided existing values.
 	 */
@@ -398,7 +423,6 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		clone.definition = this.definition;
 		clone.name = this.name;
 		clone.parentPath = this.parentPath;
-		clone.prismContext = this.prismContext;
 		clone.valuesToAdd = cloneSet(this.valuesToAdd);
 		clone.valuesToDelete = cloneSet(this.valuesToDelete);
 		clone.valuesToReplace = cloneSet(this.valuesToReplace);

@@ -126,6 +126,12 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     private PrismContext prismContext;
 
     AccountSyncContext(ResourceAccountType resourceAccountType, PrismContext prismContext) {
+    	if (resourceAccountType == null) {
+    		throw new IllegalArgumentException("No resourceAccountType");
+    	}
+    	if (prismContext == null) {
+    		throw new IllegalArgumentException("No prismContext");
+    	}
         this.resourceAccountType = resourceAccountType;
         this.attributeValueDeltaSetTripleMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
         this.isAssigned = false;
@@ -291,8 +297,83 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 
         accountNew = accDelta.computeChangedObject(oldAccount);
     }
+    
+    public void checkConsistence() {
+    	if (resource == null) {
+    		throw new IllegalStateException("Null resource in "+this);
+    	}
+    	if (resourceAccountType == null) {
+    		throw new IllegalStateException("Null resource account type in "+this);
+    	}
+    	if (prismContext == null) {
+    		throw new IllegalStateException("Null prism context in "+this);
+    	}
+    	if (accountOld != null) {
+    		try {
+    			accountOld.checkConsistence();
+    		} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in old account in "+this, e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in old account in "+this, e);
+			}
+    		if (accountOld.getDefinition() == null) {
+    			throw new IllegalStateException("No old account definition in "+this);
+    		}
+    	}
+    	if (accountPrimaryDelta != null) {
+    		try {
+    			accountPrimaryDelta.checkConsistence();
+    		} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in account primary delta in "+this, e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in account primary delta in "+this, e);
+			}
+    	}
+    	if (accountSecondaryDelta != null) {
+    		try {
+	    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
+	    		boolean requireOid = accountPrimaryDelta == null;
+	    		accountSecondaryDelta.checkConsistence(requireOid);
+    		} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in account secondary delta in "+this, e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in account secondary delta in "+this, e);
+			}
+
+    	}
+    	if (accountSyncDelta != null) {
+    		try {
+    			accountSecondaryDelta.checkConsistence();
+    		} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in account sync delta in "+this, e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in account sync delta in "+this, e);
+			}
+    	}
+    	if (accountNew != null) {
+    		try {
+    			accountNew.checkConsistence();
+    		} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in new account in "+this, e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in new account in "+this, e);
+			}
+    		if (accountNew.getDefinition() == null) {
+    			throw new IllegalStateException("No new account definition in "+this);
+    		}
+    	}
+    }
 
     @Override
+	public String toString() {
+    	StringBuilder sb = new StringBuilder("AccountSyncContext(");
+    	sb.append("OID: ").append(oid);
+    	sb.append(", RAT: ").append(resourceAccountType);
+    	sb.append(")");
+    	return sb.toString();
+	}
+
+	@Override
     public String debugDump() {
         return debugDump(0);
     }

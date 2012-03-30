@@ -88,7 +88,7 @@ public class TestParseResource {
 		System.out.println("Parsed resource:");
 		System.out.println(resource.dump());
 		
-		assertResource(resource);
+		assertResource(resource, true);
 	}
 
 	@Test
@@ -108,7 +108,7 @@ public class TestParseResource {
 		System.out.println("Parsed resource:");
 		System.out.println(resource.dump());
 		
-		assertResource(resource);
+		assertResource(resource, true);
 	}
 
 	@Test
@@ -123,7 +123,8 @@ public class TestParseResource {
 		ResourceType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_FILE, ResourceType.class);
 		
 		// THEN
-		assertResource(resourceType.asPrismObject());
+		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
+		assertResource(resourceType.asPrismObject(), false);
 	}
 	
 	/**
@@ -142,7 +143,8 @@ public class TestParseResource {
 		ObjectType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_FILE, ObjectType.class);
 		
 		// THEN
-		assertResource(resourceType.asPrismObject());
+		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
+		assertResource(resourceType.asPrismObject(), false);
 	}
 	
 	/**
@@ -161,7 +163,8 @@ public class TestParseResource {
 		ResourceType resourceType = jaxbElement.getValue();
 		
 		// THEN
-		assertResource(resourceType.asPrismObject());
+		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
+		assertResource(resourceType.asPrismObject(), false);
 	}
 
 	/**
@@ -180,7 +183,8 @@ public class TestParseResource {
 		ObjectType resourceType = jaxbElement.getValue();
 		
 		// THEN
-		assertResource(resourceType.asPrismObject());
+		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
+		assertResource(resourceType.asPrismObject(), false);
 	}
 
 	
@@ -196,7 +200,7 @@ public class TestParseResource {
 		System.out.println("Parsed resource:");
 		System.out.println(resource.dump());
 		
-		assertResource(resource);
+		assertResource(resource, true);
 		
 		// SERIALIZE
 		
@@ -212,7 +216,7 @@ public class TestParseResource {
 		System.out.println("Re-parsed resource:");
 		System.out.println(reparsedResource.dump());
 		
-		assertResource(resource);
+		assertResource(resource, true);
 		
 		PrismProperty<Element> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
 		Element definitionElement = definitionProperty.getValue().getValue();
@@ -232,7 +236,10 @@ public class TestParseResource {
 //		PrismContainer<?> reparsedSchemaContainer = reparsedResource.findContainer(ResourceType.F_SCHEMA);
 	}
 	
-	private void assertResource(PrismObject<ResourceType> resource) {
+	private void assertResource(PrismObject<ResourceType> resource, boolean checkConsistence) {
+		if (checkConsistence) {
+			resource.checkConsistence();
+		}
 		assertResourcePrism(resource);
 		assertResourceJaxb(resource.asObjectable());
 	}

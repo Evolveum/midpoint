@@ -172,6 +172,10 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 				if (contDef == null) {
 					throw new SchemaException("No definition for container " + first.getName() + " in " + this);
 				}
+				if (contDef instanceof PrismObjectDefinition) {
+					throw new IllegalStateException("Got "+contDef+" as a subitem "+first.getName()+" from "+getDefinition()+
+							"which was quite unexpected");
+				}
 			}
 			subitem = getValue().findCreateItem(first.getName(), PrismContainer.class, contDef, create);
 		}
@@ -237,6 +241,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	
 	public ObjectDelta<T> createAddDelta() {
 		ObjectDelta<T> delta = createDelta(ChangeType.ADD);
+		// TODO: clone?
 		delta.setObjectToAdd(this);
 		return delta;
 	}

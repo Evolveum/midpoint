@@ -192,6 +192,7 @@ public class TestParseUser {
 
 	
 	private void assertUser(PrismObject<UserType> user) {
+		user.checkConsistence();
 		assertUserPrism(user);
 		assertUserJaxb(user.asObjectable());
 	}

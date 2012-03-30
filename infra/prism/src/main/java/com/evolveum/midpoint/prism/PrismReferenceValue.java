@@ -41,7 +41,7 @@ import org.w3c.dom.Element;
 public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDumpable, Serializable {
 
     private String oid = null;
-    private PrismObject object = null;
+    private PrismObject<?> object = null;
     private QName targetType = null;
     private String description = null;
     private Element filter = null;
@@ -169,6 +169,23 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	protected Element createDomElement() {
 		return new ElementPrismReferenceImpl(this);
 	}
+	
+	@Override
+	public void checkConsistenceInternal(Item<?> rootItem, PropertyPath parentPath) {
+		PropertyPath myPath = getParent().getPath(parentPath);
+		if (oid == null && object == null && filter == null) {
+			throw new IllegalStateException("Neither OID, object nor filter specified in reference value "+this+" ("+myPath+" in "+rootItem+")");
+		}
+		if (object != null) {
+			try {
+				object.checkConsistence();
+			} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+" in reference "+myPath+" in "+rootItem, e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+" in reference "+myPath+" in "+rootItem, e);
+			}
+		}
+	}
 
 	@Override
 	public int hashCode() {
@@ -255,12 +272,21 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 
 	@Override
 	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("PRV(");
 		if (object == null) {
-			return "PRV[oid=" + oid + ", targetType=" + DebugUtil.prettyPrint(targetType) + ", type=" + getType()
-				+ ", source=" + getSource() + "]";
+			sb.append("oid=").append(oid);
+			sb.append(", targetType=").append(DebugUtil.prettyPrint(targetType));
 		} else {
-			return "PRV[object=" + object + ", source=" + getSource() + "]";
+			sb.append("object=").append(object);
 		}
+		sb.append(", type=").append(getType());
+		sb.append(", source=").append(getSource());
+		if (filter != null) {
+			sb.append(", (filter)");
+		}
+		sb.append(")");
+		return sb.toString();
 	}
 
 	@Override
@@ -294,6 +320,11 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	protected void copyValues(PrismReferenceValue clone) {
 		super.copyValues(clone);
 		clone.targetType = this.targetType;
+		if (this.object != null) { 
+			clone.object = this.object.clone();
+		}
+		clone.description = this.description;
+		clone.filter = this.filter;
 	}
     
 }

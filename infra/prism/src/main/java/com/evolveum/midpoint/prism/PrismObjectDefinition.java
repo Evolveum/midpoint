@@ -91,5 +91,10 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 		String namespace = getName().getNamespaceURI();
 		return new QName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
 	}
+
+	@Override
+	protected String getDebugDumpClassName() {
+		return "POD";
+	}
 	
 }

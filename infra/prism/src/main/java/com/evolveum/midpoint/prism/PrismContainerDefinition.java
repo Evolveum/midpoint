@@ -145,10 +145,6 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
             throw new IllegalArgumentException("name not specified while searching in " + this);
         }
 
-        if (isItemValid(this, name, clazz)) {
-            return (D) this;
-        }
-
         for (ItemDefinition def : getDefinitions()) {
             if (isItemValid(def, name, clazz)) {
                 return (D) def;

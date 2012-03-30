@@ -72,12 +72,12 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCa
 @Component
 public class ResourceTypeManager {
 
-	@Autowired
+	@Autowired(required=true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	@Autowired
+	@Autowired(required=true)
 	private ResourceSchemaCache resourceSchemaCache;
-	@Autowired
+	@Autowired(required=true)
 	private ConnectorTypeManager connectorTypeManager;
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -641,7 +641,7 @@ public class ResourceTypeManager {
 	private <T extends ResourceObjectShadowType> T lookupShadowInRepository(Class<T> type, T resourceShadow,
 			ResourceType resource, OperationResult parentResult) throws SchemaException {
 
-		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, parentResult);
+		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext, parentResult);
 		PagingType paging = new PagingType();
 
 		// TODO: check for errors

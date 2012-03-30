@@ -89,10 +89,11 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
         this.resource = resource;
     }
     
-    public void assertCorrectness() {
+    public void checkConsistence() {
     	if (resource == null) {
     		throw new IllegalArgumentException("No resource in "+this.getClass().getSimpleName());
     	}
+    	resource.checkConsistence();
     	if (sourceChannel == null) {
     		throw new IllegalArgumentException("No sourceChannel in "+this.getClass().getSimpleName());
     	}
@@ -102,8 +103,14 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
     	if (objectDelta != null && objectDelta.getOid() == null) {
     		throw new IllegalArgumentException("Delta OID not set in "+this.getClass().getSimpleName());
     	}
+    	if (objectDelta != null) {
+    		objectDelta.checkConsistence();
+    	}
     	if (currentShadow != null && currentShadow.getOid() == null) {
     		throw new IllegalArgumentException("Current shadow OID not set in "+this.getClass().getSimpleName());
+    	}
+    	if (currentShadow != null) {
+    		currentShadow.checkConsistence();
     	}
     }
 

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -30,14 +31,26 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 
 	public ContainerDelta(PropertyPath propertyPath, PrismContainerDefinition itemDefinition) {
 		super(propertyPath, itemDefinition);
+    	// Extra check. It makes no sense to create container delta with object definition
+    	if (itemDefinition instanceof PrismObjectDefinition<?>) {
+    		throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
+    	}
 	}
 
 	public ContainerDelta(PropertyPath parentPath, QName name, PrismContainerDefinition itemDefinition) {
 		super(parentPath, name, itemDefinition);
+    	// Extra check. It makes no sense to create container delta with object definition
+    	if (itemDefinition instanceof PrismObjectDefinition<?>) {
+    		throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
+    	}
 	}
 
 	public ContainerDelta(QName name, PrismContainerDefinition itemDefinition) {
 		super(name, itemDefinition);
+    	// Extra check. It makes no sense to create container delta with object definition
+    	if (itemDefinition instanceof PrismObjectDefinition<?>) {
+    		throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
+    	}
 	}
 
 	@Override
@@ -60,6 +73,18 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     @Override
 	public PrismContainerDefinition<V> getDefinition() {
 		return (PrismContainerDefinition<V>) super.getDefinition();
+	}
+    
+    @Override
+	public void setDefinition(ItemDefinition definition) {
+    	if (!(definition instanceof PrismContainerDefinition)) {
+			throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
+		}
+    	// Extra check. It makes no sense to create container delta with object definition
+    	if (definition instanceof PrismObjectDefinition<?>) {
+    		throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
+    	}
+		super.setDefinition(definition);
 	}
 
 	@Override

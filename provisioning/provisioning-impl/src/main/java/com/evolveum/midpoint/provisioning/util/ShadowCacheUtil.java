@@ -409,14 +409,15 @@ public class ShadowCacheUtil {
 		return repoShadowType;
 	}
 
-	public static QueryType createSearchShadowQuery(Set<ResourceAttribute> identifiers,
+	public static QueryType createSearchShadowQuery(Set<ResourceAttribute> identifiers, PrismContext prismContext,
 			OperationResult parentResult) throws SchemaException {
 		XPathHolder xpath = createXpathHolder();
 		Document doc = DOMUtil.getDocument();
 		List<Object> values = new ArrayList<Object>();
 
 		for (PrismProperty identifier : identifiers) {
-			values.addAll(identifier.serializeToJaxb(doc));
+			List<Element> elements = prismContext.getPrismDomProcessor().serializeItemToDom(identifier, doc);
+			values.addAll(elements);
 		}
 
 		// TODO: fix for more than one identifier..The create equal filter must
@@ -441,7 +442,7 @@ public class ShadowCacheUtil {
 	}
 
 	public static QueryType createSearchShadowQuery(ResourceObjectShadowType resourceShadow,
-			ResourceType resource, OperationResult parentResult) throws SchemaException {
+			ResourceType resource, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		XPathHolder xpath = createXpathHolder();
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(resourceShadow);
@@ -463,10 +464,11 @@ public class ShadowCacheUtil {
 		// We have all the data, we can construct the filter now
 		Document doc = DOMUtil.getDocument();
 		Element filter;
+		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(identifier, doc);
 		try {
 			filter = QueryUtil.createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
 					SchemaConstants.I_RESOURCE_REF, resource.getOid()), QueryUtil
-					.createEqualFilterFromElements(doc, xpath, identifier.serializeToJaxb(doc),
+					.createEqualFilterFromElements(doc, xpath, identifierElements,
 							resourceShadow.asPrismObject().getPrismContext()));
 		} catch (SchemaException e) {
 			// LOGGER.error("Schema error while creating search filter: {}",

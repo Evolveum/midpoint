@@ -89,6 +89,7 @@ public class TestDeltaConverter {
     			PrismTestUtil.getPrismContext());
     	
     	assertNotNull("No object delta", objectDelta);
+    	objectDelta.checkConsistence();
     	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
     	ReferenceDelta accoutRefDelta = objectDelta.findReferenceModification(UserType.F_ACCOUNT_REF);
     	assertNotNull("No accountRef delta", accoutRefDelta);
@@ -111,6 +112,7 @@ public class TestDeltaConverter {
     	
     	// THEN
     	assertNotNull("No object delta", objectDelta);
+    	objectDelta.checkConsistence();
     	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
     	PropertyDelta<ProtectedStringType> protectedStringDelta = objectDelta.findPropertyDelta(CREDENTIALS_PASSWORD_PROTECTED_STRING_PATH);
     	assertNotNull("No protectedString delta", protectedStringDelta);
@@ -144,6 +146,7 @@ public class TestDeltaConverter {
     	
     	// THEN
     	assertNotNull("No object delta", objectDelta);
+    	objectDelta.checkConsistence();
     	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
     	ContainerDelta<AssignmentType> assignmentDelta = objectDelta.findContainerDelta(UserType.F_ASSIGNMENT);
     	assertNotNull("No assignment delta", assignmentDelta);

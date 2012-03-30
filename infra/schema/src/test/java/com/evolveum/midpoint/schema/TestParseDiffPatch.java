@@ -86,8 +86,10 @@ public class TestParseDiffPatch {
 	public void testUser() throws SchemaException, SAXException, IOException, JAXBException {
 		System.out.println("===[ testUser ]===");
 
-        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "user-jack-before.xml"));                
+        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "user-jack-before.xml"));
+        userBefore.checkConsistence();
         PrismObject<UserType> userAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "user-jack-after.xml"));
+        userAfter.checkConsistence();
         
         // sanity
         assertFalse("Equals does not work", userBefore.equals(userAfter));
@@ -100,6 +102,10 @@ public class TestParseDiffPatch {
         
         System.out.println("DELTA:");
         System.out.println(userDelta.dump());
+        
+        userBefore.checkConsistence();
+        userAfter.checkConsistence();
+        userDelta.checkConsistence();
         
         assertEquals("Wrong delta OID", userBefore.getOid(), userDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
@@ -119,9 +125,16 @@ public class TestParseDiffPatch {
         assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"honorificPrefix"), PropertyModificationTypeType.add, "Cpt.");
         assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"locality"), PropertyModificationTypeType.add, "Tortuga");
         
+        userBefore.checkConsistence();
+        userAfter.checkConsistence();
+        userDelta.checkConsistence();
         // ROUNDTRIP
         
         userDelta.applyTo(userBefore);
+        
+        userBefore.checkConsistence();
+        userAfter.checkConsistence();
+        userDelta.checkConsistence();
         
         //assertEquals("Round trip failed", userAfter, userBefore);
         
@@ -150,6 +163,7 @@ public class TestParseDiffPatch {
         System.out.println("DELTA:");
         System.out.println(userDelta.dump());
         
+        userDelta.checkConsistence();
         assertEquals("Wrong delta OID", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", userDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = userDelta.getModifications();
@@ -170,6 +184,7 @@ public class TestParseDiffPatch {
         System.out.println("DELTA:");
         System.out.println(userDelta.dump());
         
+        userDelta.checkConsistence();
         assertEquals("Wrong delta OID", "deadbeef-c001-f00d-1111-222233330001", userDelta.getOid());
         assertEquals("Wrong change type", ChangeType.ADD, userDelta.getChangeType());
         
@@ -190,6 +205,7 @@ public class TestParseDiffPatch {
         System.out.println("DELTA:");
         System.out.println(diffDelta.dump());
         
+        diffDelta.checkConsistence();
         assertEquals("Wrong delta OID", "91919191-76e0-59e2-86d6-3d4f02d3ffff", diffDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, diffDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = diffDelta.getModifications();
@@ -210,10 +226,12 @@ public class TestParseDiffPatch {
         // parse back delta
         ObjectDelta<TaskType> patchDelta = DeltaConvertor.createObjectDelta(objectModificationType, 
         		TaskType.class, PrismTestUtil.getPrismContext());
+        patchDelta.checkConsistence();
         
         // ROUNDTRIP
         
         PrismObject<TaskType> taskPatch = PrismTestUtil.parseObject(new File(TEST_DIR, "task-before.xml"));
+        taskPatch.checkConsistence();
         
         // patch
         patchDelta.applyTo(taskPatch);
@@ -221,9 +239,16 @@ public class TestParseDiffPatch {
         System.out.println("Task after roundtrip patching");
         System.out.println(taskPatch.dump());
         
+        patchDelta.checkConsistence();
+        taskPatch.checkConsistence();
         PrismObject<TaskType> taskAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "task-after.xml"));
+        taskAfter.checkConsistence();
                 
         assertTrue("Not equivalent",taskPatch.equivalent(taskAfter));
+        
+        patchDelta.checkConsistence();
+        taskPatch.checkConsistence();
+        taskAfter.checkConsistence();
         
         ObjectDelta<TaskType> roundTripDelta = DiffUtil.diff(taskPatch, taskAfter);
         System.out.println("roundtrip DELTA:");
@@ -231,6 +256,10 @@ public class TestParseDiffPatch {
         
         assertTrue("Roundtrip delta is not empty",roundTripDelta.isEmpty());
         
+        roundTripDelta.checkConsistence();
+        patchDelta.checkConsistence();
+        taskPatch.checkConsistence();
+        taskAfter.checkConsistence();
 	}
 
 	@Test
@@ -239,6 +268,9 @@ public class TestParseDiffPatch {
 		
 		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));                
         PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after.xml"));
+        
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
         
         // sanity
         assertFalse("Equals does not work", resourceBefore.equals(resourceAfter));
@@ -251,7 +283,11 @@ public class TestParseDiffPatch {
         
         System.out.println("DELTA:");
         System.out.println(resourceDelta.dump());
-        
+
+        resourceDelta.checkConsistence();
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+
         assertEquals("Wrong delta OID", "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", resourceDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, resourceDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = resourceDelta.getModifications();
@@ -265,13 +301,19 @@ public class TestParseDiffPatch {
         // Configuration properties changes
         assertConfigurationPropertyChange(resourceDelta, "principal");
         assertConfigurationPropertyChange(resourceDelta, "credentials");
+        
+        resourceDelta.checkConsistence();
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
 	}
 
 	
 	private void assertConfigurationPropertyChange(ObjectDelta<ResourceType> resourceDelta, String propName) {
+		resourceDelta.checkConsistence();
 		PropertyDelta propertyDelta = resourceDelta.findPropertyDelta(pathConfigProperties(propName));
 		assertNotNull("No delta for configuration property "+propName, propertyDelta);
 		// TODO
+		resourceDelta.checkConsistence();
 	}
 
 	private PropertyPath pathConfigProperties(String propName) {
@@ -291,6 +333,9 @@ public class TestParseDiffPatch {
         PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));                
         PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after.xml"));
         
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+        
         // sanity
         assertFalse("Equals does not work", resourceBefore.equals(resourceAfter));
         
@@ -303,24 +348,45 @@ public class TestParseDiffPatch {
         System.out.println("DELTA:");
         System.out.println(resourceDelta.dump());
         
+        resourceDelta.checkConsistence();
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+        
         // ROUNDTRIP
         resourceDelta.applyTo(resourceBefore);
         
         System.out.println("Resource after roundtrip:");
         System.out.println(resourceBefore.dump());
         
+        resourceDelta.checkConsistence();
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+        
         ObjectDelta<ResourceType> roundTripDelta1 = resourceBefore.diff(resourceAfter);
         System.out.println("roundtrip DELTA 1:");
         System.out.println(roundTripDelta1.dump());        
         assertTrue("Resource roundtrip 1 failed", roundTripDelta1.isEmpty());
+        
+        roundTripDelta1.checkConsistence();
+        resourceDelta.checkConsistence();
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
 
         ObjectDelta<ResourceType> roundTripDelta2 = resourceAfter.diff(resourceBefore);
         System.out.println("roundtrip DELTA 2:");
         System.out.println(roundTripDelta2.dump());        
         assertTrue("Resource roundtrip 2 failed", roundTripDelta2.isEmpty());
 
+        roundTripDelta2.checkConsistence();
+        resourceDelta.checkConsistence();
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
         
         PrismAsserts.assertEquivalent("Resources after roundtrip not equivalent", resourceAfter, resourceBefore);
+        
+        resourceDelta.checkConsistence();
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
 	}
 
 	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,

@@ -645,6 +645,8 @@ public class ModelController implements ModelService {
 			LOGGER.warn("Calling modifyObject with empty modificaiton set");
 			return;
 		}
+		
+		ItemDelta.checkConsistence(modifications);
 
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
 		result.addParams(new String[] { "modifications" }, modifications);

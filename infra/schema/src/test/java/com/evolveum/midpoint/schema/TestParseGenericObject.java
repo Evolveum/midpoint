@@ -233,6 +233,8 @@ public class TestParseGenericObject {
 	
 	private void assertGenericObject(PrismObject<GenericObjectType> generic) throws DatatypeConfigurationException {
 		
+		generic.checkConsistence();
+		
 		assertEquals("Wrong oid", "c0c010c0-d34d-b33f-f00d-999111111111", generic.getOid());
 //		assertEquals("Wrong version", "42", resource.getVersion());
 		PrismObjectDefinition<GenericObjectType> resourceDefinition = generic.getDefinition();

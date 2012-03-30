@@ -139,7 +139,8 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
      *
      * @param definition the definition to set
      */
-    public void setDefinition(PrismPropertyDefinition definition) {
+    public void setDefinition(ItemDefinition definition) {
+    	checkDefinition(definition);
         this.definition = definition;
     }
 
@@ -427,11 +428,14 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 		}
 	}
 	
-	void applyDefinition(ItemDefinition definition) throws SchemaException {
+	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		applyDefinition(definition, true);
 	}
 	
 	void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
+		if (definition != null) {
+			checkDefinition(definition);
+		}
 		this.definition = definition;
 		for (PrismValue pval: getValues()) {
 			pval.applyDefinition(definition, force);
@@ -467,7 +471,37 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return item;
     }
     
-    public boolean isEmpty() {
+    public void checkConsistence() {
+    	checkConsistenceInternal(this, PropertyPath.EMPTY_PATH);
+    }
+    
+    public void checkConsistenceInternal(Item<?> rootItem, PropertyPath path) {
+    	if (name == null) {
+    		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
+    	}
+    	if (definition != null) {
+    		checkDefinition(definition);
+    	}
+    	if (values != null) {
+    		for(V val: values) {
+    			if (val == null) {
+    				throw new IllegalStateException("Null value in item "+this+" ("+path+" in "+rootItem+")");
+    			}
+    			if (val.getParent() == null) {
+    				throw new IllegalStateException("Null parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+")");
+    			}
+    			if (val.getParent() != this) {
+    				throw new IllegalStateException("Wrong parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+"): "+
+    						val.getParent());
+    			}
+    			val.checkConsistenceInternal(rootItem, path);
+    		}
+    	}
+    }
+    
+	protected abstract void checkDefinition(ItemDefinition def);
+	
+	public boolean isEmpty() {
         return (getValues() == null || getValues().isEmpty());
     }
 

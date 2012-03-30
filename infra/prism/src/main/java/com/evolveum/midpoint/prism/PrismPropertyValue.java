@@ -120,8 +120,19 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	protected Element createDomElement() {
 		return new ElementPrismPropertyImpl<T>(this);
 	}
-
+	
     @Override
+	public void checkConsistenceInternal(Item<?> rootItem, PropertyPath parentPath) {
+    	PropertyPath myPath = getParent().getPath(parentPath);
+    	if (value == null && rawElement == null) {
+			throw new IllegalStateException("Neither value nor raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
+		}
+    	if (value != null && rawElement != null) {
+			throw new IllegalStateException("Both value and raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
+		}
+	}
+
+	@Override
     public PrismPropertyValue<T> clone() {
         PrismPropertyValue clone = new PrismPropertyValue(null, getType(), getSource());
         copyValues(clone);

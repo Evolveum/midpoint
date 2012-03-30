@@ -96,6 +96,8 @@ public class TestJaxbConstruction {
 		genericType.setExtension(extension);
 		
 		// THEN
+		generic.checkConsistence();
+		
 		PrismContainer<Containerable> extensionContainer = generic.findContainer(GenericObjectType.F_EXTENSION);
 		assertNotNull("No extension container after setExtension (prism)", extensionContainer);
 		assertNotNull("No extension definition after setExtension (prism)", extensionContainer.getDefinition());
@@ -127,6 +129,7 @@ public class TestJaxbConstruction {
 		accountType.setResourceRef(resourceRefType);
 		
 		// THEN (prism)
+		account.checkConsistence();
 		PrismAsserts.assertPropertyValue(account, AccountShadowType.F_NAME, ACCOUNT_NAME);
 		PrismReference resourceRef = account.findReference(AccountShadowType.F_RESOURCE_REF);
 		assertNotNull("No resourceRef", resourceRef);
@@ -171,5 +174,6 @@ public class TestJaxbConstruction {
 
         // THEN
         assertNotNull(item);
+        object.asPrismObject().checkConsistence();
     }
 }

@@ -60,7 +60,15 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 	public Class<PrismReference> getItemClass() {
 		return PrismReference.class;
 	}
-	
+
+	@Override
+	public void setDefinition(ItemDefinition definition) {
+		if (!(definition instanceof PrismReferenceDefinition)) {
+			throw new IllegalArgumentException("Cannot apply "+definition+" to reference delta");
+		}
+		super.setDefinition(definition);
+	}
+
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		if (!(definition instanceof PrismReferenceDefinition)) {

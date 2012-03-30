@@ -108,31 +108,31 @@ public class UserSynchronizer {
     public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
-    	if (consistenceChecks) context.assertConsistence();
+    	if (consistenceChecks) context.checkConsistence();
     	
         loadUser(context, result);
         loadFromSystemConfig(context, result);
         context.recomputeUserNew();
 
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
         
         loadAccountRefs(context, result);
         context.recomputeUserNew();
         
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
 
         // Check reconcile flag in account sync context and set accountOld
         // variable if it's not set (from provisioning)
         checkAccountContextReconciliation(context, result);
 
         traceContext("load", context, false);
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
         
         // Loop through the account changes, apply inbound expressions
         inboundProcessor.processInbound(context, result);
         context.recomputeUserNew();
         traceContext("inbound", context, false);
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
 
         userPolicyProcessor.processUserPolicy(context, result);
         context.recomputeUserNew();
@@ -140,37 +140,37 @@ public class UserSynchronizer {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("User delta:\n{}", context.getUserDelta() == null ? "null" : context.getUserDelta().dump());
         }
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
 
         assignmentProcessor.processAssignments(context, result);
         context.recomputeNew();
         traceContext("assignments", context, true);
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
 
         outboundProcessor.processOutbound(context, result);
         context.recomputeNew();
         traceContext("outbound", context, true);
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
 
         consolidationProcessor.consolidateValues(context, result);
         context.recomputeNew();
         traceContext("consolidation", context, false);
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
 
         credentialsProcessor.processCredentials(context, result);
         context.recomputeNew();
         traceContext("credentials", context, false);
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
 
         activationProcessor.processActivation(context, result);
         context.recomputeNew();
         traceContext("activation", context, false);
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
 
         reconciliationProcessor.processReconciliation(context, result);
         context.recomputeNew();
         traceContext("reconciliation", context, false);
-        if (consistenceChecks) context.assertConsistence();
+        if (consistenceChecks) context.checkConsistence();
 
     }
 
@@ -403,7 +403,7 @@ public class UserSynchronizer {
 			}
 		}
 		
-		// remove the accountRefs without oid. There will get into the way now. The accounts 
+		// remove the accountRefs without oid. These will get into the way now. The accounts 
 		// are in the context now and will be linked at the end of the process (it they survive the policy)
 		// We need to make sure this happens on the real primary user delta
 		

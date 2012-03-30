@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  * 
  */
-public class PrismReference extends Item {
+public class PrismReference extends Item<PrismReferenceValue> {
 	private static final long serialVersionUID = 1872343401395762657L;
 	
 	public PrismReference(QName name) {
@@ -62,11 +62,7 @@ public class PrismReference extends Item {
 	public PrismReferenceDefinition getDefinition() {
 		return (PrismReferenceDefinition) super.getDefinition();
 	}
-	
-	public void setDefinition(PrismPropertyDefinition definition) {
-        this.definition = definition;
-    }
-	
+		
 	/**
      * Returns reference values.
      * <p/>
@@ -124,14 +120,14 @@ public class PrismReference extends Item {
     	return new ReferenceDelta(path, getDefinition());
 	}
 
-	void applyDefinition(ItemDefinition definition) throws SchemaException {
-		if (!(definition instanceof PrismReferenceDefinition)) {
-			throw new IllegalArgumentException("Cannot apply "+definition+" to reference");
+	@Override
+	protected void checkDefinition(ItemDefinition def) {
+		if (!(def instanceof PrismReferenceDefinition)) {
+			throw new IllegalArgumentException("Cannot apply definition "+def+" to reference "+this);
 		}
-		super.applyDefinition(definition);
 	}
-    
-    @Override
+
+	@Override
     public PrismReference clone() {
     	PrismReference clone = new PrismReference(getName(), getDefinition(), prismContext);
         copyValues(clone);
