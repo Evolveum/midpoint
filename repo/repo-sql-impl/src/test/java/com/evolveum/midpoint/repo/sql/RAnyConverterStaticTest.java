@@ -23,15 +23,10 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstants;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
@@ -42,14 +37,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
-import java.io.IOException;
 
 /**
  * @author lazyman
@@ -68,12 +60,6 @@ public class RAnyConverterStaticTest extends AbstractTestNGSpringContextTests {
     PrismContext prismContext;
     @Autowired
     SessionFactory factory;
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     @Test
     public void testExtensionInteger() throws Exception {
