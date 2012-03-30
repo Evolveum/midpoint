@@ -319,13 +319,13 @@ public class RAnyConverter {
 
     //todo get from somewhere - from RAnyConverter, somehow
     //strings | longs | dates | clobs
-    public static <T extends ObjectType> String getAnySetType(Class<T> type, PropertyPath path, Element value) {
+    public static <T extends ObjectType> String getAnySetType(ItemDefinition definition, Element value) throws
+            SchemaException {
+
         if (1 == 1) {
             return "strings";
         }
-        Object realValue = getRealValue(type, path, value);
-        ItemDefinition definition = null;
-
+//        Object realValue = getRealRepoValue(definition, value);
         ValueType valueType = getValueType(definition.getTypeName());
         switch (valueType) {
             case DATE:
@@ -342,8 +342,61 @@ public class RAnyConverter {
         }
     }
 
-    public static <T extends ObjectType> Object getRealValue(Class<T> type, PropertyPath path, Element value) {
+    /**
+     * This method provides transformation of {@link Element} value to its object form, e.g. <value>1</value> to
+     * {@link Integer} number 1. It's based on element definition from schema registry or xsi:type attribute
+     * in that element.
+     *
+     * @param definition
+     * @param value
+     * @return
+     */
+    public static Object getRealRepoValue(ItemDefinition definition, Element value) throws SchemaException {
+        ValueType willBeSaveAs = definition == null ? null : getValueType(definition.getTypeName());
+        QName typeName = definition == null ? DOMUtil.resolveXsiType(value) : definition.getTypeName();
+
+        Validate.notNull(typeName, "Definition was not defined for element value '"
+                + DOMUtil.getQNameWithoutPrefix(value) + "' and it doesn't have xsi:type.");
+
+        Object object;
+        if (ValueType.STRING.equals(willBeSaveAs)) {
+            if (DOMUtil.listChildElements(value).isEmpty()) {
+                //simple values
+                return value.getTextContent();
+            } else {
+                //composite elements or containers
+                return DOMUtil.printDom(value);
+            }
+        } else {
+            object = XmlTypeConverter.toJavaValue(value, typeName);
+        }
+
+        //check float/double to string
+        if (object instanceof Float) {
+            object = ((Float) object).toString();
+        } else if (object instanceof Double) {
+            object = ((Double) object).toString();
+        }
+
+        //check short/integer to long
+        if (object instanceof Short) {
+            object = ((Short) object).longValue();
+        } else if (object instanceof Integer) {
+            object = ((Integer) object).longValue();
+        }
+
+        //check gregorian calendar, xmlgregorian calendar to date
+        if (object instanceof GregorianCalendar) {
+            object = ((GregorianCalendar) object).getTime();
+        } else if (object instanceof XMLGregorianCalendar) {
+            object = XMLGregorianCalendarType.asDate(((XMLGregorianCalendar) object));
+        }
+
+        if (object == null) {
+            throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
+        }
+
         //todo check if it's not indexable and it's string -> it's clob, throw exception
-        return value.getTextContent();
+        return object;
     }
 }

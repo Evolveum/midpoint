@@ -32,6 +32,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RUtil;
 import com.evolveum.midpoint.repo.sql.type.QNameType;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -89,16 +90,22 @@ public class SimpleOp extends Op {
         }
 
         Element condition = DOMUtil.listChildElements(value).get(0);
-        SimpleItem conditionItem = updateConditionItem(condition, propertyPath);
+        SimpleItem conditionItem = updateConditionItem(condition, path);
 
         LOGGER.trace("Condition item updated, updating value type.");
         Criterion criterion = null;
         if (!conditionItem.isReference) {
-            Object testedValue = RAnyConverter.getRealValue(getInterpreter().getType(), propertyPath, condition);
-            LOGGER.trace("Value updated to type '{}'",
-                    new Object[]{(testedValue == null ? null : testedValue.getClass().getName())});
+            try {
+                QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
+                Object testedValue = RAnyConverter.getRealRepoValue(getInterpreter().findDefinition(path, condQName),
+                        condition);
+                LOGGER.trace("Value updated to type '{}'",
+                        new Object[]{(testedValue == null ? null : testedValue.getClass().getName())});
 
-            criterion = createBaseCriteria(filter, pushNot, conditionItem.getQueryableItem(), testedValue);
+                criterion = createBaseCriteria(filter, pushNot, conditionItem.getQueryableItem(), testedValue);
+            } catch (SchemaException ex) {
+                throw new QueryException(ex.getMessage(), ex);
+            }
         }
 
         if (conditionItem.isAny) {
@@ -177,7 +184,8 @@ public class SimpleOp extends Op {
         return criterion;
     }
 
-    private SimpleItem updateConditionItem(Element condition, PropertyPath propertyPath) throws QueryException {
+    private SimpleItem updateConditionItem(Element condition, Element path) throws QueryException {
+        PropertyPath propertyPath = getInterpreter().createPropertyPath(path);
         QName conditionItem = DOMUtil.getQNameWithoutPrefix(condition);
         LOGGER.debug("Updating condition item '{}' on property path\n{}",
                 new Object[]{conditionItem, propertyPath});
@@ -186,15 +194,20 @@ public class SimpleOp extends Op {
 
         if (propertyPath != null) {
             if (definition.isAny()) {
-                item.isAny = true;
-                List<PropertyPathSegment> segments = propertyPath.getSegments();
-                String anyTypeName = RAnyConverter.getAnySetType(getInterpreter().getType(), propertyPath, condition);
-                segments.add(new PropertyPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
+                try {
+                    item.isAny = true;
+                    List<PropertyPathSegment> segments = propertyPath.getSegments();
+                    String anyTypeName = RAnyConverter.getAnySetType(getInterpreter().findDefinition(path, conditionItem),
+                            condition);
+                    segments.add(new PropertyPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
 
-                propertyPath = new PropertyPath(segments);
-                LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",
-                        new Object[]{anyTypeName});
-                addNewCriteriaToContext(propertyPath, anyTypeName);
+                    propertyPath = new PropertyPath(segments);
+                    LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",
+                            new Object[]{anyTypeName});
+                    addNewCriteriaToContext(propertyPath, anyTypeName);
+                } catch (SchemaException ex) {
+                    throw new QueryException(ex.getMessage(), ex);
+                }
             }
 
             item.alias = getInterpreter().getAlias(propertyPath);

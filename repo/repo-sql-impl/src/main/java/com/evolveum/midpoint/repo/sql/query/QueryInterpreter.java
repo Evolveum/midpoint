@@ -119,7 +119,7 @@ public class QueryInterpreter {
 
         PropertyPath propertyPath = createPropertyPath(path);
         if (propertyPath == null) {
-            propertyPath = PropertyPath.EMPTY_PATH;
+            propertyPath = new PropertyPath();
         }
 
         List<PropertyPathSegment> segments = propertyPath.getSegments();

@@ -55,7 +55,7 @@ public class RTask extends RObject {
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
     private XMLGregorianCalendar nextRunStartTime;
-    private BigInteger progress;
+    private Long progress;
     private TaskRecurrenceType recurrence;
     private TaskBindingType binding;
     private String schedule;
@@ -133,7 +133,7 @@ public class RTask extends RObject {
         return node;
     }
 
-    public BigInteger getProgress() {
+    public Long getProgress() {
         return progress;
     }
 
@@ -177,7 +177,7 @@ public class RTask extends RObject {
         this.node = node;
     }
 
-    public void setProgress(BigInteger progress) {
+    public void setProgress(Long progress) {
         this.progress = progress;
     }
 

@@ -81,7 +81,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Criteria attributes = main.createCriteria("attributes", "a1");
         Criteria stringAttr = attributes.createCriteria("strings", "s");
 
-        Criteria extension = main.createCriteria("extension", "e");
+        Criteria extension = main.createCriteria("schema", "e");
         Criteria stringExt = extension.createCriteria("strings", "s1");
 
         Criteria resourceRef = main.createCriteria("resourceRef", "r");
