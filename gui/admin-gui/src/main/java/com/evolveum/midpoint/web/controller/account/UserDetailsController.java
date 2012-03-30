@@ -242,12 +242,16 @@ public class UserDetailsController implements Serializable {
 
 			List<AccountShadowType> oldAccounts = readAccounts(accountManager);
 			
+
 			processNewAccounts();
+			
+			
 			List<AccountShadowType> accountsToDelete = processDeletedAccounts();
 			processUnlinkedAccounts();
-
+			
+			
 			// we want submit only user changes (if the account was deleted-
-			// unlink account, if added - link and create account)
+			// unlink account, if added - create and link) 
 			// modification of account attributes are submited later ->
 			// updateAccounts method
 			LOGGER.debug("Submit user modified in GUI");
@@ -261,6 +265,7 @@ public class UserDetailsController implements Serializable {
 				accountManager.delete(account.getOid());
 			}
 			LOGGER.debug("Finished processing of deleted accounts");
+
 			
 			//check if account was changed, if does, execute them..
 			updateAccounts(accountList, oldAccounts, task, result);
@@ -304,6 +309,7 @@ public class UserDetailsController implements Serializable {
 	private void processNewAccounts() throws SchemaException {
 		// new accounts are processed as modification of user in one operation
 		LOGGER.debug("Start processing of new accounts");
+		
 		for (AccountFormBean formBean : accountList) {
 			if (formBean.isNew()) {
 				
@@ -312,10 +318,11 @@ public class UserDetailsController implements Serializable {
 				//add new account to the userDto accounts only
 				//later by calling user.submit, this added account will be checked, and only those which are new 
 				//will be used to detect chages..other will be transformed to the accounts ref..
+				prismContext.adopt(newAccountShadow.getXmlObject());
 				user.getAccount().add(newAccountShadow);
 			}
 		}
-
+		
 		LOGGER.debug("Finished processing of new accounts");
 	}
 

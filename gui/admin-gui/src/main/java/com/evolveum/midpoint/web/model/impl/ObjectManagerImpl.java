@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.model.impl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -60,6 +61,8 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
     private transient ModelService model;
     @Autowired(required = true)
     private transient TaskManager taskManager;
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
     protected ModelService getModel() {
         return model;
@@ -209,7 +212,6 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
         Collection<ObjectType> objects = (Collection<ObjectType>) list(paging, type.getClassDefinition());
         for (ObjectType objectType : objects) {
             isObjectTypeSupported(objectType);
-
             collection.add(createObject((C) objectType));
         }
 

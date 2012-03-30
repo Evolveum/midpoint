@@ -231,14 +231,15 @@ public class ModelController implements ModelService {
 		}
 
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
-		for (ObjectReferenceType accountRef : user.getAccountRef()) {
+		for (Iterator<ObjectReferenceType> i = user.getAccountRef().iterator(); i.hasNext();) {
+			ObjectReferenceType accountRef = i.next();
 			OperationResult subResult = result.createSubresult(RESOLVE_USER_ATTRIBUTES);
 			subResult.addParams(new String[] { "user", "accountRef" }, user, accountRef);
 			try {
 				AccountShadowType account = getObject(AccountShadowType.class, accountRef.getOid(), resolve,
 						subResult).asObjectable();
 				user.getAccount().add(account);
-				refToBeDeleted.add(accountRef);
+//				refToBeDeleted.add(accountRef);
 				subResult.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't resolve account with oid {}", ex,
@@ -247,9 +248,10 @@ public class ModelController implements ModelService {
 						"Couldn't resolve account with oid '" + accountRef.getOid() + "'.", ex);
 			} finally {
 				subResult.computeStatus("Couldn't resolve account with oid '" + accountRef.getOid() + "'.");
+				user.getAccountRef().remove(accountRef);
 			}
 		}
-		user.getAccountRef().removeAll(refToBeDeleted);
+		
 	}
 
 	private void resolveAccountAttributes(AccountShadowType account, PropertyReferenceListType resolve,

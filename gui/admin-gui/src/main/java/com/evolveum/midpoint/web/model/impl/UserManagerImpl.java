@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -96,10 +97,11 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         // in the case of modifying account, it is not needed to detect changes
         // using user, this is also made in UserDetailsController using account
         // manager
-        changedObject = unresolveNotAddedAccounts(changedObject);
+        
 
         OperationResult result = parentResult.createSubresult(UserManager.SUBMIT);
         try {
+        	changedObject = unresolveNotAddedAccounts(changedObject);
             changedObject.encryptCredentials(protector);
 
             PropertyModificationType passwordChange = null;
@@ -116,10 +118,11 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                         password.getProtectedString());
                 // now when modification change of password was made, clear
                 // credentials from changed user and also from old user to be not used by diff..
-                changedObject.getXmlObject().setCredentials(null);
-                oldUser.getXmlObject().setCredentials(null);
+               
 
             }
+            changedObject.getXmlObject().setCredentials(null);
+            oldUser.getXmlObject().setCredentials(null);
 
             //detect other changes
             if (LOGGER.isTraceEnabled()) {
@@ -127,9 +130,14 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                 LOGGER.trace("USER FORM changed:\n{}", oldUser.toString());
             }
 
+//            prismContext.adopt(changedObject.getXmlObject());
             ObjectDelta<UserType> userDelta = DiffUtil.diff(
                     oldUser.getXmlObject(), changedObject.getXmlObject(),
                     UserType.class, prismContext);
+            
+//            PrismObject<UserType> oldPrism = oldUser.getXmlObject().asPrismObject();
+//            PrismObject<UserType> changedPrism = changedObject.getXmlObject().asPrismObject();
+//            ObjectDelta<UserType> userDelta = oldPrism.diff(changedPrism);
 
             LOGGER.trace("USER FORM delta:\n{}", userDelta.dump());
 
@@ -341,7 +349,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         }
     }
 
-    private GuiUserDto unresolveNotAddedAccounts(GuiUserDto changedObject) {
+    private GuiUserDto unresolveNotAddedAccounts(GuiUserDto changedObject) throws SchemaException {
         changedObject.getXmlObject().getAccountRef().clear();
 
         for (Iterator<AccountShadowDto> i = changedObject.getAccount().iterator(); i.hasNext(); ) {
