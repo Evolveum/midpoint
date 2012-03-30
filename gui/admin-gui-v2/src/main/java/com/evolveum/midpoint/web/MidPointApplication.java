@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web;
 
+import com.evolveum.midpoint.web.page.login.PageLogin;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.MountedMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,8 +67,9 @@ public class MidPointApplication extends WebApplication {
 
         //pretty url
         MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();
+        mount(new MountedMapper("/login", PageLogin.class, encoder));
         mount(new MountedMapper("/home", PageHome.class, encoder));
-        mount(new MountedMapper("/users", PageUsers.class, encoder));
+        mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
 
         //error pages
         mount(new MountedMapper("/error/401", PageUnauthorized.class, encoder));
