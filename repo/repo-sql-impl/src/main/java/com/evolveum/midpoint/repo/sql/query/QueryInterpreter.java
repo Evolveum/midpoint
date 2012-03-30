@@ -60,7 +60,8 @@ public class QueryInterpreter {
         this.type = type;
 
         String alias = createAlias(ObjectTypes.getObjectType(type).getQName());
-        Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type), alias);
+        Criteria criteria = session.createCriteria
+                (ClassMapper.getHQLTypeClass(type), alias);
         setCriteria(null, criteria);
         setAlias(null, alias);
     }

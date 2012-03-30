@@ -181,47 +181,20 @@ public class RAnyConverter {
         return new RClobValue(value);
     }
 
-    //todo use static method getRealRepoValue
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
         ItemDefinition definition = value.getParent().getDefinition();
-        ValueType willBeSaveAs = getValueType(definition.getTypeName());
+        //todo raw types
 
         Object object = value.getValue();
         if (object instanceof Element) {
-            Element element = (Element) object;
-            if (ValueType.STRING.equals(willBeSaveAs)) {
-                return (T) element.getTextContent();
-            } else {
-                object = XmlTypeConverter.toJavaValue(element, definition.getTypeName());
-            }
-        }
-
-        //check float/double to string
-        if (object instanceof Float) {
-            object = ((Float) object).toString();
-        } else if (object instanceof Double) {
-            object = ((Double) object).toString();
-        }
-
-        //check short/integer to long
-        if (object instanceof Short) {
-            object = ((Short) object).longValue();
-        } else if (object instanceof Integer) {
-            object = ((Integer) object).longValue();
-        }
-
-        //check gregorian calendar, xmlgregorian calendar to date
-        if (object instanceof GregorianCalendar) {
-            object = ((GregorianCalendar) object).getTime();
-        } else if (object instanceof XMLGregorianCalendar) {
-            object = XMLGregorianCalendarType.asDate(((XMLGregorianCalendar) object));
+            object = getRealRepoValue(definition, (Element) object);
+        } else {
+            object = updateJavaValueType(object);
         }
 
         if (returnType.isAssignableFrom(object.getClass())) {
             return (T) object;
         }
-
-        //todo raw types
 
         throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
     }
@@ -286,6 +259,16 @@ public class RAnyConverter {
         }
     }
 
+    /**
+     * Method restores aggregated object type to its real type, e.g. number 123.1 is type of double, but was
+     * saved as string. This method takes RValue instance and creates 123.1 double from string based on
+     * provided definition.
+     *
+     * @param rValue
+     * @param definition
+     * @return
+     * @throws SchemaException
+     */
     private Object createRealValue(RValue rValue, ItemDefinition definition) throws SchemaException {
         if (rValue instanceof RClobValue) {
             RClobValue clob = (RClobValue) rValue;
@@ -322,8 +305,17 @@ public class RAnyConverter {
                 + "' from value saved in DB as '" + rValue.getClass().getSimpleName() + "'.");
     }
 
-    //todo document
-    //strings | longs | dates | clobs
+    /**
+     * This method provides extension type (in real it's table) string for definition and value
+     * defined as parameters. This string represent field in {@link RAnyContainer} where defined
+     * extension value is or can be saved.
+     *
+     * @param definition
+     * @param value
+     * @param <T>
+     * @return One of "strings", "longs", "dates", "clobs"
+     * @throws SchemaException
+     */
     public static <T extends ObjectType> String getAnySetType(ItemDefinition definition, Element value) throws
             SchemaException {
         QName typeName = definition == null ? DOMUtil.resolveXsiType(value) : definition.getTypeName();
@@ -338,8 +330,8 @@ public class RAnyConverter {
                 return "longs";
             case STRING:
             default:
-                boolean indexable = definition == null ? isIndexable(typeName) : isIndexable(definition);
-                if (indexable) {
+                boolean indexed = definition == null ? isIndexable(typeName) : isIndexable(definition);
+                if (indexed) {
                     return "strings";
                 } else {
                     return "clobs";
@@ -376,6 +368,21 @@ public class RAnyConverter {
             object = XmlTypeConverter.toJavaValue(value, typeName);
         }
 
+        object = updateJavaValueType(object);
+        if (object == null) {
+            throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
+        }
+
+        return object;
+    }
+
+    /**
+     * Method provides aggregation of some java types
+     *
+     * @param object
+     * @return aggregated object
+     */
+    private static Object updateJavaValueType(Object object) {
         //check float/double to string
         if (object instanceof Float) {
             object = ((Float) object).toString();
@@ -397,11 +404,6 @@ public class RAnyConverter {
             object = XMLGregorianCalendarType.asDate(((XMLGregorianCalendar) object));
         }
 
-        if (object == null) {
-            throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
-        }
-
-        //todo check if it's not indexable and it's string -> it's clob, throw exception
         return object;
     }
 }

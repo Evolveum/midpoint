@@ -26,7 +26,6 @@
         </global>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
-            <embedded>true</embedded>
             <baseDir>target</baseDir>
 
             <!--<embedded>false</embedded>-->

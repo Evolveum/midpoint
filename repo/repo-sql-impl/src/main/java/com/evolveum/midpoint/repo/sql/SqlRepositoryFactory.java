@@ -46,6 +46,7 @@ import java.util.List;
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
+    private static final String MIDPOINT_HOME_VARIABLE = "midpoint.home";
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
 
@@ -127,6 +128,14 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         if (StringUtils.isEmpty(config.getFileName())) {
             config.setFileName("midpoint");
+        }
+
+        if (StringUtils.isEmpty(config.getBaseDir())) {
+            if (StringUtils.isEmpty(System.getProperty(MIDPOINT_HOME_VARIABLE))) {
+                LOGGER.warn("Base dir path in configuration, nor {} variable is defined, setting base dir to '{}'",
+                        new Object[]{MIDPOINT_HOME_VARIABLE, "."});
+            }
+            config.setBaseDir(".");
         }
 
         File baseDir = new File(config.getBaseDir());
