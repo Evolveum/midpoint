@@ -20,7 +20,6 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -324,7 +323,7 @@ public class TaskQuartzImpl implements Task {
 	
 	@Override
 	public long getProgress() {
-		Integer value = taskPrism.getPropertyRealValue(TaskType.F_PROGRESS, Integer.class);		// TODO: change to Long when xsd:long will work
+		Long value = taskPrism.getPropertyRealValue(TaskType.F_PROGRESS, Long.class);
 		return value != null ? value : 0; 
 	}
 
@@ -340,7 +339,7 @@ public class TaskQuartzImpl implements Task {
 
 	public void setProgressTransient(long value) {
 		try {
-			taskPrism.setPropertyRealValue(TaskType.F_PROGRESS, Integer.valueOf((int) value)); // TODO: get rid of this cast when xsd:long will work
+			taskPrism.setPropertyRealValue(TaskType.F_PROGRESS, value);
 		} catch (SchemaException e) {
 			// This should not happen
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
@@ -684,12 +683,12 @@ public class TaskQuartzImpl implements Task {
 					taskManager.getTaskObjectDefinition(), TaskType.F_RECURRENCE, value.toTaskType()) : null;
 	}
 	
-	public void makeRecurrent(long interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException 
+	public void makeRecurrent(int interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException 
 	{
 		setRecurrenceStatus(TaskRecurrence.RECURRING);
 
 		ScheduleType schedule = new ScheduleType();
-		schedule.setInterval(BigInteger.valueOf(interval));
+		schedule.setInterval(interval);
 		
 		setSchedule(schedule);
 		savePendingModifications(parentResult);

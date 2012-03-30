@@ -21,20 +21,24 @@
 
 package com.evolveum.midpoint.web.bean;
 
+import java.util.Date;
+
+import org.apache.commons.lang.time.DurationFormatUtils;
+
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-
-import it.sauronsoftware.cron4j.InvalidPatternException;
-import org.apache.commons.lang.time.DurationFormatUtils;
-
-import java.math.BigInteger;
-import java.util.Date;
-import java.util.List;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 public class TaskItem extends SelectableBean {
 
@@ -53,7 +57,7 @@ public class TaskItem extends SelectableBean {
 	private TaskItemExecutionStatus executionStatus;
     private TaskItemExclusivityStatus exclusivityStatus;
     private TaskItemRecurrenceStatus recurrenceStatus;
-    private Long scheduleInterval;
+    private Integer scheduleInterval;
     private String scheduleCronLikePattern;
     private TaskItemBinding binding;
     private long progress;
@@ -77,7 +81,7 @@ public class TaskItem extends SelectableBean {
             this.objectRef = null;
         this.oid = task.getOid();
         this.name = task.getName();
-        this.owner = task.getOwner().asObjectable();
+        this.owner = task.getOwner() != null ? task.getOwner().asObjectable() : null;
         this.lastRunStartTimestampLong = task.getLastRunStartTimestamp();
         this.lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
         this.nextRunStartTimeLong = task.getNextRunStartTime();
@@ -91,7 +95,7 @@ public class TaskItem extends SelectableBean {
         this.recurrenceStatus = TaskItemRecurrenceStatus.SINGLE;
         if (task.getSchedule() != null) {
         	if (task.getSchedule().getInterval() != null) {
-        		this.scheduleInterval = task.getSchedule().getInterval().longValue();
+        		this.scheduleInterval = task.getSchedule().getInterval();
         		this.recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
         	}
         	if (task.getSchedule().getCronLikePattern() != null) {
@@ -143,7 +147,7 @@ public class TaskItem extends SelectableBean {
         this.recurrenceStatus = TaskItemRecurrenceStatus.SINGLE;
         if (taskType.getSchedule() != null) {
         	if (taskType.getSchedule().getInterval() != null) {
-        		this.scheduleInterval = taskType.getSchedule().getInterval().longValue();
+        		this.scheduleInterval = taskType.getSchedule().getInterval();
         		this.recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
         	}
         	if (taskType.getSchedule().getCronLikePattern() != null) {
@@ -165,7 +169,6 @@ public class TaskItem extends SelectableBean {
     }
 
     /**
-     * @throws InvalidPatternException (a cron4j-generated subtype of RuntimeException) if cron-like pattern is not valid.
      * @return
      */
     public TaskType toTaskType() {
@@ -189,7 +192,7 @@ public class TaskItem extends SelectableBean {
         recurrenceStatus = TaskItemRecurrenceStatus.SINGLE;
         ScheduleType schedule = new ScheduleType();
         if (getScheduleInterval() != null && getScheduleInterval() > 0) {
-        	schedule.setInterval(BigInteger.valueOf(getScheduleInterval()));
+        	schedule.setInterval(getScheduleInterval());
         	recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
         }
         if (getScheduleCronLikePattern() != null && !getScheduleCronLikePattern().isEmpty()) {
@@ -216,7 +219,7 @@ public class TaskItem extends SelectableBean {
             taskType.setExtension((ExtensionType) getExtension().getValue().asContainerable());
         }
 
-        taskType.setProgress(BigInteger.valueOf(getProgress()));
+        taskType.setProgress(getProgress());
 
 		if (owner != null) {
 			taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(owner));
@@ -322,12 +325,12 @@ public class TaskItem extends SelectableBean {
         this.recurrenceStatus = recurrenceStatus;
     }
 
-    public Long getScheduleInterval() {
+    public Integer getScheduleInterval() {
 //    	System.out.println("getScheduleInterval: " + scheduleInterval);
         return scheduleInterval;
     }
 
-    public void setScheduleInterval(Long scheduleInterval) {
+    public void setScheduleInterval(Integer scheduleInterval) {
 //    	System.out.println("setScheduleInterval to " + scheduleInterval);
         this.scheduleInterval = scheduleInterval;
     }

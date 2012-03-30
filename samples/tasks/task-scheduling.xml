@@ -104,8 +104,7 @@ these tasks via admin GUI.
         <recurrence>recurring</recurrence>
         <binding>loose</binding>
         <schedule>
-            <cronLikePattern>* * * * *</cronLikePattern>
-            <missedScheduleTolerance>10</missedScheduleTolerance>
+            <cronLikePattern>0 * * * * ?</cronLikePattern>
         </schedule>
     </task>
 
@@ -123,7 +122,7 @@ these tasks via admin GUI.
         <recurrence>recurring</recurrence>
         <binding>loose</binding>
         <schedule>
-            <cronLikePattern>0,5,10,15,20,25,30,35,40,45,50,55 * * * *</cronLikePattern>
+            <cronLikePattern>0 0/5 * * * ?</cronLikePattern>
         </schedule>
     </task>
 

@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
-import java.math.BigInteger;
-
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.InterruptableJob;
 import org.quartz.JobExecutionContext;
@@ -161,7 +159,7 @@ public class JobExecutor implements InterruptableJob {
 				// Determine how long we need to sleep and hit the bed
 				// TODO: consider the PERMANENT_ERROR state of the last run. in this case we should "suspend" the task
 
-				BigInteger interval = task.getSchedule() != null ? task.getSchedule().getInterval() : null;
+				Integer interval = task.getSchedule() != null ? task.getSchedule().getInterval() : null;
 				if (interval == null) {
 					LOGGER.error("Tightly bound task " + task + " has no scheduling interval specified.");
 					break;

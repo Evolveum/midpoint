@@ -28,8 +28,11 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>Testing task (suspend-task, long running)</name>
 	<extension>
-		<noop:delay xsi:type="xsd:integer">8000</noop:delay>
-		<noop:steps xsi:type="xsd:integer">1</noop:steps>
+<!-- 		<noop:delay xsi:type="xsd:integer">8000</noop:delay>  -->
+<!-- 		<noop:steps xsi:type="xsd:integer">1</noop:steps> -->
+
+		<noop:steps>1</noop:steps>
+		<noop:delay>8000</noop:delay>
 	</extension>
     <taskIdentifier>10000000-0000-0000-0000-123450000014</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>

@@ -1604,7 +1604,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="progress" type="xsd:integer" minOccurs="0">
+                    <xsd:element name="progress" type="xsd:long" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Relative metric of task progress.
@@ -1839,11 +1839,11 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="interval" type="xsd:integer" minOccurs="0">
+            <xsd:element name="interval" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Interval in seconds between task invocations.
-                        UNSTABLE. This element will most likely change. A lot.
+                        UNSTABLE. This element will most likely change. 
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1851,11 +1851,11 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Cron-like pattern specifying time(s) when the task is to be run.
-                        UNSTABLE. This element will most likely change. A lot.
+                        UNSTABLE. This element will most likely change. 
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="missedScheduleTolerance" type="xsd:integer" minOccurs="0">
+            <xsd:element name="missedScheduleTolerance" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Used in connection with cronLikePattern. If the task is not run
