@@ -22,7 +22,7 @@
 <configuration>
     <midpoint>
         <global>
-            <extensionDir>${midpoint.home}/src/test/resources/extension</extensionDir>
+            <extensionDir>${midpoint.home}/src/test/resources/schema</extensionDir>
         </global>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>

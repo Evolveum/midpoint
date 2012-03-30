@@ -20,7 +20,8 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 <c:query xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
     <c:and>
         <c:equal>
