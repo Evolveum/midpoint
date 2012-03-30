@@ -362,7 +362,7 @@ public class RAnyConverter {
                 return value.getTextContent();
             } else {
                 //composite elements or containers
-                return DOMUtil.printDom(value);
+                return DOMUtil.serializeDOMToString(value);
             }
         } else {
             object = XmlTypeConverter.toJavaValue(value, typeName);
