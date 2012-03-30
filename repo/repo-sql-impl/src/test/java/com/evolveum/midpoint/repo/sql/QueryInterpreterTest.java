@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RConnector;
+import com.evolveum.midpoint.repo.sql.data.common.RGenericObject;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
@@ -32,10 +33,7 @@ import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -51,6 +49,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import java.io.File;
 
@@ -72,6 +71,37 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
     PrismContext prismContext;
     @Autowired(required = true)
     SessionFactory factory;
+    
+    @Test
+    public void queryGenericLong() throws Exception {
+        Session session = open();
+        Criteria main = session.createCriteria(RGenericObject.class, "g");
+
+        Criteria extension = main.createCriteria("extension", "e");
+        Criteria stringExt = extension.createCriteria("longs", "l");
+
+        //and
+        Criterion c1 = Restrictions.eq("name", "generic object");
+        //and
+        Conjunction c2 = Restrictions.conjunction();
+        c2.add(Restrictions.eq("l.value", 123L));
+        c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
+        c2.add(Restrictions.eq("l.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "integer")));
+        
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(c1);
+        conjunction.add(c2);
+        main.add(conjunction);
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        String real = getInterpretedQuery(session, GenericObjectType.class,
+                new File(TEST_DIR, "query-and-generic.xml"));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+        
+        close(session);
+    }
 
     @Test
     public void queryOrComposite() throws Exception {
@@ -92,12 +122,12 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s.value", "foo value"));
         c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s.type", new QName(null, "string")));
+        c2.add(Restrictions.eq("s.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         //or
         Conjunction c3 = Restrictions.conjunction();
         c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
         c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
-        c3.add(Restrictions.eq("s1.type", new QName(null, "string")));
+        c3.add(Restrictions.eq("s1.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         //or
         Criterion c4 = Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
@@ -168,7 +198,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
         c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s.type", new QName(null, "string")));
+        c2.add(Restrictions.eq("s.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(c1);

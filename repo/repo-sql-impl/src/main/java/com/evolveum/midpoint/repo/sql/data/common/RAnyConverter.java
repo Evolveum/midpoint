@@ -137,6 +137,10 @@ public class RAnyConverter {
         }
 
         QName type = definition.getTypeName();
+        return isIndexable(type);
+    }
+
+    private static boolean isIndexable(QName type) {
         return DOMUtil.XSD_DATETIME.equals(type)
                 || DOMUtil.XSD_LONG.equals(type)
                 || DOMUtil.XSD_SHORT.equals(type)
@@ -177,6 +181,7 @@ public class RAnyConverter {
         return new RClobValue(value);
     }
 
+    //todo use static method getRealRepoValue
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
         ItemDefinition definition = value.getParent().getDefinition();
         ValueType willBeSaveAs = getValueType(definition.getTypeName());
@@ -317,16 +322,15 @@ public class RAnyConverter {
                 + "' from value saved in DB as '" + rValue.getClass().getSimpleName() + "'.");
     }
 
-    //todo get from somewhere - from RAnyConverter, somehow
+    //todo document
     //strings | longs | dates | clobs
     public static <T extends ObjectType> String getAnySetType(ItemDefinition definition, Element value) throws
             SchemaException {
+        QName typeName = definition == null ? DOMUtil.resolveXsiType(value) : definition.getTypeName();
+        Validate.notNull(typeName, "Definition was not defined for element value '"
+                + DOMUtil.getQNameWithoutPrefix(value) + "' and it doesn't have xsi:type.");
 
-        if (1 == 1) {
-            return "strings";
-        }
-//        Object realValue = getRealRepoValue(definition, value);
-        ValueType valueType = getValueType(definition.getTypeName());
+        ValueType valueType = getValueType(typeName);
         switch (valueType) {
             case DATE:
                 return "dates";
@@ -334,7 +338,8 @@ public class RAnyConverter {
                 return "longs";
             case STRING:
             default:
-                if (isIndexable(definition)) {
+                boolean indexable = definition == null ? isIndexable(typeName) : isIndexable(definition);
+                if (indexable) {
                     return "strings";
                 } else {
                     return "clobs";

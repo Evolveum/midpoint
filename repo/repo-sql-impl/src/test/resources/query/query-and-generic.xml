@@ -20,33 +20,20 @@
   ~
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
-<query xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <or>
+<query xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+    <and>
         <equal>
             <value>
-                <accountType>some account type</accountType>
-            </value>
-        </equal>
-        <equal>
-            <path>c:attributes</path>
-            <value>
-                <f:foo xsi:type="xsd:string" xmlns:f="http://midpoint.evolveum.com/blabla">foo value</f:foo>
+                <name>generic object</name>
             </value>
         </equal>
         <equal>
             <path>c:extension</path>
             <value>
-                <p:stringType xmlns:p="http://example.com/p">uid=test,dc=example,dc=com</p:stringType>
+                <p:intType xmlns:p="http://example.com/p">123</p:intType>
             </value>
         </equal>
-        <equal>
-            <value>
-                <resourceRef oid="d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"/>
-            </value>
-        </equal>
-    </or>
+    </and>
 </query>
