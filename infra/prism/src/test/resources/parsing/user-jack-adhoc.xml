@@ -28,11 +28,8 @@
 		xmlns:ext="http://example.com/xml/ns/user-extension">
     <name>jack</name>
     <extension>
-		<ext:bar xsi:type="xsd:string">BAR</ext:bar>
-		<ext:num xsi:type="xsd:integer">42</ext:num>
-		<ext:multi xsi:type="xsd:string">raz</ext:multi>
-		<ext:multi xsi:type="xsd:string">dva</ext:multi>
-		<ext:multi xsi:type="xsd:string">tri</ext:multi>
+		<!-- Following element does not have any schema -->
+		<adhoc:bottles xsi:type="xsd:integer">20</adhoc:bottles>
 	<!--	<foo:password xsi:type="ProtectedStringType">
 			<clearValue>openS3zam3</clearValue>
 		</foo:password>  -->

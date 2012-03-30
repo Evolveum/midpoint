@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.validator.test;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -32,6 +33,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -44,12 +47,16 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -78,7 +85,38 @@ public class BasicValidatorTest {
     	
     	OperationResult result = new OperationResult(this.getClass().getName()+".resource1Valid");
     	
-        validateFile("resource-1-valid.xml", result);
+        EventHandler handler = new EventHandler() {
+			
+			@Override
+			public EventResult preMarshall(Element objectElement, Node postValidationTree,
+					OperationResult objectResult) {
+				return EventResult.cont();
+			}
+			
+			@Override
+			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+					OperationResult objectResult) {
+				System.out.println("Validating resorce:");
+				System.out.println(object.dump());
+				object.checkConsistence();
+				
+				PrismContainer<?> extensionContainer = object.getExtension();
+				PrismProperty<Integer> menProp = extensionContainer.findProperty(new QName("http://myself.me/schemas/whatever","menOnChest"));
+				assertNotNull("No men on a dead man chest!", menProp);
+				assertEquals("Wrong number of men on a dead man chest", (Integer)15, menProp.getValue().getValue());
+				PrismPropertyDefinition menPropDef = menProp.getDefinition();
+				assertNotNull("Men on a dead man chest NOT defined", menPropDef);
+				assertEquals("Wrong type for men on a dead man chest definition", DOMUtil.XSD_INTEGER, menPropDef.getTypeName());
+				assertTrue("Men on a dead man chest definition not dynamic", menPropDef.isDynamic());
+				
+				return EventResult.cont();
+			}
+			
+			@Override
+			public void handleGlobalError(OperationResult currentResult) { /* nothing */ }
+		};
+        
+		validateFile("resource-1-valid.xml", handler, result);
         AssertJUnit.assertTrue(result.isSuccess());
 
     }

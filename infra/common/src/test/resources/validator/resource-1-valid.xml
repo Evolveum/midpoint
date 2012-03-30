@@ -21,10 +21,20 @@
 <!--                                                         -->
 
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever">
+<resource 
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" 
+		xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" 
+		xmlns:my="http://myself.me/schemas/whatever">
     
     	<!-- Resource name. It will be displayed in GUI.  -->
 	<name>Basic Localhost OpenDJ</name>
+     
+     <extension>
+     	<my:menOnChest xsi:type="xsd:integer">15</my:menOnChest>
+     </extension>
      
      	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
 	<connectorRef type="ConnectorType">

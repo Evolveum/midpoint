@@ -78,7 +78,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         this.compileTimeClass = compileTimeClass;
     }
     
-    protected PrismContainer(QName name, PrismContainerDefinition definition, PrismContext prismContext) {
+    protected PrismContainer(QName name, PrismContainerDefinition<V> definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
     
@@ -286,8 +286,8 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
      *
      * @return applicable property container definition
      */
-    public PrismContainerDefinition getDefinition() {
-        return (PrismContainerDefinition) definition;
+    public PrismContainerDefinition<V> getDefinition() {
+        return (PrismContainerDefinition<V>) definition;
     }
 
     /**
@@ -295,7 +295,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
      *
      * @param definition the definition to set
      */
-    public void setDefinition(PrismContainerDefinition definition) {
+    public void setDefinition(PrismContainerDefinition<V> definition) {
         this.definition = definition;
     }
     
@@ -307,7 +307,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	if (!(definition instanceof PrismContainerDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
     	}
-    	this.compileTimeClass = ((PrismContainerDefinition)definition).getCompileTimeClass();
+    	this.compileTimeClass = ((PrismContainerDefinition<V>)definition).getCompileTimeClass();
     	super.applyDefinition(definition);
 	}
 
@@ -602,8 +602,11 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         }
         sb.append(getDebugDumpClassName()).append(": ").append(DebugUtil.prettyPrint(getName()));
         sb.append(additionalDumpDescription());
-        if (getDefinition() != null) {
-            sb.append(" def");
+        PrismContainerDefinition<V> def = getDefinition();
+        if (def != null) {
+            sb.append(" def(");
+            sb.append(DebugUtil.prettyPrint(def.getTypeName()));
+            sb.append(")");
         }
         Iterator<PrismContainerValue<V>> i = getValues().iterator();
         if (i.hasNext()) {

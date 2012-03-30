@@ -343,12 +343,18 @@ public class Validator {
 			}
 
 			PrismObject<? extends Objectable> object = prismContext.parseObject(objectElement);
+			
+			try {
+				object.checkConsistence();
+			} catch (RuntimeException e) {
+				objectResult.recordFatalError("Internal object inconsistence, probably a parser bug: "+e.getMessage(), e);
+				return EventResult.skipObject();
+			}
+			
 			Objectable objectType = null;
 			if (object != null) {
 				objectType = object.asObjectable();
 			}
-
-			prismContext.adopt(objectType);
 			
 			if (verbose) {
 				LOGGER.debug("Processing OID " + objectType.getOid());

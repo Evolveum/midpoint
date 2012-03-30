@@ -424,8 +424,11 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
             }
             sb.append(" ]");
         }
-        if (getDefinition() != null) {
-            sb.append(" def");
+        PrismPropertyDefinition def = getDefinition();
+        if (def != null) {
+            sb.append(" def(");
+            sb.append(DebugUtil.prettyPrint(def.getTypeName()));
+            sb.append(")");
         }
         return sb.toString();
     }

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
@@ -110,19 +111,23 @@ public class ObjectImporter {
             }
 
             @Override
-            public <T extends Objectable> EventResult postMarshall(PrismObject<T> objectableObject, Element objectElement, OperationResult objectResult) {
-                LOGGER.debug("Importing object {}", objectableObject);
+            public <T extends Objectable> EventResult postMarshall(PrismObject<T> prismObjectObjectable, Element objectElement, OperationResult objectResult) {
+                LOGGER.debug("Importing object {}", prismObjectObjectable);
                 
-                T objectable = objectableObject.asObjectable();
+                T objectable = prismObjectObjectable.asObjectable();
                 if (!(objectable instanceof ObjectType)) {
                 	String message = "Cannot process type "+objectable.getClass()+" as it is not a subtype of "+ObjectType.class;
                 	objectResult.recordFatalError(message);
                     LOGGER.error("Import of object {} failed: {}",
-                            new Object[]{objectableObject, message});
+                            new Object[]{prismObjectObjectable, message});
                     return EventResult.skipObject();
                 }
                 ObjectType objectType = (ObjectType)objectable;
-                PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) objectableObject;
+                PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
+                
+                if (LOGGER.isTraceEnabled()) {
+                	LOGGER.trace("IMPORTING object:\n{}", object.dump());
+                }
                 
                 if (objectResult.isAcceptable()) {
                     resolveReferences(object, repository, 
@@ -475,12 +480,22 @@ public class ObjectImporter {
         OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
         result.addContext(OperationResult.CONTEXT_ITEM, refName);
 
-        Class<? extends ObjectType> type = ObjectType.class;
+        QName typeQName = null;
         if (refVal.getTargetType() != null) {
-        	type = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(refVal.getTargetType());
+        	typeQName = refVal.getTargetType();
+        }
+        if (typeQName == null) {
+        	PrismReferenceDefinition definition = (PrismReferenceDefinition) refVal.getParent().getDefinition();
+        	if (definition != null) {
+        		typeQName = definition.getTargetTypeName();
+        	}
+        }
+        Class<? extends ObjectType> type = ObjectType.class;
+        if (typeQName != null) {
+        	type = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
             if (type == null) {
-                result.recordWarning("Unknown type specified in reference " + refName + ": "
-                        + refVal.getType());
+                result.recordWarning("Unknown type specified in reference or definition of reference " + refName + ": "
+                        + typeQName);
                 type = ObjectType.class;
             }
         }

@@ -129,6 +129,10 @@ public class IntegrationTestTools {
 		assertSuccess(message, result, level, 0, true);
 	}
 	
+	public static void assertSuccessOrWarning(String message, OperationResult result) {
+		assertSuccess(message, result, -1, 0, true);
+	}
+	
 	private static void assertSuccess(String message, OperationResult result, int stopLevel, int currentLevel, boolean warningOk) {
 		if (!checkResults) {
 			return;

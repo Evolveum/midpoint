@@ -47,6 +47,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.foo.ActivationType;
+import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -81,7 +83,7 @@ public class TestPrismParsing {
 		System.out.println(user.dump());
 		assertNotNull(user);
 		
-		assertUser(user);
+		assertUserBar(user);
 	}
 	
 	@Test
@@ -99,7 +101,7 @@ public class TestPrismParsing {
 		System.out.println(user.dump());
 		assertNotNull(user);
 		
-		assertUser(user);
+		assertUserBar(user);
 	}
 	
 	@Test
@@ -120,7 +122,7 @@ public class TestPrismParsing {
 		System.out.println(user.dump());
 		assertNotNull(user);
 		
-		assertUser(user);
+		assertUserBar(user);
 	}
 
 	
@@ -148,7 +150,7 @@ public class TestPrismParsing {
 		assertNotNull(originalUser);
 		
 		// precondition
-		assertUser(originalUser);
+		assertUserBar(originalUser);
 		
 		// WHEN
 		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(originalUser);
@@ -164,20 +166,104 @@ public class TestPrismParsing {
 		System.out.println(parsedUser.dump());
 		assertNotNull(parsedUser);
 
-		assertUser(parsedUser);
+		assertUserBar(parsedUser);
 		
 		assertTrue("Users not equal", originalUser.equals(parsedUser));
 	}
+	
+	@Test
+	public void testPrismParseFileAdhoc() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testPrismParseFileAdhoc ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_ADHOC_FILE);
+		
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.dump());
+		assertNotNull(user);
+		
+		assertUserAdhoc(user);
+	}
+	
+	@Test
+	public void testPrismParseDomAdhoc() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testPrismParseDomAdhoc ]===");
+		
+		// GIVEN
+		Document document = DOMUtil.parseFile(USER_JACK_ADHOC_FILE);
+		Element userElement = DOMUtil.getFirstChildElement(document);
+		
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(userElement);
+		
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.dump());
+		assertNotNull(user);
+		
+		assertUserAdhoc(user);
+	}
+	
+	@Test
+	public void testRoundTripAdhoc() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testRoundTripAdhoc ]===");
+		
+		roundTripAdhoc(USER_JACK_ADHOC_FILE);
+	}
 
+	private void roundTripAdhoc(File file) throws SchemaException, SAXException, IOException {
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		PrismObject<UserType> originalUser = prismContext.parseObject(file);
+	
+		System.out.println("Input parsed user:");
+		System.out.println(originalUser.dump());
+		assertNotNull(originalUser);
+		
+		// precondition
+		assertUserAdhoc(originalUser);
+		
+		// WHEN
+		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(originalUser);
+	
+		// THEN
+		System.out.println("Serialized user:");
+		System.out.println(userXml);
+		assertNotNull(userXml);
+		
+		// WHEN
+		PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
+		System.out.println("Re-parsed user:");
+		System.out.println(parsedUser.dump());
+		assertNotNull(parsedUser);
+
+		assertUserAdhoc(parsedUser);
+		
+		assertTrue("Users not equal", originalUser.equals(parsedUser));
+	}
 	
 //  Cannot be tested here, as the JAXB classes are not properly generated. It is tested in "schema" component now.
 //	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
 //	}
 	
-	private void assertUser(PrismObject<UserType> user) {
+	private void assertUserBar(PrismObject<UserType> user) {
 		user.checkConsistence();
 		assertUserContent(user);
-		assertVisitor(user);
+		assertUserExtensionBar(user);
+		assertVisitor(user,42);
+	}
+	
+	private void assertUserAdhoc(PrismObject<UserType> user) {
+		user.checkConsistence();
+		assertUserContent(user);
+		assertUserExtensionAdhoc(user);
+		assertVisitor(user, 36);
 	}
 	
 	private void assertUserContent(PrismObject<UserType> user) {
@@ -195,6 +281,63 @@ public class TestPrismParsing {
 		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "name", "jack");
 		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
+		
+		PropertyPath enabledPath = USER_ENABLED_PATH;
+		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);
+		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
+		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
+		PrismAsserts.assertPropertyValue(enabledProperty1, true);
+		
+		PrismProperty<XMLGregorianCalendar> validFromProperty = user.findProperty(USER_VALID_FROM_PATH);
+		assertNotNull("Property "+USER_VALID_FROM_PATH+" not found", validFromProperty);
+		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
+				
+		QName actName = new QName(NS_FOO,"activation");
+		// Use path
+		PropertyPath actPath = new PropertyPath(actName);
+		PrismContainer<ActivationType> actContainer1 = user.findContainer(actPath);
+		assertContainerDefinition(actContainer1, "activation", ACTIVATION_TYPE_QNAME, 0, 1);
+		assertNotNull("Property "+actPath+" not found", actContainer1);
+		assertEquals("Wrong activation name",actName,actContainer1.getName());
+		// Use name
+		PrismContainer<ActivationType> actContainer2 = user.findContainer(actName);
+		assertNotNull("Property "+actName+" not found", actContainer2);
+		assertEquals("Wrong activation name",actName,actContainer2.getName());
+		// Compare
+		assertEquals("Eh?",actContainer1,actContainer2);
+		
+		PrismProperty<Boolean> enabledProperty2 = actContainer1.findProperty(new QName(NS_FOO,"enabled"));
+		assertNotNull("Property enabled not found", enabledProperty2);
+		PrismAsserts.assertPropertyValue(enabledProperty2, true);
+		assertEquals("Eh?",enabledProperty1,enabledProperty2);
+		
+		QName assName = new QName(NS_FOO,"assignment");
+		QName descriptionName = new QName(NS_FOO,"description");
+		PrismContainer<AssignmentType> assContainer = user.findContainer(assName);
+		assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
+		PrismProperty<String> a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
+		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
+		
+		PropertyPath a1Path = new PropertyPath(new PropertyPathSegment(assName, USER_ASSIGNMENT_1_ID),
+				new PropertyPathSegment(descriptionName));
+		PrismProperty a1Property = user.findProperty(a1Path);
+		assertNotNull("Property "+a1Path+" not found", a1Property);
+		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");
+		
+		PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
+		assertNotNull("Reference "+USER_ACCOUNTREF_QNAME+" not found", accountRef);
+		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
+		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111");
+		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112");
+		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113");
+		PrismReferenceValue accountRefVal2 = accountRef.findValueByOid("c0c010c0-d34d-b33f-f00d-aaaaaaaa1112");
+		assertEquals("Wrong oid for accountRef", "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112", accountRefVal2.getOid());
+		assertEquals("Wrong accountRef description", "This is a reference with a filter", accountRefVal2.getDescription());
+		assertNotNull("No filter in accountRef", accountRefVal2.getFilter());
+		
+	}
+	
+	private void assertUserExtensionBar(PrismObject<UserType> user) {
 		
 		PrismContainer<?> extension = user.getExtension();
 		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
@@ -214,61 +357,29 @@ public class TestPrismParsing {
 		assertNotNull("No definition for bar", barPropertyDef);
 		PrismAsserts.assertDefinition(barPropertyDef, USER_EXT_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
 		
-		PropertyPath enabledPath = USER_ENABLED_PATH;
-		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);
-		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
-		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
-		PrismAsserts.assertPropertyValue(enabledProperty1, true);
+	}
+
+	private void assertUserExtensionAdhoc(PrismObject<UserType> user) {
 		
-		PrismProperty<XMLGregorianCalendar> validFromProperty = user.findProperty(USER_VALID_FROM_PATH);
-		assertNotNull("Property "+USER_VALID_FROM_PATH+" not found", validFromProperty);
-		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
-				
-		QName actName = new QName(NS_FOO,"activation");
-		// Use path
-		PropertyPath actPath = new PropertyPath(actName);
-		PrismContainer actContainer1 = user.findContainer(actPath);
-		assertContainerDefinition(actContainer1, "activation", ACTIVATION_TYPE_QNAME, 0, 1);
-		assertNotNull("Property "+actPath+" not found", actContainer1);
-		assertEquals("Wrong activation name",actName,actContainer1.getName());
-		// Use name
-		PrismContainer actContainer2 = user.findContainer(actName);
-		assertNotNull("Property "+actName+" not found", actContainer2);
-		assertEquals("Wrong activation name",actName,actContainer2.getName());
-		// Compare
-		assertEquals("Eh?",actContainer1,actContainer2);
+		PrismContainer<?> extension = user.getExtension();
+		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+		PrismContainerValue<?> extensionValue = extension.getValue();
+		assertTrue("Extension parent", extensionValue.getParent() == extension);
+		assertNull("Extension ID", extensionValue.getId());
+		PrismAsserts.assertPropertyValue(extension, USER_ADHOC_BOTTLES_ELEMENT, 20);
 		
-		PrismProperty enabledProperty2 = actContainer1.findProperty(new QName(NS_FOO,"enabled"));
-		assertNotNull("Property enabled not found", enabledProperty2);
-		PrismAsserts.assertPropertyValue(enabledProperty2, true);
-		assertEquals("Eh?",enabledProperty1,enabledProperty2);
+		PropertyPath bottlesPath = new PropertyPath(new QName(NS_FOO,"extension"), USER_ADHOC_BOTTLES_ELEMENT);
+		PrismProperty<Integer> bottlesProperty = user.findProperty(bottlesPath);
+		assertNotNull("Property "+bottlesPath+" not found", bottlesProperty);
+		PrismAsserts.assertPropertyValue(bottlesProperty, 20);
+		PrismPropertyDefinition bottlesPropertyDef = bottlesProperty.getDefinition();
+		assertNotNull("No definition for bottles", bottlesPropertyDef);
+		PrismAsserts.assertDefinition(bottlesPropertyDef, USER_ADHOC_BOTTLES_ELEMENT, DOMUtil.XSD_INTEGER, 1, -1);
+		assertTrue("Bottles definition is NOT dynamic", bottlesPropertyDef.isDynamic());
 		
-		QName assName = new QName(NS_FOO,"assignment");
-		QName descriptionName = new QName(NS_FOO,"description");
-		PrismContainer assContainer = user.findContainer(assName);
-		assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
-		PrismProperty a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
-		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
-		
-		PropertyPath a1Path = new PropertyPath(new PropertyPathSegment(assName, USER_ASSIGNMENT_1_ID),
-				new PropertyPathSegment(descriptionName));
-		PrismProperty a1Property = user.findProperty(a1Path);
-		assertNotNull("Property "+a1Path+" not found", a1Property);
-		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");
-		
-		PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
-		assertNotNull("Reference "+USER_ACCOUNTREF_QNAME+" not found", accountRef);
-		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
-		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111");
-		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112");
-		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113");
-		PrismReferenceValue accountRefVal2 = accountRef.findValueByOid("c0c010c0-d34d-b33f-f00d-aaaaaaaa1112");
-		assertEquals("Wrong oid for accountRef", "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112", accountRefVal2.getOid());
-		assertEquals("Wrong accountRef description", "This is a reference with a filter", accountRefVal2.getDescription());
-		assertNotNull("No filter in accountRef", accountRefVal2.getFilter());
 	}
 	
-	private void assertVisitor(PrismObject<UserType> user) {
+	private void assertVisitor(PrismObject<UserType> user, int expectedVisits) {
 		final List<Visitable> visits = new ArrayList<Visitable>();
 		Visitor visitor = new Visitor() {
 			@Override
@@ -278,7 +389,7 @@ public class TestPrismParsing {
 			}
 		};
 		user.accept(visitor);
-		assertEquals("Wrong number of visits", 42, visits.size());
+		assertEquals("Wrong number of visits", expectedVisits, visits.size());
 	}
 	
 	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,

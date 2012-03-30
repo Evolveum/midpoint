@@ -62,6 +62,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final File USER_JACK_FILE = new File(OBJECT_DIR_PATH, "user-jack.xml");
 	public static final File USER_JACK_OBJECT_FILE = new File(OBJECT_DIR_PATH, "user-jack-object.xml");
 	public static final File USER_JACK_MODIFIED_FILE = new File(OBJECT_DIR_PATH, "user-jack-modified.xml");
+	public static final File USER_JACK_ADHOC_FILE = new File(OBJECT_DIR_PATH, "user-jack-adhoc.xml");
 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	public static final XMLGregorianCalendar USER_JACK_VALID_FROM = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
 
@@ -71,6 +72,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String NS_USER_EXT = "http://example.com/xml/ns/user-extension";
 	public static final String NS_ROOT = "http://example.com/xml/ns/test/root.xsd";
 	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
+	public static final String NS_ADHOC = "http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd";
 	
 	// FOO schema
 	public static final QName USER_QNAME = new QName(NS_FOO,"user");
@@ -128,6 +130,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName USER_EXT_NUM_ELEMENT = new QName(NS_USER_EXT, "num");
 	public static final QName USER_EXT_MULTI_ELEMENT = new QName(NS_USER_EXT, "multi");
 
+	public static final QName USER_ADHOC_BOTTLES_ELEMENT = new QName(NS_ADHOC, "bottles");
 	
 	public static PrismContext constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
 		PrismContext context = constructPrismContext();
