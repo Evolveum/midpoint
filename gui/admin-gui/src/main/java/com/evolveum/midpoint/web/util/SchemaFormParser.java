@@ -100,7 +100,7 @@ public class SchemaFormParser {
         return valueMap.get(key);
     }
 
-    private FormAttributeDefinition createFormAttributeDefinition(PrismPropertyDefinition def) {
+    private FormAttributeDefinition createFormAttributeDefinition(ResourceAttributeDefinition def) {
         FormAttributeDefinitionBuilder builder = new FormAttributeDefinitionBuilder();
         if (def.getAllowedValues() != null) {
             List<Object> availableValues = new ArrayList<Object>();
@@ -216,10 +216,8 @@ public class SchemaFormParser {
         ResourceDto resource = account.getResource();
         PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource.getXmlObject(), prismContext);
         // schema.updateSchemaAccess(resource.getXmlObject().getSchemaHandling());
-//        ResourceAttributeContainerDefinition definition = (ResourceAttributeContainerDefinition) schema
-//                .findComplexTypeDefinition(accountType).findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
-        ObjectClassComplexTypeDefinition definition = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(accountType);
-//        ResourceAttributeContainerDefinition definition = (ResourceAttributeContainerDefinition) complexDefinition.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+        ObjectClassComplexTypeDefinition def = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(accountType);
+        ResourceAttributeContainerDefinition definition = def.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
         if (definition == null) {
             throw new SchemaException("Account definition for type '" + accountType + "' was not found.");
         }
@@ -227,8 +225,8 @@ public class SchemaFormParser {
 
         FormObject object = new FormObject(definition.getTypeName(), getDisplayName(resource, definition));
         Map<List<QName>, List<Object>> valueMap = createAttributeValueMap(account.getAttributes());
-        for (ItemDefinition property : definition.getDefinitions()) {
-            if (!(property instanceof PrismPropertyDefinition)) {
+        for (PrismPropertyDefinition property : definition.getAttributeDefinitions()) {
+            if (!(property instanceof ResourceAttributeDefinition)) {
                 continue;
             }
             if (property.isIgnored()) {
@@ -237,7 +235,7 @@ public class SchemaFormParser {
             }
             LOGGER.trace("Attr. definition: " + property.getName());
 
-            FormAttributeDefinition attrDefinition = createFormAttributeDefinition((PrismPropertyDefinition)property);
+            FormAttributeDefinition attrDefinition = createFormAttributeDefinition((ResourceAttributeDefinition)property);
             List<Object> values = getAttributeValues(valueMap, property.getName());
             object.getAttributes().add(new FormAttribute(attrDefinition, values));
         }
@@ -246,7 +244,7 @@ public class SchemaFormParser {
         return object;
     }
 
-    private String getDisplayName(ResourceDto resource, ComplexTypeDefinition definition) {
+    private String getDisplayName(ResourceDto resource, ResourceAttributeContainerDefinition definition) {
         StringBuilder displayName = new StringBuilder();
         displayName.append(resource.getName());
         displayName.append(": ");
