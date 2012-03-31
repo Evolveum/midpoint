@@ -2764,6 +2764,9 @@ public class TestSanity extends AbstractIntegrationTest {
         display("Import task after finish (fetched from model)", task);
 
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+        
+        assertNotNull("Null lastRunStartTimestamp in "+task, task.getLastRunStartTimestamp());
+        assertNotNull("Null lastRunFinishTimestamp in "+task, task.getLastRunFinishTimestamp());
 
         long importDuration = task.getLastRunFinishTimestamp() - task.getLastRunStartTimestamp();
         double usersPerSec = (task.getProgress() * 1000) / importDuration;

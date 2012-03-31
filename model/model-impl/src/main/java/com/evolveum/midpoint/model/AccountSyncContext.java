@@ -343,7 +343,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     	}
     	if (accountSyncDelta != null) {
     		try {
-    			accountSecondaryDelta.checkConsistence();
+    			accountSyncDelta.checkConsistence();
     		} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in account sync delta in "+this, e);
 			} catch (IllegalStateException e) {

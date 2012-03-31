@@ -153,7 +153,8 @@ public class TestPrismParsing {
 		assertUserBar(originalUser);
 		
 		// WHEN
-		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(originalUser);
+		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
+		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(originalUser, true);
 	
 		// THEN
 		System.out.println("Serialized user:");
@@ -230,7 +231,8 @@ public class TestPrismParsing {
 		assertUserAdhoc(originalUser);
 		
 		// WHEN
-		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(originalUser);
+		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
+		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(originalUser, true);
 	
 		// THEN
 		System.out.println("Serialized user:");

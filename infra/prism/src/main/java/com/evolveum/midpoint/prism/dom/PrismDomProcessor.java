@@ -772,7 +772,12 @@ public class PrismDomProcessor {
 	 * DOM-compliant.
 	 */
 	public Element serializeToDom(PrismObject<?> object) throws SchemaException {
+		return serializeToDom(object, false);
+	}
+	
+	public Element serializeToDom(PrismObject<?> object, boolean serializeCompositeObjects) throws SchemaException {
 		DomSerializer domSerializer = new DomSerializer(getPrismContext());
+		domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
 		return domSerializer.serialize(object);
 	}
 
@@ -783,8 +788,12 @@ public class PrismDomProcessor {
         return domSerializer.serializeContainerValue(object, parentElement);
     }
 
-	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {
-		Element element = serializeToDom(object);
+    public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {
+    	return serializeObjectToString(object, false);
+    }
+    
+	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object, boolean serializeCompositeObjects) throws SchemaException {
+		Element element = serializeToDom(object, serializeCompositeObjects);
 		return DOMUtil.serializeDOMToString(element);
 	}
 

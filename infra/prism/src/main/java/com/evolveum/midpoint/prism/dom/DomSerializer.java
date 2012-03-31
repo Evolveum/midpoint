@@ -58,10 +58,19 @@ public class DomSerializer {
 	private PrismContext prismContext;
 	private Document doc;
 	private Element topElement;
+	private boolean serializeCompositeObjects = false;
 	
 	DomSerializer(PrismContext prismContext) {
 		super();
 		this.prismContext = prismContext;
+	}
+	
+	public boolean isSerializeCompositeObjects() {
+		return serializeCompositeObjects;
+	}
+
+	public void setSerializeCompositeObjects(boolean serializeCompositeObjects) {
+		this.serializeCompositeObjects = serializeCompositeObjects;
 	}
 
 	private DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
@@ -191,7 +200,7 @@ public class DomSerializer {
 	}
 
 	private void serialize(PrismReferenceValue value, Element parentElement) throws SchemaException {
-		if (value.getObject() != null) {
+		if (serializeCompositeObjects && value.getObject() != null) {
 			serializeObject(value, parentElement);
 		} else {
 			serializeRef(value, parentElement);

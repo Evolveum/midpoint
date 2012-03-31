@@ -230,27 +230,27 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             return new SynchronizationSituation(null, SynchronizationSituationType.DELETED);
         }
 
-        ResourceObjectShadowType resourceShadow = change.getCurrentShadow().asObjectable();
+        PrismObject<? extends ResourceObjectShadowType> resourceShadow = change.getCurrentShadow();
         
         ObjectDelta syncDelta = change.getObjectDelta();
         if (resourceShadow == null && syncDelta != null
                 && ChangeType.ADD.equals(syncDelta.getChangeType())) {
             LOGGER.debug("Trying to compute current shadow from change delta add.");
-            PrismObject<ResourceObjectShadowType> shadow =
+            PrismObject<? extends ResourceObjectShadowType> shadow =
                     syncDelta.computeChangedObject(syncDelta.getObjectToAdd());
-            resourceShadow = (ResourceObjectShadowType) shadow.asObjectable();
+            resourceShadow = shadow;
             change.setCurrentShadow(shadow);
         }
         Validate.notNull(resourceShadow, "Current shadow must not be null.");
 
         ResourceType resource = change.getResource().asObjectable();
-        validateResourceInShadow(resourceShadow, resource);
+        validateResourceInShadow(resourceShadow.asObjectable(), resource);
 
         SynchronizationType synchronization = resource.getSynchronization();
 
         SynchronizationSituationType state = null;
         LOGGER.debug("CORRELATION: Looking for list of users based on correlation rule.");
-        List<PrismObject<UserType>> users = findUsersByCorrelationRule(resourceShadow, synchronization.getCorrelation(), result);
+        List<PrismObject<UserType>> users = findUsersByCorrelationRule(resourceShadow.asObjectable(), synchronization.getCorrelation(), result);
         if (users == null) {
             users = new ArrayList<PrismObject<UserType>>();
         }
@@ -260,7 +260,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                 LOGGER.debug("CONFIRMATION: no confirmation defined.");
             } else {
                 LOGGER.debug("CONFIRMATION: Checking users from correlation with confirmation rule.");
-                users = findUserByConfirmationRule(users, resourceShadow, synchronization.getConfirmation(), result);
+                users = findUserByConfirmationRule(users, resourceShadow.asObjectable(), synchronization.getConfirmation(), result);
             }
         } else {
             LOGGER.debug("CORRELATION: found {} users.", users.size());

@@ -36,13 +36,13 @@ public class ImportConstants {
 	/**
 	 * Schema URI for import extensions.
 	 */
-	public static final String IMPORT_EXTENSION_SCHEMA = IMPORT_URI_PREFIX + "/extension-1.xsd";
+	public static final String IMPORT_EXTENSION_SCHEMA = IMPORT_URI_PREFIX + "/extension-2";
 
 	/**
 	 * Extension property that specifies object class to import.
 	 */
-	public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA,"objectclass");
+	public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA, "objectclass");
 
-	public static final QName FILENAME_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA,"filename");
+	public static final QName FILENAME_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA, "filename");
 	
 }
