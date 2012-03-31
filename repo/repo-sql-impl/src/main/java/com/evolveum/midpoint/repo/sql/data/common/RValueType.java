@@ -53,7 +53,7 @@ public enum RValueType {
     public static RValueType getTypeFromItemClass(Class<? extends Item> clazz) {
         Validate.notNull(clazz, "Class must not be null.");
         for (RValueType value : RValueType.values()) {
-            if (value.getItemClass().equals(clazz)) {
+            if (value.getItemClass().isAssignableFrom(clazz)) {
                 return value;
             }
         }
@@ -64,7 +64,7 @@ public enum RValueType {
     public static RValueType getTypeFromValueClass(Class<? extends PrismValue> clazz) {
         Validate.notNull(clazz, "Class must not be null.");
         for (RValueType value : RValueType.values()) {
-            if (value.getValueClass().equals(clazz)) {
+            if (value.getValueClass().isAssignableFrom(clazz)) {
                 return value;
             }
         }
