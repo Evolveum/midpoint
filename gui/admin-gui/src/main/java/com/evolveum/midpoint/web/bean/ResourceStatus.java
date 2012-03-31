@@ -50,4 +50,5 @@ public enum ResourceStatus {
 	public String getTitle() {
 		return title;
 	}
+	
 }

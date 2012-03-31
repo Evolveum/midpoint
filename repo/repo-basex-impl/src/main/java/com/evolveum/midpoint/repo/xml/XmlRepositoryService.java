@@ -140,7 +140,7 @@ public class XmlRepositoryService implements RepositoryService {
 			object.setName(object.getDefinition().getName());
 		}
 
-		if (object.getName() == null) {
+		if (object.asObjectable().getName() == null) {
 			String message = "Attempt to add object without name";
 			result.recordFatalError(message);
 			throw new SchemaException(message);

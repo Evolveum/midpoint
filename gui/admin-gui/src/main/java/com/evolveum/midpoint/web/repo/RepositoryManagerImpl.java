@@ -124,14 +124,14 @@ public class RepositoryManagerImpl implements RepositoryManager {
     }
 
     @Override
-    public PrismObject getObject(String oid) {
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid) {
         Validate.notEmpty(oid, "Oid must not be null.");
         LOGGER.debug("Getting object with oid {}.", new Object[]{oid});
 
         OperationResult result = new OperationResult(GET_OBJECT);
-        PrismObject object = null;
+        PrismObject<T> object = null;
         try {
-            object = repositoryService.getObject(ObjectType.class, oid,
+            object = repositoryService.getObject(type, oid,
                     new PropertyReferenceListType(), result);
             result.recordSuccess();
         } catch (Exception ex) {

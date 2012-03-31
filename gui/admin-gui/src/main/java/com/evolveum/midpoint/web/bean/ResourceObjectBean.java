@@ -33,8 +33,8 @@ public class ResourceObjectBean extends ObjectBean {
 	private static final long serialVersionUID = 3229226312145337162L;
 	private Map<String, String> attributes;
 
-	public ResourceObjectBean(String oid, String name, Map<String, String> attributes) {
-		super(oid, name);
+	public ResourceObjectBean(String oid, String name, Class type, Map<String, String> attributes) {
+		super(oid, name, type);
 		this.attributes = attributes;
 	}
 

@@ -46,7 +46,7 @@ public interface RepositoryManager {
 
     ResultList<PrismObject<ObjectType>> searchObjects(String name);
 
-	PrismObject<?> getObject(String oid);
+    <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid);
 
 	boolean saveObject(PrismObject<?> object, String xml);
 

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.bean;
 import java.io.Serializable;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 /**
  * 
@@ -35,9 +36,19 @@ public class ObjectBean implements Serializable {
 	private String name;
 	private String oid;
 	private String description;
+	private Class type;
 	
-	public ObjectBean(String oid, String name) {
-		this(oid, name, null);
+	public ObjectBean(String oid, String name, Class<?> type) {
+		if (StringUtils.isEmpty(oid)) {
+			throw new IllegalArgumentException("Oid can't be null.");
+		}
+		if (StringUtils.isEmpty(name)) {
+			throw new IllegalArgumentException("Name can't be null.");
+		}
+		Validate.notNull(type, "Type can't be null.");
+		this.oid = oid;
+		this.name = name;
+		this.type = type;
 	}
 	
 	public ObjectBean() {
@@ -54,7 +65,8 @@ public class ObjectBean implements Serializable {
 		this.name = name;
 		this.description = description;
 	}
-
+	
+	
 	public String getName() {
 		return name;
 	}
@@ -65,5 +77,9 @@ public class ObjectBean implements Serializable {
 
 	public String getDescription() {
 		return description;
+	}
+	
+	public Class getType(){
+		return type;
 	}
 }

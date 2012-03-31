@@ -199,7 +199,7 @@ public class RoleEditController implements Serializable {
 		}
 
 		try {
-			PrismObject<?> objectType = repositoryManager.getObject(role.getOid());
+			PrismObject<?> objectType = repositoryManager.getObject(role.getXmlObject().getClass(), role.getOid());
 			if (objectType == null) {
 				return RoleListController.PAGE_NAVIGATION_LIST;
 			}

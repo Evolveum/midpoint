@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.web.bean;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
 
 /**
  * 
@@ -29,14 +31,15 @@ package com.evolveum.midpoint.web.bean;
 public class BrowserItem extends ObjectBean {
 
 	private static final long serialVersionUID = -1239170551953243552L;
-	private String type;
+//	private String type;
 
 	public BrowserItem(String oid, String name, String type) {
-		super(oid, name);
-		this.type = type;
+		super(oid, name, ObjectTypes.getObjectTypeClass(type));
+		
+//		this.type = type;
 	}
 
-	public String getType() {
-		return type;
-	}
+//	public String getType() {
+//		return type;
+//	}
 }

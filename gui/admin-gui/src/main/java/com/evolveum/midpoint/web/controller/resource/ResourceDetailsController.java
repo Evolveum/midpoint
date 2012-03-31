@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 @Controller("resourceDetails")
 @Scope("session")
@@ -104,7 +105,7 @@ public class ResourceDetailsController extends ListController<ResourceObjectType
 	}
 
 	public String showDebugPages() {
-		debugView.setObject(new ObjectBean(getResource().getOid(), getResource().getName()));
+		debugView.setObject(new ObjectBean(getResource().getOid(), getResource().getName(), ResourceType.class));
 		debugView.setEditOther(false);
 		String returnPage = debugView.viewObject();
 		if (DebugViewController.PAGE_NAVIGATION.equals(returnPage)) {

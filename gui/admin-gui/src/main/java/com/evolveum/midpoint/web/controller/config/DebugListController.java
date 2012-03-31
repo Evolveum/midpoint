@@ -141,7 +141,7 @@ public class DebugListController extends ListController<ObjectBean> {
 
 		getObjects().clear();
 		for (ObjectType object : list) {
-			getObjects().add(new ObjectBean(object.getOid(), object.getName()));
+			getObjects().add(new ObjectBean(object.getOid(), object.getName(), object.getClass()));
 		}
 
 		if (getObjects().isEmpty()) {

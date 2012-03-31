@@ -191,7 +191,7 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 
 			}
 
-			getObjects().add(new ResourceObjectBean(oid, name, attributes));
+			getObjects().add(new ResourceObjectBean(oid, name, objectType.getClass(), attributes));
 		}
 //
 //		if (!getObjects().isEmpty()) {

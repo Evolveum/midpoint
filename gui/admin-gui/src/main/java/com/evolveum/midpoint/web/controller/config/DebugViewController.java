@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -171,7 +172,7 @@ public class DebugViewController implements Serializable {
 			}
 			PrismObject<ObjectType> prismObject = list.get(0);
             ObjectType objectType = prismObject.asObjectable();
-			object = new ObjectBean(objectType.getOid(), objectType.getName());
+			object = new ObjectBean(objectType.getOid(), objectType.getName(), objectType.getClass());
             
             PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
             xml = jaxbProcessor.marshalElementToString(objectType);
@@ -192,19 +193,14 @@ public class DebugViewController implements Serializable {
 		}
 
 		try {
-			PrismObject<?> prismObject = repositoryManager.getObject(object.getOid());
+			PrismObject<?> prismObject = repositoryManager.getObject(object.getType(), object.getOid());
 			if (prismObject == null) {
 				return DebugListController.PAGE_NAVIGATION;
 			}
-            ObjectType objectType = (ObjectType) prismObject.asObjectable();
-			object = new ObjectBean(objectType.getOid(), objectType.getName());
-            PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
-            xml =jaxbProcessor.marshalElementToString(objectType);
-		} catch (JAXBException ex) {
-			LoggingUtils.logException(TRACE, "Couldn't show object {} in editor", ex, object.getName());
-			FacesUtils.addErrorMessage("Couldn't show object '" + object.getName() + "' in editor.", ex);
-
-			return DebugListController.PAGE_NAVIGATION;
+//            ObjectType objectType = (ObjectType) prismObject.asObjectable();
+//			object = new ObjectBean(objectType.getOid(), objectType.getName(), objectType.getClass());
+            PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+            xml = domProcessor.serializeObjectToString(prismObject);
 		} catch (Exception ex) {
 			LoggingUtils.logException(TRACE, "Unknown error occured.", ex);
 			FacesUtils.addErrorMessage("Unknown error occured.", ex);
