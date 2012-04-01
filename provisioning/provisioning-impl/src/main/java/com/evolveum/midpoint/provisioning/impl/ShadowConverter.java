@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -311,7 +312,7 @@ public class ShadowConverter {
 		if (shadow instanceof AccountShadowType) {
 
 			// Look for password change
-			PasswordChangeOperation passwordChangeOp = determinePasswordChange(objectChanges, shadow);
+			Operation passwordChangeOp = determinePasswordChange(objectChanges, shadow);
 			if (passwordChangeOp != null) {
 				operations.add(passwordChangeOp);
 			}
@@ -556,7 +557,7 @@ public class ShadowConverter {
 		return null;
 	}
 
-	private PasswordChangeOperation determinePasswordChange(Collection<? extends ItemDelta> objectChange,
+	private Operation determinePasswordChange(Collection<? extends ItemDelta> objectChange,
 			ResourceObjectShadowType objectType) throws SchemaException {
 		// Look for password change
 		
@@ -567,7 +568,7 @@ public class ShadowConverter {
 		}
 		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue();
 		
-		PasswordChangeOperation passwordChangeOp = null;
+		PropertyModificationOperation passwordChangeOp = null;
 		if (newPasswordStructure != null) {
 			ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
 			if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
@@ -575,7 +576,7 @@ public class ShadowConverter {
 						"ProtectedString is empty in an attempt to change password of "
 								+ ObjectTypeUtil.toShortString(objectType));
 			}
-			passwordChangeOp = new PasswordChangeOperation(newPasswordPS);
+			passwordChangeOp = new PropertyModificationOperation(passwordPropertyDelta);
 			// TODO: other things from the structure
 			// changes.add(passwordChangeOp);
 		}
@@ -597,6 +598,9 @@ public class ShadowConverter {
 				}
 				PropertyModificationOperation attributeModification = new PropertyModificationOperation((PropertyDelta)itemDelta);
 				changes.add(attributeModification);
+			} else if (itemDelta instanceof ContainerDelta){
+				//skip the container delta - most probably password change - it is processed earlier
+				continue;
 			} else {
 				throw new UnsupportedOperationException("Not supported delta: "+itemDelta);
 			}

@@ -90,7 +90,7 @@ public class ResourceObjectShadowDto<T extends ResourceObjectShadowType> extends
 		}
 
 		// set means, clear old attributes and set new ones
-		attrElement.getAny().clear();
+		attrElement.asPrismContainerValue().removeAll();
 		attrElement.getAny().addAll(attributes);
 	}
 

@@ -54,201 +54,183 @@ import java.util.*;
  * @author lazyman
  */
 public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, AccountShadowDto> implements
-        AccountManager {
+		AccountManager {
 
-    private static final long serialVersionUID = 3793939681394774533L;
-    private static final Trace LOGGER = TraceManager.getTrace(AccountManagerImpl.class);
+	private static final long serialVersionUID = 3793939681394774533L;
+	private static final Trace LOGGER = TraceManager.getTrace(AccountManagerImpl.class);
 
-    @Autowired(required = true)
-    private PrismContext prismContext;
+	@Autowired(required = true)
+	private PrismContext prismContext;
 
-    @Override
-    public Collection<AccountShadowDto> list(PagingType paging) {
-        return list(paging, ObjectTypes.ACCOUNT);
-    }
+	@Override
+	public Collection<AccountShadowDto> list(PagingType paging) {
+		return list(paging, ObjectTypes.ACCOUNT);
+	}
 
-    @Override
-    protected Class<? extends ObjectType> getSupportedObjectClass() {
-        return AccountShadowType.class;
-    }
+	@Override
+	protected Class<? extends ObjectType> getSupportedObjectClass() {
+		return AccountShadowType.class;
+	}
 
-    @Override
-    protected AccountShadowDto createObject(AccountShadowType objectType) {
-        return new AccountShadowDto(objectType);
-    }
+	@Override
+	protected AccountShadowDto createObject(AccountShadowType objectType) {
+		return new AccountShadowDto(objectType);
+	}
 
-    @Override
-    public Set<PropertyChange> submit(AccountShadowDto changedObject, Task task, OperationResult parentResult) {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public Set<PropertyChange> submit(AccountShadowDto changedObject, Task task, OperationResult parentResult) {
+		throw new UnsupportedOperationException();
+	}
 
-    @Override
-    public Set<PropertyChange> submit(AccountShadowDto changedObject, List<AccountShadowType> oldAccounts, Task task,
-            OperationResult parentResult) {
-        Validate.notNull(changedObject, "Changed account must not be null.");
-        OperationResult result = parentResult.createSubresult(AccountManager.SUBMIT);
+	@Override
+	public Set<PropertyChange> submit(AccountShadowDto changedObject, List<AccountShadowType> oldAccounts,
+			Task task, OperationResult parentResult) {
+		Validate.notNull(changedObject, "Changed account must not be null.");
+		OperationResult result = parentResult.createSubresult(AccountManager.SUBMIT);
 
-        AccountShadowDto oldObject = null;
+		AccountShadowDto oldObject = null;
 
-//		try {
-        AccountShadowType accountShadowType = findAccount(changedObject.getOid(), oldAccounts);
-        //AccountShadowType accountShadowType = getModel().getObject(AccountShadowType.class, changedObject.getOid(), null, result);
-        //get(changedObject.getOid(), Utils.getResolveResourceList());
-        oldObject = createObject(accountShadowType);
-//		} catch (ObjectNotFoundException ex) {
-//			// TODO: fix this statement better
-//			LoggingUtils.logException(LOGGER, "Couldn't update account {}, because it doesn't exists", ex,
-//					changedObject.getName());
-//			// TODO: this state should be fix, because need to be tested if accounts exists yet
-//			
-//			result.recordSuccess();
-//			//result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-//			return new HashSet<PropertyChange>();
-//		} catch (SchemaException ex) {
-//			LoggingUtils.logException(LOGGER, "Couldn't update account {}, schema error", ex,
-//					changedObject.getName());
-//			result.recordFatalError("Couldn't update account '" + changedObject.getName()
-//					+ "', schema error.", ex);
-//			result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-//			return new HashSet<PropertyChange>();
-//		}
+		// try {
+		AccountShadowType accountShadowType = findAccount(changedObject.getOid(), oldAccounts);
 
-        /*if (oldObject == null) {
-              LOGGER.debug("Couldn't update account {}, because it doesn't exists",
-                      new Object[]{changedObject.getName()});
-              result.recordFatalError("Couldn't update account '" + changedObject.getName()
-                      + "', because it doesn't exists.");
-              return new HashSet<PropertyChange>();
-          }*/
+		oldObject = createObject(accountShadowType);
 
-        if (changedObject.getActivation() != null) {
-            changedObject.getXmlObject().setActivation(changedObject.getActivation());
-        }
+		if (changedObject.getActivation() != null) {
+			changedObject.getXmlObject().setActivation(changedObject.getActivation());
+		}
 
-        try {
-            PropertyModificationType passwordChange = null;
-            // detect if password was changed
-            if (changedObject.getCredentials() != null) {
-                // if password was changed, create modification change
-                PasswordType password = changedObject.getXmlObject().getCredentials().getPassword();
-                // if password was changed, create modification change
-                List<XPathSegment> segments = new ArrayList<XPathSegment>();
-                segments.add(new XPathSegment(SchemaConstants.I_CREDENTIALS));
-                segments.add(new XPathSegment(SchemaConstants.I_PASSWORD));
-                XPathHolder xpath = new XPathHolder(segments);
-                passwordChange = ObjectTypeUtil.createPropertyModificationType(
-                        PropertyModificationTypeType.replace, xpath, SchemaConstants.R_PROTECTED_STRING,
-                        password.getProtectedString());
-                // now when modification change of password was made, clear
-                // credentials from changed user and also from old account to be not used by diff..
-                changedObject.getXmlObject().setCredentials(null);
-                oldObject.getXmlObject().setCredentials(null);
-            }
+		try {
+			PropertyModificationType passwordChange = null;
+			// detect if password was changed
+			if (changedObject.getCredentials() != null) {
+				// if password was changed, create modification change
+				PasswordType password = changedObject.getXmlObject().getCredentials().getPassword();
+				if (password != null) {
+					// if password was changed, create modification change
+					List<XPathSegment> segments = new ArrayList<XPathSegment>();
+					segments.add(new XPathSegment(SchemaConstants.I_CREDENTIALS));
+					segments.add(new XPathSegment(SchemaConstants.I_PASSWORD));
+					XPathHolder xpath = new XPathHolder(segments);
+					passwordChange = ObjectTypeUtil.createPropertyModificationType(
+							PropertyModificationTypeType.replace, xpath, SchemaConstants.R_PROTECTED_STRING,
+							password.getProtectedString());
+					// now when modification change of password was made, clear
+					// credentials from changed user and also from old account
+					// to be
+					// not used by diff..
+					
+				}
+				changedObject.getXmlObject().setCredentials(null);
+				oldObject.getXmlObject().setCredentials(null);
 
-            AccountShadowType accountOld = oldObject.getXmlObject();
-            AccountShadowType accountNew = changedObject.getXmlObject();
+			}
 
-            unresolveResource(accountOld);
-            unresolveResource(accountNew);
+			AccountShadowType accountOld = oldObject.getXmlObject();
+			AccountShadowType accountNew = changedObject.getXmlObject();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Old account:\n{}", accountOld.toString());
-                LOGGER.trace("New account:\n{}", accountOld.toString());
-            }
-            ObjectDelta<AccountShadowType> accountDelta = DiffUtil.diff(accountOld, accountNew,
-                    AccountShadowType.class, prismContext);
+			unresolveResource(accountOld);
+			unresolveResource(accountNew);
 
-            LOGGER.trace("Account delta:\n{}", accountDelta.dump());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Old account:\n{}", accountOld.toString());
+				LOGGER.trace("New account:\n{}", accountOld.toString());
+			}
+			ObjectDelta<AccountShadowType> accountDelta = DiffUtil.diff(accountOld, accountNew,
+					AccountShadowType.class, prismContext);
 
-			// if there is a password change, add it to other changes and process it.
-            if (!accountDelta.isEmpty()) {
-                    LOGGER.debug("Modifying account submited in gui. {}",
-                            ObjectTypeUtil.toShortString(changedObject.getXmlObject()));
-                    getModel().modifyObject(AccountShadowType.class, accountDelta.getOid(), 
-                            accountDelta.getModifications(), task, result);                
-            } else {
-                LOGGER.debug("No account changes detected.");
-            }
-            result.recordSuccess();
-        } catch (SchemaException ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't update account {}, schema error", ex,
-                    changedObject.getName());
-            result.recordFatalError("Couldn't update account '" + changedObject.getName()
-                    + "', schema error.", ex);
+			LOGGER.trace("Account delta:\n{}", accountDelta.dump());
 
-        } catch (ObjectNotFoundException ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't update account {}, because it doesn't exists", ex,
-                    changedObject.getName());
-            result.recordFatalError("Couldn't update account '" + changedObject.getName()
-                    + "', because it doesn't exists.", ex);
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't update account {}, reason: {}", ex, new Object[]{
-                    changedObject.getName(), ex.getMessage()});
-            result.recordFatalError("Couldn't update account '" + changedObject.getName() + "', reason: "
-                    + ex.getMessage() + ".", ex);
-        }
+			// if there is a password change, add it to other changes and
+			// process it.
+			if (!accountDelta.isEmpty()) {
+				LOGGER.debug("Modifying account submited in gui. {}",
+						ObjectTypeUtil.toShortString(changedObject.getXmlObject()));
+				getModel().modifyObject(AccountShadowType.class, accountDelta.getOid(),
+						accountDelta.getModifications(), task, result);
+			} else {
+				LOGGER.debug("No account changes detected.");
+			}
+			result.recordSuccess();
+		} catch (SchemaException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't update account {}, schema error", ex,
+					changedObject.getName());
+			result.recordFatalError("Couldn't update account '" + changedObject.getName()
+					+ "', schema error.", ex);
 
-        result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-//		ControllerUtil.printResults(LOGGER, result);
-        return new HashSet<PropertyChange>();
-    }
+		} catch (ObjectNotFoundException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't update account {}, because it doesn't exists", ex,
+					changedObject.getName());
+			result.recordFatalError("Couldn't update account '" + changedObject.getName()
+					+ "', because it doesn't exists.", ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't update account {}, reason: {}", ex, new Object[] {
+					changedObject.getName(), ex.getMessage() });
+			result.recordFatalError("Couldn't update account '" + changedObject.getName() + "', reason: "
+					+ ex.getMessage() + ".", ex);
+		}
 
-    private AccountShadowType findAccount(String oid, List<AccountShadowType> oldAccounts) {
-        for (AccountShadowType account : oldAccounts) {
-            if (oid.equals(account.getOid())) {
-                return account;
-            }
-        }
-        return null;
-    }
+		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
+		// ControllerUtil.printResults(LOGGER, result);
+		return new HashSet<PropertyChange>();
+	}
 
-    private void unresolveResource(AccountShadowType account) {
-        // Convert resource to resourceRef, so it will not create phantom changes in comparison
-        if (account.getResource() != null) {
-            account.setResourceRef(ObjectTypeUtil.createObjectRef(account.getResource()));
-            account.setResource(null);
-        }
-    }
+	private AccountShadowType findAccount(String oid, List<AccountShadowType> oldAccounts) {
+		for (AccountShadowType account : oldAccounts) {
+			if (oid.equals(account.getOid())) {
+				return account;
+			}
+		}
+		return null;
+	}
 
-    @Override
-    public UserType listOwner(String oid) {
-        Validate.notNull(oid, "Account oid must not be null.");
+	private void unresolveResource(AccountShadowType account) {
+		// Convert resource to resourceRef, so it will not create phantom
+		// changes in comparison
+		if (account.getResource() != null) {
+			account.setResourceRef(ObjectTypeUtil.createObjectRef(account.getResource()));
+			account.setResource(null);
+		}
+	}
 
-        UserType user = null;
-        OperationResult result = new OperationResult(AccountManager.SUBMIT);
-        try {
-            PrismObject<UserType> object = getModel().listAccountShadowOwner(oid, result);
-            user = object.asObjectable();
-            result.recordSuccess();
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't list owner of account oid {}", ex, oid);
-            result.recordFatalError("Couldn't list owner of account oid '" + oid + "'.", ex);
-        }
+	@Override
+	public UserType listOwner(String oid) {
+		Validate.notNull(oid, "Account oid must not be null.");
 
-        return user;
-    }
+		UserType user = null;
+		OperationResult result = new OperationResult(AccountManager.SUBMIT);
+		try {
+			PrismObject<UserType> object = getModel().listAccountShadowOwner(oid, result);
+			user = object.asObjectable();
+			result.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list owner of account oid {}", ex, oid);
+			result.recordFatalError("Couldn't list owner of account oid '" + oid + "'.", ex);
+		}
 
-    @Override
-    public ResourceCapability getResourceCapability(AccountShadowDto account) {
-        Validate.notNull(account, "Account shadow dto must not be null.");
+		return user;
+	}
 
-        ResourceCapability capability = new ResourceCapability();
-        try {
-            ResourceDto resource = account.getResource();
-            if (resource == null) {
-                ObjectReferenceDto ref = account.getResourceRef();
-                PrismObject<ResourceType> object = get(ResourceType.class, ref.getOid(),
-                        new PropertyReferenceListType());
-                resource = new ResourceDto(object.asObjectable());
-            }
+	@Override
+	public ResourceCapability getResourceCapability(AccountShadowDto account) {
+		Validate.notNull(account, "Account shadow dto must not be null.");
 
-            capability
-                    .setAccount(account, ResourceTypeUtil.getEffectiveCapabilities(resource.getXmlObject()));
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't get resource capabilities for account {}", ex,
-                    account.getName());
-        }
+		ResourceCapability capability = new ResourceCapability();
+		try {
+			ResourceDto resource = account.getResource();
+			if (resource == null) {
+				ObjectReferenceDto ref = account.getResourceRef();
+				PrismObject<ResourceType> object = get(ResourceType.class, ref.getOid(),
+						new PropertyReferenceListType());
+				resource = new ResourceDto(object.asObjectable());
+			}
 
-        return capability;
-    }
+			capability
+					.setAccount(account, ResourceTypeUtil.getEffectiveCapabilities(resource.getXmlObject()));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get resource capabilities for account {}", ex,
+					account.getName());
+		}
+
+		return capability;
+	}
 }
