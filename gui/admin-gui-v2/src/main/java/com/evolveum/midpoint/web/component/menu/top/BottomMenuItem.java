@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,42 +16,30 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.component.menu.top2;
+package com.evolveum.midpoint.web.component.menu.top;
 
 import org.apache.wicket.Page;
 
 import java.io.Serializable;
 
-public class TopMenuItem implements Serializable {
+/**
+ * @author lazyman
+ */
+public class BottomMenuItem implements Serializable {
 
     private String label;
-    private String description;
     private Class<? extends Page> page;
 
-    public TopMenuItem(String label, String description, Class<? extends Page> page) {
-        if (label == null || label.isEmpty()) {
-            throw new IllegalArgumentException("Label must not be null or empty.");
-        }
-        if (description == null || description.isEmpty()) {
-            throw new IllegalArgumentException(("Description must not be null or empty."));
-        }
-        if (page == null) {
-            throw new IllegalArgumentException("Page must not be null or empty.");
-        }
+    public BottomMenuItem(String label, Class<? extends Page> page) {
         this.label = label;
-        this.description = description;
         this.page = page;
     }
 
     public String getLabel() {
         return label;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     public Class<? extends Page> getPage() {
