@@ -21,13 +21,18 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -59,8 +64,22 @@ public class PageLogging extends PageAdmin {
     }
 
     private LoggingDto initLoggingModel() {
-        LoggingDto dto = new LoggingDto();
-        //todo implement
+        LoggingDto dto = null;
+
+        OperationResult result = new OperationResult("Get model");
+        try {
+            PrismObject<SystemConfigurationType> config = getModelService().getObject(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+            SystemConfigurationType systemConfiguration = config.asObjectable();
+            LoggingConfigurationType logging = systemConfiguration.getLogging();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            //todo implement
+        }
+        
+        if (dto == null) {
+            dto = new LoggingDto();
+        }
 
         return dto;
     }

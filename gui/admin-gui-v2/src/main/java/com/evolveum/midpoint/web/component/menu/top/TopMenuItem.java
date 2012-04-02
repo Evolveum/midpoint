@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.menu.top;
 
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.Page;
 
 import java.io.Serializable;
@@ -30,20 +31,22 @@ public class TopMenuItem implements Serializable {
     private String label;
     private String description;
     private Class<? extends Page> page;
+    private Class<? extends Page> marker;
 
     public TopMenuItem(String label, String description, Class<? extends Page> page) {
-        if (label == null || label.isEmpty()) {
-            throw new IllegalArgumentException("Label must not be null or empty.");
-        }
-        if (description == null || description.isEmpty()) {
-            throw new IllegalArgumentException(("Description must not be null or empty."));
-        }
-        if (page == null) {
-            throw new IllegalArgumentException("Page must not be null or empty.");
-        }
+        this(label, description, page, null);
+    }
+
+    public TopMenuItem(String label, String description, Class<? extends Page> page,
+            Class<? extends Page> marker) {
+        Validate.notEmpty(label, "Label must not be null or empty.");
+        Validate.notEmpty(description, "Description must not be null or empty.");
+        Validate.notNull(page, "Page must not be null or empty.");
+
         this.label = label;
         this.description = description;
         this.page = page;
+        this.marker = marker;
     }
 
     public String getLabel() {
@@ -56,5 +59,12 @@ public class TopMenuItem implements Serializable {
 
     public Class<? extends Page> getPage() {
         return page;
+    }
+
+    public Class<?> getMarker() {
+        if (marker == null) {
+            return page;
+        }
+        return marker;
     }
 }

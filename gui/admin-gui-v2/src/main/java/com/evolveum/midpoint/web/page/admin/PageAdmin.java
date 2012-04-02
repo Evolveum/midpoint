@@ -25,8 +25,13 @@ import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageAdminTasks;
+import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
 import java.util.ArrayList;
@@ -41,27 +46,24 @@ public class PageAdmin extends PageBase {
     public List<TopMenuItem> getTopMenuItems() {
         List<TopMenuItem> items = new ArrayList<TopMenuItem>();
         items.add(new TopMenuItem("pageAdmin.home", "pageAdmin.home.description", PageHome.class));
-        items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description", PageHome.class));
-        items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description", PageUsers.class));
+//        items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description", PageHome.class));
+        items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description",
+                PageUsers.class, PageAdminUsers.class));
         items.add(new TopMenuItem("pageAdmin.serverTasks", "pageAdmin.serverTasks.description",
-                PageHome.class));
-        items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description", PageUsers.class));
-        items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description", PageHome.class));
-        items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description", PageLogging.class));
+                PageAdminTasks.class));
+        items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description",
+                PageAdminRoles.class));
+        items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description",
+                PageAdminResources.class));
+        items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description",
+                PageLogging.class, PageAdminConfiguration.class));
 
         return items;
     }
 
     @Override
     public List<BottomMenuItem> getBottomMenuItems() {
-        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
-
-        items.add(new BottomMenuItem("pageAdmin.users.newUser", PageUsers.class));
-        items.add(new BottomMenuItem("pageAdmin.users.listUsers", PageUsers.class));
-        items.add(new BottomMenuItem("pageAdmin.users.something", PageUsers.class));
-        items.add(new BottomMenuItem("pageAdmin.users.whatever", PageUsers.class));
-
-        return items;
+        return new ArrayList<BottomMenuItem>();
     }
 
     @Override

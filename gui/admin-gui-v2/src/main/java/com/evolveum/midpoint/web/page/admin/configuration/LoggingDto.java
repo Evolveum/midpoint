@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
 
 import java.io.Serializable;
@@ -39,8 +40,22 @@ public class LoggingDto implements Serializable {
     private boolean auditLog;
     private boolean auditDetails;
     private String auditAppender;
-    
+
     private boolean advanced;
+
+    public LoggingDto() {
+        this(null);
+    }
+
+    public LoggingDto(LoggingConfigurationType config) {
+        if (config == null) {
+            return;
+        }
+        rootLevel = config.getRootLoggerLevel();
+        rootAppender = config.getRootLoggerAppender();
+
+        //todo implement
+    }
 
     public String getMidPointAppender() {
         return midPointAppender;

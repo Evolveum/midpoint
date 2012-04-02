@@ -65,7 +65,7 @@ public class TopMenu extends Panel {
                 link.add(new Label("topDescription", new StringResourceModel(item.getDescription(), TopMenu.this, null)));
 
                 Page page = TopMenu.this.getPage();
-                if (page != null && page.getClass().isAssignableFrom(item.getPage())) {
+                if (page != null && page.getClass().isAssignableFrom(item.getMarker())) {
                     link.add(new AttributeAppender("class", new Model("selected-top"), " "));
                 }
                 loopItem.add(link);
@@ -102,6 +102,6 @@ public class TopMenu extends Panel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new PackageResourceReference(TopMenu.class, "TopMenu2.css"));
+        response.renderCSSReference(new PackageResourceReference(TopMenu.class, "TopMenu.css"));
     }
 }

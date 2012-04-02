@@ -21,25 +21,27 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
+ * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
+ *
  * @author lazyman
  */
-public class PageUser extends PageAdminUsers {
+public class PageAdminUsers extends PageAdmin {
 
-    public static final String PARAM_USER_ID = "userId";
+    @Override
+    public List<BottomMenuItem> getBottomMenuItems() {
+        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-    public PageUser() {
-        IModel<String> model = new LoadableModel<String>() {
-            @Override
-            protected String load() {
-                return "User: " + getPageParameters().get(PARAM_USER_ID);
-            }
-        };
+        items.add(new BottomMenuItem("pageAdminUsers.listUsers", PageUsers.class));
+        items.add(new BottomMenuItem("pageAdminUsers.newUser", PageUser.class));
 
-        add(new Label("label", model));
+        return items;
     }
 }

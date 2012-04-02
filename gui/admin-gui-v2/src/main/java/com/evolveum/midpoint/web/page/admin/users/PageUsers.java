@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.Form;
@@ -33,7 +32,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 /**
  * @author lazyman
  */
-public class PageUsers extends PageAdmin {
+public class PageUsers extends PageAdminUsers {
 
     public PageUsers() {
         Form<String> form = new Form<String>("form");
