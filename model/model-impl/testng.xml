@@ -24,9 +24,10 @@
     <listeners>
         <listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
     </listeners>
-    <test name="Spring Context" preserve-order="true" parallel="false" verbose="10" enabled="false">
+    <test name="Model Basic" preserve-order="true" parallel="false" verbose="10" enabled="false">
         <classes>
             <class name="com.evolveum.midpoint.model.SpringApplicationContextTest"/>
+            <class name="com.evolveum.midpoint.model.TestLoggingConfiguration"/>
         </classes>
     </test>
     <test name="Controller add" preserve-order="true" parallel="false" verbose="10">

@@ -46,6 +46,19 @@ public class MidpointAspect {
 	// This logger provide profiling informations
 	private static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger("PROFILING");
 
+	private static final String MDC_SUBSYSTEM_KEY = "subsystem";
+	
+	public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
+	public static final String SUBSYSTEM_TASKMANAGER = "TASKMANAGER";
+	public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
+	public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
+	public static final String SUBSYSTEM_MODEL = "MODEL";
+	public static final String SUBSYSTEM_WEB = "WEB";
+	public static final String SUBSYSTEM_UCF = "UCF";
+	
+	public static final String[] SUBSYSTEMS = { SUBSYSTEM_REPOSITORY, SUBSYSTEM_TASKMANAGER, SUBSYSTEM_PROVISIONING, 
+		SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, SUBSYSTEM_MODEL, SUBSYSTEM_WEB, SUBSYSTEM_UCF };
+
 	// FIXME: try to switch to spring injection. Note: infra components
 	// shouldn't depend on spring
 	// Formatters are statically initialized from class common's DebugUtil
@@ -62,40 +75,51 @@ public class MidpointAspect {
 
 	@Around("entriesIntoRepository()")
 	public Object processRepositoryNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return markSubsystem(pjp, "REPOSITORY");
+		return wrapSubsystem(pjp, SUBSYSTEM_REPOSITORY);
 	}
 
 	@Around("entriesIntoTaskManager()")
 	public Object processTaskManagerNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return markSubsystem(pjp, "TASKMANAGER");
+		return wrapSubsystem(pjp, SUBSYSTEM_TASKMANAGER);
 	}
 
 	@Around("entriesIntoProvisioning()")
 	public Object processProvisioningNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return markSubsystem(pjp, "PROVISIONING");
+		return wrapSubsystem(pjp, SUBSYSTEM_PROVISIONING);
 	}
 
 	@Around("entriesIntoResourceObjectChangeListener()")
 	public Object processResourceObjectChangeListenerNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return markSubsystem(pjp, "RESOURCEOBJECTCHANGELISTENER");
+		return wrapSubsystem(pjp, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
 	}
 
 	@Around("entriesIntoModel()")
 	public Object processModelNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return markSubsystem(pjp, "MODEL");
+		return wrapSubsystem(pjp, SUBSYSTEM_MODEL);
 	}
 
 	@Around("entriesIntoWeb()")
 	public Object processWebNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return markSubsystem(pjp, "WEB");
+		return wrapSubsystem(pjp, SUBSYSTEM_WEB);
 	}
 
 	@Around("entriesIntoUcf()")
 	public Object processUcfNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return markSubsystem(pjp, "UCF");
+		return wrapSubsystem(pjp, SUBSYSTEM_UCF);
+	}
+	
+	// This is made public to use in testing
+	public static String swapSubsystemMark(String subsystemName) {
+		String prev = (String) MDC.get(MDC_SUBSYSTEM_KEY);
+		if (subsystemName == null) {
+			MDC.remove(MDC_SUBSYSTEM_KEY);
+		} else {
+			MDC.put(MDC_SUBSYSTEM_KEY, subsystemName);
+		}
+		return prev;
 	}
 
-	private Object markSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
+	private Object wrapSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
 		Object retValue = null;
 		String prev = null;
 		int id = 0;
@@ -110,8 +134,7 @@ public class MidpointAspect {
 		try {
 			// Marking MDC->Subsystem with current one subsystem and mark
 			// previous
-			prev = (String) MDC.get("subsystem");
-			MDC.put("subsystem", subsystem);
+			prev = swapSubsystemMark(subsystem);
 
 			if (LOGGER_PROFILING.isDebugEnabled()) {
 				id = idcounter.incrementAndGet();
@@ -224,11 +247,7 @@ public class MidpointAspect {
 				}
 			}
 			// Restore MDC
-			if (prev == null) {
-				MDC.remove("subsystem");
-			} else {
-				MDC.put("subsystem", prev);
-			}
+			swapSubsystemMark(prev);
 		}
 	}
 

@@ -168,36 +168,45 @@ public class LoggingConfigurationManager {
 				String fileName = a.getFileName();
 				String filePattern = a.getFilePattern();
 
+				boolean isRolling = false;
+				String appenderClass = "ch.qos.logback.core.FileAppender";
+				if (filePattern != null || a.getMaxHistory() > 0 || !StringUtils.isEmpty(a.getMaxFileSize()) ) {
+					isRolling = true;
+					appenderClass = "ch.qos.logback.core.rolling.RollingFileAppender"; 
+				}
+				
 				sb.append("\t<appender name=\"");
 				sb.append(a.getName());
-				sb.append("\" class=\"ch.qos.logback.core.rolling.RollingFileAppender\">\n");
+				sb.append("\" class=\""+appenderClass+"\">\n");
 				sb.append("\t\t<file>");
 				sb.append(fileName);
 				sb.append("</file>\n");
 				sb.append("\t\t<append>");
 				sb.append(a.isAppend());
 				sb.append("</append>\n");
-				//rolling policy
-				sb.append("\t\t<rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">\n");
-				sb.append("\t\t\t<fileNamePattern>");
-				sb.append(filePattern);
-				sb.append("</fileNamePattern>\n");
-				if (a.getMaxHistory() > 0) {
-					sb.append("\t\t\t<maxHistory>");
-					sb.append(a.getMaxHistory());
-					sb.append("</maxHistory>\n");
+				if (isRolling) {
+					//rolling policy
+					sb.append("\t\t<rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">\n");
+					sb.append("\t\t\t<fileNamePattern>");
+					sb.append(filePattern);
+					sb.append("</fileNamePattern>\n");
+					if (a.getMaxHistory() > 0) {
+						sb.append("\t\t\t<maxHistory>");
+						sb.append(a.getMaxHistory());
+						sb.append("</maxHistory>\n");
+					}
+	
+					// file triggering
+					// if max size is defined
+					if (!StringUtils.isEmpty(a.getMaxFileSize())) {
+						sb.append("\t\t\t<timeBasedFileNamingAndTriggeringPolicy class=\"ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP\">\n");
+						sb.append("\t\t\t\t<maxFileSize>");
+						sb.append(a.getMaxFileSize());
+						sb.append("</maxFileSize>\n");
+						sb.append("\t\t\t</timeBasedFileNamingAndTriggeringPolicy>\n");
+					}
+					sb.append("\t\t</rollingPolicy>\n");
 				}
-
-				// file triggering
-				// if max size is defined
-				if (!StringUtils.isEmpty(a.getMaxFileSize())) {
-					sb.append("\t\t\t<timeBasedFileNamingAndTriggeringPolicy class=\"ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP\">\n");
-					sb.append("\t\t\t\t<maxFileSize>");
-					sb.append(a.getMaxFileSize());
-					sb.append("</maxFileSize>\n");
-					sb.append("\t\t\t</timeBasedFileNamingAndTriggeringPolicy>\n");
-				}
-				sb.append("\t\t</rollingPolicy>\n");
 				sb.append("\t\t<encoder>\n");
 				sb.append("\t\t\t<pattern>");
 				sb.append(a.getPattern());

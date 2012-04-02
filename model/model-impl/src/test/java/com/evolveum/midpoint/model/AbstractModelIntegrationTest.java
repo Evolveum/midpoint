@@ -51,8 +51,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected static final String COMMON_DIR_NAME = "src/test/resources/common";
 	
-	protected static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
-	protected static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
+	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
+	public static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
 	
 	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
 	protected static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";

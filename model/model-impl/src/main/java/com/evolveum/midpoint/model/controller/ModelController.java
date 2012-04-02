@@ -111,6 +111,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -183,6 +184,9 @@ public class ModelController implements ModelService {
 
 	@Autowired(required = true)
 	private AuditService auditService;
+	
+	@Autowired(required = true)
+	SystemConfigurationHandler systemConfigurationHandler;
 
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
@@ -359,6 +363,12 @@ public class ModelController implements ModelService {
 				changeExecutor.executeChange(objectDelta, result);
 
 				executePostChange(objectDelta, task, result);
+				
+				// Non-systemic solition. TODO: cleanup
+				if (objectType instanceof SystemConfigurationType) {
+					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta, task, result);
+				}
+
 			}
 
 			oid = objectDelta.getOid();
@@ -733,6 +743,11 @@ public class ModelController implements ModelService {
 					// TODO Better handling
 					throw new SystemException(e.getMessage(), e);
 				}
+				
+				// Non-systemic solition. TODO: cleanup
+				if (SystemConfigurationType.class.isAssignableFrom(type)) {
+					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta, task, result);
+				}
 			}
 
 		} catch (ExpressionEvaluationException ex) {
@@ -890,6 +905,12 @@ public class ModelController implements ModelService {
 				changeExecutor.executeChanges(changes, result);
 				auditRecord.clearDeltas();
 				auditRecord.addDeltas(changes);
+				
+				// Non-systemic solition. TODO: cleanup
+				if (SystemConfigurationType.class.isAssignableFrom(clazz)) {
+					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta, task, result);
+				}
+				
 				result.computeStatus();
 			} catch (ObjectAlreadyExistsException e) {
 				// TODO Better handling
