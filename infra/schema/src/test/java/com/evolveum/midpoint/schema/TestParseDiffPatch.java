@@ -33,6 +33,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -60,13 +61,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * @author semancik
@@ -81,6 +75,35 @@ public class TestParseDiffPatch {
 		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
+    
+    @Test
+    public void testUserCredentialsDiff() throws Exception {
+        System.out.println("===[ testUserCredentialsDiff ]===");
+
+        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(
+                new File(TEST_DIR, "user-before.xml"));
+        userBefore.checkConsistence();
+        PrismObject<UserType> userAfter = PrismTestUtil.parseObject(
+                new File(TEST_DIR, "user-after.xml"));
+        userAfter.checkConsistence();
+
+        ObjectDelta<UserType> userDelta = userBefore.diff(userAfter);
+        System.out.println("DELTA:");
+        System.out.println(userDelta.dump());
+
+        userBefore.checkConsistence();
+        userAfter.checkConsistence();
+        userDelta.checkConsistence();
+
+        PropertyPath path = new PropertyPath(com.evolveum.midpoint.schema.SchemaConstants.C_CREDENTIALS,
+                PasswordType.F_FAILED_LOGINS);
+        PrismAsserts.assertPropertyAdd(userDelta, path, 1);
+        path = new PropertyPath(com.evolveum.midpoint.schema.SchemaConstants.C_CREDENTIALS,
+                PasswordType.F_FAILED_LOGINS);
+        PropertyDelta propertyDelta = userDelta.findPropertyDelta(path);
+        assertNotNull("Property delta for "+path+" not found",propertyDelta);
+        assertEquals(1, propertyDelta.getValuesToAdd().size());
+    }
 
 	@Test
 	public void testUser() throws SchemaException, SAXException, IOException, JAXBException {
