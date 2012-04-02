@@ -50,13 +50,13 @@ public class TopMenu2 extends Panel {
         this.topItems = topItems;
         this.bottomItems = bottomItems;
 
-        add(new VisibleEnableBehaviour() {
+       /* add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
                 return !TopMenu2.this.topItems.isEmpty();
             }
-        });
+        });*/
 
         add(new Loop("topList", topItems.size()) {
 
@@ -96,12 +96,12 @@ public class TopMenu2 extends Panel {
                 loopItem.add(link);
             }
         };
-        bottomLoop.add(new VisibleEnableBehaviour() {
+        /*bottomLoop.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
                 return !TopMenu2.this.bottomItems.isEmpty();
             }
-        });
+        });*/
         add(bottomLoop);
     }
 

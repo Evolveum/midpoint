@@ -63,7 +63,7 @@ public class PageLogin extends PageBase {
         };
         form.add(new RequiredTextField("username", new Model<String>()));
         form.add(new PasswordTextField("password", new Model<String>()));
-        form.add(new FeedbackPanel("feedback"));
+        form.add(new FeedbackPanel("error"));
         add(form);
     }
 
