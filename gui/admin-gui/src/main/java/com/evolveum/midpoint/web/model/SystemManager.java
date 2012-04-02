@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 
@@ -34,4 +35,6 @@ public interface SystemManager extends ObjectManager<SystemConfigurationDto> {
 	String UPDATE_LOGGING_CONFIGURATION = CLASS_NAME + "updateLoggingConfiguration";
 
 	boolean updateLoggingConfiguration(LoggingConfigurationType configuration);
+	
+	LoggingConfigurationType getLoggingConfiguration(OperationResult result);
 }

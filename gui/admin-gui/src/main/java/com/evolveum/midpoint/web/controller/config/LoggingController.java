@@ -47,8 +47,9 @@ import com.evolveum.midpoint.web.bean.BasicLoggerListItem;
 import com.evolveum.midpoint.web.bean.LoggerListItem;
 import com.evolveum.midpoint.web.bean.ProfilingLevelType;
 import com.evolveum.midpoint.web.bean.SubsystemLoggerListItem;
-import com.evolveum.midpoint.web.component.LoggingManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.SystemManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
@@ -74,9 +75,8 @@ public class LoggingController implements Serializable {
 	public static final String PARAM_LOGGER_ID = "loggerId";
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingController.class);
 	private static final long serialVersionUID = -8739729766074013883L;
-	@Autowired(required = true)
-	private transient LoggingManager loggingManager;
-
+	@Autowired(required=true)
+	private transient ObjectTypeCatalog catalog;
 	private LoggingLevelType rootLoggerLevel;
 	private String rootAppender;
 
@@ -359,9 +359,9 @@ public class LoggingController implements Serializable {
 	public void savePerformed() {
 		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
 		OperationResult result = new OperationResult("Load Logging Configuration");
-		try {
-
-			loggingManager.updateConfiguration(logging, result);
+		try {			
+			SystemManager systemManager = ControllerUtil.getSystemManager(catalog);
+			systemManager.updateLoggingConfiguration(logging);
 			result.recordSuccess();
 
 		} catch (Exception ex) {
@@ -401,7 +401,8 @@ public class LoggingController implements Serializable {
 
 
 		try {
-			LoggingConfigurationType logging = loggingManager.getConfiguration(result);
+			SystemManager systemManager = ControllerUtil.getSystemManager(catalog);
+			LoggingConfigurationType logging = systemManager.getLoggingConfiguration(result);
 			if (logging == null) {
 				result.recordFatalError("Couldn't get logging configuration.");
 				LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.",
