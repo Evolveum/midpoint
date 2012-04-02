@@ -22,14 +22,10 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <span>
-        <wicket:message key="loginPanel.loggedInAs"/><em wicket:id="username"></em>
-    </span>
-    <span class="delimiter">|</span>
-    <a wicket:id="logoutLink"/>
-    <span class="delimiter">|</span>
-    <span class="last">
-        <wicket:message key="loginPanel.help" />
-    </span>
+    <ul wicket:id="locale" class="locales">
+        <li wicket:id="locales" class="locale">
+            <a wicket:id="localeLink" class="localeLink">&nbsp;</a>
+        </li>
+    </ul>
 </wicket:panel>
 </html>

@@ -48,7 +48,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class PageLogging extends PageAdmin {
+public class PageLogging extends PageAdminConfiguration {
 
     private LoadableModel<LoggingDto> model;
 

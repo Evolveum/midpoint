@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.web.component.login.LocalePanel;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
@@ -46,6 +47,9 @@ public class PageLogin extends PageBase {
     private static final long serialVersionUID = 4077059807145096420L;
 
     public PageLogin() {
+        LocalePanel locale = new LocalePanel("loginPanel");
+        addOrReplace(locale);
+
         Form form = new Form("loginForm") {
 
             @Override

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.web.component.login.LocalePanel;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenu;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
@@ -62,6 +63,7 @@ public abstract class PageBase extends WebPage {
         add(new LeftMenu("leftMenu", getLeftMenuItems()));
 
         LoginPanel loginPanel = new LoginPanel("loginPanel");
+        
         /*if(loginPanel.getIsAdminLoggedIn()){
         	add(loginPanel);
         }*/
