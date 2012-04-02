@@ -23,10 +23,12 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -43,7 +45,7 @@ import java.util.List;
  */
 public class PageLogging extends PageAdmin {
 
-    private IModel<LoggingDto> model;
+    private LoadableModel<LoggingDto> model;
 
     public PageLogging() {
         model = new LoadableModel<LoggingDto>(false) {
@@ -88,14 +90,55 @@ public class PageLogging extends PageAdmin {
         mainForm.add(accordion);
 
         AccordionItem loggers = new AccordionItem("loggers", createStringResource("pageLogging.loggers"));
-        accordion.add(loggers);
+        accordion.getBodyContainer().add(loggers);
 
         AccordionItem appenders = new AccordionItem("appenders", createStringResource("pageLogging.appenders"));
-        accordion.add(appenders);
-        
+        accordion.getBodyContainer().add(appenders);
+
         initAudit(mainForm);
+
+        initButtons(mainForm);
     }
-    
+
+    private void initButtons(final Form mainForm) {
+        AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton",
+                createStringResource("pageLogging.button.save")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                System.out.println(model.getObject().getRootLevel());
+                //todo implement
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                //todo implement
+            }
+        };
+        mainForm.add(saveButton);
+
+        AjaxLinkButton resetButton = new AjaxLinkButton("resetButton",
+                createStringResource("pageLogging.button.reset")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {                
+                model.reset();
+                target.add(mainForm);
+            }
+        };
+        mainForm.add(resetButton);
+
+        AjaxLinkButton advancedButton = new AjaxLinkButton("advancedButton",
+                createStringResource("pageLogging.button.advanced")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //todo implement
+            }
+        };
+        mainForm.add(advancedButton);
+    }
+
     private void initAudit(Form mainForm) {
         CheckBox auditLog = new CheckBox("auditLog", new PropertyModel<Boolean>(model, "auditLog"));
         mainForm.add(auditLog);

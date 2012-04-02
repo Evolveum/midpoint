@@ -23,10 +23,12 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
 
+import java.io.Serializable;
+
 /**
  * @author lazyman
  */
-public class LoggingDto {
+public class LoggingDto implements Serializable {
 
     private LoggingLevelType rootLevel;
     private String rootAppender;
