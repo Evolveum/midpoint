@@ -34,6 +34,10 @@ public class LoggingDto {
     private LoggingLevelType midPointLevel;
     private String midPointAppender;
 
+    private boolean auditLog;
+    private boolean auditDetails;
+    private String auditAppender;
+
     public String getMidPointAppender() {
         return midPointAppender;
     }
@@ -64,5 +68,29 @@ public class LoggingDto {
 
     public void setRootLevel(LoggingLevelType rootLevel) {
         this.rootLevel = rootLevel;
+    }
+
+    public String getAuditAppender() {
+        return auditAppender;
+    }
+
+    public void setAuditAppender(String auditAppender) {
+        this.auditAppender = auditAppender;
+    }
+
+    public boolean isAuditDetails() {
+        return auditDetails;
+    }
+
+    public void setAuditDetails(boolean auditDetails) {
+        this.auditDetails = auditDetails;
+    }
+
+    public boolean isAuditLog() {
+        return auditLog;
+    }
+
+    public void setAuditLog(boolean auditLog) {
+        this.auditLog = auditLog;
     }
 }

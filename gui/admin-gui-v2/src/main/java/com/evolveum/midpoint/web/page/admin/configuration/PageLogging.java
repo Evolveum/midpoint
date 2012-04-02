@@ -24,12 +24,15 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
@@ -40,20 +43,44 @@ import java.util.List;
  */
 public class PageLogging extends PageAdmin {
 
+    private IModel<LoggingDto> model;
+
     public PageLogging() {
+        model = new LoadableModel<LoggingDto>(false) {
+
+            @Override
+            protected LoggingDto load() {
+                return initLoggingModel();
+            }
+        };
         initLayout();
+    }
+
+    private LoggingDto initLoggingModel() {
+        LoggingDto dto = new LoggingDto();
+        //todo implement
+
+        return dto;
     }
 
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
-        DropDownChoice<LoggingLevelType> rootLevel =
-                new DropDownChoice<LoggingLevelType>("rootLevel", createLoggingLevelModel());
+        DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<LoggingLevelType>("rootLevel",
+                new PropertyModel<LoggingLevelType>(model, "rootLevel"), createLoggingLevelModel());
         mainForm.add(rootLevel);
 
-        DropDownChoice<LoggingLevelType> midPointLevel =
-                new DropDownChoice<LoggingLevelType>("midPointLevel", createLoggingLevelModel());
+        DropDownChoice<String> rootAppender = new DropDownChoice<String>("rootAppender",
+                new PropertyModel<String>(model, "rootAppender"), createAppendersListModel());
+        mainForm.add(rootAppender);
+
+        DropDownChoice<LoggingLevelType> midPointLevel = new DropDownChoice<LoggingLevelType>("midPointLevel",
+                new PropertyModel<LoggingLevelType>(model, "midPointLevel"), createLoggingLevelModel());
         mainForm.add(midPointLevel);
+
+        DropDownChoice<String> midPointAppender = new DropDownChoice<String>("midPointAppender",
+                new PropertyModel<String>(model, "midPointAppender"), createAppendersListModel());
+        mainForm.add(midPointAppender);
 
         Accordion accordion = new Accordion("accordion");
         accordion.setMultipleSelect(true);
@@ -65,6 +92,34 @@ public class PageLogging extends PageAdmin {
 
         AccordionItem appenders = new AccordionItem("appenders", createStringResource("pageLogging.appenders"));
         accordion.add(appenders);
+        
+        initAudit(mainForm);
+    }
+    
+    private void initAudit(Form mainForm) {
+        CheckBox auditLog = new CheckBox("auditLog", new PropertyModel<Boolean>(model, "auditLog"));
+        mainForm.add(auditLog);
+
+        CheckBox auditDetails = new CheckBox("auditDetails", new PropertyModel<Boolean>(model, "auditDetails"));
+        mainForm.add(auditDetails);
+
+        DropDownChoice<String> auditAppender = new DropDownChoice<String>("auditAppender",
+                new PropertyModel<String>(model, "auditAppender"), createAppendersListModel());
+        mainForm.add(auditAppender);
+    }
+
+    private IModel<List<String>> createAppendersListModel() {
+        return new AbstractReadOnlyModel<List<String>>() {
+            @Override
+            public List<String> getObject() {
+                List<String> list = new ArrayList<String>();
+
+                //todo implement
+                list.add("implement");
+
+                return list;
+            }
+        };
     }
 
     private IModel<List<LoggingLevelType>> createLoggingLevelModel() {
@@ -84,11 +139,6 @@ public class PageLogging extends PageAdmin {
 
     private StringResourceModel createStringResource(String resourceKey) {
         return new StringResourceModel(resourceKey, this, null, null, null);
-    }
-
-    @Override
-    public List<LeftMenuItem> getLeftMenuItems() {
-        return new ArrayList<LeftMenuItem>();
     }
 
 }

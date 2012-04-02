@@ -34,16 +34,13 @@
             <wicket:message key="pageLogging.rootLevel"/>
         </td>
         <td class="values">
-            <select wicket:id="rootLevel" />
+            <select wicket:id="rootLevel"/>
         </td>
         <td class="label">
             <wicket:message key="pageLogging.rootAppender"/>
         </td>
         <td class="values">
-            <select>
-                <option value=""></option>
-                <option value="IDM_LOG">IDM_LOG</option>
-            </select>
+            <select wicket:id="rootAppender" />
         </td>
     </tr>
     <tr>
@@ -51,14 +48,13 @@
             <wicket:message key="pageLogging.midPointLevel"/>
         </td>
         <td class="values">
-            <select wicket:id="midPointLevel" />
+            <select wicket:id="midPointLevel"/>
         </td>
-        <td class="label"><wicket:message key="pageLogging.midPointAppender" /></td>
+        <td class="label">
+            <wicket:message key="pageLogging.midPointAppender"/>
+        </td>
         <td class="values">
-            <select>
-                <option value=""></option>
-                <option value="IDM_LOG">IDM_LOG</option>
-            </select>
+            <select wicket:id="midPointAppender" />
         </td>
     </tr>
 </table>
@@ -286,23 +282,28 @@
     <a class="button" href="#">Delete appender</a>
 </li>
 </ul>
-<h4>Audit</h4>
+<h4>
+    <wicket:message key="pageLogging.audit"/>
+</h4>
 <table cellspacing="0" cellpadding="0">
     <tr>
-        <td class="label">Audit log:</td>
-        <td class="values">
-            <input type="checkbox"/>
+        <td class="label">
+            <wicket:message key="pageLogging.auditLog"/>
         </td>
-        <td class="label">Details:</td>
         <td class="values">
-            <input type="checkbox"/>
+            <input type="checkbox" wicket:id="auditLog"/>
         </td>
-        <td class="label">Appender</td>
+        <td class="label">
+            <wicket:message key="pageLogging.details"/>
+        </td>
         <td class="values">
-            <select>
-                <option value=""></option>
-                <option value="IDM_LOG">IDM_LOG</option>
-            </select>
+            <input type="checkbox" wicket:id="auditDetails"/>
+        </td>
+        <td class="label">
+            <wicket:message key="pageLogging.appender"/>
+        </td>
+        <td class="values">
+            <select wicket:id="auditAppender" />
         </td>
     </tr>
 </table>
