@@ -43,7 +43,12 @@ import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.*;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
@@ -104,7 +109,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         	changedObject = unresolveNotAddedAccounts(changedObject);
             changedObject.encryptCredentials(protector);
 
-            PropertyModificationType passwordChange = null;
+            ItemDeltaType passwordChange = null;
             //detect if the password was changed
             if (changedObject.encryptCredentials(protector)) {
                 PasswordType password = changedObject.getXmlObject().getCredentials().getPassword();
@@ -114,7 +119,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                 segments.add(new XPathSegment(SchemaConstants.I_PASSWORD));
                 XPathHolder xpath = new XPathHolder(segments);
                 passwordChange = ObjectTypeUtil.createPropertyModificationType(
-                        PropertyModificationTypeType.replace, xpath, SchemaConstants.R_PROTECTED_STRING,
+                        ModificationTypeType.REPLACE, xpath, SchemaConstants.R_PROTECTED_STRING,
                         password.getProtectedString());
                 // now when modification change of password was made, clear
                 // credentials from changed user and also from old user to be not used by diff..
@@ -333,16 +338,16 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         return new QName(namespace, element.getLocalName(), element.getPrefix());
     }
 
-    private PropertyChange.ChangeType getChangeType(PropertyModificationTypeType type) {
+    private PropertyChange.ChangeType getChangeType(ModificationTypeType type) {
         if (type == null) {
             return null;
         }
         switch (type) {
-            case add:
+            case ADD:
                 return PropertyChange.ChangeType.ADD;
-            case delete:
+            case DELETE:
                 return PropertyChange.ChangeType.DELETE;
-            case replace:
+            case REPLACE:
                 return PropertyChange.ChangeType.REPLACE;
             default:
                 throw new IllegalArgumentException("Unknown change type '" + type + "'.");

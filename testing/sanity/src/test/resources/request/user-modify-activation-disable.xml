@@ -21,14 +21,17 @@
 
 <!-- Object modification description that is changing user "jack" by adding a new account -->
 
-<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd'>
+<objectModification 
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
 	<!-- Disable jack -->
-	<propertyModification modificationType="replace">
-		<path>activation</path>
-		<value>
-			<enabled>false</enabled>
-		</value>
-	</propertyModification>
+	<modification>
+		<t:modificationType>replace</t:modificationType>
+		<t:path>c:activation</t:path>
+		<t:value>
+			<c:enabled>false</c:enabled>
+		</t:value>
+	</modification>
 </objectModification>

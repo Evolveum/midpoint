@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<xsd:schema targetNamespace="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:tns="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
+            elementFormDefault="qualified"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Testing schema for Prism framework
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="../../standard/XMLSchema.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
+                for the xsd:schema elements used in runtime.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="../../standard/xenc-schema.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                The XML Encryption schema. Used for "protected" data types (property encryption).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+                schemaLocation="annotation-1.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common prism annotations used in various XSD schemas.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:complexType name="extension">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:propertyContainer/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to an object. It contains OID of the object that it refers to.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:objectReference/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Free-form description of this reference. Usually used to describe the purpose of
+        				a search filter embedded in the reference.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="filter" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+                        It must not be used for normal operations and references with the filter must not
+                        be stored in the repository.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                	<xsd:sequence>
+                		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                	</xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="oid" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Target of the reference.
+
+                    Optional only during imports. The objects stored in the repository must have the OID
+                    value filled in.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="type" type="xsd:QName" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    XSD type of the reference target object.
+
+                    It should be provided if the type is known (e.g. when
+                    reading object from the repository).
+
+                    The primary reason for this is to have some kind of
+                    type safety but especially to be able to use
+                    this in the XPaths that specify what references to resolve.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    
+    <xsd:complexType name="XPathType" mixed="true">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:dom/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                Defines a type for XPath pointer. It points to a specific part
+                of the XML tree. Only a path expressions should be used in
+                this type, as it is used as an l-value, i.e. pointing to a
+                part of XML where an value can be assigned.
+                
+                XPath expression selecting the property container.
+                It must select exactly one XML element. It must not be used to
+                select XML constructs inside a property, unless such property is
+                in itself an object.
+
+                The root of the path is assumed to be the element of the
+                top-most ObjectType. Path attribute may be omitted. In that
+                case it is assumed to be "/". The path should be absolute,
+                starting with leading slash ("/"). If the leading slash is
+                not present, it should be assumed, but warning message
+                should be logged in such case.
+                
+                cf. ExpressionType
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:complexType>
+    
+    
+    <!-- ########################################### -->
+    <!-- ##                DELTAS                 ## -->
+    <!-- ########################################### -->
+    
+    <xsd:complexType name="ItemDeltaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describe a change to a single attribute.
+                In this case the path expression used in the "property"
+                attribute must select exactly one property.
+                
+                TODO: this should be renamed to ItemDeltaType
+            </xsd:documentation>
+        </xsd:annotation>
+
+        <xsd:sequence>
+        	<xsd:element name="modificationType" type="tns:ModificationTypeType"/>
+        	<xsd:element name="path" type="tns:XPathType" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Path to the CONTAINER.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="value">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    The elements and values of changed properties.
+                                    Multi-valued properties are expressed as usual,
+                                    that means by repeating the element containing
+                                    the property value.
+                                    All the elements must have the same QName and be 
+                                    of the same type.
+                                    If more than one property is changed, the entire
+                                    PropertyChangeType element must be repeated.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:any>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ModificationTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+
+                The "TypeType" in the name is correct. This is the
+                type for "change type" therefore the name is OK
+                although it looks strange.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="add">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="replace">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPLACE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="delete">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ObjectDeltaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes a change of a specific object.
+                This is abstract type. It cannot be used directly.
+                Use the subtypes instead.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="changeType" type="tns:ChangeTypeType"/>
+        	<xsd:element name="objectToAdd" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Contains a single prism object.
+        				
+        				Object OID is inside this structure (or is not there at all).
+        				Valid only if the changeType is "add".
+        			</xsd:documentation>
+        		</xsd:annotation>
+        		<xsd:complexType>
+        			<xsd:sequence>
+        				<xsd:any processContents="lax"/>
+        			</xsd:sequence>
+        		</xsd:complexType>
+        	</xsd:element>
+        	<xsd:element name="oid" type="xsd:string">
+        	<xsd:annotation>
+        			<xsd:documentation>
+        				OID of object to modify or delete.
+        				
+        				Valid only if the changeType is "modify" or "delete".
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="modification" type="tns:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Valid only if the changeType is "modify".
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="objectDelta" type="tns:ObjectDeltaType"/>
+    
+    <xsd:simpleType name="ChangeTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+
+                The "TypeType" in the name is correct. This is the
+                type for "change type" therefore the name is OK
+                although it looks strange.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="add">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="modify">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODIFY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="delete">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    
+
+</xsd:schema>
+

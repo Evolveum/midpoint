@@ -51,9 +51,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
+import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -438,15 +442,14 @@ public class ShadowCache {
 				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
 				shadow.setResult(parentResult.createOperationResultType());
 				shadow.setResource(resource);
-				ObjectChangeModificationType objectChangeType = new ObjectChangeModificationType();
-				ObjectModificationType omt = new ObjectModificationType();
-				omt.setOid(shadow.getOid());
+				ObjectDeltaType objectDeltaType = new ObjectDeltaType();
+				objectDeltaType.setChangeType(ChangeTypeType.MODIFY);
+				objectDeltaType.setOid(shadow.getOid());
 				for (ItemDelta itemDelta : modifications) {
-					omt.getPropertyModification().addAll(
+					objectDeltaType.getModification().addAll(
 							DeltaConvertor.toPropertyModificationTypes(itemDelta));
 				}
-				objectChangeType.setObjectModification(omt);
-				shadow.setObjectChange(objectChangeType);
+				shadow.setObjectChange(objectDeltaType);
 				try {
 					handler.handleError(shadow, ex);
 				} catch (ObjectAlreadyExistsException e) {

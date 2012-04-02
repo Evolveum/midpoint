@@ -42,6 +42,9 @@ public class PrismConstants {
 	public static final String NS_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/common/";
 	public static final String NS_ANNOTATION = NS_PREFIX + "annotation-1.xsd";
 	public static final String PREFIX_NS_ANNOTATION = "a";
+//	public static final String NS_TYPES = NS_PREFIX + "types-2";
+	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
+	public static final String PREFIX_NS_TYPES = "t";
 
 	// Annotations
 

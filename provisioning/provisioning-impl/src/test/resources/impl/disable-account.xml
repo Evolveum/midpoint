@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object xsi:type="ObjectModificationType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+<objectModification
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+	xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <oid>c0c010c0-d34d-b44f-f11d-33322212dddd</oid>
-    <propertyModification modificationType="replace">
-        <xp4133:path xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xp4133="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">idmdn:activation</xp4133:path>
-        <value>
-            <enabled>false</enabled>
-        </value>
-    </propertyModification>
-</object>
+    <modification>
+    	<t:modificationType>replace</t:modificationType>
+        <t:path>c:activation</t:path>
+        <t:value>
+            <c:enabled>false</c:enabled>
+        </t:value>
+    </modification>
+</objectModification>

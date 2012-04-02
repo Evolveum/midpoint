@@ -69,9 +69,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
@@ -690,7 +690,7 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 		}
 		if (null != paging && null != paging.getOrderBy()) {
-			XPathHolder xpath = new XPathHolder(paging.getOrderBy().getProperty());
+			XPathHolder xpath = new XPathHolder(paging.getOrderBy());
 			String orderBy = xpath.getXPath();
 			query.append(" order by $x/").append(orderBy);
 			if (null != paging.getOrderDirection()) {

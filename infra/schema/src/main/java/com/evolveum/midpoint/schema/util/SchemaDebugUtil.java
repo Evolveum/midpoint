@@ -25,7 +25,6 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -54,36 +53,25 @@ import org.w3c.dom.Text;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.util.aspect.ObjectFormatter;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UnknownJavaObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 
 /**
  * 
@@ -357,24 +345,16 @@ public class SchemaDebugUtil implements ObjectFormatter {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("[");
-		Iterator<PropertyReferenceType> iterator = reflist.getProperty().iterator();
+		Iterator<Element> iterator = reflist.getProperty().iterator();
 		while (iterator.hasNext()) {
-			sb.append(prettyPrint(iterator.next()));
+			XPathHolder xpath = new XPathHolder(iterator.next());
+			sb.append(xpath.toString());
 			if (iterator.hasNext()) {
 				sb.append(",");
 			}
 		}
 		sb.append("]");
 		return sb.toString();
-	}
-
-	public static String prettyPrint(PropertyReferenceType ref) {
-		if (ref == null) {
-			return "null";
-		}
-		XPathHolder xpath = new XPathHolder(ref.getProperty());
-		return xpath.toString();
-
 	}
 
 	public static String prettyPrint(ObjectType object) {
@@ -588,9 +568,9 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		StringBuilder sb = new StringBuilder("ObjectModification(");
 		sb.append(objectChange.getOid());
 		sb.append(",");
-		List<PropertyModificationType> changes = objectChange.getPropertyModification();
+		List<ItemDeltaType> changes = objectChange.getModification();
 		sb.append("[");
-		Iterator<PropertyModificationType> iterator = changes.iterator();
+		Iterator<ItemDeltaType> iterator = changes.iterator();
 		while (iterator.hasNext()) {
 			sb.append(prettyPrint(iterator.next()));
 			if (iterator.hasNext()) {
@@ -601,7 +581,7 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		return sb.toString();
 	}
 
-	public static String prettyPrint(PropertyModificationType change) {
+	public static String prettyPrint(ItemDeltaType change) {
 		if (change == null) {
 			return "null";
 		}
@@ -755,40 +735,6 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		return sb.toString();
 	}
 
-	public static String prettyPrint(PropertyAvailableValuesListType propertyAvailableValues) {
-		if (propertyAvailableValues == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("PropertyAvailableValues[");
-		List<PropertyAvailableValuesType> list = propertyAvailableValues.getAvailableValues();
-		Iterator<PropertyAvailableValuesType> iterator = list.iterator();
-		while (iterator.hasNext()) {
-			PropertyAvailableValuesType values = iterator.next();
-			sb.append(prettyPrint(values.getAny()));
-		}
-		sb.append("]");
-		return sb.toString();
-	}
-
-	public static String prettyPrint(ResourceObjectShadowListType shadowListType) {
-		if (shadowListType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ResourceObjectShadowListType(");
-
-		sb.append("ResourceObjectShadow[");
-		List<ResourceObjectShadowType> list = shadowListType.getObject();
-		Iterator<ResourceObjectShadowType> iterator = list.iterator();
-		while (iterator.hasNext()) {
-			ResourceObjectShadowType value = iterator.next();
-			sb.append(prettyPrint(value));
-		}
-		sb.append("]");
-
-		sb.append(")");
-		return sb.toString();
-	}
-
 	public static String prettyPrint(QueryType query) {
 
 		if (query == null) {
@@ -879,74 +825,7 @@ public class SchemaDebugUtil implements ObjectFormatter {
 
 		return sb.toString();
 	}	
-	
-	public static String prettyPrint(ResourceObjectShadowChangeDescriptionType change) {
-		if (change == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ResourceObjectShadowChangeDescriptionType(");
-		sb.append(prettyPrint(change.getObjectChange()));
-		sb.append(",");
-		sb.append(change.getSourceChannel());
-		sb.append(",");
-		sb.append(prettyPrint(change.getShadow()));
-		sb.append(",");
-		sb.append(prettyPrint(change.getResource()));
-		sb.append(")");
-		return sb.toString();
-	}
-	
-	public static String prettyPrint(ObjectChangeAdditionType change) {
-		if (change == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder();
-		sb.append("ObjectChangeAdditionType(");
-		sb.append(prettyPrint(change.getObject(), true));
-		sb.append(")");
-		return sb.toString();
-	}
-	
-	public static String prettyPrint(ObjectChangeModificationType change) {
-		if (change == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder();
-		sb.append("ObjectChangeModificationType(");
-		sb.append(prettyPrint(change.getObjectModification()));
-		sb.append(")");
-		return sb.toString();
-	}
-
-	public static String prettyPrint(ObjectChangeDeletionType change) {
-		if (change == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder();
-		sb.append("ObjectChangeDeletionType(");
-		sb.append(change.getOid());
-		sb.append(")");
-		return sb.toString();
-	}
-
-	public static String prettyPrint(ObjectChangeType change) {
-		if (change == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder();
-		if (change instanceof ObjectChangeAdditionType) {
-			return prettyPrint((ObjectChangeAdditionType) change);
-		} else if (change instanceof ObjectChangeModificationType) {
-			return prettyPrint((ObjectChangeModificationType) change);
-		} else if (change instanceof ObjectChangeDeletionType) {
-			return prettyPrint((ObjectChangeDeletionType) change);
-		} else {
-			sb.append("Unknown change type ");
-			sb.append(change.getClass().getName());
-		}
-		return sb.toString();
-	}
-	
+		
 	public static String resourceFromShadow(ResourceObjectShadowType shadow) {
 		if (shadow == null) {
 			return null;

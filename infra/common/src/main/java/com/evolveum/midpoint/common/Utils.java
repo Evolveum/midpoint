@@ -31,6 +31,7 @@ import java.util.List;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -38,9 +39,8 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
@@ -144,8 +144,8 @@ public class Utils {
 		if (resolve == null) {
 			return false;
 		}
-		for (PropertyReferenceType property : resolve.getProperty()) {
-			XPathHolder xpath = new XPathHolder(property.getProperty());
+		for (Element property : resolve.getProperty()) {
+			XPathHolder xpath = new XPathHolder(property);
 			List<XPathSegment> segments = xpath.toSegments();
 			if (CollectionUtils.isEmpty(segments)) {
 				continue;
@@ -177,12 +177,10 @@ public class Utils {
 		}
 	}
 
-	public static PropertyReferenceType fillPropertyReference(String resolve) {
-		PropertyReferenceType property = new PropertyReferenceType();
+	public static Element fillPropertyReference(String resolve) {
 		com.evolveum.midpoint.schema.holder.XPathHolder xpath = new com.evolveum.midpoint.schema.holder.XPathHolder(
 				Utils.getPropertyName(resolve));
-		property.setProperty(xpath.toElement(SchemaConstants.NS_C, "property"));
-		return property;
+		return xpath.toElement(SchemaConstants.NS_C, "property");
 	}
 
 	public static PropertyReferenceListType getResolveResourceList() {

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -291,7 +292,7 @@ public class RAnyConverterStaticTest extends AbstractTestNGSpringContextTests {
 
     private Element createExtensionPath() {
         Document document = DOMUtil.getDocument();
-        Element extension = DOMUtil.createElement(document, SchemaConstants.C_PATH);
+        Element extension = DOMUtil.createElement(document, DeltaConvertor.PATH_ELEMENT_NAME);
         extension.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:c", SchemaConstants.NS_COMMON);
         extension.setTextContent("c:extension");
 

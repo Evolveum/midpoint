@@ -26,6 +26,7 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
             xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -78,7 +79,16 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-
+    
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" schemaLocation="../prism/types-2.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                Prism data types.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    
     <!-- ################################## -->
     <!-- ##      Common Schema Layer     ## -->
     <!-- ################################## -->
@@ -119,22 +129,70 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-
-    <xsd:complexType name="XPathType" mixed="true">
+    
+    <xsd:element name="description" type="xsd:string">
         <xsd:annotation>
-            <xsd:appinfo>
-                <jaxb:dom/>
-            </xsd:appinfo>
             <xsd:documentation>
-                Defines a type for XPath pointer. It points to a specific part
-                of the XML tree. Only a path expressions should be used in
-                this type, as it is used as an l-value, i.e. pointing to a
-                part of XML where an value can be assigned.
+                Free-form textual description of the object. It is supposed to describe
+                the object or a construct that it is attached to.
 
-                cf. ExpressionType
+                Anything that the system administrator wants may be here. The system
+                will not interpret the information except for displaying it and allow
+                user to edit it.
             </xsd:documentation>
         </xsd:annotation>
-    </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:simpleType name="AccessType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="read">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="READ"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="update">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UPDATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="create">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CREATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:element name="access" type="tns:AccessType"/>
+
+    <xsd:element name="ignore" type="xsd:boolean" default="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Presence of this element signifies that the strcture that it contains should
+                be ignored. If this element is present in the attribute definition, the attribute
+                should be ignored. If it appears in the object class definition, the entire object
+                class should be ignored. "Ignored" means that the system should pretend that the
+                structure does not exist at all.
+
+                This element may also be used as XSD annotation in the dynamic schemas.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
 
     <!-- Basic Object Types -->
 
@@ -398,96 +456,8 @@
         </xsd:attribute>
 
     </xsd:complexType>
-
-    <xsd:element name="description" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation>
-                Free-form textual description of the object. It is supposed to describe
-                the object or a construct that it is attached to.
-
-                Anything that the system administrator wants may be here. The system
-                will not interpret the information except for displaying it and allow
-                user to edit it.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
-
-    <xsd:element name="extension" type="tns:ExtensionType" />
-
-    <xsd:attribute name="extensionId" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation>
-                This attribute is used for complex type extension elements which can be multivalued.
-                It's optional. It depends on repository implementation if this identificator is used
-                or not.
-
-                Only experimental.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:attribute>
-
-    <xsd:complexType name="ExtensionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Place for non-standard object properties. The
-                elements placed here will be handled exactly
-                like the elements in the object body.
-
-                It must NOT contain standard elements.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
-            </xsd:any>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="GenericObjectType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Generic object for storing unknown (unexpected) object types.
-
-                The generic object should be used if there is a need to
-                store a custom object (e.g KangarooType) at deployment-time
-                and the XML type relacement extensibility cannot be used.
-                The properties of such custom objects are to be placed in the
-                extension part of this object. The schema is not checked or
-                enforced for this type of objects if technically possible.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
-                <xsd:sequence>
-                    <xsd:element name="objectType" type="xsd:anyURI">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Type of the stored object.
-                                This attribute contains URI defining the type (class) of
-                                stored object. The URI that maps to a QName of an object
-                                XML element should be used if possible (see QName
-                                mapping above). However this is not mandatory and the
-                                implementation must be able to work with any URI.
-
-                                Object type may be changed, but the possible values may
-                                be constrained by the implementation. E.g. the implementation
-                                may allow to change the object type only to the subtype or
-                                supertype, or it may fail if the attributes of the object
-                                does not conform to the schema constraints defined for the
-                                new type.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-
+    <xsd:element name="object" type="tns:ObjectType"/>
+    
     <xsd:complexType name="ObjectReferenceType">
         <xsd:annotation>
             <xsd:documentation>
@@ -544,403 +514,61 @@
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
-
-    <xsd:element name="object" type="tns:ObjectType"/>
-    <xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
     <xsd:element name="objectRef" type="tns:ObjectReferenceType"/>
 
-    <!-- Property-related types -->
-
-    <xsd:complexType name="PropertyReferenceType">
+    <xsd:complexType name="ExtensionType">
         <xsd:annotation>
             <xsd:documentation>
-                Property reference. Selects one or more properties in the
-                object instance documents. Subtypes of property reference
-                describe properties in the object instances. For example by
-                describing change to the property, available values
-                for the property, etc.
-            </xsd:documentation>
-        </xsd:annotation>
+                Place for non-standard object properties. The
+                elements placed here will be handled exactly
+                like the elements in the object body.
 
-        <xsd:sequence>
-            <xsd:element ref="c:property"/>
-        </xsd:sequence>
-
-    </xsd:complexType>
-
-    <xsd:element name="property" type="tns:XPathType">
-        <xsd:annotation>
-            <xsd:documentation>
-                XPath expression selecting the property. It may select
-                multiple properties. But it must not be used to select
-                XML constructs inside a property, unless such property is
-                in itself an object.
-
-                The root of the path is assumed to be the element
-                of the top-most ObjectType. The path should be absolute,
-                starting with leading slash ("/"). If the leading slash is
-                not present, it should be assumed, but warning message
-                should be logged in such case.
-
-                Good
-                examples:
-                /fullName
-                /extension/foobar
-                /account/name
-                /account[@oid='1234']/name
-                /account/attribute/ldap:cn
-
-                Bad examples:
-                /extension/shoppingPreferences/tShirt (tShirt is not
-                property,
-                shoppingPreferences is)
-                /extension (extension is not
-                property, it is
-                rather container of properties)
-
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
-    <xsd:complexType name="PropertyContainerReferenceType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Property container reference. Selects exactly one XML element
-                that holds properties. Subtypes of property container
-                reference describe properties in the object instances, but they
-                use native reference to the specific property (e.g.
-                QName or XML elements using xsd:any type).
-                For example by describing change to the
-                property, available values for the property, etc.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element ref="c:path" minOccurs="0"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:element name="path" type="tns:XPathType">
-        <xsd:annotation>
-            <xsd:documentation>
-                XPath expression selecting the property container.
-                It must select exactly one XML element. It must not be used to
-                select XML constructs inside a property, unless such property is
-                in itself an object.
-
-                The root of the path is assumed to be the element of the
-                top-most ObjectType. Path attribute may be ommited. In that
-                case it is assumed to be "/". The path should be absolute,
-                starting with leading slash ("/"). If the leading slash is
-                not present, it should be assumed, but warning message
-                should be logged in such case.
-
-                Good
-                examples:
-                /
-                /extension
-                /account[@oid='1234']/attributes
-
-                Bad examples:
-                /extension/shoppingPreferences this selects a property, not property container
-                /extension/shoppingPreferences/tShirt (tShirt is not property container)
-
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
-
-    <xsd:complexType name="PropertyReferenceListType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="property" type="tns:PropertyReferenceType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="PropertyAvailableValuesType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Describe available or proposed values of an attribute.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:PropertyReferenceType">
-                <xsd:sequence>
-                    <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <xjc:dom/>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:any>
-                </xsd:sequence>
-                <xsd:attribute name="closed" type="xsd:boolean">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            True if property can contain only the values listed
-                            in the instance of this type.
-
-                            False is property can contain other values as well.
-                            In such case the list of values listed in the
-                            instance of this type should be considered only a
-                            list of suggested values.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="PropertyAvailableValuesListType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="availableValues" type="tns:PropertyAvailableValuesType" minOccurs="0"
-                         maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:simpleType name="AccessType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
+                It must NOT contain standard elements.
             </xsd:documentation>
             <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
+                <a:container/>
             </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="read">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="READ"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="update">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UPDATE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="create">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="CREATE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:element name="access" type="tns:AccessType"/>
-
-    <xsd:element name="ignore" type="xsd:boolean" default="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                Presence of this element signifies that the strcture that it contains should
-                be ignored. If this element is present in the attribute definition, the attribute
-                should be ignored. If it appears in the object class definition, the entire object
-                class should be ignored. "Ignored" means that the system should pretend that the
-                structure does not exist at all.
-
-                This element may also be used as XSD annotation in the dynamic schemas.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
-    <!-- Object changes -->
-
-    <xsd:complexType name="ObjectModificationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Describes a change of attributes of a specific object.
-                All changes are expected to happen atomically, but
-                there may be exceptions. Please check with the
-                documentation of the interface using this type for
-                more details.
-
-                This should probably go to some kind of common schema.
-                
-                TODO: this should be renamed to ObjectDeltaType. Some elements must be added.
-            </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="oid" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        OID of the object to modify.
-
-                        Due to consistency reasons this should rather be
-                        an attribute. But it is an element because of
-                        OpenESB bug with attributes in message parts.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:propertyModification" minOccurs="1" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Describe a change to a single attribute of an object.
-                        
-                        TODO: this should be renamed to "itemModification"
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
+    <xsd:element name="extension" type="tns:ExtensionType" />
 
-    <xsd:element name="objectModification" type="tns:ObjectModificationType"/>
-
-    <xsd:complexType name="PropertyModificationType">
+    <xsd:complexType name="GenericObjectType">
         <xsd:annotation>
             <xsd:documentation>
-                Describe a change to a single attribute.
-                In this case the path expression used in the "property"
-                attribute must select exactly one property.
-                
-                TODO: this should be renamed to ItemDeltaType
-            </xsd:documentation>
-        </xsd:annotation>
+                Generic object for storing unknown (unexpected) object types.
 
-        <xsd:complexContent>
-            <xsd:extension base="tns:PropertyContainerReferenceType">
-                <xsd:sequence>
-                    <xsd:element name="value">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                                    <xsd:annotation>
-                                        <xsd:documentation>
-                                            The elements and values of changed properties.
-                                            Multi-valued properties are expressed as usual,
-                                            that means by repeating the element containing
-                                            the property value.
-                                            All the elements must have the same QName and be 
-                                            of the same type.
-                                            If more than one property is changed, the entire
-                                            PropertyChangeType element must be repeated.
-                                        </xsd:documentation>
-                                    </xsd:annotation>
-                                </xsd:any>
-                            </xsd:sequence>
-                        </xsd:complexType>
-                    </xsd:element>
-                </xsd:sequence>
-
-                <xsd:attribute name="modificationType" type="tns:PropertyModificationTypeType">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            TODO
-                        </xsd:documentation>
-                    </xsd:annotation>
-
-                </xsd:attribute>
-            </xsd:extension>
-        </xsd:complexContent>
-
-    </xsd:complexType>
-
-    <xsd:element name="propertyModification" type="tns:PropertyModificationType"/>
-
-    <xsd:simpleType name="PropertyModificationTypeType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-
-                The "TypeType" in the name is correct. This is the
-                type for "change type" therefore the name is OK
-                although it looks strange.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="add">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="add"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="replace">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="replace"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="delete">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="delete"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:complexType name="ObjectChangeType" abstract="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                Describes a change of a specific object.
-                This is abstract type. It cannot be used directly.
-                Use the subtypes instead.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:complexType>
-
-    <xsd:complexType name="ObjectChangeAdditionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Describes object addition (creation, operation "add").
+                The generic object should be used if there is a need to
+                store a custom object (e.g KangarooType) at deployment-time
+                and the XML type relacement extensibility cannot be used.
+                The properties of such custom objects are to be placed in the
+                extension part of this object. The schema is not checked or
+                enforced for this type of objects if technically possible.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectChangeType">
+            <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
-                    <xsd:element name="object" type="tns:ObjectType"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="ObjectChangeModificationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Describes object modification (operation "modify").
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ObjectChangeType">
-                <xsd:sequence>
-                    <xsd:element name="objectModification" type="tns:ObjectModificationType"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-
-    <xsd:complexType name="ObjectChangeDeletionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Describes object deletion (operation "delete").
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ObjectChangeType">
-                <xsd:sequence>
-                    <xsd:element name="oid" type="xsd:string">
+                    <xsd:element name="objectType" type="xsd:anyURI">
                         <xsd:annotation>
                             <xsd:documentation>
-                                OID of the deleted object.
+                                Type of the stored object.
+                                This attribute contains URI defining the type (class) of
+                                stored object. The URI that maps to a QName of an object
+                                XML element should be used if possible (see QName
+                                mapping above). However this is not mandatory and the
+                                implementation must be able to work with any URI.
+
+                                Object type may be changed, but the possible values may
+                                be constrained by the implementation. E.g. the implementation
+                                may allow to change the object type only to the subtype or
+                                supertype, or it may fail if the attributes of the object
+                                does not conform to the schema constraints defined for the
+                                new type.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -948,116 +576,11 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+	<xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
 
-    <xsd:complexType name="ResourceObjectShadowChangeDescriptionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Describes a change of a specific resource object
-                together with definitions of the source.
+    <!-- Property-related types -->
 
-                Note: This is quite an atrificial structure. In fact it should
-                be splint into WSDL message parts instead one XSD type. But the
-                ObjectChangeType is polymorphic and OpenESB has problems with such types if placed
-                directly into message parts.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="objectChange" type="tns:ObjectChangeType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Description of changes that happened to an resource
-                        object shadow.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="sourceChannel" type="xsd:anyURI">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Definition of source channel (e.g. synchronization,
-                        reconciliation, discovery, ...)
-                        Should in fact be QName.
-                        But OpenESB has problems with QNames.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="shadow" type="tns:ResourceObjectShadowType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Resource object shadow as seen by the component before 
-                        the change, if possible. This object is mandatory.
-
-                        In some cases (e.g. addition) the object may not exist 
-                        before the change. In such a case the caller is
-                        reponsible to create such object in the repository 
-                        before calling this operation (see the note before).
-
-                        Even thought this object is mandatory, it may not be 
-                        complete. The content of this object depends on how the
-                        change was detected, configuration of a calling component 
-                        and so on. On the very minimum, the shadow object must
-                        contain:
-                        	* OID
-                        	* Identifiers necessary to locate the associated 
-                        	resource object on the resource.
-
-                        Note: This is actually the shadow object that was stored 
-                        in the repository at the time the change was detected 
-                        (or created at that moment).
-
-                        Note: This was orginally defined as an object before the 
-                        change and it was option. Such definition does not allow
-                        some operations, such as create a user and link account 
-                        (because the objectChange does not have OID and therefore
-                        cannot be linked to).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="resource" type="tns:ResourceType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Resource that was the origin of the change.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="CachingMetadataType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Metadata that record when a cache copy was retrieved, the identifiers (etags) of that
-                copy and possibly also other data. It is used to guide cache coherence policies and
-                cache management in general.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="retrievalTimestamp" type="xsd:dateTime" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The timestamp of a time moment when the object was retrieved from the source.
-                        Used mostly for diagnostics and general visibility. As this is relativelly rough
-                        granularity and the time in distributed system is relative anyway, it is not really
-                        useful for anything else.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="serialNumber" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        A string that uniquely represents the version of the data that was retrieved.
-                        The objects of the same type and origin with the same serial number are assumed to
-                        be the same.
-                        There is no requirement for this to be identifier - the serialNumber cannot be used
-                        to retrieve the object.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:element name="cachingMetadata" type="tns:CachingMetadataType"/>
+    
 
     <xsd:complexType name="ProtectedStringType">
         <xsd:annotation>
@@ -1168,7 +691,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FilterType">
                 <xsd:sequence>
-                    <xsd:element ref="c:path" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="path" type="t:XPathType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 XPath to the containing XML element for the queried property.
@@ -1215,7 +738,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FilterType">
                 <xsd:sequence>
-                    <xsd:element ref="c:property">
+                    <xsd:element name="property" type="t:XPathType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 XPath to the property being queried.
@@ -1254,7 +777,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FilterType">
                 <xsd:sequence>
-                    <xsd:element ref="c:property"/>
+                    <xsd:element name="property" type="t:XPathType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1303,179 +826,6 @@
     <xsd:element name="and" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
     <xsd:element name="or" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
     <xsd:element name="not" substitutionGroup="tns:filter" type="tns:UnaryLogicalOperatorFilterType"/>
-
-    <xsd:complexType name="PagingType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Parameters limiting the number of returned
-                entries, offset, etc.
-                Used in the web service operations
-                such as list or search
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="orderBy" type="c:PropertyReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Property by which the results should be sorted.
-                        Reference to a property (XPath).
-                        Just one property for now.
-                        Maybe we will change this to a list later.
-                        If not specified, the ordering is arbitrary.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="orderDirection" type="c:OrderDirectionType" minOccurs="0" default="ascending">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Direction of ordering (ascending or descending).
-                        Only valid if "orderBy" element is specified.
-                        If not specified, the ordering order is ascending.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="offset" type="xsd:int" default="0" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The index of the first returned entry, starting
-                        with zero. Therefore if 0 is specified, the resulting list
-                        will start with first entry. If 1 is specified, the resulting set will
-                        start with second entry. If not specified, value of zero (0) is assumed.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="maxSize" type="xsd:int" default="2147483647" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The maximum number of entries returned. The
-                        operation may return specified number of number of
-                        entries or less. If not specified, unlimited maximum 
-                        size is assumed.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:simpleType name="OrderDirectionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Type of an operation (change). It defines operations to change          
-                object, it is not limited to object modifications.
-                TODO: How to handle renames?
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="ascending">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ASCENDING"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="descending">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DESCENDING"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:complexType name="ImportOptionsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                The options for import tasks. It specifies optional settings for import such as "overwrite" and "stop on
-                error".
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="overwrite" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to a true value it will cause that objects that are already in the repository will be
-                        overwritten by the imported objects.
-                        It may not be applicable to all import types. E.g. it makes no sense for import from resource,
-                        as this
-                        is not storing objects in the repository directly.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="keepOid" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to a true value it will cause that objects that overwritten objects will reuse the same
-                        OID
-                        as previous objects.
-                        May be potentially dangerous. USE WITH CARE.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="stopAfterErrors" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Number of errors that will cause import to stop. If set to one the import will stop on first
-                        error.
-                        If set to zero or negative value the import will not stop on any error.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="summarizeSucceses" type="xsd:boolean" minOccurs="0" default="true">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to true the successfuly imported items will be summarized in the result.
-                        WARNING: setting this to false may result in a very large result structure and may cause
-                        overflow of
-                        the system memory.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="summarizeErrors" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="referentialIntegrity" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="validateStaticSchema" type="xsd:boolean" minOccurs="0" default="true">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="validateDynamicSchema" type="xsd:boolean" minOccurs="0" default="true">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="encryptProtectedValues" type="xsd:boolean" minOccurs="0" default="true">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="fetchResourceSchema" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
 
 	<xsd:complexType name="NodeType">
         <xsd:annotation>
@@ -2040,18 +1390,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <!-- Following types SHOULD NOT be here. They should be in the respository 
-		WSDL definition. However, there is a bug in OpenESB (OPENESB-5) and placing 
-		the elements to this namespace works around that bug. This should be moved 
-		to the WSDL once the bug is resolved. -->
-
-    <xsd:complexType name="ObjectListType">
-        <xsd:sequence>
-            <xsd:element name="object" type="tns:ObjectType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-        <xsd:attribute name="count" type="xsd:int"/>
-    </xsd:complexType>
-
     <!-- ################################## -->
     <!-- ##    Identity Schema Layer     ## -->
     <!-- ################################## -->
@@ -2320,8 +1658,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
-    <xsd:element name="credentials" type="tns:CredentialsType"/>
+    <xsd:element name="user" type="tns:UserType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="CredentialsType">
         <xsd:annotation>
@@ -2364,6 +1701,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
+    <xsd:element name="credentials" type="tns:CredentialsType"/>
 
     <xsd:complexType name="PasswordType">
         <xsd:annotation>
@@ -2662,8 +2000,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
-    <xsd:element name="schema" type="tns:XmlSchemaType"/>
+    <xsd:element name="resource" type="tns:ResourceType"/>
 
     <xsd:complexType name="XmlSchemaType">
         <xsd:annotation>
@@ -2703,8 +2040,42 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="schema" type="tns:XmlSchemaType"/>
+    
+    <xsd:complexType name="CachingMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Metadata that record when a cache copy was retrieved, the identifiers (etags) of that
+                copy and possibly also other data. It is used to guide cache coherence policies and
+                cache management in general.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="retrievalTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The timestamp of a time moment when the object was retrieved from the source.
+                        Used mostly for diagnostics and general visibility. As this is relativelly rough
+                        granularity and the time in distributed system is relative anyway, it is not really
+                        useful for anything else.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="serialNumber" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A string that uniquely represents the version of the data that was retrieved.
+                        The objects of the same type and origin with the same serial number are assumed to
+                        be the same.
+                        There is no requirement for this to be identifier - the serialNumber cannot be used
+                        to retrieve the object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="cachingMetadata" type="tns:CachingMetadataType"/>
 
-    <xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
     <xsd:complexType name="SchemaHandlingType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2774,6 +2145,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
 
     <xsd:complexType name="ResourceAccountTypeDefinitionType">
         <xsd:annotation>
@@ -3010,9 +2382,6 @@
         </xsd:sequence>
     </xsd:complexType>
 
-
-    <xsd:element name="scripts" type="tns:ScriptsType"/>
-
     <xsd:complexType name="ScriptsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3030,6 +2399,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="scripts" type="tns:ScriptsType"/>
 
     <xsd:complexType name="ScriptType">
         <xsd:annotation>
@@ -3401,192 +2771,6 @@
     <xsd:element name="expression" type="tns:ExpressionType" substitutionGroup="tns:valueConstructor"/>
 
 
-    <!-- 			
-				<xsd:sequence>
-					<xsd:element name="valueExpression" type="tns:ExpressionType">
-						<xsd:annotation>
-							<xsd:documentation>
-								Expression to dynamically generate the value.
-								See ExpressionType for more details.
-
-								The
-								expression will
-								most
-								likely use variables. The
-								names and content of the variables
-								depends on the
-								specific usage of
-								this type. Please refer to
-								the
-								containing or deriving type documentation for more
-								details.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="dependency" type="c:XPathType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Defines the XPath of a property on which the
-								expression
-								depends. If there are other expressions
-								to be
-								evaluated
-								that set such value, such expressions will
-								be evaluated before
-								this expression.
-
-								This may or may not
-								be needed. If
-								the
-								dependencies
-								can be derived from the expression implicitly, the
-								dependency element may be
-								omitted. It may also be
-								omitted if the
-								order of expression execution is not
-								significant. In case the
-								user want to
-								make sure that
-								expressions will be
-								executed in a
-								crertain order, he
-								should include dependency elements.
-
-								Due to the
-								JAXB "feature" this does not work for now.
-								Please do not use it.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:choice>
-			<xsd:element ref="c:condition" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						The value will only be valid if the condition is
-						evaluated to true. If the condition is false,
-						the value
-						definition
-						should not be applied at all (exactly as if
-						there is no
-						definition).
-						If there is no condition,
-						it is assumed to be
-						true.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element ref="tns:valueFilter" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						List of filters that will be applied to the
-						value after
-						it was constructed. The filters will get
-						applied as
-						the
-						very last step, after the expression had run.
-
-						The filters will be
-						executed in chain in the order as
-						specified here.
-
-						The
-						filters are
-						supposed to "mess up" or transcode
-						the value from XML standards to
-						any format
-						suitable for
-						native storage (e.g. on
-						resource).
-						(but see
-						the note in ValueFilterType documentation)
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-		<xsd:attribute name="exclusive" type="xsd:boolean" default="false" use="optional">
-			<xsd:annotation>
-				<xsd:documentation>
-					The value construction cannot be combined with
-					other
-					value constructions.
-
-					If there are other
-					non-exclusive
-					value
-					constructions to be
-					applied to the same propert or attribute, such
-					constructions
-					should be
-					ignored. If there are other
-					exclusive value
-					constructions, the error should be produced and the values
-					should
-					not be
-					changed.
-
-					TODO: not yet finished
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="default" type="xsd:boolean" default="false" use="optional">
-			<xsd:annotation>
-				<xsd:documentation>
-					This value construction should only be applied if the
-					property or attribute does not have a value.
-
-					This flag makes the value construction conditional. Please
-					note that now there is no way how to get attribute value and
-					set a new value atomically. Therefore also the "default" flag 
-					cannot be executed atomically and a risk of inconsistency is 
-					still there. The implementation should minimize that risk by 
-					making the "window of risk" as shortas possible and utilize 
-					any additional consistency guarantees if possible.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="authoritative" type="xsd:boolean" default="true" use="optional">
-			<xsd:annotation>
-				<xsd:documentation>
-					The value provided by this construction element
-					is authoritative.
-
-					It means that this value
-					construction is
-					supposed
-					to both
-					add the value and remove it.
-
-					TODO: not yet finished
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="clear" type="xsd:boolean" default="false" use="optional">
-			<xsd:annotation>
-				<xsd:documentation>
-					The value construction is supposed to be executed
-					on the
-					"clear" value for a attribute or
-					property.
-
-					If there
-					are any
-					existing values on the property or attribute
-					before the execution of
-					all applicable value
-					construction
-					definitions, such
-					values should be
-					cleared.
-
-					TODO: not yet finished
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
-
- -->
-
     <xsd:complexType name="PropertyConstructionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3597,20 +2781,17 @@
                 in User Template or also on other places in the future.
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:PropertyReferenceType">
-                <xsd:sequence>
-                    <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="valueConstruction" type="tns:ValueConstructionType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Reference (QName) of the property which value is defined by this type.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
+        <xsd:sequence>
+    		<xsd:element name="property" type="t:XPathType"/>
+            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="valueConstruction" type="tns:ValueConstructionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference (QName) of the property which value is defined by this type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ValueAssignmentType">
@@ -3662,7 +2843,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="target" type="c:XPathType" minOccurs="0">
+            <xsd:element name="target" type="t:XPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Destination of the assignment. L-value. The value
@@ -4129,7 +3310,6 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                    <!-- xsd:choice -->
                     <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4157,7 +3337,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
      				</xsd:element>
-     				<xsd:element name="objectChange" type="tns:ObjectChangeType" minOccurs="0">
+     				<xsd:element name="objectChange" type="t:ObjectDeltaType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								Description of changes that happened to an resource object shadow.
@@ -4178,7 +3358,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
      				</xsd:element>
-                    <!-- /xsd:choice -->
                     <xsd:element name="objectClass" type="xsd:QName">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4211,6 +3390,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="resourceObjectShadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="ResourceObjectShadowAttributesType">
     	<xsd:annotation>
@@ -4291,70 +3471,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
-    <!-- Following types SHOULD NOT be here. They should be in the respository 
-		WSDL definition. However, there is a bug in OpenESB (OPENESB-5) and placing 
-		the elements to this namespace works around that bug. This should be moved 
-		to the WSDL once the bug is resolved. -->
-
-    <xsd:complexType name="ResourceObjectShadowListType">
-        <xsd:sequence>
-            <xsd:element name="object" type="tns:ResourceObjectShadowType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="UserListType">
-        <xsd:sequence>
-            <xsd:element name="user" type="tns:UserType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:element name="user" type="tns:UserType" substitutionGroup="c:object"/>
-    <xsd:element name="resource" type="tns:ResourceType" substitutionGroup="c:object"/>
     <xsd:element name="account" type="tns:AccountShadowType" substitutionGroup="c:object"/>
-    <xsd:element name="resourceObjectShadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object"/>
-    <xsd:element name="modification" type="tns:ObjectModificationType"/>
-
-    <!-- Following types SHOULD NOT be here. They should be in the provisioning 
-		WSDL definition. However, there is a bug in OpenESB (OPENESB-5) and placing 
-		the elements to this namespace works around that bug. This should be moved 
-		to the WSDL once the bug is resolved. -->
-
-    <xsd:complexType name="ResourceObjectType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:any namespace="##other" minOccurs="1" maxOccurs="unbounded" processContents="lax">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <xjc:dom/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:any>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="ResourceObjectIdentificationType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:any namespace="##other" minOccurs="1" maxOccurs="unbounded" processContents="lax">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <xjc:dom/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:any>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
-    </xsd:complexType>
 
     <!-- CONVENIENCE ELEMENTS Following definitions are there to use in examples, 
 		import files, etc. These should not be used in the services -->
@@ -4567,56 +3684,6 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!--<xsd:complexType name="ProtoStructureType" abstract="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-
-                Experimental object. MOST LIKELY WILL CHANGE.
-
-                TODO: type???
-
-                Defines hierarchical objects - or more exactly nested.
-
-                may contain other entitlements. Such a containing object, 
-                when assigned to user, is equivalent to the union of all 
-                contained objects(and objects contained in the contained 
-                objects, ad infinutum). There is no constrain that the containing     
-                and contained objects must be of the same type.
-                Therefore it should be possible to create a "business role" that
-                will contain a set of "IT roles" that specify access to resources
-                and a set of "IDM roles" that gives user administrator privileges 
-                in midPoint system.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
-                <xsd:sequence>
-                    <xsd:choice minOccurs="0" maxOccurs="unbounded">
-                        <xsd:element name="containedObject" type="tns:ObjectType">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Contained object.
-
-
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-
-                        <xsd:element name="containedObjectRef" type="c:ObjectReferenceType">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Reference to the contained object.
-
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:choice>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>-->
-
     <xsd:complexType name="RoleType">
         <xsd:annotation>
             <xsd:documentation>
@@ -4676,7 +3743,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
 
     <xsd:complexType name="AccountConstructionType">
@@ -4875,14 +3941,11 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
     <xsd:element name="userTemplate" type="tns:UserTemplateType" substitutionGroup="c:object"/>
 
     <!-- OPERATIONAL SCHEMA -->
 
     <!-- The following clauses belong to the operation support. -->
-
-    <!-- TODO - check -->
 
     <xsd:element name="passwordPolicy" type="tns:PasswordPolicyType"/>
 
@@ -5008,10 +4071,6 @@
         <xsd:attribute name="name" type="xsd:QName" use="optional"/>
     </xsd:complexType>
 
-    <!-- End of TODO -->
-
-    <xsd:element name="operationResult" type="tns:OperationResultType"/>
-
     <xsd:complexType name="OperationResultType">
         <xsd:annotation>
             <xsd:documentation>
@@ -5037,6 +4096,7 @@
             <xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="operationResult" type="tns:OperationResultType"/>
 
     <xsd:complexType name="LocalizedMessageType">
         <xsd:sequence>
@@ -5146,8 +4206,6 @@
 
     <!-- Configuration types -->
 
-    <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
-
     <xsd:complexType name="SystemConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -5217,6 +4275,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
 
     <xsd:complexType name="ConnectorFrameworkType">
         <xsd:annotation>
@@ -5708,5 +4767,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+        
 </xsd:schema>
 

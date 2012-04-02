@@ -49,10 +49,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class PrismInternalTestUtil implements PrismContextFactory {
 
-	// TODO: Globalize
-	private static final String NS_TYPE = "http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd";
-	public static final QName OBJECT_REFERENCE_TYPE_QNAME = new QName(NS_TYPE, "ObjectReferenceType");
-	
 	// Files
 	public static final String OBJECT_DIR_PATH = "src/test/resources/parsing";
 	public static File SCHEMA_DIR = new File("src/test/resources/schema");
@@ -77,6 +73,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	// FOO schema
 	public static final QName USER_QNAME = new QName(NS_FOO,"user");
 	public static final QName USER_TYPE_QNAME = new QName(NS_FOO,"UserType");
+	
+	public static final QName OBJECT_REFERENCE_TYPE_QNAME = new QName(NS_FOO, "ObjectReferenceType");
 	
 	public static final QName USER_EXTENSION_QNAME = new QName(NS_FOO,"extension");
 	public static final QName USER_EXTENSION_MULTI_QNAME = new QName(NS_USER_EXT,"multi");

@@ -33,6 +33,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -61,6 +62,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 
 /**
  * @author semancik
@@ -142,11 +145,11 @@ public class TestParseDiffPatch {
         System.out.println("Modification XML:");
         System.out.println(PrismTestUtil.marshalWrap(objectModificationType));
         assertEquals("Wrong delta OID", userBefore.getOid(), objectModificationType.getOid());
-        List<PropertyModificationType> propertyModifications = objectModificationType.getPropertyModification();
+        List<ItemDeltaType> propertyModifications = objectModificationType.getModification();
         assertEquals("Unexpected number of modifications", 3, propertyModifications.size());
-        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"fullName"), PropertyModificationTypeType.replace, "Cpt. Jack Sparrow");
-        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"honorificPrefix"), PropertyModificationTypeType.add, "Cpt.");
-        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"locality"), PropertyModificationTypeType.add, "Tortuga");
+        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"fullName"), ModificationTypeType.REPLACE, "Cpt. Jack Sparrow");
+        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"honorificPrefix"), ModificationTypeType.ADD, "Cpt.");
+        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"locality"), ModificationTypeType.ADD, "Tortuga");
         
         userBefore.checkConsistence();
         userAfter.checkConsistence();
@@ -243,7 +246,7 @@ public class TestParseDiffPatch {
         System.out.println(PrismTestUtil.marshalWrap(objectModificationType));
         
         // Check for xsi:type
-        Element tokenElement = (Element) objectModificationType.getPropertyModification().get(0).getValue().getAny().get(0);
+        Element tokenElement = (Element) objectModificationType.getModification().get(0).getValue().getAny().get(0);
         assertTrue("No xsi:type in token",DOMUtil.hasXsiType(tokenElement));
         
         // parse back delta
@@ -413,8 +416,8 @@ public class TestParseDiffPatch {
 	}
 
 	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,
-			PropertyModificationTypeType modType, String... expectedValues) {
-		for (PropertyModificationType mod: objectModificationType.getPropertyModification()) {
+			ModificationTypeType modType, String... expectedValues) {
+		for (ItemDeltaType mod: objectModificationType.getModification()) {
 			List<Object> elements = mod.getValue().getAny();
 			assertFalse(elements.isEmpty());
 			Object first = elements.get(0);

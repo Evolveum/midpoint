@@ -27,14 +27,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 @Component
 public class ObjectNotFoundHandler extends ErrorHandler {
@@ -154,8 +151,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 
 				changeNotificationDispatcher.notifyChange(change, null, handleErrorResult);
 				
-				ObjectModificationType shadowModifications  = ((ObjectChangeModificationType) shadow.getObjectChange()).getObjectModification();
-				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModifications,
+				ObjectDeltaType shadowModifications  = shadow.getObjectChange();
+				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModifications.getModification(),
 						shadow.asPrismObject().getDefinition());
 				
 				try{

@@ -28,8 +28,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Element;
 
 import java.util.*;
 
@@ -116,9 +119,9 @@ public class UserManagerImplMock implements UserManager {
 		if (!resolve.getProperty().isEmpty()) {
 			Collection<AccountShadowDto> accounts = accountManagerMock.list();
 			Collection<GuiResourceDto> resources = resourceManagerMock.list();
-			for (PropertyReferenceType property : resolve.getProperty()) {
+			for (Element property : resolve.getProperty()) {
 				if (Utils.getPropertyName("Account").equals(
-						(new XPathHolder(property.getProperty())).getXPath())) {
+						(new XPathHolder(property)).getXPath())) {
 					for (AccountShadowDto acc : accounts) {
 						if (acc.getOid().equals(userDto.getAccountRef().get(0).getOid())) {
 							((UserType) userDto.getXmlObject()).getAccount().add(
@@ -130,7 +133,7 @@ public class UserManagerImplMock implements UserManager {
 				}
 
 				if (Utils.getPropertyName("Resource").equals(
-						(new XPathHolder(property.getProperty())).getXPath())) {
+						(new XPathHolder(property)).getXPath())) {
 					for (ResourceDto res : resources) {
 						System.out.println("res oid " + res.getOid());
 						if (res.getOid().equals(userDto.getAccount().get(0).getResourceRef().getOid())) {

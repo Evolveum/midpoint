@@ -21,24 +21,28 @@
 
 <!-- Object modification description that is changing user "jack" by adding a new account assignment -->
 
-<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+<objectModification
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<propertyModification modificationType="add">
-		<value>
-			<assignment>
-				<accountConstruction>
-					<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-					<attribute>
-						<ref>ri:o</ref>
-						<value>Pirate Brethren, Inc.</value>
-					</attribute>
-					<attribute>
-						<ref>ri:l</ref>
-						<value>Caribbean</value>
-					</attribute>
-				</accountConstruction>
-			</assignment>
-		</value>
-	</propertyModification>
+	<modification>
+		<t:modificationType>add</t:modificationType>
+		<t:value>
+			<c:assignment>
+				<c:accountConstruction>
+					<c:resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+					<c:attribute>
+						<c:ref>ri:o</c:ref>
+						<c:value>Pirate Brethren, Inc.</c:value>
+					</c:attribute>
+					<c:attribute>
+						<c:ref>ri:l</c:ref>
+						<c:value>Caribbean</c:value>
+					</c:attribute>
+				</c:accountConstruction>
+			</c:assignment>
+		</t:value>
+	</modification>
 </objectModification>

@@ -44,7 +44,12 @@ import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.ObjectReferenceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -100,7 +105,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		}
 
 		try {
-			PropertyModificationType passwordChange = null;
+			ItemDeltaType passwordChange = null;
 			// detect if password was changed
 			if (changedObject.getCredentials() != null) {
 				// if password was changed, create modification change
@@ -112,7 +117,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 					segments.add(new XPathSegment(SchemaConstants.I_PASSWORD));
 					XPathHolder xpath = new XPathHolder(segments);
 					passwordChange = ObjectTypeUtil.createPropertyModificationType(
-							PropertyModificationTypeType.replace, xpath, SchemaConstants.R_PROTECTED_STRING,
+							ModificationTypeType.REPLACE, xpath, SchemaConstants.R_PROTECTED_STRING,
 							password.getProtectedString());
 					// now when modification change of password was made, clear
 					// credentials from changed user and also from old account

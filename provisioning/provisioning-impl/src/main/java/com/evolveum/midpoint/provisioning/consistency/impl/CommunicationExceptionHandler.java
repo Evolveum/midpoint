@@ -23,12 +23,12 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 
 @Component
 public class CommunicationExceptionHandler extends ErrorHandler {
@@ -93,15 +93,15 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 						shadow.getOid(), SchemaConstants.C_RESULT, shadow.getResult());
 
 				// storing failed operation type
-				PropertyModificationType propertyModification = ObjectTypeUtil
-						.createPropertyModificationType(PropertyModificationTypeType.replace, null,
+				ItemDeltaType propertyModification = ObjectTypeUtil
+						.createPropertyModificationType(ModificationTypeType.REPLACE, null,
 								SchemaConstants.C_FAILED_OPERATION_TYPE, FailedOperationTypeType.MODIFY);
-				shadowModification.getPropertyModification().add(propertyModification);
+				shadowModification.getModification().add(propertyModification);
 
 				propertyModification = ObjectTypeUtil.createPropertyModificationType(
-						PropertyModificationTypeType.replace, null, new QName(SchemaConstants.NS_C,
+						ModificationTypeType.REPLACE, null, new QName(SchemaConstants.NS_C,
 								"objectChange"), shadow.getObjectChange());
-				shadowModification.getPropertyModification().add(propertyModification);
+				shadowModification.getModification().add(propertyModification);
 
 				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModification, 
 						shadow.asPrismObject().getDefinition());
@@ -115,10 +115,10 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				ObjectModificationType shadowModification = ObjectTypeUtil.createModificationReplaceProperty(
 						shadow.getOid(), SchemaConstants.C_RESULT, shadow.getResult());
 
-				PropertyModificationType propertyModification = ObjectTypeUtil
-						.createPropertyModificationType(PropertyModificationTypeType.replace, null,
+				ItemDeltaType propertyModification = ObjectTypeUtil
+						.createPropertyModificationType(ModificationTypeType.REPLACE, null,
 								SchemaConstants.C_FAILED_OPERATION_TYPE, FailedOperationTypeType.DELETE);
-				shadowModification.getPropertyModification().add(propertyModification);
+				shadowModification.getModification().add(propertyModification);
 
 				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModification, 
 						shadow.asPrismObject().getDefinition());

@@ -38,8 +38,10 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -92,10 +94,9 @@ public class ObjectTypeUtil {
         return null;
     }
 
-    public static PropertyModificationType createPropertyModificationType(
-            PropertyModificationTypeType changeType, XPathHolder xpathType, Object element) {
-        PropertyModificationType change = new PropertyModificationType();
-        change.setValue(new Value());
+    public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType, XPathHolder xpathType, Object element) {
+        ItemDeltaType change = new ItemDeltaType();
+        change.setValue(new ItemDeltaType.Value());
         change.setModificationType(changeType);
         if (xpathType == null) {
             // Default XPath is empty XPath, which means "."
@@ -107,22 +108,22 @@ public class ObjectTypeUtil {
         return change;
     }
 
-    public static PropertyModificationType createPropertyModificationType(
-            PropertyModificationTypeType changeType, XPathHolder xpath, QName propertyName, Object value) {
+    public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType,
+    		XPathHolder xpath, QName propertyName, Object value) {
         Collection<Object> values = new ArrayList<Object>(1);
         values.add(value);
         return createPropertyModificationType(changeType, xpath, propertyName, values);
     }
 
-    public static PropertyModificationType createPropertyModificationType(
-            PropertyModificationTypeType changeType, XPathHolder xpath, PrismProperty property) {
+    public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType,
+    		XPathHolder xpath, PrismProperty property) {
         return createPropertyModificationType(changeType, xpath, property.getName(), property.getValues());
     }
 
-    public static PropertyModificationType createPropertyModificationType(
-            PropertyModificationTypeType changeType, XPathHolder xpath, QName propertyName, Collection<Object> values) {
+    public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType,
+    		XPathHolder xpath, QName propertyName, Collection<Object> values) {
 
-        PropertyModificationType propertyChange = new PropertyModificationType();
+        ItemDeltaType propertyChange = new ItemDeltaType();
         propertyChange.setModificationType(changeType);
 
         Document doc = DOMUtil.getDocument();
@@ -141,7 +142,7 @@ public class ObjectTypeUtil {
 
         propertyChange.setPath(xpath.toElement(SchemaConstants.NS_C, "path", doc));
 
-        Value jaxbValue = new Value();
+        ItemDeltaType.Value jaxbValue = new ItemDeltaType.Value();
         if (values != null) {
             for (Object value : values) {
                 if (value == null) {
@@ -179,9 +180,9 @@ public class ObjectTypeUtil {
                                                                            Object propertyValue) {
         ObjectModificationType modification = new ObjectModificationType();
         modification.setOid(oid);
-        List<PropertyModificationType> propertyModifications = modification.getPropertyModification();
-        PropertyModificationType propertyModification = createPropertyModificationType(
-                PropertyModificationTypeType.replace, xpath, propertyName, propertyValue);
+        List<ItemDeltaType> propertyModifications = modification.getModification();
+        ItemDeltaType propertyModification = createPropertyModificationType(ModificationTypeType.REPLACE,
+        		xpath, propertyName, propertyValue);
         propertyModifications.add(propertyModification);
         return modification;
     }
@@ -446,11 +447,11 @@ public class ObjectTypeUtil {
 //        return null;
 //    }
 
-    public static boolean isModificationOf(PropertyModificationType modification, QName elementName) {
+    public static boolean isModificationOf(ItemDeltaType modification, QName elementName) {
         return isModificationOf(modification, elementName, null);
     }
 
-    public static boolean isModificationOf(PropertyModificationType modification, QName elementName, XPathHolder path) {
+    public static boolean isModificationOf(ItemDeltaType modification, QName elementName, XPathHolder path) {
 
         if (path == null && XPathHolder.isDefault(modification.getPath())) {
             return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
@@ -465,7 +466,7 @@ public class ObjectTypeUtil {
         return false;
     }
 
-    public static QName getElementName(PropertyModificationType propertyModification) {
+    public static QName getElementName(ItemDeltaType propertyModification) {
         if (propertyModification.getValue() == null) {
             throw new IllegalArgumentException("Modification without value element");
         }
@@ -476,8 +477,8 @@ public class ObjectTypeUtil {
     }
 
     public static boolean isEmpty(ObjectModificationType objectModification) {
-        return (objectModification.getPropertyModification() == null) ||
-                objectModification.getPropertyModification().isEmpty();
+        return (objectModification.getModification() == null) ||
+                objectModification.getModification().isEmpty();
     }
     
     public static void assertConcreteType(Class<? extends Objectable> type) {

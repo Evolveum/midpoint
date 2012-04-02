@@ -21,12 +21,12 @@
 package com.evolveum.midpoint.schema;
 
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 
 /**
  * 
@@ -49,8 +49,7 @@ public abstract class PagingTypeFactory {
 
 	public static PagingType createPaging(int offset, int maxSize, OrderDirectionType order, String orderBy) {
 		PagingType paging = new PagingType();
-		PropertyReferenceType propertyReferenceType = fillPropertyReference(orderBy);
-		paging.setOrderBy(propertyReferenceType);
+		paging.setOrderBy(fillPropertyReference(orderBy));
 		paging.setOffset(offset);
 		paging.setMaxSize(maxSize);
 		paging.setOrderDirection(order);
@@ -58,11 +57,9 @@ public abstract class PagingTypeFactory {
 		return paging;
 	}
 
-	private static PropertyReferenceType fillPropertyReference(String resolve) {
-		PropertyReferenceType property = new PropertyReferenceType();
+	private static Element fillPropertyReference(String resolve) {
 		XPathHolder xpath = new XPathHolder(getPropertyName(resolve));
-		property.setProperty(xpath.toElement(SchemaConstants.NS_C, "property"));
-		return property;
+		return xpath.toElement(SchemaConstants.NS_C, "property");
 	}
 
 	private static String getPropertyName(String name) {

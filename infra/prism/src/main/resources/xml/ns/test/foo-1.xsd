@@ -25,7 +25,6 @@
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
-            xmlns:t="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -63,26 +62,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-
-
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
-                schemaLocation="../public/common/annotation-1.xsd">
-        <xsd:annotation>
-            <xsd:documentation>
-                Common prism annotations used in various XSD schemas.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
     
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd"
-                schemaLocation="../public/common/types-1.xsd">
-        <xsd:annotation>
-            <xsd:documentation>
-                Common prism data types used in various XSD schemas.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
-
     <xsd:element name="name" type="xsd:string"/>
     <xsd:element name="displayName" type="xsd:string"/>
     <xsd:element name="description" type="xsd:string"/>
@@ -134,7 +114,7 @@
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>
                     <!-- Single-valued container -->
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
-                    <xsd:element name="accountRef" type="t:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="accountRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                     	<xsd:annotation>
                     		<xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:AccountType</a:objectReferenceTargetType>
@@ -153,6 +133,66 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="user" type="tns:UserType"/>
+    
+    <xsd:complexType name="ObjectReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to an object. It contains OID of the object that it refers to.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:objectReference/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Free-form description of this reference. Usually used to describe the purpose of
+        				a search filter embedded in the reference.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="filter" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+                        It must not be used for normal operations and references with the filter must not
+                        be stored in the repository.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                	<xsd:sequence>
+                		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                	</xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="oid" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Target of the reference.
+
+                    Optional only during imports. The objects stored in the repository must have the OID
+                    value filled in.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="type" type="xsd:QName" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    XSD type of the reference target object.
+
+                    It should be provided if the type is known (e.g. when
+                    reading object from the repository).
+
+                    The primary reason for this is to have some kind of
+                    type safety but especially to be able to use
+                    this in the XPaths that specify what references to resolve.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    
     
     <xsd:complexType name="AccountType">
         <xsd:complexContent>

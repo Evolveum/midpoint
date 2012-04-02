@@ -22,20 +22,24 @@
 <!-- Object modification description that is changing account of "guybrush" -->
 
 <objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 	<oid>will be replaced by the test code</oid>
-	<propertyModification modificationType="replace">
-		<path>attributes</path>
-		<value>
+	<modification>
+		<t:modificationType>replace</t:modificationType>
+		<t:path>c:attributes</t:path>
+		<t:value>
 			<ri:roomNumber>captain's cabin</ri:roomNumber>
-		</value>
-	</propertyModification>
-	<propertyModification modificationType="add">
-		<path>attributes</path>
-		<value>
+		</t:value>
+	</modification>
+	<modification>
+		<t:modificationType>add</t:modificationType>
+		<t:path>c:attributes</t:path>
+		<t:value>
 			<ri:businessCategory>capsize</ri:businessCategory>
 			<ri:businessCategory>fighting</ri:businessCategory>
-		</value>
-	</propertyModification>
+		</t:value>
+	</modification>
 </objectModification>

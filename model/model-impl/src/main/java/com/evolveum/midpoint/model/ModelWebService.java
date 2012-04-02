@@ -27,6 +27,11 @@ import javax.jws.WebParam;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -194,26 +199,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed", ex);
-			throw createSystemFault(ex, operationResult);
-		}
-	}
-
-	@Override
-	public void getPropertyAvailableValues(String oid, PropertyReferenceListType properties, 
-			Holder<PropertyAvailableValuesListType> propertyAvailableValuesListHolder,
-			Holder<OperationResultType> result) throws FaultMessage {
-		notEmptyArgument(oid, "Oid must not be null or empty.");
-		notNullArgument(properties, "Property reference list must not be null.");
-
-		OperationResult operationResult = new OperationResult(GET_PROPERTY_AVAILABLE_VALUES);
-		try {
-			PropertyAvailableValuesListType list = model.getPropertyAvailableValues(oid, properties,
-					operationResult);
-			handleOperationResult(operationResult, result);
-			propertyAvailableValuesListHolder.value = list;
-			return;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL getPropertyAvailableValues() failed", ex);
 			throw createSystemFault(ex, operationResult);
 		}
 	}

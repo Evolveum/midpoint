@@ -62,11 +62,10 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -141,9 +140,7 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		PagingType paging = new PagingType();
 		Element el = DOMUtil.getDocument().createElementNS(SchemaConstants.NS_C, "property");
 		el.setTextContent("name");
-		PropertyReferenceType orderBy = new PropertyReferenceType();
-		orderBy.setProperty(el);
-		paging.setOrderBy(orderBy);
+		paging.setOrderBy(el);
 		paging.setOrderDirection(OrderDirectionType.DESCENDING);
 
 		paging.setOffset(0);
@@ -227,9 +224,7 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		PagingType paging = new PagingType();
 		Element el = DOMUtil.getDocument().createElementNS(SchemaConstants.NS_C, "property");
 		el.setTextContent("name");
-		PropertyReferenceType orderBy = new PropertyReferenceType();
-		orderBy.setProperty(el);
-		paging.setOrderBy(orderBy);
+		paging.setOrderBy(el);
 		paging.setOrderDirection(OrderDirectionType.DESCENDING);
 		// create query
 		QueryType query = new QueryType();

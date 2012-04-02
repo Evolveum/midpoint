@@ -17,22 +17,14 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
 
 
-<c:object xsi:type="c:ObjectModificationType"
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns='http://default.com/whatever'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
-   xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
-   xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/resource-schema-1.xsd'>
+<objectModification 
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
 
-
-</c:object>
+</objectModification>

@@ -41,15 +41,12 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -522,31 +519,6 @@ public interface ModelService {
 	 * @throws CommunicationException error communicating with the connector host
 	 */
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException;
-
-	/**
-	 * <p>
-	 * Returns list of available values for specified properties.
-	 * </p>
-	 * <p>
-	 * The returned values can be used as valid values for properties of the
-	 * specific object. The provided values can be used e.g. for listing them in
-	 * GUI list boxes, for early validation (pre-validation), displaying help
-	 * messages, auto-complete, etc.
-	 * </p>
-	 * <p>
-	 * In case the list of available values is too big or it is not available,
-	 * the empty list should be returned, setting the "closed" flag to false.
-	 * </p>
-	 * 
-	 * NOT YET IMPLEMETED
-	 * 
-	 * @param oid
-	 * @param properties
-	 * @param result
-	 * @return
-	 */
-	PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
-			PropertyReferenceListType properties, OperationResult result);
 
 	/**
 	 * Finish initialization of the model and lower system components

@@ -35,9 +35,17 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -278,30 +286,6 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(expectedExceptions = FaultMessage.class)
-    public void nullOid() throws FaultMessage {
-        try {
-            modelService.getPropertyAvailableValues(null, new PropertyReferenceListType(),
-                    new Holder<PropertyAvailableValuesListType>(),
-                    new Holder<OperationResultType>());
-        } catch (FaultMessage ex) {
-            ModelTUtil.assertIllegalArgumentFault(ex);
-        }
-        Assert.fail("Illegal argument excetion must be thrown");
-    }
-
-    @Test(expectedExceptions = FaultMessage.class)
-    public void emptyOid() throws FaultMessage {
-        try {
-            modelService.getPropertyAvailableValues("", new PropertyReferenceListType(),
-                    new Holder<PropertyAvailableValuesListType>(),
-                    new Holder<OperationResultType>());
-        } catch (FaultMessage ex) {
-            ModelTUtil.assertIllegalArgumentFault(ex);
-        }
-        Assert.fail("Illegal argument excetion must be thrown");
-    }
-
-    @Test(expectedExceptions = FaultMessage.class)
     public void nullQueryType() throws FaultMessage {
         try {
             modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, new PagingType(),
@@ -354,13 +338,13 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void nonExistingUidModify() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException, FileNotFoundException {
         final String oid = "1";
         ObjectModificationType modification = new ObjectModificationType();
-        PropertyModificationType mod1 = new PropertyModificationType();
-        mod1.setModificationType(PropertyModificationTypeType.add);
-        PropertyModificationType.Value value = new PropertyModificationType.Value();
+        ItemDeltaType mod1 = new ItemDeltaType();
+        mod1.setModificationType(ModificationTypeType.ADD);
+        ItemDeltaType.Value value = new ItemDeltaType.Value();
         value.getAny().add(DOMUtil.createElement(DOMUtil.getDocument(), new QName(SchemaConstants.NS_C, "fullName")));
         mod1.setValue(value);
 
-        modification.getPropertyModification().add(mod1);
+        modification.getModification().add(mod1);
         modification.setOid(oid);
 
         when(

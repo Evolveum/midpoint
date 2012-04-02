@@ -60,6 +60,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -725,7 +728,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		Set<Operation> changes = new HashSet<Operation>();
 		ProtectedStringType passPs = protector.encryptString("salalala");
 		
-		PropertyModificationType propMod = new PropertyModificationType();
+		ItemDeltaType propMod = new ItemDeltaType();
 		//create modification path
 		Document doc = DOMUtil.getDocument();
 		Element path = doc.createElementNS(SchemaConstants.NS_C, "path");
@@ -734,13 +737,13 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		propMod.setPath(path);
 		
 		//set the replace value
-		PropertyModificationType.Value value = new PropertyModificationType.Value();
+		ItemDeltaType.Value value = new ItemDeltaType.Value();
 		Element valueElement = PrismTestUtil.marshalObjectToDom(passPs, PasswordType.F_PROTECTED_STRING, doc);
 		value.getAny().add(valueElement);
 		propMod.setValue(value);
 		
 		//set the modificaion type
-		propMod.setModificationType(PropertyModificationTypeType.replace);
+		propMod.setModificationType(ModificationTypeType.REPLACE);
 		
 		PropertyDelta passDelta = (PropertyDelta)DeltaConvertor.createItemDelta(propMod, shadow.getDefinition());
 		PropertyModificationOperation passwordModification = new PropertyModificationOperation(passDelta);

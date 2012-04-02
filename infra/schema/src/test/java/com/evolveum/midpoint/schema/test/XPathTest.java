@@ -25,12 +25,15 @@ package com.evolveum.midpoint.schema.test;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.holder.TrivialXPathParser;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -76,21 +79,12 @@ public class XPathTest {
      * It should be improved later.
      */
     @Test
-    public void xpathTest() throws JAXBException, FileNotFoundException, IOException, ParserConfigurationException {
+    public void xpathTest() throws JAXBException, FileNotFoundException, IOException, ParserConfigurationException, SchemaException {
 
-        File file = new File(FILENAME_CHANGETYPE);
-        FileInputStream fis = new FileInputStream(file);
+    	ObjectModificationType objectModification = PrismTestUtil.unmarshalObject(new File(FILENAME_CHANGETYPE),
+    			ObjectModificationType.class);
 
-        Unmarshaller u = null;
-
-        JAXBContext jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-        u = jc.createUnmarshaller();
-
-        Object object = u.unmarshal(fis);
-
-        ObjectModificationType objectModification = (ObjectModificationType) ((JAXBElement) object).getValue();
-
-        for (PropertyModificationType change : objectModification.getPropertyModification()) {
+        for (ItemDeltaType change : objectModification.getModification()) {
             Element path = change.getPath();
             System.out.println("  path=" + path + " (" + path.getClass().getName() + ") " + path.getLocalName() + " = " + path.getTextContent());
             NamedNodeMap attributes = path.getAttributes();

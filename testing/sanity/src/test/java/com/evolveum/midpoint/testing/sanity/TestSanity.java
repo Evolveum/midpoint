@@ -64,12 +64,17 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
@@ -1186,7 +1191,7 @@ public class TestSanity extends AbstractIntegrationTest {
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_PASSWORD_FILENAME, ObjectModificationType.class);
 
-        System.out.println("In modification: " + objectChange.getPropertyModification().get(0).getValue().getAny().get(0));
+        System.out.println("In modification: " + objectChange.getModification().get(0).getValue().getAny().get(0));
         assertCache();
 
         // WHEN
@@ -1548,15 +1553,15 @@ public class TestSanity extends AbstractIntegrationTest {
 
         ObjectModificationType objectChange = new ObjectModificationType();
         objectChange.setOid(USER_JACK_OID);
-        PropertyModificationType modificationDeleteAccountRef = new PropertyModificationType();
-        modificationDeleteAccountRef.setModificationType(PropertyModificationTypeType.delete);
-        Value modificationValue = new Value();
+        ItemDeltaType modificationDeleteAccountRef = new ItemDeltaType();
+        modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
+        ItemDeltaType.Value modificationValue = new ItemDeltaType.Value();
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid(accountShadowOidDerby);
         JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(SchemaConstants.I_ACCOUNT_REF, ObjectReferenceType.class, accountRefToDelete);
         modificationValue.getAny().add(accountRefToDeleteElement);
         modificationDeleteAccountRef.setValue(modificationValue);
-        objectChange.getPropertyModification().add(modificationDeleteAccountRef);
+        objectChange.getModification().add(modificationDeleteAccountRef);
         displayJaxb("modifyObject input", objectChange, new QName(SchemaConstants.NS_C, "change"));
         assertCache();
 

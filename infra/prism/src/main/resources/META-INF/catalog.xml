@@ -25,11 +25,11 @@
     <rewriteSystem systemIdStartString="http://midpoint.evolveum.com/xml/" rewritePrefix="main/resources/xml/"/>
 
 	<!-- Schema locations for public namespaces -->
-	<public publicId="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" uri="../xml/ns/public/common/annotation-1.xsd" />
+<!--	<public publicId="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" uri="../xml/ns/public/common/annotation-1.xsd" />
 	<system systemId="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" uri="../xml/ns/public/common/annotation-1.xsd" />
 
-	<public publicId="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd" uri="../xml/ns/public/common/types-1.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd" uri="../xml/ns/public/common/types-1.xsd" />
+	<public publicId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../xml/ns/public/prism/types-2.xsd" />
+    <system systemId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../xml/ns/public/prism/types-2.xsd" />  -->
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" uri="../xml/ns/test/foo-1.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" uri="../xml/ns/test/foo-1.xsd" />

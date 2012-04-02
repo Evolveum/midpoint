@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.ClassMapper;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RUtil;
 import com.evolveum.midpoint.repo.sql.type.QNameType;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -78,7 +79,7 @@ public class SimpleOp extends Op {
         LOGGER.debug("Interpreting '{}', pushNot '{}'", new Object[]{DOMUtil.getQNameWithoutPrefix(filter), pushNot});
         validate(filter);
 
-        Element path = DOMUtil.getChildElement(filter, SchemaConstants.C_PATH);
+        Element path = DOMUtil.getChildElement(filter, DeltaConvertor.PATH_ELEMENT_NAME);
         PropertyPath propertyPath = getInterpreter().createPropertyPath(path);
         if (path != null) {
             updateQueryContext(propertyPath);

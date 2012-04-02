@@ -21,26 +21,29 @@
 
 <!-- Object modification description that is changing user "jack" by adding a new account -->
 
-<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd'>
+<objectModification 
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<propertyModification modificationType="add">
-		<value>
-			<account xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+	<modification>
+		<t:modificationType>add</t:modificationType>
+		<t:value>
+			<c:account xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"> 
 				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
 				<!-- No name here. We expect that it will be generated -->
-				<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-				<objectClass>ri:AccountObjectClass</objectClass>
-				<attributes>
+				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+				<c:objectClass>ri:AccountObjectClass</c:objectClass>
+				<c:attributes>
 					<icfs:name>uid=jack,ou=People,dc=example,dc=com</icfs:name>
 					<ri:uid>jack</ri:uid>
 					<ri:cn>Jack Sparrow</ri:cn>
 					<ri:givenName>Jack</ri:givenName>
 					<ri:sn>Sparrow</ri:sn>
-				</attributes>
-			</account>
-		</value>
-	</propertyModification>
+				</c:attributes>
+			</c:account>
+		</t:value>
+	</modification>
 </objectModification>

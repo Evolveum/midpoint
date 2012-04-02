@@ -21,13 +21,17 @@
 
 <!-- Object modification description that is changing user "guybrush" by deleting a new role (using assignment) -->
 
-<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
+<objectModification
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111222</oid>
-	<propertyModification modificationType="delete">
-		<value>
-			<assignment>
-				<targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="RoleType"/>
-			</assignment>
-		</value>
-	</propertyModification>
+	<modification>
+		<t:modificationType>delete</t:modificationType>
+		<t:value>
+			<c:assignment>
+				<c:targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="c:RoleType"/>
+			</c:assignment>
+		</t:value>
+	</modification>
 </objectModification>

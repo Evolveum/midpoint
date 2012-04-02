@@ -40,6 +40,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
@@ -49,6 +51,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
+import org.w3c.dom.Element;
 
 import java.lang.InstantiationException;
 import java.lang.reflect.InvocationTargetException;
@@ -136,8 +139,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             QueryRegistry registry = QueryRegistry.getInstance();
             EntityDefinition definition = registry.findDefinition(ObjectTypes.getObjectType(type).getQName());
-            for (PropertyReferenceType property : resolve.getProperty()) {
-                PropertyPath path = new XPathHolder(property.getProperty()).toPropertyPath();
+            for (Element property : resolve.getProperty()) {
+                PropertyPath path = new XPathHolder(property).toPropertyPath();
                 if (path == null || path.size() != 1) {
                     LOGGER.warn("Resolving property path with size not equal 1 is not supported '"
                             + path + "'.");
@@ -583,7 +586,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
         try {
             QueryRegistry registry = QueryRegistry.getInstance();
-            PropertyPath path = new XPathHolder(paging.getOrderBy().getProperty()).toPropertyPath();
+            PropertyPath path = new XPathHolder(paging.getOrderBy()).toPropertyPath();
             if (path == null || path.size() != 1) {
                 LOGGER.warn("Ordering by property path with size not equal 1 is not supported '"
                         + path + "'.");

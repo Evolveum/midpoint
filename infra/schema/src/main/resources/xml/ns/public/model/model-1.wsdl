@@ -27,6 +27,7 @@
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+    xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
     xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl"
 	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
 
@@ -57,6 +58,7 @@
     <types>
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="../common/common-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" schemaLocation="../common/api-types-2.xsd"/>
         </xsd:schema>
     </types>
 
@@ -87,7 +89,7 @@
     <message name="getObjectRequest">
     	<part name="objectType" type="xsd:anyURI"/>
         <part name="oid" type="xsd:string"/>
-        <part name="resolve" type="c:PropertyReferenceListType"/>
+        <part name="resolve" type="apit:PropertyReferenceListType"/>
     </message>
     <message name="getObjectResponse">
         <part name="object" type="c:ObjectType"/>
@@ -100,14 +102,14 @@
                 Object type to list.
             </documentation>
         </part>
-        <part name="paging" type="c:PagingType">
+        <part name="paging" type="apit:PagingType">
             <documentation>
                 Parameters limiting the number of returned entries, offset, etc.
             </documentation>
         </part>
     </message>
     <message name="listObjectsResponse">
-        <part name="objectList" type="c:ObjectListType"/>
+        <part name="objectList" type="apit:ObjectListType"/>
         <part name="result" type="c:OperationResultType" />
     </message>
 
@@ -118,20 +120,20 @@
                 Search criteria
             </documentation>
         </part>
-        <part name="paging" type="c:PagingType">
+        <part name="paging" type="apit:PagingType">
             <documentation>
                 Parameters limiting the number of returned entries, offset, etc.
             </documentation>
         </part>
     </message>
     <message name="searchObjectsResponse">
-        <part name="objectList" type="c:ObjectListType"/>
+        <part name="objectList" type="apit:ObjectListType"/>
         <part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="modifyObjectRequest">
     	<part name="objectType" type="xsd:anyURI"/>
-        <part name="objectChange" type="c:ObjectModificationType"/>
+        <part name="objectChange" type="apit:ObjectModificationType"/>
     </message>
     <message name="modifyObjectResponse">
     	<part name="result" type="c:OperationResultType" />
@@ -144,15 +146,6 @@
     <message name="deleteObjectResponse">
     	<part name="result" type="c:OperationResultType" />
     </message>
-
-    <message name="getPropertyAvailableValuesRequest">
-        <part name="oid" type="xsd:string"/>
-        <part name="properties" type="c:PropertyReferenceListType"/>
-    </message>
-    <message name="getPropertyAvailableValuesResponse">
-        <part name="propertyAvailableValuesList" type="c:PropertyAvailableValuesListType"/>
-        <part name="result" type="c:OperationResultType" />
-    </message>  
 
     <!-- End of common messages -->
 
@@ -169,7 +162,7 @@
         <part name="resourceObjectShadowType" type="xsd:anyURI"/>
     </message>
     <message name="listResourceObjectShadowsResponse">
-        <part name="resourceObjectShadowList" type="c:ResourceObjectShadowListType"/>
+        <part name="resourceObjectShadowList" type="apit:ResourceObjectShadowListType"/>
         <part name="result" type="c:OperationResultType" />
     </message>
 
@@ -186,14 +179,14 @@
                 resource schema encoded in the URL form.
             </documentation>
         </part>
-        <part name="paging" type="c:PagingType">
+        <part name="paging" type="apit:PagingType">
             <documentation>
                 Parameters limiting the number of returned entries, offset, etc.
             </documentation>
         </part>
     </message>
     <message name="listResourceObjectsResponse">
-        <part name="objectList" type="c:ObjectListType"/>
+        <part name="objectList" type="apit:ObjectListType"/>
         <part name="result" type="c:OperationResultType" />
     </message>
 
@@ -345,32 +338,6 @@
             </documentation>
             <input name="deleteObjectInput" message="tns:deleteObjectRequest"/>
             <output name="deleteObjectOutput" message="tns:deleteObjectResponse"/>
-            <fault name="fault" message="f:FaultMessage"/>
-        </operation>
-
-        <operation name="getPropertyAvailableValues">
-            <documentation>
-                Returns list of available values for specified properties.
-
-                The returned values can be used as valid values for properties
-                of the specific object. The provided values can be used e.g.
-                for listing them in GUI list boxes, for early validation
-                (pre-validation), displaying help messages, auto-complete, etc.
-
-                In case the list of available values is too big or it is not
-                available, the empty list should be returned, setting the
-                "closed" flag to false.
-
-                This optional operation is SUPPORTED by this interface.
-
-                Faults:
-                      any SystemFaultType
-                      UnsupportedObjectTypeFaultType: specified object type is not supported by the interface
-                      ObjectNotFoundFaultType: object with specified OID does not exists
-                      IllegalArgumentFaultType: wrong OID format
-            </documentation>
-            <input name="getPropertyAvailableValuesInput" message="tns:getPropertyAvailableValuesRequest"/>
-            <output name="getPropertyAvailableValuesOutput" message="tns:getPropertyAvailableValuesResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
@@ -593,18 +560,6 @@
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </input>
             <output name="deleteObjectOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </output>
-            <fault name="fault">
-                <soap:fault name="fault" use="literal"/>
-            </fault>
-        </operation>
-        <operation name="getPropertyAvailableValues">
-            <soap:operation/>
-            <input name="getPropertyAvailableValuesInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </input>
-            <output name="getPropertyAvailableValuesOutput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </output>
             <fault name="fault">

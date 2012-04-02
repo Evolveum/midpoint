@@ -96,18 +96,14 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -939,24 +935,6 @@ public class ModelController implements ModelService {
 			auditRecord.clearTimestamp();
 			auditService.audit(auditRecord, task);
 		}
-	}
-
-	@Override
-	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
-			PropertyReferenceListType properties, OperationResult result) {
-		Validate.notEmpty(oid, "Oid must not be null or empty.");
-		Validate.notNull(properties, "Property reference list must not be null.");
-		Validate.notNull(result, "Result type must not be null.");
-
-		RepositoryCache.enter();
-		LOGGER.trace("Getting property available values for object with oid {} (properties in TRACE).",
-				new Object[] { oid });
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(SchemaDebugUtil.prettyPrint(properties));
-		}
-
-		RepositoryCache.exit();
-		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
 	@Override
