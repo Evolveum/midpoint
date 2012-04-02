@@ -26,9 +26,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenu;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
-import com.evolveum.midpoint.web.component.menu.top2.BottomMenuItem;
-import com.evolveum.midpoint.web.component.menu.top2.TopMenu2;
-import com.evolveum.midpoint.web.component.menu.top2.TopMenuItem;
+import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.menu.top.TopMenu;
+import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.injection.Injector;
@@ -58,7 +58,7 @@ public abstract class PageBase extends WebPage {
         List<BottomMenuItem> bottomMenuItems = getBottomMenuItems();
         Validate.notNull(bottomMenuItems, "Bottom menu item list must not be null.");
 
-        add(new TopMenu2("topMenu2", topMenuItems, bottomMenuItems));
+        add(new TopMenu("topMenu2", topMenuItems, bottomMenuItems));
         add(new LeftMenu("leftMenu", getLeftMenuItems()));
 
         LoginPanel loginPanel = new LoginPanel("loginPanel");
