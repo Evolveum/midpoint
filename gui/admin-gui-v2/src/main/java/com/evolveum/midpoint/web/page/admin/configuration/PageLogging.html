@@ -1,0 +1,323 @@
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+<div class="content">
+<h1>
+    <wicket:message key="pageLogging.title"/>
+</h1>
+<form wicket:id="mainForm">
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <td class="label">
+            <wicket:message key="pageLogging.rootLevel"/>
+        </td>
+        <td class="values">
+            <select wicket:id="rootLevel" />
+        </td>
+        <td class="label">
+            <wicket:message key="pageLogging.rootAppender"/>
+        </td>
+        <td class="values">
+            <select>
+                <option value=""></option>
+                <option value="IDM_LOG">IDM_LOG</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td class="label">
+            <wicket:message key="pageLogging.midPointLevel"/>
+        </td>
+        <td class="values">
+            <select wicket:id="midPointLevel" />
+        </td>
+        <td class="label"><wicket:message key="pageLogging.midPointAppender" /></td>
+        <td class="values">
+            <select>
+                <option value=""></option>
+                <option value="IDM_LOG">IDM_LOG</option>
+            </select>
+        </td>
+    </tr>
+</table>
+<ul wicket:id="accordion" class="accordions">
+<li wicket:id="loggers">
+    <div class="sortedTable">
+        <table cellspacing="1" border="0" class="autowidth">
+            <thead>
+            <tr>
+                <th width="20px"><input type="checkbox" title="Select all"/></th>
+                <th>Class/Package/Subsystem</th>
+                <th>Level</th>
+                <th>Appender</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr>
+                <td class="checkbox"><input type="checkbox"/></td>
+                <td><a href="#">MODEL</a></td>
+                <td>
+                    <select>
+                        <option value="ALL">ALL</option>
+                        <option value="OFF">OFF</option>
+                        <option value="ERROR">ERROR</option>
+                        <option value="WARN">WARN</option>
+                        <option value="INFO">INFO</option>
+                        <option value="DEBUG">DEBUG</option>
+                        <option value="TRACE">TRACE</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select>
+                        <option value=""></option>
+                        <option value="IDM_LOG">IDM_LOG</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="checkbox"><input type="checkbox"/></td>
+                <td><a href="#">PROVISIONING</a></td>
+                <td>
+                    <select>
+                        <option value="ALL">ALL</option>
+                        <option value="OFF">OFF</option>
+                        <option value="ERROR">ERROR</option>
+                        <option value="WARN">WARN</option>
+                        <option value="INFO">INFO</option>
+                        <option value="DEBUG">DEBUG</option>
+                        <option value="TRACE">TRACE</option>
+                    </select>
+                </td>
+                <td>
+                    <select>
+                        <option value=""></option>
+                        <option value="IDM_LOG">IDM_LOG</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="checkbox"><input type="checkbox"/></td>
+                <td><a href="#">REPOSITORY</a></td>
+                <td>
+                    <select>
+                        <option value="ALL">ALL</option>
+                        <option value="OFF">OFF</option>
+                        <option value="ERROR">ERROR</option>
+                        <option value="WARN">WARN</option>
+                        <option value="INFO">INFO</option>
+                        <option value="DEBUG">DEBUG</option>
+                        <option value="TRACE">TRACE</option>
+                    </select>
+                </td>
+                <td>
+                    <select>
+                        <option value=""></option>
+                        <option value="IDM_LOG">IDM_LOG</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="checkbox"><input type="checkbox"/></td>
+                <td><a href="#">WEB</a></td>
+                <td>
+                    <select>
+                        <option value="ALL">ALL</option>
+                        <option value="OFF">OFF</option>
+                        <option value="ERROR">ERROR</option>
+                        <option value="WARN">WARN</option>
+                        <option value="INFO">INFO</option>
+                        <option value="DEBUG">DEBUG</option>
+                        <option value="TRACE">TRACE</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select>
+                        <option value=""></option>
+                        <option value="IDM_LOG">IDM_LOG</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="checkbox"><input type="checkbox"/></td>
+                <td><a href="#">TASKMANAGER</a></td>
+                <td>
+                    <select>
+                        <option value="ALL">ALL</option>
+                        <option value="OFF">OFF</option>
+                        <option value="ERROR">ERROR</option>
+                        <option value="WARN">WARN</option>
+                        <option value="INFO">INFO</option>
+                        <option value="DEBUG">DEBUG</option>
+                        <option value="TRACE">TRACE</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select>
+                        <option value=""></option>
+                        <option value="IDM_LOG">IDM_LOG</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="checkbox"><input type="checkbox"/></td>
+                <td><a href="#">RESOURCEOBJECTCHANGELISTENER</a></td>
+                <td>
+                    <select>
+                        <option value="ALL">ALL</option>
+                        <option value="OFF">OFF</option>
+                        <option value="ERROR">ERROR</option>
+                        <option value="WARN">WARN</option>
+                        <option value="INFO">INFO</option>
+                        <option value="DEBUG">DEBUG</option>
+                        <option value="TRACE">TRACE</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select>
+                        <option value=""></option>
+                        <option value="IDM_LOG">IDM_LOG</option>
+                    </select>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <h4>Log subsystem entry/exit</h4>
+    <table cellspacing="0" cellpadding="0">
+        <tr>
+            <td class="label">Level</td>
+            <td class="values">
+                <select>
+                    <option value="off">off</option>
+                    <option value="entry/exit">entry/exit</option>
+                    <option value="arguments">arguments</option>
+                </select>
+            </td>
+            <td class="label">Appender</td>
+            <td class="values">
+                <select>
+                    <option value=""></option>
+                    <option value="IDM_LOG">IDM_LOG</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <a class="button" href="#">Add logger</a>
+    <a class="button" href="#">Delete logger</a>
+</li>
+<li wicket:id="appenders">
+    <div class="sortedTable">
+        <table cellspacing="1" border="0">
+            <thead>
+            <tr>
+                <th width="20px"><input type="checkbox" title="Select all"/></th>
+                <th>Name</th>
+                <th>Pattern</th>
+                <th>File path</th>
+                <th>File pattern</th>
+                <th>Max. history</th>
+                <th>Max. file size [kB]</th>
+                <th>Appending</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr>
+                <td class="checkbox"><input type="checkbox"/></td>
+                <td><a href="#">IDM_LOG</a></td>
+                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
+                <td>${catalina.base}/logs/idm.log</td>
+                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
+                <td>10</td>
+                <td>100MB</td>
+                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
+            </tr>
+            <tr>
+                <td class="checkbox"><input type="checkbox"/></td>
+                <td><a href="#">IDM_LOG</a></td>
+                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
+                <td>${catalina.base}/logs/idm.log</td>
+                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
+                <td>10</td>
+                <td>100MB</td>
+                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
+            </tr>
+            <tr>
+                <td class="checkbox"><input type="checkbox"/></td>
+                <td><a href="#">IDM_LOG</a></td>
+                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
+                <td>${catalina.base}/logs/idm.log</td>
+                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
+                <td>10</td>
+                <td>100MB</td>
+                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <a class="button" href="#">Add appender</a>
+    <a class="button" href="#">Delete appender</a>
+</li>
+</ul>
+<h4>Audit</h4>
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <td class="label">Audit log:</td>
+        <td class="values">
+            <input type="checkbox"/>
+        </td>
+        <td class="label">Details:</td>
+        <td class="values">
+            <input type="checkbox"/>
+        </td>
+        <td class="label">Appender</td>
+        <td class="values">
+            <select>
+                <option value=""></option>
+                <option value="IDM_LOG">IDM_LOG</option>
+            </select>
+        </td>
+    </tr>
+</table>
+
+<div class="operatingFormButtons">
+    <a class="button" href="#">Save</a>
+    <a class="button" href="#">Reset</a>
+    <a class="button" href="#">Advanced</a>
+</div>
+</form>
+</div>
+<script type="text/javascript">
+    var parentAccordion = new TINY.accordion.slider("parentAccordion");
+    parentAccordion.init("acc", "h3", 0, -1, "acc-selected");
+    parentAccordion.pr(1);
+</script>
+</wicket:extend>
+</html>
