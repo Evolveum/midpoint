@@ -43,14 +43,12 @@
     <logger name="com.evolveum.midpoint.web" level="TRACE"/>
     <logger name="org.apache.wicket" level="TRACE"/>
     <logger name="com.evolveum.midpoint.init" level="INFO"/>
-    <logger name="com.evolveum.midpoint.web.controller" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.web" level="TRACE"/>
     <logger name="com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl" level="INFO"/>
     <logger name="com.evolveum.midpoint.provisioning" level="TRACE"/>
     <logger name="com.evolveum.midpoint.common" level="INFO"/>
     <logger name="com.evolveum.midpoint" level="INFO"/>
     <logger name="com.evolveum.midpoint.repo" level="TRACE"/>
-    <logger name="com.evolveum.midpoint.web.model" level="TRACE"/>
-    <logger name="com.evolveum.midpoint.web.repo" level="TRACE"/>
     <logger name="PROFILING" level="TRACE"/>
     <root level="WARN">
         <appender-ref ref="IDM_LOG"/>

@@ -21,58 +21,70 @@
 
 package com.evolveum.midpoint.web.page.login;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.IHeaderResponse;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.resource.PackageResourceReference;
-
-import com.evolveum.midpoint.web.component.accordion.Accordion;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.BottomMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.PasswordTextField;
+import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.resource.PackageResourceReference;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mserbak
  */
 public class PageLogin extends PageBase {
-	private static final long serialVersionUID = 4077059807145096420L;
-	
-	
 
-	public PageLogin() {
-        add(new Label("userNameLabel", new Model<String>("User")));
-        add(new Label("passwordLabel", new Model<String>("Password")));
-        add(new FeedbackPanel("feedback"));
-	}
-	
-	@Override
+    private static final long serialVersionUID = 4077059807145096420L;
+
+    public PageLogin() {
+        Form form = new Form("loginForm") {
+
+            @Override
+            protected void onSubmit() {
+                MidPointAuthWebSession session = MidPointAuthWebSession.getSession();
+
+                RequiredTextField<String> username = (RequiredTextField) get("username");
+                PasswordTextField password = (PasswordTextField) get("password");
+                if (session.authenticate(username.getModelObject(), password.getModelObject())) {
+                    if (!continueToOriginalDestination()) {
+                        setResponsePage(PageHome.class);
+                    }
+                }
+            }
+        };
+        form.add(new RequiredTextField("username", new Model<String>()));
+        form.add(new PasswordTextField("password", new Model<String>()));
+        form.add(new FeedbackPanel("feedback"));
+        add(form);
+    }
+
+    @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
         response.renderCSSReference(new PackageResourceReference(PageLogin.class, "PageLogin.css"));
     }
 
-	@Override
-	public List<LeftMenuItem> getLeftMenuItems() {
-		return new ArrayList<LeftMenuItem>();
-	}
+    @Override
+    public List<LeftMenuItem> getLeftMenuItems() {
+        return new ArrayList<LeftMenuItem>();
+    }
 
-	@Override
-	public List<TopMenuItem> getTopMenuItems() {
-		return new ArrayList<TopMenuItem>();
-	}
+    @Override
+    public List<TopMenuItem> getTopMenuItems() {
+        return new ArrayList<TopMenuItem>();
+    }
 
-	@Override
-	public List<BottomMenuItem> getBottomMenuItems() {
-		return new ArrayList<BottomMenuItem>();
-	}
+    @Override
+    public List<BottomMenuItem> getBottomMenuItems() {
+        return new ArrayList<BottomMenuItem>();
+    }
 }

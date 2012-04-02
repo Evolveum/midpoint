@@ -31,12 +31,18 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
     <global-method-security secured-annotations="enabled"/>
 
+    <http pattern="/model/**" security="none"/>
+
     <http pattern="/js/**" security="none"/>
     <http pattern="/css/**" security="none"/>
     <http pattern="/img/**" security="none"/>
 
-    <http auto-config="true" use-expressions="true">
+    <!-- todo fix later with some mounting-->
+    <http pattern="/wicket/resource/**" security="none"/>
+
+    <http create-session="never" auto-config="true" use-expressions="true">
         <intercept-url pattern="/j_spring_security_check" access="permitAll"/>
+        <intercept-url pattern="/spring_security_login" access="permitAll"/>
         <intercept-url pattern="/login" access="permitAll"/>
         <intercept-url pattern="/**" access="isAuthenticated()"/>
 
@@ -46,23 +52,21 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
             <concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
         </session-management>
 
-        <form-login login-page="/login" />
+        <form-login login-page="/login" default-target-url="/home" />
     </http>
 
 
-    <!--
-    Usernames/Passwords are
-        moez/moez
-        test/test
-    -->
+    <beans:bean id="midPointAuthenticationProvider"
+                class="com.evolveum.midpoint.web.security.MidPointAuthenticationProvider">
+        <beans:property name="loginTimeout">
+            <beans:value type="java.lang.Integer">15</beans:value>
+        </beans:property>
+        <beans:property name="maxFailedLogins">
+            <beans:value type="java.lang.Integer">3</beans:value>
+        </beans:property>
+    </beans:bean>
+
     <authentication-manager alias="authenticationManager">
-        <authentication-provider>
-            <password-encoder hash="md5"/>
-            <user-service>
-                <user name="moez" password="f69471ca2c42621b8b8e731b2b4446e4"
-                      authorities="ROLE_SUPERVISOR, ROLE_USER, ROLE_TELLER"/>
-                <user name="test" password="098f6bcd4621d373cade4e832627b4f6" authorities="ROLE_USER"/>
-            </user-service>
-        </authentication-provider>
+        <authentication-provider ref="midPointAuthenticationProvider"/>
     </authentication-manager>
 </beans:beans>

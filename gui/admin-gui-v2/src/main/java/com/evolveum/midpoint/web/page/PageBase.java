@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.web.page;
 
-import com.evolveum.midpoint.web.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenu;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;

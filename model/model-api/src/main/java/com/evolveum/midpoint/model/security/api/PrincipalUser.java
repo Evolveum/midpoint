@@ -23,8 +23,12 @@ package com.evolveum.midpoint.model.security.api;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.Validate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * Temporary place, till we create special component for it
@@ -32,11 +36,55 @@ import java.io.Serializable;
  * @author lazyman
  * @author Igor Farinic
  */
-public class PrincipalUser implements Serializable {
+public class PrincipalUser implements Serializable{//   } UserDetails {
 
     private static final long serialVersionUID = 8299738301872077768L;
     private UserType user;
-    private Credentials credentials;
+
+    public PrincipalUser(UserType user) {
+        Validate.notNull(user, "User must not be null.");
+        this.user = user;
+    }
+
+//    @Override
+//    public Collection<? extends GrantedAuthority> getAuthorities() {
+//        Collection<GrantedAuthority> collection = new HashSet<GrantedAuthority>();
+//        //todo implement
+//
+//        return collection;
+//    }
+//
+//    @Override
+//    public String getPassword() {
+//        return null;  //To change body of implemented methods use File | Settings | File Templates.
+//    }
+//
+//    @Override
+//    public String getUsername() {
+//        return user.getName();
+//    }
+//
+//    @Override
+//    public boolean isAccountNonExpired() {
+//        return true;  //To change body of implemented methods use File | Settings | File Templates.
+//    }
+//
+//    @Override
+//    public boolean isAccountNonLocked() {
+//        return true;  //To change body of implemented methods use File | Settings | File Templates.
+//    }
+//
+//    @Override
+//    public boolean isCredentialsNonExpired() {
+//        return true;  //To change body of implemented methods use File | Settings | File Templates.
+//    }
+//
+//    @Override
+//    public boolean isEnabled() {
+//        return true;  //To change body of implemented methods use File | Settings | File Templates.
+//    }
+
+        private Credentials credentials;
     private boolean enabled;
 
     public PrincipalUser(UserType user, boolean enabled) {

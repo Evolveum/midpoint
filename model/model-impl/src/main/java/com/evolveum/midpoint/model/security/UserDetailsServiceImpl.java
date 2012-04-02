@@ -73,12 +73,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public void updateUser(PrincipalUser user) {
-        try {
-            save(user);
-        } catch (RepositoryException ex) {
-            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
-                    new Object[]{user.getFullName(), user.getOid(), ex.getMessage()});
-        }
+//        try {
+//            save(user);
+//        } catch (RepositoryException ex) {
+//            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
+//                    new Object[]{user.getFullName(), user.getOid(), ex.getMessage()});
+//        }
     }
 
     private PrincipalUser findByUsername(String username) throws SchemaException, ObjectNotFoundException {
@@ -146,7 +146,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private PrincipalUser save(PrincipalUser person) throws RepositoryException {
     	
-    	throw new UnsupportedOperationException("Saving user is not supported (in security)");
+//    	throw new UnsupportedOperationException("Saving user is not supported (in security)");
 //        try {
 //            UserType userType = getUserByOid(person.getOid());
 //            UserType oldUserType = (UserType) JAXBUtil.clone(userType);
@@ -166,8 +166,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 //        } catch (Exception ex) {
 //            throw new RepositoryException(ex.getMessage(), ex);
 //        }
-
-//        return null;
+        LOGGER.warn("Saving user is not supported (in security)");
+        return person;
     }
 
     private UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {

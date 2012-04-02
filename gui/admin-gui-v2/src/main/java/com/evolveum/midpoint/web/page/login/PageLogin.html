@@ -27,7 +27,7 @@
 	<wicket:extend>
 		<div class="content">
 			<h1>Login</h1>
-			<form method="post" action="j_spring_security_check" name="loginForm">
+			<form wicket:id="loginForm" name="loginForm">
 				<div class="objectForm">
 					<table align="center" class="tableForm" cellspacing="0" border="0">
 						<thead>
@@ -45,13 +45,13 @@
 							<tr>
 								<td class="objectFormLabel">
 									<div class="objectFormLabelName">
-										<span wicket:id="userNameLabel" />:
+										<span><wicket:message key="pageLogin.userLabel" /></span>
 									</div>
 								</td>
 								<td class="objectFormValues">
 									<div class="objectFormValue">
 										<div class="objectFormInput">
-											<input type="text" id="j_username" size="42" />
+											<input wicket:id="username" type="text" size="42" />
 										</div>
 									</div>
 								</td>
@@ -59,13 +59,13 @@
 							<tr>
 								<td class="objectFormLabel">
 									<div class="objectFormLabelName">
-										<span wicket:id="passwordLabel" />:
+										<span><wicket:message key="pageLogin.passwordLabel" /></span>
 									</div>
 								</td>
 								<td class="objectFormValues">
 									<div class="objectFormValue">
 										<div class="objectFormInput">
-											<input type="password" id="j_password" size="42" />
+											<input wicket:id="password" type="password" size="42" />
 										</div>
 									</div>
 								</td>
@@ -76,11 +76,11 @@
 								<td colspan="2" align="center" style="padding: 5px 0;">
 									<!-- TODO: error check -->
 									<p wicket:id="feedback"></p>
-									<input type="submit" class="button"	wicket:message="value:pageLogin.submit" />
+									<input type="submit" class="button" wicket:message="value:pageLogin.submit" />
 								</td>
 							</tr>
 						</tfoot>
-	
+
 					</table>
 				</div>
 			</form>

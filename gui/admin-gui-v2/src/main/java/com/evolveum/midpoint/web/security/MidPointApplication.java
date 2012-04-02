@@ -19,11 +19,17 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web;
+package com.evolveum.midpoint.web.security;
 
+import ch.qos.logback.core.spi.ContextAware;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.MountedMapper;
+import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -43,7 +49,7 @@ import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
  * @author lazyman
  */
 @Component("midpointApplication")
-public class MidPointApplication extends WebApplication {
+public class MidPointApplication extends AuthenticatedWebApplication {
 
     @Autowired
     ModelService model;
@@ -62,6 +68,8 @@ public class MidPointApplication extends WebApplication {
     public void init() {
         super.init();
 
+        getComponentInstantiationListeners().add(new SpringComponentInjector(this));
+
         getMarkupSettings().setStripWicketTags(true);
         getResourceSettings().setThrowExceptionOnMissingResource(false);
 
@@ -72,10 +80,10 @@ public class MidPointApplication extends WebApplication {
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
 
         //error pages
-        mount(new MountedMapper("/error/401", PageUnauthorized.class, encoder));
-        mount(new MountedMapper("/error/403", PageForbidden.class, encoder));
-        mount(new MountedMapper("/error/404", PageNotFound.class, encoder));
-        mount(new MountedMapper("/error/500", PageServerError.class, encoder));
+//        mount(new MountedMapper("/error/401", PageUnauthorized.class, encoder));
+//        mount(new MountedMapper("/error/403", PageForbidden.class, encoder));
+//        mount(new MountedMapper("/error/404", PageNotFound.class, encoder));
+//        mount(new MountedMapper("/error/500", PageServerError.class, encoder));
     }
 
     public ModelService getModel() {
@@ -88,5 +96,15 @@ public class MidPointApplication extends WebApplication {
 
     public TaskManager getTaskManager() {
         return taskManager;
+    }
+
+    @Override
+    protected Class<? extends WebPage> getSignInPageClass() {
+        return PageLogin.class;
+    }
+
+    @Override
+    protected Class<? extends AbstractAuthenticatedWebSession> getWebSessionClass() {
+        return MidPointAuthWebSession.class;
     }
 }

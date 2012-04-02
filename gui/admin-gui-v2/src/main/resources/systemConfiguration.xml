@@ -47,5 +47,13 @@
         </appender>
         <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
         <rootLoggerLevel>INFO</rootLoggerLevel>
+        <classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.web</package>
+        </classLogger>
+        <classLogger>
+            <level>DEBUG</level>
+            <package>org.springframework.security</package>
+        </classLogger>
     </logging>
 </systemConfiguration>
