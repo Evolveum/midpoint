@@ -85,7 +85,6 @@ if(navigator.appName == "Microsoft Internet Explorer"){
 
 			this.selectedAttr = accordionSelectedAttr || 0;
 			this.multipleSelect = accordionMultipleSelect || 0;
-
 			for (i; i < length; i++) {
 				var child = accordionChilds[i];
 				if (child.nodeType != 3) {
@@ -95,7 +94,7 @@ if(navigator.appName == "Microsoft Internet Explorer"){
 					header.onclick = new Function(this.accordionName + '.expand(0,' + s + ')');
 
 					if (accordionOpenedPanel == s) {
-						header.className = selectedAttr;
+						header.className = this.selectedAttr;
 						content.style.height = 'auto';
 						content.opened = 1;
 					} else {

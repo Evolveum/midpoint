@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.BottomMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.login.PageLogin;
@@ -47,8 +48,7 @@ public class PageAdmin extends PageBase {
 				PageHome.class));
 		items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description", PageUsers.class));
 		items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description", PageHome.class));
-		items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description",
-				PageLogin.class));
+		items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description",PageLogging.class));
 
 		return items;
 	}

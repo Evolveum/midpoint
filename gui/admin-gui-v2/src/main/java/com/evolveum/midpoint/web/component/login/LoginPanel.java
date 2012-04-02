@@ -23,6 +23,8 @@ package com.evolveum.midpoint.web.component.login;
 
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -40,8 +42,16 @@ public class LoginPanel extends Panel {
 
     public LoginPanel(String id) {
         super(id);
-        add(new Label("username", new LoadableModel<String>() {
+        
+        add(new VisibleEnableBehaviour() {
 
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        });
+        
+        add(new Label("username", new LoadableModel<String>() {
             @Override
             protected String load() {
                 return getShortUserName();
