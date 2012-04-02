@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.component.menu.top;
+package com.evolveum.midpoint.web.component.menu.top2;
 
 import org.apache.wicket.Page;
 

@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.component.menu.top2;
 
-import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Page;
@@ -49,14 +48,6 @@ public class TopMenu2 extends Panel {
         Validate.notNull(bottomItems, "List with top menu bottomItems must not be null.");
         this.topItems = topItems;
         this.bottomItems = bottomItems;
-
-       /* add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return !TopMenu2.this.topItems.isEmpty();
-            }
-        });*/
 
         add(new Loop("topList", topItems.size()) {
 
@@ -96,12 +87,14 @@ public class TopMenu2 extends Panel {
                 loopItem.add(link);
             }
         };
-        /*bottomLoop.add(new VisibleEnableBehaviour() {
+
+        bottomLoop.add(new VisibleEnableBehaviour() {
+
             @Override
             public boolean isVisible() {
                 return !TopMenu2.this.bottomItems.isEmpty();
             }
-        });*/
+        });
         add(bottomLoop);
     }
 

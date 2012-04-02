@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.menu.top;
 
+import com.evolveum.midpoint.web.component.menu.top2.TopMenuItem;
 import org.apache.wicket.Page;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.IHeaderResponse;

@@ -39,6 +39,8 @@ public class LoggingDto implements Serializable {
     private boolean auditLog;
     private boolean auditDetails;
     private String auditAppender;
+    
+    private boolean advanced;
 
     public String getMidPointAppender() {
         return midPointAppender;
@@ -94,5 +96,13 @@ public class LoggingDto implements Serializable {
 
     public void setAuditLog(boolean auditLog) {
         this.auditLog = auditLog;
+    }
+
+    public boolean isAdvanced() {
+        return advanced;
+    }
+
+    public void setAdvanced(boolean advanced) {
+        this.advanced = advanced;
     }
 }

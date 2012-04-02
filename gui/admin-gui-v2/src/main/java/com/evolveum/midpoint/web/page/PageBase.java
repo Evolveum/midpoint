@@ -21,20 +21,20 @@
 
 package com.evolveum.midpoint.web.page;
 
-import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenu;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
-import com.evolveum.midpoint.web.component.menu.top.TopMenu;
-import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenu2;
-
+import com.evolveum.midpoint.web.component.menu.top2.TopMenuItem;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.devutils.debugbar.DebugBar;
+import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,22 +42,36 @@ import java.util.List;
  */
 public abstract class PageBase extends WebPage {
 
-	public PageBase() {
+    @SpringBean(name = "modelController")
+    private ModelService modelService;
+    @SpringBean(name = "cacheRepositoryService")
+    private RepositoryService cacheRepositoryService;
+
+    public PageBase() {
+        Injector.get().inject(this);
+        validateInjection(modelService, "Model service was not injected.");
+        validateInjection(cacheRepositoryService, "Cache repository service was not injected.");
+
         List<TopMenuItem> topMenuItems = getTopMenuItems();
         Validate.notNull(topMenuItems, "Top menu item list must not be null.");
 
         List<BottomMenuItem> bottomMenuItems = getBottomMenuItems();
         Validate.notNull(bottomMenuItems, "Bottom menu item list must not be null.");
 
-//        add(new TopMenu("topMenu", topMenuItems));
         add(new TopMenu2("topMenu2", topMenuItems, bottomMenuItems));
         add(new LeftMenu("leftMenu", getLeftMenuItems()));
-        
+
         LoginPanel loginPanel = new LoginPanel("loginPanel");
         /*if(loginPanel.getIsAdminLoggedIn()){
         	add(loginPanel);
         }*/
         add(loginPanel);
+    }
+
+    private void validateInjection(Object object, String message) {
+        if (object == null) {
+            throw new IllegalStateException(message);
+        }
     }
 
     protected MidPointApplication getMidpointApplication() {
@@ -69,4 +83,12 @@ public abstract class PageBase extends WebPage {
     public abstract List<BottomMenuItem> getBottomMenuItems();
 
     public abstract List<LeftMenuItem> getLeftMenuItems();
+
+    protected RepositoryService getCacheRepositoryService() {
+        return cacheRepositoryService;
+    }
+
+    protected ModelService getModelService() {
+        return modelService;
+    }
 }

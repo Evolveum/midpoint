@@ -68,6 +68,36 @@ public class PageLogging extends PageAdmin {
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
+
+        initRoot(mainForm);
+
+        Accordion accordion = new Accordion("accordion");
+        accordion.setMultipleSelect(true);
+        accordion.setOpenedPanel(0);
+        mainForm.add(accordion);
+
+        AccordionItem loggers = new AccordionItem("loggers", createStringResource("pageLogging.loggers"));
+        accordion.getBodyContainer().add(loggers);
+        initLoggers(loggers);
+
+        AccordionItem appenders = new AccordionItem("appenders", createStringResource("pageLogging.appenders"));
+        accordion.getBodyContainer().add(appenders);
+        initAppenders(appenders);
+
+        initAudit(mainForm);
+
+        initButtons(mainForm);
+    }
+
+    private void initLoggers(AccordionItem loggers) {
+        //todo implement
+    }
+
+    private void initAppenders(AccordionItem appenders) {
+        //todo implement
+    }
+
+    private void initRoot(final Form mainForm) {
         DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<LoggingLevelType>("rootLevel",
                 new PropertyModel<LoggingLevelType>(model, "rootLevel"), createLoggingLevelModel());
         mainForm.add(rootLevel);
@@ -83,21 +113,6 @@ public class PageLogging extends PageAdmin {
         DropDownChoice<String> midPointAppender = new DropDownChoice<String>("midPointAppender",
                 new PropertyModel<String>(model, "midPointAppender"), createAppendersListModel());
         mainForm.add(midPointAppender);
-
-        Accordion accordion = new Accordion("accordion");
-        accordion.setMultipleSelect(true);
-        accordion.setOpenedPanel(0);
-        mainForm.add(accordion);
-
-        AccordionItem loggers = new AccordionItem("loggers", createStringResource("pageLogging.loggers"));
-        accordion.getBodyContainer().add(loggers);
-
-        AccordionItem appenders = new AccordionItem("appenders", createStringResource("pageLogging.appenders"));
-        accordion.getBodyContainer().add(appenders);
-
-        initAudit(mainForm);
-
-        initButtons(mainForm);
     }
 
     private void initButtons(final Form mainForm) {
@@ -121,7 +136,7 @@ public class PageLogging extends PageAdmin {
                 createStringResource("pageLogging.button.reset")) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {                
+            public void onClick(AjaxRequestTarget target) {
                 model.reset();
                 target.add(mainForm);
             }
@@ -133,7 +148,10 @@ public class PageLogging extends PageAdmin {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //todo implement
+                LoggingDto dto = PageLogging.this.model.getObject();
+                dto.setAdvanced(!dto.isAdvanced());
+
+                target.add(mainForm);
             }
         };
         mainForm.add(advancedButton);
