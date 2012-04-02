@@ -91,6 +91,7 @@ div.objectForm .tableForm thead .objectFormHeaderText {
 	display: inline-block;
 	float: left;
 	margin-left: 10px;
+	text-align: left;
 }
 
 div.objectForm .tableForm thead .objectFormHeaderControllButtons {
