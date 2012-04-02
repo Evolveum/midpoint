@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.security;
 
 import ch.qos.logback.core.spi.ContextAware;
+import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
@@ -78,6 +79,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/login", PageLogin.class, encoder));
         mount(new MountedMapper("/home", PageHome.class, encoder));
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
+
+        mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
 
         //error pages
 //        mount(new MountedMapper("/error/401", PageUnauthorized.class, encoder));

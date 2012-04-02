@@ -69,7 +69,7 @@ public class Accordion extends Border {
         return expanded;
     }
 
-    public int getMultipleSelect() {
+    private int getMultipleSelect() {
         if (multipleSelect) {
             return 1;
         }
