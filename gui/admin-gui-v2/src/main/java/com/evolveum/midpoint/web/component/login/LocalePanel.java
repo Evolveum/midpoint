@@ -67,6 +67,7 @@ public class LocalePanel extends Panel {
                 };
                 components.add(link);
                 link.add(new AttributeAppender("style", createStyle(link.getModelObject()), " "));
+                link.add(new AttributeAppender("title", new Model<String>(components.getModelObject().getLanguage().toLowerCase()), " "));
             }
         };
         container.add(ulList);
@@ -74,7 +75,7 @@ public class LocalePanel extends Panel {
     }
 
     private IModel<String> createStyle(Locale locale) {
-        return new Model<String>("background: url('/wicket/img/flag/"
+        return new Model<String>("background: url('img/flag/"
                 + locale.getLanguage().toLowerCase() + ".png') no-repeat;");
     }
 
