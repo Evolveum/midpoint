@@ -21,27 +21,8 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
- *
  * @author lazyman
  */
-public class PageAdminConfiguration extends PageAdmin {
-
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
-
-        items.add(new BottomMenuItem("pageAdminConfiguration.logging", PageLogging.class));
-        items.add(new BottomMenuItem("pageAdminConfiguration.importFromXml", PageImportXml.class));
-        items.add(new BottomMenuItem("pageAdminConfiguration.importFromFile", PageImportFile.class));
-
-        return items;
-    }
+public class PageImportXml extends PageAdminConfiguration {
 }
