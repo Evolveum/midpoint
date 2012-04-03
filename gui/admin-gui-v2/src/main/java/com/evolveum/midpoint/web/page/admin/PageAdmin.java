@@ -29,8 +29,11 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
 import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageAdminTasks;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
@@ -50,11 +53,11 @@ public class PageAdmin extends PageBase {
         items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description",
                 PageUsers.class, PageAdminUsers.class));
         items.add(new TopMenuItem("pageAdmin.serverTasks", "pageAdmin.serverTasks.description",
-                PageAdminTasks.class));
+                PageTasks.class, PageAdminTasks.class));
         items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description",
-                PageAdminRoles.class));
+                PageRoles.class, PageAdminRoles.class));
         items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description",
-                PageAdminResources.class));
+                PageResources.class, PageAdminResources.class));
         items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description",
                 PageLogging.class, PageAdminConfiguration.class));
 

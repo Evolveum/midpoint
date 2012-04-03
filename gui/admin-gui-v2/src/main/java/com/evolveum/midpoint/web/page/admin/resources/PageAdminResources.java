@@ -41,7 +41,7 @@ public class PageAdminResources extends PageAdmin {
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-        items.add(new BottomMenuItem("pageAdminResources.listResources", PageUsers.class));
+        items.add(new BottomMenuItem("pageAdminResources.listResources", PageResources.class));
         items.add(new BottomMenuItem("pageAdminResources.newResource", PageUser.class));
 
         return items;

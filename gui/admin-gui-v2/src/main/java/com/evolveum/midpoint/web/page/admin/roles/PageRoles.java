@@ -21,29 +21,8 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
-
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
- *
  * @author lazyman
  */
-public class PageAdminRoles extends PageAdmin {
-
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
-
-        items.add(new BottomMenuItem("pageAdminRoles.listRoles", PageRoles.class));
-        items.add(new BottomMenuItem("pageAdminRoles.newRole", PageUser.class));
-
-        return items;
-    }
+public class PageRoles extends PageAdminRoles {
 }

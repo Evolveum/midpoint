@@ -23,6 +23,9 @@ package com.evolveum.midpoint.web.security;
 
 import ch.qos.logback.core.spi.ContextAware;
 import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
@@ -82,9 +85,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/login", PageLogin.class, encoder));
         mount(new MountedMapper("/home", PageHome.class, encoder));
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
-//        mount(new MountedMapper("/admin/tasks", PageAdminTasks.class, encoder));
-//        mount(new MountedMapper("/admin/roles", PageAdminRoles.class, encoder));
-//        mount(new MountedMapper("/admin/resources", PageAdminResources.class, encoder));
+        mount(new MountedMapper("/admin/tasks", PageTasks.class, encoder));
+        mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));
+        mount(new MountedMapper("/admin/resources", PageResources.class, encoder));
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
 
         //error pages
