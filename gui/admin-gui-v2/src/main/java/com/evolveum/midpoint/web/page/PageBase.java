@@ -96,6 +96,6 @@ public abstract class PageBase extends WebPage {
     }
 
     protected StringResourceModel createStringResource(String resourceKey) {
-        return new StringResourceModel(resourceKey, this, null, null, null);
+        return new StringResourceModel(resourceKey, this, null);
     }
 }

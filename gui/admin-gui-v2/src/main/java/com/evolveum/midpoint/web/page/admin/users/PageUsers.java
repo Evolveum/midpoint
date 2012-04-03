@@ -21,12 +21,13 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
@@ -35,13 +36,28 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 public class PageUsers extends PageAdminUsers {
 
     public PageUsers() {
-         initLayout();
+        initLayout();
     }
-    
-    private void initLayout() {
-        NavigatorPanel panel = new NavigatorPanel("navigator");
-        add(panel);
 
+    private void initLayout() {
+//        NavigatorPanel panel = new NavigatorPanel("navigator");
+//        add(panel);
+
+        UserDataProvider provider = new UserDataProvider();
+        final DataView<UserType> pageable = new DataView<UserType>("pageable", provider) {
+
+            @Override
+            protected void populateItem(Item<UserType> item) {
+                UserType user = item.getModelObject();
+
+                item.add(new Label("name", user.getName()));
+                item.add(new Label("givenName", user.getGivenName()));
+            }
+        };
+        add(pageable);
+        
+        pageable.setItemsPerPage(10);
+        add(new NavigatorPanel("navigator", pageable));
     }
 
     public void userDetailsPerformed(AjaxRequestTarget target, IModel<String> userIdModel) {
