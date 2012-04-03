@@ -24,34 +24,19 @@
 <body>
 <wicket:extend>
     <div class="content">
-        <h1>Import from XML</h1>
-        <div id="aceEditorContainer">
-            <textarea wicket:id="aceEditor"></textarea>
-        </div>
-        <div>
-            <br />
-            <table cellspacing="0" cellpadding="0">
-                <tbody>
-                <tr>
-                    <td class="label"><input type="checkbox" checked="checked" /> Protected by encryption</td>
-                    <td class="label"><input type="checkbox" /> Fetch resource schema</td>
-                    <td class="label"><input type="checkbox" /> Keep OID</td>
-                    <td class="label"><input type="checkbox" /> Overwrite existing object</td>
-                    <td class="label"><input type="checkbox" /> Referential integrity</td>
-                </tr>
-                <tr>
-                    <td class="label"><input type="checkbox" /> Summarize errors</td>
-                    <td class="label"><input type="checkbox" checked="checked" /> Summarize successes</td>
-                    <td class="label"><input type="checkbox" checked="checked" /> Validate dynamic schema</td>
-                    <td class="label"><input type="checkbox" checked="checked" /> Validate static schema</td>
-                    <td class="label">Stop after <input type="text" size="5" /> errors</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="operatingFormButtons">
-            <a class="button" href="#">Import object</a>
-        </div>
+        <h1><wicket:message key="pageImportXml.title"/></h1>
+
+        <form wicket:id="mainForm">
+            <div id="aceEditorContainer">
+                <textarea wicket:id="aceEditor"></textarea>
+            </div>
+
+            <div wicket:id="importOptions"/>
+
+            <div class="operatingFormButtons">
+                <a class="button" wicket:id="importButton"/>
+            </div>
+        </form>
     </div>
 </wicket:extend>
 </body>
