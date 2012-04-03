@@ -28,14 +28,6 @@
             <level>INFO</level>
             <appender>IDM_LOG</appender>
         </subSystemLogger>
-        <classLogger>
-            <package>com.evolveum.midpoint.common</package>
-            <level>DEBUG</level>
-        </classLogger>
-        <classLogger>
-            <package>com.evolveum.midpoint.util</package>
-            <level>DEBUG</level>
-        </classLogger>
         <appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <fileName>${catalina.base}/logs/idm.log</fileName>
@@ -48,7 +40,7 @@
         <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
         <rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
-            <level>TRACE</level>
+            <level>DEBUG</level>
             <package>com.evolveum.midpoint.web</package>
         </classLogger>
     </logging>

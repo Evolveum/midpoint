@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -43,11 +43,12 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class UserDataProvider extends SortableDataProvider<UserType> {
+public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvider<T> {
 
-    private int size;
+    private Class<T> type;
 
-    public UserDataProvider() {
+    public ObjectDataProvider(Class<T> type) {
+        this.type = type;
         setSort("name", SortOrder.ASCENDING);
     }
 
@@ -57,9 +58,7 @@ public class UserDataProvider extends SortableDataProvider<UserType> {
     }
 
     @Override
-    public Iterator<? extends UserType> iterator(int first, int count) {
-
-
+    public Iterator<? extends T> iterator(int first, int count) {
         SortParam sortParam = getSort();
         OrderDirectionType order;
         if (sortParam.isAscending()) {
@@ -71,14 +70,13 @@ public class UserDataProvider extends SortableDataProvider<UserType> {
         OperationResult result = new OperationResult("list usersssss");
         PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
 
-        ResultList<PrismObject<UserType>> list = getModel().listObjects(UserType.class, paging, result);
-        size = list.getTotalResultCount();
+        ResultList<PrismObject<T>> list = getModel().listObjects(type, paging, result);
 
-        List<UserType> users = new ArrayList<UserType>();
-        for (PrismObject<UserType> object : list) {
+        List<T> users = new ArrayList<T>();
+        for (PrismObject<T> object : list) {
             users.add(object.asObjectable());
         }
-        
+
         //todo error and operation result handling
 
         return users.iterator();
@@ -86,11 +84,15 @@ public class UserDataProvider extends SortableDataProvider<UserType> {
 
     @Override
     public int size() {
-        return 0;//todo implement
+        //todo reimplement, use countObjects
+        OperationResult result = new OperationResult("list objects");
+        return getModel().listObjects(type,
+                PagingTypeFactory.createPaging(1, 1, OrderDirectionType.ASCENDING, "name"),
+                result).getTotalResultCount();
     }
 
     @Override
-    public IModel<UserType> model(UserType object) {
-        return new Model<UserType>(object);
+    public IModel<T> model(T object) {
+        return new Model<T>(object);
     }
 }

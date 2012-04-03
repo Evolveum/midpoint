@@ -29,7 +29,7 @@
         </h1>
 
         <div class="sortedTable">
-            <div wicket:id="navigator"/>
+            <div wicket:id="navigatorTop"/>
             <table cellspacing="1" border="0">
                 <thead>
                 <tr>
@@ -65,12 +65,13 @@
                     <td class="checkbox"><input type="checkbox"/></td>
                     <td><a href="#"><span wicket:id="name"/></a></td>
                     <td><span wicket:id="givenName" /></td>
-                    <td>aaaasddddd</td>
-                    <td>aaaaaaa</td>
-                    <td>aaaaaaa</td>
+                    <td><span wicket:id="familyName" /></td>
+                    <td><span wicket:id="fullName" /></td>
+                    <td><span wicket:id="email" /></td>
                 </tr>
                 </tbody>
             </table>
+            <div wicket:id="navigatorBottom"/>
         </div>
     </div>
 </wicket:extend>

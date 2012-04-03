@@ -23,10 +23,12 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 /**
@@ -39,31 +41,36 @@ public class NavigatorPanel extends PagingNavigator {
     public NavigatorPanel(String id, IPageable pageable) {
         super(id, pageable);
 
-        int from = 0;
-        int to = 0;
-        int count = 0;
-
-        if (pageable instanceof DataViewBase) {
-            DataViewBase view = (DataViewBase) pageable;
-
-            from = view.getFirstItemOffset() + 1;
-            to = from + view.getItemsPerPage() - 1;
-            count = view.getItemCount();
-        } else {
-            LOGGER.warn("Navigator panel, missing implementation... TODO");
-        }
-
-        add(new Label("label", createModel(from, to, count)));
+        add(new Label("label", createModel(pageable)));
 
         //todo if count == 0 hide << >> stuff
     }
 
-    private StringResourceModel createModel(int from, int to, int count) {
-        if (count > 0) {
-            return new StringResourceModel("navigatorPanel.label", this, null,
-                    new Object[]{from, to, count});
-        }
+    private IModel<String> createModel(final IPageable pageable) {
+        return new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                int from = 0;
+                int to = 0;
+                int count = 0;
 
-        return new StringResourceModel("navigatorPanel.noFound", this, null);
+                if (pageable instanceof DataViewBase) {
+                    DataViewBase view = (DataViewBase) pageable;
+
+                    from = view.getFirstItemOffset() + 1;
+                    to = from + view.getItemsPerPage() - 1;
+                    count = view.getItemCount();
+                } else {
+                    LOGGER.warn("Navigator panel, missing implementation... TODO");
+                }
+
+                if (count > 0) {
+                    return new StringResourceModel("navigatorPanel.label", NavigatorPanel.this, null,
+                            new Object[]{from, to, count}).getString();
+                }
+
+                return new StringResourceModel("navigatorPanel.noFound", NavigatorPanel.this, null).getString();
+            }
+        };
     }
 }
