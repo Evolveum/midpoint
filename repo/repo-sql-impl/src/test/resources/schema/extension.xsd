@@ -51,7 +51,7 @@
             <xsd:element name="stringType" type="xsd:string"/>
             <xsd:element name="floatType" type="xsd:float"/>
             <xsd:element name="doubleType" type="xsd:double"/>
-            <xsd:element name="intType" type="xsd:integer"/>
+            <xsd:element name="intType" type="xsd:int"/>
             <xsd:element name="shortType" type="xsd:short"/>
             <xsd:element name="longType" type="xsd:long"/>
             <xsd:element name="dateType" type="xsd:dateTime"/>

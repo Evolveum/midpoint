@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -54,10 +55,11 @@ public class RAnyConverter {
     private Document document;
 
     static {
-        TYPE_MAP.put(DOMUtil.XSD_INTEGER, ValueType.LONG);
+        TYPE_MAP.put(DOMUtil.XSD_INT, ValueType.LONG);
         TYPE_MAP.put(DOMUtil.XSD_LONG, ValueType.LONG);
         TYPE_MAP.put(DOMUtil.XSD_SHORT, ValueType.LONG);
 
+        TYPE_MAP.put(DOMUtil.XSD_INTEGER, ValueType.STRING);
         TYPE_MAP.put(DOMUtil.XSD_STRING, ValueType.STRING);
         TYPE_MAP.put(DOMUtil.XSD_DOUBLE, ValueType.STRING);
         TYPE_MAP.put(DOMUtil.XSD_FLOAT, ValueType.STRING);
@@ -142,6 +144,7 @@ public class RAnyConverter {
 
     private static boolean isIndexable(QName type) {
         return DOMUtil.XSD_DATETIME.equals(type)
+                || DOMUtil.XSD_INT.equals(type)
                 || DOMUtil.XSD_LONG.equals(type)
                 || DOMUtil.XSD_SHORT.equals(type)
                 || DOMUtil.XSD_INTEGER.equals(type)
@@ -283,7 +286,7 @@ public class RAnyConverter {
         } else if (rValue instanceof RLongValue) {
             if (DOMUtil.XSD_LONG.equals(rValue.getType())) {
                 return value;
-            } else if (DOMUtil.XSD_INTEGER.equals(rValue.getType())) {
+            } else if (DOMUtil.XSD_INT.equals(rValue.getType())) {
                 return ((Long) value).intValue();
             } else if (DOMUtil.XSD_SHORT.equals(rValue.getType())) {
                 return ((Long) value).shortValue();
@@ -295,6 +298,8 @@ public class RAnyConverter {
                 return Double.parseDouble((String) value);
             } else if (DOMUtil.XSD_FLOAT.equals(rValue.getType())) {
                 return Float.parseFloat((String) value);
+            } else if (DOMUtil.XSD_INTEGER.equals(rValue.getType())) {
+                return new BigInteger((String) value);
             }
         }
 
@@ -388,6 +393,8 @@ public class RAnyConverter {
             object = ((Float) object).toString();
         } else if (object instanceof Double) {
             object = ((Double) object).toString();
+        } else if (object instanceof BigInteger) {
+            object = ((BigInteger)object).toString();
         }
 
         //check short/integer to long
