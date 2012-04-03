@@ -21,8 +21,11 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.web.component.data.NavigatorPanel;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -46,9 +49,18 @@ public class PageUsers extends PageAdminUsers {
 
             @Override
             protected void populateItem(Item<UserType> item) {
-                UserType user = item.getModelObject();
+                final UserType user = item.getModelObject();
 
-                item.add(new Label("name", user.getName()));
+                AjaxLink link = new AjaxLink("link") {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        userDetailsPerformed(target, user.getOid());
+                    }
+                };
+                link.add(new Label("name", user.getName()));
+                item.add(link);
+                
                 item.add(new Label("givenName", user.getGivenName()));
                 item.add(new Label("familyName", user.getFamilyName()));
                 item.add(new Label("fullName", user.getFullName()));
@@ -68,9 +80,9 @@ public class PageUsers extends PageAdminUsers {
         add(new NavigatorPanel("navigatorBottom", pageable));
     }
 
-    public void userDetailsPerformed(AjaxRequestTarget target, IModel<String> userIdModel) {
+    public void userDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageUser.PARAM_USER_ID, userIdModel.getObject());
+        parameters.add(PageUser.PARAM_USER_ID, oid);
         setResponsePage(PageUser.class, parameters);
     }
 }

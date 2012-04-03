@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.users;
+package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
