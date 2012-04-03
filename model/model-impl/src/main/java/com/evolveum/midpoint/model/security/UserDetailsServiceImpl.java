@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.security.api.Credentials;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -75,12 +76,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public void updateUser(PrincipalUser user) {
-//        try {
-//            save(user);
-//        } catch (RepositoryException ex) {
-//            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
-//                    new Object[]{user.getFullName(), user.getOid(), ex.getMessage()});
-//        }
+        try {
+            save(user);
+        } catch (RepositoryException ex) {
+            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
+                    new Object[]{user.getFullName(), user.getOid(), ex.getMessage()});
+        }
     }
 
     private PrincipalUser findByUsername(String username) throws SchemaException, ObjectNotFoundException {
@@ -147,34 +148,27 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     private PrincipalUser save(PrincipalUser person) throws RepositoryException {
-    	
-//    	throw new UnsupportedOperationException("Saving user is not supported (in security)");
-//        try {
-//            UserType userType = getUserByOid(person.getOid());
-//            UserType oldUserType = (UserType) JAXBUtil.clone(userType);
-//
-//            updateUserType(userType, person);
-//
-//            ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
-//            if (modification != null && modification.getOid() != null) {
-//                repositoryService.modifyObject(UserType.class, modification, new OperationResult("Save user"));
-//            }
-//
-//        } catch (DiffException ex) {
-//            throw new RepositoryException("Can't save user. Unexpected error: "
-//                    + "Couldn't create create diff.", ex);
-//        } catch (JAXBException ex) {
-//            // TODO: finish
-//        } catch (Exception ex) {
-//            throw new RepositoryException(ex.getMessage(), ex);
-//        }
-        LOGGER.warn("Saving user is not supported (in security)");
+        try {
+            UserType newUserType = getUserByOid(person.getOid());
+            PrismObject<UserType> newUser = newUserType.asPrismObject();
+
+            PrismObject<UserType> oldUser = newUser.clone();
+
+            updateUserType(newUserType, person);
+
+            ObjectDelta<UserType> delta = oldUser.diff(newUser);
+            repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(), 
+                    new OperationResult(OPERATION_UPDATE_USER));
+        } catch (Exception ex) {
+            throw new RepositoryException(ex.getMessage(),  ex);
+        }
+
         return person;
     }
 
     private UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
-        ObjectType object = repositoryService.getObject(UserType.class, oid, new PropertyReferenceListType(),
-                new OperationResult("Get user by oid")).asObjectable();
+        ObjectType object = repositoryService.getObject(UserType.class, oid, null,
+                new OperationResult(OPERATION_GET_USER)).asObjectable();
         if (object != null && (object instanceof UserType)) {
             return (UserType) object;
         }

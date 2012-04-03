@@ -29,6 +29,10 @@ package com.evolveum.midpoint.model.security.api;
  * @author Igor Farinic
  */
 public interface UserDetailsService {
+    
+    String DOT_CLASS = UserDetailsService.class.getName() + ".";
+    String OPERATION_GET_USER = DOT_CLASS + "getUser";
+    String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
     public PrincipalUser getUser(String principal);
 
