@@ -54,36 +54,8 @@ public class PageImportFile extends PageAdminConfiguration {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        CheckBox protectedByEncryption = new CheckBox("protectedByEncryption",
-                new PropertyModel<Boolean>(model, "encryptProtectedValues"));
-        mainForm.add(protectedByEncryption);
-        CheckBox fetchResourceSchema = new CheckBox("fetchResourceSchema",
-                new PropertyModel<Boolean>(model, "fetchResourceSchema"));
-        mainForm.add(fetchResourceSchema);
-        CheckBox keepOid = new CheckBox("keepOid",
-                new PropertyModel<Boolean>(model, "keepOid"));
-        mainForm.add(keepOid);
-        CheckBox overwriteExistingObject = new CheckBox("overwriteExistingObject",
-                new PropertyModel<Boolean>(model, "overwrite"));
-        mainForm.add(overwriteExistingObject);
-        CheckBox referentialIntegrity = new CheckBox("referentialIntegrity",
-                new PropertyModel<Boolean>(model, "referentialIntegrity"));
-        mainForm.add(referentialIntegrity);
-        CheckBox summarizeErrors = new CheckBox("summarizeErrors",
-                new PropertyModel<Boolean>(model, "summarizeErrors"));
-        mainForm.add(summarizeErrors);
-        CheckBox summarizeSuccesses = new CheckBox("summarizeSuccesses",
-                new PropertyModel<Boolean>(model, "summarizeSuccesses"));
-        mainForm.add(summarizeSuccesses);
-        CheckBox validateDynamicSchema = new CheckBox("validateDynamicSchema",
-                new PropertyModel<Boolean>(model, "validateDynamicSchema"));
-        mainForm.add(validateDynamicSchema);
-        CheckBox validateStaticSchema = new CheckBox("validateStaticSchema",
-                new PropertyModel<Boolean>(model, "validateStaticSchema"));
-        mainForm.add(validateStaticSchema);
-        TextField<Integer> errors = new TextField<Integer>("errors",
-                new PropertyModel<Integer>(model, "stopAfterErrors"));
-        mainForm.add(errors);
+        ImportOptionsPanel importOptions = new ImportOptionsPanel("importOptions", model);
+        mainForm.add(importOptions);
 
         FileUploadField fileInput = new FileUploadField("fileInput");
         mainForm.add(fileInput);
