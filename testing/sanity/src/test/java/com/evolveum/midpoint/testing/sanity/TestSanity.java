@@ -2328,7 +2328,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
                 display("Task while waiting for task manager to pick up the task", task);
                 // wait until the task is picked up
-                return task.getLastRunStartTimestamp() != null; 
+                return task.getLastRunFinishTimestamp() != null; 
 //                if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {
 //                    // wait until the first run is finished
 //                    if (task.getLastRunFinishTimestamp() == null) {
@@ -2344,7 +2344,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 // No reaction, the test will fail right after return from this
             }
         }, 20000);
-
+        
         // Check task status
 
         Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
@@ -2752,6 +2752,8 @@ public class TestSanity extends AbstractIntegrationTest {
             }
         }, 180000);
 
+        // wait a second until the task will be definitely saved
+        Thread.sleep(1000);
         
         //### Check task state after the task is finished ###
         
@@ -2932,7 +2934,6 @@ public class TestSanity extends AbstractIntegrationTest {
 
         importObjectFromFile(TASK_USER_RECOMPUTE_FILENAME, result);
 
-
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
         // task
@@ -2953,6 +2954,9 @@ public class TestSanity extends AbstractIntegrationTest {
                 // No reaction, the test will fail right after return from this
             }
         }, 20000);
+        
+        // wait a second until the task will be definitely saved
+        Thread.sleep(1000);
 
         // Check task status
 
@@ -2962,6 +2966,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertSuccess("getTask has failed", result);
         AssertJUnit.assertNotNull(task);
         display("Task after pickup", task);
+        AssertJUnit.assertNotNull(task.getTaskIdentifier());
         assertFalse(task.getTaskIdentifier().isEmpty());
 
         PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_USER_RECOMPUTE_OID, null, result);
