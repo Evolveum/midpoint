@@ -65,7 +65,7 @@ public class TopMenu extends Panel {
                 link.add(new Label("topDescription", new StringResourceModel(item.getDescription(), TopMenu.this, null)));
 
                 Page page = TopMenu.this.getPage();
-                if (page != null && page.getClass().isAssignableFrom(item.getMarker())) {
+                if (page != null && item.getMarker().isAssignableFrom(page.getClass())) {
                     link.add(new AttributeAppender("class", new Model("selected-top"), " "));
                 }
                 loopItem.add(link);

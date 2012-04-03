@@ -26,5 +26,5 @@ import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
 /**
  * @author lazyman
  */
-public class PageResources extends PageAdminRoles {
+public class PageResources extends PageAdminResources {
 }
