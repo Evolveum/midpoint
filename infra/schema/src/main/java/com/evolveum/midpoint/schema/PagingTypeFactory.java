@@ -29,16 +29,16 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionTyp
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public abstract class PagingTypeFactory {
-	
+
 	public static PagingType createListAllPaging() {
 		return createListAllPaging(OrderDirectionType.ASCENDING, "name");
 	}
-	
+
 	public static PagingType createListAllPaging(OrderDirectionType order, String orderBy) {
 		return createPaging(0, order, orderBy);
 	}
@@ -49,23 +49,19 @@ public abstract class PagingTypeFactory {
 
 	public static PagingType createPaging(int offset, int maxSize, OrderDirectionType order, String orderBy) {
 		PagingType paging = new PagingType();
-		paging.setOrderBy(fillPropertyReference(orderBy));
 		paging.setOffset(offset);
 		paging.setMaxSize(maxSize);
-		paging.setOrderDirection(order);
+
+        if (order != null && StringUtils.isNotEmpty(orderBy)) {
+            paging.setOrderBy(fillPropertyReference(orderBy));
+            paging.setOrderDirection(order);
+        }
 
 		return paging;
 	}
 
 	private static Element fillPropertyReference(String resolve) {
-		XPathHolder xpath = new XPathHolder(getPropertyName(resolve));
+		XPathHolder xpath = new XPathHolder(resolve);
 		return xpath.toElement(SchemaConstants.NS_C, "property");
-	}
-
-	private static String getPropertyName(String name) {
-		if (null == name) {
-			return "";
-		}
-		return StringUtils.lowerCase(name);
 	}
 }

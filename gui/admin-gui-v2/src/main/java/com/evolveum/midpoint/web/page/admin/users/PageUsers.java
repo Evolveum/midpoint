@@ -21,15 +21,17 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.web.component.data.BasicOrderByBorder;
 import com.evolveum.midpoint.web.component.data.NavigatorPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortStateLocator;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.List;
@@ -60,7 +62,7 @@ public class PageUsers extends PageAdminUsers {
                 };
                 link.add(new Label("name", user.getName()));
                 item.add(link);
-                
+
                 item.add(new Label("givenName", user.getGivenName()));
                 item.add(new Label("familyName", user.getFamilyName()));
                 item.add(new Label("fullName", user.getFullName()));
@@ -78,6 +80,21 @@ public class PageUsers extends PageAdminUsers {
         pageable.setItemsPerPage(10);
         add(new NavigatorPanel("navigatorTop", pageable));
         add(new NavigatorPanel("navigatorBottom", pageable));
+
+        addOrder("orderByName", "name", provider, pageable);
+        addOrder("orderByGivenName", "givenName", provider, pageable);
+        addOrder("orderByFamilyName", "familyName", provider, pageable);
+        addOrder("orderByFullName", "fullName", provider, pageable);
+    }
+
+    private void addOrder(String id, String property, ISortStateLocator locator, final IPageable pageable) {
+        add(new BasicOrderByBorder(id, property, locator) {
+
+            @Override
+            protected void onSortChanged() {
+                pageable.setCurrentPage(0);
+            }
+        });
     }
 
     public void userDetailsPerformed(AjaxRequestTarget target, String oid) {

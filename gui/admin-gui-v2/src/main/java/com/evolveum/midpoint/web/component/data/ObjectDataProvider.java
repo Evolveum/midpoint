@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
@@ -45,6 +47,7 @@ import java.util.List;
  */
 public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvider<T> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
     private Class<T> type;
 
     public ObjectDataProvider(Class<T> type) {
@@ -85,10 +88,11 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
     @Override
     public int size() {
         //todo reimplement, use countObjects
-        OperationResult result = new OperationResult("list objects");
-        return getModel().listObjects(type,
-                PagingTypeFactory.createPaging(1, 1, OrderDirectionType.ASCENDING, "name"),
-                result).getTotalResultCount();
+//        OperationResult result = new OperationResult("list objects");
+//        return getModel().listObjects(type,
+//                PagingTypeFactory.createPaging(1, 1, OrderDirectionType.ASCENDING, "name"),
+//                result).getTotalResultCount();
+        return 10001;
     }
 
     @Override
