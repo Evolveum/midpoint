@@ -56,6 +56,7 @@ import org.w3c.dom.Element;
 import java.lang.InstantiationException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -161,51 +162,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     @Override
     public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
             OperationResult result) {
-        Validate.notNull(type, "Object type must not be null.");
-        Validate.notNull(result, "Operation result must not be null.");
-
-        LOGGER.debug("Listing objects of type '{}', offset {}, count {}", new Object[]{type.getSimpleName(),
-                (paging == null ? "undefined" : paging.getOffset()), (paging == null ? "undefined" : paging.getMaxSize())});
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Full paging\n{}", new Object[]{(paging == null ? "undefined" : prismContext.silentMarshalObject(paging))});
-        }
-
-        ResultList<PrismObject<T>> results = new ResultArrayList<PrismObject<T>>();
-        OperationResult subResult = result.createSubresult(LIST_OBJECTS);
-        Session session = null;
         try {
-            session = beginTransaction();
-            LOGGER.debug("Selecting total count.");
-            Query query = session.createQuery("select count(o) from " + ClassMapper.getHQLType(type) + " as o");
-            Long count = (Long) query.uniqueResult();
-            results.setTotalResultCount(count.intValue());
-
-            LOGGER.debug("Count is {}, selecting objects.", new Object[]{count});
-            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-            criteria = updatePagingAndSorting(criteria, type, paging);
-
-            LOGGER.debug("Transforming data to JAXB types.");
-            List<? extends RObject> objects = criteria.list();
-            if (objects != null) {
-                for (RObject object : objects) {
-                    ObjectType objectType = object.toJAXB(prismContext);
-                    PrismObject<T> prismObject = objectType.asPrismObject();
-                    validateObjectType(prismObject, type);
-                    results.add(prismObject);
-                }
-            }
-            session.getTransaction().commit();
-        } catch (SystemException ex) {
-            rollbackTransaction(session);
-            throw ex;
-        } catch (Exception ex) {
-            rollbackTransaction(session);
+            return searchObjects(type, null, paging, result);
+        } catch (SchemaException ex) {
             throw new SystemException(ex.getMessage(), ex);
-        } finally {
-            cleanupSessionAndResult(session, subResult);
         }
-
-        return results;
     }
 
     @Override
@@ -355,20 +316,62 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         updateTaskExclusivity(oid, TaskExclusivityStatusType.RELEASED, subResult);
     }
 
+//    @Override
+    public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult result) {
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+        LOGGER.debug("Counting objects of type '{}', query (on trace level).",
+                new Object[]{type});
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Full query\n{}", new Object[]{
+                    (query == null ? "undefined" : prismContext.silentMarshalObject(query))});
+        }
+
+        int count = 0;
+        OperationResult subResult = result.createSubresult(COUNT_OBJECTS);
+        Session session = null;
+        try {
+            session = beginTransaction();
+            LOGGER.debug("Updating query criteria.");
+            Criteria criteria;
+            if (query != null && query.getFilter() != null) {
+                QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
+                criteria = interpreter.interpret(query.getFilter());
+            } else {
+                criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+            }
+            criteria.setProjection(Projections.rowCount());
+
+            LOGGER.debug("Selecting total count.");
+            Long longCount = (Long) criteria.uniqueResult();
+            count = longCount.intValue();
+        } catch (SystemException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (Exception ex) {
+            rollbackTransaction(session);
+            throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            cleanupSessionAndResult(session, subResult);
+        }
+
+        return count;
+    }
+
     @Override
     public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
             PagingType paging, OperationResult result) throws SchemaException {
 
         Validate.notNull(type, "Object type must not be null.");
-        Validate.notNull(query, "Query must not be null.");
-        Validate.notNull(query.getFilter(), "Query filter must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
         LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}.", new Object[]{
                 type.getSimpleName(), (paging == null ? "undefined" : paging.getOffset()),
                 (paging == null ? "undefined" : paging.getMaxSize())});
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[]{prismContext.silentMarshalObject(query),
+            LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[]{
+                    (query == null ? "undefined" : prismContext.silentMarshalObject(query)),
                     (paging == null ? "undefined" : prismContext.silentMarshalObject(paging))});
         }
 
@@ -378,16 +381,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             session = beginTransaction();
             LOGGER.debug("Updating query criteria.");
-            QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
-            Criteria criteria = interpreter.interpret(query.getFilter());
-            criteria.setProjection(Projections.rowCount());
+            Criteria criteria;
+            if (query != null && query.getFilter() != null) {
+                QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
+                criteria = interpreter.interpret(query.getFilter());
+            } else {
+                criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+            }
 
-            LOGGER.debug("Selecting total count.");
-            Long count = (Long) criteria.uniqueResult();
-            list.setTotalResultCount(count.intValue());
-
-            LOGGER.debug("Total count is {}, listing object based on paging.", new Object[]{count});
-            criteria.setProjection(null);
             criteria = updatePagingAndSorting(criteria, type, paging);
 
             List<RObject> objects = criteria.list();

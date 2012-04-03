@@ -132,6 +132,7 @@ public interface RepositoryService {
     String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
     String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
+    String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
 
 	/**
 	 * Returns object for provided OID.
