@@ -22,6 +22,7 @@
   -->
 <query xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
@@ -32,13 +33,13 @@
             </value>
         </equal>
         <equal>
-            <path>c:attributes</path>
+            <t:path>c:attributes</t:path>
             <value>
                 <f:foo xsi:type="xsd:string" xmlns:f="http://midpoint.evolveum.com/blabla">foo value</f:foo>
             </value>
         </equal>
         <equal>
-            <path>c:extension</path>
+            <t:path>c:extension</t:path>
             <value>
                 <p:stringType xmlns:p="http://example.com/p">uid=test,dc=example,dc=com</p:stringType>
             </value>
