@@ -378,7 +378,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     				if (thisValue.representsSameValue(otherValue) || delta == null) {
     					found = true;
     					// Matching IDs, look inside to figure out internal deltas
-    					thisValue.diffMatchingRepresentation(otherValue, pathPrefix, deltas, ignoreMetadata);
+    					thisValue.diffMatchingRepresentation(otherValue, thisValue.getPath(pathPrefix), deltas, ignoreMetadata);
     					// No need to process this value again
     					iterator.remove();
     					break;

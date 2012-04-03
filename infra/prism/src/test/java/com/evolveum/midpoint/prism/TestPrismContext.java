@@ -233,7 +233,7 @@ public class TestPrismContext {
 		assertFalse("Element "+EXTENSION_SINGLE_STRING_TYPE_ELEMENT+" is ignored", singleStringTypeDef.isIgnored());
 		
 		PrismPropertyDefinition intTypeDef = schemaRegistry.findPropertyDefinitionByElementName(EXTENSION_INT_TYPE_ELEMENT);
-		PrismAsserts.assertDefinition(intTypeDef, EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INTEGER, 0, -1);
+		PrismAsserts.assertDefinition(intTypeDef, EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0, -1);
 		assertFalse("Element "+EXTENSION_INT_TYPE_ELEMENT+" is ignored", intTypeDef.isIgnored());
 	}
 	

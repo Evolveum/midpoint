@@ -24,7 +24,7 @@
 				</annotation>
 			</element>
 			<element name="foobar" type="string" minOccurs="0"/>
-			<element name="num" type="integer" minOccurs="0"/>
+			<element name="num" type="int" minOccurs="0"/>
 			<element name="multi" type="string" minOccurs="0" maxOccurs="unbounded">
 				<annotation>
 					<appinfo>

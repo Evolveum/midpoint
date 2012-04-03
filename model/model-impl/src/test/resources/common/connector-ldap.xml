@@ -97,7 +97,7 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element name="changeLogBlockSize" type="xsd:integer">
+                  <xsd:element name="changeLogBlockSize" type="xsd:int">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>Change Log Block Size</a:displayName>
@@ -156,7 +156,7 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element minOccurs="0" name="port" type="xsd:integer">
+                  <xsd:element minOccurs="0" name="port" type="xsd:int">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>TCP Port</a:displayName>
@@ -294,7 +294,7 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element minOccurs="0" name="blockSize" type="xsd:integer">
+                  <xsd:element minOccurs="0" name="blockSize" type="xsd:int">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>Block Size</a:displayName>

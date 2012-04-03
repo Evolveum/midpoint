@@ -41,6 +41,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -65,8 +66,9 @@ public class XsdTypeMapper {
         addMapping(String.class, DOMUtil.XSD_STRING, true);
         addMapping(char.class, DOMUtil.XSD_STRING, false);
         addMapping(File.class, DOMUtil.XSD_STRING, false);
-        addMapping(int.class, DOMUtil.XSD_INTEGER, true);
-        addMapping(Integer.class, DOMUtil.XSD_INTEGER, false);
+        addMapping(int.class, DOMUtil.XSD_INT, true);
+        addMapping(Integer.class, DOMUtil.XSD_INT, false);
+        addMapping(BigInteger.class, DOMUtil.XSD_INTEGER, true);
         addMapping(double.class, DOMUtil.XSD_DOUBLE, true);
         addMapping(Double.class, DOMUtil.XSD_DOUBLE, false);
         addMapping(float.class, DOMUtil.XSD_FLOAT, true);

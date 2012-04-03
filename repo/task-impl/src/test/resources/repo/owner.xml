@@ -27,7 +27,7 @@
     <c:name>jack</c:name>
     <c:extension>
         <piracy:ship>Black Pearl</piracy:ship>
-        <piracy:loot xsi:type="xsd:integer">123123</piracy:loot>
+        <piracy:loot xsi:type="xsd:int">123123</piracy:loot>
     </c:extension>
     <i:fullName>Cpt. Jack Sparrow</i:fullName>
     <i:givenName>Jack</i:givenName>

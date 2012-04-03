@@ -106,7 +106,7 @@ public class BasicValidatorTest {
 				assertEquals("Wrong number of men on a dead man chest", (Integer)15, menProp.getValue().getValue());
 				PrismPropertyDefinition menPropDef = menProp.getDefinition();
 				assertNotNull("Men on a dead man chest NOT defined", menPropDef);
-				assertEquals("Wrong type for men on a dead man chest definition", DOMUtil.XSD_INTEGER, menPropDef.getTypeName());
+				assertEquals("Wrong type for men on a dead man chest definition", DOMUtil.XSD_INT, menPropDef.getTypeName());
 				assertTrue("Men on a dead man chest definition not dynamic", menPropDef.isDynamic());
 				
 				return EventResult.cont();

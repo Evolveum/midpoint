@@ -118,7 +118,7 @@ public class XsdTypeConverterTest {
 		
 		Element barElement = (Element) attrElement.getElementsByTagNameNS(BAR_QNAME.getNamespaceURI(), BAR_QNAME.getLocalPart()).item(0);
 		System.out.println("barElement element: "+barElement);
-		assertEquals(DOMUtil.XSD_INTEGER,DOMUtil.resolveXsiType(barElement));
+		assertEquals(DOMUtil.XSD_INT,DOMUtil.resolveXsiType(barElement));
 		assertEquals("42",barElement.getTextContent());
 	}
 	

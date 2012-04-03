@@ -376,7 +376,7 @@ public class TestPrismParsing {
 		PrismAsserts.assertPropertyValue(bottlesProperty, 20);
 		PrismPropertyDefinition bottlesPropertyDef = bottlesProperty.getDefinition();
 		assertNotNull("No definition for bottles", bottlesPropertyDef);
-		PrismAsserts.assertDefinition(bottlesPropertyDef, USER_ADHOC_BOTTLES_ELEMENT, DOMUtil.XSD_INTEGER, 1, -1);
+		PrismAsserts.assertDefinition(bottlesPropertyDef, USER_ADHOC_BOTTLES_ELEMENT, DOMUtil.XSD_INT, 1, -1);
 		assertTrue("Bottles definition is NOT dynamic", bottlesPropertyDef.isDynamic());
 		
 	}

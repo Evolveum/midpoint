@@ -26,7 +26,7 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="group" type="xsd:integer" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="group" type="xsd:int" minOccurs="0" maxOccurs="unbounded"/>
 					<xsd:element name="ufo" type="xsd:string" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -46,7 +46,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 				<xsd:sequence>
-					<xsd:element name="groupId" type="xsd:integer">
+					<xsd:element name="groupId" type="xsd:int">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<r:nativeAttributeName>GID</r:nativeAttributeName>

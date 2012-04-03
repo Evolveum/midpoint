@@ -714,7 +714,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		for (Item thisItem: thisValue.getItems()) {
 			Item otherItem = other.findItem(thisItem.getName());
 			// The "delete" delta will also result from the following diff
-			thisItem.diffInternal(otherItem, getPath(pathPrefix), deltas, ignoreMetadata);
+			thisItem.diffInternal(otherItem, pathPrefix, deltas, ignoreMetadata);
 		}
 		
 		for (Item otherItem: other.getItems()) {

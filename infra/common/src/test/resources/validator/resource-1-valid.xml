@@ -33,7 +33,7 @@
 	<name>Basic Localhost OpenDJ</name>
      
      <extension>
-     	<my:menOnChest xsi:type="xsd:integer">15</my:menOnChest>
+     	<my:menOnChest xsi:type="xsd:int">15</my:menOnChest>
      </extension>
      
      	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->

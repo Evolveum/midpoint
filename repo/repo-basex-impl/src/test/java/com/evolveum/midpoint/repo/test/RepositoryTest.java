@@ -213,7 +213,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		PrismContainer<?> extensionContainer = task.getExtension();
 		
 		PrismPropertyDefinition propDef = new PrismPropertyDefinition(SchemaConstants.SYNC_TOKEN,
-				SchemaConstants.SYNC_TOKEN, DOMUtil.XSD_INTEGER, PrismTestUtil.getPrismContext());
+				SchemaConstants.SYNC_TOKEN, DOMUtil.XSD_INT, PrismTestUtil.getPrismContext());
 		propDef.setDynamic(true);
 		PrismProperty<Integer> tokenProperty = propDef.instantiate();
 		tokenProperty.addValue(new PrismPropertyValue<Integer>(42));
@@ -228,7 +228,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		assertNotNull("No token after reading from repo", repoTokenProperty);
 		PrismPropertyDefinition repoTokenDef = repoTokenProperty.getDefinition();
 		assertNotNull("No token definition after reading from repo", repoTokenDef);
-		assertEquals("Wrong type in token definition after reading from repo", DOMUtil.XSD_INTEGER, repoTokenDef.getTypeName());
+		assertEquals("Wrong type in token definition after reading from repo", DOMUtil.XSD_INT, repoTokenDef.getTypeName());
 		assertTrue("Token definition is not dynamic after reading from repo", repoTokenDef.isDynamic());
 		assertEquals("Wrong token value after reading from repo", (Integer)42, repoTokenProperty.getValues().iterator().next().getValue());
 		

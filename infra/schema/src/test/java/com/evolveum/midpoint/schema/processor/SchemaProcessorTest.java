@@ -88,7 +88,7 @@ public class SchemaProcessorTest {
 		// GIVEN
 		PrismSchema schema = new PrismSchema(SCHEMA_NS, PrismTestUtil.getPrismContext());
 		// Ordinary property
-		schema.createPropertyDefinition("number1", DOMUtil.XSD_INTEGER);
+		schema.createPropertyDefinition("number1", DOMUtil.XSD_INT);
 		
 		// Property container
 		PrismContainerDefinition containerDefinition = schema.createPropertyContainerDefinition("ContainerType");
@@ -99,7 +99,7 @@ public class SchemaProcessorTest {
 		// ... property reference
 		containerDefinition.createPropertyDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
 		// ... read-only int property 
-		PrismPropertyDefinition counterProperty = containerDefinition.createPropertyDefinition("counter", DOMUtil.XSD_INTEGER);
+		PrismPropertyDefinition counterProperty = containerDefinition.createPropertyDefinition("counter", DOMUtil.XSD_INT);
 		counterProperty.setReadOnly();
 
 		System.out.println("Generic schema before serializing to XSD: ");
@@ -128,7 +128,7 @@ public class SchemaProcessorTest {
 	
 		PrismPropertyDefinition number1def = newSchema.findItemDefinition(new QName(SCHEMA_NS,"number1"), PrismPropertyDefinition.class);
 		assertEquals(new QName(SCHEMA_NS,"number1"),number1def.getName());
-		assertEquals(DOMUtil.XSD_INTEGER,number1def.getTypeName());
+		assertEquals(DOMUtil.XSD_INT,number1def.getTypeName());
 		
 		PrismContainerDefinition newContainerDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NS,"ContainerType"));
 		assertEquals(new QName(SCHEMA_NS,"ContainerType"),newContainerDef.getTypeName());
@@ -150,7 +150,7 @@ public class SchemaProcessorTest {
 
 		PrismPropertyDefinition countDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"counter"));
 		assertEquals(new QName(SCHEMA_NS,"counter"), countDef.getName());
-		assertEquals(DOMUtil.XSD_INTEGER, countDef.getTypeName());
+		assertEquals(DOMUtil.XSD_INT, countDef.getTypeName());
 		assertTrue("Read flag is wrong",countDef.canRead());
 		assertFalse("Create flag is wrong",countDef.canCreate());
 		assertFalse("Update flag is wrong",countDef.canUpdate());

@@ -30,7 +30,7 @@
     <name>barbossa</name>
     <extension>
 		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
-		<foo:num xsi:type="xsd:integer">42</foo:num>
+		<foo:num xsi:type="xsd:int">42</foo:num>
 		<foo:multi xsi:type="xsd:string">raz</foo:multi>
 		<foo:multi xsi:type="xsd:string">dva</foo:multi>
 		<foo:multi xsi:type="xsd:string">tri</foo:multi>

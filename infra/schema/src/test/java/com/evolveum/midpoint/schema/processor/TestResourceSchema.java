@@ -123,7 +123,7 @@ public class TestResourceSchema {
         
         PrismPropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "group"), groupDef.getName());
-        assertEquals(DOMUtil.XSD_INTEGER, groupDef.getTypeName());
+        assertEquals(DOMUtil.XSD_INT, groupDef.getTypeName());
         assertFalse("Ignored while it should not be", groupDef.isIgnored());
         
         PrismPropertyDefinition ufoDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));

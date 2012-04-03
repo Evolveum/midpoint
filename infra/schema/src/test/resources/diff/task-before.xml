@@ -25,7 +25,7 @@
             Definition of a live sychnronization task. It will poll changelog and pull in changes
         </description>
     <extension>
-        <ls:token xsi:type="xsd:integer" xmlns:ls="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">480</ls:token>
+        <ls:token xsi:type="xsd:int" xmlns:ls="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">480</ls:token>
     </extension>
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>

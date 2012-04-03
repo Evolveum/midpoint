@@ -409,7 +409,7 @@
                         <xsd:extension base="ics:ObjectClass">
                             <xsd:sequence>
                                 <xsd:element name="users" type="xsd:string" maxOccurs="unbounded" minOccurs="0" />
-                                <xsd:element name="gid" type="xsd:integer" minOccurs="0" />
+                                <xsd:element name="gid" type="xsd:int" minOccurs="0" />
                             </xsd:sequence>
                         </xsd:extension>
                     </xsd:complexContent>
@@ -435,12 +435,12 @@
                                 <xsd:element name="secondary_group" type="xsd:string" maxOccurs="unbounded" minOccurs="0" />
                                 <xsd:element name="dir" type="xsd:string" minOccurs="0" />
                                 <xsd:element name="force_change" type="xsd:boolean" minOccurs="0" />
-                                <xsd:element name="max" type="xsd:integer" minOccurs="0" />
+                                <xsd:element name="max" type="xsd:int" minOccurs="0" />
                                 <xsd:element name="profile" type="xsd:string" maxOccurs="unbounded" minOccurs="0" />
-                                <xsd:element name="uid" type="xsd:integer" minOccurs="0" />
-                                <xsd:element name="min" type="xsd:integer" minOccurs="0" />
+                                <xsd:element name="uid" type="xsd:int" minOccurs="0" />
+                                <xsd:element name="min" type="xsd:int" minOccurs="0" />
                                 <xsd:element name="comment" type="xsd:string" minOccurs="0" />
-                                <xsd:element name="inactive" type="xsd:integer" minOccurs="0" />
+                                <xsd:element name="inactive" type="xsd:int" minOccurs="0" />
                                 <xsd:element ref="ics:password" minOccurs="0" >
                                     <xsd:annotation>
                                         <xsd:appinfo>
@@ -457,7 +457,7 @@
                                         </xsd:appinfo>
                                     </xsd:annotation>
                                 </xsd:element>
-                                <xsd:element name="warn" type="xsd:integer" minOccurs="0" />
+                                <xsd:element name="warn" type="xsd:int" minOccurs="0" />
                                 <xsd:element name="lock" type="xsd:boolean" minOccurs="0" />
                             </xsd:sequence>
                         </xsd:extension>

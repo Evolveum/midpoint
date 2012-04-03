@@ -44,7 +44,7 @@
 	<complexType name="FooType">
 		<sequence>
 			<element name="foo" type="string"/>
-			<element name="bar" type="integer" minOccurs="0"/>
+			<element name="bar" type="int" minOccurs="0"/>
 			<element name="barbar" type="string" minOccurs="0" maxOccurs="unbounded"/>
 		</sequence>
 	</complexType>

@@ -43,7 +43,9 @@
 
     <xsd:element name="doubleType" type="xsd:double"/>
 
-    <xsd:element name="intType" type="xsd:integer"/>
+    <xsd:element name="intType" type="xsd:int"/>
+    
+    <xsd:element name="integerType" type="xsd:integer"/>
 
     <xsd:element name="longType" type="xsd:long"/>
 

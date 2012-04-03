@@ -78,35 +78,35 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="minEvictableIdleTimeMillis" type="xsd:integer" minOccurs="0">
+			<xsd:element name="minEvictableIdleTimeMillis" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="minIdle" type="xsd:integer" minOccurs="0">
+			<xsd:element name="minIdle" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="maxIdle" type="xsd:integer" minOccurs="0">
+			<xsd:element name="maxIdle" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="maxObjects" type="xsd:integer" minOccurs="0">
+			<xsd:element name="maxObjects" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="maxWait" type="xsd:integer" minOccurs="0">
+			<xsd:element name="maxWait" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO
@@ -127,7 +127,7 @@
 		</xsd:annotation>
 	</xsd:element>
 	
-	<xsd:element name="producerBufferSize" type="xsd:integer">
+	<xsd:element name="producerBufferSize" type="xsd:int">
 		<xsd:annotation>
 			<xsd:documentation>
 				TODO
@@ -160,29 +160,29 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="create" type="xsd:integer" minOccurs="0">
+			<xsd:element name="create" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="get" type="xsd:integer" minOccurs="0">
+			<xsd:element name="get" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="update" type="xsd:integer" minOccurs="0">
+			<xsd:element name="update" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="delete" type="xsd:integer" minOccurs="0">
+			<xsd:element name="delete" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="test" type="xsd:integer" minOccurs="0">
+			<xsd:element name="test" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="scriptOnConnector" type="xsd:integer" minOccurs="0">
+			<xsd:element name="scriptOnConnector" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="scriptOnResource" type="xsd:integer" minOccurs="0">
+			<xsd:element name="scriptOnResource" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="authentication" type="xsd:integer" minOccurs="0">
+			<xsd:element name="authentication" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="search" type="xsd:integer" minOccurs="0">
+			<xsd:element name="search" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="validate" type="xsd:integer" minOccurs="0">
+			<xsd:element name="validate" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="sync" type="xsd:integer" minOccurs="0">
+			<xsd:element name="sync" type="xsd:int" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="schema" type="xsd:integer" minOccurs="0">
+			<xsd:element name="schema" type="xsd:int" minOccurs="0">
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>

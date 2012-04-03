@@ -331,14 +331,14 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         
         PrismContainer<?> extensionContainer = object.getExtension();
         PrismProperty<Object> deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
-        assertEquals("Bad typed of 'dead' property (add result)", DOMUtil.XSD_INTEGER, deadProperty.getDefinition().getTypeName());
+        assertEquals("Bad typed of 'dead' property (add result)", DOMUtil.XSD_INT, deadProperty.getDefinition().getTypeName());
         
 //        Element ext2 = (Element) addedTask.getExtension().getAny().get(0);
 //        if (!ext2.getLocalName().equals("dead"))		// not a very nice code...
 //        	ext2 = (Element) addedTask.getExtension().getAny().get(1);
 //        QName xsiType = DOMUtil.resolveXsiType(ext2, "d");
 //        System.out.println("######################1# " + xsiType);
-//        AssertJUnit.assertEquals("Bad xsi:type before adding task", DOMUtil.XSD_INTEGER, xsiType);
+//        AssertJUnit.assertEquals("Bad xsi:type before adding task", DOMUtil.XSD_INT, xsiType);
 
         // Read from repo
         
@@ -347,7 +347,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         
         extensionContainer = repoTask.getExtension();
         deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
-        assertEquals("Bad typed of 'dead' property (from repo)", DOMUtil.XSD_INTEGER, deadProperty.getDefinition().getTypeName());
+        assertEquals("Bad typed of 'dead' property (from repo)", DOMUtil.XSD_INT, deadProperty.getDefinition().getTypeName());
 
         
 //        ext2 = (Element) addedTask.getExtension().getAny().get(0);
@@ -355,7 +355,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        	ext2 = (Element) addedTask.getExtension().getAny().get(1);
 //        xsiType = DOMUtil.resolveXsiType(ext2, "d");
 //        System.out.println("######################2# " + xsiType);
-//        AssertJUnit.assertEquals("Bad xsi:type after adding task", DOMUtil.XSD_INTEGER, xsiType);
+//        AssertJUnit.assertEquals("Bad xsi:type after adding task", DOMUtil.XSD_INT, xsiType);
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this

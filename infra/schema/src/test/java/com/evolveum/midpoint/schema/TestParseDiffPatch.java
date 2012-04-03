@@ -99,10 +99,10 @@ public class TestParseDiffPatch {
         userDelta.checkConsistence();
 
         PropertyPath path = new PropertyPath(com.evolveum.midpoint.schema.SchemaConstants.C_CREDENTIALS,
-                PasswordType.F_FAILED_LOGINS);
+                CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PrismAsserts.assertPropertyAdd(userDelta, path, 1);
         path = new PropertyPath(com.evolveum.midpoint.schema.SchemaConstants.C_CREDENTIALS,
-                PasswordType.F_FAILED_LOGINS);
+        		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PropertyDelta propertyDelta = userDelta.findPropertyDelta(path);
         assertNotNull("Property delta for "+path+" not found",propertyDelta);
         assertEquals(1, propertyDelta.getValuesToAdd().size());

@@ -81,6 +81,14 @@ public abstract class PrismValue implements Visitable, Serializable {
 		this.parent = parent;
 	}
 	
+	public PropertyPath getPath(PropertyPath pathPrefix) {
+		Itemable parent = getParent();
+		if (parent == null) {
+			throw new IllegalStateException("No parent, cannot create value path for "+this); 
+		}
+		return parent.getPath(pathPrefix);
+	}
+	
 	public PrismContext getPrismContext() {
 		if (parent != null) {
 			return parent.getPrismContext();

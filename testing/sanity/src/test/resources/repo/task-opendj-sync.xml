@@ -34,7 +34,7 @@
 	
 	<extension>
 		<my:shipState>capsized</my:shipState>
-		<my:dead xsi:type="xsd:integer">42</my:dead>
+		<my:dead xsi:type="xsd:int">42</my:dead>
 	</extension>
 	
 	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>

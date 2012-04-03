@@ -314,7 +314,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		PrismPropertyDefinition lastTokenDef = lastToken.getDefinition();
 		assertNotNull("No last sync token definition", lastTokenDef);
-		assertEquals("Last sync token definition has wrong type", DOMUtil.XSD_INTEGER, lastTokenDef.getTypeName());
+		assertEquals("Last sync token definition has wrong type", DOMUtil.XSD_INT, lastTokenDef.getTypeName());
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 		
 		// WHEN

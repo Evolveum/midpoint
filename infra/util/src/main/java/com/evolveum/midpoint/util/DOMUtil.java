@@ -97,6 +97,8 @@ public class DOMUtil {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI, "integer",
 			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_INT = new QName(W3C_XML_SCHEMA_NS_URI, "int",
+			NS_W3C_XML_SCHEMA_PREFIX);
     public static final QName XSD_LONG = new QName(W3C_XML_SCHEMA_NS_URI, "long",
             NS_W3C_XML_SCHEMA_PREFIX);
     public static final QName XSD_SHORT = new QName(W3C_XML_SCHEMA_NS_URI, "short",

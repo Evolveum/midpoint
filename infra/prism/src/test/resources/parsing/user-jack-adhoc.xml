@@ -28,7 +28,7 @@
     <name>jack</name>
     <extension>
 		<!-- Following element does not have any schema -->
-		<adhoc:bottles xsi:type="xsd:integer">20</adhoc:bottles>
+		<adhoc:bottles xsi:type="xsd:int">20</adhoc:bottles>
 	<!--	<foo:password xsi:type="ProtectedStringType">
 			<clearValue>openS3zam3</clearValue>
 		</foo:password>  -->
