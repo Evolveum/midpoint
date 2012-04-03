@@ -23,7 +23,71 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-   import file
+    <div class="content">
+        <h1>
+            <wicket:message key="pageImportFile.title"/>
+        </h1>
+        <form wicket:id="mainForm">
+            <wicket:message key="pageImportFile.chooseFile"/>
+            <input wicket:id="fileInput" type="file"/>
+
+            <div>
+                <br/>
+                <table cellspacing="0" cellpadding="0">
+                    <tbody>
+                    <tr>
+                        <td class="label">
+                            <input wicket:id="protectedByEncryption" type="checkbox"/>
+                            <wicket:message key="pageImportFile.protectedByEncryption"/>
+                        </td>
+                        <td class="label">
+                            <input wicket:id="fetchResourceSchema" type="checkbox"/>
+                            <wicket:message key="pageImportFile.fetchResourceSchema"/>
+                        </td>
+                        <td class="label">
+                            <input wicket:id="keepOid" type="checkbox"/>
+                            <wicket:message key="pageImportFile.keepOid"/>
+                        </td>
+                        <td class="label">
+                            <input wicket:id="overwriteExistingObject" type="checkbox"/>
+                            <wicket:message key="pageImportFile.overwriteExistingObject"/>
+                        </td>
+                        <td class="label">
+                            <input wicket:id="referentialIntegrity" type="checkbox"/>
+                            <wicket:message key="pageImportFile.referentialIntegrity"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <input wicket:id="summarizeErrors" type="checkbox"/>
+                            <wicket:message key="pageImportFile.summarizeErrors"/>
+                        </td>
+                        <td class="label">
+                            <input wicket:id="summarizeSuccesses" type="checkbox"/>
+                            <wicket:message key="pageImportFile.summarizeSuccesses"/>
+                        </td>
+                        <td class="label">
+                            <input wicket:id="validateDynamicSchema" type="checkbox"/>
+                            <wicket:message key="pageImportFile.validateDynamicSchema"/>
+                        </td>
+                        <td class="label">
+                            <input wicket:id="validateStaticSchema" type="checkbox"/>
+                            <wicket:message key="pageImportFile.validateStaticSchema"/>
+                        </td>
+                        <td class="label">
+                            <wicket:message key="pageImportFile.stopAfter"/>
+                            <input wicket:id="errors" type="text" size="5"/>
+                            <wicket:message key="pageImportFile.errors"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="operatingFormButtons">
+                <a class="button" wicket:id="importButton"/>
+            </div>
+        </form>
+    </div>
 </wicket:extend>
 </body>
 </html>

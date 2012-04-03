@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import java.util.List;
@@ -92,5 +93,9 @@ public abstract class PageBase extends WebPage {
 
     protected ModelService getModelService() {
         return modelService;
+    }
+
+    protected StringResourceModel createStringResource(String resourceKey) {
+        return new StringResourceModel(resourceKey, this, null, null, null);
     }
 }

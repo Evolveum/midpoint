@@ -21,8 +21,16 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
+import org.apache.wicket.model.Model;
+
 /**
  * @author lazyman
  */
 public class PageImportXml extends PageAdminConfiguration {
+    
+    public PageImportXml() {
+        AceEditor<String> editor = new AceEditor<String>("aceEditor", new Model<String>("aaa"));
+        add(editor);
+    }
 }

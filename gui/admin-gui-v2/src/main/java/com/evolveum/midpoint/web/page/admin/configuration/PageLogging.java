@@ -219,9 +219,4 @@ public class PageLogging extends PageAdminConfiguration {
             }
         };
     }
-
-    private StringResourceModel createStringResource(String resourceKey) {
-        return new StringResourceModel(resourceKey, this, null, null, null);
-    }
-
 }
