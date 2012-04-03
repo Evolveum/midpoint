@@ -34,11 +34,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -157,6 +159,7 @@ public class PageLogging extends PageAdminConfiguration {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 model.reset();
+                target.appendJavaScript("init();");
                 target.add(mainForm);
             }
         };
