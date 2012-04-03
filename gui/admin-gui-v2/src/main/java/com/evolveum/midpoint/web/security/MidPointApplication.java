@@ -82,16 +82,16 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/login", PageLogin.class, encoder));
         mount(new MountedMapper("/home", PageHome.class, encoder));
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
-        mount(new MountedMapper("/admin/tasks", PageAdminTasks.class, encoder));
-        mount(new MountedMapper("/admin/roles", PageAdminRoles.class, encoder));
-        mount(new MountedMapper("/admin/resources", PageAdminResources.class, encoder));
+//        mount(new MountedMapper("/admin/tasks", PageAdminTasks.class, encoder));
+//        mount(new MountedMapper("/admin/roles", PageAdminRoles.class, encoder));
+//        mount(new MountedMapper("/admin/resources", PageAdminResources.class, encoder));
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
 
         //error pages
-        mount(new MountedMapper("/error/401", PageUnauthorized.class, encoder));
-        mount(new MountedMapper("/error/403", PageForbidden.class, encoder));
-        mount(new MountedMapper("/error/404", PageNotFound.class, encoder));
-        mount(new MountedMapper("/error/500", PageServerError.class, encoder));
+//        mount(new MountedMapper("/error/401", PageUnauthorized.class, encoder));
+//        mount(new MountedMapper("/error/403", PageForbidden.class, encoder));
+//        mount(new MountedMapper("/error/404", PageNotFound.class, encoder));
+//        mount(new MountedMapper("/error/500", PageServerError.class, encoder));
     }
 
     public ModelService getModel() {
