@@ -70,8 +70,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.schema.ResultArrayList;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -516,7 +514,7 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
+	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult result) {
 		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -524,7 +522,7 @@ public class ModelController implements ModelService {
 
 		RepositoryCache.enter();
 
-		ResultList<PrismObject<T>> list = null;
+		List<PrismObject<T>> list = null;
 
 		try {
 			if (paging == null) {
@@ -562,8 +560,7 @@ public class ModelController implements ModelService {
 			}
 
 			if (list == null) {
-				list = new ResultArrayList<PrismObject<T>>();
-				list.setTotalResultCount(0);
+				list = new ArrayList<PrismObject<T>>();
 			}
 			LOGGER.trace("Returning {} objects.", new Object[] { list.size() });
 
@@ -574,7 +571,7 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(query, "Query must not be null.");
@@ -583,7 +580,7 @@ public class ModelController implements ModelService {
 
 		RepositoryCache.enter();
 
-		ResultList<PrismObject<T>> list = null;
+		List<PrismObject<T>> list = null;
 
 		try {
 			if (paging == null) {
@@ -624,8 +621,7 @@ public class ModelController implements ModelService {
 			}
 
 			if (list == null) {
-				list = new ResultArrayList<PrismObject<T>>();
-				list.setTotalResultCount(0);
+				list = new ArrayList<PrismObject<T>>();
 			}
 
 		} finally {
@@ -633,6 +629,13 @@ public class ModelController implements ModelService {
 		}
 
 		return list;
+	}
+	
+	@Override
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException {
+		// TODO: Implement
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -979,14 +982,14 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
 		RepositoryCache.enter();
 
-		ResultList<PrismObject<T>> list = null;
+		List<PrismObject<T>> list = null;
 
 		try {
 			LOGGER.trace("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
@@ -1018,8 +1021,7 @@ public class ModelController implements ModelService {
 			}
 
 			if (list == null) {
-				list = new ResultArrayList<PrismObject<T>>();
-				list.setTotalResultCount(0);
+				list = new ArrayList<PrismObject<T>>();
 			}
 
 		} finally {
@@ -1030,7 +1032,7 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public ResultList<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
+	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, PagingType paging, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
@@ -1041,7 +1043,7 @@ public class ModelController implements ModelService {
 
 		RepositoryCache.enter();
 
-		ResultList<PrismObject<? extends ResourceObjectShadowType>> list = null;
+		List<PrismObject<? extends ResourceObjectShadowType>> list = null;
 
 		try {
 			LOGGER.trace(
@@ -1073,8 +1075,7 @@ public class ModelController implements ModelService {
 			subResult.recordSuccess();
 
 			if (list == null) {
-				list = new ResultArrayList<PrismObject<? extends ResourceObjectShadowType>>();
-				list.setTotalResultCount(0);
+				list = new ArrayList<PrismObject<? extends ResourceObjectShadowType>>();
 			}
 		} finally {
 			RepositoryCache.exit();

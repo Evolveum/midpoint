@@ -2,7 +2,6 @@ package com.evolveum.midpoint.web.model.impl;
 
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -74,7 +73,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
         OperationResult result = new OperationResult(LIST_OBJECT_SHADOWS);
         List<ResourceObjectShadowDto<T>> resourceObjectShadowDtoList = new ArrayList<ResourceObjectShadowDto<T>>();
         try {
-            ResultList<PrismObject<T>> list = getModel().listResourceObjectShadows(oid, resourceObjectShadowType, result);
+            List<PrismObject<T>> list = getModel().listResourceObjectShadows(oid, resourceObjectShadowType, result);
             for (PrismObject<T> object : list) {
                 ResourceObjectShadowDto<T> dto = new ResourceObjectShadowDto<T>(object.asObjectable());
                 resourceObjectShadowDtoList.add(dto);
@@ -152,7 +151,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
         OperationResult result = new OperationResult(ResourceManager.LIST_RESOURCE_OBJECTS);
         Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> collection = new ArrayList<ResourceObjectShadowDto<ResourceObjectShadowType>>();
         try {
-            ResultList<PrismObject<? extends ResourceObjectShadowType>> list = getModel().listResourceObjects(resourceOid, objectClass, paging, result);
+            List<PrismObject<? extends ResourceObjectShadowType>> list = getModel().listResourceObjects(resourceOid, objectClass, paging, result);
             if (list != null) {
                 for (PrismObject<? extends ResourceObjectShadowType> object : list) {
                     collection.add(new ResourceObjectShadowDto<ResourceObjectShadowType>(object.asObjectable()));

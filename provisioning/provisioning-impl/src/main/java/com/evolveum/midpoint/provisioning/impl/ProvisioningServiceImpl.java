@@ -56,8 +56,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultArrayList;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -477,7 +475,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
+	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult parentResult) {
 
 		Validate.notNull(objectType, "Object type to list must not be null.");
@@ -491,7 +489,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		ResultList<PrismObject<T>> objListType = null;
+		List<PrismObject<T>> objListType = null;
 
 		// TODO: should listing connectors trigger rediscovery?
 
@@ -528,7 +526,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		if (ResourceType.class.equals(objectType)) {
-			ResultList<PrismObject<T>> newObjListType = new ResultArrayList<PrismObject<T>>();
+			List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
 			for (PrismObject<T> obj : objListType) {
 				OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
 						+ ".listObjects.object");
@@ -605,11 +603,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException {
 
-		final ResultList<PrismObject<T>> objListType = new ResultArrayList<PrismObject<T>>();
+		final List<PrismObject<T>> objListType = new ArrayList<PrismObject<T>>();
 
 		final ResultHandler<T> handler = new ResultHandler<T>() {
 
@@ -622,6 +620,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		searchObjectsIterative(type, query, paging, handler, parentResult);
 		return objListType;
+	}
+	
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		// TODO: Implement
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -786,7 +790,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public ResultList<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
+	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, PagingType paging, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 
@@ -814,7 +818,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 
-		final ResultList<PrismObject<? extends ResourceObjectShadowType>> objectList = new ResultArrayList<PrismObject<? extends ResourceObjectShadowType>>();
+		final List<PrismObject<? extends ResourceObjectShadowType>> objectList = new ArrayList<PrismObject<? extends ResourceObjectShadowType>>();
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {
 			@Override

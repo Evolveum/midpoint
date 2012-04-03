@@ -27,7 +27,6 @@ import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -89,7 +88,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         query.setFilter(createQuery(username));
         LOGGER.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
 
-        ResultList<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, new PagingType(),
+        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, new PagingType(),
                 new OperationResult("Find by username"));
         if (list == null) {
             return null;

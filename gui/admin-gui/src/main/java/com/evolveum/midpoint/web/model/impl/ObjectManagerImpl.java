@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -48,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -186,7 +186,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
         Collection<O> collection = new ArrayList<O>();
         OperationResult result = new OperationResult(LIST);
         try {
-            ResultList<PrismObject<O>> objectList = getModel().listObjects(type, paging, result);
+            List<PrismObject<O>> objectList = getModel().listObjects(type, paging, result);
             LOGGER.debug("Found {} objects of type {}.", new Object[]{objectList.size(), type});
             for (PrismObject<O> object : objectList) {
                 collection.add(object.asObjectable());

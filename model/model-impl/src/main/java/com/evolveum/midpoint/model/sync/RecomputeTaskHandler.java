@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.model.sync;
 
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -181,7 +182,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 		while (true) {
 			paging.setOffset(offset);
 			paging.setMaxSize(SEARCH_MAX_SIZE);
-			ResultList<PrismObject<UserType>> users = repositoryService.listObjects(UserType.class, paging, result);
+			List<PrismObject<UserType>> users = repositoryService.listObjects(UserType.class, paging, result);
 			if (users == null || users.isEmpty()) {
 				break;
 			}

@@ -21,12 +21,12 @@
 package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -221,7 +221,8 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 */
-	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> type, PagingType paging, OperationResult parentResult);
+	@Deprecated
+	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging, OperationResult parentResult);
 
 	/**
 	 * <p>Search for objects in the repository.</p>
@@ -251,9 +252,12 @@ public interface RepositoryService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	public <T extends ObjectType> ResultList<PrismObject<T>>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException;
 
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
+		throws SchemaException;
+	
 	/**
 	 * <p>Modifies object using relative change description.</p>
 	 * Must fail if user with
@@ -363,7 +367,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
 	
 	/**

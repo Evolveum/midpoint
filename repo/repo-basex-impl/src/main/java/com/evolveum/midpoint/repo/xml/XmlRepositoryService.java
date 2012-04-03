@@ -50,8 +50,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultArrayList;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -304,7 +302,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> objectType,
+	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType,
 			PagingType paging, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName()
 				+ ".listObjects");
@@ -320,13 +318,13 @@ public class XmlRepositoryService implements RepositoryService {
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
 
-		ResultList<PrismObject<T>> objects = searchObjects(objectType, paging, null, namespaces, result);
+		List<PrismObject<T>> objects = searchObjects(objectType, paging, null, namespaces, result);
 		result.recordSuccess();
 		return objects;
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> clazz, QueryType query,
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> clazz, QueryType query,
 			PagingType paging, OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName()
 				+ ".searchObjects");
@@ -369,6 +367,13 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 
 		return searchObjects(clazz, paging, filters, namespaces, result);
+	}
+	
+	@Override
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
+			throws SchemaException {
+		// TODO: Implement
+		throw new UnsupportedOperationException();
 	}
 
 	private void processFilterBody(Map<String, String> filters, Map<String, String> namespaces, Node child) {
@@ -530,7 +535,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(
+	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(
 			String resourceOid, Class<T> resourceObjectShadowType, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
@@ -542,7 +547,7 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:resourceRef", resourceOid);
-		ResultList<PrismObject<T>> retrievedObjects = searchObjects(resourceObjectShadowType, null, filters,
+		List<PrismObject<T>> retrievedObjects = searchObjects(resourceObjectShadowType, null, filters,
 				namespaces, result);
 
 		result.recordSuccess();
@@ -610,7 +615,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 	}
 
-	private <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> clazz,
+	private <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> clazz,
 			PagingType paging, Map<String, String> filters, Map<String, String> namespaces,
 			OperationResult result) {
 
@@ -623,7 +628,7 @@ public class XmlRepositoryService implements RepositoryService {
 //			objectType = ObjectTypes.getObjectType(clazz).getValue();
 //		}
 
-		ResultList<PrismObject<T>> objectList = new ResultArrayList<PrismObject<T>>();
+		List<PrismObject<T>> objectList = new ArrayList<PrismObject<T>>();
 		// FIXME: objectList.count has to contain all elements that match search
 		// criteria, but not only from paging interval
 		EscapeStringBuilder query = new XQueryEscapeStringBuilder();

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.api;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -30,7 +31,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -316,7 +316,7 @@ public interface ModelService {
 	 * @return list of found shadows
 	 * @throws ObjectNotFoundException
 	 */
-	<T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+	<T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
 
 	/**
@@ -369,7 +369,7 @@ public interface ModelService {
 	 * @throws CommunicationException
 	 *             error communicating with the resource
 	 */
-	ResultList<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
+	List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException;
 
 	/**
@@ -398,7 +398,8 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 */
-	<T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging, OperationResult result);
+	@Deprecated
+	<T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging, OperationResult result);
 
 	/**
 	 * <p>
@@ -434,8 +435,11 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	<T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
+	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+	
+	<T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException;
 
 	/**
 	 * <p>

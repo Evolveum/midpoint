@@ -116,7 +116,7 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
         when(
                 repository.listResourceObjectShadows(eq(resourceOid),
                         eq((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class)))
-                .thenReturn(MiscSchemaUtil.prismObjectListToResultList((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), expected));
+                .thenReturn((List)expected);
 
         OperationResult result = new OperationResult("List Resource Object Shadows");
         try {

@@ -73,7 +73,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -370,7 +369,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test006ListResourceObjects");
 		// WHEN
-		ResultList<PrismObject<? extends ResourceObjectShadowType>> objectList = provisioningService.listResourceObjects(
+		List<PrismObject<? extends ResourceObjectShadowType>> objectList = provisioningService.listResourceObjects(
 				RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
 		// THEN
 		assertNotNull(objectList);
@@ -952,7 +951,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		try {
 
 			try {
-				ResultList<PrismObject<AccountShadowType>> objListType = provisioningService.listObjects(AccountShadowType.class,
+				List<PrismObject<AccountShadowType>> objListType = provisioningService.listObjects(AccountShadowType.class,
 						new PagingType(), result);
 				Assert.fail("Expected excetpion, but haven't got one");
 			} catch (Exception ex) {
@@ -1051,7 +1050,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			QueryType query = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"), 
 					QueryType.class);
 
-			ResultList<PrismObject<AccountShadowType>> objListType = 
+			List<PrismObject<AccountShadowType>> objListType = 
 				provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), result);
 			
 			for (PrismObject<AccountShadowType> objType : objListType) {

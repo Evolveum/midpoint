@@ -53,7 +53,6 @@ import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -886,7 +885,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		query.setFilter(QueryUtil.createEqualFilter(doc, xpath, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_WILL_ICF_UID));
 		System.out.println("Looking for shadows of \""+ACCOUNT_WILL_ICF_UID+"\" with filter "+DOMUtil.serializeDOMToString(query.getFilter()));
 		display("Looking for shadows of \""+ACCOUNT_WILL_ICF_UID+"\" with filter "+DOMUtil.serializeDOMToString(query.getFilter()));
-		ResultList<PrismObject<AccountShadowType>> objects = repositoryService.searchObjects(AccountShadowType.class, query , null, result);
+		List<PrismObject<AccountShadowType>> objects = repositoryService.searchObjects(AccountShadowType.class, query , null, result);
 		
 		assertEquals("Wrong number of shadows for ICF UID \"" + ACCOUNT_WILL_ICF_UID + "\"", 1, objects.size());
 		

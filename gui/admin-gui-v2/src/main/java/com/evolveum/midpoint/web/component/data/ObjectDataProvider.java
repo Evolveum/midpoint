@@ -24,7 +24,6 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -73,7 +72,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
         OperationResult result = new OperationResult("list usersssss");
         PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
 
-        ResultList<PrismObject<T>> list = getModel().listObjects(type, paging, result);
+        List<PrismObject<T>> list = getModel().listObjects(type, paging, result);
 
         List<T> users = new ArrayList<T>();
         for (PrismObject<T> object : list) {

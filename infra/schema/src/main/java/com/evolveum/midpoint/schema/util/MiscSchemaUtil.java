@@ -27,11 +27,8 @@ import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.ResultArrayList;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadataType;
@@ -48,43 +45,20 @@ public class MiscSchemaUtil {
 	
 	private static Random rnd = new Random();
 	
-	public static ObjectListType toObjectListType(List<? extends ObjectType> list) {
+	public static ObjectListType toObjectListType(List<PrismObject<? extends ObjectType>> list) {
 		ObjectListType listType = new ObjectListType();
-		for (ObjectType o : list) {
-			listType.getObject().add(o);
+		for (PrismObject<? extends ObjectType> o : list) {
+			listType.getObject().add(o.asObjectable());
 		}
 		return listType;
 	}
 	
-	public static <T extends ObjectType> List<T> toList(Class<T> type, ObjectListType listType) {
-		List<T> list = new ArrayList<T>();
+	public static <T extends ObjectType> List<PrismObject<T>> toList(Class<T> type, ObjectListType listType) {
+		List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
 		for (ObjectType o : listType.getObject()) {
-			list.add((T)o);
+			list.add(((T)o).asPrismObject());
 		}
 		return list;
-	}
-
-	public static <T extends ObjectType> ResultList<PrismObject<T>> toResultList(Class<T> type, ObjectListType listType) {
-		ResultList<PrismObject<T>> list = toResultList(type,listType.getObject());
-		list.setTotalResultCount(listType.getCount());
-		return list;
-	}
-	
-	public static <T extends ObjectType> ResultList<PrismObject<T>> toResultList(Class<T> type, List<? extends ObjectType> list) {
-		ResultList<PrismObject<T>> outList = new ResultArrayList<PrismObject<T>>();
-		for (ObjectType o : list) {
-			outList.add(((T)o).asPrismObject());
-		}
-		return outList;
-	}
-	
-	public static <T extends ObjectType> ResultList<PrismObject<T>> prismObjectListToResultList(
-			Class<T> type, List<PrismObject<? extends Objectable>> list) {
-		ResultList<PrismObject<T>> outList = new ResultArrayList<PrismObject<T>>();
-		for (PrismObject<?> o : list) {
-			outList.add((PrismObject<T>) o);
-		}
-		return outList;
 	}
 	
 	public static ImportOptionsType getDefaultImportOptions() {

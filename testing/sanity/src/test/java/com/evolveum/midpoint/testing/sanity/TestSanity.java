@@ -36,7 +36,6 @@ import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -2274,7 +2273,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 + ".test060ListResourcesWithBrokenResource");
 
         // WHEN
-        ResultList<PrismObject<ResourceType>> resources = modelService.listObjects(ResourceType.class, null, result);
+        List<PrismObject<ResourceType>> resources = modelService.listObjects(ResourceType.class, null, result);
 
         // THEN
         assertNotNull("listObjects returned null list", resources);
@@ -3251,7 +3250,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 
         QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
-        ResultList<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, repoResult);
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, repoResult);
         assertEquals("Wrong number of Elaines", 1, users.size());
         repoUser = users.get(0).asObjectable();
 

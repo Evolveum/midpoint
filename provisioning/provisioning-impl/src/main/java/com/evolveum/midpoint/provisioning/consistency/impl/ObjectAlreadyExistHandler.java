@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.provisioning.consistency.impl;
 
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,6 @@ import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 
@@ -84,7 +85,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler{
 		XPathHolder holder = ObjectTypeUtil.createXPathHolder(SchemaConstants.I_ATTRIBUTES);
 		Element filter = QueryUtil.createEqualFilter(DOMUtil.getDocument(), holder, shadow.getAttributes().asPrismContainerValue().findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name")));
 		QueryType query = QueryUtil.createQuery(filter);
-		ResultList<PrismObject<AccountShadowType>> foundAccount = provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), parentResult);
+		List<PrismObject<AccountShadowType>> foundAccount = provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), parentResult);
 		
 		
 		if (!foundAccount.isEmpty()){
@@ -92,7 +93,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler{
 			changeNotificationDispatcher.notifyChange(change, null, handleErrorResult);
 		}
 		
-		ResultList<PrismObject<AccountShadowType>> foundAccountAfterSync = provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), parentResult);
+		List<PrismObject<AccountShadowType>> foundAccountAfterSync = provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), parentResult);
 		
 		if (foundAccountAfterSync.isEmpty()){
 			provisioningService.addObject(shadow.asPrismObject(), null, parentResult);

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -94,7 +93,7 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void userList() throws Exception {
-		final ResultList<PrismObject<UserType>> expectedUserList = MiscSchemaUtil.toResultList(UserType.class,
+		final List<PrismObject<UserType>> expectedUserList = MiscSchemaUtil.toList(UserType.class,
 				PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user-list.xml"), ObjectListType.class));
 
 		when(repository.listObjects(eq(UserType.class), any(PagingType.class), any(OperationResult.class)))

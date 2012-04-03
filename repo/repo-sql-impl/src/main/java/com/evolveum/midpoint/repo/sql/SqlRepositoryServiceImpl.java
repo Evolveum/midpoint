@@ -30,8 +30,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.query.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.schema.ResultArrayList;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,6 +41,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
 import org.hibernate.criterion.Order;
@@ -160,7 +159,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
+    public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
             OperationResult result) {
         try {
             return searchObjects(type, null, paging, result);
@@ -316,7 +315,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         updateTaskExclusivity(oid, TaskExclusivityStatusType.RELEASED, subResult);
     }
 
-//    @Override
+    @Override
     public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult result) {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -360,7 +359,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
+    public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
             PagingType paging, OperationResult result) throws SchemaException {
 
         Validate.notNull(type, "Object type must not be null.");
@@ -376,7 +375,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
 
         OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
-        ResultList<PrismObject<T>> list = new ResultArrayList<PrismObject<T>>();
+        List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
         Session session = null;
         try {
             session = beginTransaction();
@@ -415,7 +414,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
         return list;
     }
-
+    
     @Override
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
             Collection<? extends ItemDelta> modifications,
@@ -466,7 +465,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+    public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
             Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
         Validate.notNull(resourceObjectShadowType, "Resource object shadow type must not be null.");
@@ -476,7 +475,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
         OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
 
-        ResultList<PrismObject<T>> list = new ResultArrayList<PrismObject<T>>();
+        List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
         Session session = null;
         try {
             session = beginTransaction();
@@ -489,7 +488,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     new Object[]{(shadows != null ? shadows.size() : 0)});
 
             if (shadows != null) {
-                list.setTotalResultCount(shadows.size());
+//                list.setTotalResultCount(shadows.size());
                 for (RResourceObjectShadow shadow : shadows) {
                     ResourceObjectShadowType jaxb = shadow.toJAXB(prismContext);
                     PrismObject<T> prismObject = jaxb.asPrismObject();

@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.bean;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -158,7 +157,7 @@ public class BrowserBean<T extends Serializable> extends ListController<BrowserI
         query.setFilter(ControllerUtil.createQuery(name, null));
         List<ObjectType> list = new ArrayList<ObjectType>();
         try {
-            ResultList<PrismObject<ObjectType>> results = model.searchObjects(ObjectType.class, query,
+            List<PrismObject<ObjectType>> results = model.searchObjects(ObjectType.class, query,
                     new PagingType(), new OperationResult("List by name"));
             for (PrismObject<ObjectType> object : results) {
                 list.add(object.asObjectable());
@@ -179,7 +178,7 @@ public class BrowserBean<T extends Serializable> extends ListController<BrowserI
             PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(),
                     OrderDirectionType.ASCENDING, "name");
             Class<T> clazz = (Class<T>)  ObjectTypes.getObjectType(type).getClassDefinition();
-            ResultList<PrismObject<T>> results = model.listObjects(clazz, paging,
+            List<PrismObject<T>> results = model.listObjects(clazz, paging,
                     new OperationResult("List by type"));
 
             for (PrismObject<? extends ObjectType> object : results) {

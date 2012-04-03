@@ -31,6 +31,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -52,7 +53,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -225,7 +225,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		ResultList<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
 		assertNotNull(users);
 		assertEquals("Search retuned unexpected results", 1, users.size());
@@ -287,7 +287,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		ResultList<PrismObject<UserType>> users = modelService.listObjects(UserType.class, null, result);
+		List<PrismObject<UserType>> users = modelService.listObjects(UserType.class, null, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		
@@ -345,7 +345,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		ResultList<PrismObject<UserType>> users = modelService.listObjects(UserType.class, null, result);
+		List<PrismObject<UserType>> users = modelService.listObjects(UserType.class, null, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		

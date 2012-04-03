@@ -37,8 +37,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.ResultArrayList;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -439,7 +437,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             LOGGER.error("Couldn't create search filter from correlation rule.");
             return null;
         }
-        ResultList<PrismObject<UserType>> users = null;
+        List<PrismObject<UserType>> users = null;
         try {
             query = new ObjectFactory().createQueryType();
             query.setFilter(filter);
@@ -451,7 +449,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             users = controller.searchObjects(UserType.class, query, paging, result);
 
             if (users == null) {
-                users = new ResultArrayList<PrismObject<UserType>>();
+                users = new ArrayList<PrismObject<UserType>>();
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER,

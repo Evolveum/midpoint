@@ -31,8 +31,6 @@ import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.schema.ResultArrayList;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -98,12 +96,12 @@ public class RepositoryManagerImpl implements RepositoryManager {
     }
 
     @Override
-    public ResultList<PrismObject<ObjectType>> searchObjects(String name) {
+    public List<PrismObject<ObjectType>> searchObjects(String name) {
         Validate.notEmpty(name, "Name must not be null.");
         LOGGER.debug("Searching objects with name {}.", new Object[]{name});
 
         OperationResult result = new OperationResult(SEARCH_OBJECTS);
-        ResultList<PrismObject<ObjectType>> list = null;
+        List<PrismObject<ObjectType>> list = null;
         try {
             QueryType query = new QueryType();
             query.setFilter(ControllerUtil.createQuery(name, null));
@@ -120,7 +118,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
         printResults(LOGGER, result);
 
         if (list == null) {
-            list = new ResultArrayList<PrismObject<ObjectType>>();
+            list = new ArrayList<PrismObject<ObjectType>>();
         }
 
         return list;

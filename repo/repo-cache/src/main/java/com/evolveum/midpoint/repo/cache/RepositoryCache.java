@@ -21,6 +21,7 @@ package com.evolveum.midpoint.repo.cache;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -28,9 +29,10 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -204,10 +206,10 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
+	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
 			OperationResult parentResult) {
 		// Cannot satisfy from cache, pass down to repository
-		ResultList<PrismObject<T>> objects = repository.listObjects(type, paging, parentResult);
+		List<PrismObject<T>> objects = repository.listObjects(type, paging, parentResult);
 		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
 			for (PrismObject<T> object : objects) {
@@ -218,10 +220,10 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult parentResult) throws SchemaException {
 		// Cannot satisfy from cache, pass down to repository
-		ResultList<PrismObject<T>> objects = repository.searchObjects(type, query, paging, parentResult);
+		List<PrismObject<T>> objects = repository.searchObjects(type, query, paging, parentResult);
 		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
 			for (PrismObject<T> object : objects) {
@@ -229,6 +231,12 @@ public class RepositoryCache implements RepositoryService {
 			}
 		}
 		return objects;
+	}
+	
+	@Override
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
+    		throws SchemaException {
+		return repository.countObjects(type, query, parentResult);
 	}
 
 	@Override
@@ -260,7 +268,7 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
 		return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
 	}

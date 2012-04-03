@@ -46,7 +46,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -125,7 +124,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(LIST_OBJECTS);
 		try {
-			ResultList<PrismObject<? extends ObjectType>> list = (ResultList)model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
+			List<PrismObject<? extends ObjectType>> list = (List)model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
 					.getClassDefinition(), paging, operationResult);
 			handleOperationResult(operationResult, result);
 
@@ -133,7 +132,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			for (PrismObject<? extends ObjectType> o : list) {
 				listType.getObject().add(o.asObjectable());
 			}
-			listType.setCount(list.getTotalResultCount());
 			objectListHolder.value = listType;
 			return;
 		} catch (Exception ex) {
@@ -149,7 +147,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(SEARCH_OBJECTS);
 		try {
-			ResultList<PrismObject<? extends ObjectType>> list = (ResultList)model.searchObjects(
+			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(
 					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, paging,
 					operationResult);
 			handleOperationResult(operationResult, result);
@@ -157,7 +155,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			for (PrismObject<? extends ObjectType> o : list) {
 				listType.getObject().add(o.asObjectable());
 			}
-			listType.setCount(list.getTotalResultCount());
 			objectListHolder.value = listType;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
@@ -233,7 +230,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECT_SHADOWS);
 		try {
-			ResultList<PrismObject<ResourceObjectShadowType>> list = model.listResourceObjectShadows(
+			List<PrismObject<ResourceObjectShadowType>> list = model.listResourceObjectShadows(
 					resourceOid,
 					(Class<ResourceObjectShadowType>) ObjectTypes.getObjectTypeFromUri(
 							resourceObjectShadowType).getClassDefinition(), operationResult);
@@ -261,13 +258,12 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECTS);
 		try {
-			ResultList<PrismObject<? extends ResourceObjectShadowType>> list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
+			List<PrismObject<? extends ResourceObjectShadowType>> list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ResourceObjectShadowType> o : list) {
 				listType.getObject().add(o.asObjectable());
 			}
-			listType.setCount(list.getTotalResultCount());
 			objectListTypeHolder.value = listType;
 			return;
 		} catch (Exception ex) {

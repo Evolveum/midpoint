@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.repo;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
@@ -44,7 +43,7 @@ public interface RepositoryManager {
 
 	<T extends ObjectType> List<PrismObject<T>>  listObjects(Class<T> objectType, int offset, int count);
 
-    ResultList<PrismObject<ObjectType>> searchObjects(String name);
+    List<PrismObject<ObjectType>> searchObjects(String name);
 
     <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid);
 
