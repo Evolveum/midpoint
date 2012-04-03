@@ -35,33 +35,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 public class PageUsers extends PageAdminUsers {
 
     public PageUsers() {
-        Form<String> form = new Form<String>("form");
-        final IModel<String> model = new Model<String>();
-        final RequiredTextField<String> text = new RequiredTextField<String>("userId", model);
-        form.add(text);
+         initLayout();
+    }
+    
+    private void initLayout() {
+        NavigatorPanel panel = new NavigatorPanel("navigator");
+        add(panel);
 
-        AjaxSubmitLink button = new AjaxSubmitLink("button", form) {
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                userDetailsPerformed(target, model);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                //To change body of implemented methods use File | Settings | File Templates.
-            }
-        };
-        form.add(button);
-//        AjaxLinkButton link = new AjaxLinkButton("link", new Model<String>("Show user details")) {
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                System.out.println(text.getModelObject());
-////                userDetailsPerformed(target, model);
-//            }
-//        };
-//        form.add(link);
-        add(form);
     }
 
     public void userDetailsPerformed(AjaxRequestTarget target, IModel<String> userIdModel) {

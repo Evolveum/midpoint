@@ -23,13 +23,56 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    macko usko
-    set user id:
-    <form wicket:id="form">
-        <input wicket:id="userId" type="text"/>
-        <a wicket:id="button">button</a>
-        <!--<a wicket:id="link"/>-->
-    </form>
+    <div class="content">
+        <h1>
+            <wicket:message key="pageUsers.title"/>
+        </h1>
+
+        <div class="sortedTable">
+            <div wicket:id="navigator"/>
+            <table cellspacing="1" border="0">
+                <thead>
+                <tr>
+                    <th width="20px">
+                        <input type="checkbox" title="Select all"/>
+                    </th>
+                    <th class="sortable asc">
+                        <a href="#">
+                            <div><wicket:message key="pageUsers.name"/></div>
+                        </a>
+                    </th>
+                    <th class="sortable">
+                        <a href="#">
+                            <div><wicket:message key="pageUsers.givenName"/></div>
+                        </a>
+                    </th>
+                    <th class="sortable">
+                        <a href="#">
+                            <div><wicket:message key="pageUsers.familyName"/></div>
+                        </a>
+                    </th>
+                    <th class="sortable">
+                        <a href="#">
+                            <div><wicket:message key="pageUsers.fullName"/></div>
+                        </a>
+                    </th>
+                    <th><wicket:message key="pageUsers.email"/></th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr wicket:id="pageable">
+                    <td class="checkbox"><input type="checkbox"/></td>
+                    <td><a href="#">aaaaaaa</a></td>
+                    <td>aaaaaaa</td>
+                    <td>aaaasddddd</td>
+                    <td>aaaaaaa</td>
+                    <td>aaaaaaa</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </wicket:extend>
 </body>
 </html>
