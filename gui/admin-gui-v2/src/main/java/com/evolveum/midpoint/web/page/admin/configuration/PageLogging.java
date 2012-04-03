@@ -159,8 +159,8 @@ public class PageLogging extends PageAdminConfiguration {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 model.reset();
-                target.appendJavaScript("init();");
                 target.add(mainForm);
+                target.appendJavaScript("init();");
             }
         };
         mainForm.add(resetButton);
