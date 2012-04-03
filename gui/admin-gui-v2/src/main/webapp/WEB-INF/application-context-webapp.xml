@@ -32,6 +32,4 @@
     <context:spring-configured/>
     <context:component-scan base-package="com.evolveum.midpoint.web"/>
 
-    <bean name="loggingManager" class="com.evolveum.midpoint.web.LoggingManager" depends-on="initialDataImport"
-          init-method="init"/>
 </beans>
