@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import org.apache.wicket.Application;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -61,37 +62,40 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
 
     @Override
     public Iterator<? extends T> iterator(int first, int count) {
-        SortParam sortParam = getSort();
-        OrderDirectionType order;
-        if (sortParam.isAscending()) {
-            order = OrderDirectionType.ASCENDING;
-        } else {
-            order = OrderDirectionType.DESCENDING;
-        }
-
-        OperationResult result = new OperationResult("list usersssss");
-        PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
-
-        List<PrismObject<T>> list = getModel().listObjects(type, paging, result);
-
         List<T> users = new ArrayList<T>();
-        for (PrismObject<T> object : list) {
-            users.add(object.asObjectable());
+        try {
+            SortParam sortParam = getSort();
+            OrderDirectionType order;
+            if (sortParam.isAscending()) {
+                order = OrderDirectionType.ASCENDING;
+            } else {
+                order = OrderDirectionType.DESCENDING;
+            }
+
+            OperationResult result = new OperationResult("list usersssss");
+            PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
+
+            List<PrismObject<T>> list = getModel().searchObjects(type, null, paging, result);
+            for (PrismObject<T> object : list) {
+                users.add(object.asObjectable());
+            }
+
+            //todo error and operation result handling
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-
-        //todo error and operation result handling
-
         return users.iterator();
     }
 
     @Override
     public int size() {
-        //todo reimplement, use countObjects
-//        OperationResult result = new OperationResult("list objects");
-//        return getModel().listObjects(type,
-//                PagingTypeFactory.createPaging(1, 1, OrderDirectionType.ASCENDING, "name"),
-//                result).getTotalResultCount();
-        return 10001;
+        OperationResult result = new OperationResult("list objects");
+        try {
+            return getModel().countObjects(type, null, result);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return 0;
     }
 
     @Override

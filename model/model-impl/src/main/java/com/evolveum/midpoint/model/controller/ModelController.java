@@ -574,7 +574,6 @@ public class ModelController implements ModelService {
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Validate.notNull(type, "Object type must not be null.");
-		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 
@@ -635,7 +634,7 @@ public class ModelController implements ModelService {
 	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException {
 		// TODO: Implement
-		throw new UnsupportedOperationException();
+        return cacheRepositoryService.countObjects(type, query, parentResult);
 	}
 
 	@Override
