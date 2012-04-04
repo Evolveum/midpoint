@@ -837,3 +837,86 @@ div.objectForm .tableForm tbody .objectFormValue .objectFormHelpContainer {
 	height: auto;
 	width: 100%;
 }
+
+.optionPanel {
+    display: block;
+    float: left;
+    position: absolute;
+    left: 0px;
+    padding-bottom: 70px;
+}
+
+.optionPanel .optionLeftBar {
+	background-color: #c9c9c9;
+	/* background: #BBBBBB; */
+    display: inline-block;
+    float: left;
+    position: absolute;
+    width: 20px;
+    left: 0px;
+    z-index: 1;
+    border: 1px solid #c9c9c9;
+    border-left: none;
+    border-right: none;
+}
+
+.optionPanel .optionLeftBarArrow {
+	background-image: url(custom-theme/images/searchBarArrow.png);
+	background-repeat: none;
+	background-position: 0px 0px;
+    float: left;
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    margin-left: 1px;
+    margin-top: 5px;
+    z-index: 1;
+}
+
+.optionPanel .optionRightBar {
+	background: #FFFFFF;
+	border: 1px solid #c9c9c9;
+	border-left: none;
+    display: block;
+    float: right;
+	box-shadow: 5px 0 4px -5px rgba(0, 0, 0, 1);
+    position: relative;
+    width: 230px;
+    margin-left: 20px;
+}
+
+.optionPanel .optionContent {
+	margin: 10px;
+}
+
+.optionPanel .optionContent select {
+	width: 100%;
+	border: 1px solid #bbbbbb;
+}
+
+.optionPanel .optionContent input[type='text'] {
+	width: 100%;
+	border: 1px solid #bbbbbb;
+}
+
+.optionPanel .optionContent .optionComponentTitle {
+	color: #888888;
+}
+
+.optionPanel .optionComponent {
+	margin-bottom: 25px;
+}
+
+.optionPanel .optionComponent table {
+	padding: 0px;
+	width: 100%;
+}
+
+
+.optionPanel .optionComponent .button {
+	margin-top: 10px;
+}
+
+.optionResult {
+    padding-left: 220px;
+}
