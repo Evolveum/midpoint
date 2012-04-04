@@ -94,6 +94,7 @@ public class ObjectTypeUtil {
         return null;
     }
 
+    @Deprecated
     public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType, XPathHolder xpathType, Object element) {
         ItemDeltaType change = new ItemDeltaType();
         change.setValue(new ItemDeltaType.Value());
@@ -108,6 +109,7 @@ public class ObjectTypeUtil {
         return change;
     }
 
+    @Deprecated
     public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType,
     		XPathHolder xpath, QName propertyName, Object value) {
         Collection<Object> values = new ArrayList<Object>(1);
@@ -115,11 +117,13 @@ public class ObjectTypeUtil {
         return createPropertyModificationType(changeType, xpath, propertyName, values);
     }
 
+    @Deprecated
     public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType,
     		XPathHolder xpath, PrismProperty property) {
         return createPropertyModificationType(changeType, xpath, property.getName(), property.getValues());
     }
 
+    @Deprecated
     public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType,
     		XPathHolder xpath, QName propertyName, Collection<Object> values) {
 
@@ -171,11 +175,13 @@ public class ObjectTypeUtil {
         return propertyChange;
     }
 
+    @Deprecated
     public static ObjectModificationType createModificationReplaceProperty(String oid, QName propertyName,
                                                                            Object propertyValue) {
         return createModificationReplaceProperty(oid, null, propertyName, propertyValue);
     }
 
+    @Deprecated
     public static ObjectModificationType createModificationReplaceProperty(String oid, XPathHolder xpath, QName propertyName,
                                                                            Object propertyValue) {
         ObjectModificationType modification = new ObjectModificationType();
