@@ -21,12 +21,15 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,17 +44,52 @@ public class PageResources extends PageAdminResources {
     }
 
     private void initLayout() {
-        List<IColumn<UserType>> columns = new ArrayList<IColumn<UserType>>();
+        List<IColumn<ResourceType>> columns = new ArrayList<IColumn<ResourceType>>();
 
-        IColumn column = new CheckBoxColumn<UserType>();
+        IColumn column = new CheckBoxColumn<ResourceType>() {
+
+            @Override
+            public void onUpdateHeader(AjaxRequestTarget target) {
+                //todo implement
+            }
+
+            @Override
+            public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<ResourceType>> rowModel) {
+                //todo implement
+            }
+        };
         columns.add(column);
 
-        column = new LinkColumn(createStringResource("pageResources.name"), "name", "value.name");
+        column = new LinkColumn<Selectable<ResourceType>>(createStringResource("pageResources.name"), "name", "value.name") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<Selectable<ResourceType>> rowModel) {
+                ResourceType resource = rowModel.getObject().getValue();
+                resourceDetailsPerformed(target, resource.getOid());
+            }
+        };
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageResources.givenName"), "givenName", "value.givenName");
-        columns.add(column);
+        //todo fix connector resolving...
+//        column = new PropertyColumn(createStringResource("pageResources.bundle"), "value.connector.connectorBundle");
+//        columns.add(column);
+//        column = new PropertyColumn(createStringResource("pageResources.version"), "value.connector.connectorVersion");
+//        columns.add(column);
 
-        add(new TablePanel<UserType>("table", UserType.class, columns));
+//        column = new PropertyColumn(createStringResource("pageResources.status"), "value.connector.connectorVersion");
+//        columns.add(column);
+//        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
+//        columns.add(column);
+//
+//        column = new PropertyColumn(createStringResource("pageResources.import"), "value.connector.connectorVersion");
+//        columns.add(column);
+//        column = new PropertyColumn(createStringResource("pageResources.progress"), "value.connector.connectorVersion");
+//        columns.add(column);
+
+        add(new TablePanel<ResourceType>("table", ResourceType.class, columns));
+    }
+
+    public void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
+
     }
 }

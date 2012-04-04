@@ -57,7 +57,7 @@ public class PageRoles extends PageAdminRoles {
 
             @Override
             public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<RoleType>> rowModel) {
-                //toto implement
+                //todo implement
             }
         };
         columns.add(column);
