@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
@@ -45,7 +46,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvider<T> {
+public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvider<Selectable<T>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
     private Class<T> type;
@@ -61,8 +62,8 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
     }
 
     @Override
-    public Iterator<? extends T> iterator(int first, int count) {
-        List<T> users = new ArrayList<T>();
+    public Iterator<Selectable<T>> iterator(int first, int count) {
+        List<Selectable<T>> users = new ArrayList<Selectable<T>>();
         try {
             SortParam sortParam = getSort();
             OrderDirectionType order;
@@ -77,7 +78,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
 
             List<PrismObject<T>> list = getModel().searchObjects(type, null, paging, result);
             for (PrismObject<T> object : list) {
-                users.add(object.asObjectable());
+                users.add(new Selectable<T>(object.asObjectable()));
             }
 
             //todo error and operation result handling
@@ -99,7 +100,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
     }
 
     @Override
-    public IModel<T> model(T object) {
-        return new Model<T>(object);
+    public IModel<Selectable<T>> model(Selectable<T> object) {
+        return new Model<Selectable<T>>(object);
     }
 }

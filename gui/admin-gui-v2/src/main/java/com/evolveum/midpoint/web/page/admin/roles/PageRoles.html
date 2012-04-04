@@ -23,7 +23,41 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    roles
+    <div class="content">
+        <h1>
+            <wicket:message key="page.title"/>
+        </h1>
+
+        <div class="sortedTable">
+            <div wicket:id="navigatorTop"/>
+            <table cellspacing="1" border="0">
+                <thead>
+                <tr>
+                    <th width="20px">
+                        <input type="checkbox" title="Select all"/>
+                    </th>
+                    <th wicket:id="orderByName">
+                        <div>
+                            <wicket:message key="pageRoles.name"/>
+                        </div>
+                    </th>
+                    <th>
+                        <wicket:message key="pageRoles.description"/>
+                    </th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr wicket:id="pageable">
+                    <td class="checkbox"><input type="checkbox"/></td>
+                    <td><a wicket:id="link"><span wicket:id="name"/></a></td>
+                    <td><span wicket:id="description"/></td>
+                </tr>
+                </tbody>
+            </table>
+            <div wicket:id="navigatorBottom"/>
+        </div>
+    </div>
 </wicket:extend>
 </body>
 </html>

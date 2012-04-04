@@ -922,3 +922,7 @@ div.objectForm .tableForm tbody .objectFormValue .objectFormHelpContainer {
 .optionResult {
     padding-left: 220px;
 }
+
+.tableCheckbox {
+    width: 20px;
+}

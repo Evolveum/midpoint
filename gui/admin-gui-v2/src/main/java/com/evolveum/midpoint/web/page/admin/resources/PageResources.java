@@ -21,10 +21,37 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
 public class PageResources extends PageAdminResources {
+
+    public PageResources() {
+        initLayout();
+    }
+
+    private void initLayout() {
+        List<IColumn<UserType>> columns = new ArrayList<IColumn<UserType>>();
+
+        IColumn column = new CheckBoxColumn<UserType>();
+        columns.add(column);
+
+        column = new LinkColumn(createStringResource("pageResources.name"), "name", "value.name");
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("pageResources.givenName"), "givenName", "value.givenName");
+        columns.add(column);
+
+        add(new TablePanel<UserType>("table", UserType.class, columns));
+    }
 }

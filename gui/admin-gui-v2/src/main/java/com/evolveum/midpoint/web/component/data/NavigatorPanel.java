@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
@@ -60,6 +61,12 @@ public class NavigatorPanel extends PagingNavigator {
                     from = view.getFirstItemOffset() + 1;
                     to = from + view.getItemsPerPage() - 1;
                     count = view.getItemCount();
+                } else if (pageable instanceof DataTable) {
+                    DataTable table = (DataTable) pageable;
+
+                    from = table.getCurrentPage() * table.getItemsPerPage() + 1;
+                    to = from + table.getItemsPerPage() - 1;
+                    count = table.getItemCount();
                 } else {
                     LOGGER.warn("Navigator panel, missing implementation... TODO");
                 }

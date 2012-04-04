@@ -21,19 +21,23 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.web.component.data.BasicOrderByBorder;
-import com.evolveum.midpoint.web.component.data.NavigatorPanel;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortStateLocator;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,55 +50,47 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void initLayout() {
-        ObjectDataProvider provider = new ObjectDataProvider(UserType.class);
-        final DataView<UserType> pageable = new DataView<UserType>("pageable", provider) {
+        List<IColumn<UserType>> columns = new ArrayList<IColumn<UserType>>();
+
+        IColumn column = new CheckBoxColumn<UserType>();
+        columns.add(column);
+
+        column = new LinkColumn(createStringResource("pageUsers.name"), "name", "value.name") {
 
             @Override
-            protected void populateItem(Item<UserType> item) {
-                final UserType user = item.getModelObject();
+            public void onClick(AjaxRequestTarget target) {
+                userDetailsPerformed(target, "asdf");
+            }
+        };
+        columns.add(column);
 
-                AjaxLink link = new AjaxLink("link") {
+        column = new PropertyColumn(createStringResource("pageUsers.givenName"), "givenName", "value.givenName");
+        columns.add(column);
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        userDetailsPerformed(target, user.getOid());
-                    }
-                };
-                link.add(new Label("name", user.getName()));
-                item.add(link);
+        column = new PropertyColumn(createStringResource("pageUsers.familyName"), "familyName", "value.familyName");
+        columns.add(column);
 
-                item.add(new Label("givenName", user.getGivenName()));
-                item.add(new Label("familyName", user.getFamilyName()));
-                item.add(new Label("fullName", user.getFullName()));
+        column = new PropertyColumn(createStringResource("pageUsers.fullName"), "fullName", "value.fullName");
+        columns.add(column);
 
-                List<String> emails = user.getEmailAddress();
+        column = new AbstractColumn<Selectable<UserType>>(createStringResource("pageUsers.email")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<Selectable<UserType>>> cellItem, String componentId,
+                    IModel<Selectable<UserType>> rowModel) {
+
+                List<String> emails = rowModel.getObject().getValue().getEmailAddress();
                 String email = "";
                 if (emails != null && !emails.isEmpty()) {
                     email = emails.get(0);
                 }
-                item.add(new Label("email", email));
+
+                cellItem.add(new Label(componentId, new Model<String>(email)));
             }
         };
-        add(pageable);
+        columns.add(column);
 
-        pageable.setItemsPerPage(10);
-        add(new NavigatorPanel("navigatorTop", pageable));
-        add(new NavigatorPanel("navigatorBottom", pageable));
-
-        addOrder("orderByName", "name", provider, pageable);
-        addOrder("orderByGivenName", "givenName", provider, pageable);
-        addOrder("orderByFamilyName", "familyName", provider, pageable);
-        addOrder("orderByFullName", "fullName", provider, pageable);
-    }
-
-    private void addOrder(String id, String property, ISortStateLocator locator, final IPageable pageable) {
-        add(new BasicOrderByBorder(id, property, locator) {
-
-            @Override
-            protected void onSortChanged() {
-                pageable.setCurrentPage(0);
-            }
-        });
+        add(new TablePanel<UserType>("table", UserType.class, columns));
     }
 
     public void userDetailsPerformed(AjaxRequestTarget target, String oid) {

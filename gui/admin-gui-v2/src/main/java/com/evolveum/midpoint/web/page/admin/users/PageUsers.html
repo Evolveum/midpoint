@@ -25,14 +25,14 @@
 <wicket:extend>
     <div class="content">
         <h1>
-            <wicket:message key="pageUsers.title"/>
+            <wicket:message key="page.title"/>
         </h1>
 		
 		<div class="optionPanel">
 	        	<div class="optionLeftBar">
 	        		<span class="optionLeftBarArrow"></span>
 	        	</div>
-	        	<div class="optionRightBar">
+	        	<div class="optionRightBar" style="display: none;">
 	        		<div class="optionContent">
 	        			<h2>Option panel</h2>
 	        			<div class="optionComponent">
@@ -94,54 +94,8 @@
 	        	</div>
         </div>
         
-        <div class="optionResult">	
-	        <div class="sortedTable">
-	            <div wicket:id="navigatorTop"/>
-	            <table cellspacing="1" border="0">
-	                <thead>
-	                <tr>
-	                    <th width="20px">
-	                        <input type="checkbox" title="Select all"/>
-	                    </th>
-	                    <th wicket:id="orderByName">
-	                        <div>
-	                            <wicket:message key="pageUsers.name"/>
-	                        </div>
-	                    </th>
-	                    <th wicket:id="orderByGivenName">
-	                        <div>
-	                            <wicket:message key="pageUsers.givenName"/>
-	                        </div>
-	                    </th>
-	                    <th wicket:id="orderByFamilyName">
-	                        <div>
-	                            <wicket:message key="pageUsers.familyName"/>
-	                        </div>
-	                    </th>
-	                    <th wicket:id="orderByFullName">
-	                        <div>
-	                            <wicket:message key="pageUsers.fullName"/>
-	                        </div>
-	                    </th>
-	                    <th>
-	                        <wicket:message key="pageUsers.email"/>
-	                    </th>
-	                </tr>
-	                </thead>
-	
-	                <tbody>
-	                <tr wicket:id="pageable">
-	                    <td class="checkbox"><input type="checkbox"/></td>
-	                    <td><a wicket:id="link"><span wicket:id="name"/></a></td>
-	                    <td><span wicket:id="givenName"/></td>
-	                    <td><span wicket:id="familyName"/></td>
-	                    <td><span wicket:id="fullName"/></td>
-	                    <td><span wicket:id="email"/></td>
-	                </tr>
-	                </tbody>
-	            </table>
-	            <div wicket:id="navigatorBottom"/>
-	        </div>
+        <div class="optionResult">
+	        <div wicket:id="table" />
 	    </div>
     </div>
 </wicket:extend>
