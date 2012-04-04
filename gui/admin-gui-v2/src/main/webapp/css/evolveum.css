@@ -247,6 +247,8 @@ h4 {
 	padding: 4px 10px;
 	font-size: 13px;
 	border-bottom: 1px solid #f2f2f2;
+	line-height: 20px;
+	vertical-align: center;
 }
 
 .sortedTable table tbody .odd {
