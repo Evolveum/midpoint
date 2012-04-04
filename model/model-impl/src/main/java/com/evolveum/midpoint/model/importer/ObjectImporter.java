@@ -20,6 +20,19 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import java.io.InputStream;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
@@ -49,6 +62,7 @@ import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -57,19 +71,14 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import javax.xml.namespace.QName;
-import java.io.InputStream;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
  * Extension of validator used to import objects to the repository.
@@ -92,6 +101,8 @@ public class ObjectImporter {
     private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired(required = true)
     private PrismContext prismContext;
+    @Autowired(required = true)
+    private TaskManager taskManager;
 
     public void importObjects(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult,
                               final RepositoryService repository) {
@@ -198,6 +209,8 @@ public class ObjectImporter {
         try {
 
             repository.addObject(object, result);
+            if (object.canRepresent(TaskType.class))
+            	taskManager.onTaskCreate(object.getOid());
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {
@@ -205,10 +218,14 @@ public class ObjectImporter {
                 // Try to delete conflicting object
                 String deletedOid = deleteObject(object, repository, result);
                 if (deletedOid != null) {
+                    if (object.canRepresent(TaskType.class))
+                    	taskManager.onTaskDelete(deletedOid);
                     if (BooleanUtils.isTrue(options.isKeepOid())) {
                         object.setOid(deletedOid);
                     }
                     repository.addObject(object, result);
+                    if (object.canRepresent(TaskType.class))
+                    	taskManager.onTaskCreate(object.getOid());
                     result.recordSuccess();
                 } else {
                     // cannot delete, throw original exception

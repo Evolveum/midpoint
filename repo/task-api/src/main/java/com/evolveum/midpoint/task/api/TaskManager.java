@@ -382,4 +382,20 @@ public interface TaskManager {
 	 * @return
 	 */
 	public boolean isTaskThreadActive(String taskIdentifier);
+
+	/**
+	 * This is a signal to task manager that a new task was created in the repository.
+	 * Task manager can react to it e.g. by creating shadow quartz job and trigger.
+	 * 
+	 * @param oid
+	 */
+	public void onTaskCreate(String oid);
+
+	/**
+	 * This is a signal to task manager that a task was removed from the repository.
+	 * Task manager can react to it e.g. by removing shadow quartz job and trigger.
+	 * 
+	 * @param oid
+	 */
+	public void onTaskDelete(String oid);
 }

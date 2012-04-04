@@ -2642,6 +2642,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 syncCycle.refresh(result);
                 display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
                 Object tokenNow = findSyncToken(syncCycle);
+                display("tokenNow = " + tokenNow);
                 if (tokenBefore == null) {
                     return (tokenNow != null);
                 } else {

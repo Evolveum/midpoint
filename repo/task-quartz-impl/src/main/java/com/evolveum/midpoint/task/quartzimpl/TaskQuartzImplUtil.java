@@ -23,10 +23,18 @@ public class TaskQuartzImplUtil {
 	public static JobKey createJobKeyForTask(Task t) {
     	return new JobKey(t.getOid());
     }
+
+	public static JobKey createJobKeyForTaskOid(String oid) {
+    	return new JobKey(oid);
+	}
 	
 	public static TriggerKey createTriggerKeyForTask(Task t) {
     	return new TriggerKey(t.getOid());
     }
+
+	public static TriggerKey createTriggerKeyForTaskOid(String oid) {
+    	return new TriggerKey(oid);
+	}
 
 	public static JobDetail createJobDetailForTask(Task task) {
 		

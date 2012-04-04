@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,10 +33,12 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.UnableToInterruptJobException;
 import org.quartz.impl.StdSchedulerFactory;
@@ -155,6 +158,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		qprops.put("org.quartz.scheduler.skipUpdateCheck", "true");
 		qprops.put("org.quartz.threadPool.threadCount", "5");
 		qprops.put("org.quartz.scheduler.idleWaitTime", "10000");
+		
+		qprops.put("org.quartz.scheduler.jmx.export", "true");
 
 		Properties sp = System.getProperties();
 		if (sp.containsKey(SUREFIRE_PRESENCE_PROPERTY)) {
@@ -650,6 +655,44 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	Scheduler getQuartzScheduler() {
 		return quartzScheduler;
+	}
+
+	@Override
+	public void onTaskCreate(String oid) {
+
+		OperationResult result = createOperationResult("onTaskCreate");
+		
+		LOGGER.trace("onTaskCreate called for oid = " + oid);
+		
+		Task task;
+		try {
+			task = getTask(oid, result);
+		} catch (ObjectNotFoundException e) {
+			LoggingUtils.logException(LOGGER, "Quartz shadow job cannot be created, because task in repository was be found; oid = {}", e, oid);
+			return;
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "Quartz shadow job cannot be created, because task from repository could not be retrieved; oid = {}", e, oid);
+			return;
+		}
+
+		((TaskQuartzImpl) task).addOrReplaceQuartzTask();
+	}
+
+	@Override
+	public void onTaskDelete(String oid) {
+
+		LOGGER.trace("onTaskDelete called for oid = " + oid);
+		
+		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTaskOid(oid);
+		
+		try {
+			if (quartzScheduler.checkExists(jobKey)) {
+				quartzScheduler.deleteJob(jobKey);			// removes triggers as well
+			}
+		} catch (SchedulerException e) {
+			LoggingUtils.logException(LOGGER, "Quartz shadow job cannot be removed; oid = {}", e, oid);
+		}
+		
 	}
 
 }
