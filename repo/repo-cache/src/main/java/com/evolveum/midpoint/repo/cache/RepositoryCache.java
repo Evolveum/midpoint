@@ -173,13 +173,13 @@ public class RepositoryCache implements RepositoryService {
 			if (cache.containsKey(oid)) {
 				// TODO: result?
 				LOGGER.trace("Cache: HIT {} ({})", oid, type.getSimpleName());
-				return (PrismObject<T>) cache.get(oid);
+				return ((PrismObject<T>) cache.get(oid)).clone();
 			}
 			LOGGER.trace("Cache: MISS {} ({})", oid, type.getSimpleName());
 		}
 		PrismObject<T> object = repository.getObject(type, oid, resolve, parentResult);
 		if (cache != null) {
-			cache.put(oid, (PrismObject<ObjectType>) object);
+			cache.put(oid, ((PrismObject<ObjectType>) object).clone());
 		}
 		return object;
 	}

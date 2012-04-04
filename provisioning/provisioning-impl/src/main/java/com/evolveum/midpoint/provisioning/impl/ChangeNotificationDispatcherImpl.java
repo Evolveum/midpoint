@@ -86,11 +86,24 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		if ((null != listeners) && (!listeners.isEmpty())) {
 			for (ResourceObjectChangeListener listener : listeners) {
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
-				listener.notifyChange(change, task, parentResult);
+				try {
+					listener.notifyChange(change, task, parentResult);
+				} catch (RuntimeException e) {
+					LOGGER.error("Exception {} thrown by object change listener {}: {}", new Object[]{
+							e.getClass(), listener.getName(), e.getMessage(), e });
+				}
 			}
 		} else {
 			LOGGER.warn("Change notification received but listener list is empty, there is nobody to get the message");
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName()
+	 */
+	@Override
+	public String getName() {
+		return "object change notification dispatcher";
 	}
 
 }

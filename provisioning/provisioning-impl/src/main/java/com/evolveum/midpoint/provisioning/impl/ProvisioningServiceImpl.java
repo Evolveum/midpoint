@@ -644,9 +644,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		LOGGER.trace("**PROVISIONING: Start to modify object.");
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("*PROVISIONING: Object change:\n{}", DebugUtil.debugDump(modifications));
+			LOGGER.trace("*PROVISIONING: modifyObject: object modifications:\n{}", DebugUtil.debugDump(modifications));
 		}
 
 		// getting object to modify
@@ -654,8 +653,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				new PropertyReferenceListType(), parentResult);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("**PROVISIONING: Modifying object with oid {}", oid);
-			LOGGER.trace("**PROVISIONING: Object to modify:\n{}.", object.dump());
+			LOGGER.trace("**PROVISIONING: modifyObject: object to modify:\n{}.", object.dump());
 		}
 
 		try {

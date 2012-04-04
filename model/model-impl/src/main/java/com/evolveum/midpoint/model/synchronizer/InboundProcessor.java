@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.controller.FilterManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPathSegment;
@@ -243,8 +244,10 @@ public class InboundProcessor {
 
         PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
         PrismProperty<T> targetUserProperty = (PrismProperty<T>) newUser.findProperty(targetUserPropertyPath);
-
-        PropertyDelta<T> delta = new PropertyDelta<T>(targetUserPropertyPath, targetUserProperty.getDefinition());
+        
+        PrismPropertyDefinition targetPropertyDef = newUser.getDefinition().findPropertyDefinition(targetUserPropertyPath);
+        PropertyDelta<T> delta = new PropertyDelta<T>(targetUserPropertyPath, targetPropertyDef);
+        
         if (propertyDelta.getValuesToAdd() != null) {
             LOGGER.trace("Checking account sync property delta values to add");
             for (PrismPropertyValue<T> value : propertyDelta.getValuesToAdd()) {

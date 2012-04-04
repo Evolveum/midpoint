@@ -262,6 +262,8 @@ public class UserSynchronizer {
         }
 
        loadAccountRefsFromDelta(context, userOld, context.getUserPrimaryDelta(), result);
+       
+       loadAccountContextsSync(context, result);
     }
 
 	/**
@@ -418,6 +420,53 @@ public class UserSynchronizer {
 		}
 		
 	}
+
+	private void loadAccountContextsSync(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		for (AccountSyncContext accountCtx: context.getAccountContexts()) {
+			if (accountCtx.getAccountOld() != null) {
+				// already loaded
+				continue;
+			}
+			ObjectDelta<AccountShadowType> syncDelta = accountCtx.getAccountSyncDelta();
+			if (syncDelta != null) {
+				String oid = syncDelta.getOid();
+				PrismObject<AccountShadowType> account = null;
+				if (syncDelta.getChangeType() == ChangeType.ADD) {
+					account = syncDelta.getObjectToAdd().clone();
+					accountCtx.setAccountOld(account);
+				} else {
+					if (accountCtx.isDoReconciliation()) {
+						// Do not load old account now. It will get loaded later in the reconciliation step.
+						continue;
+					}
+					if (oid == null) {
+						throw new IllegalArgumentException("No OID in sync delta in "+accountCtx);
+					}
+					account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+					// We will not set old account if the delta is delete. The account does not really exists now.
+					// (but the OID and resource will be set from the repo shadow)
+					if (syncDelta.getChangeType() != ChangeType.DELETE) {
+						syncDelta.applyTo(account);
+						accountCtx.setAccountOld(account);
+					}
+				}
+				// Make sure OID is set correctly
+				accountCtx.setOid(oid);
+				// Make sure that resource is also resolved
+				if (accountCtx.getResource() == null) {
+					String resourceOid = ResourceObjectShadowUtil.getResourceOid(account.asObjectable());
+					if (resourceOid == null) {
+						throw new IllegalArgumentException("No resource OID in "+account);
+					}
+					ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
+	                context.rememberResource(resourceType);
+	                accountCtx.setResource(resourceType);
+				}
+
+			}
+		}
+	}
+
 	
 	private void pruneOidlessReferences(Collection<PrismReferenceValue> refVals) {
 		if (refVals == null) {

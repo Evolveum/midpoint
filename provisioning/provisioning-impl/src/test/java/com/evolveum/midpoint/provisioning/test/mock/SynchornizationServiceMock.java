@@ -6,6 +6,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.testng.AssertJUnit;
@@ -14,6 +15,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -21,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 @Service(value = "syncServiceMock")
 public class SynchornizationServiceMock implements ResourceObjectChangeListener {
@@ -30,9 +33,11 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 	private int callCount = 0;
 	private ResourceObjectShadowChangeDescription lastChange = null;
 
-	@Autowired
+	@Autowired(required=true)
 	ChangeNotificationDispatcher notificationManager;
-
+	@Autowired(required=true)
+	RepositoryService repositoryService;
+	
 	@PostConstruct
 	public void registerForResourceObjectChangeNotifications() {
 		notificationManager.registerNotificationListener(this);
@@ -64,6 +69,23 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 				assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
 				assertFalse("Current shadow has empty attributes", ResourceObjectShadowUtil
 						.getAttributesContainer(currentShadowType).isEmpty());
+
+				// Check if the shadow is already present in repo
+				try {
+					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService.notifyChange"));
+				} catch (Exception e) {
+					AssertJUnit.fail("Got exception while trying to read current shadow "+currentShadowType+
+							": "+e.getCause()+": "+e.getMessage());
+				}			
+				// Check resource
+				String resourceOid = ResourceObjectShadowUtil.getResourceOid(currentShadowType);
+				assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
+				try {
+					repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService.notifyChange"));
+				} catch (Exception e) {
+					AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
+							": "+e.getCause()+": "+e.getMessage());
+				}
 
 				if (change.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
 					AccountShadowType account = (AccountShadowType) change.getCurrentShadow().asObjectable();
@@ -113,6 +135,14 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 
 	public void setCallCount(int callCount) {
 		this.callCount = callCount;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName()
+	 */
+	@Override
+	public String getName() {
+		return "synchronization service mock";
 	}
 
 }

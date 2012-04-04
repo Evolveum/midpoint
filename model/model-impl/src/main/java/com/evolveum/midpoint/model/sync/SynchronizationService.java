@@ -588,4 +588,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         }
         return null;
     }
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName()
+	 */
+	@Override
+	public String getName() {
+		return "model synchronization service";
+	}
 }

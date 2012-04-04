@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -39,6 +40,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeD
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -309,16 +313,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     		throw new IllegalStateException("Null prism context in "+this);
     	}
     	if (accountOld != null) {
-    		try {
-    			accountOld.checkConsistence();
-    		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+"; in old account in "+this, e);
-			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+"; in old account in "+this, e);
-			}
-    		if (accountOld.getDefinition() == null) {
-    			throw new IllegalStateException("No old account definition in "+this);
-    		}
+    		checkConsistence(accountOld, "old account");
     	}
     	if (accountPrimaryDelta != null) {
     		try {
@@ -351,16 +346,27 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 			}
     	}
     	if (accountNew != null) {
-    		try {
-    			accountNew.checkConsistence();
-    		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+"; in new account in "+this, e);
-			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+"; in new account in "+this, e);
-			}
-    		if (accountNew.getDefinition() == null) {
-    			throw new IllegalStateException("No new account definition in "+this);
-    		}
+    		checkConsistence(accountNew, "new account");
+    	}
+    }
+    
+    private void checkConsistence(PrismObject<AccountShadowType> account, String desc) {
+    	try {
+    		account.checkConsistence();
+    	} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException(e.getMessage()+"; in "+desc+" in "+this, e);
+		} catch (IllegalStateException e) {
+			throw new IllegalStateException(e.getMessage()+"; in "+desc+" in "+this, e);
+		}
+		if (account.getDefinition() == null) {
+			throw new IllegalStateException("No new account definition "+desc+" in "+this);
+		}
+    	PrismReference resourceRef = account.findReference(AccountShadowType.F_RESOURCE_REF);
+    	if (resourceRef == null) {
+    		throw new IllegalStateException("No resourceRef in "+desc+" in "+this);
+    	}
+    	if (StringUtils.isBlank(resourceRef.getOid())) {
+    		throw new IllegalStateException("Null or empty OID in resourceRef in "+desc+" in "+this);
     	}
     }
 

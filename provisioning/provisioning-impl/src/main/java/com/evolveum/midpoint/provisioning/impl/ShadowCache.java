@@ -396,7 +396,11 @@ public class ShadowCache {
 		if (objectType instanceof ResourceObjectShadowType) {
 			ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
 			if (resource == null) {
-				resource = getResource(ResourceObjectShadowUtil.getResourceOid(shadow), parentResult);
+				String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
+				if (resourceOid == null) {
+					throw new SchemaException("No resource OID in "+shadow);
+				}
+				resource = getResource(resourceOid, parentResult);
 
 			}
 

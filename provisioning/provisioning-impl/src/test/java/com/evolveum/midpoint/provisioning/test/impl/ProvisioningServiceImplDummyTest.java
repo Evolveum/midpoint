@@ -607,11 +607,19 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test012SeachIterative() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	public void test012SeachIterative() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
 		displayTestTile("test012SeachIterative");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test012SeachIterative");
+		
+		// Make sure there is an account on resource that the provisioning has never seen before, so there is no shadow
+		// for it yet.
+		DummyAccount newAccount = new DummyAccount("meathook");
+		newAccount.addAttributeValues("fullname", "Meathook");
+		newAccount.setEnabled(true);
+		newAccount.setPassword("parrotMonster");
+		dummyResource.addAccount(newAccount);
 		
 		QueryType query = new QueryType();
 		Document doc = DOMUtil.getDocument();
@@ -631,6 +639,30 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				assertTrue(objectType instanceof AccountShadowType);
                 AccountShadowType shadow = (AccountShadowType) objectType;
                 checkShadow(shadow);
+                
+                String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
+                assertNotNull("No resource OID in "+shadow, resourceOid);
+                
+                assertNotNull("Null OID in "+shadow, shadow.getOid());
+                PrismObject<AccountShadowType> repoShadow = null;
+                try {
+                	repoShadow = repositoryService.getObject(AccountShadowType.class, shadow.getOid(), null, parentResult);
+				} catch (Exception e) {
+					AssertJUnit.fail("Got exception while trying to read "+shadow+
+							": "+e.getCause()+": "+e.getMessage());
+				}
+				
+				String repoResourceOid = ResourceObjectShadowUtil.getResourceOid(repoShadow.asObjectable());
+				assertNotNull("No resource OID in the repository shadow "+repoShadow);
+				assertEquals("Resource OID mismatch", resourceOid, repoResourceOid);
+				
+				try {
+                	repositoryService.getObject(ResourceType.class, resourceOid, null, parentResult);
+				} catch (Exception e) {
+					AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+shadow+
+							": "+e.getCause()+": "+e.getMessage());
+				}
+				
                 return true;
 			}
 		};
@@ -640,7 +672,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		// THEN
 		
-		assertEquals(2,foundObjects.size());
+		assertEquals(3,foundObjects.size());
 				
 		checkConsistency();
 	}

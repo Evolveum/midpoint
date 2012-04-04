@@ -47,5 +47,11 @@ public interface ResourceObjectChangeListener {
 	 *            change description
 	 */
 	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
+	
+	/**
+	 * Returns a short name of the listener for debugging purposes.
+	 * E.g. "model synchronization service". This name is used in log and error messages.
+	 */
+	public String getName();
 
 }
