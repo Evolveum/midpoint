@@ -21,17 +21,20 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import com.evolveum.midpoint.web.component.data.BasicOrderByBorder;
-import com.evolveum.midpoint.web.component.data.NavigatorPanel;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -43,39 +46,36 @@ public class PageRoles extends PageAdminRoles {
     }
 
     private void initLayout() {
-        ObjectDataProvider provider = new ObjectDataProvider(RoleType.class);
-        final DataView<RoleType> pageable = new DataView<RoleType>("pageable", provider) {
+        List<IColumn<RoleType>> columns = new ArrayList<IColumn<RoleType>>();
+
+        IColumn column = new CheckBoxColumn<RoleType>() {
 
             @Override
-            protected void populateItem(Item<RoleType> item) {
-                final RoleType role = item.getModelObject();
+            public void onUpdateHeader(AjaxRequestTarget target) {
+                //todo implement
+            }
 
-                AjaxLink link = new AjaxLink("link") {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        roleDetailsPerformed(target, role.getOid());
-                    }
-                };
-                link.add(new Label("name", role.getName()));
-                item.add(link);
-
-                item.add(new Label("description", role.getDescription()));
+            @Override
+            public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<RoleType>> rowModel) {
+                //toto implement
             }
         };
-        add(pageable);
+        columns.add(column);
 
-        pageable.setItemsPerPage(10);
-        add(new NavigatorPanel("navigatorTop", pageable));
-        add(new NavigatorPanel("navigatorBottom", pageable));
-
-        add(new BasicOrderByBorder("orderByName", "name", provider) {
+        column = new LinkColumn<Selectable<RoleType>>(createStringResource("pageRoles.name"), "name", "value.name") {
 
             @Override
-            protected void onSortChanged() {
-                pageable.setCurrentPage(0);
+            public void onClick(AjaxRequestTarget target, IModel<Selectable<RoleType>> rowModel) {
+                RoleType role = rowModel.getObject().getValue();
+                roleDetailsPerformed(target, role.getOid());
             }
-        });
+        };
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("pageRoles.description"), "value.description");
+        columns.add(column);
+
+        add(new TablePanel<RoleType>("table", RoleType.class, columns));
     }
 
     public void roleDetailsPerformed(AjaxRequestTarget target, String oid) {

@@ -50,17 +50,17 @@ public class LinkColumn<T> extends AbstractColumn<T> {
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
-            IModel<T> rowModel) {
+            final IModel<T> rowModel) {
         cellItem.add(new LinkPanel(componentId, new PropertyModel<String>(rowModel, propertyExpression)) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                LinkColumn.this.onClick(target);
+                LinkColumn.this.onClick(target, rowModel);
             }
         });
     }
 
-    public void onClick(AjaxRequestTarget target) {
-        System.out.println("aaaaaaaaaaaaaa");
+    public void onClick(AjaxRequestTarget target, IModel<T> rowModel) {
+
     }
 }

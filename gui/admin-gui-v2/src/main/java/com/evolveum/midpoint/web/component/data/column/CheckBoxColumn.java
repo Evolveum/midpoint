@@ -44,12 +44,12 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
 
     @Override
     public void populateItem(Item<ICellPopulator<Selectable<T>>> cellItem, String componentId,
-            IModel<Selectable<T>> rowModel) {
+            final IModel<Selectable<T>> rowModel) {
         cellItem.add(new CheckBoxPanel(componentId, new PropertyModel<Boolean>(rowModel, "selected")) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
-                onUpdateRow(target);
+                onUpdateRow(target, rowModel);
             }
         });
     }
@@ -71,10 +71,8 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
     }
 
     public void onUpdateHeader(AjaxRequestTarget target) {
-        System.out.println("cccccccccccccccccccccc");
     }
 
-    public void onUpdateRow(AjaxRequestTarget target) {
-        System.out.println("BBBBBBBBBBBBBBBBBBBBBBBBB");
+    public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<T>> rowModel) {
     }
 }
