@@ -2305,8 +2305,6 @@ public class TestSanity extends AbstractIntegrationTest {
      * Test initialization of synchronization. It will create a cycle task and
      * check if the cycle executes No changes are synchronized yet.
      */
-    // This test takes long and fails now. Will enable it back in few days when the
-    // basic sanity things will be fixed
     @Test
     public void test100LiveSyncInit() throws Exception {
         displayTestTile("test100LiveSyncInit");
@@ -2401,11 +2399,7 @@ public class TestSanity extends AbstractIntegrationTest {
     /**
      * Create LDAP object. That should be picked up by liveSync and a user
      * should be created in repo.
-     *
-     * @throws Exception
      */
-    // This test takes long and fails now. Will enable it back in few days when the
-    // basic sanity things will be fixed
     @Test
     public void test101LiveSyncCreate() throws Exception {
         displayTestTile("test101LiveSyncCreate");
@@ -2440,8 +2434,6 @@ public class TestSanity extends AbstractIntegrationTest {
         assertAndStoreSyncTokenIncrement(syncCycle, 1);
     }
 
-	// This test takes long and fails now. Will enable it back in few days when the
-    // basic sanity things will be fixed
     @Test
     public void test102LiveSyncModify() throws Exception {
         displayTestTile("test102LiveSyncModify");
@@ -2478,8 +2470,6 @@ public class TestSanity extends AbstractIntegrationTest {
         assertAndStoreSyncTokenIncrement(syncCycle, 4);
     }
 
-    // This test takes long and fails now. Will enable it back in few days when the
-    // basic sanity things will be fixed
     @Test
     public void test103LiveSyncLink() throws Exception {
         displayTestTile("test103LiveSyncLink");
@@ -2540,16 +2530,14 @@ public class TestSanity extends AbstractIntegrationTest {
      * should be created in repo.
      * Also location (ldap l) should be updated through outbound
      */
-    // This test takes long and fails now. Will enable it back in few days when the
-    // basic sanity things will be fixed
     @Test
-    public void test104LiveSyncCreate() throws Exception {
-        displayTestTile("test104LiveSyncCreate");
+    public void test104LiveSyncCreateNoLocation() throws Exception {
+        displayTestTile("test104LiveSyncCreateNoLocation");
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test104LiveSyncCreate");
+                + ".test104LiveSyncCreateNoLocation");
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
@@ -2606,88 +2594,9 @@ public class TestSanity extends AbstractIntegrationTest {
         return token;
     }
 
-    private AccountShadowType searchAccountByOid(final String accountOid) throws Exception {
-        OperationResultType resultType = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<ObjectType> accountHolder = new Holder<ObjectType>();
-        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, new PropertyReferenceListType(), accountHolder, resultHolder);
-        ObjectType object = accountHolder.value;
-        assertSuccess("searchObjects has failed", resultHolder.value);
-        assertNotNull("Account is null", object);
-
-        if (!(object instanceof AccountShadowType)) {
-            fail("Object is not account.");
-        }
-        AccountShadowType account = (AccountShadowType) object;
-        assertEquals(accountOid, account.getOid());
-
-        return account;
-    }
-
-    private UserType searchUserByName(String name) throws Exception {
-        Document doc = DOMUtil.getDocument();
-        Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
-                SchemaConstants.C_NAME.getLocalPart());
-        nameElement.setTextContent(name);
-        Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
-
-        QueryType query = new QueryType();
-        query.setFilter(filter);
-        OperationResultType resultType = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
-        assertCache();
-
-        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
-                listHolder, resultHolder);
-
-        assertCache();
-        ObjectListType objects = listHolder.value;
-        assertSuccess("searchObjects has failed", resultHolder.value);
-        AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
-        UserType user = (UserType) objects.getObject().get(0);
-
-        AssertJUnit.assertEquals(user.getName(), name);
-
-        return user;
-    }
-
-    private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
-            final OperationResult result) throws Exception {
-        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result, 40000);
-    }
-
-    private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
-            final OperationResult result, int timeout) throws Exception {
-
-        waitFor("Waiting for sync cycle to detect change", new Checker() {
-            @Override
-            public boolean check() throws Exception {
-                syncCycle.refresh(result);
-                display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
-                Object tokenNow = findSyncToken(syncCycle);
-                display("tokenNow = " + tokenNow);
-                if (tokenBefore == null) {
-                    return (tokenNow != null);
-                } else {
-                    return (!tokenBefore.equals(tokenNow));
-                }
-            }
-
-            @Override
-            public void timeout() {
-                // No reaction, the test will fail right after return from this
-            }
-        }, timeout);
-    }
-
     /**
      * Not really a test. Just cleans up after live sync.
-     *
-     * @throws ObjectNotFoundException
      */
-    // This test takes long and fails now. Will enable it back in few days when the
-    // basic sanity things will be fixed
     @Test
     public void test199LiveSyncCleanup() throws ObjectNotFoundException {
         displayTestTile("test199LiveSyncCleanup");
@@ -2699,8 +2608,6 @@ public class TestSanity extends AbstractIntegrationTest {
         // TODO: check if the task is really stopped
     }
 
-    // This test takes long and fails now. Will enable it back in few days when the
-    // basic sanity things will be fixed
     @Test
     public void test200ImportFromResource() throws Exception {
         displayTestTile("test200ImportFromResource");
@@ -2932,8 +2839,6 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals("Wrong number of users after import",9,uobjects.getObject().size());
     }
 
-    // This test takes long and fails now. Will enable it back in few days when the
-    // basic sanity things will be fixed
     @Test
     public void test300RecomputeUsers() throws Exception {
         displayTestTile("test300RecomputeUsers");
@@ -3094,8 +2999,6 @@ public class TestSanity extends AbstractIntegrationTest {
 
     }
 
-    // This test takes long and fails now. Will enable it back in few days when the
-    // basic sanity things will be fixed
     @Test
     public void test310ReconcileResourceOpenDj() throws Exception {
         displayTestTile("test310ReconcileResourceOpenDj");
@@ -3375,11 +3278,82 @@ public class TestSanity extends AbstractIntegrationTest {
     // TODO: test for missing sample config (bad reference in expression
     // arguments)
 
-    /**
-     * @param filename
-     * @return
-     * @throws FileNotFoundException
-     */
+    
+    private AccountShadowType searchAccountByOid(final String accountOid) throws Exception {
+        OperationResultType resultType = new OperationResultType();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+        Holder<ObjectType> accountHolder = new Holder<ObjectType>();
+        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, new PropertyReferenceListType(), accountHolder, resultHolder);
+        ObjectType object = accountHolder.value;
+        assertSuccess("searchObjects has failed", resultHolder.value);
+        assertNotNull("Account is null", object);
+
+        if (!(object instanceof AccountShadowType)) {
+            fail("Object is not account.");
+        }
+        AccountShadowType account = (AccountShadowType) object;
+        assertEquals(accountOid, account.getOid());
+
+        return account;
+    }
+
+    private UserType searchUserByName(String name) throws Exception {
+        Document doc = DOMUtil.getDocument();
+        Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
+                SchemaConstants.C_NAME.getLocalPart());
+        nameElement.setTextContent(name);
+        Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
+
+        QueryType query = new QueryType();
+        query.setFilter(filter);
+        OperationResultType resultType = new OperationResultType();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
+        assertCache();
+
+        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
+                listHolder, resultHolder);
+
+        assertCache();
+        ObjectListType objects = listHolder.value;
+        assertSuccess("searchObjects has failed", resultHolder.value);
+        AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
+        UserType user = (UserType) objects.getObject().get(0);
+
+        AssertJUnit.assertEquals(user.getName(), name);
+
+        return user;
+    }
+
+    private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
+            final OperationResult result) throws Exception {
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result, 40000);
+    }
+
+    private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
+            final OperationResult result, int timeout) throws Exception {
+
+        waitFor("Waiting for sync cycle to detect change", new Checker() {
+            @Override
+            public boolean check() throws Exception {
+                syncCycle.refresh(result);
+                display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
+                Object tokenNow = findSyncToken(syncCycle);
+                display("tokenNow = " + tokenNow);
+                if (tokenBefore == null) {
+                    return (tokenNow != null);
+                } else {
+                    return (!tokenBefore.equals(tokenNow));
+                }
+            }
+
+            @Override
+            public void timeout() {
+                // No reaction, the test will fail right after return from this
+            }
+        }, timeout);
+    }
+
     private void importObjectFromFile(String filename, OperationResult result) throws FileNotFoundException {
         LOGGER.trace("importObjectFromFile: {}", filename);
         Task task = taskManager.createTaskInstance();

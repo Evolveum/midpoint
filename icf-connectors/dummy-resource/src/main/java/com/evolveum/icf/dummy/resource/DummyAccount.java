@@ -19,6 +19,7 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ public class DummyAccount {
 	private Map<String,Set<Object>> attributes;
 	private boolean enabled;
 	private String password;
+	private DummyResource resource;
 
 	public DummyAccount() {
 		attributes = new HashMap<String, Set<Object>>();
@@ -48,6 +50,14 @@ public class DummyAccount {
 		attributes = new HashMap<String, Set<Object>>();
 		enabled = true;
 		password = null;
+	}
+	
+	public DummyResource getResource() {
+		return resource;
+	}
+
+	public void setResource(DummyResource resource) {
+		this.resource = resource;
 	}
 
 	public String getUsername() {
@@ -98,6 +108,12 @@ public class DummyAccount {
 		return getAttributeValue(attrName,String.class);
 	}
 
+	public void replaceAttributeValue(String name, Object value) {
+		Collection<Object> values = new ArrayList<Object>(1);
+		values.add(value);
+		replaceAttributeValues(name, values);
+	}
+	
 	public void replaceAttributeValues(String name, Collection<Object> values) {
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
@@ -107,6 +123,7 @@ public class DummyAccount {
 			currentValues.clear();
 		}
 		currentValues.addAll(values);
+		recordModify();
 	}
 
 	public void addAttributeValues(String name, Collection<Object> values) {
@@ -116,6 +133,7 @@ public class DummyAccount {
 			attributes.put(name, currentValues);
 		}
 		currentValues.addAll(values);
+		recordModify();
 	}
 	
 	public void addAttributeValues(String name, String... values) {
@@ -127,6 +145,7 @@ public class DummyAccount {
 		for (Object value: values) {
 			currentValues.add(value);
 		}
+		recordModify();
 	}
 
 	public void removeAttributeValues(String name, Collection<Object> values) {
@@ -136,8 +155,15 @@ public class DummyAccount {
 			attributes.put(name, currentValues);
 		}
 		currentValues.removeAll(values);
+		recordModify();
 	}
 
+	private void recordModify() {
+		if (resource != null) {
+			resource.recordModify(this);
+		}
+	}
+	
 	@Override
 	public String toString() {
 		return "DummyAccount(username=" + username + ", attributes=" + attributes + ", enabled=" + enabled

@@ -117,6 +117,7 @@ public class DummyResource {
 			throw new ObjectAlreadyExistsException("Account with identifier "+id+" already exists");
 		}
 		
+		newAccount.setResource(this);
 		accounts.put(id, newAccount);
 		
 		if (syncStyle != DummySyncStyle.NONE) {
@@ -138,6 +139,14 @@ public class DummyResource {
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
 			DummyDelta delta = new DummyDelta(syncToken, id, DummyDeltaType.DELETE);
+			deltas.add(delta);
+		}
+	}
+	
+	void recordModify(DummyAccount account) {
+		if (syncStyle != DummySyncStyle.NONE) {
+			int syncToken = nextSyncToken();
+			DummyDelta delta = new DummyDelta(syncToken, account.getUsername(), DummyDeltaType.MODIFY);
 			deltas.add(delta);
 		}
 	}
