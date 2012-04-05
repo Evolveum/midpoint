@@ -23,8 +23,27 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    macko usko
-    <span wicket:id="label"/>
+    <div class="content">
+        <h1>
+            <wicket:message key="page.title"/>
+        </h1>
+
+        <form wicket:id="mainForm">
+            <div wicket:id="main" class="accordions"> <!--todo move css class to accordion panel-->
+                <li wicket:id="details">asdf</li>
+                <li wicket:id="accounts">asdf</li>
+                <li wicket:id="roles">asdf</li>
+                <li wicket:id="assignments">asdf</li>
+            </div>
+
+            <div class="operatingFormButtons">
+                <a wicket:id="save"/>
+                <a wicket:id="recalculate"/>
+                <a wicket:id="refresh"/>
+                <a wicket:id="cancel"/>
+            </div>
+        </form>
+    </div>
 </wicket:extend>
 </body>
 </html>
