@@ -274,18 +274,17 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Session session = null;
         try {
             session = beginTransaction();
-            Query query = session.createQuery("delete from " + ClassMapper.getHQLType(type)
-                    + " as user where user.oid = :oid");
-            query.setString("oid", oid);
 
-            int count = query.executeUpdate();
-            if (count == 0) {
-                throw new ObjectNotFoundException("Object of type '" + type.getSimpleName()
-                        + "' with oid '" + oid + "' was not found.");
+            Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+            query.add(Restrictions.eq("oid", oid));
+            query.add(Restrictions.eq("id", 0L));
+            RObject object = (RObject) query.uniqueResult();
+            if (object == null) {
+                throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '"
+                        + oid + "' was not found.", null, oid);
             }
+            session.delete(object);
             session.getTransaction().commit();
-
-            LOGGER.debug("Deleted was {} object(s).", new Object[]{count});
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session);
             throw ex;

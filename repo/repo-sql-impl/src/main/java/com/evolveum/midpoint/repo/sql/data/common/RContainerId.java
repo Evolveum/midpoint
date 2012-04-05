@@ -31,6 +31,14 @@ public class RContainerId implements Serializable {
     private String oid;
     private Long id;
 
+    public RContainerId() {
+    }
+
+    public RContainerId(Long id, String oid) {
+        this.id = id;
+        this.oid = oid;
+    }
+
     public Long getId() {
         return id;
     }
