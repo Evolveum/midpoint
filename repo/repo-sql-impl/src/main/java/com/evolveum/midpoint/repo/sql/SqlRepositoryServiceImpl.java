@@ -41,12 +41,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
@@ -158,6 +158,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
     }
 
+    @Deprecated
     @Override
     public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
             OperationResult result) {
@@ -245,6 +246,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             LOGGER.debug("Saved object '{}' with oid '{}'",
                     new Object[]{object.getCompileTimeClass().getSimpleName(), oid});
+        } catch (ConstraintViolationException ex) {
+            rollbackTransaction(session);
+            throw new ObjectAlreadyExistsException("Object with oid '" + object.getOid() + "' already exists.", ex);
         } catch (SystemException ex) {
             rollbackTransaction(session);
             throw ex;
@@ -414,7 +418,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
         return list;
     }
-    
+
     @Override
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
             Collection<? extends ItemDelta> modifications,

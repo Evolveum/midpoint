@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -85,10 +86,21 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         stats.logSummary();
     }
 
+    @Test(expectedExceptions = ObjectAlreadyExistsException.class)
+    public void addGetDSEESyncDoubleTest() throws Exception {
+        final File OBJECTS_FILE = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
+        addGetCompare(OBJECTS_FILE);
+        addGetCompare(OBJECTS_FILE);
+    }
+
     @Test
     public void simpleAddGetTest() throws Exception {
         final File OBJECTS_FILE = new File("./src/test/resources/objects.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(OBJECTS_FILE);
+        addGetCompare(OBJECTS_FILE);
+    }
+    
+    private void addGetCompare(File file) throws Exception {
+        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
         List<String> oids = new ArrayList<String>();
 
         OperationResult result = new OperationResult("Simple Add Get Test");
@@ -101,7 +113,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         LOGGER.info("Time to add objects ({}): {}", new Object[]{elements.size(), (System.currentTimeMillis() - time),});
 
         int count = 0;
-        elements = prismContext.getPrismDomProcessor().parseObjects(OBJECTS_FILE);
+        elements = prismContext.getPrismDomProcessor().parseObjects(file);
         for (int i = 0; i < elements.size(); i++) {
             LOGGER.info("*******************************************");
             try {
