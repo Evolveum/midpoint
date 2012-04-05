@@ -78,24 +78,44 @@ public class PageUser extends PageAdminUsers {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        Accordion main = new Accordion("main");
-        main.setMultipleSelect(true);
-        main.setOpenedPanel(0);
-        mainForm.add(main);
+        Accordion accordion = new Accordion("accordion");
+        accordion.setMultipleSelect(true);
+        accordion.setOpenedPanel(0);
+        mainForm.add(accordion);
 
         AccordionItem details = new AccordionItem("details", createStringResource("pageUser.user"));
-        main.add(details);
+        accordion.getBodyContainer().add(details);
+        initDetails(details);
 
         AccordionItem accounts = new AccordionItem("accounts", createStringResource("pageUser.accounts"));
-        main.add(accounts);
+        accordion.getBodyContainer().add(accounts);
+        initAccounts(accounts);
 
         AccordionItem roles = new AccordionItem("roles", createStringResource("pageUser.roles"));
-        main.add(roles);
+        accordion.getBodyContainer().add(roles);
+        initRoles(roles);
 
         AccordionItem assignments = new AccordionItem("assignments", createStringResource("pageUser.assignments"));
-        main.add(assignments);
+        accordion.getBodyContainer().add(assignments);
+        initAssignments(assignments);
 
         initButtons(mainForm);
+    }
+    
+    private void initDetails(AccordionItem details) {
+        //todo implement
+    }
+    
+    private void initAccounts(AccordionItem accounts) {
+        //todo implement
+    }
+    
+    private void initRoles(AccordionItem roles) {
+        //todo implement
+    }
+    
+    private void initAssignments(AccordionItem assignments) {
+        //todo implement
     }
 
     private void initButtons(Form mainForm) {
