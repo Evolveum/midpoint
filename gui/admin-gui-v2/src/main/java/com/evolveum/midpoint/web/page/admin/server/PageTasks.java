@@ -85,16 +85,7 @@ public class PageTasks extends PageAdminTasks {
 //        columns.add(new PropertyColumn(createStringResource("pageTasks.currentRunTime"), "value.exclusivity"));
         columns.add(new PropertyColumn(createStringResource("pageTasks.scheduledToRunAgain"), "value.nextRunStartTime"));
 
-
-        OptionPanel option = new OptionPanel("option", new Model<String>("main title"));
-        add(option);
-
-        OptionItem item = new OptionItem("item", new Model<String>("item title"));
-        option.getBodyContainer().add(item);
-
-        OptionContent content = new OptionContent("optionContent");
-        add(content);
-        content.getBodyContainer().add(new TablePanel<TaskType>("table", TaskType.class, columns));
+        add(new TablePanel<TaskType>("table", TaskType.class, columns));
     }
 
     public void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
