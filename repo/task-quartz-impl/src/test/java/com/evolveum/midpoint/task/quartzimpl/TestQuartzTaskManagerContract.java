@@ -175,6 +175,21 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      */
 
     @Test(enabled = true)
+    public void test003GetProgress() throws Exception {
+
+        String test = "003GetProgress";
+        OperationResult result = createResult(test);
+
+        addObjectFromFile(taskFilename(test));
+
+        logger.trace("Retrieving the task and getting its progress...");
+
+        TaskQuartzImpl task = (TaskQuartzImpl) taskManager.getTask(taskOid(test), result);
+        AssertJUnit.assertEquals("Progress is not 0", 0, task.getProgress());
+    }
+
+
+    @Test(enabled = false)
     public void test004TaskProperties() throws Exception {
  
     	String test = "004TaskProperties";
@@ -246,7 +261,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Execute a single-run task.
      */
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test005Single() throws Exception {
 
     	String test = "005Single";
@@ -295,7 +310,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertFalse("LastRunFinishTimestamp is 0", task1.getLastRunFinishTimestamp().longValue() == 0);
 
         // The progress should be more than 0 as the task has run at least once
-        AssertJUnit.assertTrue(task1.getProgress() > 0);
+        AssertJUnit.assertTrue("Task reported no progress", task1.getProgress() > 0);
 
         // Test for presence of a result. It should be there and it should
         // indicate success
@@ -316,7 +331,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Executes a cyclic task
      */
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test006Cycle() throws Exception {
     	String test = "006Cycle";
         OperationResult result = createResult(test);
@@ -406,7 +421,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Single-run task with more handlers.
      */
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test008MoreHandlers() throws Exception {
 
     	String test = "008MoreHandlers";
@@ -467,7 +482,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue(singleHandler3.hasRun());
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test009CycleLoose() throws Exception {
     	String test = "009CycleLoose";
         OperationResult result = createResult(test);
@@ -566,7 +581,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * This task should NOT be processed (more handlers with recurrent tasks are not supported, because can lead to unpredictable results)
      */
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test011CycleMoreHandlers() throws Exception {
     	
     	String test = "011CycleMoreHandlers";
@@ -614,6 +629,12 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
       	addObjectFromFile(taskFilename(test));
 
+        // check if we can read the extension (xsi:type issue)
+
+        Task taskTemp = taskManager.getTask(taskOid(test), result);
+        PrismProperty delay = taskTemp.getExtension(NoOpTaskHandler.DELAY_QNAME);
+        AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
+
         System.out.println("Waiting for task manager to pick up the task");
         Thread.sleep(2000);
         System.out.println("... done");
@@ -650,7 +671,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test013ReleaseAndSuspendLooselyBound() throws Exception {
     	
     	String test = "013ReleaseAndSuspendLooselyBound";
@@ -705,7 +726,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test014SuspendLongRunning() throws Exception {
 
     	String test = "014SuspendLongRunning";
