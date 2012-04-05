@@ -200,7 +200,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		
 		PagingType paging = new PagingType();
 		List<PrismObject<TaskType>> tasks = null;
-		tasks = repositoryService.listObjects(TaskType.class, paging, result);
+		try {
+			tasks = repositoryService.listObjects(TaskType.class, paging, result);
+		} catch(Exception e) {
+			LoggingUtils.logException(LOGGER, "Tasks cannot be imported, because they cannot be listed from the repository. So the tasks will not be executed.", e);
+			return;
+		}
 
 		if (tasks != null) {
 			
