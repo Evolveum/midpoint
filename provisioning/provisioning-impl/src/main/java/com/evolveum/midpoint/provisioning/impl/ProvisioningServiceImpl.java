@@ -36,6 +36,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -57,6 +58,10 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -101,20 +106,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 @Service(value = "provisioningService")
 public class ProvisioningServiceImpl implements ProvisioningService {
 
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private ShadowCache shadowCache;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private ResourceTypeManager resourceTypeManager;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private ConnectorTypeManager connectorTypeManager;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private PrismContext prismContext;
-	
+
 	private PrismObjectDefinition<ResourceObjectShadowType> resourceObjectShadowDefinition = null;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
@@ -161,9 +166,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
-			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException, ConfigurationException {
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
+			PropertyReferenceListType resolve, OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -182,50 +187,56 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			repositoryObject = getCacheRepositoryService().getObject(type, oid, resolve, result);
-			// if (LOGGER.isTraceEnabled()) {
-			// LOGGER.trace("**PROVISIONING: Got repository object {}",
-			// JAXBUtil.silentMarshalWrap(repositoryObject));
-			// }
 		} catch (ObjectNotFoundException e) {
-			LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
-			result.recordFatalError("Can't get object with oid " + oid + ". Reason: " + e.getMessage(), e);
+			logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(),
+					e);
+			// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
+			// result.recordFatalError("Can't get object with oid " + oid +
+			// ". Reason: " + e.getMessage(), e);
 			throw e;
 		} catch (SchemaException ex) {
-			LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, ex);
-			result.recordFatalError("Can't get object with oid " + oid + ". Reason: " + ex.getMessage(), ex);
+			logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + ex.getMessage(),
+					ex);
+			// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, ex);
+			// result.recordFatalError("Can't get object with oid " + oid +
+			// ". Reason: " + ex.getMessage(), ex);
 			throw ex;
 		}
 
 		if (repositoryObject.canRepresent(ResourceObjectShadowType.class)) {
-			// ResourceObjectShadowType shadow =
-			// (ResourceObjectShadowType)object;
 			// TODO: optimization needed: avoid multiple "gets" of the same
 			// object
 
 			ResourceObjectShadowType shadow = null;
 			try {
-				
-				shadow = getShadowCache().getShadow((Class<ResourceObjectShadowType>)type, oid, 
+
+				shadow = getShadowCache().getShadow((Class<ResourceObjectShadowType>) type, oid,
 						(ResourceObjectShadowType) (repositoryObject.asObjectable()), result);
-				// if (LOGGER.isTraceEnabled()) {
-				// LOGGER.trace("**PROVISIONING: Got shadow object {}",
-				// JAXBUtil.silentMarshalWrap(shadow));
-				// }
+
 			} catch (ObjectNotFoundException e) {
-				LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
-				result.recordFatalError(e);
+				logFatalError(LOGGER, result,
+						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
 				throw e;
 			} catch (CommunicationException e) {
-				LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
-				result.recordFatalError(e);
+				logFatalError(LOGGER, result,
+						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
+				// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid,
+				// e);
+				// result.recordFatalError(e);
 				throw e;
 			} catch (SchemaException e) {
-				LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
-				result.recordFatalError(e);
+				logFatalError(LOGGER, result,
+						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
+				// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid,
+				// e);
+				// result.recordFatalError(e);
 				throw e;
 			} catch (ConfigurationException e) {
-				LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
-				result.recordFatalError(e);
+				logFatalError(LOGGER, result,
+						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
+				// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid,
+				// e);
+				// result.recordFatalError(e);
 				throw e;
 			}
 
@@ -244,13 +255,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.computeStatus("Resource retrieval failed");
 				return completeResource.asPrismObject();
 			} catch (ObjectNotFoundException ex) {
-				result.recordFatalError("Resource object not found", ex);
+				logFatalError(LOGGER, result, "Resource object not found", ex);
+				// result.recordFatalError("Resource object not found", ex);
 				throw ex;
 			} catch (SchemaException ex) {
-				result.recordFatalError("Schema violation", ex);
+				logFatalError(LOGGER, result, "Schema violation", ex);
+				// result.recordFatalError("Schema violation", ex);
 				throw ex;
 			} catch (CommunicationException ex) {
-				result.recordFatalError("Error communicating with resource", ex);
+				logFatalError(LOGGER, result, "Error communicating with resource", ex);
+				// result.recordFatalError("Error communicating with resource",
+				// ex);
 				throw ex;
 			}
 		} else {
@@ -260,10 +275,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
+	private void logFatalError(Trace logger, OperationResult opResult, String message, Exception ex) {
+		logger.error(message, ex);
+		opResult.recordFatalError(message, ex);
+	}
+
 	@Override
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
-			ObjectNotFoundException, ConfigurationException {
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts,
+			OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException,
+			CommunicationException, ObjectNotFoundException, ConfigurationException {
 		// TODO
 
 		Validate.notNull(object, "Object to add must not be null.");
@@ -281,23 +301,37 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (object.canRepresent(ResourceObjectShadowType.class)) {
 			try {
 				// calling shadow cache to add object
-				oid = getShadowCache().addShadow((ResourceObjectShadowType) object.asObjectable(), scripts, null, result);
+				oid = getShadowCache().addShadow((ResourceObjectShadowType) object.asObjectable(), scripts,
+						null, result);
 				LOGGER.trace("**PROVISIONING: Added shadow object {}", oid);
 				result.recordSuccess();
 			} catch (GenericFrameworkException ex) {
-				LOGGER.error("**PROVISIONING: Can't add object {}. Reason {}", object, ex);
-				result.recordFatalError("Failed to add shadow object: " + ex.getMessage(), ex);
+				logFatalError(LOGGER, result,
+						"Couldn't add object " + object + ". Reason: " + ex.getMessage(), ex);
+				// LOGGER.error("**PROVISIONING: Can't add object {}. Reason {}",
+				// object, ex);
+				// result.recordFatalError("Failed to add shadow object: " +
+				// ex.getMessage(), ex);
 				throw new CommunicationException(ex.getMessage(), ex);
 			} catch (SchemaException ex) {
-				LOGGER.error("**PROVISIONING: Couldn't add object. Reason: {}", ex.getMessage(), ex);
-				result.recordFatalError("Couldn't add object. Reason: " + ex.getMessage(), ex);
+				logFatalError(LOGGER, result, "Couldn't add object. Reason: " + ex.getMessage(), ex);
+				// LOGGER.error("**PROVISIONING: Couldn't add object. Reason: {}",
+				// ex.getMessage(), ex);
+				// result.recordFatalError("Couldn't add object. Reason: " +
+				// ex.getMessage(), ex);
 				throw new SchemaException("Couldn't add object. Reason: " + ex.getMessage(), ex);
 			} catch (ObjectAlreadyExistsException ex) {
-				result.recordFatalError("Could't add object. Object already exist, " + ex.getMessage(), ex);
+				logFatalError(LOGGER, result,
+						"Couldn't add object. Object already exist, " + ex.getMessage(), ex);
+				// result.recordFatalError("Could't add object. Object already exist, "
+				// + ex.getMessage(), ex);
 				throw new ObjectAlreadyExistsException("Could't add object. Object already exist, "
 						+ ex.getMessage(), ex);
 			} catch (ConfigurationException ex) {
-				result.recordFatalError("Could't add object. Configuration error, " + ex.getMessage(), ex);
+				logFatalError(LOGGER, result, "Couldn't add object. Configuration error, " + ex.getMessage(),
+						ex);
+				// result.recordFatalError("Could't add object. Configuration error, "
+				// + ex.getMessage(), ex);
 				throw ex;
 			}
 		} else {
@@ -339,11 +373,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			if (task.getExtension() != null) {
 				tokenProperty = task.getExtension(SchemaConstants.SYNC_TOKEN);
 			}
-			
-			if (tokenProperty != null && (tokenProperty.getValue() == null || tokenProperty.getValue().getValue() == null)) {
+
+			if (tokenProperty != null
+					&& (tokenProperty.getValue() == null || tokenProperty.getValue().getValue() == null)) {
 				LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Empty sync token property:\n{}",tokenProperty.dump());
+					LOGGER.trace("Empty sync token property:\n{}", tokenProperty.dump());
 				}
 				tokenProperty = null;
 			}
@@ -351,11 +386,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// if the token is not specified in the task, get the latest token
 			if (tokenProperty == null) {
 				tokenProperty = getShadowCache().fetchCurrentToken(resourceType, parentResult);
-				if (tokenProperty == null || tokenProperty.getValue() == null || tokenProperty.getValue().getValue() == null) {
+				if (tokenProperty == null || tokenProperty.getValue() == null
+						|| tokenProperty.getValue().getValue() == null) {
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Empty current sync token property:\n{}",tokenProperty.dump());
+						LOGGER.trace("Empty current sync token property:\n{}", tokenProperty.dump());
 					}
-					throw new IllegalStateException("Current sync token null or empty: "+tokenProperty);
+					throw new IllegalStateException("Current sync token null or empty: " + tokenProperty);
 				}
 
 			}
@@ -365,7 +401,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
-//			Collection<PropertyDelta> taskModifications = new ArrayList<PropertyDelta>();
+			// Collection<PropertyDelta> taskModifications = new
+			// ArrayList<PropertyDelta>();
 			List<Change> changes = null;
 
 			LOGGER.trace("Calling shadow cache to fetch changes.");
@@ -373,7 +410,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			// for each change from the connector create change description
 			for (Change change : changes) {
-				
+
 				// this is the case,when we want to skip processing of change,
 				// because the shadow was not created or found to the resource
 				// object
@@ -383,8 +420,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				if (change.getOldShadow() == null) {
 					PrismProperty<?> newToken = change.getToken();
 					task.setExtensionProperty(newToken);
-//					PropertyDelta modificatedToken = getTokenModification(newToken);
-//					taskModifications.add(modificatedToken);
+					// PropertyDelta modificatedToken =
+					// getTokenModification(newToken);
+					// taskModifications.add(modificatedToken);
 					processedChanges++;
 					LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
@@ -392,7 +430,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
 						change, resourceType);
-				
+
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
 							SchemaDebugUtil.prettyPrint(shadowChangeDescription));
@@ -405,10 +443,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					notifyResourceObjectChangeListeners(shadowChangeDescription, task, notifyChangeResult);
 					notifyChangeResult.recordSuccess();
 				} catch (RuntimeException ex) {
-					notifyChangeResult.recordFatalError("Runtime exception occur: " + ex.getMessage(), ex);
+					logFatalError(LOGGER, notifyChangeResult, "Synchronization error: " + ex.getMessage(), ex);
+					// notifyChangeResult.recordFatalError("Runtime exception occur: "
+					// + ex.getMessage(), ex);
 					saveAccountResult(shadowChangeDescription, change, notifyChangeResult, parentResult);
-					LOGGER.error("Synchronization error: "+ ex.getMessage(), ex);
-					throw new SystemException("Synchronization error: "+ ex.getMessage(), ex);
+					// LOGGER.error("Synchronization error: "+ ex.getMessage(),
+					// ex);
+					throw new SystemException("Synchronization error: " + ex.getMessage(), ex);
 				}
 
 				notifyChangeResult.computeStatus("Error by notify change operation.");
@@ -421,8 +462,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					// and replace old token with the new one
 					PrismProperty<?> newToken = change.getToken();
 					task.setExtensionProperty(newToken);
-//					PropertyDelta modificatedToken = getTokenModification(newToken);
-//					taskModifications.add(modificatedToken);
+					// PropertyDelta modificatedToken =
+					// getTokenModification(newToken);
+					// taskModifications.add(modificatedToken);
 					processedChanges++;
 
 				} else {
@@ -434,38 +476,55 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			if (changes.isEmpty()) {
 				LOGGER.trace("No changes to synchronize on " + ObjectTypeUtil.toShortString(resourceType));
 				task.setExtensionProperty(tokenProperty);
-//				PropertyDelta modificatedToken = getTokenModification(tokenProperty);
-//				taskModifications.add(modificatedToken);
+				// PropertyDelta modificatedToken =
+				// getTokenModification(tokenProperty);
+				// taskModifications.add(modificatedToken);
 			}
-//			task.modify(taskModifications, result);
+			// task.modify(taskModifications, result);
 			task.savePendingModifications(result);
 
 			// This happens in the (scheduled async) task. Recording of results
 			// in the task is still not
 			// ideal, therefore also log the errors with a full stack trace.
 		} catch (ObjectNotFoundException e) {
-			LOGGER.error("Synchronization error: object not found: {}", e.getMessage(), e);
-			result.recordFatalError(e.getMessage(), e);
+			logFatalError(LOGGER, result, "Synchronization error: object not found: " + e.getMessage(), e);
+			// LOGGER.error("Synchronization error: object not found: {}",
+			// e.getMessage(), e);
+			// result.recordFatalError(e.getMessage(), e);
 			throw e;
 		} catch (CommunicationException e) {
-			LOGGER.error("Synchronization error: communication problem: {}", e.getMessage(), e);
-			result.recordFatalError("Error communicating with connector: " + e.getMessage(), e);
+			logFatalError(LOGGER, result, "Synchronization error: communication problem: " + e.getMessage(),
+					e);
+			// LOGGER.error("Synchronization error: communication problem: {}",
+			// e.getMessage(), e);
+			// result.recordFatalError("Error communicating with connector: " +
+			// e.getMessage(), e);
 			throw e;
 		} catch (GenericFrameworkException e) {
-			LOGGER.error("Synchronization error: generic connector framework error: {}", e.getMessage(), e);
-			result.recordFatalError(e.getMessage(), e);
+			logFatalError(LOGGER, result,
+					"Synchronization error: generic connector framework error: " + e.getMessage(), e);
+			// LOGGER.error("Synchronization error: generic connector framework error: {}",
+			// e.getMessage(), e);
+			// result.recordFatalError(e.getMessage(), e);
 			throw new GenericConnectorException(e.getMessage(), e);
 		} catch (SchemaException e) {
-			LOGGER.error("Synchronization error: schema problem: {}", e.getMessage(), e);
-			result.recordFatalError(e.getMessage(), e);
+			logFatalError(LOGGER, result, "Synchronization error: schema problem: " + e.getMessage(), e);
+			// LOGGER.error("Synchronization error: schema problem: {}",
+			// e.getMessage(), e);
+			// result.recordFatalError(e.getMessage(), e);
 			throw e;
 		} catch (ConfigurationException e) {
-			LOGGER.error("Synchronization error: configuration problem: {}", e.getMessage(), e);
-			result.recordFatalError(e.getMessage(), e);
+			logFatalError(LOGGER, result, "Synchronization error: configuration problem: " + e.getMessage(),
+					e);
+			// LOGGER.error("Synchronization error: configuration problem: {}",
+			// e.getMessage(), e);
+			// result.recordFatalError(e.getMessage(), e);
 			throw e;
-		} catch (RuntimeException e){
-			LOGGER.error("Synchronization error: unexpected problem: {}", e.getMessage(), e);
-			result.recordFatalError(e.getMessage(), e);
+		} catch (RuntimeException e) {
+			logFatalError(LOGGER, result, "Synchronization error: unexpected problem: " + e.getMessage(), e);
+			// LOGGER.error("Synchronization error: unexpected problem: {}",
+			// e.getMessage(), e);
+			// result.recordFatalError(e.getMessage(), e);
 			throw e;
 		}
 
@@ -535,7 +594,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				try {
 
-					completeResource = getResourceTypeManager().completeResource(resource.asObjectable(), null, objResult);
+					completeResource = getResourceTypeManager().completeResource(resource.asObjectable(),
+							null, objResult);
 					newObjListType.add(completeResource.asPrismObject());
 					// TODO: what do to with objResult??
 
@@ -574,7 +634,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					newObjListType.add(obj);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
-					
+
 				} catch (RuntimeException e) {
 					// FIXME: Strictly speaking, the runtime exception should
 					// not be handled here.
@@ -621,17 +681,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		searchObjectsIterative(type, query, paging, handler, parentResult);
 		return objListType;
 	}
-	
-	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException {
 		// TODO: Implement
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-			ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException, CommunicationException, ConfigurationException {
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
+			Collection<? extends ItemDelta> modifications, ScriptsType scripts, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Modifications must not be null.");
@@ -645,7 +706,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("*PROVISIONING: modifyObject: object modifications:\n{}", DebugUtil.debugDump(modifications));
+			LOGGER.trace("*PROVISIONING: modifyObject: object modifications:\n{}",
+					DebugUtil.debugDump(modifications));
 		}
 
 		// getting object to modify
@@ -659,26 +721,37 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 
 			// calling shadow cache to modify object
-			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, scripts, parentResult);
+			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, scripts,
+					parentResult);
 			result.recordSuccess();
 
 		} catch (CommunicationException e) {
-			result.recordFatalError(e);
+			logFatalError(LOGGER, result, "Couldn't modify object: communication problem: " + e.getMessage(),
+					e);
+			// result.recordFatalError(e);
 			throw e;
 		} catch (GenericFrameworkException e) {
-			result.recordFatalError(e);
+			logFatalError(LOGGER, result,
+					"Couldn't modify object: generic error in the connector: " + e.getMessage(), e);
+			// result.recordFatalError(e);
 			throw new CommunicationException(e.getMessage(), e);
 		} catch (SchemaException e) {
-			result.recordFatalError(e);
+			logFatalError(LOGGER, result, "Couldn't modify object: schema problem: " + e.getMessage(), e);
+			// result.recordFatalError(e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			result.recordFatalError(e);
+			logFatalError(LOGGER, result, "Couldn't modify object: object doesn't exist: " + e.getMessage(),
+					e);
+			// result.recordFatalError(e);
 			throw e;
 		} catch (RuntimeException e) {
-			result.recordFatalError(e);
+			logFatalError(LOGGER, result, "Couldn't modify object: unexpected problem: " + e.getMessage(), e);
+			// result.recordFatalError(e);
 			throw new SystemException("Internal error: " + e.getMessage(), e);
 		} catch (ConfigurationException e) {
-			result.recordFatalError(e);
+			logFatalError(LOGGER, result, "Couldn't modify object: configuration problem: " + e.getMessage(),
+					e);
+			// result.recordFatalError(e);
 			throw e;
 		}
 
@@ -704,11 +777,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		PrismObject<T> object = null;
 		try {
-			object = getCacheRepositoryService().getObject(type, oid,
-					new PropertyReferenceListType(), parentResult);
+			object = getCacheRepositoryService().getObject(type, oid, new PropertyReferenceListType(),
+					parentResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.dump());
-            }
+			}
 		} catch (SchemaException e) {
 			result.recordFatalError("Can't get object with oid " + oid + " from repository. Reason:  "
 					+ e.getMessage() + " " + e);
@@ -722,16 +795,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				getShadowCache().deleteShadow(object.asObjectable(), scripts, null, parentResult);
 				result.recordSuccess();
 			} catch (CommunicationException e) {
-				result.recordFatalError(e);
+				logFatalError(LOGGER, result,
+						"Couldn't delete object: communication problem: " + e.getMessage(), e);
+				// result.recordFatalError(e);
 				throw new CommunicationException(e.getMessage(), e);
 			} catch (GenericFrameworkException e) {
-				result.recordFatalError(e);
+				logFatalError(LOGGER, result,
+						"Couldn't delete object: generic error in the connector: " + e.getMessage(), e);
+				// result.recordFatalError(e);
 				throw new CommunicationException(e.getMessage(), e);
 			} catch (SchemaException e) {
-				result.recordFatalError(e);
+				logFatalError(LOGGER, result, "Couldn't delete object: schema problem: " + e.getMessage(), e);
+				// result.recordFatalError(e);
 				throw new SchemaException(e.getMessage(), e);
 			} catch (ConfigurationException e) {
-				result.recordFatalError(e);
+				logFatalError(LOGGER, result,
+						"Couldn't delete object: configuration problem: " + e.getMessage(), e);
+				// result.recordFatalError(e);
 				throw e;
 			}
 
@@ -769,8 +849,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ResourceType resourceType = null;
 		try {
-			PrismObject<ResourceType> resource = getCacheRepositoryService().getObject(ResourceType.class, resourceOid,
-					new PropertyReferenceListType(), parentResult);
+			PrismObject<ResourceType> resource = getCacheRepositoryService().getObject(ResourceType.class,
+					resourceOid, new PropertyReferenceListType(), parentResult);
 
 			resourceType = resource.asObjectable();
 			resourceTypeManager.testConnection(resourceType, parentResult);
@@ -822,7 +902,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			@Override
 			public boolean handle(ResourceObjectShadowType shadow) {
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("listResourceObjects: processing shadow: {}", SchemaDebugUtil.prettyPrint(shadow));
+					LOGGER.trace("listResourceObjects: processing shadow: {}",
+							SchemaDebugUtil.prettyPrint(shadow));
 				}
 
 				objectList.add(shadow.asPrismObject());
@@ -830,19 +911,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		try{
-		resourceTypeManager.listShadows(resource.asObjectable(), objectClass, shadowHandler, false, result);
-		} catch(ConfigurationException ex){
+		try {
+			resourceTypeManager.listShadows(resource.asObjectable(), objectClass, shadowHandler, false,
+					result);
+		} catch (ConfigurationException ex) {
 			parentResult.recordFatalError(ex.getMessage(), ex);
-			throw new CommunicationException("Error in the configuration: "+ex.getMessage(), ex);
+			throw new CommunicationException("Error in the configuration: " + ex.getMessage(), ex);
 		}
 		return objectList;
 	}
 
 	@Override
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query, PagingType paging, 
-			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, ConfigurationException {
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query,
+			PagingType paging, final ResultHandler<T> handler, final OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 
 		Validate.notNull(query, "Search query must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -861,6 +943,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		NodeList list = filter.getChildNodes();
 		String resourceOid = null;
 		QName objectClass = null;
+		List<NodeList> attributeFilter = new ArrayList<NodeList>();
 
 		if (QNameUtil.compareQName(SchemaConstants.C_FILTER_AND, filter)) {
 			for (int i = 0; i < list.getLength(); i++) {
@@ -890,6 +973,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 									throw new IllegalArgumentException("Object class was not defined.");
 								}
 							}
+						} else if (QNameUtil.compareQName(SchemaConstants.C_PATH, equealList.item(j))){
+
+							attributeFilter.add(equealList);
+							continue;
+
 						}
 					}
 				}
@@ -913,8 +1001,32 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.recordFatalError("Resource with oid " + resourceOid + "not found. Reason: " + e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		} catch (ConfigurationException e) {
-			result.recordFatalError("Configuration error regarding resource with oid " + resourceOid + "not found. Reason: " + e);
+			result.recordFatalError("Configuration error regarding resource with oid " + resourceOid
+					+ "not found. Reason: " + e);
 			throw e;
+		}
+
+		List<ResourceAttribute> resourceAttributesFilter = new ArrayList<ResourceAttribute>();
+
+		if (!attributeFilter.isEmpty()) {
+			ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+			ObjectClassComplexTypeDefinition objectClassDef = schema.findObjectClassDefinition(objectClass);
+			for (NodeList attribute : attributeFilter) {
+				for (int j = 0; j < attribute.getLength(); j++) {
+					Node attrFilter = attribute.item(j);
+
+					if (!QNameUtil.compareQName(SchemaConstants.C_PATH, attrFilter)) {
+						QName attrName = QNameUtil.getNodeQName(attrFilter.getFirstChild());
+						ResourceAttributeDefinition resourceAttrDef = objectClassDef
+								.findAttributeDefinition(attrName);
+						ResourceAttribute resourceAttr = resourceAttrDef.instantiate();
+						resourceAttr.setRealValue(attrFilter.getFirstChild().getTextContent());
+						resourceAttributesFilter.add(resourceAttr);
+					}
+
+				}
+			}
+
 		}
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {
@@ -928,23 +1040,26 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				OperationResult accountResult = result.createSubresult(ProvisioningService.class.getName()
 						+ ".searchObjectsIterative.handle");
+
 				boolean doContinue = handler.handle(shadowType.asPrismObject(), accountResult);
 				accountResult.computeStatus();
-				
+
 				if (!accountResult.isSuccess()) {
-					Collection<? extends ItemDelta> shadowModificationType = PropertyDelta.createModificationReplacePropertyCollection(
-							ResourceObjectShadowType.F_RESULT, getResourceObjectShadowDefinition(), accountResult.createOperationResultType());
+					Collection<? extends ItemDelta> shadowModificationType = PropertyDelta
+							.createModificationReplacePropertyCollection(ResourceObjectShadowType.F_RESULT,
+									getResourceObjectShadowDefinition(),
+									accountResult.createOperationResultType());
 					try {
-						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowType.getOid(), shadowModificationType,
-								result);
+						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowType.getOid(),
+								shadowModificationType, result);
 					} catch (ObjectNotFoundException ex) {
 						result.recordFatalError(
 								"Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
-										+ " shadow failed: Not found: "+ex.getMessage(), ex);
+										+ " shadow failed: Not found: " + ex.getMessage(), ex);
 					} catch (SchemaException ex) {
 						result.recordFatalError(
 								"Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
-										+ " shadow failed: Schema error: "+ex.getMessage(), ex);
+										+ " shadow failed: Schema error: " + ex.getMessage(), ex);
 					}
 				}
 
@@ -952,8 +1067,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		getResourceTypeManager().searchObjectsIterative((Class<? extends ResourceObjectShadowType>)type,
-				objectClass, resource.asObjectable(), shadowHandler, null, result);
+		getResourceTypeManager().searchObjectsIterative((Class<? extends ResourceObjectShadowType>) type,
+				objectClass, resource.asObjectable(), resourceAttributesFilter, shadowHandler, null, result);
 		result.recordSuccess();
 	}
 
@@ -969,7 +1084,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		shadowChangeDescription.setResource(resourceType.asPrismObject());
 		shadowChangeDescription.setOldShadow(change.getOldShadow());
 		ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
-		currentShadowType.setActivation(ShadowCacheUtil.completeActivation(currentShadowType, resourceType, null));
+		currentShadowType.setActivation(ShadowCacheUtil.completeActivation(currentShadowType, resourceType,
+				null));
 
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
 		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
@@ -982,11 +1098,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new IllegalArgumentException("Cannot create modification from a null live sync token");
 		}
 		if (token.getDefinition() == null) {
-			throw new IllegalArgumentException("Live sync token "+token+" has no definition. Cannot create modification.");
+			throw new IllegalArgumentException("Live sync token " + token
+					+ " has no definition. Cannot create modification.");
 		}
-		PropertyDelta tokenDelta = new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_EXTENSION, token.getName()),
-				token.getDefinition());
-		tokenDelta.setValuesToReplace((Collection)token.getValues());
+		PropertyDelta tokenDelta = new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_EXTENSION,
+				token.getName()), token.getDefinition());
+		tokenDelta.setValuesToReplace((Collection) token.getValues());
 		return tokenDelta;
 	}
 
@@ -1043,16 +1160,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private ObjectDelta<? extends ResourceObjectShadowType> createShadowResultModification(
 			ResourceObjectShadowChangeDescription shadowChangeDescription, Change change,
 			OperationResult shadowResult) {
-		
 
 		String shadowOid = null;
-		if (change.getObjectDelta() != null && change.getObjectDelta().getOid() != null){
+		if (change.getObjectDelta() != null && change.getObjectDelta().getOid() != null) {
 			shadowOid = change.getObjectDelta().getOid();
-		} else{
-			if (change.getCurrentShadow().getOid() != null){
+		} else {
+			if (change.getCurrentShadow().getOid() != null) {
 				shadowOid = change.getCurrentShadow().getOid();
-			} else{
-				if (change.getOldShadow().getOid() != null){
+			} else {
+				if (change.getOldShadow().getOid() != null) {
 					shadowOid = change.getOldShadow().getOid();
 				} else {
 					throw new IllegalArgumentException("No uid value defined for the object to synchronize.");
@@ -1060,19 +1176,26 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		}
 
-		PrismObjectDefinition<ResourceObjectShadowType> shadowDefinition = 
-			ShadowCacheUtil.getResourceObjectShadowDefinition(prismContext);
-		
-		ObjectDelta<? extends ResourceObjectShadowType> shadowModification = ObjectDelta.createModificationReplaceProperty(
-				ResourceObjectShadowType.class, shadowOid, SchemaConstants.C_RESULT, prismContext, 
-				shadowResult.createOperationResultType());
+		PrismObjectDefinition<ResourceObjectShadowType> shadowDefinition = ShadowCacheUtil
+				.getResourceObjectShadowDefinition(prismContext);
+
+		ObjectDelta<? extends ResourceObjectShadowType> shadowModification = ObjectDelta
+				.createModificationReplaceProperty(ResourceObjectShadowType.class, shadowOid,
+						SchemaConstants.C_RESULT, prismContext, shadowResult.createOperationResultType());
+
+		// ObjectDelta<? extends ResourceObjectShadowType> shadowModification =
+		// ObjectDelta
+		// .createModificationReplaceProperty(shadowOid,
+		// SchemaConstants.C_RESULT,
+		// shadowResult.createOperationResultType());
 
 		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-			PrismPropertyDefinition failedOperationTypePropDef =
-				shadowDefinition.findPropertyDefinition(ResourceObjectShadowType.F_FAILED_OPERATION_TYPE);
-			PropertyDelta failedOperationTypeDelta = new PropertyDelta(ResourceObjectShadowType.F_FAILED_OPERATION_TYPE,
-					failedOperationTypePropDef);
-			failedOperationTypeDelta.setValueToReplace(new PrismPropertyValue(FailedOperationTypeType.DELETE));
+			PrismPropertyDefinition failedOperationTypePropDef = shadowDefinition
+					.findPropertyDefinition(ResourceObjectShadowType.F_FAILED_OPERATION_TYPE);
+			PropertyDelta failedOperationTypeDelta = new PropertyDelta(
+					ResourceObjectShadowType.F_FAILED_OPERATION_TYPE, failedOperationTypePropDef);
+			failedOperationTypeDelta
+					.setValueToReplace(new PrismPropertyValue(FailedOperationTypeType.DELETE));
 			shadowModification.addModification(failedOperationTypeDelta);
 		}
 		return shadowModification;
@@ -1083,10 +1206,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			Change change, OperationResult notifyChangeResult, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 
-		ObjectDelta<ResourceObjectShadowType> shadowModification = 
-			(ObjectDelta<ResourceObjectShadowType>) createShadowResultModification(shadowChangeDescription, change, notifyChangeResult);
+		ObjectDelta<ResourceObjectShadowType> shadowModification = (ObjectDelta<ResourceObjectShadowType>) createShadowResultModification(
+				shadowChangeDescription, change, notifyChangeResult);
 		// maybe better error handling is needed
-		cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadowModification.getOid(), 
+		cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadowModification.getOid(),
 				shadowModification.getModifications(), parentResult);
 
 	}
@@ -1100,10 +1223,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				cacheRepositoryService.deleteObject(AccountShadowType.class, change.getOldShadow().getOid(),
 						parentResult);
 			} catch (ObjectNotFoundException ex) {
-				parentResult.recordFatalError("Can't find object "
-						+ change.getOldShadow() + " in repository.");
-				throw new ObjectNotFoundException("Can't find object "
-						+ change.getOldShadow() + " in repository.");
+				parentResult.recordFatalError("Can't find object " + change.getOldShadow()
+						+ " in repository.");
+				throw new ObjectNotFoundException("Can't find object " + change.getOldShadow()
+						+ " in repository.");
 			}
 			LOGGER.debug("Shadow object deleted successfully form repository.");
 		}
@@ -1111,7 +1234,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	private PrismObjectDefinition<ResourceObjectShadowType> getResourceObjectShadowDefinition() {
 		if (resourceObjectShadowDefinition == null) {
-			resourceObjectShadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
+			resourceObjectShadowDefinition = prismContext.getSchemaRegistry()
+					.findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
 		}
 		return resourceObjectShadowDefinition;
 	}

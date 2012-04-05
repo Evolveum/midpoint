@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -76,8 +77,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 
 			if (shadow.getName() == null){
-				shadow.setName("unknown"+ String.valueOf(System.currentTimeMillis()));
-//				for (shadow.getAttributes().getAny())
+				shadow.setName(ShadowCacheUtil.determineShadowName(shadow));
 			}
 			getCacheRepositoryService().addObject(shadow.asPrismObject(), operationResult);
 

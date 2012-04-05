@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -79,6 +80,7 @@ import org.identityconnectors.framework.api.*;
 import org.identityconnectors.framework.api.operations.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1338,7 +1340,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		subresult.recordSuccess();
-		subresult.addReturn(OperationResult.RETURN_COUNT, changeList==null ? 0 : changeList.size());
+		subresult.addReturn(OperationResult.RETURN_COUNT, changeList == null ? 0 : changeList.size());
 		return changeList;
 	}
 
@@ -1365,9 +1367,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public <T extends ResourceObjectShadowType> void search(Class<T> type,
-			ObjectClassComplexTypeDefinition objectClassDefinition, final ResultHandler<T> handler,
-			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-			SchemaException {
+			ObjectClassComplexTypeDefinition objectClassDefinition, QueryType query,
+			final ResultHandler<T> handler, OperationResult parentResult) throws CommunicationException,
+			GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
 		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1420,7 +1422,28 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 
-			icfConnectorFacade.search(icfObjectClass, null, icfHandler, null);
+			Attribute connectorAttribute = null;
+			if (query != null) {
+				Element filter = query.getFilter();
+				if (QNameUtil.compareQName(SchemaConstants.C_FILTER_EQUAL, filter)) {
+					if (filter.getChildNodes().getLength() > 1) {
+						throw new UnsupportedOperationException("Support for only one attribute filter.");
+					}
+					Node node = filter.getFirstChild();
+					if (QNameUtil.compareQName(SchemaConstants.C_VALUE, node)) {
+						String icfAttrName = convertAttributeNameToIcf(QNameUtil.getNodeQName(node.getFirstChild()),
+								parentResult);
+						Object value = convertValueToIcf(node.getFirstChild().getTextContent(), QNameUtil.getNodeQName(node.getFirstChild()));
+						connectorAttribute = AttributeBuilder.build(icfAttrName, value);
+					}
+				}
+
+			}
+			EqualsFilter equalsFilter = null;
+			if (connectorAttribute != null) {
+				equalsFilter = new EqualsFilter(connectorAttribute);
+			}
+			icfConnectorFacade.search(icfObjectClass, equalsFilter, icfHandler, null);
 
 			icfResult.recordSuccess();
 		} catch (IntermediateException inex) {
@@ -1626,8 +1649,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} else {
 			throw new SchemaException("No definition");
 		}
-		
-//		LOGGER.trace("Instantiated prism object {} from connector object.", shadowPrism.dump());
+
+		// LOGGER.trace("Instantiated prism object {} from connector object.",
+		// shadowPrism.dump());
 
 		T shadow = shadowPrism.asObjectable();
 		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
@@ -1635,8 +1659,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ResourceAttributeContainerDefinition attributesDefinition = attributesContainer.getDefinition();
 
 		LOGGER.trace("Resource attribute container definition {}.", attributesDefinition.dump());
-		
-		
+
 		// Uid is always there
 		Uid uid = co.getUid();
 		ResourceAttribute<?> uidRoa = createUidAttribute(uid, getUidDefinition(attributesDefinition));
@@ -1667,25 +1690,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							.getOrCreateActivation(accountShadowType);
 					activationType.setEnabled(enabled);
 				} else {
-					throw new SchemaException("Attempt to set password for non-account object type "
-							+ objectDefinition);
+					throw new SchemaException(
+							"Attempt to set activation/enabled for non-account object type "
+									+ objectDefinition);
 				}
 				continue;
 			}
 
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
-			
-		
-			
+
 			ResourceAttributeDefinition attributeDefinition = attributesDefinition
 					.findAttributeDefinition(qname);
-			
-			if (attributeDefinition == null){
+
+			if (attributeDefinition == null) {
 				throw new SchemaException("Unknown attribute {}. Cannot create definition.", qname);
 			}
-			
+
 			ResourceAttribute resourceAttribute = attributeDefinition.instantiate(qname);
 
+			LOGGER.trace("attribute name: " + qname);
+			LOGGER.trace("attribute value: " + icfAttr.getValue());
 			// if true, we need to convert whole connector object to the
 			// resource object also with the null-values attributes
 			if (full) {
@@ -1844,19 +1868,22 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// .findContainerDefinitionByType(objectClass);
 			ObjectClassComplexTypeDefinition objClassDefinition = (ObjectClassComplexTypeDefinition) schema
 					.findComplexTypeDefinition(objectClass);
-//			ResourceAttributeContainerDefinition resourceAttributeDef = (ResourceAttributeContainerDefinition) objClassDefinition
-//					.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+			// ResourceAttributeContainerDefinition resourceAttributeDef =
+			// (ResourceAttributeContainerDefinition) objClassDefinition
+			// .findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
 			// FIXME: we are hadcoding Account here, but we should not
 			PrismObjectDefinition<AccountShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
 
 			LOGGER.trace("Object definition: {}", objectDefinition);
-			
+
 			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())) {
 				LOGGER.debug("START creating delta of type DELETE");
 				ObjectDelta<ResourceObjectShadowType> objectDelta = new ObjectDelta<ResourceObjectShadowType>(
 						ResourceObjectShadowType.class, ChangeType.DELETE);
-				ResourceAttribute uidAttribute = createUidAttribute(delta.getUid(),
-						getUidDefinition(objClassDefinition.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES)));
+				ResourceAttribute uidAttribute = createUidAttribute(
+						delta.getUid(),
+						getUidDefinition(objClassDefinition
+								.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES)));
 				Set<ResourceAttribute> identifiers = new HashSet<ResourceAttribute>();
 				identifiers.add(uidAttribute);
 				Change change = new Change(identifiers, objectDelta, getToken(delta.getToken()));

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
@@ -200,7 +201,8 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-	public <T extends ResourceObjectShadowType> void search(Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
+	public <T extends ResourceObjectShadowType> void search(Class<T> type,
+			ObjectClassComplexTypeDefinition objectClassDefinition, QueryType query,
 			ResultHandler<T> handler, OperationResult parentResult) 
 			throws CommunicationException, GenericFrameworkException, SchemaException;
 

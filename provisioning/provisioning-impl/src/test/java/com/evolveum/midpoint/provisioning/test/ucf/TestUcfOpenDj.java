@@ -646,7 +646,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
 
 		// WHEN
-		cc.search(AccountShadowType.class, accountDefinition, handler, result);
+		cc.search(AccountShadowType.class, accountDefinition, null, handler, result);
 
 		// THEN
 

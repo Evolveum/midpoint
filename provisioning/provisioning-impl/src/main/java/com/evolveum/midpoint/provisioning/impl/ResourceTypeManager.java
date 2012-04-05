@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
@@ -32,7 +33,9 @@ import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -475,14 +478,14 @@ public class ResourceTypeManager {
 
 		
 		
-		searchObjects(ResourceObjectShadowType.class, objectClass, resource, handler, null, readFromRepository, parentResult);
+		searchObjects(ResourceObjectShadowType.class, objectClass, resource, null, handler, null, readFromRepository, parentResult);
 		
 
 	}
 
 	// TODO: maybe this method should be placed in another class...
 	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type,
-			final QName objectClass, final ResourceType resourceType, final ShadowHandler handler,
+			final QName objectClass, final ResourceType resourceType, List<ResourceAttribute> resourceAttributesFilter, final ShadowHandler handler,
 			final DiscoveryHandler discoveryHandler, final OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
@@ -493,13 +496,13 @@ public class ResourceTypeManager {
 		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClass,
 				ObjectTypeUtil.toShortString(resourceType));
 		
-		searchObjects(type, objectClass, resourceType, handler, discoveryHandler, true, parentResult);
+		searchObjects(type, objectClass, resourceType, resourceAttributesFilter, handler, discoveryHandler, true, parentResult);
 
 	
 	}
 
 	private <T extends ResourceObjectShadowType> void searchObjects(final Class<T> type, QName objectClass,
-			final ResourceType resourceType, final ShadowHandler handler,
+			final ResourceType resourceType, List<ResourceAttribute> resourceAttributesFilter, final ShadowHandler handler,
 			final DiscoveryHandler discoveryHandler, final boolean readFromRepository,
 			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException {
@@ -555,13 +558,17 @@ public class ResourceTypeManager {
 							// the reality (resource)
 
 							try {
+								
+								
 								ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(
 										resourceShadowType, resourceType);
 								String oid = getRepositoryService().addObject(repoShadow.asPrismObject(),
 										parentResult);
-
+								
 								resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType,
-										repoShadow, resourceType, parentResult);
+										null, resourceType, parentResult);
+
+								
 								resultShadowType.setOid(oid);
 							} catch (ObjectAlreadyExistsException e) {
 								// This should not happen. We haven't supplied
@@ -601,8 +608,20 @@ public class ResourceTypeManager {
 		};
 
 		try {
+			//TODO: refactor
+			QueryType query = null;
+			if (resourceAttributesFilter != null){
+				if (resourceAttributesFilter.size() > 1){
+					throw new UnsupportedOperationException("Now it is only supported to search accounts according to only one shadow attribute.");
+				}
+				
+				if (!resourceAttributesFilter.isEmpty()){
+					Element filter = QueryUtil.createEqualFilter(DOMUtil.getDocument(), null, resourceAttributesFilter.get(0).getName(), (String) resourceAttributesFilter.get(0).getRealValue());
+					query = QueryUtil.createQuery(filter);
+				}
+			}
 
-			connector.search(type, objectClassDef, resultHandler, parentResult);
+			connector.search(type, objectClassDef, query, resultHandler, parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new CommunicationException("Generic error in the connector: " + e.getMessage(), e);

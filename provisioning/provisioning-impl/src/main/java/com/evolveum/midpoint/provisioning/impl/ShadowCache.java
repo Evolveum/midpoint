@@ -280,6 +280,7 @@ public class ShadowCache {
 				parentResult.recordFatalError("Error without a handler. Reason: " + ex.getMessage(), ex);
 				throw new SystemException(ex.getMessage(), ex);
 			}
+			return shadow.getOid();
 		}
 		// } catch (CommunicationException ex) {
 		// parentResult.recordFatalError("Error communicating with connector. Reason: "

@@ -21,6 +21,16 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -28,24 +38,20 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.impl.ShadowConverter;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -55,17 +61,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 
 public class ShadowCacheUtil {
 
@@ -84,7 +79,8 @@ public class ShadowCacheUtil {
 
 		// If there is no repo shadow, use resource shadow instead
 		if (repoShadow == null) {
-			repoShadow = resourceShadow;
+			PrismObject<T> repoPrism = resourceShadow.asPrismObject().clone();
+			repoShadow = repoPrism.asObjectable();
 		}
 		ResourceAttributeContainer resourceAttributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(resourceShadow);
@@ -106,7 +102,7 @@ public class ShadowCacheUtil {
 		if (repoShadow != resourceShadow) {
 			repoAttributesContainer.getValue().clear();
 			for (ResourceAttribute resourceAttribute : resourceAttributesContainer.getAttributes()) {
-				repoAttributesContainer.getValue().add(resourceAttribute);
+				repoAttributesContainer.add(resourceAttribute);
 			}
 		}
 
@@ -131,6 +127,8 @@ public class ShadowCacheUtil {
 			repoAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
 		}
 
+		repoShadow.asPrismObject().checkConsistence();
+		
 		return repoShadow;
 	}
 
@@ -350,7 +348,7 @@ public class ShadowCacheUtil {
 		return false;
 	}
 
-	private static String determineShadowName(ResourceObjectShadowType shadow) throws SchemaException {
+	public static String determineShadowName(ResourceObjectShadowType shadow) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(shadow);
 		if (attributesContainer.getNamingAttribute() == null) {
@@ -368,6 +366,8 @@ public class ShadowCacheUtil {
 						return (String) value.getValue();
 					}
 				}
+			} else{
+				return attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME).getValue(String.class).getValue();
 			}
 			// Identifier is not usable as name
 			// TODO: better identification of a problem
@@ -380,16 +380,19 @@ public class ShadowCacheUtil {
 	/**
 	 * Create a copy of a shadow that is suitable for repository storage.
 	 */
-	public static ResourceObjectShadowType createRepositoryShadow(ResourceObjectShadowType shadowType,
+	public static <T extends ResourceObjectShadowType> T createRepositoryShadow(T shadowType,
 			ResourceType resource) throws SchemaException {
 
-		PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
+		PrismObject<T> shadow = shadowType.asPrismObject();
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(shadow);
-		PrismObject<ResourceObjectShadowType> repoShadow = shadow.clone();
+
+		PrismObject<T> repoShadow = shadow.clone();
 		ResourceAttributeContainer repoAttributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(repoShadow);
 
+
+		
 		// Clean all repoShadow attributes and add only those that should be
 		// there
 		repoAttributesContainer.getValue().clear();
@@ -397,25 +400,42 @@ public class ShadowCacheUtil {
 		for (PrismProperty p : identifiers) {
 			repoAttributesContainer.getValue().add(p);
 		}
+		
+		
 
 		// We don't want to store credentials in the repo
-		ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+		T repoShadowType = repoShadow.asObjectable();
 		if (repoShadowType instanceof AccountShadowType) {
 			((AccountShadowType) repoShadowType).setCredentials(null);
 
 		}
+		
 
 		// additional check if the shadow doesn't contain resource, if yes,
 		// convert to the resource reference.
 		if (repoShadowType.getResource() != null) {
 			repoShadowType.setResource(null);
 			repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
-			
+		}
+		
+		
+		
+		//if shadow does not contain resource or resource reference, create it now
+		if (repoShadowType.getResourceRef() == null){
+			repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
 		}
 
+		
+		
 		if (repoShadowType.getName() == null) {
 			repoShadowType.setName(determineShadowName(shadowType));
 		}
+		
+		if (repoShadowType.getObjectClass() == null){
+			repoShadowType.setObjectClass(attributesContainer.getDefinition().getTypeName());
+		}
+		
+		
 
 		return repoShadowType;
 	}
