@@ -71,9 +71,9 @@ public class Accordion extends Border {
 
     private int getMultipleSelect() {
         if (multipleSelect) {
-            return 1;
+            return 0;
         }
-        return 0;
+        return -1;
     }
 
     public int getOpenedPanel() {
