@@ -43,6 +43,7 @@ public class PageAdminResources extends PageAdmin {
 
         items.add(new BottomMenuItem("pageAdminResources.listResources", PageResources.class));
         items.add(new BottomMenuItem("pageAdminResources.newResource", PageUser.class));
+        items.add(new BottomMenuItem("pageAdminResources.detailsResource", PageResourceDetails.class));
 
         return items;
     }
