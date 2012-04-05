@@ -24,6 +24,9 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.option.OptionContent;
+import com.evolveum.midpoint.web.component.option.OptionItem;
+import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
@@ -32,6 +35,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,7 +85,16 @@ public class PageTasks extends PageAdminTasks {
 //        columns.add(new PropertyColumn(createStringResource("pageTasks.currentRunTime"), "value.exclusivity"));
         columns.add(new PropertyColumn(createStringResource("pageTasks.scheduledToRunAgain"), "value.nextRunStartTime"));
 
-        add(new TablePanel<TaskType>("table", TaskType.class, columns));
+
+        OptionPanel option = new OptionPanel("option", new Model<String>("main title"));
+        add(option);
+
+        OptionItem item = new OptionItem("item", new Model<String>("item title"));
+        option.getBodyContainer().add(item);
+
+        OptionContent content = new OptionContent("optionContent");
+        add(content);
+        content.getBodyContainer().add(new TablePanel<TaskType>("table", TaskType.class, columns));
     }
 
     public void taskDetailsPerformed(AjaxRequestTarget target, String oid) {

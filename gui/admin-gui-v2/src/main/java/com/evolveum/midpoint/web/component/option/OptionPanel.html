@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2012 Evolveum
   ~
@@ -20,21 +19,21 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:extend>
-    <div class="content">
-        <h1>
-            <wicket:message key="page.title"/>
-        </h1>
-
-        <div wicket:id="option">
-            <div wicket:id="item"/>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:border>
+    <div class="optionPanel">
+        <div class="optionLeftBar">
+            <span class="optionLeftBarArrow"></span>
         </div>
-        <div wicket:id="optionContent">
-            <div wicket:id="table"/>
+        <div class="optionRightBar">
+            <div class="optionContent" wicket:id="parent">
+                <h2>
+                    <span wicket:id="title"/>
+                </h2>
+                <wicket:body/>
+            </div>
         </div>
     </div>
-</wicket:extend>
-</body>
+</wicket:border>
 </html>
