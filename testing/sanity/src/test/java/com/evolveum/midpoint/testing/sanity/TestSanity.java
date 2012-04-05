@@ -255,6 +255,8 @@ public class TestSanity extends AbstractIntegrationTest {
     private static String accountGuybrushOpendjEntryUuuid = null;
     private static String originalJacksPassword;
 
+    private int lastSyncToken;
+    
     /**
      * The instance of ModelService. This is the interface that we will test.
      */
@@ -2388,8 +2390,11 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull(taskResult);
 
-        // Failure is expected here ... for now
-        // assertTrue(taskResult.isSuccess());
+         assertTrue(taskResult.isSuccess());
+         
+         final Object tokenAfter = findSyncToken(task);
+         display("Sync token after", tokenAfter.toString());
+         lastSyncToken = (Integer)tokenAfter;
 
     }
 
@@ -2413,6 +2418,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(syncCycle);
 
         final Object tokenBefore = findSyncToken(syncCycle);
+        display("Sync token before", tokenBefore.toString());
 
         // WHEN
 
@@ -2430,9 +2436,11 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertEquals(user.getName(), WILL_NAME);
 
         // TODO: more checks
+        
+        assertAndStoreSyncTokenIncrement(syncCycle, 1);
     }
 
-    // This test takes long and fails now. Will enable it back in few days when the
+	// This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
     @Test
     public void test102LiveSyncModify() throws Exception {
@@ -2449,6 +2457,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(syncCycle);
 
         final Object tokenBefore = findSyncToken(syncCycle);
+        display("Sync token before", tokenBefore.toString());
 
         // WHEN
         ModifyOperation modifyOperation = openDJController.getInternalConnection()
@@ -2465,6 +2474,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
         AssertJUnit.assertEquals(WILL_NAME, user.getName());
         AssertJUnit.assertEquals("asdf", user.getGivenName());
+        
+        assertAndStoreSyncTokenIncrement(syncCycle, 4);
     }
 
     // This test takes long and fails now. Will enable it back in few days when the
@@ -2500,6 +2511,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(syncCycle);
 
         final Object tokenBefore = findSyncToken(syncCycle);
+        display("Sync token before", tokenBefore.toString());
 
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_E_FILENAME_LINK);
         display("Entry from LDIF", entry);
@@ -2519,14 +2531,14 @@ public class TestSanity extends AbstractIntegrationTest {
         AccountShadowType account = searchAccountByOid(accountOid);
 
         assertEquals("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
+        
+        assertAndStoreSyncTokenIncrement(syncCycle, 1);
     }
 
     /**
      * Create LDAP object. That should be picked up by liveSync and a user
      * should be created in repo.
      * Also location (ldap l) should be updated through outbound
-     *
-     * @throws Exception
      */
     // This test takes long and fails now. Will enable it back in few days when the
     // basic sanity things will be fixed
@@ -2542,6 +2554,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(syncCycle);
 
         final Object tokenBefore = findSyncToken(syncCycle);
+        display("Sync token before", tokenBefore.toString());
 
         // WHEN
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_WITHOUT_LOCATION_FILENAME);
@@ -2551,8 +2564,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Wait a bit to give the sync cycle time to detect the change
         basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result, 60000);
         // Search for the user that should be created now
-        final String USER_NAME = "wturner1";
-        UserType user = searchUserByName(USER_NAME);
+        final String userName = "wturner1";
+        UserType user = searchUserByName(userName);
 
         List<ObjectReferenceType> accountRefs = user.getAccountRef();
         assertEquals("Account ref not found, or found too many", 1, accountRefs.size());
@@ -2561,13 +2574,24 @@ public class TestSanity extends AbstractIntegrationTest {
         String accountOid = accountRefs.get(0).getOid();
         AccountShadowType account = searchAccountByOid(accountOid);
 
-        assertEquals("Name doesn't match", "uid=" + USER_NAME + ",ou=People,dc=example,dc=com", account.getName());
+        assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
         Collection<String> localities = getAttributeValues(account, new QName(IMPORT_OBJECTCLASS.getNamespaceURI(), "l"));
         assertNotNull(localities);
         assertEquals(1, localities.size());
         assertEquals("Locality doesn't match", "middle of nowhere", localities.iterator().next());
+        
+        assertAndStoreSyncTokenIncrement(syncCycle, 1);
     }
 
+	private void assertAndStoreSyncTokenIncrement(Task syncCycle, int increment) {
+        final Object tokenAfter = findSyncToken(syncCycle);
+        display("Sync token after", tokenAfter.toString());
+        int tokenAfterInt = (Integer)tokenAfter;
+        int expectedToken = lastSyncToken + increment;
+        lastSyncToken = tokenAfterInt;
+        assertEquals("Unexpected sync toke value", expectedToken, tokenAfterInt);
+	}
+    
     private Object findSyncToken(Task syncCycle) {
         Object token = null;
         PrismProperty<?> tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);

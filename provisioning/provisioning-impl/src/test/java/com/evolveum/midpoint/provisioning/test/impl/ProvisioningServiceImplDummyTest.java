@@ -56,6 +56,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -879,11 +880,19 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
 		
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+		
 //		assertNull("Old shadow present when not expecting it", lastChange.getOldShadow());
 		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
 		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
 		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
 		assertTrue("Wrong type of current shadow: "+ currentShadowType.getClass().getName(), currentShadowType instanceof AccountShadowType);
+		
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
+		assertNotNull("No attributes container in current shadow", attributesContainer);
+		Set<ResourceAttribute> attributes = attributesContainer.getAttributes();
+		assertFalse("Attributes container is empty", attributes.isEmpty());
+		assertEquals("Unexpected number of attributes", 3, attributes.size());
 		
 	}
 	

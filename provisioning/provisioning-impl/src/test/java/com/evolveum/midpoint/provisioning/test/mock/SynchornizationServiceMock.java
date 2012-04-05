@@ -32,6 +32,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 
 	private int callCount = 0;
 	private ResourceObjectShadowChangeDescription lastChange = null;
+	private ChangeChecker changeChecker;
 
 	@Autowired(required=true)
 	ChangeNotificationDispatcher notificationManager;
@@ -46,6 +47,14 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 	@PreDestroy
 	public void unregisterForResourceObjectChangeNotifications() {
 		notificationManager.unregisterNotificationListener(this);
+	}
+	
+	public ChangeChecker getChangeChecker() {
+		return changeChecker;
+	}
+
+	public void setChangeChecker(ChangeChecker changeChecker) {
+		this.changeChecker = changeChecker;
 	}
 
 	@Override
@@ -105,6 +114,10 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 		}
 		if (change.getObjectDelta() != null) {
 			assertNotNull("Delta has null OID", change.getObjectDelta().getOid());
+		}
+		
+		if (changeChecker != null) {
+			changeChecker.check(change);
 		}
 
 		// remember ...
