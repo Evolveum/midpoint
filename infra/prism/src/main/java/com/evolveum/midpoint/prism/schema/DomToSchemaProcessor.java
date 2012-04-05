@@ -396,6 +396,7 @@ class DomToSchemaProcessor {
 							complexTypeDefinition, containerAnnotation, false);
 					if (isAny(xsType)) {
 						containerDefinition.setRuntimeSchema(true);
+						containerDefinition.setDynamic(true);
 					}
 					ctd.getDefinitions().add(containerDefinition);
 										

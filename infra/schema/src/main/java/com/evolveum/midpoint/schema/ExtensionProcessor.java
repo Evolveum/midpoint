@@ -95,6 +95,7 @@ public class ExtensionProcessor {
 	public static PrismContainer createEmptyExtensionContainer(PrismContext prismContext) {
 		PrismContainerDefinition pcd = new PrismContainerDefinition(SchemaConstants.C_EXTENSION, null, prismContext);
 		pcd.setRuntimeSchema(true);
+		pcd.setDynamic(true);
 		return pcd.instantiate(SchemaConstants.C_EXTENSION);
 	}
 

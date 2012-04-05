@@ -153,6 +153,12 @@ public class TestSchemaSanity {
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, DOMUtil.XSD_STRING, 1, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAMES, DOMUtil.XSD_STRING, 0, -1);
 		assertFalse("User definition is marked as runtime", userDefinition.isRuntimeSchema());
+		
+		PrismContainerDefinition extensionContainer = userDefinition.findContainerDefinition(UserType.F_EXTENSION);
+		PrismAsserts.assertDefinition(extensionContainer, UserType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
+		assertTrue("Extension is NOT runtime", extensionContainer.isRuntimeSchema());
+		assertTrue("Extension is NOT dynamic", extensionContainer.isDynamic());
+		assertEquals("Extension size", 0, extensionContainer.getDefinitions().size());
 
 		PrismContainerDefinition activationContainer = userDefinition.findContainerDefinition(UserType.F_ACTIVATION);
 		PrismAsserts.assertDefinition(activationContainer, UserType.F_ACTIVATION, ActivationType.COMPLEX_TYPE, 0, 1);
@@ -243,6 +249,7 @@ public class TestSchemaSanity {
 		PrismContainerDefinition configurationPropertiesContainerDef = icfSchema.findContainerDefinitionByElementName(ICFC_CONFIGURATION_PROPERTIES);
 		PrismAsserts.assertDefinition(configurationPropertiesContainerDef, ICFC_CONFIGURATION_PROPERTIES, ICFC_CONFIGURATION_PROPERTIES_TYPE, 0, 1);
 		assertTrue("configurationPropertiesContainer definition is NOT marked as runtime", configurationPropertiesContainerDef.isRuntimeSchema());
+		assertTrue("configurationPropertiesContainer definition is NOT marked as dynamic", configurationPropertiesContainerDef.isDynamic());
 		
 	}
 	

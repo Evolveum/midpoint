@@ -29,16 +29,19 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -91,7 +94,7 @@ public class DomSerializer {
 	}
 	
 	private void serialize(PrismObject<?> object, Element topElement) throws SchemaException {
-		serializeItems(object.getValue().getItems(), topElement);
+		serializeItems(object.getValue().getItems(), object.getDefinition(), topElement);
 		if (object.getOid() != null) {
 			topElement.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, object.getOid());
 		}
@@ -112,17 +115,17 @@ public class DomSerializer {
     public Element serializeContainerValue(PrismContainerValue<?> value, Element parentElement) throws SchemaException {
         initialize();
         doc = parentElement.getOwnerDocument();
-
+        
         serialize(value, parentElement);
         return parentElement;
     }
 
 	private void serialize(PrismContainerValue<?> value, Element parentElement) throws SchemaException {
-		PrismContainerable parent = value.getParent();
+		PrismContainerable<?> parent = value.getParent();
 		QName elementQName = parent.getName();
 		Element element = createElement(elementQName);
 		parentElement.appendChild(element);
-		serializeItems(value.getItems(), element);
+		serializeItems(value.getItems(), parent.getDefinition(), element);
 		if (value.getId() != null) {
 			element.setAttribute(PrismConstants.ATTRIBUTE_ID_LOCAL_NAME, value.getId());
 		}
@@ -252,21 +255,76 @@ public class DomSerializer {
 		serialize(value.getObject(), compositeObjectElementName, parentElement);
 	}
 
-	private void serializeItems(List<Item<?>> items, Element parentElement) throws SchemaException {
+	private void serializeItems(List<Item<?>> items, PrismContainerDefinition definition, Element parentElement) throws SchemaException {
+		if (definition != null && !definition.isDynamic()) {
+			ComplexTypeDefinition complexTypeDefinition = definition.getComplexTypeDefinition();
+			if (complexTypeDefinition != null) {
+				serializeItemsUsingDefinition(items, complexTypeDefinition, parentElement);
+				return;
+			}
+		}
+		// We have no choice here. Just follow the "natural" order of items
 		for (Item<?> item: items) {
 			serialize(item, parentElement);
 		}
+
+	}
+	
+	private void serializeItemsUsingDefinition(List<Item<?>> items, ComplexTypeDefinition definition, Element parentElement) throws SchemaException {
+		for (ItemDefinition itemDef: definition.getDefinitions()) {
+			Item<?> item = findItem(items, itemDef);
+			if (item != null) {
+				serialize(item, parentElement);
+			}
+		}
+	}
+
+	private Item<?> findItem(List<Item<?>> items, ItemDefinition itemDef) {
+		QName itemName = itemDef.getName();
+		for (Item<?> item: items) {
+			if (itemName.equals(item.getName())) {
+				return item;
+			}
+		}
+		return null;
 	}
 
 	<V extends PrismValue> void serialize(Item<V> item, Element parentElement) throws SchemaException {
-		for (V pval: item.getValues()) {
+		// special handling for reference values (account vs accountRef). 
+		if (item instanceof PrismReference) {
+			serialize((PrismReference)item, parentElement);
+		} else {
+			for (V pval: item.getValues()) {
+				if (!item.equals(pval.getParent())) {
+					throw new IllegalArgumentException("The parent for value "+pval+" of item "+item+" is incorrect");
+				}
+				serialize(pval, parentElement);
+			}
+		}
+	}
+	
+	private void serialize(PrismReference item, Element parentElement) throws SchemaException {
+		// Composite objects first, references second
+		for (PrismReferenceValue pval: item.getValues()) {
+			if (pval.getObject() == null) {
+				continue;
+			}
+			if (!item.equals(pval.getParent())) {
+				throw new IllegalArgumentException("The parent for value "+pval+" of item "+item+" is incorrect");
+			}
+			serialize(pval, parentElement);
+		}
+		for (PrismReferenceValue pval: item.getValues()) {
+			if (pval.getObject() != null) {
+				continue;
+			}
 			if (!item.equals(pval.getParent())) {
 				throw new IllegalArgumentException("The parent for value "+pval+" of item "+item+" is incorrect");
 			}
 			serialize(pval, parentElement);
 		}
 	}
-	
+
 	void serialize(PrismValue pval, Element parentElement) throws SchemaException {
 		if (doc == null) {
 			doc = parentElement.getOwnerDocument();

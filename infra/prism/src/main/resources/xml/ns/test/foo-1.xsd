@@ -114,17 +114,17 @@
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>
                     <!-- Single-valued container -->
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
-                    <xsd:element name="accountRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                    	<xsd:annotation>
-                    		<xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:AccountType</a:objectReferenceTargetType>
-                    		</xsd:appinfo>
-                    	</xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="account" type="tns:AccountType" minOccurs="0" maxOccurs="unbounded">
                     	<xsd:annotation>
                     		<xsd:appinfo>
                     			<a:objectReference>tns:accountRef</a:objectReference>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="accountRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:AccountType</a:objectReferenceTargetType>
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>

@@ -37,6 +37,9 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -161,6 +164,8 @@ public class TestPrismParsing {
 		System.out.println(userXml);
 		assertNotNull(userXml);
 		
+		validateXml(userXml, prismContext);
+		
 		// WHEN
 		PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
 		System.out.println("Re-parsed user:");
@@ -238,6 +243,8 @@ public class TestPrismParsing {
 		System.out.println("Serialized user:");
 		System.out.println(userXml);
 		assertNotNull(userXml);
+		
+		validateXml(userXml, prismContext);
 		
 		// WHEN
 		PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
@@ -392,6 +399,14 @@ public class TestPrismParsing {
 		};
 		user.accept(visitor);
 		assertEquals("Wrong number of visits", expectedVisits, visits.size());
+	}
+	
+	private void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
+		Document xmlDocument = DOMUtil.parseDocument(xmlString);
+		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
+		Validator validator = javaxSchema.newValidator();
+		validator.setResourceResolver(prismContext.getSchemaRegistry());
+		validator.validate(new DOMSource(xmlDocument));
 	}
 	
 	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,

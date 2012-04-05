@@ -253,6 +253,8 @@ public class TestParseGenericObject {
 				
 		PrismContainer<?> extensionContainer = generic.findContainer(GenericObjectType.F_EXTENSION);
 		assertContainerDefinition(extensionContainer, "extension", ExtensionType.COMPLEX_TYPE, 0, 1);
+		PrismContainerDefinition<?> extensionContainerDefinition = extensionContainer.getDefinition();
+		assertTrue("Extension container definition is NOT dynamic", extensionContainerDefinition.isDynamic());
 		PrismContainerValue<?> extensionContainerValue = extensionContainer.getValue();
 		List<Item<?>> extensionItems = extensionContainerValue.getItems();
 		assertEquals("Wrong number of extension items", 6, extensionItems.size());
