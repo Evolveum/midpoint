@@ -97,5 +97,11 @@ public final class Change {
 	public void setCurrentShadow(PrismObject<? extends ResourceObjectShadowType> currentShadow) {
 		this.currentShadow = currentShadow;
 	}
+
+	@Override
+	public String toString() {
+		return "Change(identifiers=" + identifiers + ", objectDelta=" + objectDelta + ", token=" + token
+				+ ", oldShadow=" + oldShadow + ", currentShadow=" + currentShadow + ")";
+	}
 	
 }

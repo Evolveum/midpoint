@@ -2568,7 +2568,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals(1, localities.size());
         assertEquals("Locality doesn't match", "middle of nowhere", localities.iterator().next());
         
-        assertAndStoreSyncTokenIncrement(syncCycle, 1);
+        assertAndStoreSyncTokenIncrement(syncCycle, 3);
     }
 
 	private void assertAndStoreSyncTokenIncrement(Task syncCycle, int increment) {

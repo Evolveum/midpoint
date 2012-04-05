@@ -407,6 +407,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			LOGGER.trace("Calling shadow cache to fetch changes.");
 			changes = getShadowCache().fetchChanges(resourceType, tokenProperty, result);
+			LOGGER.trace("Changes returned to ProvisioningServiceImpl:\n{}", changes);
 
 			// for each change from the connector create change description
 			for (Change change : changes) {

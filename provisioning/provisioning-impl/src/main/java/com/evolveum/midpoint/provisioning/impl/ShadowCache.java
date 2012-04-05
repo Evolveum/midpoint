@@ -533,9 +533,9 @@ public class ShadowCache {
 					change.setOldShadow(null);
 					continue;
 				}
-
+				
 				change.setOldShadow(newShadow.asPrismObject());
-
+				
 				// FIXME: hack. make sure that the current shadow has OID
 				// and resource ref, also the account type should be set
 				if (change.getCurrentShadow() != null) {
@@ -550,6 +550,7 @@ public class ShadowCache {
 						}
 					}
 				}
+				
 				// FIXME: hack. the object delta must have oid specified.
 				if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
 					if (newShadow instanceof AccountShadowType) {
@@ -564,7 +565,7 @@ public class ShadowCache {
 				// .recordPartialError("Couldn't find object defined in change. Skipping processing this change.");
 				// i.remove();
 				// }
-
+				
 			}
 
 		} catch (SchemaException ex) {

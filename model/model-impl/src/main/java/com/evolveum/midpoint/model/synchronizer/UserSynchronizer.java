@@ -289,11 +289,15 @@ public class UserSynchronizer {
 	            // Fetching from repository instead of provisioning so we avoid reading in a full account
 	            account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
         	}
-        	AccountSyncContext accountSyncContext = getOrCreateAccountContext(context, account, result);  
-        	accountSyncContext.setAccountOld(account);
-            if (accountSyncContext.getPolicyDecision() == null) {
+        	AccountSyncContext accountSyncContext = getOrCreateAccountContext(context, account, result);
+        	if (accountSyncContext.getPolicyDecision() == null) {
                 accountSyncContext.setPolicyDecision(policyDecision);
             }
+        	if (accountSyncContext.isDoReconciliation()) {
+				// Do not load old account now. It will get loaded later in the reconciliation step.
+				continue;
+			}
+        	accountSyncContext.setAccountOld(account);
             if (context.isDoReconciliationForAllAccounts()) {
                 accountSyncContext.setDoReconciliation(true);
             }
@@ -427,6 +431,10 @@ public class UserSynchronizer {
 				// already loaded
 				continue;
 			}
+			if (accountCtx.isDoReconciliation()) {
+				// Do not load old account now. It will get loaded later in the reconciliation step.
+				continue;
+			}
 			ObjectDelta<AccountShadowType> syncDelta = accountCtx.getAccountSyncDelta();
 			if (syncDelta != null) {
 				String oid = syncDelta.getOid();
@@ -435,10 +443,6 @@ public class UserSynchronizer {
 					account = syncDelta.getObjectToAdd().clone();
 					accountCtx.setAccountOld(account);
 				} else {
-					if (accountCtx.isDoReconciliation()) {
-						// Do not load old account now. It will get loaded later in the reconciliation step.
-						continue;
-					}
 					if (oid == null) {
 						throw new IllegalArgumentException("No OID in sync delta in "+accountCtx);
 					}
