@@ -12,7 +12,8 @@ import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -34,9 +35,9 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        List<IColumn<TaskType>> columns = new ArrayList<IColumn<TaskType>>();
+        List<IColumn<? extends ObjectType>> columns = new ArrayList<IColumn<? extends ObjectType>>();
 
-        IColumn column = new CheckBoxColumn<TaskType>() {
+        IColumn column = new CheckBoxColumn<ObjectType>() {
 
             @Override
             public void onUpdateHeader(AjaxRequestTarget target) {
@@ -44,29 +45,29 @@ public class PageDebugList extends PageAdminConfiguration {
             }
 
             @Override
-            public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<TaskType>> rowModel) {
+            public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<ObjectType>> rowModel) {
                 //todo implement
             }
         };
         columns.add(column);
 
-        column = new LinkColumn<Selectable<TaskType>>(createStringResource("pageDebugList.name"), "name", "value.name") {
+        column = new LinkColumn<Selectable<? extends ObjectType>>(createStringResource("pageDebugList.name"), "name", "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<Selectable<TaskType>> rowModel) {
-                TaskType role = rowModel.getObject().getValue();
-                objectEditPerformed(target, role.getOid());
+            public void onClick(AjaxRequestTarget target, IModel<Selectable<? extends ObjectType>> rowModel) {
+                ObjectType object = rowModel.getObject().getValue();
+                objectEditPerformed(target, object.getOid());
             }
         };
         columns.add(column);
 
-        column = new ButtonColumn<Selectable<TaskType>>(createStringResource("pageDebugList.operation"),
+        column = new ButtonColumn<Selectable<? extends ObjectType>>(createStringResource("pageDebugList.operation"),
                 createStringResource("pageDebugList.button.delete")) {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<Selectable<TaskType>> rowModel) {
-                TaskType role = rowModel.getObject().getValue();
-                deletePerformed(target, role.getOid());
+            public void onClick(AjaxRequestTarget target, IModel<Selectable<? extends ObjectType>> rowModel) {
+                ObjectType object = rowModel.getObject().getValue();
+                deletePerformed(target, object.getOid());
             }
         };
         columns.add(column);
@@ -83,7 +84,9 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OptionContent content = new OptionContent("optionContent");
         main.add(content);
-        content.getBodyContainer().add(new TablePanel<TaskType>("table", TaskType.class, columns));
+        TablePanel table = new TablePanel("table", UserType.class, columns);
+        table.setOutputMarkupId(true);
+        content.getBodyContainer().add(table);
 
         AjaxLinkButton button = new AjaxLinkButton("deleteAll",
                 createStringResource("pageDebugList.button.deleteAll")) {
@@ -111,17 +114,22 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
 
-        ListChoice choice = new ListChoice("choice", new Model(), createChoiceModel(renderer), renderer);
-        choice.setMaxRows(5);
+        final IModel<ObjectTypes> choice = new Model<ObjectTypes>();
+        ListChoice listChoice = new ListChoice("choice", choice, createChoiceModel(renderer), renderer, 5) {
 
-        item.getBodyContainer().add(choice);
+            @Override
+            protected CharSequence getDefaultChoice(String selectedValue) {
+                return "";
+            }
+        };
+        item.getBodyContainer().add(listChoice);
 
         AjaxLinkButton button = new AjaxLinkButton("listButton",
                 createStringResource("pageDebugList.button.listObjects")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                listObjectsPerformed(target);
+                listObjectsPerformed(target, choice);
             }
         };
         item.getBodyContainer().add(button);
@@ -148,13 +156,20 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
     }
-    
+
     private void deleteAllPerformed(AjaxRequestTarget target) {
         //todo implement
     }
 
-    private void listObjectsPerformed(AjaxRequestTarget target) {
-        //todo implement
+    private void listObjectsPerformed(AjaxRequestTarget target, IModel<ObjectTypes> selected) {
+        OptionContent content = (OptionContent) get("mainForm:optionContent");
+        TablePanel table = (TablePanel) content.getBodyContainer().get("table");
+
+        ObjectTypes type = selected.getObject();
+        if (type != null) {
+            table.setType(type.getClassDefinition());
+        }
+//        target.add(table);
     }
 
     private void objectEditPerformed(AjaxRequestTarget target, String oid) {

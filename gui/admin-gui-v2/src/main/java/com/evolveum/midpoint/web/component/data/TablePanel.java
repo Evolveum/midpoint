@@ -34,8 +34,6 @@ import java.util.List;
  */
 public class TablePanel<T> extends Panel {
 
-    private Class<T> type;
-
     public TablePanel(String id, Class<T> type, List<IColumn<T>> columns) {
         this(id, type, columns, 10);
     }
@@ -44,12 +42,11 @@ public class TablePanel<T> extends Panel {
         super(id);
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
-        this.type = type;
 
-        initLayout(columns, itemsPerPage);
+        initLayout(columns, itemsPerPage, type);
     }
 
-    private void initLayout(List<IColumn<T>> columns, int itemsPerPage) {
+    private void initLayout(List<IColumn<T>> columns, int itemsPerPage, Class<T> type) {
         ISortableDataProvider provider = new ObjectDataProvider(type);
         DataTable<T> table = new DataTable<T>("table", columns, provider, itemsPerPage);
         table.addTopToolbar(new TableHeadersToolbar(table, provider));
@@ -57,5 +54,11 @@ public class TablePanel<T> extends Panel {
         add(table);
         add(new NavigatorPanel("navigatorTop", table));
         add(new NavigatorPanel("navigatorBottom", table));
+    }
+
+    public void setType(Class<T> type) {
+        DataTable table = (DataTable) get("table");
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setType(type);
     }
 }

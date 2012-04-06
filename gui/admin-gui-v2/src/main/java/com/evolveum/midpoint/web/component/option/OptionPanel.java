@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.component.option;
 
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.border.Border;
@@ -40,12 +39,5 @@ public class OptionPanel extends Border {
         addToBorder(parent);
 
         parent.add(new Label("title", title));
-
-        WebMarkupContainer content = new WebMarkupContainer("content");
-        parent.add(content);
-    }
-
-    public MarkupContainer getContent() {
-        return (MarkupContainer) get("content");
     }
 }

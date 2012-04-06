@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.markup.html.WebPage;
@@ -83,6 +84,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         getMarkupSettings().setStripWicketTags(true);
         getResourceSettings().setThrowExceptionOnMissingResource(false);
+
+
+        if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
+            getDebugSettings().setAjaxDebugModeEnabled(true);
+            getDebugSettings().setDevelopmentUtilitiesEnabled(true);
+        }
 
         //pretty url
         MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();

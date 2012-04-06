@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -102,5 +103,10 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
     @Override
     public IModel<Selectable<T>> model(Selectable<T> object) {
         return new Model<Selectable<T>>(object);
+    }
+    
+    public void setType(Class<T> type) {
+        Validate.notNull(type);
+        this.type = type;
     }
 }

@@ -32,9 +32,17 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenu;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Application;
+import org.apache.wicket.Page;
+import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.devutils.debugbar.DebugBar;
+import org.apache.wicket.devutils.debugbar.StandardDebugPanel;
+import org.apache.wicket.devutils.diskstore.DebugPageManagerProvider;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import java.util.List;
@@ -53,6 +61,9 @@ public abstract class PageBase extends WebPage {
         Injector.get().inject(this);
         validateInjection(modelService, "Model service was not injected.");
         validateInjection(cacheRepositoryService, "Cache repository service was not injected.");
+
+        DebugBar debugPanel = new DebugBar("debugPanel");
+        add(debugPanel);
 
         List<TopMenuItem> topMenuItems = getTopMenuItems();
         Validate.notNull(topMenuItems, "Top menu item list must not be null.");
