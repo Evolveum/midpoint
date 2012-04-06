@@ -20,7 +20,13 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import java.text.ParseException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,12 +39,13 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.quartz.JobDetail;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.UnableToInterruptJobException;
 import org.quartz.impl.StdSchedulerFactory;
@@ -148,11 +155,35 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 		// TODO: take some of the properties from midpoint configuration 
 		Properties qprops = new Properties();
-		
-		if (jdbcJobStore)
+
+        if (jdbcJobStore && !(repositoryService instanceof SqlRepositoryServiceImpl)) {
+            throw new SystemException("It is not possible to use JDBC Quartz job store without SQL repository.");
+        }
+
+        SqlRepositoryConfiguration sqlConfig = null;
+
+        if (jdbcJobStore) {
+
+//          SqlRepositoryServiceImpl sqlrepo = (SqlRepositoryServiceImpl) repositoryService;
+            SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) beanFactory.getBean("sqlRepositoryFactory");
+            if (sqlRepositoryFactory == null) {
+                throw new SystemException("Cannot initialize quartz task manager, because sqlRepositoryFactory is not available.");
+            }
+
 			qprops.put("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
-		else
+            qprops.put("org.quartz.jobStore.driverDelegateClass", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+            qprops.put("org.quartz.jobStore.dataSource", "myDS");
+
+            sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
+
+            qprops.put("org.quartz.dataSource.myDS.driver", sqlConfig.getDriverClassName());
+            qprops.put("org.quartz.dataSource.myDS.URL", sqlConfig.getJdbcUrl());
+            qprops.put("org.quartz.dataSource.myDS.user", sqlConfig.getJdbcUsername());
+            qprops.put("org.quartz.dataSource.myDS.password", sqlConfig.getJdbcPassword());
+
+        } else {
 			qprops.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
+        }
 		qprops.put("org.quartz.scheduler.instanceName", "midPointScheduler");
 		qprops.put("org.quartz.scheduler.instanceId", "AUTO");
 		qprops.put("org.quartz.scheduler.skipUpdateCheck", "true");
@@ -168,12 +199,22 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 		
 		if (reusableQuartzScheduler) {
-			LOGGER.info("ReusableQuartzScheduer is set: the task manager threads will NOT be stopped on shutdown. Also, scheduler threads will run as daemon ones.");
+			LOGGER.info("ReusableQuartzScheduler is set: the task manager threads will NOT be stopped on shutdown. Also, scheduler threads will run as daemon ones.");
 			qprops.put("org.quartz.scheduler.makeSchedulerThreadDaemon", "true");
 			qprops.put("org.quartz.threadPool.makeThreadsDaemons", "true");
 		}
 		
 		try {
+            LOGGER.trace("Quartz scheduler properties: {}", qprops);
+
+            if (jdbcJobStore) {
+                try {
+                    createQuartzDbSchema(sqlConfig);
+                } catch (SQLException e) {
+                    throw new SystemException("Could not create Quartz database schema", e);
+                }
+            }
+
 			sf.initialize(qprops);
 			quartzScheduler = sf.getScheduler();
 			quartzScheduler.startDelayed(START_DELAY_TIME);
@@ -189,9 +230,48 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		
 		LOGGER.info("Task Manager initialized");
 	}
-	
-	
-	// imports Quartz jobs, reading them from repository 
+
+    private void createQuartzDbSchema(SqlRepositoryConfiguration sqlConfig) throws SQLException {
+        try {
+            Class.forName(sqlConfig.getDriverClassName());
+        } catch (ClassNotFoundException e) {
+            throw new SystemException("Could not locate database driver class", e);
+        }
+        Connection connection = DriverManager.getConnection(sqlConfig.getJdbcUrl(), sqlConfig.getJdbcUsername(), sqlConfig.getJdbcPassword());
+        try {
+            try {
+                connection.prepareStatement("SELECT count(*) FROM qrtz_job_details").executeQuery().close();
+            } catch (SQLException ignored) {
+                try {
+                    connection.prepareStatement(getResource("tables_h2.sql")).executeUpdate();
+                } catch (IOException ex) {
+                    throw new SystemException("Could not read Quartz database schema file", ex);
+                }
+            }
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException ignored) {
+            }
+        }
+    }
+
+    private String getResource(String name) throws IOException {
+        InputStream stream = getClass().getResourceAsStream(name);
+        if (stream == null) {
+            throw new SystemException("Cannot initialize Quartz task manager, because its DB schema (" + name + ") cannot be found.");
+        }
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+        StringBuffer sb = new StringBuffer();
+        int i;
+        while ((i = br.read()) != -1) {
+            sb.append((char) i);
+        }
+        return sb.toString();
+    }
+
+
+    // imports Quartz jobs, reading them from repository
 	private void importQuartzJobs() {
 		
 		OperationResult result = createOperationResult("importQuartzJobs");
