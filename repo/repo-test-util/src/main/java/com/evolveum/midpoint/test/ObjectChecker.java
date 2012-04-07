@@ -17,16 +17,14 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.provisioning.test.mock;
-
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+package com.evolveum.midpoint.test;
 
 /**
  * @author semancik
  *
  */
-public interface ChangeChecker {
+public interface ObjectChecker<T> {
 	
-	public void check(ResourceObjectShadowChangeDescription change);
+	public void check(T change);
 
 }

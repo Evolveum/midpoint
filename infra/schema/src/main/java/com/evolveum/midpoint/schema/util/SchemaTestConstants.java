@@ -35,8 +35,10 @@ public class SchemaTestConstants {
 	
 	public static final QName ICFC_CONFIGURATION_PROPERTIES = new QName(NS_ICFC, "configurationProperties");
 	public static final QName ICFC_CONFIGURATION_PROPERTIES_TYPE = new QName(NS_ICFC, "ConfigurationPropertiesType");
+	public static final String ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
 
 	public static final QName ICFS_UID = new QName(NS_ICFS, "uid");
+	public static final QName ICFS_NAME = new QName(NS_ICFS, "name");
 	
 	// Extension schema loaded at runtime from the schema/src/test/resource/schema dir
 	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";

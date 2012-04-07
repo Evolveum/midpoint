@@ -708,10 +708,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		return deltas.isEmpty();
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void diffItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, PropertyPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
 		
-		for (Item thisItem: thisValue.getItems()) {
+		for (Item<?> thisItem: thisValue.getItems()) {
 			Item otherItem = other.findItem(thisItem.getName());
 			// The "delete" delta will also result from the following diff
 			thisItem.diffInternal(otherItem, pathPrefix, deltas, ignoreMetadata);

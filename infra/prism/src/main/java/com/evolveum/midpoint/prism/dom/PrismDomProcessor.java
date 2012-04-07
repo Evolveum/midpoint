@@ -563,7 +563,7 @@ public class PrismDomProcessor {
 	}
 
 	private <T extends Containerable> ItemDefinition resolveGlobalItemDefinition(PrismContainerDefinition<T> containerDefinition,
-			List<? extends Object> valueElements) {
+			List<? extends Object> valueElements) throws SchemaException {
 		Object firstElement = valueElements.get(0);
 		QName elementQName = JAXBUtil.getElementQName(firstElement);
 		return getPrismContext().getSchemaRegistry().resolveGlobalItemDefinition(elementQName);

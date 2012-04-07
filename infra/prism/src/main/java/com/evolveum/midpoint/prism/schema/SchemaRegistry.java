@@ -750,7 +750,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	/**
 	 * Looks for a top-level definition for the specified element name (in all schemas). 
 	 */
-	public ItemDefinition resolveGlobalItemDefinition(QName elementQName) {
+	public ItemDefinition resolveGlobalItemDefinition(QName elementQName) throws SchemaException {
 		String elementNamespace = elementQName.getNamespaceURI();
 		if (elementNamespace == null) {
 			return null;
@@ -760,6 +760,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			return null;
 		}
 		ItemDefinition itemDefinition = schema.findItemDefinition(elementQName, ItemDefinition.class);
+		if (itemDefinition == null) {
+				throw new SchemaException("No definition for item "+elementQName+" (schema for the namespace is present)");
+		}
 		return itemDefinition;
 	}
 	

@@ -53,6 +53,8 @@ import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -2311,6 +2313,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Now it is the right time to add task definition to the repository
         // We don't want it there any sooner, as it may interfere with the
         // previous tests
+        
+        checkAllShadows();
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test100Synchronization");
@@ -2393,7 +2397,8 @@ public class TestSanity extends AbstractIntegrationTest {
          final Object tokenAfter = findSyncToken(task);
          display("Sync token after", tokenAfter.toString());
          lastSyncToken = (Integer)tokenAfter;
-
+         
+         checkAllShadows();
     }
 
     /**
@@ -2432,6 +2437,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // TODO: more checks
         
         assertAndStoreSyncTokenIncrement(syncCycle, 1);
+        checkAllShadows();
     }
 
     @Test
@@ -2468,6 +2474,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertEquals("asdf", user.getGivenName());
         
         assertAndStoreSyncTokenIncrement(syncCycle, 4);
+        checkAllShadows();
     }
 
     @Test
@@ -2523,6 +2530,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
         
         assertAndStoreSyncTokenIncrement(syncCycle, 1);
+        checkAllShadows();
     }
 
     /**
@@ -2569,6 +2577,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals("Locality doesn't match", "middle of nowhere", localities.iterator().next());
         
         assertAndStoreSyncTokenIncrement(syncCycle, 3);
+        checkAllShadows();
     }
 
 	private void assertAndStoreSyncTokenIncrement(Task syncCycle, int increment) {
@@ -2612,7 +2621,8 @@ public class TestSanity extends AbstractIntegrationTest {
     public void test200ImportFromResource() throws Exception {
         displayTestTile("test200ImportFromResource");
         // GIVEN
-
+        
+        checkAllShadows();
         assertCache();
 
         OperationResult result = new OperationResult(TestSanity.class.getName()
@@ -2837,6 +2847,8 @@ public class TestSanity extends AbstractIntegrationTest {
         
         // This also includes "idm" user imported from LDAP. Later we need to ignore that one.
         assertEquals("Wrong number of users after import",9,uobjects.getObject().size());
+        
+        checkAllShadows();
     }
 
     @Test
@@ -2996,7 +3008,7 @@ public class TestSanity extends AbstractIntegrationTest {
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", guybrushPassword);
 
-
+        checkAllShadows();
     }
 
     @Test
@@ -3252,7 +3264,7 @@ public class TestSanity extends AbstractIntegrationTest {
         String elainePassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Password of Elaine has disappeared", elainePassword);
 
-
+        checkAllShadows();
     }
 
 
@@ -3401,5 +3413,10 @@ public class TestSanity extends AbstractIntegrationTest {
         assertNotNull("assignmentPolicyEnforcement is null", assignmentPolicyEnforcement);
         assertEquals("Assignment policy mismatch", assignmentPolicy, assignmentPolicyEnforcement);
     }
+    
+    private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		ObjectChecker<AccountShadowType> checker = null;
+		IntegrationTestTools.checkAllShadows(resourceTypeOpenDjrepo, repositoryService, checker, prismContext);		
+	}	
 
 }

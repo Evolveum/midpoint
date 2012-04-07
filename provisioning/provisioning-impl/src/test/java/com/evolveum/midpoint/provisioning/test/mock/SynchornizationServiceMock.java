@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -32,7 +33,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 
 	private int callCount = 0;
 	private ResourceObjectShadowChangeDescription lastChange = null;
-	private ChangeChecker changeChecker;
+	private ObjectChecker changeChecker;
 
 	@Autowired(required=true)
 	ChangeNotificationDispatcher notificationManager;
@@ -49,11 +50,11 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 		notificationManager.unregisterNotificationListener(this);
 	}
 	
-	public ChangeChecker getChangeChecker() {
+	public ObjectChecker getChangeChecker() {
 		return changeChecker;
 	}
 
-	public void setChangeChecker(ChangeChecker changeChecker) {
+	public void setChangeChecker(ObjectChecker changeChecker) {
 		this.changeChecker = changeChecker;
 	}
 

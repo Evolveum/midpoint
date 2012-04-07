@@ -73,6 +73,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+
 /**
  * 
  * @author Igor Farinic
@@ -125,6 +127,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUser() throws Exception {
+		displayTestTile("testUser");
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
 			//get actual number of user objects in the repo
@@ -180,6 +183,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUserAddExtension() throws Exception {
+		displayTestTile("testUserAddExtension");
 		String oid = "c0c010c0-d34d-b33f-f00d-222222222222";
 		try {
 			//store user without extension
@@ -222,6 +226,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUserAddWithoutOid() throws Exception {
+		displayTestTile("testUserAddWithoutOid");
 		String oid = null;
 		try {
 			//store new user object without oid			
@@ -250,6 +255,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUserDeleteAccountRef() throws Exception {
+		displayTestTile("testUserDeleteAccountRef");
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		String accountRefToDeleteOid = "8254880d-6584-425a-af2e-58f8ca394bbb";
 		String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";

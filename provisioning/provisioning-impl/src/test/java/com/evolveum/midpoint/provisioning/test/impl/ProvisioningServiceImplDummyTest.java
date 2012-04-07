@@ -52,6 +52,7 @@ import com.evolveum.midpoint.provisioning.impl.ResourceSchemaCache;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -67,8 +68,11 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -76,6 +80,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -606,7 +611,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		assertNotNull("No dummy account", shadow);
 		
-		checkShadow(shadow);
+		checkShadow(shadow, result);
 		
 		checkConsistency();
 	}
@@ -643,31 +648,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				ObjectType objectType = object.asObjectable();
 				assertTrue(objectType instanceof AccountShadowType);
                 AccountShadowType shadow = (AccountShadowType) objectType;
-                checkShadow(shadow);
-                
-                String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
-                assertNotNull("No resource OID in "+shadow, resourceOid);
-                
-                assertNotNull("Null OID in "+shadow, shadow.getOid());
-                PrismObject<AccountShadowType> repoShadow = null;
-                try {
-                	repoShadow = repositoryService.getObject(AccountShadowType.class, shadow.getOid(), null, parentResult);
-				} catch (Exception e) {
-					AssertJUnit.fail("Got exception while trying to read "+shadow+
-							": "+e.getCause()+": "+e.getMessage());
-				}
-				
-				String repoResourceOid = ResourceObjectShadowUtil.getResourceOid(repoShadow.asObjectable());
-				assertNotNull("No resource OID in the repository shadow "+repoShadow);
-				assertEquals("Resource OID mismatch", resourceOid, repoResourceOid);
-				
-				try {
-                	repositoryService.getObject(ResourceType.class, resourceOid, null, parentResult);
-				} catch (Exception e) {
-					AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+shadow+
-							": "+e.getCause()+": "+e.getMessage());
-				}
-				
+                checkShadow(shadow, parentResult);                
                 return true;
 			}
 		};
@@ -680,26 +661,45 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals(3,foundObjects.size());
 				
 		checkConsistency();
+		
+		// And again ...
+		
+		foundObjects.clear();
+		
+		// WHEN
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler , result);
+		
+		// THEN
+		
+		assertEquals(3,foundObjects.size());
+				
+		checkConsistency();
 	}
 		
-	private void checkShadow(AccountShadowType shadow) {
-		assertNotNull("no OID",shadow.getOid());
-		assertNotNull("no name",shadow.getName());
-		assertEquals(new QName(resourceType.getNamespace(), "AccountObjectClass"), shadow.getObjectClass());
-        assertEquals(RESOURCE_DUMMY_OID, shadow.getResourceRef().getOid());
-		ResourceAttributeContainer attrs = ResourceObjectShadowUtil.getAttributesContainer(shadow);
-		assertNotNull("no attributes",attrs);
-		assertFalse("empty attributes",attrs.isEmpty());
-		String icfUid = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_UID);
-        assertNotNull("No ICF UID", icfUid);
-        String icfName = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_NAME);
-        assertNotNull("No ICF NAME", icfName);
-        assertEquals("Wrong shadow name", shadow.getName(), icfName);
-        assertNotNull("Missing fullname attribute", ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
-						new QName(resourceType.getNamespace(), "fullname")));
-		assertNotNull("no activation",shadow.getActivation());
-		assertNotNull("no activation/enabled",shadow.getActivation().isEnabled());
-		assertTrue("not enabled",shadow.getActivation().isEnabled());
+	private void checkShadow(AccountShadowType shadow, OperationResult parentResult) {
+		ObjectChecker<AccountShadowType> checker = createShadowChecker();
+		IntegrationTestTools.checkShadow(shadow, resourceType, repositoryService, checker, prismContext, parentResult);
+	}
+	
+	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {		
+		ObjectChecker<AccountShadowType> checker = createShadowChecker();
+		IntegrationTestTools.checkAllShadows(resourceType, repositoryService, checker, prismContext);		
+	}
+
+	private ObjectChecker<AccountShadowType> createShadowChecker() {
+		return  new ObjectChecker<AccountShadowType>() {
+			@Override
+			public void check(AccountShadowType shadow) {
+				String icfName = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, SchemaTestConstants.ICFS_NAME);
+		        assertNotNull("No ICF NAME", icfName);
+		        assertEquals("Wrong shadow name", shadow.getName(), icfName);
+		        assertNotNull("Missing fullname attribute", ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
+								new QName(resourceType.getNamespace(), "fullname")));
+				assertNotNull("no activation",shadow.getActivation());
+				assertNotNull("no activation/enabled",shadow.getActivation().isEnabled());
+				assertTrue("not enabled",shadow.getActivation().isEnabled());
+			}
+		};
 	}
 
 	@Test
@@ -852,6 +852,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// No change, no fun
 		assertFalse(syncServiceMock.wasCalled());
 		
+		checkAllShadows();
 	}
 
 	@Test
@@ -898,6 +899,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
 		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
 		assertEquals("Wrong value of fullname attribute in current shadow", "Edward Teach", fullnameAttribute.getRealValue());
+		
+		checkAllShadows();
 	}
 	
 	@Test
@@ -941,13 +944,15 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
 		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
 		assertEquals("Wrong value of fullname attribute in current shadow", "Captain Blackbeard", fullnameAttribute.getRealValue());
+		
+		checkAllShadows();
 	}
 	
 	@Test
-	public void test101LiveSyncAddMorgan() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException {
-		displayTestTile("test101LiveSyncAddMorgan");
+	public void test101LiveSyncAddDrake() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException {
+		displayTestTile("test101LiveSyncAddDrake");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test101LiveSyncAddMorgan");
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test101LiveSyncAddDrake");
 		
 		syncServiceMock.reset();
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
@@ -987,6 +992,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
 		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
 		assertEquals("Wrong value of fullname attribute in current shadow", "Sir Francis Drake", fullnameAttribute.getRealValue());
+		
+		checkAllShadows();
 	}
 	
 	@Test

@@ -32,6 +32,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.*;
+
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -39,25 +40,40 @@ import org.testng.AssertJUnit;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -375,6 +391,119 @@ public class IntegrationTestTools {
 		System.out.println(SchemaDebugUtil.prettyPrint(value));
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
 		LOGGER.debug(SchemaDebugUtil.prettyPrint(value));
+	}
+	
+	
+	public static void checkAllShadows(ResourceType resourceType, RepositoryService repositoryService, 
+			ObjectChecker<AccountShadowType> checker, PrismContext prismContext) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		OperationResult result = new OperationResult(IntegrationTestTools.class.getName() + ".checkAllShadows");
+		
+		QueryType query = new QueryType();
+		Document doc = DOMUtil.getDocument();
+		query.setFilter(QueryUtil.createAndFilter(doc,
+				QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resourceType.getOid()),
+				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
+				));
+		
+		List<PrismObject<AccountShadowType>> results = repositoryService.searchObjects(AccountShadowType.class, query, null , result);
+
+		for (PrismObject<AccountShadowType> shadow: results) {
+            checkShadow(shadow.asObjectable(), resourceType, repositoryService, checker, prismContext, result);
+		}
+	}
+	
+	public static void checkShadow(AccountShadowType shadow, ResourceType resourceType, RepositoryService repositoryService, 
+			ObjectChecker<AccountShadowType> checker, PrismContext prismContext, OperationResult parentResult) {
+		assertNotNull("no OID",shadow.getOid());
+		assertNotNull("no name",shadow.getName());
+		assertEquals(new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME), shadow.getObjectClass());
+        assertEquals(resourceType.getOid(), shadow.getResourceRef().getOid());
+		ResourceAttributeContainer attrs = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		assertNotNull("no attributes",attrs);
+		assertFalse("empty attributes",attrs.isEmpty());
+		String icfUid = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, SchemaTestConstants.ICFS_UID);
+        assertNotNull("No ICF UID", icfUid);
+		
+		String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
+        assertNotNull("No resource OID in "+shadow, resourceOid);
+        
+        assertNotNull("Null OID in "+shadow, shadow.getOid());
+        PrismObject<AccountShadowType> repoShadow = null;
+        try {
+        	repoShadow = repositoryService.getObject(AccountShadowType.class, shadow.getOid(), null, parentResult);
+		} catch (Exception e) {
+			AssertJUnit.fail("Got exception while trying to read "+shadow+
+					": "+e.getCause()+": "+e.getMessage());
+		}
+		
+		checkShadowUniqueness(shadow, resourceType, repositoryService, prismContext, parentResult);
+		
+		String repoResourceOid = ResourceObjectShadowUtil.getResourceOid(repoShadow.asObjectable());
+		assertNotNull("No resource OID in the repository shadow "+repoShadow);
+		assertEquals("Resource OID mismatch", resourceOid, repoResourceOid);
+		
+		try {
+        	repositoryService.getObject(ResourceType.class, resourceOid, null, parentResult);
+		} catch (Exception e) {
+			AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+shadow+
+					": "+e.getCause()+": "+e.getMessage());
+		}
+		
+		if (checker != null) {
+        	checker.check(shadow);
+        }
+	}
+	
+	/**
+	 * Checks i there is only a single shadow in repo for this account.
+	 */
+	private static void checkShadowUniqueness(AccountShadowType resourceShadow, ResourceType resourceType, 
+			RepositoryService repositoryService, PrismContext prismContext, OperationResult parentResult) {
+		try {
+			QueryType query = createSearchShadowQuery(resourceShadow, resourceType, prismContext, parentResult);
+			List<PrismObject<AccountShadowType>> results = repositoryService.searchObjects(AccountShadowType.class, query, null, parentResult);
+			LOGGER.trace("lookupShadow found {} objects", results.size());
+			if (results.size() == 0) {
+				return;
+			}
+			if (results.size() > 1) {
+				for (PrismObject<AccountShadowType> result: results) {
+					LOGGER.trace("Search result:\n{}", result.dump());
+				}
+				LOGGER.error("More than one shadows found for " + resourceShadow);
+				// TODO: Better error handling later
+				throw new IllegalStateException("More than one shadows found for " + resourceShadow);
+			}
+		} catch (SchemaException e) {
+			throw new SystemException(e);
+		}
+	}
+
+	private static QueryType createSearchShadowQuery(AccountShadowType resourceShadow,
+			ResourceType resourceType, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+		
+		XPathHolder xpath = new XPathHolder();
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+				.getAttributesContainer(resourceShadow);
+		PrismProperty<String> identifier = attributesContainer.findAttribute(SchemaTestConstants.ICFS_UID);
+
+		Document doc = DOMUtil.getDocument();
+		Element filter;
+		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(identifier, doc);
+		try {
+			filter = QueryUtil.createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
+					SchemaConstants.I_RESOURCE_REF, resourceShadow.getResourceRef().getOid()), QueryUtil
+					.createEqualFilterFromElements(doc, xpath, identifierElements, resourceShadow
+							.asPrismObject().getPrismContext()));
+		} catch (SchemaException e) {
+			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
+		}
+
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+
+		return query;
+		
 	}
 
 }

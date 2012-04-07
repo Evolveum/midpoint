@@ -326,8 +326,9 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 *            attribute name to find.
 	 * @return found attribute or null
 	 */
-	public ResourceAttribute<?> findAttribute(QName attributeQName) {
-		return (ResourceAttribute<?>) super.findProperty(attributeQName);
+	@SuppressWarnings("unchecked")
+	public <X> ResourceAttribute<X> findAttribute(QName attributeQName) {
+		return (ResourceAttribute<X>) super.findProperty(attributeQName);
 	}
 
 	/**

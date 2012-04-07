@@ -651,6 +651,9 @@ public class ResourceTypeManager {
 			ResourceType resource, OperationResult parentResult) throws SchemaException {
 
 		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext, parentResult);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Searching for shadow using filter:\n{}", DOMUtil.serializeDOMToString(query.getFilter()));
+		}
 		PagingType paging = new PagingType();
 
 		// TODO: check for errors
@@ -664,6 +667,9 @@ public class ResourceTypeManager {
 			return null;
 		}
 		if (results.size() > 1) {
+			for (PrismObject<T> result: results) {
+				LOGGER.trace("Search result:\n{}", result.dump());
+			}
 			LOGGER.error("More than one shadows found for " + resourceShadow);
 			// TODO: Better error handling later
 			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
