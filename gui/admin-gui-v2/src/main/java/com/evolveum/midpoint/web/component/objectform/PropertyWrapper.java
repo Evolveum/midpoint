@@ -22,45 +22,106 @@
 package com.evolveum.midpoint.web.component.objectform;
 
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author lazyman
  */
-public class PropertyWrapper implements ItemWrapper {
+public class PropertyWrapper implements Serializable, Comparable<PropertyWrapper> {
 
     private PrismProperty property;
-    private ItemStatus status;
-    private List<ItemWrapper> items;
+    private ValueStatus status;
+    private List<PropertyValueWrapper> values;
 
-    public PropertyWrapper(PrismProperty property, ItemStatus status) {
+    public PropertyWrapper(PrismProperty property) {
+        this(property, ValueStatus.NOT_CHANGED);
+    }
+
+    public PropertyWrapper(PrismProperty property, ValueStatus status) {
         Validate.notNull(property, "Property must not be null.");
-        Validate.notNull(status, "Status must not be null.");
-
         this.property = property;
         this.status = status;
     }
 
+    public PrismProperty getProperty() {
+        return property;
+    }
+
+    public ValueStatus getStatus() {
+        return status;
+    }
+
+    public List<PropertyValueWrapper> getPropertyValueWrappers() {
+        if (values != null) {
+            return values;
+        }
+
+        values = new ArrayList<PropertyValueWrapper>();
+        for (PrismPropertyValue value : (List<PrismPropertyValue>) property.getValues()) {
+            values.add(new PropertyValueWrapper(this, value, ValueStatus.NOT_CHANGED));
+        }
+
+        if (values.isEmpty()) {
+            values.add(new PropertyValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED));
+        }
+
+        return values;
+    }
+
+    public String getDisplayName() {
+        PrismPropertyDefinition definition = property.getDefinition();
+        String displayName = definition.getDisplayName();
+        if (StringUtils.isEmpty(displayName)) {
+            displayName = definition.getName().getLocalPart();
+        }
+        return displayName;
+    }
+
+    public int compareTo(PropertyWrapper other) {
+        return String.CASE_INSENSITIVE_ORDER.compare(getDisplayName(), other.getDisplayName());
+    }
+
     @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(property.getName().getLocalPart());
+        builder.append(", ");
+        builder.append(status);
+        builder.append("\n");
+        for (PropertyValueWrapper wrapper : getPropertyValueWrappers()) {
+            builder.append("\t");
+            builder.append(wrapper.toString());
+            builder.append("\n");
+        }
+
+        return builder.toString();
+    }
+
     public void cleanup() {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+        Collection<PrismPropertyValue<Object>> valuesToDelete = new ArrayList<PrismPropertyValue<Object>>();
 
-    @Override
-    public int getPosition() {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
-    }
+        for (PropertyValueWrapper value : getPropertyValueWrappers()) {
+            switch (value.getStatus()) {
+                case ADDED:
+                    if (!value.hasValueChanged()) {
+                        valuesToDelete.add(value.getValue());
+                    }
+                    break;
+                case DELETED:
+                    valuesToDelete.add(value.getValue());
+                    break;
+            }
+        }
 
-    @Override
-    public String getName() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public ObjectDelta createObjectDelta() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        getProperty().deleteValues(valuesToDelete);
+        values = null;
     }
 }

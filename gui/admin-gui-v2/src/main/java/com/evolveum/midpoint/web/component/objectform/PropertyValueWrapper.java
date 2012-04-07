@@ -21,8 +21,65 @@
 
 package com.evolveum.midpoint.web.component.objectform;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import org.apache.commons.lang.Validate;
+
+import java.io.Serializable;
+
 /**
  * @author lazyman
  */
-public class PropertyValueWrapper {
+public class PropertyValueWrapper<T> implements Serializable {
+
+    private PropertyWrapper property;
+    private PrismPropertyValue<T> value;
+    private T oldValue;
+    private ValueStatus status;
+
+    public PropertyValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value) {
+        this(property, value, ValueStatus.NOT_CHANGED);
+    }
+
+    public PropertyValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value, ValueStatus status) {
+        Validate.notNull(property, "Property wrapper must not be null.");
+        Validate.notNull(value, "Property value must not be null.");
+
+        this.property = property;
+        this.value = value;
+        this.status = status;
+        this.oldValue = this.value.getValue();
+    }
+
+    public PropertyWrapper getProperty() {
+        return property;
+    }
+
+    public ValueStatus getStatus() {
+        return status;
+    }
+
+    public PrismPropertyValue<T> getValue() {
+        return value;
+    }
+
+    public void setStatus(ValueStatus status) {
+        this.status = status;
+    }
+
+    public boolean hasValueChanged() {
+        return oldValue != null ? oldValue.equals(value.getValue()) : value.getValue() == null;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("value: ");
+        builder.append(value.getValue());
+        builder.append(", old value: ");
+        builder.append(oldValue);
+        builder.append(", status: ");
+        builder.append(status);
+
+        return builder.toString();
+    }
 }

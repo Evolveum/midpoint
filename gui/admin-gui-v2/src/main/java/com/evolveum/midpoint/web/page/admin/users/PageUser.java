@@ -28,6 +28,9 @@ import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.objectform.ContainerStatus;
+import com.evolveum.midpoint.web.component.objectform.ObjectFormPanel;
+import com.evolveum.midpoint.web.component.objectform.PropertyContainerWrapper;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -43,16 +46,16 @@ public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_USER_ID = "userId";
 
-    private IModel<UserType> model;
+    private IModel<PropertyContainerWrapper> model;
 
     public PageUser() {
-        model = new LoadableModel<UserType>(false) {
+        model = new LoadableModel<PropertyContainerWrapper>(false) {
 
             @Override
-            protected UserType load() {
+            protected PropertyContainerWrapper load() {
                 StringValue userOid = getPageParameters().get(PARAM_USER_ID);
                 if (userOid == null) {
-                    return new UserType();
+                    return new PropertyContainerWrapper(new UserType().asPrismObject(), ContainerStatus.ADDING);
                 }
 
                 try {
@@ -61,13 +64,14 @@ public class PageUser extends PageAdminUsers {
 
                     OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
                     PrismObject<UserType> object = model.getObject(UserType.class, userOid.toString(), null, result);
-                    return object.asObjectable();
+
+                    return new PropertyContainerWrapper(object, ContainerStatus.MODIFYING);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     //todo error handling
                 }
 
-                return new UserType();
+                return new PropertyContainerWrapper(new UserType().asPrismObject(), ContainerStatus.ADDING);
             }
         };
 
@@ -77,6 +81,9 @@ public class PageUser extends PageAdminUsers {
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
+
+        ObjectFormPanel userForm = new ObjectFormPanel("userForm", model);
+        mainForm.add(userForm);
 
         Accordion accordion = new Accordion("accordion");
         accordion.setMultipleSelect(true);
@@ -101,19 +108,19 @@ public class PageUser extends PageAdminUsers {
 
         initButtons(mainForm);
     }
-    
+
     private void initDetails(AccordionItem details) {
         //todo implement
     }
-    
+
     private void initAccounts(AccordionItem accounts) {
         //todo implement
     }
-    
+
     private void initRoles(AccordionItem roles) {
         //todo implement
     }
-    
+
     private void initAssignments(AccordionItem assignments) {
         //todo implement
     }

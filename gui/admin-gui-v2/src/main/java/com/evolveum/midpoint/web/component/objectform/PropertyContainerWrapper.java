@@ -21,50 +21,137 @@
 
 package com.evolveum.midpoint.web.component.objectform;
 
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import java.util.List;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * @author lazyman
  */
-public class PropertyContainerWrapper implements ItemWrapper {
+public class PropertyContainerWrapper implements Serializable {
 
     private PrismContainer container;
-    private ItemStatus status;
-    private List<ItemWrapper> items;
+    private ContainerStatus status;
+    private List<PropertyWrapper> properties;
 
-    public PropertyContainerWrapper(PrismContainer container, ItemStatus status) {
-        Validate.notNull(container, "Property container must not be null.");
+    public PropertyContainerWrapper(PrismContainer container, ContainerStatus status) {
+        Validate.notNull(container, "Item must not be null.");
         Validate.notNull(status, "Status must not be null.");
 
         this.container = container;
         this.status = status;
     }
 
+    public PrismContainer getContainer() {
+        return container;
+    }
+
+    public ContainerStatus getStatus() {
+        return status;
+    }
+
+    public List<PropertyWrapper> getPropertyWrappers() {
+        if (properties != null) {
+            return properties;
+        }
+
+        properties = new ArrayList<PropertyWrapper>();
+
+        PrismContainerDefinition definition = container.getDefinition();
+        Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
+        for (PrismPropertyDefinition def : propertyDefinitions) {
+            PrismProperty property = container.findProperty(def.getName());
+            if (property == null) {
+                properties.add(new PropertyWrapper(def.instantiate(), ValueStatus.ADDED));
+            } else {
+                properties.add(new PropertyWrapper(property, ValueStatus.NOT_CHANGED));
+            }
+        }
+
+        Collections.sort(properties);
+
+        return properties;
+    }
+
     @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(getDisplayNameFromItem(container));
+        builder.append(", ");
+        builder.append(status);
+        builder.append("\n");
+        for (PropertyWrapper wrapper : getPropertyWrappers()) {
+            builder.append("\t");
+            builder.append(wrapper.toString());
+            builder.append("\n");
+        }
+
+        return builder.toString();
+    }
+
+    static String getDisplayNameFromItem(Item item) {
+        Validate.notNull(item, "Item must not be null.");
+
+        String displayName = item.getDisplayName();
+        if (StringUtils.isEmpty(displayName)) {
+            QName name = item.getName();
+            if (name != null) {
+                displayName = name.getLocalPart();
+            } else {
+                displayName = item.getDefinition().getTypeName().getLocalPart();
+            }
+        }
+
+        return displayName;
+    }
+
     public void cleanup() {
-        //To change body of implemented methods use File | Settings | File Templates.
+        Collection<PrismProperty> propertiesToDelete = new ArrayList<PrismProperty>();
+
+        for (PropertyWrapper property : getPropertyWrappers()) {
+            property.cleanup();
+
+            if (property.getProperty().isEmpty()) {
+                propertiesToDelete.add(property.getProperty());
+            }
+        }
+
+        getContainer().getValue().getItems().removeAll(propertiesToDelete);
+        properties = null;
     }
 
-    @Override
-    public int getPosition() {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-    
-    public String getDescription() {
-        return null;   //To change body of implemented methods use File | Settings | File Templates.
+    public ObjectDelta getObjectDelta() {
+        if (ContainerStatus.ADDING.equals(getStatus())) {
+            return createAddingObjectDelta();
+        }
+
+        for (PropertyWrapper property : getPropertyWrappers()) {
+            for (PropertyValueWrapper value : property.getPropertyValueWrappers()) {
+                if (!value.hasValueChanged()) {
+                    continue;
+                }
+
+                switch (value.getStatus()) {
+                    case ADDED:
+                        //todo create property delta value add
+                        break;
+                    case DELETED:
+                        //todo create property delta value delete
+                        break;
+                }
+            }
+        }
+
+        return null;
     }
 
-    @Override
-    public String getName() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public ObjectDelta createObjectDelta() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    private ObjectDelta createAddingObjectDelta() {
+        //todo implement
+        return null;
     }
 }

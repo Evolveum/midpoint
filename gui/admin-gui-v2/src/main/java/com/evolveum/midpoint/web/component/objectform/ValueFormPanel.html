@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2011 Evolveum
   ~
@@ -20,12 +19,18 @@
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:extend>
-    <div class="content">
-        home page
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="input" class="objectFormInput" />
+    <div class="objectFormButtons">
+        <a wicket:id="addButton"><img class="objectFormAddButton" src="img/formIcon/AddSmall.png" alt="" title="Add" /></a>
+        <a wicket:id="removeButton"><img class="objectFormDeleteButton" src="img/formIcon/DeleteSmall.png" alt="" title="Delete" /></a>
     </div>
-</wicket:extend>
-</body>
+    <div class="objectFormHelpContainer">
+		<img wicket:id="helpButton" class="objectFormHelpButton" />
+		<div wicket:id="helpContent" class="objectFormHelpContent" />
+    </div>
+    <div wicket:id="feedback" class="feedbackPanel" />
+</wicket:panel>
 </html>

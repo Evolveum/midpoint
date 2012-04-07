@@ -23,18 +23,41 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="objectForm">
-        <!--<h3 wicket:id="title"></h3>-->
-        <!--<table>-->
-            <!--<tr wicket:id="attributes" class="attribute">-->
-                <!--<td class="label"><span wicket:id="name"/></td>-->
-                <!--<td class="values" wicket:id="container">-->
-                    <!--<div wicket:id="values">-->
-                        <!--<div wicket:id="value" class="value"/>-->
-                    <!--</div>-->
-                <!--</td>-->
-            <!--</tr>-->
-        <!--</table>-->
-        <!--<div wicket:id="debug"/>-->
+        <table id="tableForm01" class="tableForm" cellspacing="0" border="0">
+            <thead id="thead_tableForm1">
+            <tr>
+                <td colspan="2" class="objectFormHeader"><img
+                        class="objectFormHeaderIcon" src="img/formIcon/User.png" alt=""/>
+
+                    <div class="objectFormHeaderText">
+                        <span class="objectFormHeaderName">User information</span><br/> <span
+                            class="objectFormHeaderDescription">Complete user information to
+								complete creation of a new user.</span>
+                    </div>
+                    <div class="objectFormHeaderControllButtons">
+                    	<img id="objectFormHeaderControllButtonShowEmptyFields_tableForm1" class="objectFormHeaderControllButtonShowEmptyFields" src="img/formIcon/ShowEmptyFieldsSmall.png" alt="" title="Show empty fields" />
+                    	<img id="objectFormHeaderControllButtonMinMax_tableForm01" class="objectFormHeaderControllButtonMinMax" src="img/formIcon/MinimizeSmall.png" alt="" title="Minimize" />
+                    </div>
+                </td>
+            </tr>
+            </thead>
+            <tbody id="tbody_tableForm01">
+            <tr wicket:id="attributes" class="objectFormAttribute">
+                <td class="objectFormLabel"><div class="objectFormLabelName"><span wicket:id="name"/>:</div></td>
+                <td class="objectFormValues" wicket:id="container">
+                    <div wicket:id="values">
+                        <div wicket:id="value" class="objectFormValue"/>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+            <tfoot id="tfoot_tableForm01">
+            <tr>
+                <td colspan="2" class="objectFormFooter"></td>
+            </tr>
+            </tfoot>
+        </table>
+        <div wicket:id="debug"/>
     </div>
 </wicket:panel>
 </html>
