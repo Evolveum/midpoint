@@ -60,12 +60,18 @@ public class NavigatorPanel extends PagingNavigator {
 
                     from = view.getFirstItemOffset() + 1;
                     to = from + view.getItemsPerPage() - 1;
+                    if (to > view.getItemCount()) {
+                        to = view.getItemCount();
+                    }
                     count = view.getItemCount();
                 } else if (pageable instanceof DataTable) {
                     DataTable table = (DataTable) pageable;
 
                     from = table.getCurrentPage() * table.getItemsPerPage() + 1;
                     to = from + table.getItemsPerPage() - 1;
+                    if (to > table.getItemCount()) {
+                        to = table.getItemCount();
+                    }
                     count = table.getItemCount();
                 } else {
                     LOGGER.warn("Navigator panel, missing implementation... TODO");

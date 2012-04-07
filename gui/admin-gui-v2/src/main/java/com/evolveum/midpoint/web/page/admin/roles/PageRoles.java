@@ -48,18 +48,7 @@ public class PageRoles extends PageAdminRoles {
     private void initLayout() {
         List<IColumn<RoleType>> columns = new ArrayList<IColumn<RoleType>>();
 
-        IColumn column = new CheckBoxColumn<RoleType>() {
-
-            @Override
-            public void onUpdateHeader(AjaxRequestTarget target) {
-                //todo implement
-            }
-
-            @Override
-            public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<RoleType>> rowModel) {
-                //todo implement
-            }
-        };
+        IColumn column = new CheckBoxColumn<RoleType>();
         columns.add(column);
 
         column = new LinkColumn<Selectable<RoleType>>(createStringResource("pageRoles.name"), "name", "value.name") {

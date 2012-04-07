@@ -52,18 +52,7 @@ public class PageUsers extends PageAdminUsers {
     private void initLayout() {
         List<IColumn<UserType>> columns = new ArrayList<IColumn<UserType>>();
 
-        IColumn column = new CheckBoxColumn<UserType>() {
-
-            @Override
-            public void onUpdateHeader(AjaxRequestTarget target) {
-                //todo implement
-            }
-
-            @Override
-            public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<UserType>> rowModel) {
-                //toto implement
-            }
-        };
+        IColumn column = new CheckBoxColumn<UserType>();
         columns.add(column);
 
         column = new LinkColumn<Selectable<UserType>>(createStringResource("pageUsers.name"), "name", "value.name") {

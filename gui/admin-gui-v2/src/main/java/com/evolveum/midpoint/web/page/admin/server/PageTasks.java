@@ -24,18 +24,12 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.option.OptionContent;
-import com.evolveum.midpoint.web.component.option.OptionItem;
-import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,18 +46,7 @@ public class PageTasks extends PageAdminTasks {
     private void initLayout() {
         List<IColumn<TaskType>> columns = new ArrayList<IColumn<TaskType>>();
 
-        IColumn column = new CheckBoxColumn<TaskType>() {
-
-            @Override
-            public void onUpdateHeader(AjaxRequestTarget target) {
-                //todo implement
-            }
-
-            @Override
-            public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<TaskType>> rowModel) {
-                //todo implement
-            }
-        };
+        IColumn column = new CheckBoxColumn<TaskType>();
         columns.add(column);
 
         column = new LinkColumn<Selectable<TaskType>>(createStringResource("pageTasks.name"), "name", "value.name") {

@@ -33,13 +33,15 @@ public class CheckBoxPanel extends Panel {
 
     public CheckBoxPanel(String id, IModel<Boolean> model) {
         super(id);
-        add(new AjaxCheckBox("check", model) {
+        AjaxCheckBox check = new AjaxCheckBox("check", model) {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 CheckBoxPanel.this.onUpdate(target);
             }
-        });
+        };
+        check.setOutputMarkupId(true);
+        add(check);
     }
 
     public void onUpdate(AjaxRequestTarget target) {

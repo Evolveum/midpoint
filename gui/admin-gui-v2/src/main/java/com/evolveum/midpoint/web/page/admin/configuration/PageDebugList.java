@@ -16,7 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -39,22 +38,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private void initLayout() {
         List<IColumn<? extends ObjectType>> columns = new ArrayList<IColumn<? extends ObjectType>>();
 
-        IColumn column = new CheckBoxColumn<ObjectType>() {
-
-            @Override
-            public void onUpdateHeader(AjaxRequestTarget target) {
-                TablePanel table = getListTable();
-                DataTable data = table.getDataTable();
-                
-                System.out.println("alllll");
-                //todo implement
-            }
-
-            @Override
-            public void onUpdateRow(AjaxRequestTarget target, IModel<Selectable<ObjectType>> rowModel) {
-                //todo implement
-            }
-        };
+        IColumn column = new CheckBoxColumn<ObjectType>();
         columns.add(column);
 
         column = new LinkColumn<Selectable<? extends ObjectType>>(createStringResource("pageDebugList.name"), "name", "value.name") {
@@ -173,7 +157,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private void deleteAllPerformed(AjaxRequestTarget target) {
         //todo implement
     }
-    
+
     private TablePanel getListTable() {
         OptionContent content = (OptionContent) get("mainForm:optionContent");
         return (TablePanel) content.getBodyContainer().get("table");
