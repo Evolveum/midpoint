@@ -52,6 +52,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
  * @author lazyman
  */
 public class ValueFormPanel extends Panel {
+
     private IModel<PropertyValueWrapper> model;
     private Integer count = 0;
 
@@ -73,12 +74,12 @@ public class ValueFormPanel extends Panel {
         StaticImage helpButtonImage = new StaticImage("helpButton", new Model<String>("../../img/formIcon/InfoSmall.png"));
         helpButtonImage.setOutputMarkupId(true);
         add(helpButtonImage);
-        
+
         //helpContent
         Label labelHelpContent = new Label("helpContent", "This is help text sample...");
-        labelHelpContent.setMarkupId("content_"+helpButtonImage.getMarkupId());
+        labelHelpContent.setMarkupId("content_" + helpButtonImage.getMarkupId());
         add(labelHelpContent);
-        
+
         //input
         InputPanel component = createInputComponent("input", feedback);
         add(component);
@@ -124,7 +125,7 @@ public class ValueFormPanel extends Panel {
                 super.onError(target, e);
             }
         });
-        
+
         count++;
         return component;
     }
@@ -139,7 +140,7 @@ public class ValueFormPanel extends Panel {
         } else {
             panel = new TextPanel<String>(id, new PropertyModel<String>(model, "value.value"));
         }
-        
+
         return panel;
     }
 
@@ -174,11 +175,11 @@ public class ValueFormPanel extends Panel {
         ListView parent = findParent(ListView.class);
         target.add(parent.getParent());
     }
-    
-    public class StaticImage extends WebComponent {
-		private static final long serialVersionUID = 1L;
 
-		public StaticImage(String id, IModel<String> model) {
+    public class StaticImage extends WebComponent {
+        private static final long serialVersionUID = 1L;
+
+        public StaticImage(String id, IModel<String> model) {
             super(id, model);
         }
 
@@ -190,5 +191,5 @@ public class ValueFormPanel extends Panel {
         }
 
     }
-    
+
 }

@@ -60,7 +60,7 @@ public class PrismFormPanel extends Panel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new PackageResourceReference(PrismFormPanel.class, "ObjectFormPanel.css"));
+        response.renderCSSReference(new PackageResourceReference(PrismFormPanel.class, "PrismFormPanel.css"));
     }
 
     public boolean isShowEmptyProperties() {
