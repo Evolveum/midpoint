@@ -39,6 +39,7 @@ public class SqlRepositoryConfiguration {
     private String fileName;
     private boolean tcpSSL;
     private int port = 5437;
+    private boolean dropIfExists;
     //connection for hibernate
     private String driverClassName;
     private String jdbcUrl;
@@ -60,6 +61,7 @@ public class SqlRepositoryConfiguration {
         setPort(configuration.getInt("port", port));
         setTcpSSL(configuration.getBoolean("tcpSSL", tcpSSL));
         setFileName(configuration.getString("fileName", fileName));
+        setDropIfExists(configuration.getBoolean("dropIfExists", dropIfExists));
     }
 
     /**
@@ -227,5 +229,13 @@ public class SqlRepositoryConfiguration {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public boolean isDropIfExists() {
+        return dropIfExists;
+    }
+
+    public void setDropIfExists(boolean dropIfExists) {
+        this.dropIfExists = dropIfExists;
     }
 }

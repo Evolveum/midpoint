@@ -28,11 +28,13 @@ import com.evolveum.midpoint.repo.sql.query.QueryRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.h2.tools.Server;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -87,6 +89,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         sqlConfiguration = config;
 
         if (getSqlConfiguration().isEmbedded()) {
+            dropDatabaseIfExists(config);
             if (getSqlConfiguration().isAsServer()) {
                 LOGGER.info("Starting h2 in server mode.");
                 startServer();
@@ -249,5 +252,55 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
 
         return args.toArray(new String[args.size()]);
+    }
+
+    private void dropDatabaseIfExists(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
+        if (!config.isDropIfExists()) {
+            return;
+        }
+
+        File file = new File(config.getBaseDir());
+        final String fileName = config.getFileName();
+        try {
+            //removing files based on http://www.h2database.com/html/features.html#database_file_layout
+            File dbFile = new File(file, fileName + ".h2.db");
+            removeFile(dbFile);
+            File lockFile = new File(file, fileName + ".lock.db");
+            removeFile(lockFile);
+            File traceFile = new File(file, fileName + ".trace.db");
+            removeFile(traceFile);
+
+            File[] tempFiles = file.listFiles(new FilenameFilter() {
+
+                @Override
+                public boolean accept(File parent, String name) {
+                    if (name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$")) {
+                        return true;
+                    }
+                    return false;
+                }
+            });
+            if (tempFiles != null) {
+                for (File temp : tempFiles) {
+                    removeFile(temp);
+                }
+            }
+
+            File lobDir = new File(file, fileName + ".lobs.db");
+            if (lobDir.exists() && lobDir.isDirectory()) {
+                LOGGER.info("Deleting directory '{}'", new Object[]{lobDir.getAbsolutePath()});
+                FileUtils.deleteDirectory(lobDir);
+            }
+        } catch (Exception ex) {
+            throw new RepositoryServiceFactoryException("Couldn't drop existing database files, reason: "
+                    + ex.getMessage(), ex);
+        }
+    }
+
+    private void removeFile(File file) throws IOException {
+        if (file.exists()) {
+            LOGGER.info("Deleting file '{}'", new Object[]{file.getAbsolutePath()});
+            file.delete();
+        }
     }
 }

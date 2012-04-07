@@ -27,6 +27,7 @@
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
             <baseDir>target</baseDir>
+            <dropIfExists>true</dropIfExists>
 
             <!--<embedded>false</embedded>-->
             <!--<driverClassName>com.mysql.jdbc.Driver</driverClassName>-->

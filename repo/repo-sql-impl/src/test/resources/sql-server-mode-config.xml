@@ -31,6 +31,7 @@
             <asServer>true</asServer>
             <baseDir>target</baseDir>
             <fileName>midpoint-sm</fileName>
+            <dropIfExists>true</dropIfExists>
 
             <!--<embedded>false</embedded>-->
             <!--<driverClassName>com.mysql.jdbc.Driver</driverClassName>-->
