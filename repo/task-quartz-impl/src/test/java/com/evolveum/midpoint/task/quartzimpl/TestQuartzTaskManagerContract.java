@@ -174,7 +174,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Here we only test setting various task properties.
      */
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test003GetProgress() throws Exception {
 
         String test = "003GetProgress";
@@ -189,7 +189,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     }
 
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test004TaskProperties() throws Exception {
  
     	String test = "004TaskProperties";
@@ -261,7 +261,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Execute a single-run task.
      */
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test005Single() throws Exception {
 
     	String test = "005Single";
@@ -331,7 +331,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Executes a cyclic task
      */
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test006Cycle() throws Exception {
     	String test = "006Cycle";
         OperationResult result = createResult(test);
@@ -421,7 +421,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Single-run task with more handlers.
      */
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test008MoreHandlers() throws Exception {
 
     	String test = "008MoreHandlers";
@@ -482,7 +482,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue(singleHandler3.hasRun());
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test009CycleLoose() throws Exception {
     	String test = "009CycleLoose";
         OperationResult result = createResult(test);
@@ -532,7 +532,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     	
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test010CycleCronLoose() throws Exception {
     	
     	String test = "010CycleCronLoose";
@@ -581,7 +581,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * This task should NOT be processed (more handlers with recurrent tasks are not supported, because can lead to unpredictable results)
      */
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test011CycleMoreHandlers() throws Exception {
     	
     	String test = "011CycleMoreHandlers";
@@ -621,7 +621,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Suspends a running task.
      */
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test012Suspend() throws Exception {
     	
     	String test = "012Suspend";

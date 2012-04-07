@@ -39,9 +39,9 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
+//import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+//import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+//import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -156,30 +156,30 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		// TODO: take some of the properties from midpoint configuration 
 		Properties qprops = new Properties();
 
-        if (jdbcJobStore && !(repositoryService instanceof SqlRepositoryServiceImpl)) {
-            throw new SystemException("It is not possible to use JDBC Quartz job store without SQL repository.");
-        }
+//        if (jdbcJobStore && !(repositoryService instanceof SqlRepositoryServiceImpl)) {
+//            throw new SystemException("It is not possible to use JDBC Quartz job store without SQL repository.");
+//        }
 
-        SqlRepositoryConfiguration sqlConfig = null;
+//        SqlRepositoryConfiguration sqlConfig = null;
 
         if (jdbcJobStore) {
 
 //          SqlRepositoryServiceImpl sqlrepo = (SqlRepositoryServiceImpl) repositoryService;
-            SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) beanFactory.getBean("sqlRepositoryFactory");
-            if (sqlRepositoryFactory == null) {
-                throw new SystemException("Cannot initialize quartz task manager, because sqlRepositoryFactory is not available.");
-            }
+//            SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) beanFactory.getBean("sqlRepositoryFactory");
+//            if (sqlRepositoryFactory == null) {
+//                throw new SystemException("Cannot initialize quartz task manager, because sqlRepositoryFactory is not available.");
+//            }
 
 			qprops.put("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
             qprops.put("org.quartz.jobStore.driverDelegateClass", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
             qprops.put("org.quartz.jobStore.dataSource", "myDS");
 
-            sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
+//            sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
 
-            qprops.put("org.quartz.dataSource.myDS.driver", sqlConfig.getDriverClassName());
-            qprops.put("org.quartz.dataSource.myDS.URL", sqlConfig.getJdbcUrl());
-            qprops.put("org.quartz.dataSource.myDS.user", sqlConfig.getJdbcUsername());
-            qprops.put("org.quartz.dataSource.myDS.password", sqlConfig.getJdbcPassword());
+//            qprops.put("org.quartz.dataSource.myDS.driver", sqlConfig.getDriverClassName());
+//            qprops.put("org.quartz.dataSource.myDS.URL", sqlConfig.getJdbcUrl());
+//            qprops.put("org.quartz.dataSource.myDS.user", sqlConfig.getJdbcUsername());
+//            qprops.put("org.quartz.dataSource.myDS.password", sqlConfig.getJdbcPassword());
 
         } else {
 			qprops.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
@@ -207,13 +207,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		try {
             LOGGER.trace("Quartz scheduler properties: {}", qprops);
 
-            if (jdbcJobStore) {
-                try {
-                    createQuartzDbSchema(sqlConfig);
-                } catch (SQLException e) {
-                    throw new SystemException("Could not create Quartz database schema", e);
-                }
-            }
+//            if (jdbcJobStore) {
+//                try {
+//                    createQuartzDbSchema(sqlConfig);
+//                } catch (SQLException e) {
+//                    throw new SystemException("Could not create Quartz database schema", e);
+//                }
+//            }
 
 			sf.initialize(qprops);
 			quartzScheduler = sf.getScheduler();
@@ -231,30 +231,30 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		LOGGER.info("Task Manager initialized");
 	}
 
-    private void createQuartzDbSchema(SqlRepositoryConfiguration sqlConfig) throws SQLException {
-        try {
-            Class.forName(sqlConfig.getDriverClassName());
-        } catch (ClassNotFoundException e) {
-            throw new SystemException("Could not locate database driver class", e);
-        }
-        Connection connection = DriverManager.getConnection(sqlConfig.getJdbcUrl(), sqlConfig.getJdbcUsername(), sqlConfig.getJdbcPassword());
-        try {
-            try {
-                connection.prepareStatement("SELECT count(*) FROM qrtz_job_details").executeQuery().close();
-            } catch (SQLException ignored) {
-                try {
-                    connection.prepareStatement(getResource("tables_h2.sql")).executeUpdate();
-                } catch (IOException ex) {
-                    throw new SystemException("Could not read Quartz database schema file", ex);
-                }
-            }
-        } finally {
-            try {
-                connection.close();
-            } catch (SQLException ignored) {
-            }
-        }
-    }
+//    private void createQuartzDbSchema(SqlRepositoryConfiguration sqlConfig) throws SQLException {
+//        try {
+//            Class.forName(sqlConfig.getDriverClassName());
+//        } catch (ClassNotFoundException e) {
+//            throw new SystemException("Could not locate database driver class", e);
+//        }
+//        Connection connection = DriverManager.getConnection(sqlConfig.getJdbcUrl(), sqlConfig.getJdbcUsername(), sqlConfig.getJdbcPassword());
+//        try {
+//            try {
+//                connection.prepareStatement("SELECT count(*) FROM qrtz_job_details").executeQuery().close();
+//            } catch (SQLException ignored) {
+//                try {
+//                    connection.prepareStatement(getResource("tables_h2.sql")).executeUpdate();
+//                } catch (IOException ex) {
+//                    throw new SystemException("Could not read Quartz database schema file", ex);
+//                }
+//            }
+//        } finally {
+//            try {
+//                connection.close();
+//            } catch (SQLException ignored) {
+//            }
+//        }
+//    }
 
     private String getResource(String name) throws IOException {
         InputStream stream = getClass().getResourceAsStream(name);
