@@ -57,8 +57,16 @@ public class TablePanel<T> extends Panel {
     }
 
     public void setType(Class<T> type) {
-        DataTable table = (DataTable) get("table");
+        Validate.notNull(type, "Type must not be null.");
+        
+        DataTable table = getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setType(type);
+        
+
+    }
+    
+    public DataTable getDataTable() {
+        return (DataTable) get("table");
     }
 }

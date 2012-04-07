@@ -15,6 +15,8 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -41,6 +43,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             public void onUpdateHeader(AjaxRequestTarget target) {
+                TablePanel table = getListTable();
+                DataTable data = table.getDataTable();
+                
+                System.out.println("alllll");
                 //todo implement
             }
 
@@ -122,6 +128,13 @@ public class PageDebugList extends PageAdminConfiguration {
                 return "";
             }
         };
+        listChoice.add(new OnChangeAjaxBehavior() {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                //it's here just to update model
+            }
+        });
         item.getBodyContainer().add(listChoice);
 
         AjaxLinkButton button = new AjaxLinkButton("listButton",
@@ -160,16 +173,20 @@ public class PageDebugList extends PageAdminConfiguration {
     private void deleteAllPerformed(AjaxRequestTarget target) {
         //todo implement
     }
+    
+    private TablePanel getListTable() {
+        OptionContent content = (OptionContent) get("mainForm:optionContent");
+        return (TablePanel) content.getBodyContainer().get("table");
+    }
 
     private void listObjectsPerformed(AjaxRequestTarget target, IModel<ObjectTypes> selected) {
-        OptionContent content = (OptionContent) get("mainForm:optionContent");
-        TablePanel table = (TablePanel) content.getBodyContainer().get("table");
+        TablePanel table = getListTable();
 
         ObjectTypes type = selected.getObject();
         if (type != null) {
             table.setType(type.getClassDefinition());
         }
-//        target.add(table);
+        target.add(table);
     }
 
     private void objectEditPerformed(AjaxRequestTarget target, String oid) {
