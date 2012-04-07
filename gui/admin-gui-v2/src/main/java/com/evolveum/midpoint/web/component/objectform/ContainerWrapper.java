@@ -33,13 +33,13 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class PropertyContainerWrapper implements Serializable {
+public class ContainerWrapper implements Serializable {
 
     private PrismContainer container;
     private ContainerStatus status;
     private List<PropertyWrapper> properties;
 
-    public PropertyContainerWrapper(PrismContainer container, ContainerStatus status) {
+    public ContainerWrapper(PrismContainer container, ContainerStatus status) {
         Validate.notNull(container, "Item must not be null.");
         Validate.notNull(status, "Status must not be null.");
 

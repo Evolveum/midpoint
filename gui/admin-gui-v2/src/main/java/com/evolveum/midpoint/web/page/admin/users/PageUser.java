@@ -29,8 +29,8 @@ import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.objectform.ContainerStatus;
-import com.evolveum.midpoint.web.component.objectform.ObjectFormPanel;
-import com.evolveum.midpoint.web.component.objectform.PropertyContainerWrapper;
+import com.evolveum.midpoint.web.component.objectform.PrismFormPanel;
+import com.evolveum.midpoint.web.component.objectform.ContainerWrapper;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -46,16 +46,16 @@ public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_USER_ID = "userId";
 
-    private IModel<PropertyContainerWrapper> model;
+    private IModel<ContainerWrapper> model;
 
     public PageUser() {
-        model = new LoadableModel<PropertyContainerWrapper>(false) {
+        model = new LoadableModel<ContainerWrapper>(false) {
 
             @Override
-            protected PropertyContainerWrapper load() {
+            protected ContainerWrapper load() {
                 StringValue userOid = getPageParameters().get(PARAM_USER_ID);
                 if (userOid == null) {
-                    return new PropertyContainerWrapper(new UserType().asPrismObject(), ContainerStatus.ADDING);
+                    return new ContainerWrapper(new UserType().asPrismObject(), ContainerStatus.ADDING);
                 }
 
                 try {
@@ -65,13 +65,13 @@ public class PageUser extends PageAdminUsers {
                     OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
                     PrismObject<UserType> object = model.getObject(UserType.class, userOid.toString(), null, result);
 
-                    return new PropertyContainerWrapper(object, ContainerStatus.MODIFYING);
+                    return new ContainerWrapper(object, ContainerStatus.MODIFYING);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     //todo error handling
                 }
 
-                return new PropertyContainerWrapper(new UserType().asPrismObject(), ContainerStatus.ADDING);
+                return new ContainerWrapper(new UserType().asPrismObject(), ContainerStatus.ADDING);
             }
         };
 
@@ -82,7 +82,7 @@ public class PageUser extends PageAdminUsers {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        ObjectFormPanel userForm = new ObjectFormPanel("userForm", model);
+        PrismFormPanel userForm = new PrismFormPanel("userForm", model);
         mainForm.add(userForm);
 
         Accordion accordion = new Accordion("accordion");

@@ -43,12 +43,12 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ObjectFormPanel extends Panel {
+public class PrismFormPanel extends Panel {
 
-    private IModel<PropertyContainerWrapper> model;
+    private IModel<ContainerWrapper> model;
     private boolean showEmptyProperties;
 
-    public ObjectFormPanel(String id, IModel<PropertyContainerWrapper> model) {
+    public PrismFormPanel(String id, IModel<ContainerWrapper> model) {
         super(id);
         Validate.notNull(model, "Model with property container must not be null.");
 
@@ -60,7 +60,7 @@ public class ObjectFormPanel extends Panel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new PackageResourceReference(ObjectFormPanel.class, "ObjectFormPanel.css"));
+        response.renderCSSReference(new PackageResourceReference(PrismFormPanel.class, "ObjectFormPanel.css"));
     }
 
     public boolean isShowEmptyProperties() {
@@ -147,12 +147,12 @@ public class ObjectFormPanel extends Panel {
         container.add(values);
     }
 
-    private <T extends Item> IModel<String> createContainerNameModel(final IModel<PropertyContainerWrapper> model) {
+    private <T extends Item> IModel<String> createContainerNameModel(final IModel<ContainerWrapper> model) {
         return new LoadableModel<String>() {
 
             @Override
             protected String load() {
-                return PropertyContainerWrapper.getDisplayNameFromItem(model.getObject().getContainer());
+                return ContainerWrapper.getDisplayNameFromItem(model.getObject().getContainer());
             }
         };
     }
@@ -162,7 +162,7 @@ public class ObjectFormPanel extends Panel {
 
             @Override
             protected String load() {
-                return PropertyContainerWrapper.getDisplayNameFromItem(model.getObject().getProperty());
+                return ContainerWrapper.getDisplayNameFromItem(model.getObject().getProperty());
             }
         };
     }
