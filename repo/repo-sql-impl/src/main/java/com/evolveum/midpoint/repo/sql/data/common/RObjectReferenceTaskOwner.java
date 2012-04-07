@@ -21,10 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+
 /**
  * @author lazyman
  */
-public enum RObjectReferenceType {
-
-    TASK_OWNER, TASK_OBJECT;
+@Entity
+@DiscriminatorValue(value = "2")
+public class RObjectReferenceTaskOwner extends RObjectReference {
 }

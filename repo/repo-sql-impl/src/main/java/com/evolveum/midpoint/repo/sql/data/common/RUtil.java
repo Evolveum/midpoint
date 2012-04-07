@@ -46,7 +46,7 @@ import java.util.*;
  * @author lazyman
  */
 public final class RUtil {
-    
+
     public static final String NS_SQL_REPO = "http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd";
     static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, "sqlRepoObject");
 
@@ -159,18 +159,32 @@ public final class RUtil {
         return list;
     }
 
+    public static RObjectReferenceTaskObject jaxbRefToRepoTaskObject(ObjectReferenceType ref,
+            RContainer owner, PrismContext prismContext) {
+        return jaxbRefToRepo(ref, owner, prismContext, new RObjectReferenceTaskObject());
+    }
+
+    public static RObjectReferenceTaskOwner jaxbRefToRepoTaskOwner(ObjectReferenceType ref,
+            RContainer owner, PrismContext prismContext) {
+        return jaxbRefToRepo(ref, owner, prismContext, new RObjectReferenceTaskOwner());
+    }
+
     public static RObjectReference jaxbRefToRepo(ObjectReferenceType ref, RContainer owner,
             PrismContext prismContext) {
+        return jaxbRefToRepo(ref, owner, prismContext, new RObjectReference());
+    }
+
+    private static <T extends RObjectReference> T jaxbRefToRepo(ObjectReferenceType ref, RContainer owner,
+            PrismContext prismContext, T repoRef) {
         if (ref == null) {
             return null;
         }
         Validate.notNull(owner, "Owner of reference must not be null.");
 
-        RObjectReference reference = new RObjectReference();
-        reference.setOwner(owner);
-        RObjectReference.copyFromJAXB(ref, reference, prismContext);
+        repoRef.setOwner(owner);
+        RObjectReference.copyFromJAXB(ref, repoRef, prismContext);
 
-        return reference;
+        return repoRef;
     }
 
     public static Long getLongWrappedFromString(String text) {

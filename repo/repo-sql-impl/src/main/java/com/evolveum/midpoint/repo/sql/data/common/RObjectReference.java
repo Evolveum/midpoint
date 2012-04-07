@@ -39,14 +39,15 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "reference")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "reference_type", discriminatorType = DiscriminatorType.INTEGER)
+@DiscriminatorValue(value = "0")
 public class RObjectReference implements Serializable {
 
     //owner
     private RContainer owner;
     private String ownerOid;
     private Long ownerId;
-    //owner field disctinction
-    private RObjectReferenceType fieldType;
     //target
     private RContainer target;
     private String targetOid;
@@ -123,12 +124,6 @@ public class RObjectReference implements Serializable {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(nullable = true)
-    public RObjectReferenceType getFieldType() {
-        return fieldType;
-    }
-
-    @Enumerated(EnumType.ORDINAL)
     public RContainerType getType() {
         return type;
     }
@@ -171,10 +166,6 @@ public class RObjectReference implements Serializable {
 
     public void setTargetOid(String targetOid) {
         this.targetOid = targetOid;
-    }
-
-    public void setFieldType(RObjectReferenceType fieldType) {
-        this.fieldType = fieldType;
     }
 
     //todo hash and equals
