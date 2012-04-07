@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.objectform;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -37,18 +38,24 @@ import java.util.List;
  */
 public class PropertyWrapper implements Serializable, Comparable<PropertyWrapper> {
 
+    private PropertyPath path;
     private PrismProperty property;
     private ValueStatus status;
     private List<PropertyValueWrapper> values;
 
-    public PropertyWrapper(PrismProperty property) {
-        this(property, ValueStatus.NOT_CHANGED);
+    public PropertyWrapper(PropertyPath path, PrismProperty property) {
+        this(path, property, ValueStatus.NOT_CHANGED);
     }
 
-    public PropertyWrapper(PrismProperty property, ValueStatus status) {
+    public PropertyWrapper(PropertyPath path, PrismProperty property, ValueStatus status) {
         Validate.notNull(property, "Property must not be null.");
+        this.path = path;
         this.property = property;
         this.status = status;
+    }
+
+    public PropertyPath getPath() {
+        return path;
     }
 
     public PrismProperty getProperty() {

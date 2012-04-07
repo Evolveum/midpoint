@@ -23,6 +23,8 @@ package com.evolveum.midpoint.web.component.objectform;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -63,17 +65,48 @@ public class ContainerWrapper implements Serializable {
         properties = new ArrayList<PropertyWrapper>();
 
         PrismContainerDefinition definition = container.getDefinition();
+        properties.addAll(createPropertyWrappers(null, definition));
+
+        Collections.sort(properties, new PropertyWrapperComparator(definition));
+
+        return properties;
+    }
+
+    private List<PropertyWrapper> createPropertyWrappers(PropertyPath path,
+            PrismContainerDefinition definition) {
+        List<PropertyWrapper> properties = new ArrayList<PropertyWrapper>();
+
         Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
         for (PrismPropertyDefinition def : propertyDefinitions) {
             PrismProperty property = container.findProperty(def.getName());
             if (property == null) {
-                properties.add(new PropertyWrapper(def.instantiate(), ValueStatus.ADDED));
+                properties.add(new PropertyWrapper(path, def.instantiate(), ValueStatus.ADDED));
             } else {
-                properties.add(new PropertyWrapper(property, ValueStatus.NOT_CHANGED));
+                properties.add(new PropertyWrapper(path, property, ValueStatus.NOT_CHANGED));
             }
         }
 
-        Collections.sort(properties);
+        for (ItemDefinition def : (Collection<ItemDefinition>) definition.getDefinitions()) {
+            if (!(def instanceof PrismContainerDefinition)) {
+                continue;
+            }
+            
+            PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
+            if (AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
+                continue;
+            }
+            PropertyPath newPath;
+            if (path != null) {
+                List<PropertyPathSegment> segments = new ArrayList<PropertyPathSegment>();
+                segments.addAll(path.getSegments());
+                segments.add(new PropertyPathSegment(def.getName()));
+                newPath = new PropertyPath(segments);
+            } else {
+                newPath = new PropertyPath(def.getName());
+            }
+
+            properties.addAll(createPropertyWrappers(newPath, (PrismContainerDefinition) def));
+        }
 
         return properties;
     }
