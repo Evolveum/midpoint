@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import javax.xml.bind.JAXBException;
 import org.apache.commons.lang.StringUtils;
@@ -768,6 +769,10 @@ public class XmlRepositoryService implements RepositoryService {
 		if (null == criteriaValueNode) {
 			throw new IllegalArgumentException("Query filter does not contain any values to search by");
 		}
+		
+		// Be on the safe side and make sure all the ns declarations on the value element are made explicit
+		extractNamespaces((Element) criteriaValueNode, namespaces);
+		
 		if (validateFilterElement(SchemaConstants.NS_C, "value", criteriaValueNode)) {
 			Node firstChild = DOMUtil.getFirstChildElement(criteriaValueNode);
 			if (null == firstChild) {
@@ -820,11 +825,22 @@ public class XmlRepositoryService implements RepositoryService {
 				filters.put(lastPathSegment, criteriaValue);
 			}
 			namespaces.put(prefix, namespace);
+			
+			// Be on the safe side and make sure all the ns declarations on the value element are made explicit
+			extractNamespaces((Element) firstChild, namespaces);
 
 		} else {
 			throw new IllegalArgumentException("Found unexpected element in query filter "
 					+ criteriaValueNode);
 		}
+		
+	}
+
+	private void extractNamespaces(Element criteriaValueNode, Map<String, String> namespaces) {
+		Map<String, String> criteriaValueNodeNamespaces = DOMUtil.getNamespaceDeclarations((Element) criteriaValueNode);
+		for(Entry<String, String> entry: criteriaValueNodeNamespaces.entrySet()) {
+			namespaces.put(entry.getKey(), entry.getValue());
+		}		
 	}
 
 	private boolean validateFilterElement(String elementNamespace, String elementName, Node criteria) {

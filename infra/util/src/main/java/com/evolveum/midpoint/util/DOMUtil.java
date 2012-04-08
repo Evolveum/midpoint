@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -569,6 +570,20 @@ public class DOMUtil {
 		}
 		attr.setValue(namespaceUri);
 		attributes.setNamedItem(attr);
+	}
+	
+	public static Map<String,String> getNamespaceDeclarations(Element element) {
+		Map<String,String> nsDeclMap = new HashMap<String, String>();
+		NamedNodeMap attributes = element.getAttributes();
+		for(int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr)attributes.item(i);
+			if (isNamespaceDefinition(attr)) {
+				String prefix = getNamespaceDeclarationPrefix(attr);
+				String namespace = getNamespaceDeclarationNamespace(attr);
+				nsDeclMap.put(prefix, namespace);
+			}
+		}
+		return nsDeclMap;
 	}
 
 	public static void setNamespaceDeclarations(Element element, Map<String, String> rootNamespaceDeclarations) {
