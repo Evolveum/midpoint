@@ -3415,6 +3415,8 @@ public class TestSanity extends AbstractIntegrationTest {
     }
     
     private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+    	LOGGER.trace("Checking all shadows");
+    	System.out.println("Checking all shadows");
 		ObjectChecker<AccountShadowType> checker = null;
 		IntegrationTestTools.checkAllShadows(resourceTypeOpenDjrepo, repositoryService, checker, prismContext);		
 	}	

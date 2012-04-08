@@ -675,6 +675,21 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				
 		checkConsistency();
 	}
+	
+	@Test
+	public void test013SearchAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+		displayTestTile("test013SearchAllShadows");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test013SearchAllShadows");
+		QueryType query = IntegrationTestTools.createAllShadowsQuery(resourceType);
+		display("All shadows query", query);
+		
+		List<PrismObject<AccountShadowType>> allShadows = repositoryService.searchObjects(AccountShadowType.class, query, null , result);
+		display("Found "+allShadows.size()+" shadows");
+		
+		assertFalse("No shadows found", allShadows.isEmpty());
+	}
 		
 	private void checkShadow(AccountShadowType shadow, OperationResult parentResult) {
 		ObjectChecker<AccountShadowType> checker = createShadowChecker();
