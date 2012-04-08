@@ -412,8 +412,8 @@ public class IntegrationTestTools {
 		QueryType query = new QueryType();
 		Document doc = DOMUtil.getDocument();
 		query.setFilter(QueryUtil.createAndFilter(doc,
-				QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resourceType.getOid()),
-				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
+				QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resourceType.getOid())
+//				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
 				));
 		return query;
 	}
@@ -470,6 +470,9 @@ public class IntegrationTestTools {
 			List<PrismObject<AccountShadowType>> results = repositoryService.searchObjects(AccountShadowType.class, query, null, parentResult);
 			LOGGER.trace("Shadow check with filter\n{}\n found {} objects", DOMUtil.serializeDOMToString(query.getFilter()), results.size());
 			if (results.size() == 0) {
+				AssertJUnit.fail("No shadow found with query:\n"+DOMUtil.serializeDOMToString(query.getFilter()));
+			}
+			if (results.size() == 1) {
 				return;
 			}
 			if (results.size() > 1) {
@@ -488,10 +491,9 @@ public class IntegrationTestTools {
 	private static QueryType createShadowQuery(AccountShadowType resourceShadow,
 			ResourceType resourceType, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		
-		XPathHolder xpath = new XPathHolder();
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
-				.getAttributesContainer(resourceShadow);
-		PrismProperty<String> identifier = attributesContainer.findAttribute(SchemaTestConstants.ICFS_UID);
+		XPathHolder xpath = new XPathHolder(AccountShadowType.F_ATTRIBUTES);
+		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
+		PrismProperty<String> identifier = attributesContainer.findProperty(SchemaTestConstants.ICFS_UID);
 
 		Document doc = DOMUtil.getDocument();
 		Element filter;

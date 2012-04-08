@@ -22,6 +22,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
             elementFormDefault="qualified">
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
@@ -49,6 +50,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <c:access>read</c:access>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -58,6 +60,9 @@
             <xsd:documentation>
                 __NAME__ attribute
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 

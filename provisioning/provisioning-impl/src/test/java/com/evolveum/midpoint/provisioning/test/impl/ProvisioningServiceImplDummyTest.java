@@ -697,7 +697,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {		
-		ObjectChecker<AccountShadowType> checker = createShadowChecker();
+		ObjectChecker<AccountShadowType> checker = null;
 		IntegrationTestTools.checkAllShadows(resourceType, repositoryService, checker, prismContext);		
 	}
 
