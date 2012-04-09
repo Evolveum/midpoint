@@ -28,14 +28,15 @@ import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerProvider;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.SubsystemLevel;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -117,7 +118,7 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void initLoggers(AccordionItem loggers) {
-        List<IColumn<TaskType>> columns = new ArrayList<IColumn<TaskType>>();
+        List<IColumn<LoggerConfiguration>> columns = new ArrayList<IColumn<LoggerConfiguration>>();
 
         IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
         columns.add(column);
@@ -140,7 +141,7 @@ public class PageLogging extends PageAdminConfiguration {
 
                     @Override
                     protected String load() {
-                        LoggerConfiguration config  = (LoggerConfiguration) rowModel.getObject();
+                        LoggerConfiguration config = (LoggerConfiguration) rowModel.getObject();
 
                         StringBuilder builder = new StringBuilder();
                         for (String appender : config.getAppenders()) {
@@ -149,14 +150,14 @@ public class PageLogging extends PageAdminConfiguration {
                             }
                             builder.append(appender);
                         }
-                        
+
                         return builder.toString();
                     }
                 };
             }
         });
 
-        TablePanel table = new TablePanel<TaskType>("loggersTable", new LoggerProvider(model), columns);
+        TablePanel table = new TablePanel<LoggerConfiguration>("loggersTable", new LoggerProvider(model), columns);
         table.setShowPaging(false);
         table.setTableCssClass("autowidth");
         loggers.getBodyContainer().add(table);
@@ -222,7 +223,32 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void initAppenders(AccordionItem appenders) {
-        //todo implement
+        List<IColumn<AppenderConfiguration>> columns = new ArrayList<IColumn<AppenderConfiguration>>();
+
+        IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
+        columns.add(column);
+
+        column = new LinkColumn<LoggerConfiguration>(createStringResource("pageLogging.appenders.name"), "name") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
+                onLoggerClick(target, rowModel);
+            }
+        };
+        columns.add(column);
+
+        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.pattern"), "pattern"));
+        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.filePath"), "filePath"));
+        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.filePattern"), "filePattern"));
+        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.maxHistory"), "level"));
+        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.maxFileSize"), "level"));
+
+        columns.add(new CheckBoxColumn(createStringResource("pageLogging.appenders.appending"), "appending"));
+
+
+        TablePanel table = new TablePanel<AppenderConfiguration>("appendersTable", new AppenderProvider(model), columns);
+        table.setShowPaging(false);
+        appenders.getBodyContainer().add(table);
 
         AjaxLinkButton addAppender = new AjaxLinkButton("addAppender",
                 createStringResource("pageLogging.button.addAppender")) {

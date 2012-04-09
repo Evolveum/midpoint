@@ -84,55 +84,57 @@
                     <a wicket:id="deleteLogger"/>
                 </li>
                 <li wicket:id="appenders">
-                    <div class="sortedTable">
-                        <table cellspacing="1" border="0">
-                            <thead>
-                            <tr>
-                                <th width="20px"><input type="checkbox" title="Select all"/></th>
-                                <th>Name</th>
-                                <th>Pattern</th>
-                                <th>File path</th>
-                                <th>File pattern</th>
-                                <th>Max. history</th>
-                                <th>Max. file size [kB]</th>
-                                <th>Appending</th>
-                            </tr>
-                            </thead>
+                    <div wicket:id="appendersTable"/>
 
-                            <tbody>
-                            <tr>
-                                <td class="checkbox"><input type="checkbox"/></td>
-                                <td><a href="#">IDM_LOG</a></td>
-                                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
-                                <td>${catalina.base}/logs/idm.log</td>
-                                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
-                                <td>10</td>
-                                <td>100MB</td>
-                                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
-                            </tr>
-                            <tr>
-                                <td class="checkbox"><input type="checkbox"/></td>
-                                <td><a href="#">IDM_LOG</a></td>
-                                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
-                                <td>${catalina.base}/logs/idm.log</td>
-                                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
-                                <td>10</td>
-                                <td>100MB</td>
-                                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
-                            </tr>
-                            <tr>
-                                <td class="checkbox"><input type="checkbox"/></td>
-                                <td><a href="#">IDM_LOG</a></td>
-                                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
-                                <td>${catalina.base}/logs/idm.log</td>
-                                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
-                                <td>10</td>
-                                <td>100MB</td>
-                                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <!--<div class="sortedTable">-->
+                        <!--<table cellspacing="1" border="0">-->
+                            <!--<thead>-->
+                            <!--<tr>-->
+                                <!--<th width="20px"><input type="checkbox" title="Select all"/></th>-->
+                                <!--<th>Name</th>-->
+                                <!--<th>Pattern</th>-->
+                                <!--<th>File path</th>-->
+                                <!--<th>File pattern</th>-->
+                                <!--<th>Max. history</th>-->
+                                <!--<th>Max. file size [kB]</th>-->
+                                <!--<th>Appending</th>-->
+                            <!--</tr>-->
+                            <!--</thead>-->
+
+                            <!--<tbody>-->
+                            <!--<tr>-->
+                                <!--<td class="checkbox"><input type="checkbox"/></td>-->
+                                <!--<td><a href="#">IDM_LOG</a></td>-->
+                                <!--<td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>-->
+                                <!--<td>${catalina.base}/logs/idm.log</td>-->
+                                <!--<td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>-->
+                                <!--<td>10</td>-->
+                                <!--<td>100MB</td>-->
+                                <!--<td><input type="checkbox" checked="checked" disabled="disabled"/></td>-->
+                            <!--</tr>-->
+                            <!--<tr>-->
+                                <!--<td class="checkbox"><input type="checkbox"/></td>-->
+                                <!--<td><a href="#">IDM_LOG</a></td>-->
+                                <!--<td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>-->
+                                <!--<td>${catalina.base}/logs/idm.log</td>-->
+                                <!--<td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>-->
+                                <!--<td>10</td>-->
+                                <!--<td>100MB</td>-->
+                                <!--<td><input type="checkbox" checked="checked" disabled="disabled"/></td>-->
+                            <!--</tr>-->
+                            <!--<tr>-->
+                                <!--<td class="checkbox"><input type="checkbox"/></td>-->
+                                <!--<td><a href="#">IDM_LOG</a></td>-->
+                                <!--<td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>-->
+                                <!--<td>${catalina.base}/logs/idm.log</td>-->
+                                <!--<td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>-->
+                                <!--<td>10</td>-->
+                                <!--<td>100MB</td>-->
+                                <!--<td><input type="checkbox" checked="checked" disabled="disabled"/></td>-->
+                            <!--</tr>-->
+                            <!--</tbody>-->
+                        <!--</table>-->
+                    <!--</div>-->
                     <a wicket:id="addAppender"/>
                     <a wicket:id="deleteAppender"/>
                 </li>

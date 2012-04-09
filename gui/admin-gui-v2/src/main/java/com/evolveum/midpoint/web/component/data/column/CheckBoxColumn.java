@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -37,14 +38,28 @@ import java.io.Serializable;
  */
 public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selectable<T>> {
 
+    private String propertyExpression;
+
     public CheckBoxColumn(IModel<String> displayModel) {
+        this(displayModel, null);
+    }
+
+    public CheckBoxColumn(IModel<String> displayModel, String propertyExpression) {
         super(displayModel);
+        this.propertyExpression = propertyExpression;
     }
 
     @Override
     public void populateItem(Item<ICellPopulator<Selectable<T>>> cellItem, String componentId,
             final IModel<Selectable<T>> rowModel) {
-        cellItem.add(new CheckBoxPanel(componentId, new PropertyModel<Boolean>(rowModel, "selected")) {
+        IModel<Boolean> selected = null;
+        if (StringUtils.isEmpty(propertyExpression)) {
+            selected = new PropertyModel<Boolean>(rowModel, "selected");
+        } else {
+            selected = new PropertyModel<Boolean>(rowModel, propertyExpression);
+        }
+
+        cellItem.add(new CheckBoxPanel(componentId, selected) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
