@@ -313,6 +313,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
 		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
+		
+		String resourceXml = prismContext.getPrismDomProcessor().serializeObjectToString(resourceRepoAfter);
+		display("Resource XML", resourceXml);
 
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
 		assertNotNull("No caching metadata", cachingMetadata);

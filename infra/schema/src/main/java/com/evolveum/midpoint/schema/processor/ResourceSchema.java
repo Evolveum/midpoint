@@ -85,6 +85,9 @@ public class ResourceSchema extends PrismSchema {
 	
 	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {
 		ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(qName);
+		if (complexTypeDefinition == null) {
+			return null;
+		}
 		if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
 			return (ObjectClassComplexTypeDefinition)complexTypeDefinition;
 		} else {

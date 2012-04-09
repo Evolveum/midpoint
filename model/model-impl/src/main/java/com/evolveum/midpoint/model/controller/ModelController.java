@@ -649,7 +649,7 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-			CommunicationException, ConfigurationException {
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 
 		Validate.notNull(modifications, "Object modification must not be null.");
 		Validate.notEmpty(oid, "Change oid must not be null or empty.");
@@ -762,6 +762,10 @@ public class ModelController implements ModelService {
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
+			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
+			result.recordFatalError(ex);
+			throw ex;
+		} catch (ObjectAlreadyExistsException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);
 			throw ex;
@@ -900,6 +904,9 @@ public class ModelController implements ModelService {
 				} catch (ConfigurationException e) {
 					// TODO Better handling
 					throw e;
+				} catch (ObjectAlreadyExistsException e) {
+					// TODO Better handling
+					throw new SystemException(e.getMessage(), e);
 				}
 
 				changes = syncContext.getAllChanges();

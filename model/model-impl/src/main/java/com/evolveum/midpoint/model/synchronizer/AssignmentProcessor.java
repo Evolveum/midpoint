@@ -227,6 +227,9 @@ public class AssignmentProcessor {
 		ObjectNotFoundException, ExpressionEvaluationException {
             
     	DeltaSetTriple<AccountConstruction> accountDeltaSetTriple = accountContext.getAccountConstructionDeltaSetTriple();
+    	if (accountDeltaSetTriple == null) {
+    		return;
+    	}
     	ResourceAccountType rat = accountContext.getResourceAccountType();
     	Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
         LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());

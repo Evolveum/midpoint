@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.model;
 
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.synchronizer.AccountConstruction;
@@ -286,7 +288,9 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     }
 
     public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
-        return ResourceTypeUtil.getResourceAccountTypeDefinitionType(resource, resourceAccountType.getAccountType());
+        ResourceAccountTypeDefinitionType def = ResourceTypeUtil.getResourceAccountTypeDefinitionType(
+        		resource, resourceAccountType.getAccountType());
+        return def;
     }
 
     /**
@@ -317,6 +321,12 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 
         accountNew = accDelta.computeChangedObject(oldAccount);
     }
+    
+	public RefinedAccountDefinition getRefinedAccountDefinition() throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
+		return refinedSchema.getAccountDefinition(getResourceAccountType().getAccountType());
+	}
+
     
     public void checkConsistence() {
     	if (resource == null) {

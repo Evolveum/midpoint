@@ -66,86 +66,82 @@ public class OutboundProcessor {
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
 
-    void processOutbound(SyncContext context, OperationResult result) throws SchemaException,
+    void processOutbound(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
-        for (AccountSyncContext accCtx : context.getAccountContexts()) {
+        ResourceAccountType rat = accCtx.getResourceAccountType();
+        ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
 
-            ResourceAccountType rat = accCtx.getResourceAccountType();
-            ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+        if (accountDelta != null && accountDelta.getChangeType() == ChangeType.DELETE) {
+            LOGGER.trace("Processing outbound expressions for account {} skipped, DELETE account delta", rat);
+            // No point in evaluating outbound
+            return;
+        }
 
-            if (accountDelta != null && accountDelta.getChangeType() == ChangeType.DELETE) {
-                LOGGER.trace("Processing outbound expressions for account {} skipped, DELETE account delta", rat);
-                // No point in evaluating outbound
-                continue;
+        LOGGER.trace("Processing outbound expressions for account {} starting", rat);
+
+        RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat);
+        if (rAccount == null) {
+            LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
+            throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
+        }
+
+        Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaSetTripleMap = accCtx.getAttributeValueDeltaSetTripleMap();
+
+        for (QName attributeName : rAccount.getNamesOfAttributesWithOutboundExpressions()) {
+            DeltaSetTriple<ValueConstruction<?>> attrDeltaTriple = attributeValueDeltaSetTripleMap.get(attributeName);
+            RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
+
+            // TODO: check access
+
+            PrismObject<UserType> user = context.getUserOld();
+            if (user == null) {
+                user = context.getUserNew();
             }
+            ValueConstruction evaluatedOutboundValueConstructionOld = evaluateOutboundValueConstruction(user, refinedAttributeDefinition, rAccount, result);
+            ValueConstruction evaluatedOutboundValueConstructionNew = evaluateOutboundValueConstruction(context.getUserNew(), refinedAttributeDefinition, rAccount, result);
 
-            LOGGER.trace("Processing outbound expressions for account {} starting", rat);
+            LOGGER.trace("Processing outbound expressions for account {}, attribute {}\nOLD:\n{}\nNEW\n{}",
+                    new Object[]{rat, attributeName,
+                            evaluatedOutboundValueConstructionOld == null ? null : evaluatedOutboundValueConstructionOld.dump(),
+                            evaluatedOutboundValueConstructionNew == null ? null : evaluatedOutboundValueConstructionNew.dump(),});
 
-            RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat);
-            if (rAccount == null) {
-                LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
-                throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
-            }
+            if (evaluatedOutboundValueConstructionNew != null) {
 
-            Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaSetTripleMap = accCtx.getAttributeValueDeltaSetTripleMap();
-
-            for (QName attributeName : rAccount.getNamesOfAttributesWithOutboundExpressions()) {
-                DeltaSetTriple<ValueConstruction<?>> attrDeltaTriple = attributeValueDeltaSetTripleMap.get(attributeName);
-                RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
-
-                // TODO: check access
-
-                PrismObject<UserType> user = context.getUserOld();
-                if (user == null) {
-                    user = context.getUserNew();
+                if (attrDeltaTriple == null) {
+                    attrDeltaTriple = new DeltaSetTriple<ValueConstruction<?>>();
+                    attributeValueDeltaSetTripleMap.put(attributeName, attrDeltaTriple);
                 }
-                ValueConstruction evaluatedOutboundValueConstructionOld = evaluateOutboundValueConstruction(user, refinedAttributeDefinition, rAccount, result);
-                ValueConstruction evaluatedOutboundValueConstructionNew = evaluateOutboundValueConstruction(context.getUserNew(), refinedAttributeDefinition, rAccount, result);
 
-                LOGGER.trace("Processing outbound expressions for account {}, attribute {}\nOLD:\n{}\nNEW\n{}",
-                        new Object[]{rat, attributeName,
-                                evaluatedOutboundValueConstructionOld == null ? null : evaluatedOutboundValueConstructionOld.dump(),
-                                evaluatedOutboundValueConstructionNew == null ? null : evaluatedOutboundValueConstructionNew.dump(),});
+                if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
+                    // Special behavior for add. In case the account is added we don't care how the expression output has
+                    // changed. We will add all the values
+                    attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction<?>>(evaluatedOutboundValueConstructionNew));
 
-                if (evaluatedOutboundValueConstructionNew != null) {
+                } else {
+                    // Diff new and old values, distributed the deltas accordingly
 
-                    if (attrDeltaTriple == null) {
-                        attrDeltaTriple = new DeltaSetTriple<ValueConstruction<?>>();
-                        attributeValueDeltaSetTripleMap.put(attributeName, attrDeltaTriple);
-                    }
+                    Collection<PrismPropertyValue<Object>> valuesOld = evaluatedOutboundValueConstructionOld.getOutput().getValues();
+                    Collection<PrismPropertyValue<Object>> valuesNew = evaluatedOutboundValueConstructionNew.getOutput().getValues();
+                    DeltaSetTriple<Object> valueDeltaTriple = DeltaSetTriple.diff(valuesOld, valuesNew);
 
-                    if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
-                        // Special behavior for add. In case the account is added we don't care how the expression output has
-                        // changed. We will add all the values
-                        attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction<?>>(evaluatedOutboundValueConstructionNew));
+                    // Clonning the value construction is necessary, as we need three of them
+                    evaluatedOutboundValueConstructionNew.getOutput().getValues().clear();
+                    ValueConstruction plusValueConstruction = evaluatedOutboundValueConstructionNew;
+                    ValueConstruction minusValueConstruction = evaluatedOutboundValueConstructionNew.clone();
+                    ValueConstruction zeroValueConstruction = evaluatedOutboundValueConstructionNew.clone();
 
-                    } else {
-                        // Diff new and old values, distributed the deltas accordingly
+                    plusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getPlusSet());
+                    attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction<?>>(plusValueConstruction));
 
-                        Collection<PrismPropertyValue<Object>> valuesOld = evaluatedOutboundValueConstructionOld.getOutput().getValues();
-                        Collection<PrismPropertyValue<Object>> valuesNew = evaluatedOutboundValueConstructionNew.getOutput().getValues();
-                        DeltaSetTriple<Object> valueDeltaTriple = DeltaSetTriple.diff(valuesOld, valuesNew);
+                    minusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getMinusSet());
+                    attrDeltaTriple.getMinusSet().add(new PrismPropertyValue<ValueConstruction<?>>(minusValueConstruction));
 
-                        // Clonning the value construction is necessary, as we need three of them
-                        evaluatedOutboundValueConstructionNew.getOutput().getValues().clear();
-                        ValueConstruction plusValueConstruction = evaluatedOutboundValueConstructionNew;
-                        ValueConstruction minusValueConstruction = evaluatedOutboundValueConstructionNew.clone();
-                        ValueConstruction zeroValueConstruction = evaluatedOutboundValueConstructionNew.clone();
-
-                        plusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getPlusSet());
-                        attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction<?>>(plusValueConstruction));
-
-                        minusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getMinusSet());
-                        attrDeltaTriple.getMinusSet().add(new PrismPropertyValue<ValueConstruction<?>>(minusValueConstruction));
-
-                        zeroValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getZeroSet());
-                        attrDeltaTriple.getZeroSet().add(new PrismPropertyValue<ValueConstruction<?>>(zeroValueConstruction));
-                    }
-
+                    zeroValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getZeroSet());
+                    attrDeltaTriple.getZeroSet().add(new PrismPropertyValue<ValueConstruction<?>>(zeroValueConstruction));
                 }
-            }
 
+            }
         }
 
     }

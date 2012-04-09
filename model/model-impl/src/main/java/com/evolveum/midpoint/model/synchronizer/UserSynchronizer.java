@@ -50,6 +50,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -103,7 +104,7 @@ public class UserSynchronizer {
     private boolean consistenceChecks = true;
 
     public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 
     	if (consistenceChecks) context.checkConsistence();
     	

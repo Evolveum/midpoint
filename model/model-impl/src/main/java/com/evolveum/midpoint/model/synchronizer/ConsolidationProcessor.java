@@ -73,29 +73,27 @@ public class ConsolidationProcessor {
     /**
      * Converts delta set triples to a secondary account deltas.
      */
-    void consolidateValues(SyncContext context, OperationResult result) throws SchemaException,
+    void consolidateValues(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws SchemaException,
             ExpressionEvaluationException {
-        //todo filter changes which were already in account sync delta
+    		//todo filter changes which were already in account sync delta
 
-        for (AccountSyncContext accCtx : context.getAccountContexts()) {
-            //account was deleted, no changes are needed.
-            if (wasAccountDeleted(accCtx)) {
-                dropAllAccountDelta(accCtx);
-                continue;
-            }
+        //account was deleted, no changes are needed.
+        if (wasAccountDeleted(accCtx)) {
+            dropAllAccountDelta(accCtx);
+            return;
+        }
 
-            PolicyDecision policyDecision = accCtx.getPolicyDecision();
+        PolicyDecision policyDecision = accCtx.getPolicyDecision();
 
-            if (policyDecision == PolicyDecision.ADD) {
-                consolidateValuesAddAccount(context, accCtx, result);
-            } else if (policyDecision == PolicyDecision.KEEP) {
-                consolidateValuesModifyAccount(context, accCtx, result);
-            } else if (policyDecision == PolicyDecision.DELETE) {
-                consolidateValuesDeleteAccount(context, accCtx, result);
-            } else {
-                // This is either UNLINK or null, both are in fact the same as KEEP
-                consolidateValuesModifyAccount(context, accCtx, result);
-            }
+        if (policyDecision == PolicyDecision.ADD) {
+            consolidateValuesAddAccount(context, accCtx, result);
+        } else if (policyDecision == PolicyDecision.KEEP) {
+            consolidateValuesModifyAccount(context, accCtx, result);
+        } else if (policyDecision == PolicyDecision.DELETE) {
+            consolidateValuesDeleteAccount(context, accCtx, result);
+        } else {
+            // This is either UNLINK or null, both are in fact the same as KEEP
+            consolidateValuesModifyAccount(context, accCtx, result);
         }
     }
 

@@ -217,6 +217,8 @@ public interface ModelService {
 	 * @throws ExpressionEvaluationException
 	 * 				evaluation of expression associated with the object has failed
 	 * @throws CommunicationException 
+	 * @throws ObjectAlreadyExistsException
+	 * 				If the account or another "secondary" object already exists and cannot be created
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
@@ -225,7 +227,7 @@ public interface ModelService {
 	 */
 	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
-			CommunicationException, ConfigurationException;
+			CommunicationException, ConfigurationException,ObjectAlreadyExistsException;
 
 	/**
 	 * <p>

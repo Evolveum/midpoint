@@ -26,35 +26,26 @@ import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -77,17 +68,6 @@ import static org.testng.AssertJUnit.*;
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
-
-    protected static final String TEST_RESOURCE_DIR_NAME = "src/test/resources/synchronizer";
-
-    protected static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ = TEST_RESOURCE_DIR_NAME +
-            "/user-jack-modify-add-assignment-account-opendj.xml";
-    protected static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-jack-modify-add-assignment-account-opendj-attr.xml";
-    private static final String REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-barbossa-modify-add-assignment-account-opendj-attr.xml";
-    private static final String REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-barbossa-modify-delete-assignment-account-opendj-attr.xml";
 
     private static final PropertyPath ATTRIBUTES_PARENT_PATH = new PropertyPath(SchemaConstants.I_ATTRIBUTES);
 
@@ -112,7 +92,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test001OutboundEmpty");
 
         SyncContext context = new SyncContext(prismContext);
-        fillInUser(context, USER_JACK_OID, result);
+        fillContextWithUser(context, USER_JACK_OID, result);
 
         // WHEN
         assignmentProcessor.processAssignmentsAccounts(context, result);
@@ -134,8 +114,8 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test011AddAssignmentAddAccountDirect");
 
         SyncContext context = new SyncContext(prismContext);
-        fillInUser(context, USER_JACK_OID, result);
-        addModification(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ);
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContext(context, TestUserSynchronizer.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ);
 
         display("Input context", context);
 
@@ -190,8 +170,8 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test012AddAssignmentAddAccountDirectWithAttrs");
 
         SyncContext context = new SyncContext(prismContext);
-        fillInUser(context, USER_JACK_OID, result);
-        addModification(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContext(context, TestUserSynchronizer.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
 
         display("Input context", context);
 
@@ -263,9 +243,9 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test021AddAssignmentModifyAccount");
 
         SyncContext context = new SyncContext(prismContext);
-        fillInUser(context, USER_BARBOSSA_OID, result);
-        fillInAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModification(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        addModificationToContext(context, TestUserSynchronizer.REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
 
         display("Input context", context);
 
@@ -337,9 +317,9 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test031DeleteAssignmentModifyAccount");
 
         SyncContext context = new SyncContext(prismContext);
-        fillInUser(context, USER_BARBOSSA_OID, result);
-        fillInAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModification(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        addModificationToContext(context, TestUserSynchronizer.REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
 
         display("Input context", context);
 
@@ -395,58 +375,6 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
     }
 
-
-    private ObjectDelta<UserType> addModification(SyncContext context, String filename) throws JAXBException, SchemaException, FileNotFoundException {
-        ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename), ObjectModificationType.class);
-        ObjectDelta<UserType> userDelta = DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
-        context.addPrimaryUserDelta(userDelta);
-        return userDelta;
-    }
-
-    private void assertUserModificationSanity(SyncContext context) throws JAXBException {
-        PrismObject<UserType> userOld = context.getUserOld();
-        ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
-        assertEquals(userOld.getOid(), userPrimaryDelta.getOid());
-        assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());
-        assertNull(userPrimaryDelta.getObjectToAdd());
-        for (ItemDelta itemMod : userPrimaryDelta.getModifications()) {
-            if (itemMod.getValuesToDelete() != null) {
-                Item property = userOld.findItem(itemMod.getPath());
-                assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in user", property);
-                for (Object valueToDelete : itemMod.getValuesToDelete()) {
-                    if (!property.getValues().contains(valueToDelete)) {
-                        display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
-                        display("Deleted value", valueToDelete);
-                        display("HASHCODE: " + valueToDelete.hashCode());
-                        for (Object value : property.getValues()) {
-                            display("Existing value", value);
-                            display("EQUALS: " + valueToDelete.equals(value));
-                            display("HASHCODE: " + value.hashCode());
-                        }
-                        AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
-                    }
-                }
-            }
-
-        }
-    }
-
-    private void fillInUser(SyncContext context, String userOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-        context.setUserOld(user);
-
-    }
-
-    private void fillInAccount(SyncContext context, String accountOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        PrismObject<AccountShadowType> account = repositoryService.getObject(AccountShadowType.class, accountOid, null, result);
-        AccountShadowType accountType = account.asObjectable();
-        ResourceAccountType rat = new ResourceAccountType(accountType.getResourceRef().getOid(), accountType.getAccountType());
-        AccountSyncContext accountSyncContext = context.createAccountSyncContext(rat);
-        accountSyncContext.setOid(accountOid);
-		accountSyncContext.setAccountOld(account);
-    }
 
     private Object getSingleValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction<?>> triple, 
     		Collection<PrismPropertyValue<ValueConstruction<?>>> set) {

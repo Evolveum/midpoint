@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+
+<resource oid="10000000-0000-0000-0000-000000000004"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+								  
+	<name>Dummy Resource</name>
+	<connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004" type="c:ConnectorType">
+		<filter>
+			<and>
+				<equal>
+					<value>
+						<connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
+					</value>
+				</equal>
+			</and>
+		</filter>
+	</connectorRef>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004</namespace>
+	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>foobar</icfi:instanceId>
+		</icfc:configurationProperties>
+
+	</configuration>
+	
+	<schema>
+		<definition>
+			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+                     xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     elementFormDefault="qualified"
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"/>
+            <xsd:complexType name="AccountObjectClass">
+               <xsd:annotation>
+                  <xsd:appinfo>
+                     <ra:resourceObject/>
+                     <ra:identifier>icfs:uid</ra:identifier>
+                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                     <ra:account/>
+                     <ra:default/>
+                  </xsd:appinfo>
+               </xsd:annotation>
+               <xsd:sequence>
+                  <xsd:element ref="icfs:uid">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ICF UID</a:displayName>
+                           <a:access>read</a:access>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element name="fullname" type="xsd:string"/>
+                  <xsd:element minOccurs="0" name="description" type="xsd:string"/>
+                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
+                  <xsd:element ref="icfs:name">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ICF NAME</a:displayName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+               </xsd:sequence>
+            </xsd:complexType>
+         </xsd:schema>
+		</definition>
+	</schema>
+
+	<schemaHandling>
+		<accountType>
+			<name>user</name>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<access>create</access>
+				<access>read</access>
+				<outbound>
+				    <initial>true</initial>
+					<expression>
+						<code>
+							$c:user/c:name
+						</code>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>UID</displayName>
+				<access>read</access>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<displayName>Full Name</displayName>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
+				<outbound>
+					<expression>
+						<code>
+							$c:user/c:fullName
+						</code>
+					</expression>
+				</outbound>
+			</attribute>
+		</accountType>
+	</schemaHandling>
+
+</resource>

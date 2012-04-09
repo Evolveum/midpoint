@@ -22,13 +22,17 @@
 package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 import org.apache.commons.lang.Validate;
@@ -267,6 +271,22 @@ public class QueryUtil {
 
         return query;
 	}
+	
+	public static QueryType createAttributeQuery(PrismProperty<?> attribute,
+			QName objectClass, ResourceType resourceType, PrismContext prismContext) throws SchemaException {
+		// We have all the data, we can construct the filter now
+		// TODO: add objectClass to the criteria FIXME
+		Document doc = DOMUtil.getDocument();
+		XPathHolder xpath = new XPathHolder(ResourceObjectShadowType.F_ATTRIBUTES);
+		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(attribute, doc);
+		Element filter = createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
+					SchemaConstants.I_RESOURCE_REF, resourceType.getOid()), QueryUtil
+					.createEqualFilterFromElements(doc, xpath, identifierElements, prismContext));
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		return query;
+	}
+
 
 	public static String dump(QueryType query) {
 		StringBuilder sb = new StringBuilder("Query(");

@@ -19,6 +19,12 @@
  */
 package com.evolveum.midpoint.model;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
@@ -26,16 +32,29 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -46,8 +65,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  *
  */
 public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
-
-	protected static final QName ICFS_NAME = new QName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd","name");
 	
 	protected static final String COMMON_DIR_NAME = "src/test/resources/common";
 	
@@ -59,9 +76,13 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR_NAME + "/connector-ldap.xml";
 	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR_NAME + "/connector-dbtable.xml";
+	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR_NAME + "/connector-dummy.xml";
 	
 	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
 	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
+	
+	protected static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
+	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	
 	protected static final String ROLE_ALPHA_FILENAME = COMMON_DIR_NAME + "/role-alpha.xml";
 	protected static final String ROLE_ALPHA_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
@@ -85,7 +106,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
-	protected ResourceType resourceType;
+	protected ResourceType resourceOpenDjType;
+	protected ResourceType resourceDummyType;
 	
 	public AbstractModelIntegrationTest() throws JAXBException {
 		super();
@@ -101,9 +123,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		// Connectors
 		addObjectFromFile(CONNECTOR_LDAP_FILENAME, ConnectorType.class, initResult);
 		addObjectFromFile(CONNECTOR_DBTABLE_FILENAME, ConnectorType.class, initResult);
+		addObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
 		
 		// Resources
-		resourceType = addObjectFromFile(RESOURCE_OPENDJ_FILENAME, ResourceType.class, initResult).asObjectable();
+		resourceOpenDjType = addObjectFromFile(RESOURCE_OPENDJ_FILENAME, ResourceType.class, initResult).asObjectable();
+		resourceDummyType = addObjectFromFile(RESOURCE_DUMMY_FILENAME, ResourceType.class, initResult).asObjectable();
 
 		// Users
 		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
@@ -120,6 +144,58 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		FileInputStream stream = new FileInputStream(filename);
 		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
+	}
+	
+	protected void fillContextWithUser(SyncContext context, String userOid, OperationResult result) throws SchemaException,
+			ObjectNotFoundException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        context.setUserOld(user);
+    }
+
+	protected void fillContextWithAccount(SyncContext context, String accountOid, OperationResult result) throws SchemaException,
+			ObjectNotFoundException {
+        PrismObject<AccountShadowType> account = repositoryService.getObject(AccountShadowType.class, accountOid, null, result);
+        AccountShadowType accountType = account.asObjectable();
+        ResourceAccountType rat = new ResourceAccountType(accountType.getResourceRef().getOid(), accountType.getAccountType());
+        AccountSyncContext accountSyncContext = context.createAccountSyncContext(rat);
+        accountSyncContext.setOid(accountOid);
+		accountSyncContext.setAccountOld(account);
+    }
+
+	protected ObjectDelta<UserType> addModificationToContext(SyncContext context, String filename) throws JAXBException,
+			SchemaException, FileNotFoundException {
+	    ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename), ObjectModificationType.class);
+	    ObjectDelta<UserType> userDelta = DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
+	    context.addPrimaryUserDelta(userDelta);
+	    return userDelta;
+	}
+
+	protected void assertUserModificationSanity(SyncContext context) throws JAXBException {
+	    PrismObject<UserType> userOld = context.getUserOld();
+	    ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
+	    assertEquals(userOld.getOid(), userPrimaryDelta.getOid());
+	    assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());
+	    assertNull(userPrimaryDelta.getObjectToAdd());
+	    for (ItemDelta itemMod : userPrimaryDelta.getModifications()) {
+	        if (itemMod.getValuesToDelete() != null) {
+	            Item property = userOld.findItem(itemMod.getPath());
+	            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in user", property);
+	            for (Object valueToDelete : itemMod.getValuesToDelete()) {
+	                if (!property.getValues().contains(valueToDelete)) {
+	                    display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
+	                    display("Deleted value", valueToDelete);
+	                    display("HASHCODE: " + valueToDelete.hashCode());
+	                    for (Object value : property.getValues()) {
+	                        display("Existing value", value);
+	                        display("EQUALS: " + valueToDelete.equals(value));
+	                        display("HASHCODE: " + value.hashCode());
+	                    }
+	                    AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
+	                }
+	            }
+	        }
+	
+	    }
 	}
 
 }
