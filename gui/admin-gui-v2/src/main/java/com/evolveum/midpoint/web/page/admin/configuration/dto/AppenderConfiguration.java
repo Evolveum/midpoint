@@ -28,7 +28,7 @@ import org.apache.commons.lang.Validate;
 /**
  * @author lazyman
  */
-public class AppenderConfiguration<T extends AppenderConfigurationType> extends Selectable {
+public class AppenderConfiguration<T extends AppenderConfigurationType> extends Selectable implements Comparable<T> {
 
     private T config;
 
@@ -36,7 +36,7 @@ public class AppenderConfiguration<T extends AppenderConfigurationType> extends 
         Validate.notNull(config, "Appender configuration type must not be null.");
         this.config = config;
     }
-    
+
     protected T getConfig() {
         return config;
     }
@@ -75,5 +75,13 @@ public class AppenderConfiguration<T extends AppenderConfigurationType> extends 
 
     public boolean appending() {
         return false;
+    }
+
+    @Override
+    public int compareTo(T t) {
+        if (t == null) {
+            return 0;
+        }
+        return String.CASE_INSENSITIVE_ORDER.compare(getName(), t.getName());
     }
 }

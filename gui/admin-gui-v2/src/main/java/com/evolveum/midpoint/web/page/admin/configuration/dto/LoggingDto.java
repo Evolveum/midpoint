@@ -21,10 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -46,7 +43,7 @@ public class LoggingDto implements Serializable {
 
     private SubsystemLevel subsystemLevel;
     private String subsystemAppender;
-    
+
     private List<AppenderConfiguration> appenders = new ArrayList<AppenderConfiguration>();
 
     private boolean auditLog;
@@ -60,9 +57,9 @@ public class LoggingDto implements Serializable {
     }
 
     public LoggingDto(LoggingConfigurationType config) {
-       init(config);
+        init(config);
     }
-    
+
     private void init(LoggingConfigurationType config) {
         if (config == null) {
             return;
@@ -75,14 +72,21 @@ public class LoggingDto implements Serializable {
         for (SubSystemLoggerConfigurationType logger : config.getSubSystemLogger()) {
             loggers.add(new ComponentLogger(logger));
         }
-        
+
         for (ClassLoggerConfigurationType logger : config.getClassLogger()) {
             loggers.add(new ClassLogger(logger));
         }
 
         Collections.sort(loggers, new LoggersComparator());
-        
-        //todo implement appenders
+
+        for (AppenderConfigurationType appender : config.getAppender()) {
+            if (appender instanceof FileAppenderConfigurationType) {
+                appenders.add(new FileAppender((FileAppenderConfigurationType) appender));
+            } else {
+                appenders.add(new AppenderConfiguration(appender));
+            }
+        }
+        Collections.sort(appenders);
     }
 
     public List<LoggerConfiguration> getLoggers() {

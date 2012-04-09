@@ -240,11 +240,9 @@ public class PageLogging extends PageAdminConfiguration {
         columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.pattern"), "pattern"));
         columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.filePath"), "filePath"));
         columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.filePattern"), "filePattern"));
-        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.maxHistory"), "level"));
-        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.maxFileSize"), "level"));
-
+        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.maxHistory"), "maxHistory"));
+        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.maxFileSize"), "maxFileSize"));
         columns.add(new CheckBoxColumn(createStringResource("pageLogging.appenders.appending"), "appending"));
-
 
         TablePanel table = new TablePanel<AppenderConfiguration>("appendersTable", new AppenderProvider(model), columns);
         table.setShowPaging(false);
@@ -373,8 +371,10 @@ public class PageLogging extends PageAdminConfiguration {
             public List<String> getObject() {
                 List<String> list = new ArrayList<String>();
 
-                //todo implement
-                list.add("implement");
+                LoggingDto dto = model.getObject();
+                for (AppenderConfiguration appender : dto.getAppenders()) {
+                    list.add(appender.getName());
+                }
 
                 return list;
             }
