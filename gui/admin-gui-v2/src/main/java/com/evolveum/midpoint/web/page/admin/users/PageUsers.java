@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -91,7 +92,7 @@ public class PageUsers extends PageAdminUsers {
         };
         columns.add(column);
 
-        add(new TablePanel<UserType>("table", UserType.class, columns));
+        add(new TablePanel<UserType>("table", new ObjectDataProvider(UserType.class), columns));
     }
 
     public void userDetailsPerformed(AjaxRequestTarget target, String oid) {

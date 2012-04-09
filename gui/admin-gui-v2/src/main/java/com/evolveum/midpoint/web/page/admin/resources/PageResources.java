@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -74,7 +75,7 @@ public class PageResources extends PageAdminResources {
 //        column = new PropertyColumn(createStringResource("pageResources.progress"), "value.connector.connectorVersion");
 //        columns.add(column);
 
-        add(new TablePanel<ResourceType>("table", ResourceType.class, columns));
+        add(new TablePanel<ResourceType>("table", new ObjectDataProvider(ResourceType.class), columns));
     }
 
     public void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {

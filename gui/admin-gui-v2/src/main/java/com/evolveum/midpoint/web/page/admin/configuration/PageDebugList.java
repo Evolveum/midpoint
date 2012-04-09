@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -74,7 +75,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OptionContent content = new OptionContent("optionContent");
         main.add(content);
-        TablePanel table = new TablePanel("table", UserType.class, columns);
+        TablePanel table = new TablePanel("table", new ObjectDataProvider(UserType.class), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
 
@@ -168,7 +169,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
         ObjectTypes type = selected.getObject();
         if (type != null) {
-            table.setType(type.getClassDefinition());
+            ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
+            provider.setType(type.getClassDefinition());
         }
         target.add(table);
     }

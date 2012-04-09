@@ -21,12 +21,14 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -64,7 +66,7 @@ public class PageRoles extends PageAdminRoles {
         column = new PropertyColumn(createStringResource("pageRoles.description"), "value.description");
         columns.add(column);
 
-        add(new TablePanel<RoleType>("table", RoleType.class, columns));
+        add(new TablePanel<RoleType>("table", new ObjectDataProvider(PageRoles.class), columns));
     }
 
     public void roleDetailsPerformed(AjaxRequestTarget target, String oid) {

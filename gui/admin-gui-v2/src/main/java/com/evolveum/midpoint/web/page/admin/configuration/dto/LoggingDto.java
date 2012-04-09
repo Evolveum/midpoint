@@ -19,12 +19,17 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration;
+package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -36,6 +41,8 @@ public class LoggingDto implements Serializable {
 
     private LoggingLevelType midPointLevel;
     private String midPointAppender;
+
+    private List<LoggerConfiguration> loggers = new ArrayList<LoggerConfiguration>();
 
     private SubsystemLevel subsystemLevel;
     private String subsystemAppender;
@@ -51,13 +58,33 @@ public class LoggingDto implements Serializable {
     }
 
     public LoggingDto(LoggingConfigurationType config) {
+       init(config);
+    }
+    
+    private void init(LoggingConfigurationType config) {
         if (config == null) {
             return;
         }
         rootLevel = config.getRootLoggerLevel();
         rootAppender = config.getRootLoggerAppender();
 
-        //todo implement
+        //todo find midpoint root package logger!!!
+
+        for (SubSystemLoggerConfigurationType logger : config.getSubSystemLogger()) {
+            loggers.add(new ComponentLogger(logger));
+        }
+        
+        for (ClassLoggerConfigurationType logger : config.getClassLogger()) {
+            loggers.add(new ClassLogger(logger));
+        }
+
+        Collections.sort(loggers, new LoggersComparator());
+        
+        //todo implement appenders
+    }
+
+    public List<LoggerConfiguration> getLoggers() {
+        return loggers;
     }
 
     public String getMidPointAppender() {

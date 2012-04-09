@@ -39,8 +39,8 @@ public class LinkColumn<T> extends AbstractColumn<T> {
         super(displayModel);
     }
 
-    public LinkColumn(IModel<String> displayModel, String sortProperty) {
-        super(displayModel, sortProperty);
+    public LinkColumn(IModel<String> displayModel, String propertyExpression) {
+        this(displayModel, null, propertyExpression);
     }
 
     public LinkColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {

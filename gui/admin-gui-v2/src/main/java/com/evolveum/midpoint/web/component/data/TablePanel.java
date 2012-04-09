@@ -26,6 +26,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 
@@ -40,34 +41,25 @@ public class TablePanel<T> extends Panel {
     private static final String NAV_TOP = "navigatorTop";
     private static final String NAV_BOTTOM = "navigatorBottom";
 
-    public TablePanel(String id, Class<T> type, List<IColumn<T>> columns) {
-        this(id, type, columns, 10);
+    public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T>> columns) {
+        this(id, provider, columns, 10);
     }
 
-    public TablePanel(String id, Class<T> type, List<IColumn<T>> columns, int itemsPerPage) {
+    public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T>> columns, int itemsPerPage) {
         super(id);
-        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
 
-        initLayout(columns, itemsPerPage, type);
+        initLayout(columns, itemsPerPage, provider);
     }
 
-    private void initLayout(List<IColumn<T>> columns, int itemsPerPage, Class<T> type) {
-        ObjectDataProvider provider = new ObjectDataProvider(type);
+    private void initLayout(List<IColumn<T>> columns, int itemsPerPage, ISortableDataProvider provider) {
         DataTable<T> table = new DataTable<T>(TABLE, columns, provider, itemsPerPage);
         table.addTopToolbar(new TableHeadersToolbar(table, provider));
 
         add(table);
         add(new NavigatorPanel(NAV_TOP, table));
         add(new NavigatorPanel(NAV_BOTTOM, table));
-    }
-
-    public void setType(Class<T> type) {
-        Validate.notNull(type, "Type must not be null.");
-
-        DataTable table = getDataTable();
-        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-        provider.setType(type);
     }
 
     public DataTable getDataTable() {

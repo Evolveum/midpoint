@@ -19,12 +19,24 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration;
+package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 /**
  * @author lazyman
  */
 public enum SubsystemLevel {
 
-    OFF, ENTRY_EXIT, ARGUMENTS
+    OFF("pageLogging.subsystem.level.off"),
+    ENTRY_EXIT("pageLogging.subsystem.level.entryExit"), 
+    ARGUMENTS("pageLogging.subsystem.level.arguments");
+
+    private String localizationKey;
+    
+    private SubsystemLevel(String localizationKey) {
+        this.localizationKey = localizationKey;
+    }
+
+    public String getLocalizationKey() {
+        return localizationKey;
+    }
 }

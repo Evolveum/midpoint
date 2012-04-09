@@ -32,6 +32,10 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerProvider;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.SubsystemLevel;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -39,9 +43,11 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,6 +80,7 @@ public class PageLogging extends PageAdminConfiguration {
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
             SystemConfigurationType systemConfiguration = config.asObjectable();
             LoggingConfigurationType logging = systemConfiguration.getLogging();
+            dto = new LoggingDto(logging);
         } catch (Exception ex) {
             ex.printStackTrace();
             //todo implement
@@ -113,33 +120,54 @@ public class PageLogging extends PageAdminConfiguration {
     private void initLoggers(AccordionItem loggers) {
         List<IColumn<TaskType>> columns = new ArrayList<IColumn<TaskType>>();
 
-        IColumn column = new CheckBoxColumn<TaskType>();
+        IColumn column = new CheckBoxColumn<LoggerConfiguration>();
         columns.add(column);
 
-        column = new LinkColumn<Selectable<TaskType>>(createStringResource("pageLogging.classPackageSubsystem"), "value.name") {
+        column = new LinkColumn<LoggerConfiguration>(createStringResource("pageLogging.classPackageSubsystem"), "name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<Selectable<TaskType>> rowModel) {
-                //todo implement
+            public void onClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
+                onLoggerClick(target, rowModel);
             }
         };
         columns.add(column);
 
-        columns.add(new PropertyColumn(createStringResource("pageLogging.loggersLevel"), "value.level"));
-        columns.add(new PropertyColumn(createStringResource("pageLogging.loggersAppender"), "value.appender"));
+        columns.add(new PropertyColumn(createStringResource("pageLogging.loggersLevel"), "level"));
+        columns.add(new PropertyColumn(createStringResource("pageLogging.loggersAppender"), "appenders") {
 
-        TablePanel table = new TablePanel<TaskType>("loggersTable", TaskType.class, columns);
+            @Override
+            protected IModel<String> createLabelModel(final IModel rowModel) {
+                return new LoadableModel<String>() {
+
+                    @Override
+                    protected String load() {
+                        LoggerConfiguration config  = (LoggerConfiguration) rowModel.getObject();
+
+                        StringBuilder builder = new StringBuilder();
+                        for (String appender : config.getAppenders()) {
+                            if (config.getAppenders().indexOf(appender) != 0) {
+                                builder.append(", ");
+                            }
+                            builder.append(appender);
+                        }
+                        
+                        return builder.toString();
+                    }
+                };
+            }
+        });
+
+        TablePanel table = new TablePanel<TaskType>("loggersTable", new LoggerProvider(model), columns);
         table.setShowPaging(false);
         table.setTableCssClass("autowidth");
         loggers.getBodyContainer().add(table);
-        //todo implement
 
         AjaxLinkButton addLogger = new AjaxLinkButton("addLogger",
                 createStringResource("pageLogging.button.addLogger")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //todo implement
+                addLoggerPerformed(target);
             }
         };
         loggers.getBodyContainer().add(addLogger);
@@ -149,7 +177,7 @@ public class PageLogging extends PageAdminConfiguration {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //todo implement
+                deleteLoggerPerformed(target);
             }
         };
         loggers.getBodyContainer().add(deleteLogger);
@@ -158,8 +186,22 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void initSubsystem(AccordionItem loggers) {
+        IChoiceRenderer<SubsystemLevel> renderer = new IChoiceRenderer<SubsystemLevel>() {
+
+            @Override
+            public Object getDisplayValue(SubsystemLevel object) {
+                return new StringResourceModel(object.getLocalizationKey(),
+                        PageLogging.this, null).getString();
+            }
+
+            @Override
+            public String getIdValue(SubsystemLevel object, int index) {
+                return object.name();
+            }
+        };
+
         DropDownChoice<SubsystemLevel> subsystemLevel = createComboBox("subsystemLevel",
-                new PropertyModel<SubsystemLevel>(model, "subsystemLevel"), createSubsystemLevelModel());
+                new PropertyModel<SubsystemLevel>(model, "subsystemLevel"), createSubsystemLevelModel(), renderer);
         loggers.getBodyContainer().add(subsystemLevel);
 
         DropDownChoice<String> subsystemAppender = createComboBox("subsystemAppender",
@@ -182,6 +224,26 @@ public class PageLogging extends PageAdminConfiguration {
 
     private void initAppenders(AccordionItem appenders) {
         //todo implement
+
+        AjaxLinkButton addAppender = new AjaxLinkButton("addAppender",
+                createStringResource("pageLogging.button.addAppender")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addAppenderPerformed(target);
+            }
+        };
+        appenders.getBodyContainer().add(addAppender);
+
+        AjaxLinkButton deleteAppender = new AjaxLinkButton("deleteAppender",
+                createStringResource("pageLogging.button.deleteAppender")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteAppenderPerformed(target);
+            }
+        };
+        appenders.getBodyContainer().add(deleteAppender);
     }
 
     private void initRoot(final Form mainForm) {
@@ -268,6 +330,18 @@ public class PageLogging extends PageAdminConfiguration {
         };
     }
 
+    private <T> DropDownChoice<T> createComboBox(String id, IModel<T> choice, IModel<List<T>> choices,
+            IChoiceRenderer renderer) {
+        return new DropDownChoice<T>(id,
+                choice, choices, renderer) {
+
+            @Override
+            protected CharSequence getDefaultChoice(String selectedValue) {
+                return "";
+            }
+        };
+    }
+
     private IModel<List<String>> createAppendersListModel() {
         return new AbstractReadOnlyModel<List<String>>() {
             @Override
@@ -295,5 +369,25 @@ public class PageLogging extends PageAdminConfiguration {
                 return list;
             }
         };
+    }
+
+    private void addLoggerPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void addAppenderPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void deleteAppenderPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void deleteLoggerPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void onLoggerClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
+        //todo implement
     }
 }

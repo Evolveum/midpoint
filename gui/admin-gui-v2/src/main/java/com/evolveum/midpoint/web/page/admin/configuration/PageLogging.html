@@ -23,292 +23,152 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-<div class="content">
-<h1>
-    <wicket:message key="page.title"/>
-</h1>
-<form wicket:id="mainForm">
-<table cellspacing="0" cellpadding="0">
-    <tr>
-        <td class="label">
-            <wicket:message key="pageLogging.rootLevel"/>
-        </td>
-        <td class="values">
-            <select wicket:id="rootLevel"/>
-        </td>
-        <td class="label">
-            <wicket:message key="pageLogging.rootAppender"/>
-        </td>
-        <td class="values">
-            <select wicket:id="rootAppender"/>
-        </td>
-    </tr>
-    <tr>
-        <td class="label">
-            <wicket:message key="pageLogging.midPointLevel"/>
-        </td>
-        <td class="values">
-            <select wicket:id="midPointLevel"/>
-        </td>
-        <td class="label">
-            <wicket:message key="pageLogging.midPointAppender"/>
-        </td>
-        <td class="values">
-            <select wicket:id="midPointAppender"/>
-        </td>
-    </tr>
-</table>
-<div wicket:id="accordion" class="accordions">
-<li wicket:id="loggers">
-    <div wicket:id="loggersTable"/>
+    <div class="content">
+        <h1>
+            <wicket:message key="page.title"/>
+        </h1>
+        <form wicket:id="mainForm">
+            <table cellspacing="0" cellpadding="0">
+                <tr>
+                    <td class="label">
+                        <wicket:message key="pageLogging.rootLevel"/>
+                    </td>
+                    <td class="values">
+                        <select wicket:id="rootLevel"/>
+                    </td>
+                    <td class="label">
+                        <wicket:message key="pageLogging.rootAppender"/>
+                    </td>
+                    <td class="values">
+                        <select wicket:id="rootAppender"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <wicket:message key="pageLogging.midPointLevel"/>
+                    </td>
+                    <td class="values">
+                        <select wicket:id="midPointLevel"/>
+                    </td>
+                    <td class="label">
+                        <wicket:message key="pageLogging.midPointAppender"/>
+                    </td>
+                    <td class="values">
+                        <select wicket:id="midPointAppender"/>
+                    </td>
+                </tr>
+            </table>
+            <div wicket:id="accordion" class="accordions">
+                <li wicket:id="loggers">
+                    <div wicket:id="loggersTable"/>
+                    <h4>
+                        <wicket:message key="pageLogging.logSubsystemEntryExit"/>
+                    </h4>
+                    <table cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td class="label">
+                                <wicket:message key="pageLogging.subsystem.level"/>
+                            </td>
+                            <td class="values">
+                                <select wicket:id="subsystemLevel"/>
+                            </td>
+                            <td class="label">
+                                <wicket:message key="pageLogging.subsystem.appender"/>
+                            </td>
+                            <td class="values">
+                                <select wicket:id="subsystemAppender"/>
+                            </td>
+                        </tr>
+                    </table>
+                    <a wicket:id="addLogger"/>
+                    <a wicket:id="deleteLogger"/>
+                </li>
+                <li wicket:id="appenders">
+                    <div class="sortedTable">
+                        <table cellspacing="1" border="0">
+                            <thead>
+                            <tr>
+                                <th width="20px"><input type="checkbox" title="Select all"/></th>
+                                <th>Name</th>
+                                <th>Pattern</th>
+                                <th>File path</th>
+                                <th>File pattern</th>
+                                <th>Max. history</th>
+                                <th>Max. file size [kB]</th>
+                                <th>Appending</th>
+                            </tr>
+                            </thead>
 
-    <!--<div class="sortedTable">-->
-        <!--<table cellspacing="1" border="0" class="autowidth">-->
-            <!--<thead>-->
-            <!--<tr>-->
-                <!--<th width="20px"><input type="checkbox" title="Select all"/></th>-->
-                <!--<th>Class/Package/Subsystem</th>-->
-                <!--<th>Level</th>-->
-                <!--<th>Appender</th>-->
-            <!--</tr>-->
-            <!--</thead>-->
+                            <tbody>
+                            <tr>
+                                <td class="checkbox"><input type="checkbox"/></td>
+                                <td><a href="#">IDM_LOG</a></td>
+                                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
+                                <td>${catalina.base}/logs/idm.log</td>
+                                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
+                                <td>10</td>
+                                <td>100MB</td>
+                                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
+                            </tr>
+                            <tr>
+                                <td class="checkbox"><input type="checkbox"/></td>
+                                <td><a href="#">IDM_LOG</a></td>
+                                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
+                                <td>${catalina.base}/logs/idm.log</td>
+                                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
+                                <td>10</td>
+                                <td>100MB</td>
+                                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
+                            </tr>
+                            <tr>
+                                <td class="checkbox"><input type="checkbox"/></td>
+                                <td><a href="#">IDM_LOG</a></td>
+                                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
+                                <td>${catalina.base}/logs/idm.log</td>
+                                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
+                                <td>10</td>
+                                <td>100MB</td>
+                                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <a wicket:id="addAppender"/>
+                    <a wicket:id="deleteAppender"/>
+                </li>
+            </div>
+            <h4>
+                <wicket:message key="pageLogging.audit"/>
+            </h4>
+            <table cellspacing="0" cellpadding="0">
+                <tr>
+                    <td class="label">
+                        <wicket:message key="pageLogging.auditLog"/>
+                    </td>
+                    <td class="values">
+                        <input type="checkbox" wicket:id="auditLog"/>
+                    </td>
+                    <td class="label">
+                        <wicket:message key="pageLogging.details"/>
+                    </td>
+                    <td class="values">
+                        <input type="checkbox" wicket:id="auditDetails"/>
+                    </td>
+                    <td class="label">
+                        <wicket:message key="pageLogging.appender"/>
+                    </td>
+                    <td class="values">
+                        <select wicket:id="auditAppender"/>
+                    </td>
+                </tr>
+            </table>
 
-            <!--<tbody>-->
-            <!--<tr>-->
-                <!--<td class="checkbox"><input type="checkbox"/></td>-->
-                <!--<td><a href="#">MODEL</a></td>-->
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value="ALL">ALL</option>-->
-                        <!--<option value="OFF">OFF</option>-->
-                        <!--<option value="ERROR">ERROR</option>-->
-                        <!--<option value="WARN">WARN</option>-->
-                        <!--<option value="INFO">INFO</option>-->
-                        <!--<option value="DEBUG">DEBUG</option>-->
-                        <!--<option value="TRACE">TRACE</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value=""></option>-->
-                        <!--<option value="IDM_LOG">IDM_LOG</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td class="checkbox"><input type="checkbox"/></td>-->
-                <!--<td><a href="#">PROVISIONING</a></td>-->
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value="ALL">ALL</option>-->
-                        <!--<option value="OFF">OFF</option>-->
-                        <!--<option value="ERROR">ERROR</option>-->
-                        <!--<option value="WARN">WARN</option>-->
-                        <!--<option value="INFO">INFO</option>-->
-                        <!--<option value="DEBUG">DEBUG</option>-->
-                        <!--<option value="TRACE">TRACE</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value=""></option>-->
-                        <!--<option value="IDM_LOG">IDM_LOG</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td class="checkbox"><input type="checkbox"/></td>-->
-                <!--<td><a href="#">REPOSITORY</a></td>-->
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value="ALL">ALL</option>-->
-                        <!--<option value="OFF">OFF</option>-->
-                        <!--<option value="ERROR">ERROR</option>-->
-                        <!--<option value="WARN">WARN</option>-->
-                        <!--<option value="INFO">INFO</option>-->
-                        <!--<option value="DEBUG">DEBUG</option>-->
-                        <!--<option value="TRACE">TRACE</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value=""></option>-->
-                        <!--<option value="IDM_LOG">IDM_LOG</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td class="checkbox"><input type="checkbox"/></td>-->
-                <!--<td><a href="#">WEB</a></td>-->
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value="ALL">ALL</option>-->
-                        <!--<option value="OFF">OFF</option>-->
-                        <!--<option value="ERROR">ERROR</option>-->
-                        <!--<option value="WARN">WARN</option>-->
-                        <!--<option value="INFO">INFO</option>-->
-                        <!--<option value="DEBUG">DEBUG</option>-->
-                        <!--<option value="TRACE">TRACE</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value=""></option>-->
-                        <!--<option value="IDM_LOG">IDM_LOG</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td class="checkbox"><input type="checkbox"/></td>-->
-                <!--<td><a href="#">TASKMANAGER</a></td>-->
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value="ALL">ALL</option>-->
-                        <!--<option value="OFF">OFF</option>-->
-                        <!--<option value="ERROR">ERROR</option>-->
-                        <!--<option value="WARN">WARN</option>-->
-                        <!--<option value="INFO">INFO</option>-->
-                        <!--<option value="DEBUG">DEBUG</option>-->
-                        <!--<option value="TRACE">TRACE</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value=""></option>-->
-                        <!--<option value="IDM_LOG">IDM_LOG</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td class="checkbox"><input type="checkbox"/></td>-->
-                <!--<td><a href="#">RESOURCEOBJECTCHANGELISTENER</a></td>-->
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value="ALL">ALL</option>-->
-                        <!--<option value="OFF">OFF</option>-->
-                        <!--<option value="ERROR">ERROR</option>-->
-                        <!--<option value="WARN">WARN</option>-->
-                        <!--<option value="INFO">INFO</option>-->
-                        <!--<option value="DEBUG">DEBUG</option>-->
-                        <!--<option value="TRACE">TRACE</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-
-                <!--<td>-->
-                    <!--<select>-->
-                        <!--<option value=""></option>-->
-                        <!--<option value="IDM_LOG">IDM_LOG</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-            <!--</tr>-->
-            <!--</tbody>-->
-        <!--</table>-->
-    <!--</div>-->
-    <h4><wicket:message key="pageLogging.logSubsystemEntryExit"/></h4>
-    <table cellspacing="0" cellpadding="0">
-        <tr>
-            <td class="label"><wicket:message key="pageLogging.subsystem.level" /></td>
-            <td class="values">
-                <select wicket:id="subsystemLevel"/>
-            </td>
-            <td class="label"><wicket:message key="pageLogging.subsystem.appender"/></td>
-            <td class="values">
-                <select wicket:id="subsystemAppender" />
-            </td>
-        </tr>
-    </table>
-    <a wicket:id="addLogger"/>
-    <a wicket:id="deleteLogger"/>
-</li>
-<li wicket:id="appenders">
-    <div class="sortedTable">
-        <table cellspacing="1" border="0">
-            <thead>
-            <tr>
-                <th width="20px"><input type="checkbox" title="Select all"/></th>
-                <th>Name</th>
-                <th>Pattern</th>
-                <th>File path</th>
-                <th>File pattern</th>
-                <th>Max. history</th>
-                <th>Max. file size [kB]</th>
-                <th>Appending</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            <tr>
-                <td class="checkbox"><input type="checkbox"/></td>
-                <td><a href="#">IDM_LOG</a></td>
-                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
-                <td>${catalina.base}/logs/idm.log</td>
-                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
-                <td>10</td>
-                <td>100MB</td>
-                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
-            </tr>
-            <tr>
-                <td class="checkbox"><input type="checkbox"/></td>
-                <td><a href="#">IDM_LOG</a></td>
-                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
-                <td>${catalina.base}/logs/idm.log</td>
-                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
-                <td>10</td>
-                <td>100MB</td>
-                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
-            </tr>
-            <tr>
-                <td class="checkbox"><input type="checkbox"/></td>
-                <td><a href="#">IDM_LOG</a></td>
-                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
-                <td>${catalina.base}/logs/idm.log</td>
-                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
-                <td>10</td>
-                <td>100MB</td>
-                <td><input type="checkbox" checked="checked" disabled="disabled"/></td>
-            </tr>
-            </tbody>
-        </table>
+            <div class="operatingFormButtons">
+                <a wicket:id="saveButton"/>
+                <a wicket:id="resetButton"/>
+                <a wicket:id="advancedButton"/>
+            </div>
+        </form>
     </div>
-    <a class="button" href="#">Add appender</a>
-    <a class="button" href="#">Delete appender</a>
-</li>
-</div>
-<h4>
-    <wicket:message key="pageLogging.audit"/>
-</h4>
-<table cellspacing="0" cellpadding="0">
-    <tr>
-        <td class="label">
-            <wicket:message key="pageLogging.auditLog"/>
-        </td>
-        <td class="values">
-            <input type="checkbox" wicket:id="auditLog"/>
-        </td>
-        <td class="label">
-            <wicket:message key="pageLogging.details"/>
-        </td>
-        <td class="values">
-            <input type="checkbox" wicket:id="auditDetails"/>
-        </td>
-        <td class="label">
-            <wicket:message key="pageLogging.appender"/>
-        </td>
-        <td class="values">
-            <select wicket:id="auditAppender"/>
-        </td>
-    </tr>
-</table>
-
-<div class="operatingFormButtons">
-    <a wicket:id="saveButton"/>
-    <a wicket:id="resetButton"/>
-    <a wicket:id="advancedButton"/>
-</div>
-</form>
-</div>
 </wicket:extend>
 </html>

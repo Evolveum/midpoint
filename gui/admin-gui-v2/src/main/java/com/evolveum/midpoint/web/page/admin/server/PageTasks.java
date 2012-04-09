@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -68,7 +69,7 @@ public class PageTasks extends PageAdminTasks {
 //        columns.add(new PropertyColumn(createStringResource("pageTasks.currentRunTime"), "value.exclusivity"));
         columns.add(new PropertyColumn(createStringResource("pageTasks.scheduledToRunAgain"), "value.nextRunStartTime"));
 
-        add(new TablePanel<TaskType>("table", TaskType.class, columns));
+        add(new TablePanel<TaskType>("table", new ObjectDataProvider(TaskType.class), columns));
     }
 
     public void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
