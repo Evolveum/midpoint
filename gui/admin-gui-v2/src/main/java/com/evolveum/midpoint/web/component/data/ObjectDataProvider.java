@@ -27,13 +27,12 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Application;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -47,7 +46,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvider<Selectable<T>> {
+public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvider<SelectableBean<T>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
     private Class<T> type;
@@ -63,8 +62,8 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
     }
 
     @Override
-    public Iterator<Selectable<T>> iterator(int first, int count) {
-        List<Selectable<T>> users = new ArrayList<Selectable<T>>();
+    public Iterator<SelectableBean<T>> iterator(int first, int count) {
+        List<SelectableBean<T>> users = new ArrayList<SelectableBean<T>>();
         try {
             SortParam sortParam = getSort();
             OrderDirectionType order;
@@ -79,7 +78,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
 
             List<PrismObject<T>> list = getModel().searchObjects(type, null, paging, result);
             for (PrismObject<T> object : list) {
-                users.add(new Selectable<T>(object.asObjectable()));
+                users.add(new SelectableBean<T>(object.asObjectable()));
             }
 
             //todo error and operation result handling
@@ -101,10 +100,10 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
     }
 
     @Override
-    public IModel<Selectable<T>> model(Selectable<T> object) {
-        return new Model<Selectable<T>>(object);
+    public IModel<SelectableBean<T>> model(SelectableBean<T> object) {
+        return new Model<SelectableBean<T>>(object);
     }
-    
+
     public void setType(Class<T> type) {
         Validate.notNull(type);
         this.type = type;

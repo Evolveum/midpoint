@@ -23,9 +23,9 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -47,13 +47,13 @@ public class PageTasks extends PageAdminTasks {
     private void initLayout() {
         List<IColumn<TaskType>> columns = new ArrayList<IColumn<TaskType>>();
 
-        IColumn column = new CheckBoxColumn<TaskType>();
+        IColumn column = new CheckBoxHeaderColumn<TaskType>();
         columns.add(column);
 
-        column = new LinkColumn<Selectable<TaskType>>(createStringResource("pageTasks.name"), "name", "value.name") {
+        column = new LinkColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.name"), "name", "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<Selectable<TaskType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> rowModel) {
                 TaskType role = rowModel.getObject().getValue();
                 taskDetailsPerformed(target, role.getOid());
             }

@@ -28,10 +28,9 @@ import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
@@ -120,7 +119,7 @@ public class PageLogging extends PageAdminConfiguration {
     private void initLoggers(AccordionItem loggers) {
         List<IColumn<TaskType>> columns = new ArrayList<IColumn<TaskType>>();
 
-        IColumn column = new CheckBoxColumn<LoggerConfiguration>();
+        IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
         columns.add(column);
 
         column = new LinkColumn<LoggerConfiguration>(createStringResource("pageLogging.classPackageSubsystem"), "name") {

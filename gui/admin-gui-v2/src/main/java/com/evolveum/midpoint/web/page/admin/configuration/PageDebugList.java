@@ -6,12 +6,13 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -39,24 +40,24 @@ public class PageDebugList extends PageAdminConfiguration {
     private void initLayout() {
         List<IColumn<? extends ObjectType>> columns = new ArrayList<IColumn<? extends ObjectType>>();
 
-        IColumn column = new CheckBoxColumn<ObjectType>();
+        IColumn column = new CheckBoxHeaderColumn<ObjectType>();
         columns.add(column);
 
-        column = new LinkColumn<Selectable<? extends ObjectType>>(createStringResource("pageDebugList.name"), "name", "value.name") {
+        column = new LinkColumn<SelectableBean<? extends ObjectType>>(createStringResource("pageDebugList.name"), "name", "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<Selectable<? extends ObjectType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<? extends ObjectType>> rowModel) {
                 ObjectType object = rowModel.getObject().getValue();
                 objectEditPerformed(target, object.getOid());
             }
         };
         columns.add(column);
 
-        column = new ButtonColumn<Selectable<? extends ObjectType>>(createStringResource("pageDebugList.operation"),
+        column = new ButtonColumn<SelectableBean<? extends ObjectType>>(createStringResource("pageDebugList.operation"),
                 createStringResource("pageDebugList.button.delete")) {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<Selectable<? extends ObjectType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<? extends ObjectType>> rowModel) {
                 ObjectType object = rowModel.getObject().getValue();
                 deletePerformed(target, object.getOid());
             }

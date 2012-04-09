@@ -21,45 +21,35 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.web.component.util.Selectable;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selectable<T>> {
+public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn {
 
-    public CheckBoxColumn(IModel<String> displayModel) {
-        super(displayModel);
+    public CheckBoxHeaderColumn() {
+        super(null);
     }
 
     @Override
-    public void populateItem(Item<ICellPopulator<Selectable<T>>> cellItem, String componentId,
-            final IModel<Selectable<T>> rowModel) {
-        cellItem.add(new CheckBoxPanel(componentId, new PropertyModel<Boolean>(rowModel, "selected")) {
+    public Component getHeader(String componentId) {
+        return new CheckBoxPanel(componentId, new Model<Boolean>()) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
                 DataTable table = findParent(DataTable.class);
-                onUpdateRow(target, table, rowModel);
+                onUpdateHeader(target, table);
             }
-        });
+        };
     }
 
-    @Override
-    public String getCssClass() {
-        return "tableCheckbox";
-    }
-
-    public void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<Selectable<T>> rowModel) {
+    public void onUpdateHeader(AjaxRequestTarget target, DataTable table) {
         //todo implement
     }
 }

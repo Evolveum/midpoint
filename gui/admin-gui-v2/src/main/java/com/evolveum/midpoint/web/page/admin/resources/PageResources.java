@@ -23,9 +23,9 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -46,13 +46,13 @@ public class PageResources extends PageAdminResources {
     private void initLayout() {
         List<IColumn<ResourceType>> columns = new ArrayList<IColumn<ResourceType>>();
 
-        IColumn column = new CheckBoxColumn<ResourceType>();
+        IColumn column = new CheckBoxHeaderColumn<ResourceType>();
         columns.add(column);
 
-        column = new LinkColumn<Selectable<ResourceType>>(createStringResource("pageResources.name"), "name", "value.name") {
+        column = new LinkColumn<SelectableBean<ResourceType>>(createStringResource("pageResources.name"), "name", "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<Selectable<ResourceType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
                 ResourceType resource = rowModel.getObject().getValue();
                 resourceDetailsPerformed(target, resource.getOid());
             }

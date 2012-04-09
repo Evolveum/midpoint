@@ -26,15 +26,22 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class Selectable<T extends Serializable> implements Serializable {
+public class SelectableBean<T extends Serializable> extends Selectable<T> {
 
-    private boolean selected;
+    private T value;
 
-    public boolean isSelected() {
-        return selected;
+    public SelectableBean() {
     }
 
-    public void setSelected(boolean selected) {
-        this.selected = selected;
+    public SelectableBean(T value) {
+        this.value = value;
+    }
+
+    public T getValue() {
+        return value;
+    }
+
+    public void setValue(T value) {
+        this.value = value;
     }
 }

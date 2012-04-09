@@ -23,9 +23,9 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -53,13 +53,13 @@ public class PageUsers extends PageAdminUsers {
     private void initLayout() {
         List<IColumn<UserType>> columns = new ArrayList<IColumn<UserType>>();
 
-        IColumn column = new CheckBoxColumn<UserType>();
+        IColumn column = new CheckBoxHeaderColumn<UserType>();
         columns.add(column);
 
-        column = new LinkColumn<Selectable<UserType>>(createStringResource("pageUsers.name"), "name", "value.name") {
+        column = new LinkColumn<SelectableBean<UserType>>(createStringResource("pageUsers.name"), "name", "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<Selectable<UserType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
                 UserType user = rowModel.getObject().getValue();
                 userDetailsPerformed(target, user.getOid());
             }
@@ -75,11 +75,11 @@ public class PageUsers extends PageAdminUsers {
         column = new PropertyColumn(createStringResource("pageUsers.fullName"), "fullName", "value.fullName");
         columns.add(column);
 
-        column = new AbstractColumn<Selectable<UserType>>(createStringResource("pageUsers.email")) {
+        column = new AbstractColumn<SelectableBean<UserType>>(createStringResource("pageUsers.email")) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<Selectable<UserType>>> cellItem, String componentId,
-                    IModel<Selectable<UserType>> rowModel) {
+            public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem, String componentId,
+                    IModel<SelectableBean<UserType>> rowModel) {
 
                 List<String> emails = rowModel.getObject().getValue().getEmailAddress();
                 String email = "";

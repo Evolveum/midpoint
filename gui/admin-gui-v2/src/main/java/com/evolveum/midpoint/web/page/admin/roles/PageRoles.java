@@ -23,12 +23,11 @@ package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -50,13 +49,13 @@ public class PageRoles extends PageAdminRoles {
     private void initLayout() {
         List<IColumn<RoleType>> columns = new ArrayList<IColumn<RoleType>>();
 
-        IColumn column = new CheckBoxColumn<RoleType>();
+        IColumn column = new CheckBoxHeaderColumn<RoleType>();
         columns.add(column);
 
-        column = new LinkColumn<Selectable<RoleType>>(createStringResource("pageRoles.name"), "name", "value.name") {
+        column = new LinkColumn<SelectableBean<RoleType>>(createStringResource("pageRoles.name"), "name", "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<Selectable<RoleType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
                 RoleType role = rowModel.getObject().getValue();
                 roleDetailsPerformed(target, role.getOid());
             }
