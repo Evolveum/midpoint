@@ -115,7 +115,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         fillInUser(context, USER_JACK_OID, result);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, result);
 
         // THEN
         display("outbound processor result", result);
@@ -142,7 +142,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, result);
 
         // THEN
         display("Output context", context);
@@ -198,7 +198,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, result);
 
         // THEN
         display("Output context", context);
@@ -218,6 +218,8 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
         assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
+        
+        assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
         Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
         
@@ -270,7 +272,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, result);
 
         // THEN
         display("Output context", context);
@@ -290,6 +292,8 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
         assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+        
+        assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
         Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
         
@@ -342,7 +346,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, result);
 
         // THEN
         display("Output context", context);
@@ -362,6 +366,8 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
 
         assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+        
+        assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
         Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
         

@@ -77,7 +77,7 @@ public class AssignmentProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
-    public void processAssignments(SyncContext context, OperationResult result) throws SchemaException,
+    public void processAssignmentsAccounts(SyncContext context, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException {
 
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
@@ -181,13 +181,6 @@ public class AssignmentProcessor {
                 throw new IllegalStateException("Account type is null in ResourceAccountType during assignment processing");
             }
 
-            DeltaSetTriple<AccountConstruction> accountDeltaSetTriple = new DeltaSetTriple<AccountConstruction>(zeroAccountMap.get(rat),
-                    plusAccountMap.get(rat), minusAccountMap.get(rat));
-
-            Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
-            LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());
-            LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
-
             if (zeroAccountMap.containsKey(rat)) {
                 AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
                 if (accountSyncContext == null) {
@@ -222,9 +215,24 @@ public class AssignmentProcessor {
                 throw new IllegalStateException("Account " + rat + " went looney");
             }
 
-            context.getAccountSyncContext(rat).addToAttributeValueDeltaSetTripleMap(attributeValueDeltaMap);
+            DeltaSetTriple<AccountConstruction> accountDeltaSetTriple = new DeltaSetTriple<AccountConstruction>(zeroAccountMap.get(rat),
+                    plusAccountMap.get(rat), minusAccountMap.get(rat));
+            context.getAccountSyncContext(rat).setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
 
         }
+        
+    }
+    
+    public void processAssignmentsAccountValues(AccountSyncContext accountContext, OperationResult result) throws SchemaException,
+		ObjectNotFoundException, ExpressionEvaluationException {
+            
+    	DeltaSetTriple<AccountConstruction> accountDeltaSetTriple = accountContext.getAccountConstructionDeltaSetTriple();
+    	ResourceAccountType rat = accountContext.getResourceAccountType();
+    	Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
+        LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());
+        LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
+
+        accountContext.addToAttributeValueDeltaSetTripleMap(attributeValueDeltaMap);        
     }
 
     private void collectToAccountMap(

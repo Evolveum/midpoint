@@ -139,7 +139,7 @@ public class UserSynchronizer {
         }
         if (consistenceChecks) context.checkConsistence();
 
-        assignmentProcessor.processAssignments(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, result);
         context.recomputeNew();
         SynchronizerUtil.traceContext("assignments", context, true);
         if (consistenceChecks) context.checkConsistence();

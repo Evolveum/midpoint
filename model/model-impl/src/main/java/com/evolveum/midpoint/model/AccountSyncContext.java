@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
+import com.evolveum.midpoint.model.synchronizer.AccountConstruction;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -96,6 +97,12 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
      * Secondary account delta. This describes the changes that are an effect of primary account delta or user deltas.
      */
     private ObjectDelta<AccountShadowType> accountSecondaryDelta;
+    
+    /**
+     * Intermediary computation result. It is stored to allow re-computing of account constructions during
+     * iterative computations.
+     */
+    private DeltaSetTriple<AccountConstruction> accountConstructionDeltaSetTriple;
 
     /**
      * DeltaSetTriples for change account attributes. It is used as a "temporary" store of attributed values between
@@ -249,8 +256,17 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     public void setPolicyDecision(PolicyDecision policyDecision) {
         this.policyDecision = policyDecision;
     }
+    
+    public DeltaSetTriple<AccountConstruction> getAccountConstructionDeltaSetTriple() {
+		return accountConstructionDeltaSetTriple;
+	}
 
-    public Map<QName, DeltaSetTriple<ValueConstruction<?>>> getAttributeValueDeltaSetTripleMap() {
+	public void setAccountConstructionDeltaSetTriple(
+			DeltaSetTriple<AccountConstruction> accountConstructionDeltaSetTriple) {
+		this.accountConstructionDeltaSetTriple = accountConstructionDeltaSetTriple;
+	}
+
+	public Map<QName, DeltaSetTriple<ValueConstruction<?>>> getAttributeValueDeltaSetTripleMap() {
         return attributeValueDeltaSetTripleMap;
     }
 

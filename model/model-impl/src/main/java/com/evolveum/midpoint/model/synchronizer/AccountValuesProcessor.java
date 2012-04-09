@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.synchronizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -48,6 +49,9 @@ public class AccountValuesProcessor {
 	public void process(SyncContext context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		
+		for (AccountSyncContext accountContext: context.getAccountContexts()) {
+			assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
+		}
 		
 		outboundProcessor.processOutbound(context, result);
         context.recomputeNew();

@@ -83,29 +83,6 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
 
-	@Test(expectedExceptions = ExpressionEvaluationException.class)
-	@SuppressWarnings("unchecked")
-	public void testConfirmUserWithoutModel() throws Exception {
-		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(
-				TEST_FOLDER, "./expr/account-xpath-evaluation-without-resource.xml"));
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
-
-		ExpressionType expression = PrismTestUtil.unmarshalObject(
-						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" "
-								+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
-								+ "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\";\n"
-								+ "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
-								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code></object>", ExpressionType.class);
-
-		OperationResult result = new OperationResult("testConfirmUserWithoutModel");
-		try {
-			expressionHandler.evaluateConfirmationExpression(user.asObjectable(), account.asObjectable(), expression, result);
-			Assert.fail();
-		} finally {
-			LOGGER.info(result.dump());
-		}
-	}
-
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testConfirmUser() throws Exception {
