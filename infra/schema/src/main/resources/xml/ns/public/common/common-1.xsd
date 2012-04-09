@@ -2200,6 +2200,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -2364,6 +2365,27 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="IterationSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of iteration properties for a resource account or other resource objects.
+                Iteration is a process of choosing unique (or otherwise acceptable) values. E.g. it
+                is ususally used to generate unique usernames.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="maxIterations" type="xsd:int">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Maximum number of itteration attempts. The number specifies attempts
+        				beyound the first one, which is not considered to be an iteration.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        		<!-- TODO: iteration variable format? -->
+        	</xsd:element>
+     	</xsd:sequence>
+     </xsd:complexType>
 
     <xsd:complexType name="CapabilitiesType">
         <xsd:annotation>

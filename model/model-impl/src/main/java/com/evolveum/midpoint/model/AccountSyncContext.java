@@ -102,7 +102,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
      * evaluation steps (e.g. from assignments through outbound to consolidation). It is also a "memory" of the projected
      * absolute state of the account (taken from zero and plus sets of the triple).
      */
-    private Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaSetTripleMap;
+    private Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaSetTripleMap;
 
     /**
      * Resource that hosts this account.
@@ -137,7 +137,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     		throw new IllegalArgumentException("No prismContext");
     	}
         this.resourceAccountType = resourceAccountType;
-        this.attributeValueDeltaSetTripleMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
+        this.attributeValueDeltaSetTripleMap = new HashMap<QName, DeltaSetTriple<ValueConstruction<?>>>();
         this.isAssigned = false;
         this.prismContext = prismContext;
     }
@@ -250,16 +250,16 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         this.policyDecision = policyDecision;
     }
 
-    public Map<QName, DeltaSetTriple<ValueConstruction>> getAttributeValueDeltaSetTripleMap() {
+    public Map<QName, DeltaSetTriple<ValueConstruction<?>>> getAttributeValueDeltaSetTripleMap() {
         return attributeValueDeltaSetTripleMap;
     }
 
     public void addToAttributeValueDeltaSetTripleMap(
-            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap) {
+            Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap) {
 
-        for (Entry<QName, DeltaSetTriple<ValueConstruction>> entry : attributeValueDeltaMap.entrySet()) {
+        for (Entry<QName, DeltaSetTriple<ValueConstruction<?>>> entry : attributeValueDeltaMap.entrySet()) {
             QName attrName = entry.getKey();
-            DeltaSetTriple<ValueConstruction> triple = entry.getValue();
+            DeltaSetTriple<ValueConstruction<?>> triple = entry.getValue();
             if (attributeValueDeltaSetTripleMap.containsKey(attrName)) {
                 attributeValueDeltaSetTripleMap.get(attrName).merge(triple);
             } else {

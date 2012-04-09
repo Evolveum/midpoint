@@ -182,7 +182,7 @@ public class AssignmentProcessor {
             DeltaSetTriple<AccountConstruction> accountDeltaSetTriple = new DeltaSetTriple<AccountConstruction>(zeroAccountMap.get(rat),
                     plusAccountMap.get(rat), minusAccountMap.get(rat));
 
-            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
+            Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
             LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());
             LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
 
@@ -191,12 +191,12 @@ public class AssignmentProcessor {
                 if (accountSyncContext == null) {
                 	// The account should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. Pretend that the assignment was just added. That should do.
-                	processAccountAssign(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
+                	markPolicyDecision(context, rat, PolicyDecision.ADD);
                     context.getAccountSyncContext(rat).setAssigned(true);
                 } else {
                 	// The account existed before the change and should still exist
 	                accountSyncContext.setAssigned(true);
-	                processAccountKeep(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
+	                markPolicyDecision(context, rat, PolicyDecision.KEEP);
                 }
 
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
@@ -208,13 +208,13 @@ public class AssignmentProcessor {
 
             } else if (plusAccountMap.containsKey(rat)) {
                 // Account added
-                processAccountAssign(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
+            	markPolicyDecision(context, rat, PolicyDecision.ADD);
                 context.getAccountSyncContext(rat).setAssigned(true);
 
             } else if (minusAccountMap.containsKey(rat)) {
                 context.getAccountSyncContext(rat).setAssigned(false);
                 // Account removed
-                processAccountUnassign(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
+                markPolicyDecision(context, rat, PolicyDecision.DELETE);
 
             } else {
                 throw new IllegalStateException("Account " + rat + " went looney");
@@ -258,63 +258,35 @@ public class AssignmentProcessor {
         return sb.toString();
     }
 
-    private void processAccountAssign(SyncContext context, ResourceAccountType rat,
-            DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
-            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap,
-            OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    private void markPolicyDecision(SyncContext context, ResourceAccountType rat, PolicyDecision decision) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
         AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
         if (accountSyncContext == null) {
             accountSyncContext = context.createAccountSyncContext(rat);
         }
         if (accountSyncContext.getPolicyDecision() == null) {
-            accountSyncContext.setPolicyDecision(PolicyDecision.ADD);
+            accountSyncContext.setPolicyDecision(decision);
         }
 
     }
 
-    private void processAccountKeep(SyncContext context,
-            ResourceAccountType rat, DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
-            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) throws
-            SchemaException {
-
-        AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
-        if (accountSyncContext.getPolicyDecision() == null) {
-            accountSyncContext.setPolicyDecision(PolicyDecision.KEEP);
-        }
-
-    }
-
-
-    private void processAccountUnassign(SyncContext context, ResourceAccountType rat,
-            DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
-            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) {
-
-        AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
-        if (accountSyncContext.getPolicyDecision() == null) {
-            accountSyncContext.setPolicyDecision(PolicyDecision.DELETE);
-        }
-
-    }
-
-
-    private Map<QName, DeltaSetTriple<ValueConstruction>> computeAttributeValueDeltaMap(
+    private Map<QName, DeltaSetTriple<ValueConstruction<?>>> computeAttributeValueDeltaMap(
             DeltaSetTriple<AccountConstruction> accountDeltaSetTriple) {
 
-        Map<QName, DeltaSetTriple<ValueConstruction>> attrMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
+        Map<QName, DeltaSetTriple<ValueConstruction<?>>> attrMap = new HashMap<QName, DeltaSetTriple<ValueConstruction<?>>>();
 
         for (PrismPropertyValue<AccountConstruction> propertyValue : accountDeltaSetTriple.union()) {
             AccountConstruction ac = propertyValue.getValue();
-            for (ValueConstruction attrConstr : ac.getAttributeConstructions()) {
+            for (ValueConstruction<?> attrConstr : ac.getAttributeConstructions()) {
 
                 Item<?> output = attrConstr.getOutput();
                 QName attrName = output.getName();
-                DeltaSetTriple<ValueConstruction> valueTriple = attrMap.get(attrName);
+                DeltaSetTriple<ValueConstruction<?>> valueTriple = attrMap.get(attrName);
                 if (valueTriple == null) {
-                    valueTriple = new DeltaSetTriple<ValueConstruction>();
+                    valueTriple = new DeltaSetTriple<ValueConstruction<?>>();
                     attrMap.put(attrName, valueTriple);
                 }
-                valueTriple.distributeAs(new PrismPropertyValue<ValueConstruction>(attrConstr), accountDeltaSetTriple, propertyValue);
+                valueTriple.distributeAs(new PrismPropertyValue<ValueConstruction<?>>(attrConstr), accountDeltaSetTriple, propertyValue);
 
             }
         }

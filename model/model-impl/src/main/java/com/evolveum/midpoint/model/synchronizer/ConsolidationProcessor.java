@@ -117,7 +117,7 @@ public class ConsolidationProcessor {
             AccountSyncContext accCtx,
             boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
-        Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = accCtx.getAttributeValueDeltaSetTripleMap();
+        Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap = accCtx.getAttributeValueDeltaSetTripleMap();
         ResourceAccountType rat = accCtx.getResourceAccountType();
         ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(accCtx.getOid());
@@ -130,9 +130,9 @@ public class ConsolidationProcessor {
 
         PropertyPath parentPath = new PropertyPath(SchemaConstants.I_ATTRIBUTES);
 
-        for (Map.Entry<QName, DeltaSetTriple<ValueConstruction>> entry : attributeValueDeltaMap.entrySet()) {
+        for (Map.Entry<QName, DeltaSetTriple<ValueConstruction<?>>> entry : attributeValueDeltaMap.entrySet()) {
             QName attributeName = entry.getKey();
-            DeltaSetTriple<ValueConstruction> triple = entry.getValue();
+            DeltaSetTriple<ValueConstruction<?>> triple = entry.getValue();
 
             PropertyDelta propDelta = null;
 
@@ -143,18 +143,18 @@ public class ConsolidationProcessor {
                 attributesPropertyContainer = accCtx.getAccountNew().findContainer(SchemaConstants.I_ATTRIBUTES);
             }
 
-            Collection<PrismPropertyValue<Object>> allValues = collectAllValues(triple);
-            for (PrismPropertyValue<Object> value : allValues) {
-                Collection<PrismPropertyValue<ValueConstruction>> zeroConstructions =
+            Collection<PrismPropertyValue<?>> allValues = collectAllValues(triple);
+            for (PrismPropertyValue<?> value : allValues) {
+                Collection<PrismPropertyValue<ValueConstruction<?>>> zeroConstructions =
                         collectValueConstructionsFromSet(value, triple.getZeroSet());
                 if (!zeroConstructions.isEmpty() && !addUnchangedValues) {
                     // Value unchanged, nothing to do
                     LOGGER.trace("Value {} unchanged, doing nothing", value);
                     continue;
                 }
-                Collection<PrismPropertyValue<ValueConstruction>> plusConstructions =
+                Collection<PrismPropertyValue<ValueConstruction<?>>> plusConstructions =
                         collectValueConstructionsFromSet(value, triple.getPlusSet());
-                Collection<PrismPropertyValue<ValueConstruction>> minusConstructions =
+                Collection<PrismPropertyValue<ValueConstruction<?>>> minusConstructions =
                         collectValueConstructionsFromSet(value, triple.getMinusSet());
                 if (!plusConstructions.isEmpty() && !minusConstructions.isEmpty()) {
                     // Value added and removed. Ergo no change.
@@ -167,8 +167,8 @@ public class ConsolidationProcessor {
                 }
 
                 boolean initialOnly = true;
-                ValueConstruction exclusiveVc = null;
-                Collection<PrismPropertyValue<ValueConstruction>> constructionsToAdd = null;
+                ValueConstruction<?> exclusiveVc = null;
+                Collection<PrismPropertyValue<ValueConstruction<?>>> constructionsToAdd = null;
                 if (addUnchangedValues) {
                     constructionsToAdd = MiscUtil.union(zeroConstructions, plusConstructions);
                 } else {
@@ -176,8 +176,8 @@ public class ConsolidationProcessor {
                 }
 
                 if (!constructionsToAdd.isEmpty()) {
-                    for (PrismPropertyValue<ValueConstruction> propertyValue : constructionsToAdd) {
-                        ValueConstruction vc = propertyValue.getValue();
+                    for (PrismPropertyValue<ValueConstruction<?>> propertyValue : constructionsToAdd) {
+                        ValueConstruction<?> vc = propertyValue.getValue();
                         if (!vc.isInitial()) {
                             initialOnly = false;
                         }
@@ -381,45 +381,45 @@ public class ConsolidationProcessor {
         }
     }
 
-    private Collection<PrismPropertyValue<Object>> collectAllValues(DeltaSetTriple<ValueConstruction> triple) {
-        Collection<PrismPropertyValue<Object>> allValues = new HashSet<PrismPropertyValue<Object>>();
+    private Collection<PrismPropertyValue<?>> collectAllValues(DeltaSetTriple<ValueConstruction<?>> triple) {
+        Collection<PrismPropertyValue<?>> allValues = new HashSet<PrismPropertyValue<?>>();
         collectAllValuesFromSet(allValues, triple.getZeroSet());
         collectAllValuesFromSet(allValues, triple.getPlusSet());
         collectAllValuesFromSet(allValues, triple.getMinusSet());
         return allValues;
     }
 
-    private void collectAllValuesFromSet(Collection<PrismPropertyValue<Object>> allValues,
-            Collection<PrismPropertyValue<ValueConstruction>> set) {
+    private void collectAllValuesFromSet(Collection<PrismPropertyValue<?>> allValues,
+            Collection<PrismPropertyValue<ValueConstruction<?>>> set) {
         if (set == null) {
             return;
         }
-        for (PrismPropertyValue<ValueConstruction> valConstr : set) {
+        for (PrismPropertyValue<ValueConstruction<?>> valConstr : set) {
             collectAllValuesFromValueConstruction(allValues, valConstr);
         }
     }
 
-    private void collectAllValuesFromValueConstruction(Collection<PrismPropertyValue<Object>> allValues,
-            PrismPropertyValue<ValueConstruction> valConstr) {
-        PrismProperty output = (PrismProperty) valConstr.getValue().getOutput();
+    private void collectAllValuesFromValueConstruction(Collection<PrismPropertyValue<?>> allValues,
+            PrismPropertyValue<ValueConstruction<?>> valConstr) {
+        PrismProperty<?> output = (PrismProperty) valConstr.getValue().getOutput();
         if (output == null) {
             return;
         }
         allValues.addAll(output.getValues());
     }
 
-    private boolean isValueInSet(Object value, Collection<PrismPropertyValue<ValueConstruction>> set) {
+    private boolean isValueInSet(Object value, Collection<PrismPropertyValue<ValueConstruction<?>>> set) {
         // Stupid implementation, but easy to write. TODO: optimize
-        Collection<PrismPropertyValue<Object>> allValues = new HashSet<PrismPropertyValue<Object>>();
+        Collection<PrismPropertyValue<?>> allValues = new HashSet<PrismPropertyValue<?>>();
         collectAllValuesFromSet(allValues, set);
         return allValues.contains(value);
     }
 
-    private Collection<PrismPropertyValue<ValueConstruction>> collectValueConstructionsFromSet(Object value,
-            Collection<PrismPropertyValue<ValueConstruction>> set) {
-        Collection<PrismPropertyValue<ValueConstruction>> contructions = new HashSet<PrismPropertyValue<ValueConstruction>>();
-        for (PrismPropertyValue<ValueConstruction> valConstr : set) {
-            PrismProperty output = (PrismProperty) valConstr.getValue().getOutput();
+    private Collection<PrismPropertyValue<ValueConstruction<?>>> collectValueConstructionsFromSet(Object value,
+            Collection<PrismPropertyValue<ValueConstruction<?>>> set) {
+        Collection<PrismPropertyValue<ValueConstruction<?>>> contructions = new HashSet<PrismPropertyValue<ValueConstruction<?>>>();
+        for (PrismPropertyValue<ValueConstruction<?>> valConstr : set) {
+            PrismProperty<?> output = (PrismProperty) valConstr.getValue().getOutput();
             if (output == null) {
                 continue;
             }

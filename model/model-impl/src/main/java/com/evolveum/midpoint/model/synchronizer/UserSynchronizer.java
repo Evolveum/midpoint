@@ -84,15 +84,12 @@ public class UserSynchronizer {
 
     @Autowired(required = true)
     private InboundProcessor inboundProcessor;
-
+    
     @Autowired(required = true)
-    private OutboundProcessor outboundProcessor;
+    private AccountValuesProcessor accountValuesProcessor;
 
     @Autowired(required = true)
     private ReconciliationProcessor reconciliationProcessor;
-
-    @Autowired(required = true)
-    private ConsolidationProcessor consolidationProcessor;
 
     @Autowired(required = true)
     private CredentialsProcessor credentialsProcessor;
@@ -125,18 +122,18 @@ public class UserSynchronizer {
         // variable if it's not set (from provisioning)
         checkAccountContextReconciliation(context, result);
 
-        traceContext("load", context, false);
+        SynchronizerUtil.traceContext("load", context, false);
         if (consistenceChecks) context.checkConsistence();
-        
+                
         // Loop through the account changes, apply inbound expressions
         inboundProcessor.processInbound(context, result);
         context.recomputeUserNew();
-        traceContext("inbound", context, false);
+        SynchronizerUtil.traceContext("inbound", context, false);
         if (consistenceChecks) context.checkConsistence();
 
         userPolicyProcessor.processUserPolicy(context, result);
         context.recomputeUserNew();
-        traceContext("user policy", context, false);
+        SynchronizerUtil.traceContext("user policy", context, false);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("User delta:\n{}", context.getUserDelta() == null ? "null" : context.getUserDelta().dump());
         }
@@ -144,32 +141,24 @@ public class UserSynchronizer {
 
         assignmentProcessor.processAssignments(context, result);
         context.recomputeNew();
-        traceContext("assignments", context, true);
+        SynchronizerUtil.traceContext("assignments", context, true);
         if (consistenceChecks) context.checkConsistence();
 
-        outboundProcessor.processOutbound(context, result);
-        context.recomputeNew();
-        traceContext("outbound", context, true);
-        if (consistenceChecks) context.checkConsistence();
-
-        consolidationProcessor.consolidateValues(context, result);
-        context.recomputeNew();
-        traceContext("consolidation", context, false);
-        if (consistenceChecks) context.checkConsistence();
-
+        accountValuesProcessor.process(context, result);
+        
         credentialsProcessor.processCredentials(context, result);
         context.recomputeNew();
-        traceContext("credentials", context, false);
+        SynchronizerUtil.traceContext("credentials", context, false);
         if (consistenceChecks) context.checkConsistence();
 
         activationProcessor.processActivation(context, result);
         context.recomputeNew();
-        traceContext("activation", context, false);
+        SynchronizerUtil.traceContext("activation", context, false);
         if (consistenceChecks) context.checkConsistence();
 
         reconciliationProcessor.processReconciliation(context, result);
         context.recomputeNew();
-        traceContext("reconciliation", context, false);
+        SynchronizerUtil.traceContext("reconciliation", context, false);
         if (consistenceChecks) context.checkConsistence();
 
     }
@@ -196,25 +185,6 @@ public class UserSynchronizer {
             }
         } finally {
             subResult.computeStatus();
-        }
-    }
-
-    private void traceContext(String phase, SyncContext context, boolean showTriples) {
-    	if (LOGGER.isDebugEnabled()) {
-    		StringBuilder sb = new StringBuilder("After ");
-    		sb.append(phase);
-    		sb.append(":");
-    		for (ObjectDelta objectDelta: context.getAllChanges()) {
-    			sb.append("\n");
-    			sb.append(objectDelta.toString());
-    		}
-    		LOGGER.debug(sb.toString());
-    	}
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Synchronization context:\n"+
-            		"---[ CONTEXT after {} ]--------------------------------\n"+
-            		"{}\n",
-            		phase, context.dump(showTriples));
         }
     }
 

@@ -88,10 +88,10 @@ public class OutboundProcessor {
                 throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
             }
 
-            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaSetTripleMap = accCtx.getAttributeValueDeltaSetTripleMap();
+            Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaSetTripleMap = accCtx.getAttributeValueDeltaSetTripleMap();
 
             for (QName attributeName : rAccount.getNamesOfAttributesWithOutboundExpressions()) {
-                DeltaSetTriple<ValueConstruction> attrDeltaTriple = attributeValueDeltaSetTripleMap.get(attributeName);
+                DeltaSetTriple<ValueConstruction<?>> attrDeltaTriple = attributeValueDeltaSetTripleMap.get(attributeName);
                 RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
 
                 // TODO: check access
@@ -111,14 +111,14 @@ public class OutboundProcessor {
                 if (evaluatedOutboundValueConstructionNew != null) {
 
                     if (attrDeltaTriple == null) {
-                        attrDeltaTriple = new DeltaSetTriple<ValueConstruction>();
+                        attrDeltaTriple = new DeltaSetTriple<ValueConstruction<?>>();
                         attributeValueDeltaSetTripleMap.put(attributeName, attrDeltaTriple);
                     }
 
                     if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
                         // Special behavior for add. In case the account is added we don't care how the expression output has
                         // changed. We will add all the values
-                        attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction>(evaluatedOutboundValueConstructionNew));
+                        attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction<?>>(evaluatedOutboundValueConstructionNew));
 
                     } else {
                         // Diff new and old values, distributed the deltas accordingly
@@ -134,13 +134,13 @@ public class OutboundProcessor {
                         ValueConstruction zeroValueConstruction = evaluatedOutboundValueConstructionNew.clone();
 
                         plusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getPlusSet());
-                        attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction>(plusValueConstruction));
+                        attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction<?>>(plusValueConstruction));
 
                         minusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getMinusSet());
-                        attrDeltaTriple.getMinusSet().add(new PrismPropertyValue<ValueConstruction>(minusValueConstruction));
+                        attrDeltaTriple.getMinusSet().add(new PrismPropertyValue<ValueConstruction<?>>(minusValueConstruction));
 
                         zeroValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getZeroSet());
-                        attrDeltaTriple.getZeroSet().add(new PrismPropertyValue<ValueConstruction>(zeroValueConstruction));
+                        attrDeltaTriple.getZeroSet().add(new PrismPropertyValue<ValueConstruction<?>>(zeroValueConstruction));
                     }
 
                 }

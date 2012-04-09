@@ -219,13 +219,13 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         
         assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
         
-        Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
+        Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
         
-        DeltaSetTriple<ValueConstruction> oTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"o"));
+        DeltaSetTriple<ValueConstruction<?>> oTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"o"));
         Object oValue = getSingleValueFromDeltaSetTripleWithCheck(oTriple, oTriple.getPlusSet());
         assertEquals("Pirate Brethren, Inc.",oValue);
 
-        DeltaSetTriple<ValueConstruction> lTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"l"));
+        DeltaSetTriple<ValueConstruction<?>> lTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"l"));
         Object lValue = getSingleValueFromDeltaSetTripleWithCheck(lTriple, lTriple.getPlusSet());
         assertEquals("Caribbean",lValue);
 
@@ -291,17 +291,17 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         
         assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
         
-        Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
+        Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
         
-        DeltaSetTriple<ValueConstruction> sTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"secretary"));
+        DeltaSetTriple<ValueConstruction<?>> sTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"secretary"));
         Object sValue = getSingleValueFromDeltaSetTripleWithCheck(sTriple, sTriple.getPlusSet());
         assertEquals("Jack the Monkey",sValue);
         
-        DeltaSetTriple<ValueConstruction> oTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"o"));
+        DeltaSetTriple<ValueConstruction<?>> oTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"o"));
         Object oValue = getSingleValueFromDeltaSetTripleWithCheck(oTriple, oTriple.getZeroSet());
         assertEquals("Pirate Brethren, Inc.",oValue);
 
-        DeltaSetTriple<ValueConstruction> lTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"l"));
+        DeltaSetTriple<ValueConstruction<?>> lTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"l"));
         Collection<Object> lValues = getMultiValueFromDeltaSetTriple(lTriple.getZeroSet());
         TestUtil.assertSetEquals(lValues, "Caribbean", "Shipwreck cove");
         lValues = getMultiValueFromDeltaSetTriple(lTriple.getPlusSet());
@@ -363,13 +363,13 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
         assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
         
-        Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
+        Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
         
-        DeltaSetTriple<ValueConstruction> oTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"o"));
+        DeltaSetTriple<ValueConstruction<?>> oTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"o"));
         Object oValue = getSingleValueFromDeltaSetTripleWithCheck(oTriple, oTriple.getZeroSet());
         assertEquals("Pirate Brethren, Inc.",oValue);
 
-        DeltaSetTriple<ValueConstruction> lTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"l"));
+        DeltaSetTriple<ValueConstruction<?>> lTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"l"));
         Collection<Object> lValues = getMultiValueFromDeltaSetTriple(lTriple.getZeroSet());
         TestUtil.assertSetEquals(lValues, "Caribbean");
         lValues = getMultiValueFromDeltaSetTriple(lTriple.getMinusSet());
@@ -442,13 +442,15 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 		accountSyncContext.setAccountOld(account);
     }
 
-    private Object getSingleValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction> triple, Collection<PrismPropertyValue<ValueConstruction>> set) {
-    	Collection<Object> values = getMultiValueFromDeltaSetTripleWithCheck(triple,set);
+    private Object getSingleValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction<?>> triple, 
+    		Collection<PrismPropertyValue<ValueConstruction<?>>> set) {
+    	Collection<?> values = getMultiValueFromDeltaSetTripleWithCheck(triple,set);
     	assertEquals(1,values.size());
     	return values.iterator().next();
     }
     
-    private Collection<Object> getMultiValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction> triple, Collection<PrismPropertyValue<ValueConstruction>> set) {	
+    private Collection<?> getMultiValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction<?>> triple, 
+    		Collection<PrismPropertyValue<ValueConstruction<?>>> set) {	
     	if (triple.getZeroSet() != set) {
     		assertTrue("Zero set not empty",triple.getZeroSet().isEmpty());
     	}
@@ -461,10 +463,10 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     	return getMultiValueFromDeltaSetTriple(set);
     }
 
-    private <V> Collection<V> getMultiValueFromDeltaSetTriple(Collection<PrismPropertyValue<ValueConstruction>> set) {	
+    private <V> Collection<V> getMultiValueFromDeltaSetTriple(Collection<PrismPropertyValue<ValueConstruction<?>>> set) {	
     	Collection<V> values = new HashSet<V>();
-        for (PrismPropertyValue<ValueConstruction> value: set) {
-	        ValueConstruction vc = value.getValue();
+        for (PrismPropertyValue<ValueConstruction<?>> value: set) {
+	        ValueConstruction<?> vc = value.getValue();
 	        Collection<PrismPropertyValue<V>> propValues = (Collection<PrismPropertyValue<V>>) vc.getOutput().getValues();
 	        for (PrismPropertyValue<V> pval: propValues) {
 	        	values.add(pval.getValue());
