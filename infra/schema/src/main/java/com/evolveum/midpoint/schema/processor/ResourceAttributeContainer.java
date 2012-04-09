@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -99,13 +100,13 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * @throws IllegalStateException
 	 *             if resource object has multiple identifiers
 	 */
-	public PrismProperty getIdentifier() {
-		Set<ResourceAttribute> attrDefs = getIdentifiers();
+	public PrismProperty<?> getIdentifier() {
+		Collection<ResourceAttribute<?>> attrDefs = getIdentifiers();
 		if (attrDefs.size() > 1){
 			throw new IllegalStateException("Resource object has more than one identifier.");
 		}
 		
-		for (PrismProperty p : attrDefs){
+		for (PrismProperty<?> p : attrDefs){
 			return p;
 		}
 		
@@ -129,18 +130,8 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * 
 	 * @return set of identifier properties
 	 */
-	public Set<ResourceAttribute> getIdentifiers() {
-		Set<ResourceAttribute> identifiers = new HashSet<ResourceAttribute>();
-		Collection<ResourceAttributeDefinition> attrDefs = getDefinition().getIdentifiers();
-		for (ResourceAttributeDefinition attrDef : attrDefs) {		
-			for (ResourceAttribute property : getAttributes()){
-				if (attrDef.getName().equals(property.getName())){
-					property.setDefinition(attrDef);
-					identifiers.add(property);
-				}
-			}
-		}
-		return identifiers;
+	public Collection<ResourceAttribute<?>> getIdentifiers() {
+		return extractAttributesByDefinitions(getDefinition().getIdentifiers());
 	}
 
 	/**
@@ -178,9 +169,22 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * are returned.
 	 * 
 	 * @return set of secondary identifier properties
-	 */
-	public Set<PrismProperty> getSecondaryIdentifiers() {
-		throw new IllegalStateException("not implemented yet.");
+	 */	
+	public Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
+		return extractAttributesByDefinitions(getDefinition().getSecondaryIdentifiers());
+	}
+
+	private Collection<ResourceAttribute<?>> extractAttributesByDefinitions(Collection<ResourceAttributeDefinition> definitions) {
+		Collection<ResourceAttribute<?>> attributes = new ArrayList<ResourceAttribute<?>>(definitions.size());
+		for (ResourceAttributeDefinition attrDef : definitions) {
+			for (ResourceAttribute<?> property : getAttributes()){
+				if (attrDef.getName().equals(property.getName())){
+					property.setDefinition(attrDef);
+					attributes.add(property);
+				}
+			}
+		}
+		return attributes;
 	}
 
 	/**

@@ -82,6 +82,15 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 		}
 		return false;
 	}
+	
+	public boolean isSecondaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
+		for (ResourceAttributeDefinition secondaryIdentifier : objectDefinition.getSecondaryIdentifiers()) {
+			if (this == secondaryIdentifier) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Returns native attribute name.

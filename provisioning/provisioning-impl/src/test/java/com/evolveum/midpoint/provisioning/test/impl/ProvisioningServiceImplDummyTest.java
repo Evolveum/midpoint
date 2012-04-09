@@ -37,6 +37,7 @@ import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -547,6 +548,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("Shadow was not created in the repository",shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 		
+		checkRepoShadow(shadowFromRepo);
+		
 		checkConsistency();
 	}
 	
@@ -594,6 +597,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		PrismObject<AccountShadowType> shadowFromRepo = repositoryService.getObject(AccountShadowType.class, addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository",shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
+		
+		checkRepoShadow(shadowFromRepo);
 		
 		checkConsistency();
 	}
@@ -1033,6 +1038,18 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// TODO: check result
 	}
 
+	private void checkRepoShadow(PrismObject<AccountShadowType> repoShadow) {
+		AccountShadowType repoShadowType = repoShadow.asObjectable();
+		assertNotNull("No OID in repo shadow", repoShadowType.getOid());
+		assertNotNull("No name in repo shadow", repoShadowType.getName());
+		assertNotNull("No objectClass in repo shadow", repoShadowType.getObjectClass());
+		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
+		assertNotNull("No attributes in repo shadow", attributesContainer);
+		List<Item<?>> attributes = attributesContainer.getValue().getItems();
+		assertFalse("Empty attributes in repo shadow", attributes.isEmpty());
+		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
+		
+	}
 	
 	private void checkConsistency() throws SchemaException {
 		

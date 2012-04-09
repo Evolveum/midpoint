@@ -806,23 +806,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals("Wrong name property", USER_JACK_LDAP_DN.toLowerCase(), repoShadowType.getName().toLowerCase());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
-        String uid = null;
-        boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (uid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-                } else {
-                    uid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        assertFalse(hasOthers);
-        assertNotNull(uid);
+        String uid = checkRepoShadow(repoShadow);
 
         // check if account was created in LDAP
 
@@ -878,7 +862,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     }
 
-    /**
+	/**
      * Add Derby account to user. This should result in account provisioning. Check if
      * that happens in repo and in Derby.
      */
@@ -931,36 +915,20 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if shadow was created in the repo
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidDerby,
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidDerby,
                 resolve, repoResult);
-        AccountShadowType repoShadow = aObject.asObjectable();
+        AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("addObject has failed", repoResult);
-        display("Shadow (repository)", repoShadow);
-        assertNotNull(repoShadow);
-        assertEquals(RESOURCE_DERBY_OID, repoShadow.getResourceRef().getOid());
+        display("Shadow (repository)", repoShadowType);
+        assertNotNull(repoShadowType);
+        assertEquals(RESOURCE_DERBY_OID, repoShadowType.getResourceRef().getOid());
 
         // Check the "name" property, it should be set to DN, not entryUUID
-        assertEquals("Wrong name property", USER_JACK_DERBY_LOGIN, repoShadow.getName());
+        assertEquals("Wrong name property", USER_JACK_DERBY_LOGIN, repoShadowType.getName());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
-        String uid = null;
-        boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (uid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-                } else {
-                    uid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        assertFalse(hasOthers);
-        assertNotNull(uid);
+        String uid = checkRepoShadow(repoShadow);
 
         // check if account was created in DB Table
 
@@ -1147,23 +1115,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
 
-        String uid = null;
-        boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (uid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-                } else {
-                    uid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        AssertJUnit.assertFalse(hasOthers);
-        assertNotNull(uid);
+        String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
         SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
@@ -1238,23 +1190,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
-        String uid = null;
-        boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (uid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-                } else {
-                    uid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        AssertJUnit.assertFalse(hasOthers);
-        assertNotNull(uid);
+        String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
 
@@ -1348,23 +1284,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
-        String uid = null;
-        boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (uid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-                } else {
-                    uid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        AssertJUnit.assertFalse(hasOthers);
-        assertNotNull(uid);
+        String uid = checkRepoShadow(repoShadow);
 
         // Use getObject to test fetch of complete shadow
 
@@ -1464,33 +1384,17 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
-        AccountShadowType repoShadow = aObject.asObjectable();
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
+        AccountShadowType repoShadowType = repoShadow.asObjectable();
 
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
-        display("repo shadow", repoShadow);
-        AssertJUnit.assertNotNull(repoShadow);
-        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+        display("repo shadow", repoShadowType);
+        AssertJUnit.assertNotNull(repoShadowType);
+        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
-        String uid = null;
-        boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (uid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-                } else {
-                    uid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        AssertJUnit.assertFalse(hasOthers);
-        assertNotNull(uid);
+        String uid = checkRepoShadow(repoShadow);
 
         // Use getObject to test fetch of complete shadow
 
@@ -1746,32 +1650,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
                 resolve, repoResult);
-        AccountShadowType repoShadow = aObject.asObjectable();
+        AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
-        display("Shadow (repository)", repoShadow);
-        assertNotNull(repoShadow);
-        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+        display("Shadow (repository)", repoShadowType);
+        assertNotNull(repoShadowType);
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
-        // check attributes in the shadow: should be only identifiers (ICF UID)
-        boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (accountGuybrushOpendjEntryUuuid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-                } else {
-                    accountGuybrushOpendjEntryUuuid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        assertFalse(hasOthers);
-        assertNotNull(accountGuybrushOpendjEntryUuuid);
+        accountGuybrushOpendjEntryUuuid = checkRepoShadow(repoShadow);
 
         // check if account was created in LDAP
 
@@ -2957,33 +2845,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-         PrismObject<AccountShadowType> accObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+         PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
                 resolve, repoResult);
-        AccountShadowType repoShadow = accObject.asObjectable();
+        AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
-        displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
-        assertNotNull(repoShadow);
-        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+        displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
+        assertNotNull(repoShadowType);
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
-        // check attributes in the shadow: should be only identifiers (ICF UID)
-        boolean hasOthers = false;
-        accountGuybrushOpendjEntryUuuid = null;
-        List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (accountGuybrushOpendjEntryUuuid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-                } else {
-                    accountGuybrushOpendjEntryUuuid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        assertFalse(hasOthers);
-        assertNotNull(accountGuybrushOpendjEntryUuuid);
+        accountGuybrushOpendjEntryUuuid = checkRepoShadow(repoShadow);
 
         // check if account was created in LDAP
 
@@ -3131,33 +3002,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
                 resolve, repoResult);
-        AccountShadowType repoShadow = aObject.asObjectable();
+        AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
-        displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
-        assertNotNull(repoShadow);
-        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+        displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
+        assertNotNull(repoShadowType);
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
-        // check attributes in the shadow: should be only identifiers (ICF UID)
-        boolean hasOthers = false;
-        accountGuybrushOpendjEntryUuuid = null;
-        List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (accountGuybrushOpendjEntryUuuid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes (Guybrush)");
-                } else {
-                    accountGuybrushOpendjEntryUuuid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        assertFalse(hasOthers);
-        assertNotNull(accountGuybrushOpendjEntryUuuid);
+        accountGuybrushOpendjEntryUuuid = checkRepoShadow(repoShadow);
 
         // check if account was created in LDAP
 
@@ -3213,33 +3067,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidElaineOpendj,
+        repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidElaineOpendj,
                 resolve, repoResult);
-        repoShadow = aObject.asObjectable();
+        repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
-        displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
-        assertNotNull(repoShadow);
-        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+        displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
+        assertNotNull(repoShadowType);
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
-        // check attributes in the shadow: should be only identifiers (ICF UID)
-        hasOthers = false;
-        String accountElainehOpendjEntryUuuid = null;
-        xmlAttributes = repoShadow.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-                if (accountElainehOpendjEntryUuuid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes (Elaine)");
-                } else {
-                    accountElainehOpendjEntryUuuid = ((Element) element).getTextContent();
-                }
-            } else {
-                hasOthers = true;
-            }
-        }
-
-        assertFalse("Elaine has unexpected attributes in shadow", hasOthers);
-        assertNotNull("Elaine does not have an UID in shadow", accountElainehOpendjEntryUuuid);
+        String accountElainehOpendjEntryUuuid = checkRepoShadow(repoShadow);
 
         // check if account is still in LDAP
 
@@ -3290,6 +3127,30 @@ public class TestSanity extends AbstractIntegrationTest {
     // TODO: test for missing sample config (bad reference in expression
     // arguments)
 
+	private String checkRepoShadow(PrismObject<AccountShadowType> repoShadow) {
+		AccountShadowType repoShadowType = repoShadow.asObjectable();
+		String uid = null;
+        boolean hasOthers = false;
+        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
+        for (Object element : xmlAttributes) {
+            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+                if (uid != null) {
+                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+                } else {
+                    uid = ((Element) element).getTextContent();
+                }
+            } else if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(JAXBUtil.getElementQName(element))) {
+            	// This is OK
+        	} else {
+                hasOthers = true;
+            }
+        }
+
+        assertFalse("Shadow "+repoShadow+" has unexpected elements", hasOthers);
+        assertNotNull(uid);
+        
+        return uid;
+	}
     
     private AccountShadowType searchAccountByOid(final String accountOid) throws Exception {
         OperationResultType resultType = new OperationResultType();

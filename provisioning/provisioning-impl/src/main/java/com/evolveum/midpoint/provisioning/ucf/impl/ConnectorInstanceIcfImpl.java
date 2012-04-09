@@ -503,11 +503,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ResourceAttributeDefinition roaDefinition = roDefinition.createAttributeDefinition(
 						attrXsdName, attrXsdType);
 
-				// Set a better display name for __NAME__. The "name" is s very
-				// overloaded term, so let's try to make things
-				// a bit clearer
+				
 				if (attrXsdName.equals(ConnectorFactoryIcfImpl.ICFS_NAME)) {
+					// Set a better display name for __NAME__. The "name" is s very
+					// overloaded term, so let's try to make things
+					// a bit clearer
 					roaDefinition.setDisplayName("ICF NAME");
+					roDefinition.getSecondaryIdentifiers().add(roaDefinition);
 				}
 
 				// Now we are going to process flags such as optional and
@@ -895,7 +897,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ attributesContainer.getClass());
 		}
 		if (requireUid) {
-			Set<ResourceAttribute> identifiers = resourceAttributesContainer.getIdentifiers();
+			Collection<ResourceAttribute<?>> identifiers = resourceAttributesContainer.getIdentifiers();
 			if (identifiers == null || identifiers.isEmpty()) {
 				throw new IllegalArgumentException("Cannot " + operation + " shadow without identifiers");
 			}
@@ -1884,7 +1886,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						delta.getUid(),
 						getUidDefinition(objClassDefinition
 								.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES)));
-				Set<ResourceAttribute> identifiers = new HashSet<ResourceAttribute>();
+				Collection<ResourceAttribute<?>> identifiers = new ArrayList<ResourceAttribute<?>>(1);
 				identifiers.add(uidAttribute);
 				Change change = new Change(identifiers, objectDelta, getToken(delta.getToken()));
 				changeList.add(change);
@@ -1900,7 +1902,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					LOGGER.trace("Got current shadow: {}", currentShadow.dump());
 				}
 
-				Set<ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(currentShadow);
+				Collection<ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(currentShadow);
 
 				Change change = new Change(identifiers, currentShadow, getToken(delta.getToken()));
 				changeList.add(change);

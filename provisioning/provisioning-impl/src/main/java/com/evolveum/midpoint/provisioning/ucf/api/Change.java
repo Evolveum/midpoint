@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -33,20 +34,20 @@ import java.util.Set;
  */
 public final class Change {
 	
-    private Set<ResourceAttribute> identifiers;
+    private Collection<ResourceAttribute<?>> identifiers;
     private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
     private PrismProperty token;
     private PrismObject<? extends ResourceObjectShadowType> oldShadow;
     private PrismObject<? extends ResourceObjectShadowType> currentShadow;
 
-    public Change(Set<ResourceAttribute> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty token) {
+    public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty token) {
         this.identifiers = identifiers;
         this.objectDelta = change;
         this.currentShadow = null;
         this.token = token;
     }
 
-    public Change(Set<ResourceAttribute> identifiers, PrismObject<? extends ResourceObjectShadowType> currentShadow, PrismProperty token) {
+    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<? extends ResourceObjectShadowType> currentShadow, PrismProperty token) {
         this.identifiers = identifiers;
         this.objectDelta = null;
         this.currentShadow = currentShadow;
@@ -66,11 +67,11 @@ public final class Change {
         this.objectDelta = change;
     }
 
-    public Set<ResourceAttribute> getIdentifiers() {
+    public Collection<ResourceAttribute<?>> getIdentifiers() {
         return identifiers;
     }
 
-    public void setIdentifiers(Set<ResourceAttribute> identifiers) {
+    public void setIdentifiers(Collection<ResourceAttribute<?>> identifiers) {
         this.identifiers = identifiers;
     }
 

@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -59,11 +60,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  */
 public class ResourceObjectShadowUtil {
 	
-	public static Set<ResourceAttribute> getIdentifiers(ResourceObjectShadowType shadowType) {
+	public static Collection<ResourceAttribute<?>> getIdentifiers(ResourceObjectShadowType shadowType) {
 		return getIdentifiers(shadowType.asPrismObject());
 	}
 	
-	public static Set<ResourceAttribute> getIdentifiers(PrismObject<? extends ResourceObjectShadowType> shadow) {
+	public static Collection<ResourceAttribute<?>> getIdentifiers(PrismObject<? extends ResourceObjectShadowType> shadow) {
 		return getAttributesContainer(shadow).getIdentifiers();	
 	}
 	

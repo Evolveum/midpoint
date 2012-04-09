@@ -608,7 +608,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
-		Set<ResourceAttribute> identifiers = resourceObject.getIdentifiers();
+		Collection<ResourceAttribute<?>> identifiers = resourceObject.getIdentifiers();
 		// Determine object class from the schema
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");
@@ -718,7 +718,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
-		Set<ResourceAttribute> identifiers = resourceObject.getIdentifiers();
+		Collection<ResourceAttribute<?>> identifiers = resourceObject.getIdentifiers();
 		// Determine object class from the schema
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");

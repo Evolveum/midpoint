@@ -353,12 +353,12 @@ public class ShadowCacheUtil {
 				.getAttributesContainer(shadow);
 		if (attributesContainer.getNamingAttribute() == null) {
 			// No naming attribute defined. Try to fall back to identifiers.
-			Set<ResourceAttribute> identifiers = attributesContainer.getIdentifiers();
+			Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
 			// We can use only single identifiers (not composite)
 			if (identifiers.size() == 1) {
-				PrismProperty identifier = identifiers.iterator().next();
+				PrismProperty<?> identifier = identifiers.iterator().next();
 				// Only single-valued identifiers
-				Collection<PrismPropertyValue<Object>> values = identifier.getValues();
+				Collection<PrismPropertyValue<?>> values = (Collection)identifier.getValues();
 				if (values.size() == 1) {
 					PrismPropertyValue<?> value = values.iterator().next();
 					// and only strings
@@ -396,11 +396,14 @@ public class ShadowCacheUtil {
 		// Clean all repoShadow attributes and add only those that should be
 		// there
 		repoAttributesContainer.getValue().clear();
-		Set<ResourceAttribute> identifiers = attributesContainer.getIdentifiers();
-		for (PrismProperty p : identifiers) {
+		Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
+		for (PrismProperty<?> p : identifiers) {
 			repoAttributesContainer.getValue().add(p);
 		}
-		
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = attributesContainer.getSecondaryIdentifiers();
+		for (PrismProperty<?> p : secondaryIdentifiers) {
+			repoAttributesContainer.getValue().add(p);
+		}
 		
 
 		// We don't want to store credentials in the repo
@@ -440,13 +443,13 @@ public class ShadowCacheUtil {
 		return repoShadowType;
 	}
 
-	public static QueryType createSearchShadowQuery(Set<ResourceAttribute> identifiers,
+	public static QueryType createSearchShadowQuery(Collection<ResourceAttribute<?>> identifiers,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		XPathHolder xpath = createXpathHolder();
 		Document doc = DOMUtil.getDocument();
 		List<Object> values = new ArrayList<Object>();
 
-		for (PrismProperty identifier : identifiers) {
+		for (PrismProperty<?> identifier : identifiers) {
 			List<Element> elements = prismContext.getPrismDomProcessor().serializeItemToDom(identifier, doc);
 			values.addAll(elements);
 		}
