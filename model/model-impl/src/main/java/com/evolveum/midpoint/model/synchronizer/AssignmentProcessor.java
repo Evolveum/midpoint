@@ -49,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -62,6 +63,7 @@ import java.util.Map.Entry;
 public class AssignmentProcessor {
 
     @Autowired(required = true)
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
     @Autowired(required = true)

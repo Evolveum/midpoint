@@ -21,7 +21,6 @@
 package com.evolveum.midpoint.model.controller;
 
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -32,15 +31,12 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -53,7 +49,6 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.io.IOException;
 
@@ -80,7 +75,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
     private ModelController model;
 
     @Autowired(required = true)
-    @Qualifier("repositoryService")
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repository;
 
     @Autowired(required = true)
@@ -128,7 +123,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
             public String answer(InvocationOnMock invocation) throws Throwable {
                 PrismObject<AccountShadowType> account = (PrismObject<AccountShadowType>) invocation.getArguments()[0];
                 LOGGER.info("Created account:\n{}", account.dump());
-                PrismAsserts.assertEquivalent("Unexpected account as argument in provisionig.addObject", new File(TEST_FOLDER, "account-expected.xml"), account);
+                PrismAsserts.assertEquivalent("Unexpected account as argument in provisioning.addObject", new File(TEST_FOLDER, "account-expected.xml"), account);
 
                 return "12345678-d34d-b33f-f00d-987987987989";
             }
