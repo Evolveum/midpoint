@@ -554,7 +554,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type) {
-        if (prismObject == null || !prismObject.getCompileTimeClass().isAssignableFrom(type)) {
+        if (prismObject == null || !type.isAssignableFrom(prismObject.getCompileTimeClass())) {
             throw new SystemException("Result ('" + prismObject.toDebugName() + "') is not assignable to '"
                     + type.getSimpleName() + "' [really should not happen].");
         }

@@ -5,7 +5,6 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.option.OptionContent;
@@ -25,6 +24,7 @@ import org.apache.wicket.markup.html.form.ListChoice;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -177,7 +177,9 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void objectEditPerformed(AjaxRequestTarget target, String oid) {
-        //todo implement
+        PageParameters parameters = new PageParameters();
+        parameters.add(PageDebugView.PARAM_OBJECT_ID, oid);
+        setResponsePage(PageDebugView.class, parameters);
     }
 
     private void deletePerformed(AjaxRequestTarget target, String oid) {

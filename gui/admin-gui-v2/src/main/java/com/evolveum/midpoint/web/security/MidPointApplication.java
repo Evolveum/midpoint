@@ -22,9 +22,8 @@
 package com.evolveum.midpoint.web.security;
 
 import ch.qos.logback.core.spi.ContextAware;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportFile;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportXml;
-import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -69,6 +68,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Qualifier("repositoryService")
     RepositoryService repository;
     @Autowired
+    PrismContext prismContext;
+    @Autowired
     TaskManager taskManager;
 
     @Override
@@ -103,7 +104,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
         mount(new MountedMapper("/admin/config/importFile", PageImportFile.class, encoder));
         mount(new MountedMapper("/admin/config/importXml", PageImportXml.class, encoder));
+        mount(new MountedMapper("/admin/config/debugs", PageDebugList.class, encoder));
 
+        mount(new MountedMapper("/admin/config/debug", PageDebugView.class,
+                new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));
         mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
 
         //error pages
@@ -123,6 +127,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public TaskManager getTaskManager() {
         return taskManager;
+    }
+
+    public PrismContext getPrismContext() {
+        return prismContext;
     }
 
     @Override

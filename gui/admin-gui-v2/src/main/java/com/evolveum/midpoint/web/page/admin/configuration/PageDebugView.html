@@ -24,19 +24,19 @@
 <body>
 <wicket:extend>
     <div class="content">
-        <h1><wicket:message key="pageDebugView.title"/></h1>
+        <h1><wicket:message key="page.title"/></h1>
 
         <form wicket:id="mainForm">
        		<table  style="width: auto;">
        			<tr>
-       				<td>Oid:</td><td>00000000-0000-0000-0000-000000000002</td>
+       				<td><wicket:message key="pageDebugView.oid"/></td><td><span wicket:id="oid"/></td>
        			</tr>
        			<tr>
-       				<td>Name:</td><td>administrator</td>
+       				<td><wicket:message key="pageDebugView.name"/></td><td><span wicket:id="name"/></td>
        			</tr>
        		</table>
         	<p>
-        		<input type="checkbox" /> Edit
+        		<input type="checkbox" wicket:id="edit" /><wicket:message key="pageDebugView.edit"/>
         	</p>
         	
             <div id="aceEditorContainer">
@@ -44,8 +44,8 @@
             </div>
 
             <div class="operatingFormButtons">
-            	<a class="button" href="#">Back</a>
-                <a class="button" wicket:id="saveButton"/>
+            	<a wicket:id="backButton" />
+                <a wicket:id="saveButton"/>
             </div>
         </form>
     </div>
