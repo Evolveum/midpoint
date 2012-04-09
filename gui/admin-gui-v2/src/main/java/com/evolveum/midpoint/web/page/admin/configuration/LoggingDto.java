@@ -37,6 +37,9 @@ public class LoggingDto implements Serializable {
     private LoggingLevelType midPointLevel;
     private String midPointAppender;
 
+    private SubsystemLevel subsystemLevel;
+    private String subsystemAppender;
+
     private boolean auditLog;
     private boolean auditDetails;
     private String auditAppender;
@@ -119,5 +122,21 @@ public class LoggingDto implements Serializable {
 
     public void setAdvanced(boolean advanced) {
         this.advanced = advanced;
+    }
+
+    public String getSubsystemAppender() {
+        return subsystemAppender;
+    }
+
+    public void setSubsystemAppender(String subsystemAppender) {
+        this.subsystemAppender = subsystemAppender;
+    }
+
+    public SubsystemLevel getSubsystemLevel() {
+        return subsystemLevel;
+    }
+
+    public void setSubsystemLevel(SubsystemLevel subsystemLevel) {
+        this.subsystemLevel = subsystemLevel;
     }
 }

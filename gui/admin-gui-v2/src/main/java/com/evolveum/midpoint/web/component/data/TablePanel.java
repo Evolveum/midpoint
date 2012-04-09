@@ -22,10 +22,12 @@
 package com.evolveum.midpoint.web.component.data;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.Model;
 
 import java.util.List;
 
@@ -33,6 +35,10 @@ import java.util.List;
  * @author lazyman
  */
 public class TablePanel<T> extends Panel {
+
+    private static final String TABLE = "table";
+    private static final String NAV_TOP = "navigatorTop";
+    private static final String NAV_BOTTOM = "navigatorBottom";
 
     public TablePanel(String id, Class<T> type, List<IColumn<T>> columns) {
         this(id, type, columns, 10);
@@ -47,26 +53,49 @@ public class TablePanel<T> extends Panel {
     }
 
     private void initLayout(List<IColumn<T>> columns, int itemsPerPage, Class<T> type) {
-        ISortableDataProvider provider = new ObjectDataProvider(type);
-        DataTable<T> table = new DataTable<T>("table", columns, provider, itemsPerPage);
+        ObjectDataProvider provider = new ObjectDataProvider(type);
+        DataTable<T> table = new DataTable<T>(TABLE, columns, provider, itemsPerPage);
         table.addTopToolbar(new TableHeadersToolbar(table, provider));
 
         add(table);
-        add(new NavigatorPanel("navigatorTop", table));
-        add(new NavigatorPanel("navigatorBottom", table));
+        add(new NavigatorPanel(NAV_TOP, table));
+        add(new NavigatorPanel(NAV_BOTTOM, table));
     }
 
     public void setType(Class<T> type) {
         Validate.notNull(type, "Type must not be null.");
-        
+
         DataTable table = getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setType(type);
-        
-
     }
-    
+
     public DataTable getDataTable() {
         return (DataTable) get("table");
+    }
+
+    public void setItemsPerPage(int size) {
+        getDataTable().setItemsPerPage(size);
+    }
+
+    public void setShowPaging(boolean showPaging) {
+        Component nav = get(NAV_TOP);
+        nav.setVisible(showPaging);
+
+        nav = get(NAV_BOTTOM);
+        nav.setVisible(showPaging);
+
+        if (!showPaging) {
+            setItemsPerPage(Integer.MAX_VALUE);
+        } else {
+            setItemsPerPage(10);
+        }
+    }
+
+    public void setTableCssClass(String cssClass) {
+        Validate.notEmpty(cssClass, "Css class must not be null or empty.");
+
+        DataTable table = getDataTable();
+        table.add(new AttributeAppender("class", new Model(cssClass), " "));
     }
 }

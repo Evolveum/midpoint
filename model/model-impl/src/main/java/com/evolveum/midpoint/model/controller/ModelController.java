@@ -118,7 +118,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * that are implemented here.
  * <p/>
  * Great deal of code is copied from the old ModelControllerImpl.
- * 
+ *
  * @author lazyman
  * @author Radovan Semancik
  */
@@ -178,7 +178,7 @@ public class ModelController implements ModelService {
 
 	@Autowired(required = true)
 	private AuditService auditService;
-	
+
 	@Autowired(required = true)
 	SystemConfigurationHandler systemConfigurationHandler;
 
@@ -249,7 +249,7 @@ public class ModelController implements ModelService {
 				user.getAccountRef().remove(accountRef);
 			}
 		}
-		
+
 	}
 
 	private void resolveAccountAttributes(AccountShadowType account, PropertyReferenceListType resolve,
@@ -288,9 +288,9 @@ public class ModelController implements ModelService {
 			ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
-		
+
 		T objectType = object.asObjectable();
-		//FIXME?? 
+		//FIXME??
 		prismContext.adopt(objectType);
 		if (!(objectType instanceof ResourceObjectShadowType)) {
 			Validate.notEmpty(objectType.getName(), "Object name must not be null or empty.");
@@ -305,13 +305,13 @@ public class ModelController implements ModelService {
 
 		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.ADD_OBJECT,
 				AuditEventStage.REQUEST);
-		
+
 		RepositoryCache.enter();
 		try {
 
 			auditRecord.setTarget(object);
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(object.getCompileTimeClass(), ChangeType.ADD);
-			
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Entering addObject with {}", object);
 				LOGGER.trace(object.dump());
@@ -321,10 +321,10 @@ public class ModelController implements ModelService {
 				UserType userType = (UserType) objectType;
 
 				SyncContext syncContext = userTypeAddToContext(userType.asPrismObject(), result);
-				
+
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
-				
+
 				objectDelta = (ObjectDelta<T>) syncContext.getUserPrimaryDelta();
 
 				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
@@ -337,14 +337,14 @@ public class ModelController implements ModelService {
 
 				auditRecord.clearDeltas();
 				auditRecord.addDeltas(syncContext.getAllChanges());
-				
+
 				changeExecutor.executeChanges(syncContext, result);
 
 				executePostChange(syncContext.getAllChanges(), task, result);
 				// here we don't care about the result (FOREGROUND/BACKGROUND)
 
 			} else {
-				
+
 				auditRecord.addDelta(objectDelta);
 				auditService.audit(auditRecord, task);
 
@@ -357,7 +357,7 @@ public class ModelController implements ModelService {
 				changeExecutor.executeChange(objectDelta, result);
 
 				executePostChange(objectDelta, task, result);
-				
+
 				// Non-systemic solition. TODO: cleanup
 				if (objectType instanceof SystemConfigurationType) {
 					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta, task, result);
@@ -407,9 +407,9 @@ public class ModelController implements ModelService {
 	/**
 	 * Executes preChangePrimary on all registered hooks. Parameters (delta,
 	 * task, result) are simply passed to these hooks.
-	 * 
+	 *
 	 * @return FOREGROUND, if all hooks returns FOREGROUND; BACKGROUND if not.
-	 * 
+	 *
 	 *         TODO in the future, maybe some error status returned from hooks
 	 *         should be considered here.
 	 */
@@ -629,12 +629,21 @@ public class ModelController implements ModelService {
 
 		return list;
 	}
-	
+
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException {
-		// TODO: Implement
-        return cacheRepositoryService.countObjects(type, query, parentResult);
+		// TODO: implement properly
+
+        try {
+            if (ObjectTypes.isObjectTypeManagedByProvisioning(type)) {
+                return provisioning.countObjects(type, query, parentResult);
+            } else {
+                return cacheRepositoryService.countObjects(type, query, parentResult);
+            }
+        } catch (Exception ex) {
+            throw new SystemException(ex.getMessage(),  ex);
+        }
 	}
 
 	@Override
@@ -655,7 +664,7 @@ public class ModelController implements ModelService {
 			LOGGER.warn("Calling modifyObject with empty modificaiton set");
 			return;
 		}
-		
+
 		ItemDelta.checkConsistence(modifications);
 
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
@@ -683,8 +692,8 @@ public class ModelController implements ModelService {
 		}
 
 		try {
-			
-			auditRecord.setTarget(object);			
+
+			auditRecord.setTarget(object);
 
 			ObjectDelta<T> objectDelta = null;
 
@@ -693,13 +702,13 @@ public class ModelController implements ModelService {
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
-				
+
 				userSynchronizer.synchronizeUser(syncContext, parentResult);
 
 				// Deltas after sync will be different
 				auditRecord.clearDeltas();
 				auditRecord.addDeltas(syncContext.getAllChanges());
-				
+
 				try {
 					changeExecutor.executeChanges(syncContext, parentResult);
 					result.computeStatus();
@@ -726,10 +735,10 @@ public class ModelController implements ModelService {
 					// This creates a better delta than the one above
 				}
 				objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type);
-				
+
 				auditRecord.addDelta(objectDelta);
 				auditService.audit(auditRecord, task);
-				
+
 				Collection<ObjectDelta<? extends ObjectType>> changes = new HashSet<ObjectDelta<? extends ObjectType>>();
 				changes.add(objectDelta);
 
@@ -741,7 +750,7 @@ public class ModelController implements ModelService {
 					// TODO Better handling
 					throw new SystemException(e.getMessage(), e);
 				}
-				
+
 				// Non-systemic solition. TODO: cleanup
 				if (SystemConfigurationType.class.isAssignableFrom(type)) {
 					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta, task, result);
@@ -787,12 +796,12 @@ public class ModelController implements ModelService {
 		}
 	}
 
-	private SyncContext userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications, 
+	private SyncContext userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
 		SyncContext syncContext = new SyncContext(prismContext);
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class);
-		
+
 		// TODO? userOld?
 
 		syncContext.setUserOld(null);
@@ -861,17 +870,17 @@ public class ModelController implements ModelService {
 			RepositoryCache.exit();
 			throw e;
 		}
-		
+
 		try {
 			auditRecord.setTarget(object);
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE);
 			objectDelta.setOid(oid);
 			auditRecord.addDelta(objectDelta);
 			auditService.audit(auditRecord, task);
-		
+
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
 
-			
+
 			Collection<ObjectDelta<? extends ObjectType>> changes = null;
 
 			if (UserType.class.isAssignableFrom(clazz)) {
@@ -903,12 +912,12 @@ public class ModelController implements ModelService {
 				changeExecutor.executeChanges(changes, result);
 				auditRecord.clearDeltas();
 				auditRecord.addDeltas(changes);
-				
+
 				// Non-systemic solition. TODO: cleanup
 				if (SystemConfigurationType.class.isAssignableFrom(clazz)) {
 					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta, task, result);
 				}
-				
+
 				result.computeStatus();
 			} catch (ObjectAlreadyExistsException e) {
 				// TODO Better handling
@@ -1191,7 +1200,7 @@ public class ModelController implements ModelService {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.evolveum.midpoint.model.api.ModelService#discoverConnectors(com.evolveum
 	 * .midpoint.xml.ns._public.common.common_1.ConnectorHostType,
@@ -1217,7 +1226,7 @@ public class ModelController implements ModelService {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.evolveum.midpoint.model.api.ModelService#initialize(com.evolveum.
 	 * midpoint.common.result.OperationResult)

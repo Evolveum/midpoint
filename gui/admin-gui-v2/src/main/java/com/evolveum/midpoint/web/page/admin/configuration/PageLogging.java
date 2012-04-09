@@ -27,24 +27,24 @@ import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
+import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -78,7 +78,7 @@ public class PageLogging extends PageAdminConfiguration {
             ex.printStackTrace();
             //todo implement
         }
-        
+
         if (dto == null) {
             dto = new LoggingDto();
         }
@@ -111,7 +111,73 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void initLoggers(AccordionItem loggers) {
+        List<IColumn<TaskType>> columns = new ArrayList<IColumn<TaskType>>();
+
+        IColumn column = new CheckBoxColumn<TaskType>();
+        columns.add(column);
+
+        column = new LinkColumn<Selectable<TaskType>>(createStringResource("pageLogging.classPackageSubsystem"), "value.name") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<Selectable<TaskType>> rowModel) {
+                //todo implement
+            }
+        };
+        columns.add(column);
+
+        columns.add(new PropertyColumn(createStringResource("pageLogging.loggersLevel"), "value.level"));
+        columns.add(new PropertyColumn(createStringResource("pageLogging.loggersAppender"), "value.appender"));
+
+        TablePanel table = new TablePanel<TaskType>("loggersTable", TaskType.class, columns);
+        table.setShowPaging(false);
+        table.setTableCssClass("autowidth");
+        loggers.getBodyContainer().add(table);
         //todo implement
+
+        AjaxLinkButton addLogger = new AjaxLinkButton("addLogger",
+                createStringResource("pageLogging.button.addLogger")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //todo implement
+            }
+        };
+        loggers.getBodyContainer().add(addLogger);
+
+        AjaxLinkButton deleteLogger = new AjaxLinkButton("deleteLogger",
+                createStringResource("pageLogging.button.deleteLogger")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //todo implement
+            }
+        };
+        loggers.getBodyContainer().add(deleteLogger);
+
+        initSubsystem(loggers);
+    }
+
+    private void initSubsystem(AccordionItem loggers) {
+        DropDownChoice<SubsystemLevel> subsystemLevel = createComboBox("subsystemLevel",
+                new PropertyModel<SubsystemLevel>(model, "subsystemLevel"), createSubsystemLevelModel());
+        loggers.getBodyContainer().add(subsystemLevel);
+
+        DropDownChoice<String> subsystemAppender = createComboBox("subsystemAppender",
+                new PropertyModel<String>(model, "subsystemAppender"), createAppendersListModel());
+        loggers.getBodyContainer().add(subsystemAppender);
+    }
+
+    private IModel<List<SubsystemLevel>> createSubsystemLevelModel() {
+        return new AbstractReadOnlyModel<List<SubsystemLevel>>() {
+
+            @Override
+            public List<SubsystemLevel> getObject() {
+                List<SubsystemLevel> levels = new ArrayList<SubsystemLevel>();
+                Collections.addAll(levels, SubsystemLevel.values());
+
+                return levels;
+            }
+        };
     }
 
     private void initAppenders(AccordionItem appenders) {
@@ -119,19 +185,19 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void initRoot(final Form mainForm) {
-        DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<LoggingLevelType>("rootLevel",
+        DropDownChoice<LoggingLevelType> rootLevel = createComboBox("rootLevel",
                 new PropertyModel<LoggingLevelType>(model, "rootLevel"), createLoggingLevelModel());
         mainForm.add(rootLevel);
 
-        DropDownChoice<String> rootAppender = new DropDownChoice<String>("rootAppender",
+        DropDownChoice<String> rootAppender = createComboBox("rootAppender",
                 new PropertyModel<String>(model, "rootAppender"), createAppendersListModel());
         mainForm.add(rootAppender);
 
-        DropDownChoice<LoggingLevelType> midPointLevel = new DropDownChoice<LoggingLevelType>("midPointLevel",
+        DropDownChoice<LoggingLevelType> midPointLevel = createComboBox("midPointLevel",
                 new PropertyModel<LoggingLevelType>(model, "midPointLevel"), createLoggingLevelModel());
         mainForm.add(midPointLevel);
 
-        DropDownChoice<String> midPointAppender = new DropDownChoice<String>("midPointAppender",
+        DropDownChoice<String> midPointAppender = createComboBox("midPointAppender",
                 new PropertyModel<String>(model, "midPointAppender"), createAppendersListModel());
         mainForm.add(midPointAppender);
     }
@@ -186,9 +252,20 @@ public class PageLogging extends PageAdminConfiguration {
         CheckBox auditDetails = new CheckBox("auditDetails", new PropertyModel<Boolean>(model, "auditDetails"));
         mainForm.add(auditDetails);
 
-        DropDownChoice<String> auditAppender = new DropDownChoice<String>("auditAppender",
+        DropDownChoice<String> auditAppender = createComboBox("auditAppender",
                 new PropertyModel<String>(model, "auditAppender"), createAppendersListModel());
         mainForm.add(auditAppender);
+    }
+
+    private <T> DropDownChoice<T> createComboBox(String id, IModel<T> choice, IModel<List<T>> choices) {
+        return new DropDownChoice<T>(id,
+                choice, choices) {
+
+            @Override
+            protected CharSequence getDefaultChoice(String selectedValue) {
+                return "";
+            }
+        };
     }
 
     private IModel<List<String>> createAppendersListModel() {
