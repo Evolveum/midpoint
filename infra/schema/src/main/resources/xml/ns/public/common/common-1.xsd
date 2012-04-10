@@ -650,6 +650,10 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:complexType>
+    
+    <!-- ============================= -->
+    <!-- =        DEPRECATED         = -->
+    <!-- ============================= -->
 
     <!-- Filters & queries -->
 
@@ -826,6 +830,12 @@
     <xsd:element name="and" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
     <xsd:element name="or" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
     <xsd:element name="not" substitutionGroup="tns:filter" type="tns:UnaryLogicalOperatorFilterType"/>
+    
+    <!-- ============================= -->
+    <!-- = end of DEPRECATED         = -->
+    <!-- ============================= -->
+
+
 
 	<xsd:complexType name="NodeType">
         <xsd:annotation>
@@ -3609,6 +3619,17 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:element name="valueExpression" type="tns:ExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The expression that can be used to dynamically evaluate the value, e.g. in the query filter.
+                
+                It must be a top-level element so the processor of Query schema can find it. See prism query-2 schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
 
     <xsd:complexType name="ExpressionCodeType" mixed="true">
         <xsd:annotation>
@@ -4789,6 +4810,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-        
+            
 </xsd:schema>
 
