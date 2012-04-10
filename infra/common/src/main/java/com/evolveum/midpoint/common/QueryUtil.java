@@ -23,6 +23,7 @@ package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -121,7 +122,7 @@ public class QueryUtil {
         }
         
         if (xpath != null) {
-            Element path = xpath.toElement(SchemaConstants.C_FILTER_PATH, doc);
+            Element path = xpath.toElement(DeltaConvertor.PATH_ELEMENT_NAME, doc);
             equal.appendChild(path);
         }
         

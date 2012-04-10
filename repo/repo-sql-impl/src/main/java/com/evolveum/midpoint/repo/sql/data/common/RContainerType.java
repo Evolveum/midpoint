@@ -51,4 +51,14 @@ public enum RContainerType {
     public Class<? extends RContainer> getClazz() {
         return clazz;
     }
+
+    public static RContainerType getType(Class<? extends RContainer> clazz) {
+        for (RContainerType type : RContainerType.values()) {
+            if (type.getClazz().equals(clazz)) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Couldn't find type for class '" + clazz + "'.");
+    }
 }

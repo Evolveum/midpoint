@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.objectform.ContainerWrapper;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -67,7 +68,7 @@ public class PageUser extends PageAdminUsers {
         StringValue userOid = getPageParameters().get(PARAM_USER_ID);
 
         try {
-            if (userOid == null) {
+            if (userOid == null || StringUtils.isEmpty(userOid.toString())) {
                 return createNewUser();
             }
 

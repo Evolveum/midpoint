@@ -85,7 +85,7 @@ public class SimpleOp extends Op {
             updateQueryContext(propertyPath);
         }
 
-        Element value = DOMUtil.getChildElement(filter, SchemaConstants.C_VALUE);
+        Element value = DOMUtil.getChildElement(filter, com.evolveum.midpoint.schema.constants.SchemaConstants.C_FILTER_VALUE);
         if (value == null || DOMUtil.listChildElements(value).isEmpty()) {
             throw new QueryException("Equal without value element, or without element in <value> not supported now.");
         }

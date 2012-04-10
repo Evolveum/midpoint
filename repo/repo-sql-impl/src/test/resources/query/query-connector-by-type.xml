@@ -21,12 +21,13 @@
   -->
 <object xsi:type="QueryType"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<and>
 		<equal>
-			<value>
+			<t:value>
 				<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-			</value>
+			</t:value>
 		</equal>
 	</and>
 </object>

@@ -26,15 +26,15 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <and>
         <equal>
-            <value>
+            <t:value>
                 <name>generic object</name>
-            </value>
+            </t:value>
         </equal>
         <equal>
             <t:path>c:extension</t:path>
-            <value>
+            <t:value>
                 <p:intType xmlns:p="http://example.com/p">123</p:intType>
-            </value>
+            </t:value>
         </equal>
     </and>
 </query>

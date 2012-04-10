@@ -48,6 +48,7 @@ public abstract class SchemaConstants {
 	private static final CatalogResolver catalogResolver;
 	private static boolean resolverInitialized = false;
 
+    public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 	public static final String NS_ANNOTATION = "http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd";
@@ -63,8 +64,8 @@ public abstract class SchemaConstants {
 	public static final QName C_FILTER_TYPE = new QName(NS_C, "type");
 	public static final QName C_FILTER_TYPE_URI = new QName(NS_C, "uri");
 	public static final QName C_FILTER_EQUAL = new QName(NS_C, "equal");
-	public static final QName C_FILTER_PATH = new QName(NS_C, "path");
-	public static final QName C_FILTER_VALUE = new QName(NS_C, "value");
+	public static final QName C_FILTER_PATH = new QName(NS_TYPES, "path");
+	public static final QName C_FILTER_VALUE = new QName(NS_TYPES, "value");
 	public static final QName C_FILTER_AND = new QName(NS_C, "and");
 	public static final QName C_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_OBJECT = new QName(NS_C, "object");

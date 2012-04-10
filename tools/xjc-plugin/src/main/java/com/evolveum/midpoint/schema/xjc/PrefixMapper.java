@@ -32,6 +32,8 @@ public enum PrefixMapper {
 
     C("http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd", "COMMON"),
 
+    T("http://prism.evolveum.com/xml/ns/public/types-2", "TYPES"),
+
     R("http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd", "RESOURCE"),
 
     R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd", "CAPABILITIES"),

@@ -20,11 +20,12 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 <query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 
     <equal>
-        <value>
+        <t:value>
             <fullName>Cpt. Jack Sparrow</fullName>
-        </value>
+        </t:value>
     </equal>
 </query>

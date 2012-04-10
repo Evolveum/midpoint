@@ -83,9 +83,6 @@ public abstract class RObject extends RContainer {
 
     public void setExtension(RAnyContainer extension) {
         this.extension = extension;
-        if (extension != null) {
-            extension.setOwnerType(RContainerType.OBJECT);
-        }
     }
 
     public static void copyToJAXB(RObject repo, ObjectType jaxb, PrismContext prismContext) throws
@@ -123,6 +120,7 @@ public abstract class RObject extends RContainer {
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();
             extension.setOwner(repo);
+            extension.setOwnerType(RContainerType.getType(repo.getClass()));
             repo.setExtension(extension);
 
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);

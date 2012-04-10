@@ -28,26 +28,26 @@
 
     <or>
         <equal>
-            <value>
+            <t:value>
                 <accountType>some account type</accountType>
-            </value>
+            </t:value>
         </equal>
         <equal>
             <t:path>c:attributes</t:path>
-            <value>
+            <t:value>
                 <f:foo xsi:type="xsd:string" xmlns:f="http://midpoint.evolveum.com/blabla">foo value</f:foo>
-            </value>
+            </t:value>
         </equal>
         <equal>
             <t:path>c:extension</t:path>
-            <value>
+            <t:value>
                 <p:stringType xmlns:p="http://example.com/p">uid=test,dc=example,dc=com</p:stringType>
-            </value>
+            </t:value>
         </equal>
         <equal>
-            <value>
+            <t:value>
                 <resourceRef oid="d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"/>
-            </value>
+            </t:value>
         </equal>
     </or>
 </query>
