@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 @MappedSuperclass
 public abstract class RValue<T> {
 
+    private boolean dynamic;
     private QName name;
     private QName type;
     private RValueType valueType;
@@ -57,6 +58,13 @@ public abstract class RValue<T> {
         return valueType;
     }
 
+    /**
+     * @return true if this property has dynamic definition
+     */
+    public boolean isDynamic() {
+        return dynamic;
+    }
+
     public void setValueType(RValueType valueType) {
         this.valueType = valueType;
     }
@@ -67,6 +75,10 @@ public abstract class RValue<T> {
 
     public void setType(QName type) {
         this.type = type;
+    }
+
+    public void setDynamic(boolean dynamic) {
+        this.dynamic = dynamic;
     }
 
     @Override

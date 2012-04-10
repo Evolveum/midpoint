@@ -112,6 +112,7 @@ public class RAnyConverter {
                 rValue.setName(definition.getName());
                 rValue.setType(definition.getTypeName());
                 rValue.setValueType(getValueType(value.getParent()));
+                rValue.setDynamic(definition.isDynamic());
 
                 rValues.add(rValue);
             }
@@ -219,7 +220,33 @@ public class RAnyConverter {
         Validate.notNull(any, "Parent prism container value must not be null.");
 
         try {
-            Item item = any.findOrCreateItem(value.getName(), value.getValueType().getItemClass());
+            Item item;
+            if (value.isDynamic()) {
+                ItemDefinition def;
+                switch (value.getValueType()) {
+                    case PROPERTY:
+                        def = new PrismPropertyDefinition(value.getName(), value.getName(),
+                                value.getType(), prismContext);
+                        break;
+                    case CONTAINER:
+                        //todo implement
+                        throw new UnsupportedOperationException("Not implemented yet.");
+                    case OBJECT:
+                        //todo implement
+                        throw new UnsupportedOperationException("Not implemented yet.");
+                    case REFERENCE:
+                        def = new PrismReferenceDefinition(value.getName(), value.getName(),
+                                value.getType(), prismContext);
+                    default:
+                        throw new UnsupportedOperationException("Unknown value type " + value.getValueType());
+                }
+                def.setDynamic(true);
+                item = def.instantiate();
+
+                any.add(item);
+            } else {
+                item = any.findOrCreateItem(value.getName(), value.getValueType().getItemClass());
+            }
             if (item == null) {
                 throw new DtoTranslationException("Couldn't create item for value '" + value.getName() + "'.");
             }
@@ -394,7 +421,7 @@ public class RAnyConverter {
         } else if (object instanceof Double) {
             object = ((Double) object).toString();
         } else if (object instanceof BigInteger) {
-            object = ((BigInteger)object).toString();
+            object = ((BigInteger) object).toString();
         }
 
         //check short/integer to long

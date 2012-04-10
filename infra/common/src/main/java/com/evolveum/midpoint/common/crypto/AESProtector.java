@@ -103,7 +103,6 @@ public class AESProtector implements Protector {
 	 *             if jceks keystore is not available on {@link getKeyStorePath}
 	 */
 	public void init() {
-        LOGGER.info(">>>>> initializing protector <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 		InputStream stream = null;
 		try {
 			// Test if use file or classpath resource
