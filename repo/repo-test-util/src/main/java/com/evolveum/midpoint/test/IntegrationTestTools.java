@@ -352,9 +352,9 @@ public class IntegrationTestTools {
 	
 	public static void display(String title, Dumpable dumpable) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(dumpable.dump());
+		System.out.println(dumpable == null ? "null" : dumpable.dump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		LOGGER.debug(dumpable.dump());
+		LOGGER.debug(dumpable == null ? "null" : dumpable.dump());
 	}
 	
 	public static void display(String title, String value) {

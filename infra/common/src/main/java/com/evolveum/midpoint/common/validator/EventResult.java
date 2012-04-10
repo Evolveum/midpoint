@@ -59,6 +59,10 @@ public class  EventResult {
 	public static EventResult skipObject() {
 		return new EventResult(EventResultStatus.SKIP_OBJECT,null);
 	}
+	
+	public static EventResult skipObject(String reason) {
+		return new EventResult(EventResultStatus.SKIP_OBJECT, reason);
+	}
 
 	public static EventResult stop() {
 		return new EventResult(EventResultStatus.STOP,null);

@@ -204,15 +204,25 @@ public class DebugUtil implements ObjectFormatter {
 	}
 	
 	public static String prettyPrint(Collection<?> collection) {
+		return prettyPrint(collection, 0);
+	}
+	
+	public static String prettyPrint(Collection<?> collection, int maxItems) {
 		if (collection == null) {
 			return null;
 		}
 		StringBuilder sb = new StringBuilder(getCollectionOpeningSymbol(collection));
 		Iterator<?> iterator = collection.iterator();
+		int items = 0;
 		while (iterator.hasNext()) {
 			sb.append(prettyPrint(iterator.next()));
+			items++;
 			if (iterator.hasNext()) {
 				sb.append(",");
+				if (maxItems != 0 && items >= maxItems) {
+					sb.append("...");
+					break;
+				}
 			}
 		}
 		sb.append(getCollectionClosingSymbol(collection));
