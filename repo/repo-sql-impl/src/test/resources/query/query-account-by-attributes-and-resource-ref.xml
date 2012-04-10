@@ -19,22 +19,22 @@
   ~
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
-<c:query xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+<query xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+       xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
 
-    <c:and>
-        <c:equal>
-            <t:value>
+    <and>
+        <equal>
+            <value>
                 <c:resourceRef oid="aae7be60-df56-11df-8608-0002a5d5c51b"/>
-            </t:value>
-        </c:equal>
-        <c:equal>
-            <t:path>c:attributes</t:path>
-            <t:value>
+            </value>
+        </equal>
+        <equal>
+            <path>c:attributes</path>
+            <value>
                 <s:foo xsi:type="xsd:string" xmlns:s="http://midpoint.evolveum.com/blabla">uid=jbond,ou=People,dc=example,dc=com</s:foo>
-            </t:value>
-        </c:equal>
-    </c:and>
-</c:query>
+            </value>
+        </equal>
+    </and>
+</query>

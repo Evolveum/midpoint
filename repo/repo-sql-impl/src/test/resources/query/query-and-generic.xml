@@ -21,20 +21,19 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 
-<query xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+<query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
     <and>
         <equal>
-            <t:value>
+            <value>
                 <name>generic object</name>
-            </t:value>
+            </value>
         </equal>
         <equal>
-            <t:path>c:extension</t:path>
-            <t:value>
+            <path>c:extension</path>
+            <value>
                 <p:intType xmlns:p="http://example.com/p">123</p:intType>
-            </t:value>
+            </value>
         </equal>
     </and>
 </query>
