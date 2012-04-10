@@ -385,7 +385,7 @@ public class XmlRepositoryService implements RepositoryService {
 		} else if (validateFilterElement(SchemaConstants.NS_C, "equal", child)) {
 			Node criteria = DOMUtil.getFirstChildElement(child);
 
-			if (validateFilterElement(SchemaConstants.NS_C, "path", criteria)) {
+			if (validateFilterElement(SchemaConstants.NS_TYPES, "path", criteria)) {
 				XPathHolder xpathType = new XPathHolder((Element) criteria);
 				String parentPath = xpathType.getXPath();
 
@@ -393,10 +393,10 @@ public class XmlRepositoryService implements RepositoryService {
 				processValueNode(criteriaValueNode, filters, namespaces, parentPath);
 			}
 
-			if (validateFilterElement(SchemaConstants.NS_C, "value", criteria)) {
+			if (validateFilterElement(SchemaConstants.NS_TYPES, "value", criteria)) {
 				Node criteriaPathNode = DOMUtil.getNextSiblingElement(criteria);
 				String parentPath = null;
-				if (criteriaPathNode != null && validateFilterElement(SchemaConstants.NS_C, "path", criteriaPathNode)){
+				if (criteriaPathNode != null && validateFilterElement(SchemaConstants.NS_TYPES, "path", criteriaPathNode)){
 					XPathHolder xpathType = new XPathHolder((Element) criteriaPathNode);
 					parentPath = xpathType.getXPath();
 				}
@@ -773,7 +773,7 @@ public class XmlRepositoryService implements RepositoryService {
 		// Be on the safe side and make sure all the ns declarations on the value element are made explicit
 		extractNamespaces((Element) criteriaValueNode, namespaces);
 		
-		if (validateFilterElement(SchemaConstants.NS_C, "value", criteriaValueNode)) {
+		if (validateFilterElement(SchemaConstants.NS_TYPES, "value", criteriaValueNode)) {
 			Node firstChild = DOMUtil.getFirstChildElement(criteriaValueNode);
 			if (null == firstChild) {
 				throw new IllegalArgumentException("Query filter contains empty list of values to search by");
