@@ -24,6 +24,7 @@
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
 	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 	
 	<connector>
@@ -38,14 +39,14 @@
 		<name>Sample Resource</name>
 		<connectorRef type="ConnectorType">
 		  <filter>
-		      <and>
-		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
-		        <equal>
-		          <value>
+		      <q:and>
+		        <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+		        <q:equal>
+		          <q:value>
 		              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-		          </value>
-		        </equal>
-		      </and>
+		          </q:value>
+		        </q:equal>
+		      </q:and>
 	      </filter>
 		</connectorRef>
 		<namespace>http://foo.bar.com/</namespace>
