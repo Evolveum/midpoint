@@ -344,7 +344,7 @@ public class XmlRepositoryService implements RepositoryService {
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
 
-		if (validateFilterElement(SchemaConstants.NS_C, "and", query.getFilter())) {
+		if (validateFilterElement(SchemaConstants.NS_QUERY, "and", query.getFilter())) {
 			NodeList children = query.getFilter().getChildNodes();
 
 			for (int index = 0; index < children.getLength(); index++) {
@@ -354,7 +354,7 @@ public class XmlRepositoryService implements RepositoryService {
 					continue;
 				}
 
-				if (!StringUtils.equals(SchemaConstants.NS_C, child.getNamespaceURI())) {
+				if (!StringUtils.equals(SchemaConstants.NS_QUERY, child.getNamespaceURI())) {
 					LOGGER.warn(
 							"Found query's filter element from unsupported namespace. Ignoring filter {}",
 							child);
