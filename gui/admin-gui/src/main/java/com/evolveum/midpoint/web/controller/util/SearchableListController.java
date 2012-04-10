@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.web.controller.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * 

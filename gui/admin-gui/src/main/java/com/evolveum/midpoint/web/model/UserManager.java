@@ -20,15 +20,13 @@
  */
 package com.evolveum.midpoint.web.model;
 
-import java.util.List;
-import java.util.Set;
-
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
-import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+
+import java.util.List;
 
 /**
  * 

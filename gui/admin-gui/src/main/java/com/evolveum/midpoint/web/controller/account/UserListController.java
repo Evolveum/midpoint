@@ -21,18 +21,6 @@
  */
 package com.evolveum.midpoint.web.controller.account;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import javax.faces.event.ActionEvent;
-import javax.faces.event.ValueChangeEvent;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -51,7 +39,17 @@ import com.evolveum.midpoint.web.util.GuiUserDtoComparator;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import javax.faces.event.ActionEvent;
+import javax.faces.event.ValueChangeEvent;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 

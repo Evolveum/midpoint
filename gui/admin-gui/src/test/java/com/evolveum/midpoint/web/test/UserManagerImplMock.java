@@ -30,7 +30,11 @@ import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
