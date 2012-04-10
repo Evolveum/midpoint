@@ -131,13 +131,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");
         document.appendChild(and);
 
-        Element type = document.createElementNS(SchemaConstants.NS_C, "c:type");
-        type.setAttribute("uri", "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType");
-        and.appendChild(type);
-
         Element equal = document.createElementNS(SchemaConstants.NS_C, "c:equal");
         and.appendChild(equal);
-        Element value = document.createElementNS(SchemaConstants.NS_C, "c:value");
+        Element value = document.createElementNS(SchemaConstants.NS_TYPES, "t:value");
         equal.appendChild(value);
         Element name = document.createElementNS(SchemaConstants.NS_C, "c:name");
         name.setTextContent(username);
