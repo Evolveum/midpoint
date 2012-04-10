@@ -102,37 +102,41 @@
 
     <xsd:element name="type" substitutionGroup="tns:filter" type="tns:UriFilterType"/>
 
+    <xsd:element name="path" type="t:XPathType">
+        <xsd:annotation>
+            <xsd:documentation>
+                XPath to the containing XML element for the queried property.
+                If not specified, defaults to "." (which is also the most usual value).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="value">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The elements and values of queried properties.
+                            Multi-valued properties are not allowed here.
+                            Use "and" or "or" clauses if needed.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <xjc:dom/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:any>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
     <xsd:complexType name="PropertyComplexValueFilterType">
         <xsd:complexContent>
             <xsd:extension base="tns:FilterType">
                 <xsd:sequence>
-                    <xsd:element name="path" type="t:XPathType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                XPath to the containing XML element for the queried property.
-                                If not specified, defaults to "." (which is also the most usual value).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                    <xsd:element ref="tns:path" minOccurs="0" maxOccurs="1"/>
                     <xsd:choice>
-                        <xsd:element name="value">
-                            <xsd:complexType>
-                                <xsd:sequence>
-                                    <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                                        <xsd:annotation>
-                                            <xsd:documentation>
-                                                The elements and values of queried properties.
-                                                Multi-valued properties are not allowed here.
-                                                Use "and" or "or" clauses if needed.
-                                            </xsd:documentation>
-                                            <xsd:appinfo>
-                                                <xjc:dom/>
-                                            </xsd:appinfo>
-                                        </xsd:annotation>
-                                    </xsd:any>
-                                </xsd:sequence>
-                            </xsd:complexType>
-                        </xsd:element>
+                        <xsd:element ref="tns:value"/>
                         <xsd:any namespace="##other" processContents="strict">
                         	<xsd:annotation>
                         		<xsd:documentation>
