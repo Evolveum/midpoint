@@ -48,6 +48,7 @@ public abstract class SchemaConstants {
 	private static final CatalogResolver catalogResolver;
 	private static boolean resolverInitialized = false;
 
+    public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-2";
     public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";

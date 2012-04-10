@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.model.security;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.security.api.Credentials;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
@@ -126,20 +127,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return user;
     }
 
-    private Element createQuery(String username) {
-        Document document = DOMUtil.getDocument();
-        Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");
-        document.appendChild(and);
-
-        Element equal = document.createElementNS(SchemaConstants.NS_C, "c:equal");
-        and.appendChild(equal);
-        Element value = document.createElementNS(SchemaConstants.NS_TYPES, "t:value");
-        equal.appendChild(value);
-        Element name = document.createElementNS(SchemaConstants.NS_C, "c:name");
-        name.setTextContent(username);
-        value.appendChild(name);
-
-        return and;
+    private Element createQuery(String username) throws SchemaException{
+        return QueryUtil.createEqualFilter(DOMUtil.getDocument(), null, ObjectType.F_NAME, username);
     }
 
     private PrincipalUser save(PrincipalUser person) throws RepositoryException {
