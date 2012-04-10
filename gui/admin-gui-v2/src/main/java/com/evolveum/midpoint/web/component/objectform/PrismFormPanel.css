@@ -22,6 +22,7 @@ div.objectForm .tableForm {
 	border: 1px solid #8FA6AB;
 	background: #C1D9DE;
 	width: 600px;
+	padding: 0px;
 }
 
 div.objectForm .tableForm input:focus {
@@ -54,7 +55,7 @@ div.objectForm .tableForm thead .objectFormHeaderIcon {
 }
 
 div.objectForm .tableForm thead .objectFormHeaderText {
-	width: 485px;
+	width: auto;
 	margin-left: 0px;
 	line-height: 110%;
 	position: relative;
@@ -70,6 +71,7 @@ div.objectForm .tableForm thead .objectFormHeaderControllButtons {
 	padding-left: 4px;
 	width: 40px;
 	margin-top: 5px;
+	float: right;
 }
 
 
@@ -103,7 +105,7 @@ div.objectForm .tableForm tbody .objectFormLabel, div.objectForm .tableForm tbod
 
 div.objectForm .tableForm tbody .objectFormLabel, div.objectForm .tableForm tbody .objectFormValue {
 	position: relative;
-	height: 40px;
+	min-height: 40px;
 }
 
 div.objectForm .tableForm tbody .objectFormLabel {
