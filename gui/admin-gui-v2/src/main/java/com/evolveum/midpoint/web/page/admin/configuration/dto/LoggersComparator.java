@@ -31,11 +31,11 @@ public class LoggersComparator implements Comparator<LoggerConfiguration> {
     @Override
     public int compare(LoggerConfiguration l1, LoggerConfiguration l2) {
         if ((l1 instanceof ComponentLogger) && (l2 instanceof ClassLogger)) {
-            return 1;
+            return -1;
         }
 
         if ((l1 instanceof ClassLogger) && (l2 instanceof ComponentLogger)) {
-            return -1;
+            return 1;
         }
 
         return String.CASE_INSENSITIVE_ORDER.compare(l1.getName(), l2.getName());

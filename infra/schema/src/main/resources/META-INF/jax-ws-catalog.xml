@@ -34,6 +34,7 @@
 <!--     <system systemId="http://localhost:8080/resourceObjectChangeListenerService/resourceObjectChangeListenerPort?wsdl" uri="wsdl/xml/ns/private/provisioning/resourceObjectChangeListenerWrapper.wsdl"/> -->
 <!--     <system systemId="http://localhost:8080/cycleManagementService/CycleManagementService?wsdl" uri="wsdl/xml/ns/private/model/cycleManagementWrapper.wsdl"/> -->
     <rewriteSystem systemIdStartString="http://midpoint.evolveum.com/xml/" rewritePrefix="main/resources/xml/"/>
+    <rewriteSystem systemIdStartString="http://prism.evolveum.com/xml/" rewritePrefix="main/resources/xml/"/>
     
     <nextCatalog catalog="catalog.xml"/>
 </catalog>

@@ -20,7 +20,7 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
-<c:query  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+<q:query  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
@@ -28,17 +28,18 @@
    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd'
    xmlns:foo="http://foo.com/"
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 
    <!-- Query filter example -->
 
-    <c:and>
-        <c:equal>
-            <t:path>c:attributes</t:path>
-            <t:value>
+    <q:and>
+        <q:equal>
+            <q:path>c:attributes</q:path>
+            <q:value>
                 <icfs:name>uid=jbond,ou=People,dc=example,dc=com</icfs:name>
-            </t:value>
-        </c:equal>
-    </c:and>
+            </q:value>
+        </q:equal>
+    </q:and>
 
-</c:query>
+</q:query>

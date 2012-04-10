@@ -25,8 +25,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -35,9 +33,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * <p>Identity Repository Interface.</p>
@@ -143,7 +141,7 @@ public interface RepositoryService {
 	 *            OID of the object to get
 	 * @param resolve
 	 *            list of properties to resolve in the fetched object
-	 * @param result
+	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return Object fetched from repository
 	 * 
@@ -183,8 +181,6 @@ public interface RepositoryService {
 	 * 
 	 * @param object
 	 *            object to create
-	 * @param scripts
-	 *            scripts to execute before/after the operation
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return OID assigned to the created object
@@ -276,8 +272,6 @@ public interface RepositoryService {
 	 * 
 	 * TODO: optimistic locking
 	 * 
-	 * @param objectDelta
-	 *            specification of object changes
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * 

@@ -43,6 +43,9 @@
 	
 	<public publicId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../xml/ns/public/prism/types-2.xsd" />
     <system systemId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../xml/ns/public/prism/types-2.xsd" />
+
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../xml/ns/public/prism/query-2.xsd" />
+    <system systemId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../xml/ns/public/prism/query-2.xsd" />
     
 	<!-- Experimental XSD schema file locations -->
 	<public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />

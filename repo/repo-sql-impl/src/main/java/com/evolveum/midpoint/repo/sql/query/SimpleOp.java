@@ -63,11 +63,11 @@ public class SimpleOp extends Op {
 
     @Override
     protected QName[] canHandle() {
-        return new QName[]{SchemaConstants.C_EQUAL};
+        return new QName[]{SchemaConstants.Q_EQUAL};
     }
 
     private Operation getOperationType(Element filterPart) throws QueryException {
-        if (DOMUtil.isElementName(filterPart, SchemaConstants.C_EQUAL)) {
+        if (DOMUtil.isElementName(filterPart, SchemaConstants.Q_EQUAL)) {
             return Operation.EQUAL;
         }
 
@@ -79,7 +79,7 @@ public class SimpleOp extends Op {
         LOGGER.debug("Interpreting '{}', pushNot '{}'", new Object[]{DOMUtil.getQNameWithoutPrefix(filter), pushNot});
         validate(filter);
 
-        Element path = DOMUtil.getChildElement(filter, DeltaConvertor.PATH_ELEMENT_NAME);
+        Element path = DOMUtil.getChildElement(filter, com.evolveum.midpoint.schema.constants.SchemaConstants.C_FILTER_PATH);
         PropertyPath propertyPath = getInterpreter().createPropertyPath(path);
         if (path != null) {
             updateQueryContext(propertyPath);

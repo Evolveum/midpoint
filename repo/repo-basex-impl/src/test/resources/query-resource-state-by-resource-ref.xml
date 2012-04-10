@@ -19,24 +19,25 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-<c:query  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+<q:query  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
    xmlns:foo="http://foo.com/"
-   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+   xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
+   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd">
 
    <!-- Query filter example -->
 
-    <c:and>
-        <c:equal>
-            <t:value>
+    <q:and>
+        <q:equal>
+            <q:value>
                 <i:resourceRef oid="d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"/>
-            </t:value>
-        </c:equal>
-    </c:and>
+            </q:value>
+        </q:equal>
+    </q:and>
 
-</c:query>
+</q:query>

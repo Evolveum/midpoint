@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReference
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -206,8 +206,6 @@ public interface ModelService {
 	 * implementation.
 	 * </p>
 	 * 
-	 * @param change
-	 *            specification of object changes
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @throws ObjectNotFoundException
@@ -361,7 +359,7 @@ public interface ModelService {
 	 *            Object class of the objects to fetch
 	 * @param paging
 	 *            paging specification to limit operation result (optional)
-	 * @param parentResult
+	 * @param result
 	 *            parent OperationResult (in/out)
 	 * @return resource objects in a form of "detached shadows"
 	 * @throws ObjectNotFoundException
@@ -393,7 +391,7 @@ public interface ModelService {
 	 * @param objectType
 	 * @param paging
 	 *            paging specification to limit operation result (optional)
-	 * @param parentResult
+	 * @param result
 	 *            parent OperationResult (in/out)
 	 * @return all objects of specified type (subject to paging)
 	 * 

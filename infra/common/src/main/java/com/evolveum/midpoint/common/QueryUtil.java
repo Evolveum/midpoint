@@ -23,26 +23,20 @@ package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -122,7 +116,7 @@ public class QueryUtil {
         }
         
         if (xpath != null) {
-            Element path = xpath.toElement(DeltaConvertor.PATH_ELEMENT_NAME, doc);
+            Element path = xpath.toElement(SchemaConstants.C_FILTER_PATH, doc);
             equal.appendChild(path);
         }
         

@@ -28,28 +28,6 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.beanutils.PropertyUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
-
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.util.aspect.ObjectFormatter;
@@ -57,21 +35,20 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UnknownJavaObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.w3c.dom.*;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * 

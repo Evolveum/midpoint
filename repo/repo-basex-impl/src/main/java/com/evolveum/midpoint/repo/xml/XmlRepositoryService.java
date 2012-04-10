@@ -71,7 +71,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -378,14 +378,14 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	private void processFilterBody(Map<String, String> filters, Map<String, String> namespaces, Node child) {
-		if (validateFilterElement(SchemaConstants.NS_C, "type", child)) {
+		if (validateFilterElement(SchemaConstants.NS_QUERY, "type", child)) {
 			// objectType =
 			// child.getAttributes().getNamedItem("uri").getTextContent();
-			LOGGER.warn("Found deprecated argument c:type in search filter (MID-395). Ignoring it.");
-		} else if (validateFilterElement(SchemaConstants.NS_C, "equal", child)) {
+			LOGGER.warn("Found deprecated argument q:type in search filter (MID-395). Ignoring it.");
+		} else if (validateFilterElement(SchemaConstants.NS_QUERY, "equal", child)) {
 			Node criteria = DOMUtil.getFirstChildElement(child);
 
-			if (validateFilterElement(SchemaConstants.NS_TYPES, "path", criteria)) {
+			if (validateFilterElement(SchemaConstants.NS_QUERY, "path", criteria)) {
 				XPathHolder xpathType = new XPathHolder((Element) criteria);
 				String parentPath = xpathType.getXPath();
 
@@ -393,10 +393,10 @@ public class XmlRepositoryService implements RepositoryService {
 				processValueNode(criteriaValueNode, filters, namespaces, parentPath);
 			}
 
-			if (validateFilterElement(SchemaConstants.NS_TYPES, "value", criteria)) {
+			if (validateFilterElement(SchemaConstants.NS_QUERY, "value", criteria)) {
 				Node criteriaPathNode = DOMUtil.getNextSiblingElement(criteria);
 				String parentPath = null;
-				if (criteriaPathNode != null && validateFilterElement(SchemaConstants.NS_TYPES, "path", criteriaPathNode)){
+				if (criteriaPathNode != null && validateFilterElement(SchemaConstants.NS_QUERY, "path", criteriaPathNode)){
 					XPathHolder xpathType = new XPathHolder((Element) criteriaPathNode);
 					parentPath = xpathType.getXPath();
 				}
@@ -773,7 +773,7 @@ public class XmlRepositoryService implements RepositoryService {
 		// Be on the safe side and make sure all the ns declarations on the value element are made explicit
 		extractNamespaces((Element) criteriaValueNode, namespaces);
 		
-		if (validateFilterElement(SchemaConstants.NS_TYPES, "value", criteriaValueNode)) {
+		if (validateFilterElement(SchemaConstants.NS_QUERY, "value", criteriaValueNode)) {
 			Node firstChild = DOMUtil.getFirstChildElement(criteriaValueNode);
 			if (null == firstChild) {
 				throw new IllegalArgumentException("Query filter contains empty list of values to search by");

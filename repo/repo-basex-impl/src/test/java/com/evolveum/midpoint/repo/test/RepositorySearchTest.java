@@ -24,6 +24,8 @@ package com.evolveum.midpoint.repo.test;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeSuite;
@@ -64,7 +66,6 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**

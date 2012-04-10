@@ -26,6 +26,7 @@
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
     xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
     xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl"
@@ -59,6 +60,7 @@
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="../common/common-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" schemaLocation="../common/api-types-2.xsd"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" schemaLocation="../prism/query-2.xsd"/>
         </xsd:schema>
     </types>
 
@@ -115,7 +117,7 @@
 
     <message name="searchObjectsRequest">
     	<part name="objectType" type="xsd:anyURI"/>
-        <part name="query" type="c:QueryType">
+        <part name="query" type="q:QueryType">
             <documentation>
                 Search criteria
             </documentation>

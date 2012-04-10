@@ -40,7 +40,10 @@
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" schemaLocation="../../public/resource/capabilities-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" schemaLocation="../../public/connector/icf-1/resource-schema-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" schemaLocation="../../public/connector/icf-1/connector-schema-1.xsd"/>
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" schemaLocation="../../public/communication/workflow-1.xsd"/>            
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" schemaLocation="../../public/communication/workflow-1.xsd"/>
+
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" schemaLocation="../../public/prism/query-2.xsd"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" schemaLocation="../../public/prism/types-2.xsd"/>
         </xsd:schema>
     </types>
 

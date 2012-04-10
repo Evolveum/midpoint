@@ -19,31 +19,20 @@
  */
 package com.evolveum.midpoint.provisioning.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+
+import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 
 /**
  * <p>Provisioning Service Interface.</p>
@@ -121,7 +110,7 @@ public interface ProvisioningService {
 	 *            OID of the object to get
 	 * @param resolve
 	 *            list of properties to resolve in the fetched object
-	 * @param result
+	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return Object fetched from repository and/or resource
 	 * 
@@ -193,7 +182,7 @@ public interface ProvisioningService {
 	 * 
 	 * TODO: Better description
 	 * 
-	 * @param oid
+	 * @param resourceOid
 	 *            OID of the resource for which to attempt synchronization
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
@@ -318,8 +307,6 @@ public interface ProvisioningService {
 	 * 
 	 * TODO: optimistic locking
 	 * 
-	 * @param objectChange
-	 *            specification of object changes
 	 * @param scripts
 	 *            scripts that should be executed before of after operation
 	 * @param parentResult

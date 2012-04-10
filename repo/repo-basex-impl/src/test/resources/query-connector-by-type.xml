@@ -19,16 +19,17 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner] -->
 <!-- Portions Copyrighted 2010 Forgerock -->
 <!-- -->
-<object xsi:type="QueryType"
+<object xsi:type="q:QueryType"
 	xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/model/password-1.wsdl"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
-	<and>
-		<equal>
-			<t:value>
+	<q:and>
+		<q:equal>
+			<q:value>
 				<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-			</t:value>
-		</equal>
-	</and>
+			</q:value>
+		</q:equal>
+	</q:and>
 </object>

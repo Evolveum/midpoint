@@ -20,63 +20,41 @@
  */
 package com.evolveum.midpoint.test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.*;
-
-import org.opends.server.types.Attribute;
+import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.Dumpable;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.List;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author Radovan Semancik
