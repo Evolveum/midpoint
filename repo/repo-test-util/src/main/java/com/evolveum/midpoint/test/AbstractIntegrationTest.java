@@ -143,7 +143,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, Class<T> type,
-			OperationResult parentResult) throws Exception {
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
 		result.addParam("filePath", filePath);

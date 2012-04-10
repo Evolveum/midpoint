@@ -54,6 +54,8 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     private boolean isDefault;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
     private ResourceType resourceType;
+    private Collection<ResourceAttributeDefinition> identifiers;
+	private Collection<ResourceAttributeDefinition> secondaryIdentifiers;
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
      */
@@ -73,16 +75,6 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         attributeDefinitions = new HashSet<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
         this.objectClassDefinition = objectClassDefinition;
-    }
-
-    @Override
-    public Collection<ResourceAttributeDefinition> getIdentifiers() {
-        return objectClassDefinition.getIdentifiers();
-    }
-
-    @Override
-    public Set<ResourceAttributeDefinition> getSecondaryIdentifiers() {
-        return objectClassDefinition.getSecondaryIdentifiers();
     }
 
     @Override
@@ -139,8 +131,29 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     public void setDisplayNameAttribute(QName displayName) {
         throw new UnsupportedOperationException("Parts of refined account are immutable");
     }
-
+    
     @Override
+	public Collection<ResourceAttributeDefinition> getIdentifiers() {
+		if (identifiers == null) {
+			identifiers = createIdentifiersCollection();
+		}
+		return identifiers;
+	}
+
+	@Override
+	public Collection<ResourceAttributeDefinition> getSecondaryIdentifiers() {
+		if (secondaryIdentifiers == null) {
+			secondaryIdentifiers = createIdentifiersCollection();
+		}
+		return secondaryIdentifiers;
+	}
+	
+	private Collection<ResourceAttributeDefinition> createIdentifiersCollection() {
+		return new ArrayList<ResourceAttributeDefinition>();
+	}
+
+
+	@Override
     public ResourceAttributeContainer instantiate() {
         return new ResourceAttributeContainer(getNameOrDefaultName(), this, getPrismContext());
     }
@@ -229,8 +242,13 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     public void setDescription(String description) {
         this.description = description;
     }
+    
+    @Override
+	public String getNamespace() {
+		return resourceType.getNamespace();
+	}
 
-    public boolean isDefault() {
+	public boolean isDefault() {
         return isDefault;
     }
 
@@ -361,6 +379,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 
             RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, attrDefType, objectClassDef, 
             		prismContext, "in account type " + accountTypeDefType.getName() + ", in " + contextDescription);
+            rAccountDef.processIdentifiers(rAttrDef, objectClassDef);
 
             if (rAccountDef.containsAttributeDefinition(rAttrDef.getName())) {
                 throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in account type " +
@@ -405,14 +424,15 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 
         rAccountDef.setDefault(objectClassDef.isDefaultAccountType());
 
-        for (ResourceAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
-            if (road.isIgnored()) {
+        for (ResourceAttributeDefinition attrDef : objectClassDef.getAttributeDefinitions()) {
+            if (attrDef.isIgnored()) {
                 continue;
             }
             String attrContextDescription = accountTypeName + ", in " + contextDescription;
 
-            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, null, objectClassDef, prismContext, 
+            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(attrDef, null, objectClassDef, prismContext, 
             		attrContextDescription);
+            rAccountDef.processIdentifiers(rAttrDef, objectClassDef);
 
             if (rAccountDef.containsAttributeDefinition(rAttrDef.getName())) {
                 throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in " + attrContextDescription);
@@ -426,8 +446,17 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 
     }
 
+	private void processIdentifiers(RefinedAttributeDefinition rAttrDef, ObjectClassComplexTypeDefinition objectClassDef) {
+		QName attrName = rAttrDef.getName();
+		if (objectClassDef.isIdentifier(attrName)) {
+			getIdentifiers().add(rAttrDef);
+		}
+		if (objectClassDef.isSecondaryIdentifier(attrName)) {
+			getSecondaryIdentifiers().add(rAttrDef);
+		}		
+	}
 
-    private static ResourceAttributeDefinitionType findAttributeDefinitionType(QName attrName,
+	private static ResourceAttributeDefinitionType findAttributeDefinitionType(QName attrName,
             ResourceAccountTypeDefinitionType accountTypeDefType, String contextDescription) throws SchemaException {
         ResourceAttributeDefinitionType foundAttrDefType = null;
         for (ResourceAttributeDefinitionType attrDefType : accountTypeDefType.getAttribute()) {

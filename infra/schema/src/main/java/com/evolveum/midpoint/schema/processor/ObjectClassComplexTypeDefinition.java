@@ -36,8 +36,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
  */
 public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	
-	private Set<ResourceAttributeDefinition> idenitifiers;
-	private Set<ResourceAttributeDefinition> secondaryIdenitifiers;
+	private Set<ResourceAttributeDefinition> identifiers;
+	private Set<ResourceAttributeDefinition> secondaryIdentifiers;
 	private ResourceAttributeDefinition descriptionAttribute;
 	private ResourceAttributeDefinition displayNameAttribute;
 	private ResourceAttributeDefinition namingAttribute;
@@ -75,10 +75,19 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	 *             if there is no definition for the referenced attributed
 	 */
 	public Collection<ResourceAttributeDefinition> getIdentifiers() {
-		if (idenitifiers == null) {
-			idenitifiers = new HashSet<ResourceAttributeDefinition>();
+		if (identifiers == null) {
+			identifiers = new HashSet<ResourceAttributeDefinition>();
 		}
-		return idenitifiers;
+		return identifiers;
+	}
+	
+	public boolean isIdentifier(QName attrName) {
+		for (ResourceAttributeDefinition idDef: getIdentifiers()) {
+			if (idDef.getName().equals(attrName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -97,10 +106,19 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	 *             if there is no definition for the referenced attributed
 	 */
 	public Set<ResourceAttributeDefinition> getSecondaryIdentifiers() {
-		if (secondaryIdenitifiers == null) {
-			secondaryIdenitifiers = new HashSet<ResourceAttributeDefinition>();
+		if (secondaryIdentifiers == null) {
+			secondaryIdentifiers = new HashSet<ResourceAttributeDefinition>();
 		}
-		return secondaryIdenitifiers;
+		return secondaryIdentifiers;
+	}
+	
+	public boolean isSecondaryIdentifier(QName attrName) {
+		for (ResourceAttributeDefinition idDef: getSecondaryIdentifiers()) {
+			if (idDef.getName().equals(attrName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -346,10 +364,10 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 		clone.defaultAccountType = this.defaultAccountType;
 		clone.descriptionAttribute = this.descriptionAttribute;
 		clone.displayNameAttribute = this.displayNameAttribute;
-		clone.idenitifiers = this.idenitifiers;
+		clone.identifiers = this.identifiers;
 		clone.namingAttribute = this.namingAttribute;
 		clone.nativeObjectClass = this.nativeObjectClass;
-		clone.secondaryIdenitifiers = this.secondaryIdenitifiers;
+		clone.secondaryIdentifiers = this.secondaryIdentifiers;
 	}
 
 	@Override

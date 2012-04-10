@@ -21,6 +21,7 @@ package com.evolveum.midpoint.model.synchronizer;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,10 +43,14 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
@@ -58,6 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  */
 @Component
 public class AccountValuesProcessor {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AccountValuesProcessor.class);
 	
 	@Autowired(required = true)
     private OutboundProcessor outboundProcessor;
@@ -83,6 +90,8 @@ public class AccountValuesProcessor {
 			
 			int maxIterations = determineMaxIterations(accountContext);
 			int iteration = 0;
+			// TODO: flexible token format
+			String iterationToken = Integer.toString(iteration);
 			
 			while (true) {
 				
@@ -119,12 +128,16 @@ public class AccountValuesProcessor {
 			return true;
 		}
 		PrismContainer<?> attributesContainer = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
-		for (ResourceAttributeDefinition identifierDef: accountDefinition.getIdentifiers()) {
-			PrismProperty<?> identifier = attributesContainer.findProperty(identifierDef.getName());
-			if (identifier == null) {
+		Collection<ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.union(accountDefinition.getIdentifiers(),
+				accountDefinition.getSecondaryIdentifiers());
+		LOGGER.trace("Secondary IDs {}", accountDefinition.getSecondaryIdentifiers());
+		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {
+			PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
+			LOGGER.trace("Attempt to check uniquness of {} (def {})", attr, attrDef);
+			if (attr == null) {
 				continue;
 			}
-			boolean unique = checkAttributeUniqueness(identifier, accountDefinition, accountContext.getResource(), 
+			boolean unique = checkAttributeUniqueness(attr, accountDefinition, accountContext.getResource(), 
 					accountContext.getOid(), result);
 			if (!unique) {
 				return false;
@@ -138,6 +151,8 @@ public class AccountValuesProcessor {
 		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 				resourceType, prismContext);
 		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, null, result);
+		LOGGER.trace("Uniquness check of {} resulted in {} results, using query:\n{}",
+				new Object[]{identifier, foundObjects.size(), DOMUtil.serializeDOMToString(query.getFilter())});
 		if (foundObjects.isEmpty()) {
 			return true;
 		}

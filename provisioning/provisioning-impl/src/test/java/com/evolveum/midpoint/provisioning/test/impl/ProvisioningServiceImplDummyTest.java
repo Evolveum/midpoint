@@ -35,6 +35,8 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -372,39 +374,64 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// Check whether it is reusing the existing schema and not parsing it all over again
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
-		assertTrue(returnedSchema == RefinedResourceSchema.getResourceSchema(resourceType, prismContext));
+		assertTrue("Broken caching", returnedSchema == RefinedResourceSchema.getResourceSchema(resourceType, prismContext));
 
-		ObjectClassComplexTypeDefinition accountDef = returnedSchema.findDefaultAccountDefinition();
+		ProvisioningTestUtil.assertDummyResourceSchemaSanity(returnedSchema, resourceType);
+
+	}
+	
+	@Test
+	public void test006RefinedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+		displayTestTile("test006RefinedSchema");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test006RefinedSchema");
+
+		// WHEN
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, prismContext);
+		display("Refined schema", refinedSchema);
+
+		// Check whether it is reusing the existing schema and not parsing it all over again
+		// Not equals() but == ... we want to really know if exactly the same
+		// object instance is returned
+		assertTrue("Broken caching", refinedSchema == RefinedResourceSchema.getRefinedSchema(resourceType, prismContext));
+
+		RefinedAccountDefinition accountDef = refinedSchema.getDefaultAccountDefinition();
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
 		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
+		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
 
-		ResourceAttributeDefinition uidDef = accountDef
+		RefinedAttributeDefinition uidDef = accountDef
 				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(1, uidDef.getMinOccurs());
-		// assertFalse(StringUtils.isEmpty(uidDef.getDisplayName()));
-		assertFalse(uidDef.canCreate());
-		assertFalse(uidDef.canUpdate());
-		assertTrue(uidDef.canRead());
+		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
+		assertFalse("UID has create", uidDef.canCreate());
+		assertFalse("UID has update",uidDef.canUpdate());
+		assertTrue("No UID read",uidDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
 
-		ResourceAttributeDefinition nameDef = accountDef
+		RefinedAttributeDefinition nameDef = accountDef
 				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
-		// assertFalse(StringUtils.isEmpty(nameDef.getDisplayName()));
-		assertTrue(nameDef.canCreate());
-		assertTrue(nameDef.canUpdate());
-		assertTrue(nameDef.canRead());
+		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
+		assertTrue("No NAME create", nameDef.canCreate());
+		assertTrue("No NAME update",nameDef.canUpdate());
+		assertTrue("No NAME read",nameDef.canRead());
+		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
-		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+		RefinedAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+		assertNotNull("No definition for fullname", fullnameDef);
 		assertEquals(1, fullnameDef.getMaxOccurs());
 		assertEquals(1, fullnameDef.getMinOccurs());
-		assertTrue(fullnameDef.canCreate());
-		assertTrue(fullnameDef.canUpdate());
-		assertTrue(fullnameDef.canRead());
+		assertTrue("No fullname create", fullnameDef.canCreate());
+		assertTrue("No fullname update", fullnameDef.canUpdate());
+		assertTrue("No fullname read", fullnameDef.canRead());
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueAssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
@@ -257,53 +258,45 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
             if (attrDefType.getInbound() != null) {
                 rAttrDef.setInboundAssignmentTypes(attrDefType.getInbound());
             }
+            
         }
         
-
-        // TODO: access
+        rAttrDef.create = parseAccess(attrDefType, AccessType.CREATE, attrDef.canCreate());
+        rAttrDef.update = parseAccess(attrDefType, AccessType.UPDATE, attrDef.canUpdate());
+        rAttrDef.read = parseAccess(attrDefType, AccessType.READ, attrDef.canRead());
 
         return rAttrDef;
 
     }
 
-    public static boolean isIgnored(ResourceAttributeDefinitionType attrDefType) {
+	private static boolean parseAccess(ResourceAttributeDefinitionType attrDefType, AccessType access, boolean defaultValue) {
+		if (attrDefType == null) {
+			return defaultValue;
+		}
+		List<AccessType> accessList = attrDefType.getAccess();
+		if (accessList == null || accessList.isEmpty()) {
+			return defaultValue;
+		}
+		for (AccessType acccessEntry: accessList) {
+			if (acccessEntry == access) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean isIgnored(ResourceAttributeDefinitionType attrDefType) {
         if (attrDefType.isIgnore() == null) {
             return false;
         }
         return attrDefType.isIgnore();
     }
-
+    
     @Override
-    public String dump() {
-        return debugDump(0);
-    }
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
-        sb.append("RAttributeDef(");
-        sb.append(SchemaDebugUtil.prettyPrint(getName()));
-        sb.append(",");
-        sb.append(SchemaDebugUtil.prettyPrint(getTypeName()));
-        if (getMinOccurs() != 1 || getMaxOccurs() != 1) {
-            sb.append("[").append(getMinOccurs()).append("-");
-            if (getMaxOccurs() < 0) {
-                sb.append("*");
-            } else {
-                sb.append(getMaxOccurs());
-            }
-            sb.append("]");
-        }
-        // TODO
-        if (getDisplayName() != null) {
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(super.toString());
+		if (getDisplayName() != null) {
             sb.append(",Disp");
         }
         if (getDescription() != null) {
@@ -312,8 +305,15 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         if (getOutboundValueConstructionType() != null) {
             sb.append(",OUT");
         }
-        sb.append(")");
-        return sb.toString();
+		return sb.toString();
+	}
+    
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    @Override
+    protected String getDebugDumpClassName() {
+        return "RRAD";
     }
 
 

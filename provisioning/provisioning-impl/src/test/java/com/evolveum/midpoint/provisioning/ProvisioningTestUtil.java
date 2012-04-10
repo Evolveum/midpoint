@@ -20,21 +20,33 @@
 package com.evolveum.midpoint.provisioning;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
+import java.util.Collection;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
@@ -84,6 +96,75 @@ public class ProvisioningTestUtil {
 		assertFalse("No definitions in <configurationProperties> in "+connectorDescription, configurationPropertiesDefinition.getDefinitions().isEmpty());
 
 		// TODO: other elements
+	}
+	
+	public static void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
+		
+		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultAccountDefinition();
+		assertTrue("Mismatched account definition", accountDefinition == accountDef);
+		
+		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
+		assertTrue("Object class " + objectClassQname + " is not account", accountDefinition.isAccountType());
+		assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultAccountType());
+		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
+		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
+		
+		Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+		assertNotNull("Null identifiers for " + objectClassQname, identifiers);
+		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
+
+		ResourceAttributeDefinition icfAttributeDefinition = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_UID, icfAttributeDefinition);
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not an identifier",icfAttributeDefinition.isIdentifier(accountDefinition));
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not in identifiers list",identifiers.contains(icfAttributeDefinition));
+		
+		Collection<ResourceAttributeDefinition> secondaryIdentifiers = accountDefinition.getSecondaryIdentifiers();
+		assertNotNull("Null secondary identifiers for " + objectClassQname, secondaryIdentifiers);
+		assertFalse("Empty secondary identifiers for " + objectClassQname, secondaryIdentifiers.isEmpty());
+		
+		ResourceAttributeDefinition nameAttributeDefinition = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_NAME, nameAttributeDefinition);
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in not an identifier",nameAttributeDefinition.isSecondaryIdentifier(accountDefinition));
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in not in identifiers list",secondaryIdentifiers.contains(nameAttributeDefinition));
+
+		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
+		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+
+		ResourceAttributeDefinition uidDef = accountDef
+				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		assertEquals(1, uidDef.getMaxOccurs());
+		assertEquals(1, uidDef.getMinOccurs());
+		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
+		assertFalse("UID has create", uidDef.canCreate());
+		assertFalse("UID has update",uidDef.canUpdate());
+		assertTrue("No UID read",uidDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
+
+		ResourceAttributeDefinition nameDef = accountDef
+				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertEquals(1, nameDef.getMaxOccurs());
+		assertEquals(1, nameDef.getMinOccurs());
+		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
+		assertTrue("No NAME create", nameDef.canCreate());
+		assertTrue("No NAME update",nameDef.canUpdate());
+		assertTrue("No NAME read",nameDef.canRead());
+		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+
+		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+		assertNotNull("No definition for fullname", fullnameDef);
+		assertEquals(1, fullnameDef.getMaxOccurs());
+		assertEquals(1, fullnameDef.getMinOccurs());
+		assertTrue("No fullname create", fullnameDef.canCreate());
+		assertTrue("No fullname update", fullnameDef.canUpdate());
+		assertTrue("No fullname read", fullnameDef.canRead());
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 	}
 
 }

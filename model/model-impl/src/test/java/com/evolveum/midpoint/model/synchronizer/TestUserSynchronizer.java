@@ -38,6 +38,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
@@ -97,11 +98,73 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test001AddUserJackWithAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
-        displayTestTile(this, "test001AddUserJackWithAccount");
+    public void test000Sanity() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
+        displayTestTile(this, "test000Sanity");
+
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummyType, prismContext);
+        
+        assertDummyRefinedSchemaSanity(refinedSchema);
+        
+	}
+	
+	@Test
+    public void test001AssignAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
+        displayTestTile(this, "test001AssignAccountToJack");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test001AddUserJackWithAccount");
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test001AssignAccountToJack");
+        
+        SyncContext context = new SyncContext(prismContext);
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+        
+        // WHEN
+        userSynchronizer.synchronizeUser(context, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
+        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+
+        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        assertEquals(1, accountContexts.size());
+        AccountSyncContext accContext = accountContexts.iterator().next();
+        assertNull(accContext.getAccountPrimaryDelta());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        
+        assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
+        
+        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
+        PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
+        assertEquals("user", newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
+        assertEquals(new QName(resourceDummyType.getNamespace(), "AccountObjectClass"),
+                newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
+        PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
+        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
+
+        PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
+        assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
+        assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
+        
+	}
+
+	
+	@Test(enabled=false)
+    public void test101AssignConflictingAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
+        displayTestTile(this, "test101AssignConflictingAccountToJack");
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test101AssignConflictingAccountToJack");
+        
+        // Make sure there is a shadow with conflicting account
+        addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY, AccountShadowType.class, result);
         
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_JACK_OID, result);

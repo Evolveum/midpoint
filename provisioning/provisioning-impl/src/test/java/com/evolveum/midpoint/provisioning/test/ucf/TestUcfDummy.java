@@ -289,40 +289,17 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		display("Generated resource schema", resourceSchema);
 		assertEquals("Unexpected number of definitions", 1, resourceSchema.getDefinitions().size());
 		
-		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
-		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-		assertTrue("Object class " + objectClassQname + " is not account", accountDefinition.isAccountType());
-		assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultAccountType());
-		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
-		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
-		
-		Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
-		assertNotNull("Null identifiers for " + objectClassQname, identifiers);
-		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
-
-		ResourceAttributeDefinition icfAttributeDefinition = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
-		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_UID, icfAttributeDefinition);
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not an identifier",icfAttributeDefinition.isIdentifier(accountDefinition));
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not in identifiers list",identifiers.contains(icfAttributeDefinition));
-		
-		Collection<ResourceAttributeDefinition> secondaryIdentifiers = accountDefinition.getSecondaryIdentifiers();
-		assertNotNull("Null secondary identifiers for " + objectClassQname, secondaryIdentifiers);
-		assertFalse("Empty secondary identifiers for " + objectClassQname, secondaryIdentifiers.isEmpty());
-		
-		ResourceAttributeDefinition nameAttributeDefinition = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_NAME, nameAttributeDefinition);
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in not an identifier",nameAttributeDefinition.isSecondaryIdentifier(accountDefinition));
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in not in identifiers list",secondaryIdentifiers.contains(nameAttributeDefinition));
-
+		ProvisioningTestUtil.assertDummyResourceSchemaSanity(resourceSchema, resourceType);
 		
 		Document xsdSchemaDom = resourceSchema.serializeToXsd();
 		assertNotNull("No serialized resource schema", xsdSchemaDom);
 		display("Serialized XSD resource schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 		
 		// Try to re-parse
-		PrismSchema reparsedResourceSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), PrismTestUtil.getPrismContext());
-		assertEquals("Unexpected number of definitions in re-parsed schema", 1, reparsedResourceSchema.getDefinitions().size());		
+		ResourceSchema reparsedResourceSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), PrismTestUtil.getPrismContext());
+		assertEquals("Unexpected number of definitions in re-parsed schema", 1, reparsedResourceSchema.getDefinitions().size());
+		
+		ProvisioningTestUtil.assertDummyResourceSchemaSanity(reparsedResourceSchema, resourceType);
 	}
 	
 	@Test

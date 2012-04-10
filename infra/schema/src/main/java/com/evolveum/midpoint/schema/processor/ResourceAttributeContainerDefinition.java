@@ -107,7 +107,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public Set<ResourceAttributeDefinition> getSecondaryIdentifiers() {
+	public Collection<ResourceAttributeDefinition> getSecondaryIdentifiers() {
 		return getComplexTypeDefinition().getSecondaryIdentifiers();
 	}
 

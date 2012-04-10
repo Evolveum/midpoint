@@ -239,7 +239,6 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 			sb.append(DebugDumpable.INDENT_STRING);
 		}
 		sb.append(toString());
-		sb.append("\n");
 		return sb.toString();
 	}
 	
