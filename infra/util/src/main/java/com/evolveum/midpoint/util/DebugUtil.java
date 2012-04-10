@@ -22,45 +22,33 @@
 
 package com.evolveum.midpoint.util;
 
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.util.aspect.MidpointAspect;
+import com.evolveum.midpoint.util.aspect.ObjectFormatter;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.aspect.MidpointAspect;
-import com.evolveum.midpoint.util.aspect.ObjectFormatter;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
- * 
+ *
  * @author semancik
  */
 public class DebugUtil implements ObjectFormatter {
 
 	private static int SHOW_LIST_MEMBERS = 3;
 	private static String defaultNamespacePrefix = null;
-	
+
 	public static void setDefaultNamespacePrefix(String prefix) {
 		defaultNamespacePrefix = prefix;
 	}
-	
+
 	public static String dump(Object object) {
 		if (object == null) {
 			return "null";
@@ -78,11 +66,11 @@ public class DebugUtil implements ObjectFormatter {
 		}
 		return object.toString();
 	}
-	
+
 	public static String debugDump(Collection<?> dumpables) {
 		return debugDump(dumpables,0);
 	}
-	
+
 	public static String debugDump(Collection<?> dumpables, int indent) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getCollectionOpeningSymbol(dumpables));
@@ -102,7 +90,7 @@ public class DebugUtil implements ObjectFormatter {
 		sb.append(getCollectionClosingSymbol(dumpables));
 		return sb.toString();
 	}
-	
+
 	public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
 		StringBuilder sb = new StringBuilder();
 		indentDebugDump(sb, indent);
@@ -155,13 +143,13 @@ public class DebugUtil implements ObjectFormatter {
 		}
 		return ")";
 	}
-	
+
 	public static void indentDebugDump(StringBuilder sb, int indent) {
 		for(int i = 0; i < indent; i++) {
 			sb.append(DebugDumpable.INDENT_STRING);
 		}
 	}
-	
+
 	public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
 		Iterator<Entry<K, V>> i = map.entrySet().iterator();
 		while (i.hasNext()) {
@@ -202,11 +190,11 @@ public class DebugUtil implements ObjectFormatter {
 			}
 		}
 	}
-	
+
 	public static String prettyPrint(Collection<?> collection) {
 		return prettyPrint(collection, 0);
 	}
-	
+
 	public static String prettyPrint(Collection<?> collection, int maxItems) {
 		if (collection == null) {
 			return null;
@@ -228,18 +216,18 @@ public class DebugUtil implements ObjectFormatter {
 		sb.append(getCollectionClosingSymbol(collection));
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(QName qname) {
 		if (qname == null) {
 			return "null";
 		}
-		if (defaultNamespacePrefix != null && qname.getNamespaceURI() != null 
+		if (defaultNamespacePrefix != null && qname.getNamespaceURI() != null
 				&& qname.getNamespaceURI().startsWith(defaultNamespacePrefix)) {
 			return "{..."+qname.getNamespaceURI().substring(defaultNamespacePrefix.length())+"}"+qname.getLocalPart();
 		}
 		return qname.toString();
 	}
-	
+
 
 
 //	public static String prettyPrint(ObjectType object, boolean showContent) {
@@ -312,11 +300,11 @@ public class DebugUtil implements ObjectFormatter {
 //		sb.append(")");
 //		return sb.toString();
 //	}
-	
+
 
 	/**
 	 * Assumes that all elements in the lists have the same QName
-	 * 
+	 *
 	 * @param list
 	 * @return
 	 */
@@ -418,8 +406,8 @@ public class DebugUtil implements ObjectFormatter {
 		sb.append(content);
 
 		return sb.toString();
-	}	
-	
+	}
+
 	public static String prettyPrint(Object value) {
 		if (value == null) {
 			return "null";
@@ -488,7 +476,7 @@ public class DebugUtil implements ObjectFormatter {
 			return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage();
 		}
 	}
-	
+
 	//static initialization of LoggingAspect - formatters registration
 	static {
 		ObjectFormatter f = new DebugUtil();

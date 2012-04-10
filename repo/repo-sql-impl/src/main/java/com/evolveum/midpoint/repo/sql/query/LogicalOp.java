@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
-import com.evolveum.midpoint.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,8 +86,8 @@ public class LogicalOp extends Op {
 
     private Junction updateJunction(List<Element> elements, boolean pushNot, Junction junction) throws QueryException {
         for (Element element : elements) {
-            if (SchemaConstants.Q_TYPE.equals(DOMUtil.getQNameWithoutPrefix(element))) {
-                LOGGER.warn("Unsupported (unused) element '" + SchemaConstants.Q_TYPE + "' in logical filter in query.");
+            if (SchemaConstantsGenerated.Q_TYPE.equals(DOMUtil.getQNameWithoutPrefix(element))) {
+                LOGGER.warn("Unsupported (unused) element '" + SchemaConstantsGenerated.Q_TYPE + "' in logical filter in query.");
                 continue;
             }
             junction.add(getInterpreter().interpret(element, pushNot));
@@ -97,11 +97,11 @@ public class LogicalOp extends Op {
     }
 
     private Operation getOperationType(Element filterPart) throws QueryException {
-        if (DOMUtil.isElementName(filterPart, SchemaConstants.Q_AND)) {
+        if (DOMUtil.isElementName(filterPart, SchemaConstantsGenerated.Q_AND)) {
             return Operation.AND;
-        } else if (DOMUtil.isElementName(filterPart, SchemaConstants.Q_OR)) {
+        } else if (DOMUtil.isElementName(filterPart, SchemaConstantsGenerated.Q_OR)) {
             return Operation.OR;
-        } else if (DOMUtil.isElementName(filterPart, SchemaConstants.Q_OR)) {
+        } else if (DOMUtil.isElementName(filterPart, SchemaConstantsGenerated.Q_OR)) {
             return Operation.NOT;
         }
 
@@ -110,6 +110,6 @@ public class LogicalOp extends Op {
 
     @Override
     protected QName[] canHandle() {
-        return new QName[]{SchemaConstants.Q_AND, SchemaConstants.Q_OR, SchemaConstants.Q_NOT};
+        return new QName[]{SchemaConstantsGenerated.Q_AND, SchemaConstantsGenerated.Q_OR, SchemaConstantsGenerated.Q_NOT};
     }
 }

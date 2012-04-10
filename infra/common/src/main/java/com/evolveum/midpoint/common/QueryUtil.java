@@ -23,7 +23,7 @@ package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -50,8 +50,9 @@ public class QueryUtil {
         Validate.notNull(uri);
         Validate.notEmpty(uri);
 
-        Element type = doc.createElementNS(SchemaConstants.C_FILTER_TYPE.getNamespaceURI(), SchemaConstants.C_FILTER_TYPE.getLocalPart());
-        type.setAttributeNS(SchemaConstants.C_FILTER_TYPE_URI.getNamespaceURI(), SchemaConstants.C_FILTER_TYPE_URI.getLocalPart(), uri);
+        Element type = doc.createElementNS(SchemaConstantsGenerated.Q_TYPE.getNamespaceURI(), SchemaConstantsGenerated.Q_TYPE.getLocalPart());
+        type.setAttributeNS(com.evolveum.midpoint.schema.constants.SchemaConstants.C_FILTER_TYPE_URI.getNamespaceURI(),
+                com.evolveum.midpoint.schema.constants.SchemaConstants.C_FILTER_TYPE_URI.getLocalPart(), uri);
         return type;
     }
 
@@ -70,8 +71,8 @@ public class QueryUtil {
         Validate.notNull(values);
         Validate.notEmpty(values);
 
-        Element equal = doc.createElementNS(SchemaConstants.C_FILTER_EQUAL.getNamespaceURI(), SchemaConstants.C_FILTER_EQUAL.getLocalPart());
-        Element value = doc.createElementNS(SchemaConstants.C_FILTER_VALUE.getNamespaceURI(), SchemaConstants.C_FILTER_VALUE.getLocalPart());
+        Element equal = doc.createElementNS(SchemaConstantsGenerated.Q_EQUAL.getNamespaceURI(), SchemaConstantsGenerated.Q_EQUAL.getLocalPart());
+        Element value = doc.createElementNS(SchemaConstantsGenerated.Q_VALUE.getNamespaceURI(), SchemaConstantsGenerated.Q_VALUE.getLocalPart());
         for (Object val : values) {
             Element domElement;
             try {
@@ -83,7 +84,7 @@ public class QueryUtil {
             value.appendChild(doc.importNode(domElement, true));
         }
         if (xpath != null) {
-            Element path = xpath.toElement(SchemaConstants.C_FILTER_PATH, doc);
+            Element path = xpath.toElement(SchemaConstantsGenerated.Q_PATH, doc);
             equal.appendChild(doc.importNode(path, true));
         }
         equal.appendChild(doc.importNode(value, true));
@@ -104,8 +105,8 @@ public class QueryUtil {
 //        return createEqualFilter(doc, xpath, values);
         
         //todo bad quick fix HACK
-        Element equal = doc.createElementNS(SchemaConstants.C_FILTER_EQUAL.getNamespaceURI(), SchemaConstants.C_FILTER_EQUAL.getLocalPart());
-        Element value = doc.createElementNS(SchemaConstants.C_FILTER_VALUE.getNamespaceURI(), SchemaConstants.C_FILTER_VALUE.getLocalPart());
+        Element equal = doc.createElementNS(SchemaConstantsGenerated.Q_EQUAL.getNamespaceURI(), SchemaConstantsGenerated.Q_EQUAL.getLocalPart());
+        Element value = doc.createElementNS(SchemaConstantsGenerated.Q_VALUE.getNamespaceURI(), SchemaConstantsGenerated.Q_VALUE.getLocalPart());
         equal.appendChild(value);
 
         if (object instanceof Element) {
@@ -116,7 +117,7 @@ public class QueryUtil {
         }
         
         if (xpath != null) {
-            Element path = xpath.toElement(SchemaConstants.C_FILTER_PATH, doc);
+            Element path = xpath.toElement(SchemaConstantsGenerated.Q_PATH, doc);
             equal.appendChild(path);
         }
         
@@ -176,7 +177,8 @@ public class QueryUtil {
     public static Element createEqualRefFilter(Document doc, XPathHolder xpath, QName propertyName, String oid) throws
             SchemaException {
         Element value = doc.createElementNS(propertyName.getNamespaceURI(), propertyName.getLocalPart());
-        value.setAttributeNS(SchemaConstants.C_OID_ATTRIBUTE.getNamespaceURI(), SchemaConstants.C_OID_ATTRIBUTE.getLocalPart(), oid);
+        value.setAttributeNS(com.evolveum.midpoint.schema.constants.SchemaConstants.C_OID_ATTRIBUTE.getNamespaceURI(),
+                com.evolveum.midpoint.schema.constants.SchemaConstants.C_OID_ATTRIBUTE.getLocalPart(), oid);
         return createEqualFilter(doc, xpath, value);
     }
 
@@ -184,7 +186,7 @@ public class QueryUtil {
         Validate.notNull(doc);
         Validate.notNull(conditions);
 
-        Element and = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(), SchemaConstants.C_FILTER_AND.getLocalPart());
+        Element and = doc.createElementNS(SchemaConstantsGenerated.Q_AND.getNamespaceURI(), SchemaConstantsGenerated.Q_AND.getLocalPart());
         for (Element condition : conditions) {
             Validate.notNull(condition);
             and.appendChild(condition);
@@ -219,7 +221,7 @@ public class QueryUtil {
 
 	public static QueryType createNameQuery(String name) throws SchemaException {
 		Document doc = DOMUtil.getDocument();
-        Element filter = QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, name);
+        Element filter = QueryUtil.createEqualFilter(doc, null, SchemaConstantsGenerated.C_NAME, name);
         QueryType query = new QueryType();
         query.setFilter(filter);
         return query;
@@ -233,7 +235,7 @@ public class QueryUtil {
     public static <T extends ObjectType> Element createNameAndClassFilter(Class<T> type, String name) throws
             SchemaException {
         Document doc = DOMUtil.getDocument();
-        return QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, name);
+        return QueryUtil.createEqualFilter(doc, null, SchemaConstantsGenerated.C_NAME, name);
     }
 
     public static QueryType createQuery(Element filter) {
@@ -257,8 +259,10 @@ public class QueryUtil {
                         // TODO: The account type is hardcoded now, it should determined
                         // from the schema later, or maybe we can make it entirely
                         // generic (use ResourceObjectShadowType instead).
-                        QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resource.getOid()),
-                        QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, objectClass)
+                        QueryUtil.createEqualRefFilter(doc, null,
+                                com.evolveum.midpoint.schema.constants.SchemaConstants.I_RESOURCE_REF, resource.getOid()),
+                        QueryUtil.createEqualFilter(doc, null,
+                                com.evolveum.midpoint.schema.constants.SchemaConstants.I_OBJECT_CLASS, objectClass)
                 );
 
         QueryType query = new QueryType();
@@ -275,7 +279,7 @@ public class QueryUtil {
 		XPathHolder xpath = new XPathHolder(ResourceObjectShadowType.F_ATTRIBUTES);
 		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(attribute, doc);
 		Element filter = createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
-					SchemaConstants.I_RESOURCE_REF, resourceType.getOid()), QueryUtil
+                com.evolveum.midpoint.schema.constants.SchemaConstants.I_RESOURCE_REF, resourceType.getOid()), QueryUtil
 					.createEqualFilterFromElements(doc, xpath, identifierElements, prismContext));
 		QueryType query = new QueryType();
 		query.setFilter(filter);

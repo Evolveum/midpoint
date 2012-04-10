@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.*;
@@ -1405,7 +1406,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Attribute connectorAttribute = null;
 			if (query != null) {
 				Element filter = query.getFilter();
-				if (QNameUtil.compareQName(SchemaConstants.C_FILTER_EQUAL, filter)) {
+				if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_EQUAL, filter)) {
 					if (filter.getChildNodes().getLength() > 1) {
 						throw new UnsupportedOperationException("Support for only one attribute filter.");
 					}

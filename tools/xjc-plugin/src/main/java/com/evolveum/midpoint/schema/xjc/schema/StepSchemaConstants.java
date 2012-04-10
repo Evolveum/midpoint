@@ -39,7 +39,7 @@ import java.util.*;
  */
 public class StepSchemaConstants implements Processor {
 
-    public static final String CLASS_NAME = "com.evolveum.midpoint.schema.SchemaConstants";
+    public static final String CLASS_NAME = "com.evolveum.midpoint.schema.SchemaConstantsGenerated";
     private Map<String, JFieldVar> namespaceFields = new HashMap<String, JFieldVar>();
 
     public Map<String, JFieldVar> getNamespaceFields() {

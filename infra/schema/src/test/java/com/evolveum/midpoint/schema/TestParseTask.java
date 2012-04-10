@@ -28,12 +28,10 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -194,7 +192,7 @@ public class TestParseTask {
 //		assertEquals("Wrong version", "42", user.getVersion());
 		PrismObjectDefinition<TaskType> usedDefinition = task.getDefinition();
 		assertNotNull("No task definition", usedDefinition);
-		PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstants.NS_COMMON, "task"), 
+		PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "task"),
 				TaskType.COMPLEX_TYPE, TaskType.class);
 		assertEquals("Wrong class in task", TaskType.class, task.getCompileTimeClass());
 		TaskType taskType = task.asObjectable();
@@ -241,12 +239,12 @@ public class TestParseTask {
 	
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
 	
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 

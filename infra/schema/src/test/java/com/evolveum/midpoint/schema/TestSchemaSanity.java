@@ -27,33 +27,21 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.*;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyPathSegment;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -105,7 +93,7 @@ public class TestSchemaSanity {
 		System.out.println(prefixMapper.dump());
 		// WHEN, THEN
 		assertMapping(prefixMapper, PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION);
-		assertMapping(prefixMapper, SchemaConstants.NS_COMMON, "c");
+		assertMapping(prefixMapper, SchemaConstantsGenerated.NS_COMMON, "c");
 		assertMapping(prefixMapper, MidPointConstants.NS_RA, MidPointConstants.PREFIX_NS_RA);
 		assertMapping(prefixMapper, SchemaTestConstants.NS_ICFC, "icfc");
 		assertMapping(prefixMapper, SchemaTestConstants.NS_ICFS, "icfs");
@@ -137,7 +125,7 @@ public class TestSchemaSanity {
 		System.out.println(objectSchema.dump());
 		
 		// Assert USER definition
-		PrismObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByElementName(new QName(SchemaConstants.NS_COMMON,"user"));
+		PrismObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByElementName(new QName(SchemaConstantsGenerated.NS_COMMON,"user"));
 		assertNotNull("No user definition", userDefinition);
 		System.out.println("User definition:");
 		System.out.println(userDefinition.dump());
@@ -181,7 +169,7 @@ public class TestSchemaSanity {
 		
 		// Assert ACCOUNT definition
 		PrismObjectDefinition<AccountShadowType> accountDefinition = objectSchema.findObjectDefinitionByElementName(
-				new QName(SchemaConstants.NS_COMMON,"account"));
+				new QName(SchemaConstantsGenerated.NS_COMMON,"account"));
 		assertNotNull("No account definition", accountDefinition);
 		System.out.println("Account definition:");
 		System.out.println(accountDefinition.dump());
@@ -201,7 +189,7 @@ public class TestSchemaSanity {
 		
 		// Assert RESOURCE definition
 		PrismObjectDefinition<ResourceType> resourceDefinition = objectSchema.findObjectDefinitionByElementName(
-				new QName(SchemaConstants.NS_COMMON, "resource"));
+				new QName(SchemaConstantsGenerated.NS_COMMON, "resource"));
 		assertNotNull("No resource definition", resourceDefinition);
 		System.out.println("Resource definition:");
 		System.out.println(resourceDefinition.dump());
@@ -277,7 +265,7 @@ public class TestSchemaSanity {
 	}
 		
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 

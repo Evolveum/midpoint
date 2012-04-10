@@ -31,12 +31,10 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
@@ -249,7 +247,7 @@ public class TestParseResource {
 //		assertEquals("Wrong version", "42", resource.getVersion());
 		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
 		assertNotNull("No resource definition", resourceDefinition);
-		PrismAsserts.assertObjectDefinition(resourceDefinition, new QName(SchemaConstants.NS_COMMON, "resource"), 
+		PrismAsserts.assertObjectDefinition(resourceDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "resource"),
 				ResourceType.COMPLEX_TYPE, ResourceType.class);
 		assertEquals("Wrong class in resource", ResourceType.class, resource.getCompileTimeClass());
 		ResourceType resourceType = resource.asObjectable();
@@ -310,18 +308,18 @@ public class TestParseResource {
 	
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
 	
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 	
 	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName qName = new QName(SchemaConstants.NS_COMMON, contName);
+		QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);
 		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
 	}
 

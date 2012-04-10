@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -130,7 +130,7 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// GIVEN
 		// prepare paging
 		PagingType paging = new PagingType();
-		Element el = DOMUtil.getDocument().createElementNS(SchemaConstants.NS_C, "property");
+		Element el = DOMUtil.getDocument().createElementNS(SchemaConstantsGenerated.NS_COMMON, "property");
 		el.setTextContent("name");
 		paging.setOrderBy(el);
 		paging.setOrderDirection(OrderDirectionType.DESCENDING);
@@ -140,8 +140,8 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// create query
 		QueryType query = new QueryType();
 		Document doc = DOMUtil.getDocument();
-		Element filter = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(),
-				SchemaConstants.C_FILTER_AND.getLocalPart());
+		Element filter = doc.createElementNS(SchemaConstantsGenerated.Q_AND.getNamespaceURI(),
+				SchemaConstantsGenerated.Q_AND.getLocalPart());
 		query.setFilter(filter);
 
 		// WHEN
@@ -167,8 +167,8 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// create query
 		QueryType query = new QueryType();
 		Document doc = DOMUtil.getDocument();
-		Element filter = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(),
-				SchemaConstants.C_FILTER_AND.getLocalPart());
+		Element filter = doc.createElementNS(SchemaConstantsGenerated.Q_AND.getNamespaceURI(),
+				SchemaConstantsGenerated.Q_AND.getLocalPart());
 		query.setFilter(filter);
 
 		// WHEN
@@ -196,8 +196,8 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// create query
 		QueryType query = new QueryType();
 		Document doc = DOMUtil.getDocument();
-		Element filter = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(),
-				SchemaConstants.C_FILTER_AND.getLocalPart());
+		Element filter = doc.createElementNS(SchemaConstantsGenerated.Q_AND.getNamespaceURI(),
+				SchemaConstantsGenerated.Q_AND.getLocalPart());
 		query.setFilter(filter);
 
 		// WHEN
@@ -214,15 +214,15 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// GIVEN
 		// prepare paging
 		PagingType paging = new PagingType();
-		Element el = DOMUtil.getDocument().createElementNS(SchemaConstants.NS_C, "property");
+		Element el = DOMUtil.getDocument().createElementNS(SchemaConstantsGenerated.NS_COMMON, "property");
 		el.setTextContent("name");
 		paging.setOrderBy(el);
 		paging.setOrderDirection(OrderDirectionType.DESCENDING);
 		// create query
 		QueryType query = new QueryType();
 		Document doc = DOMUtil.getDocument();
-		Element filter = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(),
-				SchemaConstants.C_FILTER_AND.getLocalPart());
+		Element filter = doc.createElementNS(SchemaConstantsGenerated.Q_AND.getNamespaceURI(),
+				SchemaConstantsGenerated.Q_AND.getLocalPart());
 		query.setFilter(filter);
 
 		// WHEN

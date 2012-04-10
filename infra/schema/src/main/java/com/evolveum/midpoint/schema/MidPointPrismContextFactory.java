@@ -20,7 +20,6 @@
 package com.evolveum.midpoint.schema;
 
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -78,7 +77,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 	
 	private SchemaRegistry createSchemaRegistry() throws SchemaException, FileNotFoundException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
-		schemaRegistry.setObjectSchemaNamespace(SchemaConstants.NS_COMMON);
+		schemaRegistry.setObjectSchemaNamespace(SchemaConstantsGenerated.NS_COMMON);
 		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
 		registerBuiltinSchemas(schemaRegistry);
         registerExtensionSchemas(schemaRegistry);

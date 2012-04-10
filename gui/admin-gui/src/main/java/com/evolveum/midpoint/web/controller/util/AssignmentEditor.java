@@ -23,7 +23,7 @@ package com.evolveum.midpoint.web.controller.util;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
-import com.evolveum.midpoint.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -203,7 +203,7 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 					String xml = null;
 					if (construction != null) {
                         prismContext.getPrismJaxbProcessor().marshalElementToString(construction,
-                                new QName(SchemaConstants.NS_COMMON, "accountConstruction"));
+                                new QName(SchemaConstantsGenerated.NS_COMMON, "accountConstruction"));
 					}
 					getEditor().setText(xml);
 					getEditor().setObject(bean);

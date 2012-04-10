@@ -23,7 +23,7 @@ package com.evolveum.midpoint.repo.api.query;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -89,7 +89,7 @@ public class SimpleFilter<T> implements QueryFilter {
     @Override
     public void toDOM(Element parent) {
         Document document = parent.getOwnerDocument();
-        Element element = document.createElementNS(SchemaConstants.NS_COMMON, getFilterType().getElementName());
+        Element element = document.createElementNS(SchemaConstantsGenerated.NS_COMMON, getFilterType().getElementName());
         parent.appendChild(element);
 
         //todo implement

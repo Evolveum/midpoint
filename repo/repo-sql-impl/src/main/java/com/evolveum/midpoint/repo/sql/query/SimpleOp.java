@@ -30,8 +30,7 @@ import com.evolveum.midpoint.repo.sql.ClassMapper;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RUtil;
 import com.evolveum.midpoint.repo.sql.type.QNameType;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -63,11 +62,11 @@ public class SimpleOp extends Op {
 
     @Override
     protected QName[] canHandle() {
-        return new QName[]{SchemaConstants.Q_EQUAL};
+        return new QName[]{SchemaConstantsGenerated.Q_EQUAL};
     }
 
     private Operation getOperationType(Element filterPart) throws QueryException {
-        if (DOMUtil.isElementName(filterPart, SchemaConstants.Q_EQUAL)) {
+        if (DOMUtil.isElementName(filterPart, SchemaConstantsGenerated.Q_EQUAL)) {
             return Operation.EQUAL;
         }
 
@@ -79,13 +78,13 @@ public class SimpleOp extends Op {
         LOGGER.debug("Interpreting '{}', pushNot '{}'", new Object[]{DOMUtil.getQNameWithoutPrefix(filter), pushNot});
         validate(filter);
 
-        Element path = DOMUtil.getChildElement(filter, com.evolveum.midpoint.schema.constants.SchemaConstants.C_FILTER_PATH);
+        Element path = DOMUtil.getChildElement(filter, SchemaConstantsGenerated.Q_PATH);
         PropertyPath propertyPath = getInterpreter().createPropertyPath(path);
         if (path != null) {
             updateQueryContext(propertyPath);
         }
 
-        Element value = DOMUtil.getChildElement(filter, com.evolveum.midpoint.schema.constants.SchemaConstants.C_FILTER_VALUE);
+        Element value = DOMUtil.getChildElement(filter, SchemaConstantsGenerated.Q_VALUE);
         if (value == null || DOMUtil.listChildElements(value).isEmpty()) {
             throw new QueryException("Equal without value element, or without element in <value> not supported now.");
         }

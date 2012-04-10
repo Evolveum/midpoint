@@ -29,29 +29,23 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -98,10 +92,10 @@ public class TestParseDiffPatch {
         userAfter.checkConsistence();
         userDelta.checkConsistence();
 
-        PropertyPath path = new PropertyPath(com.evolveum.midpoint.schema.SchemaConstants.C_CREDENTIALS,
+        PropertyPath path = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PrismAsserts.assertPropertyAdd(userDelta, path, 1);
-        path = new PropertyPath(com.evolveum.midpoint.schema.SchemaConstants.C_CREDENTIALS,
+        path = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
         		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PropertyDelta propertyDelta = userDelta.findPropertyDelta(path);
         assertNotNull("Property delta for "+path+" not found",propertyDelta);

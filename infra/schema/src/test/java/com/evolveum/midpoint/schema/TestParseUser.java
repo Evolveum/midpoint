@@ -44,7 +44,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -203,7 +202,7 @@ public class TestParseUser {
 //		assertEquals("Wrong version", "42", user.getVersion());
 		PrismObjectDefinition<UserType> usedDefinition = user.getDefinition();
 		assertNotNull("No user definition", usedDefinition);
-		PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstants.NS_COMMON, "user"), 
+		PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "user"),
 				UserType.COMPLEX_TYPE, UserType.class);
 		assertEquals("Wrong class in user", UserType.class, user.getCompileTimeClass());
 		UserType userType = user.asObjectable();
@@ -280,12 +279,12 @@ public class TestParseUser {
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
 	
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 

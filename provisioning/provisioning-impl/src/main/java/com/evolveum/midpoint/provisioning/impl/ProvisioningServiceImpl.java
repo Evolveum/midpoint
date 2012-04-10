@@ -58,6 +58,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -946,20 +947,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		QName objectClass = null;
 		List<NodeList> attributeFilter = new ArrayList<NodeList>();
 
-		if (QNameUtil.compareQName(SchemaConstants.C_FILTER_AND, filter)) {
+		if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_AND, filter)) {
 			for (int i = 0; i < list.getLength(); i++) {
-				if (QNameUtil.compareQName(SchemaConstants.C_FILTER_TYPE, list.item(i))) {
+				if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_TYPE, list.item(i))) {
 					String filterType = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
 					if (filterType == null || "".equals(filterType)) {
 						result.recordFatalError("Object type is not defined.");
 						throw new IllegalArgumentException("Object type is not defined.");
 					}
 
-				} else if (QNameUtil.compareQName(SchemaConstants.C_FILTER_EQUAL, list.item(i))) {
+				} else if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_EQUAL, list.item(i))) {
 					NodeList equealList = list.item(i).getChildNodes();
 
 					for (int j = 0; j < equealList.getLength(); j++) {
-						if (QNameUtil.compareQName(SchemaConstants.C_FILTER_VALUE, equealList.item(j))) {
+						if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_VALUE, equealList.item(j))) {
 							Node value = equealList.item(j).getFirstChild();
 							if (QNameUtil.compareQName(SchemaConstants.I_RESOURCE_REF, value)) {
 								resourceOid = value.getAttributes().getNamedItem("oid").getNodeValue();
@@ -974,7 +975,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 									throw new IllegalArgumentException("Object class was not defined.");
 								}
 							}
-						} else if (QNameUtil.compareQName(SchemaConstants.C_PATH, equealList.item(j))){
+						} else if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_PATH, equealList.item(j))){
 
 							attributeFilter.add(equealList);
 							continue;
@@ -1016,7 +1017,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				for (int j = 0; j < attribute.getLength(); j++) {
 					Node attrFilter = attribute.item(j);
 
-					if (!QNameUtil.compareQName(SchemaConstants.C_PATH, attrFilter)) {
+					if (!QNameUtil.compareQName(SchemaConstantsGenerated.Q_PATH, attrFilter)) {
 						QName attrName = QNameUtil.getNodeQName(attrFilter.getFirstChild());
 						ResourceAttributeDefinition resourceAttrDef = objectClassDef
 								.findAttributeDefinition(attrName);

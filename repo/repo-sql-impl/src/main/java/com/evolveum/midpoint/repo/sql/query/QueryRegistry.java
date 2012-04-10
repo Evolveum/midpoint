@@ -24,7 +24,7 @@ package com.evolveum.midpoint.repo.sql.query;
 import com.evolveum.midpoint.repo.sql.ClassMapper;
 import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -134,7 +134,7 @@ public class QueryRegistry {
             QueryEntity queryEntity = field.getAnnotation(QueryEntity.class);
             String name = StringUtils.isNotEmpty(queryEntity.name()) ? queryEntity.name() : field.getName();
             String namespace = StringUtils.isNotEmpty(queryEntity.namespace()) ?
-                    queryEntity.namespace() : SchemaConstants.NS_COMMON;
+                    queryEntity.namespace() : SchemaConstantsGenerated.NS_COMMON;
 
             EntityDefinition entityDef = new EntityDefinition();
             entityDef.setName(new QName(namespace, name));
@@ -146,7 +146,7 @@ public class QueryRegistry {
             QueryAttribute queryAttribute = field.getAnnotation(QueryAttribute.class);
             String name = StringUtils.isNotEmpty(queryAttribute.name()) ? queryAttribute.name() : field.getName();
             String namespace = StringUtils.isNotEmpty(queryAttribute.namespace()) ?
-                    queryAttribute.namespace() : SchemaConstants.NS_COMMON;
+                    queryAttribute.namespace() : SchemaConstantsGenerated.NS_COMMON;
 
             AttributeDefinition attrDef = new AttributeDefinition();
             attrDef.setName(new QName(namespace, name));

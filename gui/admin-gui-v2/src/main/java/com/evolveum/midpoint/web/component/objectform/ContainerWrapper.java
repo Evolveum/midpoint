@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.component.objectform;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;

@@ -34,9 +34,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -56,7 +53,6 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertPropertyValue;
-import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -239,7 +235,7 @@ public class TestParseGenericObject {
 //		assertEquals("Wrong version", "42", resource.getVersion());
 		PrismObjectDefinition<GenericObjectType> resourceDefinition = generic.getDefinition();
 		assertNotNull("No resource definition", resourceDefinition);
-		PrismAsserts.assertObjectDefinition(resourceDefinition, new QName(SchemaConstants.NS_COMMON, "genericObject"), 
+		PrismAsserts.assertObjectDefinition(resourceDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "genericObject"),
 				GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
 		assertEquals("Wrong class in resource", GenericObjectType.class, generic.getCompileTimeClass());
 		GenericObjectType genericType = generic.asObjectable();
@@ -282,18 +278,18 @@ public class TestParseGenericObject {
 	
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
 	
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 	
 	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName qName = new QName(SchemaConstants.NS_COMMON, contName);
+		QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);
 		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
 	}
 
