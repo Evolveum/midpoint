@@ -156,7 +156,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 	}
 
 	
-	@Test(enabled=false)
+	@Test
     public void test101AssignConflictingAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
         displayTestTile(this, "test101AssignConflictingAccountToJack");
 
@@ -202,7 +202,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
         PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
-        assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
+        assertEquals("jack1", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
         assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
         
 	}

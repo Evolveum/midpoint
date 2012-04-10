@@ -98,8 +98,10 @@ public class OutboundProcessor {
             if (user == null) {
                 user = context.getUserNew();
             }
-            ValueConstruction evaluatedOutboundValueConstructionOld = evaluateOutboundValueConstruction(user, refinedAttributeDefinition, rAccount, result);
-            ValueConstruction evaluatedOutboundValueConstructionNew = evaluateOutboundValueConstruction(context.getUserNew(), refinedAttributeDefinition, rAccount, result);
+            ValueConstruction evaluatedOutboundValueConstructionOld = evaluateOutboundValueConstruction(
+            		user, refinedAttributeDefinition, rAccount, accCtx, result);
+            ValueConstruction evaluatedOutboundValueConstructionNew = evaluateOutboundValueConstruction(
+            		context.getUserNew(), refinedAttributeDefinition, rAccount, accCtx, result);
 
             LOGGER.trace("Processing outbound expressions for account {}, attribute {}\nOLD:\n{}\nNEW\n{}",
                     new Object[]{rat, attributeName,
@@ -148,7 +150,7 @@ public class OutboundProcessor {
 
     private ValueConstruction evaluateOutboundValueConstruction(PrismObject<UserType> user,
             RefinedAttributeDefinition refinedAttributeDefinition,
-            RefinedAccountDefinition refinedAccountDefinition, OperationResult result) throws
+            RefinedAccountDefinition refinedAccountDefinition, AccountSyncContext accCtx, OperationResult result) throws
             ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         ValueConstructionType outboundValueConstructionType = refinedAttributeDefinition.getOutboundValueConstructionType();
@@ -163,6 +165,8 @@ public class OutboundProcessor {
                 + " in " + ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
 
         valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
+        valueConstruction.addVariableDefinition(ExpressionConstants.VAR_ITERATION, accCtx.getIteration());
+        valueConstruction.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, accCtx.getIterationToken());
         valueConstruction.setRootNode(user);
         // TODO: other variables?
 

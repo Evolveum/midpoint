@@ -90,10 +90,11 @@ public class AccountValuesProcessor {
 			
 			int maxIterations = determineMaxIterations(accountContext);
 			int iteration = 0;
-			// TODO: flexible token format
-			String iterationToken = Integer.toString(iteration);
-			
 			while (true) {
+				
+				accountContext.setIteration(iteration);
+				String iterationToken = formatIterationToken(iteration);
+				accountContext.setIterationToken(iterationToken);
 				
 				assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
 				context.recomputeNew();
@@ -101,6 +102,8 @@ public class AccountValuesProcessor {
 				context.recomputeNew();
 				consolidationProcessor.consolidateValues(context, accountContext, result);
 		        context.recomputeNew();
+		 
+		        SynchronizerUtil.traceContext("values", context, false);
 		        
 		        if (satisfiesConstraints(accountContext, result)) {
 		        	break;
@@ -111,12 +114,31 @@ public class AccountValuesProcessor {
 		        	throw new ObjectAlreadyExistsException("Too many iterations ("+iteration+") for account "
 		        			+ accountContext.getResourceAccountType() + ", cannot determine valuest that satisfy constraints");
 		        }
+		        
+		        cleanupContext(accountContext);
 			} 
 			
 		}
 		
-        SynchronizerUtil.traceContext("values", context, false);
-		
+	}
+	
+	private int determineMaxIterations(AccountSyncContext accountContext) {
+		ResourceAccountTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
+		if (accDef != null) {
+			IterationSpecificationType iteration = accDef.getIteration();
+			if (iteration != null) {
+				return iteration.getMaxIterations();
+			}
+		}
+		return 0;
+	}
+
+	private String formatIterationToken(int iteration) {
+		// TODO: flexible token format
+		if (iteration == 0) {
+			return "";
+		}
+		return Integer.toString(iteration);
 	}
 
 	private boolean satisfiesConstraints(AccountSyncContext accountContext, OperationResult result) throws SchemaException {
@@ -161,16 +183,15 @@ public class AccountValuesProcessor {
 		}
 		return foundObjects.get(0).getOid().equals(oid);
 	}
-
-	private int determineMaxIterations(AccountSyncContext accountContext) {
-		ResourceAccountTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
-		if (accDef != null) {
-			IterationSpecificationType iteration = accDef.getIteration();
-			if (iteration != null) {
-				return iteration.getMaxIterations();
-			}
-		}
-		return 0;
+	
+	/**
+	 * Remove the intermediate results of values processing such as secondary deltas.
+	 */
+	private void cleanupContext(AccountSyncContext accountContext) throws SchemaException {
+		accountContext.setAccountSecondaryDelta(null);
+		accountContext.clearAttributeValueDeltaSetTripleMap();
+		accountContext.recomputeAccountNew();
 	}
+
 	
 }

@@ -136,6 +136,9 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
      */
     private boolean doReconciliation;
     
+    private int iteration;
+    private String iterationToken;
+    
     private PrismContext prismContext;
 
     AccountSyncContext(ResourceAccountType resourceAccountType, PrismContext prismContext) {
@@ -259,7 +262,23 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         this.policyDecision = policyDecision;
     }
     
-    public DeltaSetTriple<AccountConstruction> getAccountConstructionDeltaSetTriple() {
+    public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
+	}
+
+	public String getIterationToken() {
+		return iterationToken;
+	}
+
+	public void setIterationToken(String iterationToken) {
+		this.iterationToken = iterationToken;
+	}
+
+	public DeltaSetTriple<AccountConstruction> getAccountConstructionDeltaSetTriple() {
 		return accountConstructionDeltaSetTriple;
 	}
 
@@ -285,6 +304,10 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
             }
         }
 
+    }
+    
+    public void clearAttributeValueDeltaSetTripleMap() {
+        attributeValueDeltaSetTripleMap.clear();
     }
 
     public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
@@ -422,6 +445,9 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         sb.append(", assigned=").append(isAssigned);
         sb.append(", recon=").append(doReconciliation);
         sb.append(", decision=").append(policyDecision);
+        if (iteration != 0) {
+        	sb.append(", iteration=").append(iteration);
+        }
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("ACCOUNT old:");

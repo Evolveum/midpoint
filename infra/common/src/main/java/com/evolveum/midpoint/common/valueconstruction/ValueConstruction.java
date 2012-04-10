@@ -141,6 +141,10 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		addVariableDefinition(name,(Object)value);
 	}
 
+	public void addVariableDefinition(QName name, int value) {
+		addVariableDefinition(name,(Object)value);
+	}
+
 	public void addVariableDefinition(QName name, Element value) {
 		addVariableDefinition(name,(Object)value);
 	}

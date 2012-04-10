@@ -115,7 +115,7 @@
 				    <initial>true</initial>
 					<expression>
 						<code>
-							$c:user/c:name
+							concat($c:user/c:name, $c:iterationToken)
 						</code>
 					</expression>
 				</outbound>
@@ -139,6 +139,9 @@
 					</expression>
 				</outbound>
 			</attribute>
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
 		</accountType>
 	</schemaHandling>
 
