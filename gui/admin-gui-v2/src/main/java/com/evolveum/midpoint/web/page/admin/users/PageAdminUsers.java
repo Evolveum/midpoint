@@ -23,7 +23,10 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +43,26 @@ public class PageAdminUsers extends PageAdmin {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
         items.add(new BottomMenuItem("pageAdminUsers.listUsers", PageUsers.class));
-        items.add(new BottomMenuItem("pageAdminUsers.newUser", PageUser.class));
+        items.add(new BottomMenuItem("pageAdminUsers.newUser", PageUser.class, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !isEditingUser();
+            }
+        }));
+        items.add(new BottomMenuItem("pageAdminUsers.editUser", PageUser.class, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isEditingUser();
+            }
+        }));
 
         return items;
+    }
+
+    private boolean isEditingUser() {
+        StringValue userOid = getPageParameters().get(PageUser.PARAM_USER_ID);
+        return userOid != null && StringUtils.isNotEmpty(userOid.toString());
     }
 }

@@ -39,8 +39,8 @@ public class PageAdminConfiguration extends PageAdmin {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
         items.add(new BottomMenuItem("pageAdminConfiguration.logging", PageLogging.class));
-        items.add(new BottomMenuItem("pageAdminConfiguration.debugView", PageDebugView.class));
         items.add(new BottomMenuItem("pageAdminConfiguration.debugList", PageDebugList.class));
+        items.add(new BottomMenuItem("pageAdminConfiguration.debugView", PageDebugView.class));
         items.add(new BottomMenuItem("pageAdminConfiguration.importFromXml", PageImportXml.class));
         items.add(new BottomMenuItem("pageAdminConfiguration.importFromFile", PageImportFile.class));
        

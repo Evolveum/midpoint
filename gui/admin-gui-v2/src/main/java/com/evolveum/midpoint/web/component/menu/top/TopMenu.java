@@ -85,6 +85,10 @@ public class TopMenu extends Panel {
                     link.add(new AttributeAppender("class", new Model("selected-bottom"), " "));
                 }
                 loopItem.add(link);
+
+                if (item.getVisible() != null) {
+                    loopItem.add(item.getVisible());
+                }
             }
         };
 

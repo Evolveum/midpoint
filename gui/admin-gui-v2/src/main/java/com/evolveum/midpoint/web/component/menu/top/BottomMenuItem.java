@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.menu.top;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.Page;
 
 import java.io.Serializable;
@@ -32,10 +33,16 @@ public class BottomMenuItem implements Serializable {
 
     private String label;
     private Class<? extends Page> page;
+    private VisibleEnableBehaviour visible;
 
     public BottomMenuItem(String label, Class<? extends Page> page) {
+        this(label, page, null);
+    }
+    
+    public BottomMenuItem(String label, Class<? extends Page> page, VisibleEnableBehaviour visible) {
         this.label = label;
         this.page = page;
+        this.visible = visible;
     }
 
     public String getLabel() {
@@ -44,5 +51,9 @@ public class BottomMenuItem implements Serializable {
 
     public Class<? extends Page> getPage() {
         return page;
+    }
+
+    public VisibleEnableBehaviour getVisible() {
+        return visible;
     }
 }

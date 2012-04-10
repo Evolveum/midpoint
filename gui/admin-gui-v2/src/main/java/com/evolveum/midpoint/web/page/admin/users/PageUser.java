@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -34,9 +35,11 @@ import com.evolveum.midpoint.web.component.objectform.ContainerWrapper;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.protocol.http.PageExpiredException;
 import org.apache.wicket.util.string.StringValue;
 
 /**
@@ -53,29 +56,48 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected ContainerWrapper load() {
-                StringValue userOid = getPageParameters().get(PARAM_USER_ID);
-                if (userOid == null) {
-                    return new ContainerWrapper(new UserType().asPrismObject(), ContainerStatus.ADDING);
-                }
-
-                try {
-                    MidPointApplication application = PageUser.this.getMidpointApplication();
-                    ModelService model = application.getModel();
-
-                    OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
-                    PrismObject<UserType> object = model.getObject(UserType.class, userOid.toString(), null, result);
-
-                    return new ContainerWrapper(object, ContainerStatus.MODIFYING);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    //todo error handling
-                }
-
-                return new ContainerWrapper(new UserType().asPrismObject(), ContainerStatus.ADDING);
+                return loadUser();
             }
         };
 
         initLayout();
+    }
+
+    private ContainerWrapper loadUser() {
+        StringValue userOid = getPageParameters().get(PARAM_USER_ID);
+
+        try {
+            if (userOid == null) {
+                return createNewUser();
+            }
+
+            MidPointApplication application = PageUser.this.getMidpointApplication();
+            ModelService model = application.getModel();
+
+            OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
+            PrismObject<UserType> object = model.getObject(UserType.class, userOid.toString(), null, result);
+
+            return new ContainerWrapper(object, ContainerStatus.MODIFYING);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            //todo error handling
+        }
+
+        try {
+            return createNewUser();
+        } catch (SchemaException ex) {
+            ex.printStackTrace();
+            //todo error handling
+            throw new RestartResponseException(PageUsers.class);
+        }
+    }
+
+    private ContainerWrapper createNewUser() throws SchemaException {
+        UserType user = new UserType();
+
+        MidPointApplication application = getMidpointApplication();
+        application.getPrismContext().adopt(user);
+        return new ContainerWrapper(user.asPrismObject(), ContainerStatus.ADDING);
     }
 
     private void initLayout() {
