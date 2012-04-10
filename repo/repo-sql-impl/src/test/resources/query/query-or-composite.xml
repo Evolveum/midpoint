@@ -20,34 +20,33 @@
   ~
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
-<query xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<query xmlns="http://prism.evolveum.com/xml/ns/public/query-2"
        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
     <or>
         <equal>
-            <t:value>
-                <accountType>some account type</accountType>
-            </t:value>
+            <value>
+                <c:accountType>some account type</c:accountType>
+            </value>
         </equal>
         <equal>
-            <t:path>c:attributes</t:path>
-            <t:value>
+            <path>c:attributes</path>
+            <value>
                 <f:foo xsi:type="xsd:string" xmlns:f="http://midpoint.evolveum.com/blabla">foo value</f:foo>
-            </t:value>
+            </value>
         </equal>
         <equal>
-            <t:path>c:extension</t:path>
-            <t:value>
+            <path>c:extension</path>
+            <value>
                 <p:stringType xmlns:p="http://example.com/p">uid=test,dc=example,dc=com</p:stringType>
-            </t:value>
+            </value>
         </equal>
         <equal>
-            <t:value>
-                <resourceRef oid="d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"/>
-            </t:value>
+            <value>
+                <c:resourceRef oid="d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"/>
+            </value>
         </equal>
     </or>
 </query>

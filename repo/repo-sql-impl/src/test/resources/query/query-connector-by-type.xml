@@ -20,14 +20,14 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 <object xsi:type="QueryType"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        xmlns="http://prism.evolveum.com/xml/ns/public/query-2"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<and>
 		<equal>
-			<t:value>
-				<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-			</t:value>
+			<value>
+				<c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
+			</value>
 		</equal>
 	</and>
 </object>
