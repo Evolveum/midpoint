@@ -22,6 +22,7 @@
 <resource oid="10000000-0000-0000-0000-000000000004"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -144,5 +145,43 @@
 			</iteration>
 		</accountType>
 	</schemaHandling>
+	
+	<synchronization>
+		<enabled>true</enabled>
+		<correlation>
+			<q:equal>
+				<q:path>.</q:path>
+				<valueExpression>
+					<ref>c:name</ref>
+					<code>
+						$c:account/c:attributes/icfs:name
+					</code>
+				</valueExpression>
+			</q:equal>
+		</correlation>
+		<reaction>
+			<situation>confirmed</situation>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser" />
+		</reaction>
+		<reaction>
+			<situation>deleted</situation>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount" />
+		</reaction>
+		<reaction>
+			<situation>missing</situation>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount" />
+		</reaction>
+		<reaction>
+			<situation>found</situation>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
+		</reaction>
+		<reaction>
+			<situation>unassigned</situation>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
+		</reaction>
+		<reaction>
+			<situation>unmatched</situation>
+		</reaction>
+	</synchronization>
 
 </resource>

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -98,7 +99,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
         Validate.notNull(change, "Resource object shadow change description must not be null.");
         Validate.isTrue(change.getCurrentShadow() != null || change.getObjectDelta() != null,
-                "Object delta and change are null. At least one must be provided.");
+                "Object delta and current shadow are null. At least one must be provided.");
         Validate.notNull(change.getResource(), "Resource in change must not be null.");
         Validate.notNull(parentResult, "Parent operation result must not be null.");
         LOGGER.debug("SYNC NEW CHANGE NOTIFICATION");
@@ -439,7 +440,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             query = new QueryType();
             query.setFilter(filter);
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("CORRELATION: expression for OID {} results in filter {}", new Object[]{
+                LOGGER.debug("CORRELATION: expression for OID {} results in filter\n{}", new Object[]{
                         currentShadow.getOid(), SchemaDebugUtil.prettyPrint(query)});
             }
             PagingType paging = new PagingType();
@@ -456,8 +457,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     "Couldn't search users in repository, based on filter (See logs).", ex);
         }
 
-        LOGGER.debug("CORRELATION: expression for OID {} returned {} users.",
-                new Object[]{currentShadow.getOid(), users.size()});
+        LOGGER.debug("CORRELATION: expression for OID {} returned {} users: {}",
+                new Object[]{currentShadow.getOid(), users.size(), DebugUtil.prettyPrint(users, 3)});
         return users;
     }
 
@@ -498,15 +499,15 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             }
             Document document = DOMUtil.getDocument();
 
-            Element and = document.createElementNS(SchemaConstants.NS_C, "and");
+            Element and = document.createElementNS(SchemaConstants.NS_QUERY, "and");
             document.appendChild(and);
             and.appendChild(QueryUtil.createTypeFilter(document, ObjectTypes.USER.getObjectTypeUri()));
             Element equal = null;
-            if (SchemaConstants.NS_C.equals(filter.getNamespaceURI())
+            if (SchemaConstants.NS_QUERY.equals(filter.getNamespaceURI())
                     && "equal".equals(filter.getLocalName())) {
                 equal = (Element) document.adoptNode(filter.cloneNode(true));
 
-                Element path = findChildElement(equal, SchemaConstants.NS_C, "path");
+                Element path = findChildElement(equal, SchemaConstants.NS_QUERY, "path");
                 if (path != null) {
                     equal.removeChild(path);
                 }
@@ -518,9 +519,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     copyNamespaceDefinitions(equal, valueExpressionElement);
 
                     Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
+                    if (refElement == null) {
+                    	throw new SchemaException("No <ref> element in valueExpression in correlation rule for "+currentShadow.getResource());
+                    }
                     QName ref = DOMUtil.resolveQName(refElement);
 
-                    Element value = document.createElementNS(SchemaConstants.NS_C, "value");
+                    Element value = document.createElementNS(SchemaConstants.NS_QUERY, "value");
                     equal.appendChild(value);
                     Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
                     ExpressionType valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(valueExpressionElement,

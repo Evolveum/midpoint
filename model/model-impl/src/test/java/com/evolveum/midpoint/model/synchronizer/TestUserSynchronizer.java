@@ -87,9 +87,6 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 	public static final String REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
             "/user-barbossa-modify-delete-assignment-account-opendj-attr.xml";
 	
-	public static final String ACCOUNT_SHADOW_JACK_DUMMY = TEST_RESOURCE_DIR_NAME +
-    		"/account-shadow-jack-dummy.xml";
-	
 	@Autowired(required = true)
 	UserSynchronizer userSynchronizer;
 
@@ -164,7 +161,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test101AssignConflictingAccountToJack");
         
         // Make sure there is a shadow with conflicting account
-        addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY, AccountShadowType.class, result);
+        addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, AccountShadowType.class, result);
         
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_JACK_OID, result);

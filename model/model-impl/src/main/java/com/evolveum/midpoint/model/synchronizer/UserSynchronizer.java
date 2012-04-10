@@ -102,10 +102,23 @@ public class UserSynchronizer {
     private PrismContext prismContext;
     
     private boolean consistenceChecks = true;
+    private SyncContextListener syncContextListener;
+    
+    public SyncContextListener getSyncContextListener() {
+		return syncContextListener;
+	}
 
-    public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
+	public void setSyncContextListener(SyncContextListener syncContextListener) {
+		this.syncContextListener = syncContextListener;
+	}
+
+	public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 
+		if (syncContextListener != null) {
+        	syncContextListener.beforeSync(context);
+        }
+		
     	if (consistenceChecks) context.checkConsistence();
     	
         loadUser(context, result);
@@ -161,6 +174,10 @@ public class UserSynchronizer {
         context.recomputeNew();
         SynchronizerUtil.traceContext("reconciliation", context, false);
         if (consistenceChecks) context.checkConsistence();
+        
+        if (syncContextListener != null) {
+        	syncContextListener.afterSync(context);
+        }
 
     }
 

@@ -112,53 +112,66 @@ public class ObjectImporter {
                 	LOGGER.trace("IMPORTING object:\n{}", object.dump());
                 }
                 
-                if (objectResult.isAcceptable()) {
-                    resolveReferences(object, repository, 
-                    		options.isReferentialIntegrity() == null ? false : options.isReferentialIntegrity(), objectResult);
+                resolveReferences(object, repository, 
+                		options.isReferentialIntegrity() == null ? false : options.isReferentialIntegrity(), objectResult);
+                
+                objectResult.computeStatus();
+                if (!objectResult.isAcceptable()) {
+                	return EventResult.skipObject(objectResult.getMessage());
                 }
                 
-                if (objectResult.isAcceptable()) {
-                    generateIdentifiers(object, repository,  objectResult);
+                generateIdentifiers(object, repository,  objectResult);
+                
+                objectResult.computeStatus();
+                if (!objectResult.isAcceptable()) {
+                	return EventResult.skipObject(objectResult.getMessage());
                 }
 
-                if (BooleanUtils.isTrue(options.isValidateDynamicSchema()) && objectResult.isAcceptable()) {
+                if (BooleanUtils.isTrue(options.isValidateDynamicSchema())) {
                     validateWithDynamicSchemas(object, objectElement, repository, objectResult);
                 }
 
-                if (BooleanUtils.isTrue(options.isEncryptProtectedValues()) && objectResult.isAcceptable()) {
+                objectResult.computeStatus();
+                if (!objectResult.isAcceptable()) {
+                	return EventResult.skipObject(objectResult.getMessage());
+                }
+                
+                if (BooleanUtils.isTrue(options.isEncryptProtectedValues())) {
                     encryptValues(object, objectResult);
                 }
 
-                if (objectResult.isAcceptable()) {
-                    try {
+                objectResult.computeStatus();
+                if (!objectResult.isAcceptable()) {
+                	return EventResult.skipObject(objectResult.getMessage());
+                }
+                
+                try {
 
-                        importObjectToRepository(object, options, repository, objectResult);
+                    importObjectToRepository(object, options, repository, objectResult);
 
-                        LOGGER.info("Imported object {}", object);
+                    LOGGER.info("Imported object {}", object);
 
-                    } catch (SchemaException e) {
-                        objectResult.recordFatalError("Schema violation", e);
-                        LOGGER.error("Import of object {} failed: Schema violation: {}",
-                                new Object[]{object, e.getMessage(), e});
-                    } catch (RuntimeException e) {
-                        objectResult.recordFatalError("Unexpected problem", e);
-                        LOGGER.error("Import of object {} failed: Unexpected problem: {}",
-                                new Object[]{object, e.getMessage(), e});
-                    } catch (ObjectAlreadyExistsException e) {
-                    	objectResult.recordFatalError("Object already exists", e);
-                        LOGGER.error("Import of object {} failed: Object already exists: {}",
-                                new Object[]{object, e.getMessage(), e});
-                        LOGGER.error("Object already exists", e);
-                    }
-
+                } catch (SchemaException e) {
+                    objectResult.recordFatalError("Schema violation", e);
+                    LOGGER.error("Import of object {} failed: Schema violation: {}",
+                            new Object[]{object, e.getMessage(), e});
+                } catch (RuntimeException e) {
+                    objectResult.recordFatalError("Unexpected problem", e);
+                    LOGGER.error("Import of object {} failed: Unexpected problem: {}",
+                            new Object[]{object, e.getMessage(), e});
+                } catch (ObjectAlreadyExistsException e) {
+                	objectResult.recordFatalError("Object already exists", e);
+                    LOGGER.error("Import of object {} failed: Object already exists: {}",
+                            new Object[]{object, e.getMessage(), e});
+                    LOGGER.error("Object already exists", e);
                 }
 
+                objectResult.computeStatus();
                 if (objectResult.isAcceptable()) {
                     // Continue import
                     return EventResult.cont();
                 } else {
-                    // Continue import, but skip the rest of the processing of this object
-                    return EventResult.skipObject();
+                    return EventResult.skipObject(objectResult.getMessage());
                 }
             }
 

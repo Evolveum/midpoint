@@ -373,7 +373,7 @@
 			</attribute>
 		</accountType>
 	</schemaHandling>
-		<synchronization>
+	<synchronization>
 		<enabled>true</enabled>
 		<correlation>
 			<equal xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"

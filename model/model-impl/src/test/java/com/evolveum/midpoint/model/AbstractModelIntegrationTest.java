@@ -109,6 +109,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
+	
+	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
 
 	@Autowired(required = true)
 	protected ModelService modelService;
@@ -118,7 +120,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
 	protected ResourceType resourceOpenDjType;
+	protected PrismObject<ResourceType> resourceOpenDj;
 	protected ResourceType resourceDummyType;
+	protected PrismObject<ResourceType> resourceDummy;
 	
 	public AbstractModelIntegrationTest() throws JAXBException {
 		super();
@@ -137,8 +141,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		addObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
 		
 		// Resources
-		resourceOpenDjType = addObjectFromFile(RESOURCE_OPENDJ_FILENAME, ResourceType.class, initResult).asObjectable();
-		resourceDummyType = addObjectFromFile(RESOURCE_DUMMY_FILENAME, ResourceType.class, initResult).asObjectable();
+		resourceOpenDj = addObjectFromFile(RESOURCE_OPENDJ_FILENAME, ResourceType.class, initResult);
+		resourceOpenDjType = resourceOpenDj.asObjectable();
+		resourceDummy = addObjectFromFile(RESOURCE_DUMMY_FILENAME, ResourceType.class, initResult);
+		resourceDummyType = resourceDummy.asObjectable();
 
 		// Users
 		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
