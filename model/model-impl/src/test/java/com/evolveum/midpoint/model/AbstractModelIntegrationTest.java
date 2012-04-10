@@ -38,6 +38,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.AssertJUnit;
 
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -45,6 +46,8 @@ import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -52,6 +55,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -115,6 +119,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	@Autowired(required = true)
 	protected ModelService modelService;
 	
+	@Autowired(required = true)
+	protected RepositoryService repositoryService;
+	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 	
 	protected UserType userTypeJack;
@@ -124,6 +131,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected ResourceType resourceDummyType;
 	protected PrismObject<ResourceType> resourceDummy;
 	
+	protected static DummyResource dummyResource;
+	
 	public AbstractModelIntegrationTest() throws JAXBException {
 		super();
 	}
@@ -131,6 +140,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
+		
+		dummyResource = DummyResource.getInstance();
+		dummyResource.reset();
+		dummyResource.populateWithDefaultSchema();
 		
 		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
@@ -254,6 +267,19 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 		
+	}
+	
+	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("assertLinked");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		boolean found = false; 
+		for (PrismReferenceValue val: accountRef.getValues()) {
+			if (val.getOid().equals(accountOid)) {
+				found = true;
+			}
+		}
+		assertTrue("User "+userOid+" has not linked to account "+accountOid, found);
 	}
 
 }

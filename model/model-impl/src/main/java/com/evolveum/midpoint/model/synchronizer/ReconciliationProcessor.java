@@ -132,6 +132,9 @@ public class ReconciliationProcessor {
         for (QName attrName: attributeNames) {
         	//LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
         	RefinedAttributeDefinition attributeDefinition = accountDefinition.getAttributeDefinition(attrName);
+        	if (attributeDefinition == null) {
+        		throw new SchemaException("No definition for attribute "+attrName+" in "+accCtx.getResourceAccountType());
+        	}
         	
         	DeltaSetTriple<ValueConstruction<?>> triple = tripleMap.get(attrName);
         	Collection<PrismPropertyValue<ValueConstruction<?>>> shouldBePValues = null;

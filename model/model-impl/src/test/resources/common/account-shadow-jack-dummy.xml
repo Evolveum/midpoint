@@ -32,6 +32,6 @@
 	<objectClass>ri:AccountObjectClass</objectClass>
 	<attributes>
 		<icfs:name>jack</icfs:name>
-		<ri:uid>jack</ri:uid>
+		<icfs:uid>jack</icfs:uid>
 	</attributes>
 </account>

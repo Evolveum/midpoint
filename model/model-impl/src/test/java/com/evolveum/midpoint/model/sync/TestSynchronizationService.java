@@ -39,7 +39,10 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
@@ -93,7 +96,7 @@ public class TestSynchronizationService extends AbstractModelIntegrationTest {
 	}
 		
 	@Test
-    public void test001AddedAccountJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
+    public void test001AddedAccountJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
         displayTestTile(this, "test001AddedAccountJack");
 
         // GIVEN
@@ -104,6 +107,12 @@ public class TestSynchronizationService extends AbstractModelIntegrationTest {
         userSynchronizer.setSyncContextListener(mockListener);
         
         PrismObject<AccountShadowType> accountShadowJack = addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, AccountShadowType.class, result);
+        DummyAccount dummyAccount = new DummyAccount();
+        dummyAccount.setUsername("jack");
+        dummyAccount.setPassword("deadMenTellNoTales");
+        dummyAccount.setEnabled(true);
+        dummyAccount.addAttributeValues("fullname", "Jack Sparrow");
+		dummyResource.addAccount(dummyAccount);
         
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setCurrentShadow(accountShadowJack);
@@ -117,8 +126,18 @@ public class TestSynchronizationService extends AbstractModelIntegrationTest {
 
         display("Resulting context", context);
         assertNotNull("No resulting context", context);
-
-        assertUserModificationSanity(context);
+        
+        assertNull("Unexpected user primary delta", context.getUserPrimaryDelta());
+        assertNull("Unexpected user secondary delta", context.getUserSecondaryDelta());
+        
+        ResourceAccountType rat = new ResourceAccountType(resourceDummy.getOid(), null);
+		AccountSyncContext accCtx = context.getAccountSyncContext(rat);
+		assertNotNull("No account sync context for "+rat, accCtx);
+		
+		assertNull("Unexpected account primary delta", accCtx.getAccountPrimaryDelta());
+		assertNotNull("Missing account secondary delta", accCtx.getAccountSecondaryDelta());
+		
+		assertLinked(context.getUserOld().getOid(), accountShadowJack.getOid());
                 
 //        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
 //        assertNull("Unexpected user changes", context.getUserSecondaryDelta());

@@ -160,28 +160,20 @@
 			</q:equal>
 		</correlation>
 		<reaction>
-			<situation>confirmed</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser" />
-		</reaction>
-		<reaction>
-			<situation>deleted</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount" />
-		</reaction>
-		<reaction>
-			<situation>missing</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount" />
-		</reaction>
-		<reaction>
-			<situation>found</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
-		</reaction>
-		<reaction>
-			<situation>unassigned</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
-		</reaction>
-		<reaction>
-			<situation>unmatched</situation>
-		</reaction>
+            <situation>linked</situation>
+            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+        </reaction>
+        <reaction>
+            <situation>deleted</situation>
+            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+        </reaction>
+        <reaction>
+            <situation>unlinked</situation>
+            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+        </reaction>
+        <reaction>
+            <situation>unmatched</situation>
+        </reaction>
 	</synchronization>
 
 </resource>
