@@ -20,37 +20,38 @@
 <!--                                                         -->
 
 
-<query xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+<query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns="http://prism.evolveum.com/xml/ns/public/query-2"
        xmlns:foo="http://foo.com/">
 
    <!-- Query filter example -->
 
     <and>
         <equal>
-            <path>extension</path>
+            <path>c:extension</path>
             <value>
                 <foo:bar>baz</foo:bar>
             </value>
         </equal>
         <not>
             <true>
-                <property>extension/foo:barbar</property>
+                <property>c:extension/foo:barbar</property>
             </true>
         </not>
         <present>
-            <property>extension/foo:x</property>
+            <property>c:extension/foo:x</property>
         </present>
         <or>
             <substring>
-                <property>extension/foo:y</property>
+                <property>c:extension/foo:y</property>
                 <value>a*b</value>
             </substring>
             <lessOrEqual>
-                <property>extension/foo:n</property>
+                <property>c:extension/foo:n</property>
                 <value>100</value>
             </lessOrEqual>
             <equal>
-                <path>extension</path>
+                <path>c:extension</path>
                 <value>
                     <foo:foofoo>
                         <foo:foo foo="foo"><foo:foofoo/></foo:foo>

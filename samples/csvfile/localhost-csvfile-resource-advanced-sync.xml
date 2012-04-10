@@ -35,6 +35,7 @@ object.
 <c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"
            xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
            xmlns:my="http://myself.me/schemas/whatever"
@@ -49,11 +50,11 @@ object.
         <!-- Reference to the ICF Flatfile connector. OID is "virtual" for now. -->
         <connectorRef type="ConnectorType">
             <filter>
-                <equal>
-                    <value>
+                <q:equal>
+                    <q:value>
                         <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
-                    </value>
-                </equal>
+                    </q:value>
+                </q:equal>
             </filter>
         </connectorRef>
 

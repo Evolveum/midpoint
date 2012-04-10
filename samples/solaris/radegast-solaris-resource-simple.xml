@@ -38,6 +38,7 @@ object.
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3dddd"
 	xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
 	xmlns:my="http://myself.me/schemas/whatever"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
 
@@ -49,11 +50,11 @@ object.
      	<!-- Reference to the ICF Solaris connector. OID is "virtual" for now. -->
 		<connectorRef type="ConnectorType">
 			<filter>
-		        <equal>
-		          <value>
+		        <q:equal>
+		          <q:value>
 		              <connectorType>org.identityconnectors.solaris.SolarisConnector</connectorType>
-		          </value>
-		        </equal>
+		          </q:value>
+		        </q:equal>
 		      </filter>
 		</connectorRef>
 

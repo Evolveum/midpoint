@@ -20,11 +20,12 @@
 <!--                                                         -->
 
 
-<query xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
+<query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
 
     <equal>
         <value>
-            <fullName>Jack Sparrow</fullName>
+            <c:fullName>Jack Sparrow</c:fullName>
         </value>
     </equal>
     
