@@ -155,7 +155,9 @@ public class RResourceObjectShadow extends RObject {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setObjectClass(repo.getObjectClass());
-        jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
+        if (repo.getActivation() != null) {
+            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
+        }
 
         if (repo.getResult() != null) {
             jaxb.setResult(repo.getResult().toJAXB(prismContext));
