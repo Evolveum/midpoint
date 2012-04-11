@@ -53,6 +53,7 @@ public class PrismFormPanel extends Panel {
         super(id);
         Validate.notNull(model, "Model with property container must not be null.");
 
+        add(new AttributeAppender("class", new Model<String>("objectForm"), " "));
         this.model = model;
         initLayout();
     }

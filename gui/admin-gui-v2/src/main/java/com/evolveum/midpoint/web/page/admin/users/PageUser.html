@@ -29,15 +29,37 @@
         </h1>
 
         <form wicket:id="mainForm">
-            
+            <table width="100%">
+                <tr>
+                    <td style="width: 620px; vertical-align: top;">
+                        <div wicket:id="userForm"/>
+                    </td>
+                    <td style="vertical-align: top;">
+                        <div wicket:id="accordion">
+                            <li wicket:id="accounts">
+                                <div wicket:id="accountsAccordion">
+                                    <li wicket:id="accountItems">
+                                        <div wicket:id="accountForm"/>
+                                    </li>
+                                </div>
+                            </li>
+                            <li wicket:id="roles">asdf</li>
+                            <li wicket:id="assignments">asdf</li>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <hr/>
+
             <table width="100%">
             	<tr>
             		<td style="width: 620px; vertical-align: top;">
-	            		<div wicket:id="userForm"/>
+	            		<div/>
 	            		<!--todo move css class to accordion panel-->
-	            		
+
 	            		<div class="objectForm" style="position: relative;">
-						
+
 						<div class="tableForm">
 							<div class="tableFormHead">
 								<div class="objectFormHeader">
@@ -278,14 +300,10 @@
 								</div>
 							</div>
 						</div>
-	            		
+
             		</td>
             		<td style="vertical-align: top;">
-            			<div wicket:id="accordion">
-			                <li wicket:id="accounts">asdf</li>
-			                <li wicket:id="roles">asdf</li>
-			                <li wicket:id="assignments">asdf</li>
-			            </div>
+
             		</td>
             	</tr>
             </table>

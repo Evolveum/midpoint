@@ -22,39 +22,37 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="objectForm">
-        <table id="tableForm01" class="tableForm" cellspacing="0" border="0">
-            <thead id="thead_tableForm1">
-            <tr>
-                <td colspan="2" class="objectFormHeader"><img
-                        class="objectFormHeaderIcon" src="img/formIcon/User.png" alt=""/>
+    <table id="tableForm01" class="tableForm" cellspacing="0" border="0">
+        <thead id="thead_tableForm1">
+        <tr>
+            <td colspan="2" class="objectFormHeader"><img
+                    class="objectFormHeaderIcon" src="img/formIcon/User.png" alt=""/>
 
-                    <div class="objectFormHeaderText">
-                        <span class="objectFormHeaderName">User information</span><br/> <span
-                            class="objectFormHeaderDescription">Complete user information to
+                <div class="objectFormHeaderText">
+                    <span class="objectFormHeaderName">User information</span><br/> <span
+                        class="objectFormHeaderDescription">Complete user information to
 								complete creation of a new user.</span>
-                    </div>
-                    <div class="objectFormHeaderControllButtons">
-                        <img id="objectFormHeaderControllButtonShowEmptyFields_tableForm1"
-                             class="objectFormHeaderControllButtonShowEmptyFields"
-                             src="img/formIcon/ShowEmptyFieldsSmall.png" alt="" title="Show empty fields"/>
-                        <img id="objectFormHeaderControllButtonMinMax_tableForm01"
-                             class="objectFormHeaderControllButtonMinMax" src="img/formIcon/MinimizeSmall.png" alt=""
-                             title="Minimize"/>
-                    </div>
-                </td>
-            </tr>
-            </thead>
-            <tbody id="tbody_tableForm01">
-            <tr wicket:id="attributes">
-                <td wicket:id="labelTd" class="objectFormLabel"/>
-                <td wicket:id="inputTd"/>
-            </tr>
-            </tbody>
-            <tfoot id="tfoot_tableForm01">
-            </tfoot>
-        </table>
-        <div wicket:id="debug"/>
-    </div>
+                </div>
+                <div class="objectFormHeaderControllButtons">
+                    <img id="objectFormHeaderControllButtonShowEmptyFields_tableForm1"
+                         class="objectFormHeaderControllButtonShowEmptyFields"
+                         src="img/formIcon/ShowEmptyFieldsSmall.png" alt="" title="Show empty fields"/>
+                    <img id="objectFormHeaderControllButtonMinMax_tableForm01"
+                         class="objectFormHeaderControllButtonMinMax" src="img/formIcon/MinimizeSmall.png" alt=""
+                         title="Minimize"/>
+                </div>
+            </td>
+        </tr>
+        </thead>
+        <tbody id="tbody_tableForm01">
+        <tr wicket:id="attributes">
+            <td wicket:id="labelTd" class="objectFormLabel"/>
+            <td wicket:id="inputTd"/>
+        </tr>
+        </tbody>
+        <tfoot id="tfoot_tableForm01">
+        </tfoot>
+    </table>
+    <div wicket:id="debug"/>
 </wicket:panel>
 </html>

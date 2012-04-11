@@ -39,9 +39,16 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.list.Loop;
+import org.apache.wicket.markup.html.list.LoopItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.PageExpiredException;
 import org.apache.wicket.util.string.StringValue;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -129,7 +136,34 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void initAccounts(AccordionItem accounts) {
-        //todo implement
+        Accordion accountsAccordion = new Accordion("accountsAccordion");
+        accountsAccordion.setMultipleSelect(true);
+        accounts.getBodyContainer().add(accountsAccordion);
+
+        ListView<ContainerWrapper> accountItems = new ListView<ContainerWrapper>("accountItems", createAccountsModel()) {
+
+            @Override
+            protected void populateItem(ListItem<ContainerWrapper> item) {
+
+                PrismFormPanel accountForm = new PrismFormPanel("accountForm", item.getModel());
+                item.add(accountForm);
+            }
+        };
+        accountsAccordion.getBodyContainer().add(accountItems);
+    }
+
+    private IModel<List<ContainerWrapper>> createAccountsModel() {
+        return new LoadableModel<List<ContainerWrapper>>(false) {
+
+            @Override
+            protected List<ContainerWrapper> load() {
+                List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
+                list.add(model.getObject());
+                list.add(model.getObject());
+
+                return list;
+            }
+        };
     }
 
     private void initRoles(AccordionItem roles) {
