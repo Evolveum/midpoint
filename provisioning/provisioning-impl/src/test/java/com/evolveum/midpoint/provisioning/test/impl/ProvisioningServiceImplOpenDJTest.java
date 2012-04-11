@@ -575,8 +575,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				Assert.fail("Expected exception, but haven't got one.");
 			} catch (Exception ex) {
 				assertNull(objType);
-				assertEquals("Object not found. OID: " + ACCOUNT_DELETE_OID, ex.getMessage());
-
+                assertEquals(ex.getClass(), ObjectNotFoundException.class);
+                assertTrue(ex.getMessage().contains(ACCOUNT_DELETE_OID));
 			}
 		} finally {
 			try {
