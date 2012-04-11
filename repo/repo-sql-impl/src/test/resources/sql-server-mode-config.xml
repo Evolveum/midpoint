@@ -30,6 +30,7 @@
             <embedded>true</embedded>
             <asServer>true</asServer>
             <baseDir>target</baseDir>
+            <port>5438</port>
             <fileName>midpoint-sm</fileName>
             <dropIfExists>true</dropIfExists>
 

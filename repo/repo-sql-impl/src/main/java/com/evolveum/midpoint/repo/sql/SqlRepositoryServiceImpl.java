@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
 import org.hibernate.criterion.Order;
@@ -182,8 +184,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             session = beginTransaction();
             LOGGER.debug("Selecting account shadow owner for account {}.", new Object[]{accountOid});
-            Query query = session.createQuery("select user from RUserType as user left join user.accountRef " +
-                    "as ref where ref.oid = :oid");
+            Query query = session.createQuery("select user from " + ClassMapper.getHQLType(UserType.class)
+                    + " as user left join user.accountRef as ref where ref.oid = :oid");
             query.setString("oid", accountOid);
 
             List<RUser> users = query.list();
@@ -220,10 +222,18 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return userType.asPrismObject();
     }
 
+    private void validateName(PrismObject object) throws SchemaException {
+        PrismProperty name = object.findProperty(ObjectType.F_NAME);
+        if (name == null || StringUtils.isEmpty((String) name.getRealValue())) {
+            throw new SchemaException("Attempt to add object without name.");
+        }
+    }
+
     @Override
     public <T extends ObjectType> String addObject(PrismObject<T> object, OperationResult result) throws
             ObjectAlreadyExistsException, SchemaException {
         Validate.notNull(object, "Object must not be null.");
+        validateName(object);
         Validate.notNull(result, "Operation result must not be null.");
         LOGGER.debug("Adding object type '{}'", new Object[]{object.getClass().getSimpleName()});
 
@@ -236,17 +246,32 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 LOGGER.trace("Object\n{}", new Object[]{prismContext.silentMarshalObject(objectType)});
             }
 
+            //check name uniqueness (by type)
+            String name = (String) object.findProperty(ObjectType.F_NAME).getRealValue();
+            LOGGER.debug("Checking name uniqueness.");
+            session = beginTransaction();
+            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()), "o");
+            criteria.add(Restrictions.eq("o.name", name));
+            criteria.setProjection(Projections.rowCount());
+
+            Long objectsCount = (Long) criteria.uniqueResult();
+            if (objectsCount == null || objectsCount != 0) {
+                throw new ObjectAlreadyExistsException("Object with the same name already exists.");
+            }
+
             LOGGER.debug("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(objectType);
 
             LOGGER.debug("Saving object.");
-            session = beginTransaction();
             RContainerId containerId = (RContainerId) session.save(rObject);
             oid = containerId.getOid();
             session.getTransaction().commit();
 
             LOGGER.debug("Saved object '{}' with oid '{}'",
                     new Object[]{object.getCompileTimeClass().getSimpleName(), oid});
+        } catch (ObjectAlreadyExistsException ex) {
+            rollbackTransaction(session);
+            throw ex;
         } catch (ConstraintViolationException ex) {
             rollbackTransaction(session);
             throw new ObjectAlreadyExistsException("Object with oid '" + object.getOid() + "' already exists.", ex);
@@ -524,7 +549,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             LOGGER.debug("Looking for task.");
             session = beginTransaction();
-            Query query = session.createQuery("from RTaskType as task where task.oid = :oid");
+            Query query = session.createQuery("from " + ClassMapper.getHQLType(TaskType.class)
+                    + " as task where task.oid = :oid and task.id = 0");
             query.setString("oid", oid);
 
             RTask task = (RTask) query.uniqueResult();

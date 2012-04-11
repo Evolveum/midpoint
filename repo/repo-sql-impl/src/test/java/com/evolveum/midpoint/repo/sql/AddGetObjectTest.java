@@ -87,6 +87,13 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(expectedExceptions = ObjectAlreadyExistsException.class)
+    public void addSameName() throws Exception {
+        final File user = new File("./src/test/resources/user.xml");
+        addGetCompare(user);
+        addGetCompare(user);
+    }
+
+    @Test(expectedExceptions = ObjectAlreadyExistsException.class)
     public void addGetDSEESyncDoubleTest() throws Exception {
         final File OBJECTS_FILE = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
         if (!OBJECTS_FILE.exists()) {
@@ -120,7 +127,6 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         int count = 0;
         elements = prismContext.getPrismDomProcessor().parseObjects(file);
         for (int i = 0; i < elements.size(); i++) {
-            LOGGER.info("*******************************************");
             try {
                 PrismObject object = elements.get(i);
                 object.asObjectable().setOid(oids.get(i));
@@ -133,9 +139,9 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
                 }
 
                 count += delta.getModifications().size();
-                LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1), delta.getModifications().size(),
-                        newObject.toString(), delta.debugDump(3)});
                 if (delta.getModifications().size() > 0) {
+                    LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1), delta.getModifications().size(),
+                            newObject.toString(), delta.debugDump(3)});
                     LOGGER.error("{}", prismContext.getPrismDomProcessor().serializeObjectToString(newObject));
                 }
             } catch (Exception ex) {
