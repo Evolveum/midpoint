@@ -36,9 +36,8 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class PropertyWrapper implements Serializable, Comparable<PropertyWrapper> {
+public class PropertyWrapper extends PropertyItem implements Comparable<PropertyWrapper> {
 
-    private PropertyPath path;
     private PrismProperty property;
     private ValueStatus status;
     private List<PropertyValueWrapper> values;
@@ -48,14 +47,10 @@ public class PropertyWrapper implements Serializable, Comparable<PropertyWrapper
     }
 
     public PropertyWrapper(PropertyPath path, PrismProperty property, ValueStatus status) {
+        super(path);
         Validate.notNull(property, "Property must not be null.");
-        this.path = path;
         this.property = property;
         this.status = status;
-    }
-
-    public PropertyPath getPath() {
-        return path;
     }
 
     public PrismProperty getProperty() {
@@ -83,6 +78,7 @@ public class PropertyWrapper implements Serializable, Comparable<PropertyWrapper
         return values;
     }
 
+    @Override
     public String getDisplayName() {
         PrismPropertyDefinition definition = property.getDefinition();
         String displayName = definition.getDisplayName();

@@ -21,9 +21,11 @@
 
 package com.evolveum.midpoint.web.component.accordion;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.border.Border;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 public class Accordion extends Border {
@@ -35,6 +37,8 @@ public class Accordion extends Border {
 
     public Accordion(String id) {
         super(id);
+
+        add(new AttributeAppender("class", new Model<String>("accordions"), " "));
 
         WebMarkupContainer parent = new WebMarkupContainer("parent");
         parent.setOutputMarkupId(true);

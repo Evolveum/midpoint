@@ -32,7 +32,7 @@ import java.util.Comparator;
 /**
  * @author lazyman
  */
-public class PropertyWrapperComparator implements Comparator<PropertyWrapper> {
+public class PropertyWrapperComparator implements Comparator<PropertyItem> {
 
     private PrismContainerDefinition definition;
 
@@ -42,12 +42,13 @@ public class PropertyWrapperComparator implements Comparator<PropertyWrapper> {
     }
 
     @Override
-    public int compare(PropertyWrapper p1, PropertyWrapper p2) {
+    public int compare(PropertyItem p1, PropertyItem p2) {
         int comparePath = compare(p1.getPath(), p2.getPath());
         if (comparePath != 0) {
             return comparePath;
         }
-        return p1.compareTo(p2);
+//        return p1.compareTo(p2); //todo
+        return 0;
     }
 
     private int compare(PropertyPath p1, PropertyPath p2) {

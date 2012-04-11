@@ -26,16 +26,17 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.IHeaderResponse;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.util.List;
@@ -77,10 +78,10 @@ public class PrismFormPanel extends Panel {
 //        //todo title value and visibility
 //        add(title);
         //attributes
-        ListView<PropertyWrapper> attributes = new ListView<PropertyWrapper>("attributes", createAttributesModel()) {
+        ListView<PropertyItem> attributes = new ListView<PropertyItem>("attributes", createAttributesModel()) {
 
             @Override
-            protected void populateItem(ListItem<PropertyWrapper> listItem) {
+            protected void populateItem(ListItem<PropertyItem> listItem) {
                 populateListItem(listItem);
 
                 if (!showEmptyProperties && isEmpty(listItem)) {
@@ -108,43 +109,31 @@ public class PrismFormPanel extends Panel {
         add(label);
     }
 
-    private boolean isEmpty(ListItem<PropertyWrapper> attribute) {
+    private boolean isEmpty(ListItem<PropertyItem> attribute) {
         //todo set list item visibility
         return false;
     }
 
-    private void populateListItem(ListItem<PropertyWrapper> listItem) {
-        final IModel<PropertyWrapper> propertyModel = listItem.getModel();
-        Label name = new Label("name", createPropertyNameModel(propertyModel));
-        listItem.add(name);
+    private void populateListItem(ListItem<PropertyItem> listItem) {
+        if (listItem.getModelObject() instanceof PropertyDivider) {
+            listItem.add(new AttributeAppender("class", new Model("objectFormSeparator"), " "));
 
+            listItem.add(new PropertyLabelPanel("labelTd",
+                    new PropertyModel<String>(listItem.getModel(), "displayName"), true));
 
-        IModel<List<PropertyValueWrapper>> valuesModel = new LoadableDetachableModel<List<PropertyValueWrapper>>() {
+            EmptyPanel empty = new EmptyPanel("inputTd");
+            empty.setVisible(false);
+            listItem.add(empty);
+        } else {
+            listItem.add(new AttributeAppender("class", new Model<String>("objectFormAttribute"), " "));
 
-            @Override
-            protected List<PropertyValueWrapper> load() {
-                return propertyModel.getObject().getPropertyValueWrappers();
-            }
-        };
+            final IModel<PropertyWrapper> propertyModel = (IModel) listItem.getModel();
+            PropertyLabelPanel labelPanel = new PropertyLabelPanel("labelTd", createPropertyNameModel(propertyModel), false);
+            listItem.add(labelPanel);
 
-        WebMarkupContainer container = new WebMarkupContainer("container");
-        container.setOutputMarkupId(true);
-        listItem.add(container);
-
-        ListView<PropertyValueWrapper> values = new ListView<PropertyValueWrapper>("values", valuesModel) {
-
-            @Override
-            protected void populateItem(ListItem<PropertyValueWrapper> listItem) {
-                listItem.setRenderBodyOnly(true);
-
-                ValueFormPanel value = new ValueFormPanel("value", listItem.getModel());
-                value.setVisible(!ValueStatus.DELETED.equals(listItem.getModelObject().getStatus()));
-
-                listItem.add(value);
-            }
-        };
-        values.setOutputMarkupId(true);
-        container.add(values);
+            PropertyInputPanel propertyPanel = new PropertyInputPanel("inputTd", propertyModel);
+            listItem.add(propertyPanel);
+        }
     }
 
     private <T extends Item> IModel<String> createContainerNameModel(final IModel<ContainerWrapper> model) {
@@ -167,11 +156,11 @@ public class PrismFormPanel extends Panel {
         };
     }
 
-    private IModel<List<PropertyWrapper>> createAttributesModel() {
-        return new LoadableModel<List<PropertyWrapper>>() {
+    private IModel<List<PropertyItem>> createAttributesModel() {
+        return new LoadableModel<List<PropertyItem>>() {
 
             @Override
-            protected List<PropertyWrapper> load() {
+            protected List<PropertyItem> load() {
                 return model.getObject().getPropertyWrappers();
             }
         };

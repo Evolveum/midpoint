@@ -113,10 +113,6 @@ public class PageUser extends PageAdminUsers {
         accordion.setOpenedPanel(0);
         mainForm.add(accordion);
 
-        AccordionItem details = new AccordionItem("details", createStringResource("pageUser.user"));
-        accordion.getBodyContainer().add(details);
-        initDetails(details);
-
         AccordionItem accounts = new AccordionItem("accounts", createStringResource("pageUser.accounts"));
         accordion.getBodyContainer().add(accounts);
         initAccounts(accounts);
@@ -130,10 +126,6 @@ public class PageUser extends PageAdminUsers {
         initAssignments(assignments);
 
         initButtons(mainForm);
-    }
-
-    private void initDetails(AccordionItem details) {
-        //todo implement
     }
 
     private void initAccounts(AccordionItem accounts) {

@@ -38,7 +38,7 @@ public class ContainerWrapper implements Serializable {
 
     private PrismContainer container;
     private ContainerStatus status;
-    private List<PropertyWrapper> properties;
+    private List<PropertyItem> properties;
 
     public ContainerWrapper(PrismContainer container, ContainerStatus status) {
         Validate.notNull(container, "Item must not be null.");
@@ -56,12 +56,12 @@ public class ContainerWrapper implements Serializable {
         return status;
     }
 
-    public List<PropertyWrapper> getPropertyWrappers() {
+    public List<PropertyItem> getPropertyWrappers() {
         if (properties != null) {
             return properties;
         }
 
-        properties = new ArrayList<PropertyWrapper>();
+        properties = new ArrayList<PropertyItem>();
 
         PrismContainerDefinition definition = container.getDefinition();
         properties.addAll(createPropertyWrappers(null, definition));
@@ -71,9 +71,12 @@ public class ContainerWrapper implements Serializable {
         return properties;
     }
 
-    private List<PropertyWrapper> createPropertyWrappers(PropertyPath path,
+    private List<PropertyItem> createPropertyWrappers(PropertyPath path,
             PrismContainerDefinition definition) {
-        List<PropertyWrapper> properties = new ArrayList<PropertyWrapper>();
+        List<PropertyItem> properties = new ArrayList<PropertyItem>();
+        if (path != null && !definition.getPropertyDefinitions().isEmpty()) {
+            properties.add(new PropertyDivider(path, definition));
+        }
 
         Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
         for (PrismPropertyDefinition def : propertyDefinitions) {
@@ -89,7 +92,7 @@ public class ContainerWrapper implements Serializable {
             if (!(def instanceof PrismContainerDefinition)) {
                 continue;
             }
-            
+
             PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
             if (AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
                 continue;
@@ -117,7 +120,7 @@ public class ContainerWrapper implements Serializable {
         builder.append(", ");
         builder.append(status);
         builder.append("\n");
-        for (PropertyWrapper wrapper : getPropertyWrappers()) {
+        for (PropertyItem wrapper : getPropertyWrappers()) {
             builder.append("\t");
             builder.append(wrapper.toString());
             builder.append("\n");
@@ -145,7 +148,11 @@ public class ContainerWrapper implements Serializable {
     public void cleanup() {
         Collection<PrismProperty> propertiesToDelete = new ArrayList<PrismProperty>();
 
-        for (PropertyWrapper property : getPropertyWrappers()) {
+        for (PropertyItem item : getPropertyWrappers()) {
+            if (!(item instanceof PropertyWrapper)) {
+                continue;
+            }
+            PropertyWrapper property = (PropertyWrapper) item;
             property.cleanup();
 
             if (property.getProperty().isEmpty()) {
@@ -162,7 +169,12 @@ public class ContainerWrapper implements Serializable {
             return createAddingObjectDelta();
         }
 
-        for (PropertyWrapper property : getPropertyWrappers()) {
+        for (PropertyItem item : getPropertyWrappers()) {
+            if (!(item instanceof PropertyWrapper)) {
+                continue;
+            }
+            PropertyWrapper property = (PropertyWrapper) item;
+
             for (PropertyValueWrapper value : property.getPropertyValueWrappers()) {
                 if (!value.hasValueChanged()) {
                     continue;
