@@ -115,8 +115,12 @@ public class QueryInterpreter {
     }
 
     public ItemDefinition findDefinition(Element path, QName name) {
+        LOGGER.trace("Looking for '{}' definition on path '{}'", new Object[]{name,
+                (path != null ? DOMUtil.serializeDOMToString(path) : null)
+        });
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(type);
+        LOGGER.trace("Prism object definition:\n{}", new Object[]{objectDef.debugDump()});
 
         PropertyPath propertyPath = createPropertyPath(path);
         if (propertyPath == null) {
@@ -126,7 +130,7 @@ public class QueryInterpreter {
         List<PropertyPathSegment> segments = propertyPath.getSegments();
         segments.add(new PropertyPathSegment(name));
         propertyPath = new PropertyPath(segments);
-
+        LOGGER.trace("Checking item definition on path {}", new Object[]{propertyPath});
         return objectDef.findItemDefinition(propertyPath);
     }
 
