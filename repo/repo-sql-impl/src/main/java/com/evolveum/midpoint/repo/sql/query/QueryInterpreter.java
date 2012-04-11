@@ -120,7 +120,6 @@ public class QueryInterpreter {
         });
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(type);
-        LOGGER.trace("Prism object definition:\n{}", new Object[]{objectDef.debugDump()});
 
         PropertyPath propertyPath = createPropertyPath(path);
         if (propertyPath == null) {
@@ -131,7 +130,13 @@ public class QueryInterpreter {
         segments.add(new PropertyPathSegment(name));
         propertyPath = new PropertyPath(segments);
         LOGGER.trace("Checking item definition on path {}", new Object[]{propertyPath});
-        return objectDef.findItemDefinition(propertyPath);
+        ItemDefinition def =  objectDef.findItemDefinition(propertyPath);
+        if (def != null) {
+            return def;
+        }
+
+        LOGGER.trace("Definition not found, checking global definitions.");
+        return registry.findItemDefinitionByElementName(name);
     }
 
     public PropertyPath createPropertyPath(Element path) {

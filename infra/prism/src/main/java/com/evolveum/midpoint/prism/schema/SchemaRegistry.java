@@ -676,6 +676,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return schema.findContainerDefinitionByElementName(elementName);
 	}
 
+    public ItemDefinition findItemDefinitionByElementName(QName elementName) {
+        PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
+        if (schema == null) {
+            return null;
+        }
+        return schema.findItemDefinition(elementName, ItemDefinition.class);
+    }
+
 	public PrismPropertyDefinition findPropertyDefinitionByElementName(QName elementName) {
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {

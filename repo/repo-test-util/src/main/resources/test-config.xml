@@ -20,41 +20,42 @@
 <!-- Portions Copyrighted 2011 Peter Prochazka               -->
 <!--                                                         -->
 <configuration>
-	<midpoint>
+    <midpoint>
         <global>
             <extensionDir>./src/test/resources/schema</extensionDir>
         </global>
-<!--         <repository> -->
-<!--         <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass> -->
-<!--         <embedded>true</embedded> -->
-<!--         <asServer>false</asServer> -->
-<!--         <baseDir>.</baseDir> -->
-<!--         </repository> -->
-		<repository>
-			<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory</repositoryServiceFactoryClass>
-			<runServer>true</runServer>
-			<embedded>true</embedded> 
-			<shutdown>true</shutdown>
-			<dropDatabase>true</dropDatabase>
-			<debug>true</debug>
-			<initialDataPath></initialDataPath> 
-			<databaseName>midPoint-test</databaseName> 
-			<serverPath>target/basex-data</serverPath>
-			<host>localhost</host>
-			<port>19840</port>
-			<eventPort>19850</eventPort>
-			<username>admin</username>
-			<password>admin</password>
-		</repository>
-		<icf>
-			<scanClasspath>true</scanClasspath>
-			<scanDirectory>/C:/tmp</scanDirectory>
-			<scanDirectory>/var/tmp</scanDirectory>
-		</icf>
-		<keystore>
-			<keyStorePath>test-keystore.jceks</keyStorePath>
-			<keyStorePassword>changeit</keyStorePassword>
-			<encryptionKeyAlias>default</encryptionKeyAlias>
-		</keystore>
-	</midpoint>
+        <repository>
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+            <port>5438</port>
+            <asServer>true</asServer>
+            <baseDir>target</baseDir>
+            <dropIfExists>true</dropIfExists>
+        </repository>
+        <!--<repository>-->
+        <!--<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory</repositoryServiceFactoryClass>-->
+        <!--<runServer>true</runServer>-->
+        <!--<embedded>true</embedded> -->
+        <!--<shutdown>true</shutdown>-->
+        <!--<dropDatabase>true</dropDatabase>-->
+        <!--<debug>true</debug>-->
+        <!--<initialDataPath></initialDataPath> -->
+        <!--<databaseName>midPoint-test</databaseName> -->
+        <!--<serverPath>target/basex-data</serverPath>-->
+        <!--<host>localhost</host>-->
+        <!--<port>19840</port>-->
+        <!--<eventPort>19850</eventPort>-->
+        <!--<username>admin</username>-->
+        <!--<password>admin</password>-->
+        <!--</repository>-->
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>/C:/tmp</scanDirectory>
+            <scanDirectory>/var/tmp</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>test-keystore.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+        </keystore>
+    </midpoint>
 </configuration>
