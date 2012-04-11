@@ -99,6 +99,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_SET_PROPERTY_VALUE = "setPropertyValue";
     private static final String METHOD_PRISM_UTIL_GET_FIELD_CONTAINER_VALUE = "getFieldContainerValue";
     private static final String METHOD_PRISM_UTIL_GET_CONTAINER_VALUES = "getContainerValues";
+    private static final String METHOD_PRISM_UTIL_GET_CONTAINER = "getContainer";
     private static final String METHOD_PRISM_UTIL_SET_FIELD_CONTAINER_VALUE = "setFieldContainerValue";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE = "getReference";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_VALUE = "getReferenceValue";
@@ -1340,12 +1341,11 @@ public class SchemaProcessor implements Processor {
 
         JClass list = (JClass) field.type();
         JClass listType = list.getTypeParameters().get(0);
-        JClass containerValue = CLASS_MAP.get(PrismContainerValue.class);
-        containerValue = containerValue.narrow(listType);
-        JClass valueList = CLASS_MAP.get(List.class);
-        valueList = valueList.narrow(containerValue);
 
-        constructor.param(valueList, "values");
+        JClass container = CLASS_MAP.get(PrismContainer.class);
+        container.narrow(listType);
+
+        constructor.param(container, "container");
         JBlock constructorBody = constructor.body();
         JInvocation invocation = constructorBody.invoke("super");
         invocation.arg(constructor.listParams()[0]);
@@ -1384,16 +1384,13 @@ public class SchemaProcessor implements Processor {
             JClass list = (JClass) field.type();
             JClass listType = list.getTypeParameters().get(0);
 
-            JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_CONTAINER_VALUES);
+            JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_CONTAINER);
             invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
             invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
-            invocation.arg(JExpr.dotclass(listType));
 
-            JClass containerValue = CLASS_MAP.get(PrismContainerValue.class);
-            containerValue = containerValue.narrow(listType);
-            JClass valueList = CLASS_MAP.get(List.class);
-            valueList = valueList.narrow(containerValue);
-            JVar values = body.decl(valueList, "values", invocation);
+            JClass container = CLASS_MAP.get(PrismContainer.class);
+            container.narrow(listType);
+            JVar values = body.decl(container, "container", invocation);
 
             JDefinedClass anonymous = createFieldContainerGetterListAnon(field, classOutline);
             createFieldContainerCreateItemBody(field, findMethod(anonymous, "createItem"));

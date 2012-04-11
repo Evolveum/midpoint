@@ -22,9 +22,10 @@
 package com.evolveum.midpoint.schema.xjc;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
@@ -35,12 +36,12 @@ import java.util.List;
  * @author lazyman
  */
 public abstract class PrismContainerArrayList<T extends Containerable> extends ArrayList<T> {
-    
-    private List<PrismContainerValue<T>> values;
-    
-    public PrismContainerArrayList(List<PrismContainerValue<T>> values) {
-        Validate.notNull(values);
-        this.values = values;
+
+    private PrismContainer<T> container;
+
+    public PrismContainerArrayList(PrismContainer<T> container) {
+        Validate.notNull(container);
+        this.container = container;
     }
 
     protected abstract T createItem(PrismContainerValue value);
@@ -51,27 +52,31 @@ public abstract class PrismContainerArrayList<T extends Containerable> extends A
     public T get(int i) {
         testIndex(i);
 
-        return createItem(values.get(i));
+        return createItem(getValues().get(i));
+    }
+
+    private List<PrismContainerValue<T>> getValues() {
+        return container.getValues();
     }
 
     @Override
     public int size() {
-        return values.size();
+        return getValues().size();
     }
-    
+
     private void testIndex(int i) {
-        if (i < 0 || i >= values.size()) {
+        if (i < 0 || i >= getValues().size()) {
             throw new IndexOutOfBoundsException("Can't get index '" + i
-                    + "', values size is '" + values.size() + "'.");
-        } 
+                    + "', values size is '" + getValues().size() + "'.");
+        }
     }
 
     @Override
     public T remove(int i) {
         testIndex(i);
 
-        PrismContainerValue value = values.get(i);
-        values.remove(i);
+        PrismContainerValue value = getValues().get(i);
+        getValues().remove(i);
 
         return createItem(value);
     }
@@ -94,13 +99,17 @@ public abstract class PrismContainerArrayList<T extends Containerable> extends A
     public boolean remove(Object o) {
         T t = (T) o;
         PrismContainerValue value = getValueFrom(t);
-        return values.remove(value);
+        return container.remove(value);
     }
 
     @Override
     public boolean add(T t) {
         PrismContainerValue value = getValueFrom(t);
-        return values.add(value);
+        try {
+            return container.add(value);
+        } catch (SchemaException ex) {
+            throw new SystemException(ex.getMessage(), ex);
+        }
     }
 
     @Override
