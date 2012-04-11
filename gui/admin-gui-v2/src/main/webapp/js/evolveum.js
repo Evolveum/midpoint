@@ -1,12 +1,12 @@
 var objectFormHelpContainer = null;
 var interval = 0;
 
-window.onresize = function() {
-	//setMenuPositionWhileScroll();
-}; 
-
 $(document).ready(function(){
 	init();
+	
+/*	if (Wicket.Ajax) {
+		Wicket.Ajax.registerPostCallHandler(MyApp.Ajax.firePostHandlers);
+	}*/
 });
 
 function init() {
@@ -35,17 +35,17 @@ function init() {
 	
 	$("thead input[type='checkbox']").click(function(){
 		if($(this).is(":checked")){
-			$(this).parent().parent().parent().parent().find("tbody").find("tr").find(".checkbox").find("input[type='checkbox']").attr("checked", true);
-			$(this).parent().parent().parent().parent().find("tbody").find("td").css("background","#d8f4d8");
-			$(this).parent().parent().parent().parent().find("tbody").find("td").css("border-color","#FFFFFF");
+			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
+			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("background","#d8f4d8");
+			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("border-color","#FFFFFF");
 		} else {
-			$(this).parent().parent().parent().parent().find("tbody").find("td").css("background","#FFFFFF");
-			$(this).parent().parent().parent().parent().find("tbody").find("td").css("border-color","#F2F2F2");
-			$(this).parent().parent().parent().parent().find("tbody").find("tr").find(".checkbox").find("input[type='checkbox']").attr("checked", false);
+			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("background","#FFFFFF");
+			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("border-color","#F2F2F2");
+			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
 		}
 	});
 	
-	$(".sortedTable table thead").find(".sortable").find("a").find("div").append("<span class='sortableArrowIcon'></span>");
+	//$(".sortedTable table thead").find(".sortable").find("a").find("div").append("<span class='sortableArrowIcon'></span>");
 	
 	$(".left-menu ul").mouseenter(function(){
 		$(".left-menu ul").stop();
@@ -113,13 +113,13 @@ function init() {
 	});
 	
 	$(".sortedTable table tbody tr").mouseenter(function(){
-		if($(this).find(".checkbox").find("input[type='checkbox']").is(":checked")){
+		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
 			$(this).find("td").css("background", "#c6e9c6");
 		} else {
 			$(this).find("td").css("background", "#f2f2f2");
 		}
 	}).mouseleave(function(){
-		if($(this).find(".checkbox").find("input[type='checkbox']").is(":checked")){
+		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
 			$(this).find("td").css("background", "#d8f4d8");
 			$(this).find("td").css("border-color","#FFFFFF");
 		} else {
