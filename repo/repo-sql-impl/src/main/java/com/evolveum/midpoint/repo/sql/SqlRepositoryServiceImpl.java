@@ -185,7 +185,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session = beginTransaction();
             LOGGER.debug("Selecting account shadow owner for account {}.", new Object[]{accountOid});
             Query query = session.createQuery("select user from " + ClassMapper.getHQLType(UserType.class)
-                    + " as user left join user.accountRef as ref where ref.oid = :oid");
+                    + " as user left join user.accountRefs as ref where ref.targetOid = :oid");
             query.setString("oid", accountOid);
 
             List<RUser> users = query.list();
@@ -517,7 +517,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     new Object[]{(shadows != null ? shadows.size() : 0)});
 
             if (shadows != null) {
-//                list.setTotalResultCount(shadows.size());
                 for (RResourceObjectShadow shadow : shadows) {
                     ResourceObjectShadowType jaxb = shadow.toJAXB(prismContext);
                     PrismObject<T> prismObject = jaxb.asPrismObject();
