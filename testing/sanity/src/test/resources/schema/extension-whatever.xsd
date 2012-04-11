@@ -32,5 +32,17 @@
 	
 	<!-- element "dead" is not defined here by purpose. It is supposed to have
 		a run-time type (xsi:type) -->
+		
+	<element name="locations" type="tns:LocationsType"/>
+	
+	<complexType name="LocationsType">
+		<sequence>
+			<element name="location" type="tns:LocationType" minOccurs="0" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
+	
+	<complexType name="LocationType" mixed="true">
+		<attribute name="key" type="string"/>
+	</complexType>
 	
 </schema>
