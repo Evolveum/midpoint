@@ -89,6 +89,10 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = ObjectAlreadyExistsException.class)
     public void addGetDSEESyncDoubleTest() throws Exception {
         final File OBJECTS_FILE = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
+        if (!OBJECTS_FILE.exists()) {
+            LOGGER.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
+                    new Object[]{OBJECTS_FILE.getPath()});
+        }
         addGetCompare(OBJECTS_FILE);
         addGetCompare(OBJECTS_FILE);
     }
@@ -98,7 +102,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         final File OBJECTS_FILE = new File("./src/test/resources/objects.xml");
         addGetCompare(OBJECTS_FILE);
     }
-    
+
     private void addGetCompare(File file) throws Exception {
         List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
         List<String> oids = new ArrayList<String>();
