@@ -60,6 +60,11 @@ public class DeleteTest extends AbstractTestNGSpringContextTests {
     @Test
     public void delete001() throws Exception {
         final File file = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
+        if (!file.exists()) {
+            LOGGER.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
+                    new Object[]{file.getPath()});
+            return;
+        }
 
         List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
         List<String> oids = new ArrayList<String>();

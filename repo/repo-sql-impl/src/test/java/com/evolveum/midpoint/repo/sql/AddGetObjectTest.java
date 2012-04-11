@@ -92,6 +92,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         if (!OBJECTS_FILE.exists()) {
             LOGGER.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
                     new Object[]{OBJECTS_FILE.getPath()});
+            return;
         }
         addGetCompare(OBJECTS_FILE);
         addGetCompare(OBJECTS_FILE);
