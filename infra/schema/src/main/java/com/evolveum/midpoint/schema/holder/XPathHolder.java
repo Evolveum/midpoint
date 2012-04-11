@@ -61,6 +61,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class XPathHolder {
 
 	private static final Trace LOGGER = TraceManager.getTrace(XPathHolder.class);
+//	private static final String DEFAULT_PREFIX = "xp";
+	private static final String DEFAULT_PREFIX = "c";
 	private boolean absolute;
 	private List<XPathSegment> segments;
 	Map<String, String> explicitNamespaceDeclarations;
@@ -314,7 +316,7 @@ public class XPathHolder {
 				// broken:
 				// http://stackoverflow.com/questions/1730710/xpath-is-there-a-way-to-set-a-default-namespace-for-queries
 				// Jaxen and Saxon are treating xpath with "./:" differently
-				sb.append(SchemaConstants.NS_C_PREFIX + ":" + qname.getLocalPart());
+				sb.append(DEFAULT_PREFIX + ":" + qname.getLocalPart());
 				// sb.append(qname.getLocalPart());
 			}
 
@@ -335,7 +337,8 @@ public class XPathHolder {
 				namespaceMap.put(qname.getPrefix(), qname.getNamespaceURI());
 			} else {
 				// Default namespace
-				namespaceMap.put("", qname.getNamespaceURI());
+				// HACK. See addPureXpath method
+				namespaceMap.put(DEFAULT_PREFIX, qname.getNamespaceURI());
 			}
 
 		}
@@ -365,7 +368,6 @@ public class XPathHolder {
 		e.setTextContent(getXPath());
 		Map<String, String> namespaceMap = getNamespaceMap();
 		if (namespaceMap != null) {
-			//NamedNodeMap attributes = e.getAttributes();
 			for (Entry<String, String> entry : namespaceMap.entrySet()) {
 				DOMUtil.setNamespaceDeclaration(e, entry.getKey(), entry.getValue());
 			}

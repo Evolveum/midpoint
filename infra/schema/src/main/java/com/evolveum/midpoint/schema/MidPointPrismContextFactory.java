@@ -101,6 +101,9 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-2.xsd", "apti", 
 				com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectFactory.class.getPackage());
 		
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/prism/query-2.xsd", "q", 
+				com.evolveum.prism.xml.ns._public.query_2.ObjectFactory.class.getPackage());
+		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/annotation-1.xsd", "a");
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/resource-schema-1.xsd", "r");
