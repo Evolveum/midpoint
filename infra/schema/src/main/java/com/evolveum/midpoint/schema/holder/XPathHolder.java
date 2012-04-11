@@ -61,8 +61,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class XPathHolder {
 
 	private static final Trace LOGGER = TraceManager.getTrace(XPathHolder.class);
-//	private static final String DEFAULT_PREFIX = "xp";
-	private static final String DEFAULT_PREFIX = "c";
+//	public static final String DEFAULT_PREFIX = "xp";
+	public static final String DEFAULT_PREFIX = "c";
 	private boolean absolute;
 	private List<XPathSegment> segments;
 	Map<String, String> explicitNamespaceDeclarations;
@@ -333,7 +333,7 @@ public class XPathHolder {
 		while (iter.hasNext()) {
 			XPathSegment seg = iter.next();
 			QName qname = seg.getQName();
-			if (qname.getPrefix() != null) {
+			if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
 				namespaceMap.put(qname.getPrefix(), qname.getNamespaceURI());
 			} else {
 				// Default namespace

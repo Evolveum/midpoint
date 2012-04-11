@@ -22,13 +22,19 @@
 
 package com.evolveum.midpoint.schema.test;
 
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.holder.TrivialXPathParser;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -48,6 +54,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -67,8 +74,16 @@ public class XPathTest {
 
     private static final String FILENAME_CHANGETYPE = "src/test/resources/xpath/changetype-1.xml";
     private static final String FILENAME_STRANGECHARS = "src/test/resources/xpath/strange.txt";
+	private static final String NS_FOO = "http://foo.com/";
+	private static final String NS_BAR = "http://bar.com/";;
 
     public XPathTest() {
+    }
+    
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
     /**
@@ -214,7 +229,7 @@ public class XPathTest {
 
         Map<String, String> namespaceMap = xpath.getNamespaceMap();
 
-        AssertJUnit.assertEquals("http://default.com/", namespaceMap.get(""));
+        AssertJUnit.assertEquals("http://default.com/", namespaceMap.get(XPathHolder.DEFAULT_PREFIX));
     }
 
         @Test
@@ -330,6 +345,27 @@ public class XPathTest {
 
         System.out.println("Stragechars ROUND TRIP: "+xpath.getXPathWithDeclarations());
 
+    }
+    
+    @Test
+    public void xpathFromQNameTest() {
+    	// GIVEN
+    	QName qname = new QName(NS_FOO, "foo");
+    	XPathHolder xpath = new XPathHolder(qname);
+    	QName elementQName = new QName(NS_BAR, "bar");
+    	
+    	// WHEN
+    	Element element = xpath.toElement(elementQName, DOMUtil.getDocument());
+    	
+    	// THEN
+    	System.out.println("XPath from Qname:");
+    	System.out.println(DOMUtil.serializeDOMToString(element));
+    	
+    	assertEquals("Wrong element name", "bar", element.getLocalName());
+    	assertEquals("Wrong element namespace", NS_BAR, element.getNamespaceURI());
+    	Map<String, String> nsdecls = DOMUtil.getNamespaceDeclarations(element);
+    	assertEquals("Wrong declaration for prefix "+XPathHolder.DEFAULT_PREFIX, NS_FOO, nsdecls.get(XPathHolder.DEFAULT_PREFIX));
+    	assertEquals("Wrong element content", XPathHolder.DEFAULT_PREFIX+":foo", element.getTextContent());
     }
 
 }
