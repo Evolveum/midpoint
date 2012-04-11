@@ -68,7 +68,7 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
         "classpath:application-context-repo-cache.xml",
-		"classpath:application-context-configuration-test.xml" })
+		"classpath:application-context-configuration-basex-test.xml" })
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests {
 

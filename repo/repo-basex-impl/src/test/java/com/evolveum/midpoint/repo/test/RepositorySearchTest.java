@@ -63,7 +63,7 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
 		"classpath:application-context-repo-cache.xml",
-		"classpath:application-context-configuration-test.xml" })
+		"classpath:application-context-configuration-basex-test.xml" })
 public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)

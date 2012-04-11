@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.DOMUtil;
  */
 @ContextConfiguration(locations =  { "../../../../../application-context-repository.xml",
         "classpath:application-context-repo-cache.xml",
-	"classpath:application-context-configuration-test.xml" } )
+	"classpath:application-context-configuration-basex-test.xml" } )
 public class ProtectorTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)

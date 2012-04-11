@@ -81,7 +81,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.*;
  */
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
         "classpath:application-context-repo-cache.xml",
-		"classpath:application-context-configuration-test.xml" })
+		"classpath:application-context-configuration-basex-test.xml" })
 public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 
 	private static final String PIRACY_NS = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
