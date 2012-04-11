@@ -27,6 +27,7 @@
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
@@ -41,11 +42,11 @@
           OID during import. -->
     <connectorRef type="ConnectorType">
 		<filter>
-            <equal>
-                <value>
+            <q:equal>
+                <q:value>
                     <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-                </value>
-            </equal>
+                </q:value>
+            </q:equal>
         </filter>
     </connectorRef>
 
@@ -508,8 +509,8 @@ This is now the only account type that midPoint can work with. -->
             <!-- Following search query will look for users that have "name"
 equal to the "uid" attribute of the account. Simply speaking,
 it will look for match in usernames in the IDM and the resource. -->
-            <c:equal>
-                <c:path>.</c:path>
+            <q:equal>
+                <q:path>.</q:path>
                 <c:valueExpression>
                     <ref>c:name</ref>
                     <c:code>
@@ -517,7 +518,7 @@ it will look for match in usernames in the IDM and the resource. -->
                     </c:code>
 
                 </c:valueExpression>
-            </c:equal>
+            </q:equal>
         </c:correlation>
 
         <!-- Confirmation rule may be here, but as the search above will

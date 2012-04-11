@@ -27,6 +27,7 @@
 <resource oid="ef2bc95b-76e0-59e2-ffff-ffffffffffff"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
@@ -34,11 +35,11 @@
 	<name>Broken Resource</name>
 	<connectorRef type="ConnectorType">
 		<filter>
-	        <equal>
-	          <value>
+	        <q:equal>
+	          <q:value>
 	              <connectorType>this.connector.type.does.not.Exist</connectorType>
-	          </value>
-	        </equal>
+	          </q:value>
+	        </q:equal>
 	    </filter>
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-ffff-ffffffffffff</namespace>

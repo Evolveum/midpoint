@@ -446,8 +446,8 @@ This resource definition contains also definition to enable synchronization.
                 <!-- Following search queury will look for users that have "name"
                      equal to the "uid" attribute of the account. Simply speaking,
                      it will look for match in usernames in the IDM and the resource. -->
-                <equal>
-                    <path>.</path>
+                <q:equal>
+                    <q:path>.</q:path>
                     <valueExpression>
                         <ref>name</ref>
                         <code>
@@ -456,7 +456,7 @@ This resource definition contains also definition to enable synchronization.
                             $account/attributes/dj:uid
                         </code>
                     </valueExpression>
-                </equal>
+                </q:equal>
             </correlation>
             <!-- Confirmation rule may be here, but as the search above will
                  always return at most one match, the confirmation rule is not needed. -->

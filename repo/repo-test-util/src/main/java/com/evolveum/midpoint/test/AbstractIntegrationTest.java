@@ -132,7 +132,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
-		result.addParam("filePath", filePath);
+		result.addParam("file", filePath);
 		LOGGER.trace("addObjectFromFile: {}", filePath);
 		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(new File(filePath), type);
 		System.out.println("obj: " + object.getName());

@@ -348,16 +348,16 @@ object.
             <enabled>true</enabled>
 
             <correlation>
-                <description>
+                <q:description>
                     Correlation expression is a search query.
                     Following search query will look for users that have "name"
                     equal to the "uid" attribute of the account. Simply speaking,
                     it will look for match in usernames in the IDM and the resource.
                     The correlation rule always looks for users, so it will not match
                     any other object type.
-                </description>
-                <equal>
-                    <path>.</path>
+                </q:description>
+                <q:equal>
+                    <q:path>.</q:path>
                     <valueExpression>
                         <ref>c:name</ref>
                         <code>
@@ -366,7 +366,7 @@ object.
                             $i:account/i:attributes/dj:uid
                         </code>
                     </valueExpression>
-                </equal>
+                </q:equal>
             </correlation>
 
             <!-- Confirmation rule may be here, but as the search above will

@@ -3219,11 +3219,14 @@ public class TestSanity extends AbstractIntegrationTest {
         }, timeout);
     }
 
-    private void importObjectFromFile(String filename, OperationResult result) throws FileNotFoundException {
+    private void importObjectFromFile(String filename, OperationResult parentResult) throws FileNotFoundException {
+    	OperationResult result = parentResult.createSubresult(TestSanity.class.getName()+".importObjectFromFile");
+    	result.addParam("file", filename);
         LOGGER.trace("importObjectFromFile: {}", filename);
         Task task = taskManager.createTaskInstance();
         FileInputStream stream = new FileInputStream(filename);
         modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
+        result.computeStatus();
     }
 
     private void assertCache() {
