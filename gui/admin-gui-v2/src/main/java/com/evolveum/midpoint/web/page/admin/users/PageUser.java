@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
+import com.evolveum.midpoint.web.component.accordion.AccordionItemListView;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.objectform.ContainerStatus;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -44,6 +46,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.list.Loop;
 import org.apache.wicket.markup.html.list.LoopItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.PageExpiredException;
 import org.apache.wicket.util.string.StringValue;
 
@@ -136,20 +139,21 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void initAccounts(AccordionItem accounts) {
-        Accordion accountsAccordion = new Accordion("accountsAccordion");
-        accountsAccordion.setMultipleSelect(true);
-        accounts.getBodyContainer().add(accountsAccordion);
-
-        ListView<ContainerWrapper> accountItems = new ListView<ContainerWrapper>("accountItems", createAccountsModel()) {
+        AccordionItemListView<ContainerWrapper> accountsAccordion = new AccordionItemListView<ContainerWrapper>(
+                "accountsAccordion", createAccountsModel()) {
 
             @Override
-            protected void populateItem(ListItem<ContainerWrapper> item) {
+            protected Component createPanelBody(String componentId, IModel<ContainerWrapper> itemModel) {
+                return new PrismFormPanel(componentId, itemModel);
+            }
 
-                PrismFormPanel accountForm = new PrismFormPanel("accountForm", item.getModel());
-                item.add(accountForm);
+            @Override
+            protected IModel<String> createHeaderLabel(IModel<ContainerWrapper> itemModel) {
+                return new Model<String>("asdf");
             }
         };
-        accountsAccordion.getBodyContainer().add(accountItems);
+        accountsAccordion.setMultipleSelect(true);
+        accounts.getBodyContainer().add(accountsAccordion);
     }
 
     private IModel<List<ContainerWrapper>> createAccountsModel() {
