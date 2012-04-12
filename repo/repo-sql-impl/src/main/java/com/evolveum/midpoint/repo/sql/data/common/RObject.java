@@ -102,8 +102,8 @@ public abstract class RObject extends RContainer {
         }
     }
 
-    public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext) throws
-            DtoTranslationException {
+    public static void copyFromJAXB(ObjectType jaxb, RObject repo, boolean pushCreateIdentificators,
+            PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
@@ -120,6 +120,10 @@ public abstract class RObject extends RContainer {
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();
             extension.setOwner(repo);
+            if (pushCreateIdentificators) {
+                extension.setOwnerOid(repo.getOid());
+                extension.setOwnerId(repo.getId());
+            }
             extension.setOwnerType(RContainerType.getType(repo.getClass()));
             repo.setExtension(extension);
 

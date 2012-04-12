@@ -75,9 +75,9 @@ public class RAccountShadow extends RResourceObjectShadow {
         }
     }
 
-    public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadow repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RResourceObjectShadow.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadow repo, boolean pushCreateIdentificators,
+            PrismContext prismContext) throws DtoTranslationException {
+        RResourceObjectShadow.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
 
         repo.setAccountType(jaxb.getAccountType());
 

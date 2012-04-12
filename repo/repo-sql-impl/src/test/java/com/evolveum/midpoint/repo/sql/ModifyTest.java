@@ -85,7 +85,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
         repositoryService.modifyObject(UserType.class, oid, deltas, result);
 
         PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
-        PropertyDelta.applyTo(deltas, user);
+        ObjectDelta delta = user.diff(userNew);
 
         AssertJUnit.assertTrue(userNew.equivalent(user));
     }

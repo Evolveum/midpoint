@@ -145,12 +145,12 @@ public class RResource extends RObject {
             jaxb.setConnectorRef(repo.getConnectorRef().toJAXB(prismContext));
         }
 
-        try {            
+        try {
             jaxb.setConfiguration(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CONFIGURATION), repo.getConfiguration(),
                     ResourceConfigurationType.class, prismContext));
             jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA), repo.getXmlSchema(),
                     XmlSchemaType.class, prismContext));
-            jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class,new PropertyPath( ResourceType.F_SCHEMA_HANDLING), repo.getSchemaHandling(),
+            jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA_HANDLING), repo.getSchemaHandling(),
                     SchemaHandlingType.class, prismContext));
             jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SYNCHRONIZATION), repo.getSynchronization(),
                     SynchronizationType.class, prismContext));
@@ -165,9 +165,9 @@ public class RResource extends RObject {
         }
     }
 
-    public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(ResourceType jaxb, RResource repo, boolean pushCreateIdentificators,
+            PrismContext prismContext) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
 
         repo.setNamespace(jaxb.getNamespace());
         repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), repo, prismContext));

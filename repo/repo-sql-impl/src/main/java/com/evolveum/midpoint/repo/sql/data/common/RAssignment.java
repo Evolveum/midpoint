@@ -26,9 +26,9 @@ import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -62,7 +62,7 @@ public class RAssignment extends RContainer implements ROwnable {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
-            @JoinColumn(name = "oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "owner_id", referencedColumnName = "id")
     })
     public RObject getOwner() {
@@ -160,8 +160,10 @@ public class RAssignment extends RContainer implements ROwnable {
 
         if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
             return false;
+
 //        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
 //        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
+
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
 
         return true;
@@ -174,6 +176,7 @@ public class RAssignment extends RContainer implements ROwnable {
 //        result = 31 * result + (ownerOid != null ? ownerOid.hashCode() : 0);
 //        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
+        System.out.println(result);
         return result;
     }
 
@@ -202,8 +205,8 @@ public class RAssignment extends RContainer implements ROwnable {
         }
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, PrismContext prismContext) throws
-            DtoTranslationException {
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, boolean pushCreateIdentificators,
+            PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 

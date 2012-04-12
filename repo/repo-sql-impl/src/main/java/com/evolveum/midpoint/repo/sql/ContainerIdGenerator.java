@@ -47,6 +47,10 @@ public class ContainerIdGenerator implements IdentifierGenerator {
             return 0L;
         } else if (object instanceof RAssignment) {
             RAssignment assignment = (RAssignment) object;
+            if (assignment.getId() != null) {
+                return assignment.getId();
+            }
+
             RObject o = assignment.getOwner();
             if (o instanceof RUser) {
                 RUser user = (RUser) o;

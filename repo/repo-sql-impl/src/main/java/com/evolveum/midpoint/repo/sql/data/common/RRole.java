@@ -66,17 +66,25 @@ public class RRole extends RObject {
         }
     }
 
-    public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(RoleType jaxb, RRole repo, boolean pushCreateIdentificators,
+            PrismContext prismContext) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
 
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
             repo.setAssignments(new HashSet<RAssignment>());
         }
+        long id = 1;
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment();
             rAssignment.setOwner(repo);
-            RAssignment.copyFromJAXB(assignment, rAssignment, prismContext);
+            if (pushCreateIdentificators) {
+                rAssignment.setOwnerOid(repo.getOid());
+                rAssignment.setOwnerId(repo.getId());
+                rAssignment.setOid(repo.getOid());
+                rAssignment.setId(id);
+                id++;
+            }
+            RAssignment.copyFromJAXB(assignment, rAssignment, pushCreateIdentificators, prismContext);
 
             repo.getAssignments().add(rAssignment);
         }

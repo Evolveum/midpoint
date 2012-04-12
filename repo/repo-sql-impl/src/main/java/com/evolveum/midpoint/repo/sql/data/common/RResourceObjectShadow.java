@@ -30,7 +30,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
@@ -182,8 +181,8 @@ public class RResourceObjectShadow extends RObject {
     }
 
     public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadow repo,
-            PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+            boolean pushCreateIdentificators, PrismContext prismContext) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
 
         repo.setObjectClass(jaxb.getObjectClass());
         if (jaxb.getActivation() != null) {

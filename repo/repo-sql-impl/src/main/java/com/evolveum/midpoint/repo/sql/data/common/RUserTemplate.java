@@ -83,9 +83,9 @@ public class RUserTemplate extends RObject {
         }
     }
 
-    public static void copyFromJAXB(UserTemplateType jaxb, RUserTemplate repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(UserTemplateType jaxb, RUserTemplate repo, boolean pushCreateIdentificators
+            , PrismContext prismContext) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
 
         try {
             if (!jaxb.getAccountConstruction().isEmpty()) {

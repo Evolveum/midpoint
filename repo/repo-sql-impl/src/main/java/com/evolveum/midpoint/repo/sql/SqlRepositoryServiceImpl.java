@@ -592,7 +592,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         RObject rObject;
         Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
         rObject = clazz.newInstance();
-        Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
+        Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, boolean.class, PrismContext.class);
         method.invoke(clazz, object, rObject, pushCreateIdentificators, prismContext);
 
         return rObject;

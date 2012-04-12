@@ -54,9 +54,9 @@ public class RGenericObject extends RObject {
         jaxb.setObjectType(repo.getObjectType());
     }
 
-    public static void copyFromJAXB(GenericObjectType jaxb, RGenericObject repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(GenericObjectType jaxb, RGenericObject repo, boolean pushCreateIdentificators,
+            PrismContext prismContext) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
 
         repo.setObjectType(jaxb.getObjectType());
     }
