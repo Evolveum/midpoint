@@ -19,6 +19,9 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
+div.objectForm {
+	padding: 15px 0;
+}
 
 div.objectForm .tableForm {
 	border: 1px solid #8FA6AB;
@@ -48,7 +51,7 @@ div.objectForm .tableForm .tableFormHead .objectFormHeaderIcon {
 	-webkit-box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.5);
 	-moz-box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.5);
 	box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.5);
-	margin-top: -10px;
+	margin-top: -5px;
 	position: relative;
 	display: inline-block;
 	margin-left: 5px;
@@ -57,22 +60,27 @@ div.objectForm .tableForm .tableFormHead .objectFormHeaderIcon {
 }
 
 div.objectForm .tableForm .tableFormHead .objectFormHeaderText {
-	width: 485px;
 	margin-left: 0px;
 	line-height: 110%;
 	position: relative;
-	margin-top: 5px;
+	margin-top: 10px;
 	display: inline-block;
 	float: left;
 	margin-left: 10px;
+	text-align: left;
 }
 
 div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButtons {
 	position: relative;
 	display: inline-block;
-	padding-left: 4px;
 	width: 40px;
 	margin-top: 5px;
+	margin-right: 5px;
+	float: right;
+}
+
+div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButtons a, div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButtons a:hover {
+	text-decoration: none;
 }
 
 
