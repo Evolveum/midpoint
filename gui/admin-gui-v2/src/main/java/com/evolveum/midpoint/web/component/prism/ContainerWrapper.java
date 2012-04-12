@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.web.component.objectform.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -37,19 +36,25 @@ import java.util.Set;
  */
 public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, Serializable {
 
+    private ObjectWrapper object;
     private T container;
     private ContainerStatus status;
 
     private boolean main;
     private List<PropertyWrapper> properties;
 
-    public ContainerWrapper(T container, ContainerStatus status, boolean main) {
+    public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, boolean main) {
         Validate.notNull(container, "Prism object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
 
+        this.object = object;
         this.container = container;
         this.status = status;
         this.main = main;
+    }
+
+    ObjectWrapper getObject() {
+        return object;
     }
 
     public List<PropertyWrapper> getProperties() {
@@ -67,9 +72,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         for (PrismPropertyDefinition def : propertyDefinitions) {
             PrismProperty property = container.findProperty(def.getName());
             if (property == null) {
-                properties.add(new PropertyWrapper(def.instantiate(), ValueStatus.ADDED));
+                properties.add(new PropertyWrapper(this, def.instantiate(), ValueStatus.ADDED));
             } else {
-                properties.add(new PropertyWrapper(property, ValueStatus.NOT_CHANGED));
+                properties.add(new PropertyWrapper(this, property, ValueStatus.NOT_CHANGED));
             }
         }
 

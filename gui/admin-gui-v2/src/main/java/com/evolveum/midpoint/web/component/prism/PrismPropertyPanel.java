@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -37,10 +38,30 @@ import java.util.List;
  */
 public class PrismPropertyPanel extends Panel {
 
-    public PrismPropertyPanel(String id, IModel<PropertyWrapper> model) {
+    public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model) {
         super(id);
 
         add(new AttributeAppender("class", new Model<String>("objectFormPanel"), " "));
+        add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                PropertyWrapper property = model.getObject();
+                ContainerWrapper container = property.getContainer();
+                ObjectWrapper object = container.getObject();
+
+                List<ValueWrapper> values = property.getValues();
+                boolean isEmpty = values.isEmpty();
+                if (values.size() == 1) {
+                    ValueWrapper value = values.get(0);
+                    if (ValueStatus.ADDED.equals(value.getStatus())) {
+                        isEmpty = true;
+                    }
+                }
+
+                return object.isShowEmpty() || !isEmpty;
+            }
+        });
 
         initLayout(model);
     }

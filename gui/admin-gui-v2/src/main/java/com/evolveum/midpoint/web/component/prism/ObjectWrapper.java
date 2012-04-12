@@ -92,7 +92,7 @@ public class ObjectWrapper implements Serializable {
     private List<ContainerWrapper> createContainers() {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
-        ContainerWrapper container = new ContainerWrapper(object, getStatus(), true);
+        ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), true);
         containers.add(container);
 
         PrismObjectDefinition definition = object.getDefinition();
@@ -108,9 +108,11 @@ public class ObjectWrapper implements Serializable {
 
             PrismContainer prismContainer = object.findContainer(def.getName());
             if (prismContainer == null) {
-                containers.add(new ContainerWrapper(containerDef.instantiate(), ContainerStatus.MODIFYING, false));
+                containers.add(new ContainerWrapper(this, containerDef.instantiate(),
+                        ContainerStatus.MODIFYING, false));
             } else {
-                containers.add(new ContainerWrapper(containerDef.instantiate(), ContainerStatus.ADDING, false));
+                containers.add(new ContainerWrapper(this, containerDef.instantiate(),
+                        ContainerStatus.ADDING, false));
             }
         }
 

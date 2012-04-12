@@ -43,11 +43,20 @@ public class PrismContainerPanel extends Panel {
         this(id, model, true);
     }
 
-    public PrismContainerPanel(String id, IModel<ContainerWrapper> model, boolean showHeader) {
+    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader) {
         super(id);
         this.showHeader = showHeader;
 
         add(new AttributeAppender("class", new Model<String>("attributeComponent"), " "));
+        add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                ContainerWrapper container = model.getObject();
+
+                return !container.getProperties().isEmpty();
+            }
+        });
 
         initLayout(model);
     }

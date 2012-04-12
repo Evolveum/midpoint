@@ -34,16 +34,22 @@ import java.util.List;
  */
 public class PropertyWrapper implements ItemWrapper, Serializable {
 
+    private ContainerWrapper container;
     private PrismProperty property;
     private ValueStatus status;
     private List<ValueWrapper> values;
 
-    public PropertyWrapper(PrismProperty property, ValueStatus status) {
+    public PropertyWrapper(ContainerWrapper container, PrismProperty property, ValueStatus status) {
         Validate.notNull(property, "Property must not be null.");
         Validate.notNull(status, "Property status must not be null.");
 
+        this.container = container;
         this.property = property;
         this.status = status;
+    }
+
+    ContainerWrapper getContainer() {
+        return container;
     }
 
     @Override
