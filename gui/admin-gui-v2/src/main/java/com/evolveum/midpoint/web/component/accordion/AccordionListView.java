@@ -39,13 +39,13 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public abstract class AccordionItemListView<T> extends Panel {
+public abstract class AccordionListView<T> extends Panel {
 
     private boolean expanded = false;
     private boolean multipleSelect = true;
     private int openedPanel = -1;
 
-    public AccordionItemListView(String id, IModel<? extends List<? extends T>> model) {
+    public AccordionListView(String id, IModel<? extends List<? extends T>> model) {
         super(id);
 
         add(new AttributeAppender("class", new Model<String>("accordions"), " "));

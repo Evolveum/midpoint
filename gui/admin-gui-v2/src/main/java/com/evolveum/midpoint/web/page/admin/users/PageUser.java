@@ -27,12 +27,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.accordion.AccordionItemListView;
+import com.evolveum.midpoint.web.component.accordion.AccordionListView;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.objectform.ContainerStatus;
-import com.evolveum.midpoint.web.component.objectform.PrismFormPanel;
 import com.evolveum.midpoint.web.component.objectform.ContainerWrapper;
+import com.evolveum.midpoint.web.component.objectform.PrismFormPanel;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -41,13 +43,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.list.Loop;
-import org.apache.wicket.markup.html.list.LoopItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.protocol.http.PageExpiredException;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
@@ -111,11 +108,50 @@ public class PageUser extends PageAdminUsers {
         return new ContainerWrapper(user.asPrismObject(), ContainerStatus.ADDING);
     }
 
+    private IModel<ObjectWrapper> loadTestWrapper() {
+        return new LoadableModel<ObjectWrapper>(false) {
+
+            @Override
+            protected ObjectWrapper load() {
+                PrismObject<UserType> user = null;
+                try {
+                    MidPointApplication application = PageUser.this.getMidpointApplication();
+
+                    StringValue userOid = getPageParameters().get(PARAM_USER_ID);
+                    if (userOid == null || StringUtils.isEmpty(userOid.toString())) {
+                        UserType userType = new UserType();
+                        application.getPrismContext().adopt(userType);
+                        user = userType.asPrismObject();
+                    } else {
+                        ModelService model = application.getModel();
+
+                        OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
+                        user = model.getObject(UserType.class, userOid.toString(), null, result);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                if (user == null) {
+                    throw new IllegalArgumentException("ffffffffffuuuuuuuu");
+                }
+
+                return new ObjectWrapper("header text", "header description", user,
+                        com.evolveum.midpoint.web.component.prism.ContainerStatus.MODIFYING);
+            }
+        };
+    }
+
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        PrismFormPanel userForm = new PrismFormPanel("userForm", model);
+        PrismObjectPanel test = new PrismObjectPanel("test", loadTestWrapper(), null);
+        mainForm.add(test);
+
+//        PrismFormPanel userForm = new PrismFormPanel("userForm", model);
+//        mainForm.add(userForm);
+        PrismObjectPanel userForm = new PrismObjectPanel("userForm", loadTestWrapper(), null);
         mainForm.add(userForm);
 
         Accordion accordion = new Accordion("accordion");
@@ -139,12 +175,15 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void initAccounts(AccordionItem accounts) {
-        AccordionItemListView<ContainerWrapper> accountsAccordion = new AccordionItemListView<ContainerWrapper>(
+        AccordionListView<ContainerWrapper> accountsAccordion = new AccordionListView<ContainerWrapper>(
                 "accountsAccordion", createAccountsModel()) {
 
             @Override
             protected Component createPanelBody(String componentId, IModel<ContainerWrapper> itemModel) {
-                return new PrismFormPanel(componentId, itemModel);
+                PrismObjectPanel acc = new PrismObjectPanel(componentId, loadTestWrapper(), null);
+                acc.setShowHeader(false);
+
+                return acc;
             }
 
             @Override
