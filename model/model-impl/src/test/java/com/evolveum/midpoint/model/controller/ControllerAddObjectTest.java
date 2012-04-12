@@ -50,6 +50,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.model.test.util.mock.ObjectTypeNameMatcher;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -293,7 +294,8 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addResourceCorrect() throws JAXBException, FaultMessage, ObjectAlreadyExistsException,
-			SchemaException, CommunicationException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, ConfigurationException {
+			SchemaException, CommunicationException, ObjectNotFoundException, ExpressionEvaluationException,
+			FileNotFoundException, ConfigurationException, PolicyViolationException {
 		displayTestTile("addResourceCorrect");
 		
 		

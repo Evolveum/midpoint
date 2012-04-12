@@ -177,6 +177,8 @@ public interface ModelService {
 	 * 				evaluation of expression associated with the object has failed
 	 * @throws CommunicationException 
 	 * @throws ConfigurationException 
+	 * @throws PolicyViolationException
+	 * 				Policy violation was detected during processing of the object
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 * @throws SystemException
@@ -184,7 +186,7 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
-			ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+			ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException;
 
 	/**
 	 * <p>
@@ -217,6 +219,8 @@ public interface ModelService {
 	 * @throws CommunicationException 
 	 * @throws ObjectAlreadyExistsException
 	 * 				If the account or another "secondary" object already exists and cannot be created
+	 * @throws PolicyViolationException 
+	 * 				Policy violation was detected during processing of the object
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
@@ -225,7 +229,7 @@ public interface ModelService {
 	 */
 	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
-			CommunicationException, ConfigurationException,ObjectAlreadyExistsException;
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException;
 
 	/**
 	 * <p>
@@ -248,12 +252,14 @@ public interface ModelService {
 	 *             would lead to inconsistent state
 	 * @throws CommunicationException 
 	 * @throws ConfigurationException 
+	 * @throws PolicyViolationException 
+	 * 				Policy violation was detected during processing of the object
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
 	<T extends ObjectType> void deleteObject(Class<T> type, String oid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException, ConfigurationException;
+			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException, ConfigurationException, PolicyViolationException;
 
 	/**
 	 * <p>

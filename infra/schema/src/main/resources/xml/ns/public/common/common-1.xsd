@@ -3604,12 +3604,88 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-
+					<xsd:element name="exclusion" type="tns:ExclusionType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specification of excluded roles (part of Segregation of Duties policy).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
+    
+    <xsd:complexType name="ExclusionType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Container that defines exclusion of entities (e.g. roles).
+    			It is a part of Segregation of Duties (SoD) mechanism.
+    		</xsd:documentation>
+    		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element ref="tns:description"/>
+    		<xsd:element name="targetRef" type="tns:ObjectReferenceType">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Target of exclusion. The object defining this "exclustion" and
+    					the object defined as target cannot be assigned at the same time.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0"/>
+    	</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="ExclusionPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enumeration of exclustion policy enforcement types.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enforce">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Enforce the policy. Excluded entities must not be assigned together.
+                		Attempt to do so will result in an error.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENFORCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="approve">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Exceptions to the policy are possible but are subject to an approval. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="APPROVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="report">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Policy will not be enforced in any way, the violations will only
+                		be reported.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
 
     <xsd:complexType name="AccountConstructionType">
         <xsd:sequence>

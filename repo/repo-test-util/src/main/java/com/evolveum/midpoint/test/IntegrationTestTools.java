@@ -396,31 +396,32 @@ public class IntegrationTestTools {
 		return query;
 	}
 	
-	public static void checkShadow(AccountShadowType shadow, ResourceType resourceType, RepositoryService repositoryService, 
+	public static void checkShadow(AccountShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
 			ObjectChecker<AccountShadowType> checker, PrismContext prismContext, OperationResult parentResult) {
-		assertNotNull("no OID",shadow.getOid());
-		assertNotNull("no name",shadow.getName());
-		assertEquals(new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME), shadow.getObjectClass());
-        assertEquals(resourceType.getOid(), shadow.getResourceRef().getOid());
-        PrismContainer<?> attrs = shadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
+		LOGGER.trace("Checking shadow:\n{}",shadowType.asPrismObject().dump());
+		assertNotNull("no OID",shadowType.getOid());
+		assertNotNull("no name",shadowType.getName());
+		assertEquals(new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME), shadowType.getObjectClass());
+        assertEquals(resourceType.getOid(), shadowType.getResourceRef().getOid());
+        PrismContainer<?> attrs = shadowType.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
 		assertNotNull("no attributes",attrs);
 		assertFalse("empty attributes",attrs.isEmpty());
-		String icfUid = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, SchemaTestConstants.ICFS_UID);
+		String icfUid = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadowType, SchemaTestConstants.ICFS_UID);
         assertNotNull("No ICF UID", icfUid);
 		
-		String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
-        assertNotNull("No resource OID in "+shadow, resourceOid);
+		String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
+        assertNotNull("No resource OID in "+shadowType, resourceOid);
         
-        assertNotNull("Null OID in "+shadow, shadow.getOid());
+        assertNotNull("Null OID in "+shadowType, shadowType.getOid());
         PrismObject<AccountShadowType> repoShadow = null;
         try {
-        	repoShadow = repositoryService.getObject(AccountShadowType.class, shadow.getOid(), null, parentResult);
+        	repoShadow = repositoryService.getObject(AccountShadowType.class, shadowType.getOid(), null, parentResult);
 		} catch (Exception e) {
-			AssertJUnit.fail("Got exception while trying to read "+shadow+
+			AssertJUnit.fail("Got exception while trying to read "+shadowType+
 					": "+e.getCause()+": "+e.getMessage());
 		}
 		
-		checkShadowUniqueness(shadow, resourceType, repositoryService, prismContext, parentResult);
+		checkShadowUniqueness(shadowType, repositoryService, prismContext, parentResult);
 		
 		String repoResourceOid = ResourceObjectShadowUtil.getResourceOid(repoShadow.asObjectable());
 		assertNotNull("No resource OID in the repository shadow "+repoShadow);
@@ -429,22 +430,22 @@ public class IntegrationTestTools {
 		try {
         	repositoryService.getObject(ResourceType.class, resourceOid, null, parentResult);
 		} catch (Exception e) {
-			AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+shadow+
+			AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+shadowType+
 					": "+e.getCause()+": "+e.getMessage());
 		}
 		
 		if (checker != null) {
-        	checker.check(shadow);
+        	checker.check(shadowType);
         }
 	}
 	
 	/**
 	 * Checks i there is only a single shadow in repo for this account.
 	 */
-	private static void checkShadowUniqueness(AccountShadowType resourceShadow, ResourceType resourceType, 
-			RepositoryService repositoryService, PrismContext prismContext, OperationResult parentResult) {
+	private static void checkShadowUniqueness(AccountShadowType resourceShadow, RepositoryService repositoryService, 
+			PrismContext prismContext, OperationResult parentResult) {
 		try {
-			QueryType query = createShadowQuery(resourceShadow, resourceType, prismContext, parentResult);
+			QueryType query = createShadowQuery(resourceShadow, prismContext);
 			List<PrismObject<AccountShadowType>> results = repositoryService.searchObjects(AccountShadowType.class, query, null, parentResult);
 			LOGGER.trace("Shadow check with filter\n{}\n found {} objects", DOMUtil.serializeDOMToString(query.getFilter()), results.size());
 			if (results.size() == 0) {
@@ -466,8 +467,7 @@ public class IntegrationTestTools {
 		}
 	}
 
-	private static QueryType createShadowQuery(AccountShadowType resourceShadow,
-			ResourceType resourceType, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+	private static QueryType createShadowQuery(AccountShadowType resourceShadow, PrismContext prismContext) throws SchemaException {
 		
 		XPathHolder xpath = new XPathHolder(AccountShadowType.F_ATTRIBUTES);
 		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
@@ -478,9 +478,13 @@ public class IntegrationTestTools {
 		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(identifier, doc);
 		try {
 			filter = QueryUtil.createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
-					SchemaConstants.I_RESOURCE_REF, resourceShadow.getResourceRef().getOid()), QueryUtil
-					.createEqualFilterFromElements(doc, xpath, identifierElements, resourceShadow
-							.asPrismObject().getPrismContext()));
+					SchemaConstants.I_RESOURCE_REF, resourceShadow.getResourceRef().getOid()),
+					QueryUtil.createEqualFilterFromElements(doc, xpath, identifierElements, 
+							resourceShadow.asPrismObject().getPrismContext()));
+
+//			filter = QueryUtil.createEqualFilterFromElements(doc, xpath, identifierElements, 
+//					resourceShadow.asPrismObject().getPrismContext());
+
 		} catch (SchemaException e) {
 			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
 		}

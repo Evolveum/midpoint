@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -137,6 +138,12 @@ public class RecomputeTaskHandler implements TaskHandler {
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
+		} catch (PolicyViolationException ex) {
+			LOGGER.error("Recompute: Policy violation: {}",ex.getMessage(),ex);
+			opResult.recordFatalError("Policy violation: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
 		} catch (ExpressionEvaluationException ex) {
 			LOGGER.error("Recompute: Error evaluating expression: {}",ex.getMessage(),ex);
 			opResult.recordFatalError("Error evaluating expression: "+ex.getMessage(),ex);
@@ -172,9 +179,10 @@ public class RecomputeTaskHandler implements TaskHandler {
 
 	/**
 	 * Iterate over all the users, trigger a recompute of each of them
-	 * @throws ConfigurationException 
 	 */
-	private void performUserRecompute(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, ConfigurationException {
+	private void performUserRecompute(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, 
+			ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, ConfigurationException, 
+			PolicyViolationException {
 		
 		PagingType paging = new PagingType();
 		
@@ -198,7 +206,9 @@ public class RecomputeTaskHandler implements TaskHandler {
 		
 	}
 
-	private void recomputeUser(PrismObject<UserType> user, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, ConfigurationException {
+	private void recomputeUser(PrismObject<UserType> user, OperationResult result) throws SchemaException, 
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
+			ConfigurationException, PolicyViolationException {
 		LOGGER.trace("Reconciling user {}", user);
 		
 		SyncContext syncContext = new SyncContext(prismContext);

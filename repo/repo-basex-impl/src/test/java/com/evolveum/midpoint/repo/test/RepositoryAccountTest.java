@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.repo.test;
 
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -31,6 +32,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,8 +47,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3._2001._04.xmlenc.EncryptedDataType;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -56,8 +61,12 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.util.XmlAsserts;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -70,6 +79,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * 
@@ -185,6 +195,91 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 				// ignore errors during cleanup
 			}
 		}
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testAccountSearch() throws Exception {
+		System.out.println("===[ testAccountSearch ]===");
+		final String accountOid = "dbb0c37d-9ee6-44a4-8d39-016dbce18b4c";
+		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
+		try {
+			// add resource
+			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
+					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"));
+			PrismProperty<?> namespaceProp = resource.findProperty(ResourceType.F_NAMESPACE);
+			System.out.println("Names   pace property:");
+			System.out.println(namespaceProp.dump());
+			repositoryService.addObject(resource, new OperationResult("test"));
+			PrismObject<ResourceType> retrievedResource = repositoryService.getObject(ResourceType.class, resourceOid,
+					new PropertyReferenceListType(), new OperationResult("test"));
+			assertEquals(resource.getOid(), retrievedResource.getOid());
+
+			// add account
+			PrismObject<AccountShadowType> accountShadow = PrismTestUtil.parseObject(new File(
+					"src/test/resources/account.xml"));
+			accountShadow.setName(accountShadow.getDefinition().getName());
+			
+			repositoryService.addObject(accountShadow, new OperationResult("test"));
+
+			QueryType query = createShadowQuery(accountShadow.asObjectable());
+			LOGGER.debug("Query:\n{}", DOMUtil.serializeDOMToString(query.getFilter()));
+			
+			List<PrismObject<AccountShadowType>> results = repositoryService.searchObjects(AccountShadowType.class, query, null, new OperationResult("test"));
+
+			assertNotNull("Null results", results);
+			assertFalse("Empty results", results.isEmpty());
+			for (PrismObject<AccountShadowType> result: results) {
+				LOGGER.debug("Search result:\n{}", result.dump());
+			}
+			
+			// delete object
+			repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult("test"));
+			try {
+				repositoryService.getObject(AccountShadowType.class, accountOid,
+						new PropertyReferenceListType(), new OperationResult("test"));
+				Assert.fail("Object with oid " + accountOid + " was not deleted");
+			} catch (ObjectNotFoundException ex) {
+				// ignore
+			}
+		} finally {
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult(
+						"test"));
+			} catch (Exception e) {
+				// ignore errors during cleanup
+			}
+			try {
+				repositoryService.deleteObject(ResourceType.class, resourceOid, new OperationResult("test"));
+			} catch (Exception e) {
+				// ignore errors during cleanup
+			}
+		}
+	}
+	
+	private static QueryType createShadowQuery(AccountShadowType resourceShadow) throws SchemaException {
+		
+		XPathHolder xpath = new XPathHolder(AccountShadowType.F_ATTRIBUTES);
+		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
+		PrismProperty<String> identifier = attributesContainer.findProperty(SchemaTestConstants.ICFS_UID);
+
+		Document doc = DOMUtil.getDocument();
+		Element filter;
+		List<Element> identifierElements = PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeItemToDom(identifier, doc);
+		try {
+			filter = QueryUtil.createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
+					SchemaConstants.I_RESOURCE_REF, resourceShadow.getResourceRef().getOid()), QueryUtil
+					.createEqualFilterFromElements(doc, xpath, identifierElements, resourceShadow
+							.asPrismObject().getPrismContext()));
+		} catch (SchemaException e) {
+			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
+		}
+
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+
+		return query;
+		
 	}
 
 	@Test

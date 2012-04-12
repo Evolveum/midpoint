@@ -19,13 +19,18 @@
 <!-- Portions Copyrighted 2011 lazyman                       -->
 <!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-55555555bbbb"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-    <name>Beta</name>    
+<role oid="12345678-d34d-b33f-f00d-121212121111"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+    <name>Judge</name>    
     <assignment>
     	<accountConstruction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
-            <type>default</type>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     	</accountConstruction>
-    </assignment>    
+    </assignment>
+    <exclusion>
+    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
+    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+    	<policy>enforce</policy>
+    </exclusion>
 </role>

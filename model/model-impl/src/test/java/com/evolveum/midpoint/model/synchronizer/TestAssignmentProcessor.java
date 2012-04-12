@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -85,7 +86,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
      * resulting changes are also empty.
      */
     @Test
-    public void test001OutboundEmpty() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+    public void test001OutboundEmpty() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
         displayTestTile(this, "test001OutboundEmpty");
 
         // GIVEN
@@ -107,7 +108,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test011AddAssignmentAddAccountDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException {
+    public void test011AddAssignmentAddAccountDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
         displayTestTile(this, "test011AddAssignmentAddAccountDirect");
 
         // GIVEN
@@ -163,7 +164,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test012AddAssignmentAddAccountDirectWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException {
+    public void test012AddAssignmentAddAccountDirectWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
         displayTestTile(this, "test012AddAssignmentAddAccountDirectWithAttrs");
 
         // GIVEN
@@ -236,7 +237,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test021AddAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException {
+    public void test021AddAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
         displayTestTile(this, "test021AddAssignmentModifyAccount");
 
         // GIVEN
@@ -310,7 +311,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
 
     @Test
-    public void test031DeleteAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException {
+    public void test031DeleteAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
         displayTestTile(this, "test031DeleteAssignmentModifyAccount");
 
         // GIVEN

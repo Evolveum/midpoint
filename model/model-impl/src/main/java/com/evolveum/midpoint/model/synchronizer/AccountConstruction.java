@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionTyp
  */
 public class AccountConstruction implements DebugDumpable, Dumpable {
 
-	private List<AssignmentType> assignments;
+	private AssignmentPath assignmentPath;
 	private AccountConstructionType accountConstructionType;
 	private ObjectType source;
 	private PrismObject<UserType> user;
@@ -75,7 +75,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	public AccountConstruction(AccountConstructionType accountConstructionType, ObjectType source) {
 		this.accountConstructionType = accountConstructionType;
 		this.source = source;
-		this.assignments = new ArrayList<AssignmentType>();
+		this.assignmentPath = null;
 		this.attributeConstructions = null;
 	}
 
@@ -122,14 +122,14 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		return attributeConstructions;
 	}
 
-	public void addAssignment(AssignmentType assignment) {
-		assignments.add(assignment);
+	public AssignmentPath getAssignmentPath() {
+		return assignmentPath;
 	}
 
-	public void addAssignments(List<AssignmentType> assignmentPath) {
-		assignments.addAll(assignmentPath);
+	public void setAssignmentPath(AssignmentPath assignmentPath) {
+		this.assignmentPath = assignmentPath;
 	}
-	
+
 	public ResourceType getResource(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (resource == null) {
 			if (accountConstructionType.getResource() != null) {
@@ -203,8 +203,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 				"for attribute " + DebugUtil.prettyPrint(attrName)  + " in "+source);
 		attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
 		attributeConstruction.setRootNode(user);
-		if (!assignments.isEmpty()) {
-			AssignmentType assignmentType = assignments.get(0);
+		if (!assignmentPath.isEmpty()) {
+			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
 			attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentType.asPrismContainerValue());
 		}
 		// TODO: other variables ?
@@ -220,7 +220,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((assignments == null) ? 0 : assignments.hashCode());
+		result = prime * result + ((assignmentPath == null) ? 0 : assignmentPath.hashCode());
 		result = prime * result + ((attributeConstructions == null) ? 0 : attributeConstructions.hashCode());
 		result = prime * result
 				+ ((refinedAccountDefinition == null) ? 0 : refinedAccountDefinition.hashCode());
@@ -238,10 +238,10 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (getClass() != obj.getClass())
 			return false;
 		AccountConstruction other = (AccountConstruction) obj;
-		if (assignments == null) {
-			if (other.assignments != null)
+		if (assignmentPath == null) {
+			if (other.assignmentPath != null)
 				return false;
-		} else if (!assignments.equals(other.assignments))
+		} else if (!assignmentPath.equals(other.assignmentPath))
 			return false;
 		if (attributeConstructions == null) {
 			if (other.attributeConstructions != null)

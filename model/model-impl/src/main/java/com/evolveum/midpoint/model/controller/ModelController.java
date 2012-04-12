@@ -50,6 +50,7 @@ import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
@@ -285,7 +286,7 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
-			ExpressionEvaluationException, CommunicationException, ConfigurationException {
+			ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
@@ -649,7 +650,7 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-			CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException {
 
 		Validate.notNull(modifications, "Object modification must not be null.");
 		Validate.notEmpty(oid, "Change oid must not be null or empty.");
@@ -846,7 +847,7 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
-			CommunicationException, SchemaException, ConfigurationException {
+			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException {
 		Validate.notNull(clazz, "Class must not be null.");
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");

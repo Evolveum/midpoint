@@ -107,46 +107,50 @@ public class AssignmentEvaluator {
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignmentType);
 		Assignment assignment = new Assignment();
-		List<AssignmentType> assignmentPath = new ArrayList<AssignmentType>();
+		AssignmentPath assignmentPath = new AssignmentPath();
+		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentType, null);
 		
-		evaluateAssignment(assignment,assignmentType, source, assignmentPath, result);
-		
+		evaluateAssignment(assignment, assignmentPathSegment, source, assignmentPath, result);
 		
 		return assignment;
 	}
 	
-	private void evaluateAssignment(Assignment assignment, AssignmentType assignmentType, ObjectType source, 
-			List<AssignmentType> assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private void evaluateAssignment(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, 
+			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		
-		assignmentPath.add(assignmentType);
+		assignmentPath.add(assignmentPathSegment);
+		
+		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
 		
 		if (assignmentType.getAccountConstruction()!=null) {
 			
-			evaluateConstruction(assignment,assignmentType, source, assignmentPath, result);
+			evaluateConstruction(assignment, assignmentPathSegment, source, assignmentPath, result);
 			
 		} else if (assignmentType.getTarget() != null) {
 			
-			evaluateTarget(assignment,assignmentType.getTarget(), source, assignmentPath, result);
+			evaluateTarget(assignment, assignmentPathSegment, assignmentType.getTarget(), source, assignmentPath, result);
 			
 		} else if (assignmentType.getTargetRef() != null) {
 			
-			evaluateTargetRef(assignment,assignmentType.getTargetRef(), source, assignmentPath, result);
+			evaluateTargetRef(assignment, assignmentPathSegment, assignmentType.getTargetRef(), source, assignmentPath, result);
 
 		} else {
 			throw new SchemaException("No target or accountConstrucion in assignment in "+ObjectTypeUtil.toShortString(source));
 		}
 		
-		assignmentPath.remove(assignmentType);
+		assignmentPath.remove(assignmentPathSegment);
 	}
 
-	private void evaluateConstruction(Assignment assignment, AssignmentType assignmentType, ObjectType source, 
-			List<AssignmentType> assignmentPath, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private void evaluateConstruction(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, 
+			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, assignment);
 		
+		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
 		AccountConstruction accContruction = new AccountConstruction(assignmentType.getAccountConstruction(),
 				source);
-		accContruction.addAssignments(assignmentPath);
+		// We have to clone here as the path is constantly changing during evaluation
+		accContruction.setAssignmentPath(assignmentPath.clone());
 		accContruction.setUser(user);		
 		accContruction.setObjectResolver(objectResolver);
 		accContruction.setPrismContext(prismContext);
@@ -157,8 +161,8 @@ public class AssignmentEvaluator {
 		assignment.addAccountConstruction(accContruction);
 	}
 
-	private void evaluateTargetRef(Assignment assignment, ObjectReferenceType targetRef, ObjectType source,
-			List<AssignmentType> assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private void evaluateTargetRef(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectReferenceType targetRef, ObjectType source,
+			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		
 		String oid = targetRef.getOid();
@@ -185,25 +189,27 @@ public class AssignmentEvaluator {
 			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+ObjectTypeUtil.toShortString(source),ex);
 		}
 		
-		evaluateTarget(assignment, target.asObjectable(), source, assignmentPath, result);
+		evaluateTarget(assignment, assignmentPathSegment, target.asObjectable(), source, assignmentPath, result);
 	}
 
 
-	private void evaluateTarget(Assignment assignment, ObjectType target, ObjectType source, 
-			List<AssignmentType> assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private void evaluateTarget(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType target, ObjectType source, 
+			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
+		assignmentPathSegment.setTarget(target);
 		if (target instanceof RoleType) {
-			evaluateRole(assignment, (RoleType)target, source, assignmentPath, result);
+			evaluateRole(assignment, assignmentPathSegment, (RoleType)target, source, assignmentPath, result);
 		} else {
 			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(target)+" in "+ObjectTypeUtil.toShortString(source));
 		}
 	}
 
-	private void evaluateRole(Assignment assignment, RoleType role, ObjectType source,
-			List<AssignmentType> assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private void evaluateRole(Assignment assignment, AssignmentPathSegment assignmentPathSegment, RoleType role, ObjectType source,
+			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		for (AssignmentType roleAssignment : role.getAssignment()) {
-			evaluateAssignment(assignment, roleAssignment, role, assignmentPath, result);
+			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleAssignment, null);
+			evaluateAssignment(assignment, roleAssignmentPathSegment, role, assignmentPath, result);
 		}
 	}
 

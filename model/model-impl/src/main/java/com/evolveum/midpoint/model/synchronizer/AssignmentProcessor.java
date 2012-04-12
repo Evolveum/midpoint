@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -45,7 +46,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExclusionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +82,7 @@ public class AssignmentProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
     public void processAssignmentsAccounts(SyncContext context, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException {
+            ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
         if (accountSynchronizationSettings != null) {
@@ -132,7 +136,9 @@ public class AssignmentProcessor {
             source = context.getUserNew().asObjectable();
         }
         
-        Collection<AssignmentType> newAssignments = new HashSet<AssignmentType>();
+        Collection<Assignment> evaluatedAssignmentsZero = new ArrayList<Assignment>();
+        Collection<Assignment> evaluatedAssignmentsPlus = new ArrayList<Assignment>();
+        
         Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
         for (PrismContainerValue<AssignmentType> propertyValue : allAssignments) {
             AssignmentType assignmentType = propertyValue.asContainerable();
@@ -153,6 +159,7 @@ public class AssignmentProcessor {
 
                 if (assignmentDelta.isValueToAdd(propertyValue)) {
                     collectToAccountMap(plusAccountMap, evaluatedAssignment, result);
+                    evaluatedAssignmentsPlus.add(evaluatedAssignment);
                 }
                 if (assignmentDelta.isValueToDelete(propertyValue)) {
                     collectToAccountMap(minusAccountMap, evaluatedAssignment, result);
@@ -161,9 +168,12 @@ public class AssignmentProcessor {
             } else {
                 // No change in assignment
                 collectToAccountMap(zeroAccountMap, evaluatedAssignment, result);
-                newAssignments.add(assignmentType);
+                evaluatedAssignmentsZero.add(evaluatedAssignment);
             }
         }
+        
+        checkExclusions(context, evaluatedAssignmentsZero, evaluatedAssignmentsPlus);
+        checkExclusions(context, evaluatedAssignmentsPlus, evaluatedAssignmentsPlus);
         
         if (LOGGER.isTraceEnabled()) {
             // Dump the maps
@@ -223,7 +233,7 @@ public class AssignmentProcessor {
         
     }
     
-    public void processAssignmentsAccountValues(AccountSyncContext accountContext, OperationResult result) throws SchemaException,
+	public void processAssignmentsAccountValues(AccountSyncContext accountContext, OperationResult result) throws SchemaException,
 		ObjectNotFoundException, ExpressionEvaluationException {
             
     	DeltaSetTriple<AccountConstruction> accountDeltaSetTriple = accountContext.getAccountConstructionDeltaSetTriple();
@@ -305,5 +315,61 @@ public class AssignmentProcessor {
         }
         return attrMap;
     }
+
+	private void checkExclusions(SyncContext context, Collection<Assignment> assignmentsA,
+			Collection<Assignment> assignmentsB) throws PolicyViolationException {
+		for (Assignment assignmentA: assignmentsA) {
+			checkExclusion(context, assignmentA, assignmentsB);
+		}
+	}
+
+	private void checkExclusion(SyncContext context, Assignment assignmentA,
+			Collection<Assignment> assignmentsB) throws PolicyViolationException {
+		for (Assignment assignmentB: assignmentsB) {
+			checkExclusion(context, assignmentA, assignmentB);
+		}
+	}
+
+	private void checkExclusion(SyncContext context, Assignment assignmentA, Assignment assignmentB) throws PolicyViolationException {
+		if (assignmentA == assignmentB) {
+			// Same thing, this cannot exclude itself
+			return;
+		}
+		for(AccountConstruction constructionA: assignmentA.getAccountConstructions()) {
+			for(AccountConstruction constructionB: assignmentB.getAccountConstructions()) {
+				checkExclusion(constructionA, assignmentA, constructionB, assignmentB);
+			}
+		}
+	}
+
+	private void checkExclusion(AccountConstruction constructionA, Assignment assignmentA,
+			AccountConstruction constructionB, Assignment assignmentB) throws PolicyViolationException {
+		AssignmentPath pathA = constructionA.getAssignmentPath();
+		AssignmentPath pathB = constructionB.getAssignmentPath();
+		for (AssignmentPathSegment segmentA: pathA.getSegments()) {
+			if (segmentA.getTarget() != null && segmentA.getTarget() instanceof RoleType) {
+				for (AssignmentPathSegment segmentB: pathB.getSegments()) {
+					if (segmentB.getTarget() != null && segmentB.getTarget() instanceof RoleType) {
+						checkExclusion((RoleType)segmentA.getTarget(), (RoleType)segmentB.getTarget());
+					}
+				}
+			}
+		}
+	}
+
+	private void checkExclusion(RoleType roleA, RoleType roleB) throws PolicyViolationException {
+		checkExclusionOneWay(roleA, roleB);
+		checkExclusionOneWay(roleB, roleA);
+	}
+
+	private void checkExclusionOneWay(RoleType roleA, RoleType roleB) throws PolicyViolationException {
+		for (ExclusionType exclusionA :roleA.getExclusion()) {
+			ObjectReferenceType targetRef = exclusionA.getTargetRef();
+			if (roleB.getOid().equals(targetRef.getOid())) {
+				throw new PolicyViolationException("Violation of SoG policy: "+roleA+" excludes "+roleB+
+						", they cannot be assigned at the same time");
+			}
+		}
+	}
 
 }

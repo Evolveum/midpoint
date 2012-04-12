@@ -31,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -82,7 +83,8 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test001CreateSystemConfiguration() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException {
+	public void test001CreateSystemConfiguration() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException {
 		displayTestTile("test001CreateSystemConfiguration");
 		
 		// GIVEN
@@ -107,7 +109,8 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test002AddModelSubsystemLogger() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException {
+	public void test002AddModelSubsystemLogger() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, 
+			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException {
 		displayTestTile("test002AddModelSubsystemLogger");
 		
 		// GIVEN

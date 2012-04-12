@@ -969,7 +969,7 @@ public class TestSanity extends AbstractIntegrationTest {
     }
 
     @Test
-    public void test015AccountOwner() throws FaultMessage, ObjectNotFoundException, SchemaException {
+    public void test015AccountOwner() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException {
         displayTestTile("test015AccountOwner");
 
         // GIVEN
@@ -985,6 +985,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // THEN
 
+        display("listAccountShadowOwner result", resultHolder.value);
         assertSuccess("listAccountShadowOwner has failed (result)", resultHolder.value);
         UserType user = userHolder.value;
         assertNotNull("No owner", user);

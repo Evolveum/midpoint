@@ -19,13 +19,13 @@
 <!-- Portions Copyrighted 2011 lazyman                       -->
 <!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-55555555bbbb"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-    <name>Beta</name>    
+<role oid="12345678-d34d-b33f-f00d-555555556666"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+    <name>Pirate</name>    
     <assignment>
     	<accountConstruction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
-            <type>default</type>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     	</accountConstruction>
     </assignment>    
 </role>

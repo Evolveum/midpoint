@@ -208,21 +208,28 @@ public class ChangeExecutor {
         cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
     }
 
-    public <T extends ObjectType> void executeChange(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,
+    public <T extends ObjectType> void executeChange(ObjectDelta<T> objectDelta, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-
-        if (change == null) {
+    	
+        if (objectDelta == null) {
             throw new IllegalArgumentException("Null change");
         }
 
-        if (change.getChangeType() == ChangeType.ADD) {
-            executeAddition(change, result);
+    	if (LOGGER.isTraceEnabled()) {
+    		LOGGER.trace("\n---[ EXECUTE delta of {} {} ]---------------------\n{}" +
+    				"\n--------------------------------------------------", new Object[]{
+    				objectDelta.getObjectTypeClass().getSimpleName(), objectDelta.getOid(),
+    				objectDelta.dump()});
+    	}
 
-        } else if (change.getChangeType() == ChangeType.MODIFY) {
-            executeModification(change, result);
+        if (objectDelta.getChangeType() == ChangeType.ADD) {
+            executeAddition(objectDelta, result);
 
-        } else if (change.getChangeType() == ChangeType.DELETE) {
-            executeDeletion(change, result);
+        } else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
+            executeModification(objectDelta, result);
+
+        } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
+            executeDeletion(objectDelta, result);
         }
     }
 

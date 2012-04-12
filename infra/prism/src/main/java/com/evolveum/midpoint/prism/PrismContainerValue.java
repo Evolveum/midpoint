@@ -206,7 +206,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	public T asContainerable() {
 		PrismContainerable parent = getParent();
 		if (parent == null) {
-			throw new IllegalStateException("Cannot represent container value witout a parent as containerable");
+			throw new IllegalStateException("Cannot represent container value witout a parent as containerable; value: "+this);
 		}
         Class<T> clazz = parent.getCompileTimeClass();
         if (clazz == null) {

@@ -41,6 +41,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -117,7 +118,8 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectRepo() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException,
-			ConsistencyViolationException, CommunicationException, FileNotFoundException, ConfigurationException {
+			ConsistencyViolationException, CommunicationException, FileNotFoundException, ConfigurationException, 
+			PolicyViolationException {
 		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
 				"delete-user.xml"), UserType.class);
 
@@ -137,7 +139,8 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
-			SchemaException, CommunicationException, ConsistencyViolationException, FileNotFoundException, ConfigurationException {
+			SchemaException, CommunicationException, ConsistencyViolationException, FileNotFoundException, ConfigurationException, 
+			PolicyViolationException {
 		final ResourceType expectedResource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON,
 				"resource-opendj.xml"), ResourceType.class);
 

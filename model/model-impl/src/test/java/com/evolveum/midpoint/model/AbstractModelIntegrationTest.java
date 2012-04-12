@@ -29,6 +29,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
@@ -44,11 +45,18 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -64,15 +72,21 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -104,7 +118,13 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	protected static final String ROLE_BETA_FILENAME = COMMON_DIR_NAME + "/role-beta.xml";
 	protected static final String ROLE_BETA_OID = "12345678-d34d-b33f-f00d-55555555bbbb";
+	
+	protected static final String ROLE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-pirate.xml";
+	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
 
+	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
+	protected static final String ROLE_JUDGE_OID = "12345678-d34d-b33f-f00d-121212121111";
+	
 	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
@@ -121,6 +141,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	@Autowired(required = true)
 	protected RepositoryService repositoryService;
+	
+	@Autowired(required = true)
+	protected PrismContext prismContext;
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 	
@@ -166,6 +189,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		// Accounts
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, initResult);
 		
+		// Roles
+		addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
+		addObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
 
 	}
 	
@@ -280,6 +306,42 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 			}
 		}
 		assertTrue("User "+userOid+" has not linked to account "+accountOid, found);
+	}
+	
+	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+	PolicyViolationException {
+		modifyUserRoleAssignment(userOid, roleOid, task, true, result);
+	}
+	
+	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+	PolicyViolationException {
+		modifyUserRoleAssignment(userOid, roleOid, task, false, result);
+	}
+	
+	protected void modifyUserRoleAssignment(String userOid, String roleOid, Task task, boolean add, OperationResult result) 
+			throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException {
+		
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
+		if (add) {
+			assignmentDelta.addValueToAdd(cval);
+		} else {
+			assignmentDelta.addValueToDelete(cval);
+		}
+		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
+		targetRef.getValue().setOid(roleOid);
+		targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);
+		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>();
+		((Collection)modifications).add(assignmentDelta);
+		modelService.modifyObject(UserType.class, userOid, modifications , task, result);
+	}
+
+	private PrismObjectDefinition<UserType> getUserDefinition() {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 }
