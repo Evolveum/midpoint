@@ -27,24 +27,28 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.accordion.AccordionListView;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.objectform.ContainerStatus;
 import com.evolveum.midpoint.web.component.objectform.ContainerWrapper;
-import com.evolveum.midpoint.web.component.objectform.PrismFormPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
@@ -146,11 +150,6 @@ public class PageUser extends PageAdminUsers {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        PrismObjectPanel test = new PrismObjectPanel("test", loadTestWrapper(), null);
-        mainForm.add(test);
-
-//        PrismFormPanel userForm = new PrismFormPanel("userForm", model);
-//        mainForm.add(userForm);
         PrismObjectPanel userForm = new PrismObjectPanel("userForm", loadTestWrapper(), null);
         mainForm.add(userForm);
 
@@ -175,42 +174,53 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void initAccounts(AccordionItem accounts) {
-        AccordionListView<ContainerWrapper> accountsAccordion = new AccordionListView<ContainerWrapper>(
-                "accountsAccordion", createAccountsModel()) {
+        ListView<ObjectWrapper> accountList = new ListView<ObjectWrapper>("accountList",
+                createAccountsModel()) {
 
             @Override
-            protected Component createPanelBody(String componentId, IModel<ContainerWrapper> itemModel) {
-                PrismObjectPanel acc = new PrismObjectPanel(componentId, loadTestWrapper(), null);
-                acc.setShowHeader(false);
-
-                return acc;
-            }
-
-            @Override
-            protected IModel<String> createHeaderLabel(IModel<ContainerWrapper> itemModel) {
-                return new Model<String>("asdf");
+            protected void populateItem(ListItem<ObjectWrapper> item) {
+                item.add(new PrismObjectPanel("account", loadTestWrapper(), null));
             }
         };
-        accountsAccordion.setMultipleSelect(true);
-        accounts.getBodyContainer().add(accountsAccordion);
+
+        accounts.getBodyContainer().add(accountList);
     }
 
-    private IModel<List<ContainerWrapper>> createAccountsModel() {
-        return new LoadableModel<List<ContainerWrapper>>(false) {
+    private IModel<List<ObjectWrapper>> createAccountsModel() {
+        return new LoadableModel<List<ObjectWrapper>>(false) {
 
             @Override
-            protected List<ContainerWrapper> load() {
-                List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
-                list.add(model.getObject());
-                list.add(model.getObject());
+            protected List<ObjectWrapper> load() {
+                List<ObjectWrapper> list = new ArrayList<ObjectWrapper>();
+                //todo implement
+                list.add(null);
+                list.add(null);
 
                 return list;
             }
         };
     }
 
+    private IModel<List> createRolesList() {
+        return new LoadableModel<List>(false) {
+
+            @Override
+            protected List load() {
+                return null;  //todo implement
+            }
+        };
+    }
+
     private void initRoles(AccordionItem roles) {
-        //todo implement
+        List<IColumn> columns = new ArrayList<IColumn>();
+        columns.add(new CheckBoxHeaderColumn());
+        columns.add(new PropertyColumn(createStringResource("pageUser.role.name"), "name", "name"));
+
+        ISortableDataProvider provider = new ListDataProvider(createRolesList());
+        TablePanel roleTable = new TablePanel("roleTable", provider, columns);
+        roleTable.setShowPaging(false);
+
+        roles.getBodyContainer().add(roleTable);
     }
 
     private void initAssignments(AccordionItem assignments) {

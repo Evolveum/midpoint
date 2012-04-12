@@ -19,41 +19,57 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration.dto;
+package com.evolveum.midpoint.web.component.util;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author lazyman
  */
-public class AppenderProvider extends SortableDataProvider<AppenderConfiguration> {
+public class ListDataProvider<T extends Serializable> extends SortableDataProvider<T> {
 
-    private IModel<LoggingDto> logging;
+    private IModel<List<T>> model;
 
-    public AppenderProvider(IModel<LoggingDto> logging) {
-        Validate.notNull(logging, "Logging dto model must not be null.");
-        this.logging = logging;
+    public ListDataProvider(IModel<List<T>> model) {
+        Validate.notNull(model);
+        this.model = model;
     }
 
     @Override
-    public Iterator<? extends AppenderConfiguration> iterator(int first, int count) {
-        LoggingDto dto = logging.getObject();
-        return dto.getAppenders().iterator();
+    public Iterator<? extends T> iterator(int first, int count) {
+        List<T> list = model.getObject();
+        if (list == null || list.isEmpty()) {
+            return new ArrayList<T>().iterator();
+        }
+
+        List<T> out = new ArrayList<T>();
+        for (int i = first; i < first + count; i++) {
+            out.add(list.get(i));
+        }
+
+        return out.iterator();
     }
 
     @Override
     public int size() {
-        LoggingDto dto = logging.getObject();
-        return dto.getAppenders().size();
+        List<T> list = model.getObject();
+        if (list == null) {
+            return 0;
+        }
+
+        return list.size();
     }
 
     @Override
-    public IModel<AppenderConfiguration> model(AppenderConfiguration object) {
-        return new Model<AppenderConfiguration>(object);
+    public IModel<T> model(T object) {
+        return new Model<T>(object);
     }
 }

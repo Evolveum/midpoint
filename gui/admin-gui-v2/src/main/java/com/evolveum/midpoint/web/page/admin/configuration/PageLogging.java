@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -157,7 +159,9 @@ public class PageLogging extends PageAdminConfiguration {
             }
         });
 
-        TablePanel table = new TablePanel<LoggerConfiguration>("loggersTable", new LoggerProvider(model), columns);
+        ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(
+                new PropertyModel<List<LoggerConfiguration>>(model, "loggers"));
+        TablePanel table = new TablePanel<LoggerConfiguration>("loggersTable", provider, columns);
         table.setShowPaging(false);
         table.setTableCssClass("autowidth");
         loggers.getBodyContainer().add(table);
@@ -244,7 +248,9 @@ public class PageLogging extends PageAdminConfiguration {
         columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.maxFileSize"), "maxFileSize"));
         columns.add(new CheckBoxColumn(createStringResource("pageLogging.appenders.appending"), "appending"));
 
-        TablePanel table = new TablePanel<AppenderConfiguration>("appendersTable", new AppenderProvider(model), columns);
+        ISortableDataProvider<AppenderConfiguration> provider = new ListDataProvider<AppenderConfiguration>(
+                new PropertyModel<List<AppenderConfiguration>>(model, "appenders"));
+        TablePanel table = new TablePanel<AppenderConfiguration>("appendersTable", provider, columns);
         table.setShowPaging(false);
         appenders.getBodyContainer().add(table);
 

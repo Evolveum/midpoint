@@ -37,20 +37,23 @@
                     <td style="vertical-align: top;">
                         <div wicket:id="accordion">
                             <li wicket:id="accounts">
-                                <div wicket:id="accountsAccordion" />
+                                <div wicket:id="accountList">
+                                    <div wicket:id="account" />
+                                </div>
                             </li>
-                            <li wicket:id="roles">asdf</li>
-                            <li wicket:id="assignments">asdf</li>
+                            <li wicket:id="roles">
+                                <div wicket:id="roleTable" />
+                            </li>
+                            <li wicket:id="assignments">
+                                <!--<div wicket:id="assignmentTable" />-->
+                            </li>
                         </div>
                     </td>
                 </tr>
             </table>
 
-            <hr/>
-
-            <div wicket:id="test"/>
-
-            <table width="100%">
+            <!-- todo remove table -->
+            <table width="100%" style="display:none;">
             	<tr>
             		<td style="width: 620px; vertical-align: top;">
 
