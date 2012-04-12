@@ -174,7 +174,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Here we only test setting various task properties.
      */
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test003GetProgress() throws Exception {
 
         String test = "003GetProgress";
@@ -376,7 +376,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this
         // task
         LOGGER.trace("Waiting for task manager to pick up the task");
-        Thread.sleep(3000);
+        Thread.sleep(4000);
         LOGGER.trace("... done");
 
         // Check task status
@@ -605,7 +605,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // Check whether there are really 2 handlers
         AssertJUnit.assertEquals("There are not 2 task handlers", 2, task.getHandlersCount());
 
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 
         // Task manager should reject this task
         AssertJUnit.assertNull(task.getLastRunStartTimestamp());
@@ -613,7 +613,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue(task.getProgress() == 0);
 
         // Suspend the task (in order to keep logs clean), without much waiting
-        taskManager.suspendTask(task, 100, result);
+        //taskManager.suspendTask(task, 100, result);
 
     }
     
@@ -621,7 +621,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
      * Suspends a running task.
      */
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test012Suspend() throws Exception {
     	
     	String test = "012Suspend";
@@ -671,7 +671,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test013ReleaseAndSuspendLooselyBound() throws Exception {
     	
     	String test = "013ReleaseAndSuspendLooselyBound";
@@ -681,7 +681,12 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         
         Task task = taskManager.getTask(taskOid(test), result);
         System.out.println("After setup: " + task.dump());
-        
+
+        // check if we can read the extension (xsi:type issue)
+
+        PrismProperty delay = task.getExtension(NoOpTaskHandler.DELAY_QNAME);
+        AssertJUnit.assertEquals("Delay was not read correctly", 1000, delay.getRealValue());
+
         // let us resume (i.e. start the task)
         taskManager.resumeTask(task, result);
 
@@ -726,15 +731,14 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test014SuspendLongRunning() throws Exception {
 
     	String test = "014SuspendLongRunning";
     	OperationResult result = createResult(test);
     	
     	addObjectFromFile(taskFilename(test));
-        
-        
+
         Task task = taskManager.getTask(taskOid(test), result);
         System.out.println("After setup: " + task.dump());
         

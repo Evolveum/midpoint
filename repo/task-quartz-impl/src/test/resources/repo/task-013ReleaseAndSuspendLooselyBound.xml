@@ -25,6 +25,7 @@
 <task oid="91919191-76e0-59e2-86d6-556655660013"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
 	xmlns:noop="http://midpoint.evolveum.com/repo/noop-handler-1"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	
     <name>Testing task ... number 13</name>

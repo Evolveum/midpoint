@@ -87,18 +87,6 @@
                         </ice:selectOneListbox>
                     </ice:panelGrid>
 
-                    <ice:outputLabel value="Exclusivity status"/>
-                    <ice:outputText value="#{taskDetails.task.exclusivityStatus}"
-                                    rendered="#{not taskDetails.editMode}"/>
-                    <ice:panelGrid rendered="#{taskDetails.editMode}">
-                        <ice:selectOneListbox id="exclusivityStatus" partialSubmit="true"
-                                              value="#{taskDetails.task.exclusivityStatus}"
-                                              style="min-width: 157px; width: auto;">
-                            <f:selectItems id="exclusivityStatusSelected"
-                                           value="#{taskDetails.exclusivityStatus}"/>
-                        </ice:selectOneListbox>
-                    </ice:panelGrid>
-
                     <ice:outputLabel value="Binding style"/>
                     <ice:outputText value="#{taskDetails.task.binding}"
                                     rendered="#{not taskDetails.editMode}"/>
@@ -177,10 +165,6 @@
                             img="/resources/images/application_put.png" id="resumeTask"
                             rendered="#{not taskDetails.editMode}" immediate="true"
                             action="#{taskList.listFirst}" actionListener="#{taskDetails.resumeTaskPerformed}"/>
-                <idm:button value="Release claimed task"
-                            img="/resources/images/application_put.png" id="releaseTask"
-                            rendered="#{not taskDetails.editMode}" immediate="true"
-                            action="#{taskDetails.showPopup}" />
                 <idm:button value="Delete task"
                             img="/resources/images/application_delete.png" id="deleteTask"
                             rendered="#{not taskDetails.editMode}" immediate="true"

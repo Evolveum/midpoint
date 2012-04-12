@@ -106,15 +106,7 @@
 					</f:facet>
 					<ice:outputText value="#{item.executionStatus}" />
 				</ice:column>
-				<ice:column>
-					<f:facet name="header">
-						<ice:commandSortHeader columnName="exclusivity" arrow="true"
-							actionListener="#{taskList.sortList}">
-							<ice:outputText id="exclusivityTxt" value="Exclusivity" />
-						</ice:commandSortHeader>
-					</f:facet>
-					<ice:outputText value="#{item.exclusivityStatus}" />
-				</ice:column>
+
 				<ice:column>
 					<f:facet name="header">
 						<ice:commandSortHeader columnName="thread" arrow="true"
@@ -122,7 +114,7 @@
 							<ice:outputText id="threadTxt" value="Thread alive" />
 						</ice:commandSortHeader>
 					</f:facet>
-					<ice:outputText value="#{item.alive}" />
+					<ice:outputText value="#{item.aliveAsText}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
@@ -144,6 +136,8 @@
 				</ice:column>
 			</ice:dataTable>
 
+            <ice:outputText value="Scheduler thread running: " />
+            <ice:outputText value="#{taskList.activated}" />
 			<div class="button-bar">
 				<idm:button value="Deactivate all execution threads"
 					img="/resources/images/link_break.png"

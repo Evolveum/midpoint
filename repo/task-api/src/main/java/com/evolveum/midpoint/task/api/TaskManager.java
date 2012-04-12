@@ -77,7 +77,7 @@ public interface TaskManager {
 	/**
 	 * Creates task instance from the XML task representation.
 	 * 
-	 * @param taskType JAXB (XML) representation of the task
+	 * @param taskPrism JAXB (XML) representation of the task
 	 * @return new Java representation of the task
 	 * @throws SchemaException The provided taskType is not compliant to schema
 	 */
@@ -106,7 +106,7 @@ public interface TaskManager {
 	 * If there is not a result inside the task, it will create the
 	 * result with specified operation name.
 	 * 
-	 * @param taskType JAXB (XML) representation of the task
+	 * @param taskPrism Prism representation of the task
 	 * @param operationName operation name to use as a root for new result in task
 	 * @return new Java representation of the task
 	 * @throws SchemaException The provided taskType is not compliant to schema
@@ -148,10 +148,8 @@ public interface TaskManager {
 	 * the underlying schema of the storage system or the schema enforced by the
 	 * implementation.
 	 * 
-	 * @param object
+	 * @param taskPrism
 	 *            object to create
-	 * @param scripts
-	 *            scripts to execute before/after the operation
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return OID assigned to the created object
@@ -182,11 +180,11 @@ public interface TaskManager {
 	 * implementation.
 	 * 
 	 * TODO: optimistic locking
-	 * 
-	 * @param objectChange
+	 *
+     * @param oid
+     *            OID of the task to be changed
+	 * @param modifications
 	 *            specification of object changes
-	 * @param scripts
-	 *            scripts that should be executed before of after operation
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * 
@@ -353,12 +351,12 @@ public interface TaskManager {
 	 *  Suspending the threads may affect correct behavior of the system (such as timeouts on heartbeats). Use this feature
 	 *  only if you really know what you are doing.
 	 */
-	public void deactivateServiceThreads();
+	public boolean deactivateServiceThreads(long timeToWait);
 	
 	/**
 	 * Re-activate the service threads after they have been deactivated.
 	 */
-	public void reactivateServiceThreads();
+	public boolean reactivateServiceThreads();
 		
 	/**
 	 * Returns true if the service threads are running.
@@ -378,10 +376,10 @@ public interface TaskManager {
 	/**
 	 * Indicates whether execution thread for this task is active (i.e. whether it exists).
 	 * 
-	 * @param taskIdentifier
+	 * @param oid
 	 * @return
 	 */
-	public boolean isTaskThreadActive(String taskIdentifier);
+	public boolean isTaskThreadActive(String oid);
 
 	/**
 	 * This is a signal to task manager that a new task was created in the repository.
@@ -398,4 +396,7 @@ public interface TaskManager {
 	 * @param oid
 	 */
 	public void onTaskDelete(String oid);
+
+    // TODO
+    public Long getNextRunStartTime(String oid);
 }

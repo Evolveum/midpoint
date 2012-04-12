@@ -101,8 +101,8 @@ public class TaskQuartzImpl implements Task {
 
 	/**
 	 * Note: This constructor assumes that the task is transient.
-	 * @param taskType
-	 * @param repositoryService
+	 * @param taskManager
+	 * @param taskIdentifier
 	 */	
 	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier) {
 		this.taskManager = taskManager;
@@ -217,6 +217,8 @@ public class TaskQuartzImpl implements Task {
 	
 	public void addOrReplaceQuartzTask() {
 
+        LOGGER.trace("addOrReplaceQuartzTask for {}", this);
+
 		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(this);
 		JobDetail job = TaskQuartzImplUtil.createJobDetailForTask(this);
 		TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(this);
@@ -244,31 +246,39 @@ public class TaskQuartzImpl implements Task {
 
 			// if the job does not exist, create it (and schedule trigger at the same time, if there is any)
 			if (!quartzScheduler.checkExists(jobKey)) {
+
+                LOGGER.trace(" - Quartz job does not exist for {}", this);
 				
 				if (trigger != null) {
-					LOGGER.trace("Adding quartz job and trigger for task " + this);
+					LOGGER.trace(" - Adding quartz job and trigger for task " + this);
 					quartzScheduler.scheduleJob(job, trigger);
 				} else {
-					LOGGER.trace("Adding quartz job (without a trigger) for task " + this);
+					LOGGER.trace(" - Adding quartz job (without a trigger) for task " + this);
 					quartzScheduler.addJob(job, false);
 				}
 
 			} else {  // job exists
+
+                LOGGER.trace(" - Quartz job exists for {}", this);
 				
 				if (quartzScheduler.checkExists(triggerKey)) {
+
+                    LOGGER.trace(" - Quartz trigger exists for {}", this);
 					
 					if (trigger == null) {
-						LOGGER.trace("Removing existing quartz trigger for task " + this);
+						LOGGER.trace(" - Removing existing quartz trigger for task " + this);
 						quartzScheduler.unscheduleJob(triggerKey);
 					} else {
-						LOGGER.trace("Replacing quartz trigger for task " + this);
+						LOGGER.trace(" - Replacing quartz trigger for task " + this);
 						quartzScheduler.rescheduleJob(triggerKey, trigger);
 					}
 				
 				} else {
+
+                    LOGGER.trace(" - Quartz trigger does not exist for {}", this);
 					
 					if (trigger != null) {
-						LOGGER.trace("Adding quartz trigger for task " + this);
+						LOGGER.trace(" - Adding quartz trigger for task " + this);
 						quartzScheduler.scheduleJob(trigger);
 					}
 				}
@@ -621,7 +631,7 @@ public class TaskQuartzImpl implements Task {
 	}
 	
 
-	public void close() throws ObjectNotFoundException, SchemaException {
+	public void close() {
 		
 		setExecutionStatus(TaskExecutionStatus.CLOSED);
 		
@@ -1039,7 +1049,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public Long getNextRunStartTime() {
-		throw new UnsupportedOperationException("Task scheduling is managed by Quartz Scheduler.");
+		return taskManager.getNextRunStartTime(getOid());
 	}
 	
 	@Override

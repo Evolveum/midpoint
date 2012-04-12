@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.InterruptableJob;
 import org.quartz.JobExecutionContext;
@@ -55,6 +58,11 @@ public class JobExecutor implements InterruptableJob {
 			LoggingUtils.logException(LOGGER, "Task with OID {} could not be retrieved, exiting the execution routine.", e, oid);
 			return;
 		}
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING) {
+            LOGGER.warn("Task is not in RUNNING state (its state is {}), exiting its execution. Task = {}", task.getExecutionStatus(), task);
+            return;
+        }
 		
         executingThread = Thread.currentThread();
         
@@ -66,13 +74,15 @@ public class JobExecutor implements InterruptableJob {
 			TaskHandler handler = taskManagerImpl.getHandler(task.getHandlerUri());
 		
 			if (handler==null) {
-				LOGGER.error("No handler for URI {}, task {}",task.getHandlerUri(),task);
+				LOGGER.error("No handler for URI {}, task {} - closing it.",task.getHandlerUri(),task);
+                closeFlawedTask(task, executionResult);
 				throw new JobExecutionException("No handler for URI "+task.getHandlerUri());
 			}
 		
 			if (task.isCycle()) {
 				if (((TaskQuartzImpl) task).getHandlersCount() > 1) {
-					LOGGER.error("Recurrent tasks cannot have more than one task handler; task = {}", task);
+					LOGGER.error("Recurrent tasks cannot have more than one task handler; task = {} - closing it.", task);
+                    closeFlawedTask(task, executionResult);
 					throw new JobExecutionException("Recurrent tasks cannot have more than one task handler; task = " + task);
 				}
 				executeRecurrentTask(handler, executionResult);
@@ -80,6 +90,7 @@ public class JobExecutor implements InterruptableJob {
 				executeSingleTask(handler, executionResult);
 			} else {
 				LOGGER.error("Tasks must be either recurrent or single-run. This one is neither. Sorry.");
+                closeFlawedTask(task, executionResult);
 			}
 		
 		} finally {
@@ -88,6 +99,20 @@ public class JobExecutor implements InterruptableJob {
 		}
 
 	}
+
+    private void closeFlawedTask(TaskQuartzImpl task, OperationResult result) {
+        LOGGER.info("Closing flawed task {}", task);
+        try {
+            task.close();
+            task.savePendingModifications(result);
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Cannot close task {}, because it does not exist in repository.", e, task);
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Cannot close task {} due to schema exception", e, task);
+        } catch (SystemException e) {
+            LoggingUtils.logException(LOGGER, "Cannot close task {} due to system exception", e, task);
+        }
+    }
 
 	private void executeSingleTask(TaskHandler handler, OperationResult executionResult) throws JobExecutionException {
 

@@ -20,6 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 
 public class TaskQuartzImplUtil {
 
+    public static final long SINGLE_TASK_CHECK_INTERVAL = 10000;
+
 	public static JobKey createJobKeyForTask(Task t) {
     	return new JobKey(t.getOid());
     }
@@ -41,6 +43,7 @@ public class TaskQuartzImplUtil {
 		JobDetail job = JobBuilder.newJob(JobExecutor.class)
 	      .withIdentity(TaskQuartzImplUtil.createJobKeyForTask(task))
 	      .storeDurably()
+          .requestRecovery()
 	      .build();
 		
 		return job;
@@ -56,7 +59,8 @@ public class TaskQuartzImplUtil {
 		      .forJob(createJobKeyForTask(task))
 		      .startNow();
 
-        if (task.isCycle() && task.isLooselyBound()) {			// tightly-bound tasks are executed without schedule (their repeating is done within the JobExecutor)
+        //if (task.isCycle() && task.isLooselyBound()) {			// tightly-bound tasks are executed without schedule (their repeating is done within the JobExecutor)
+        if (task.isCycle()) {			        // tightly-bound tasks are triggered via Quartz (in case they stop for some reason)
         	
         	ScheduleType sch = task.getSchedule();
         	if (sch == null)
@@ -70,6 +74,11 @@ public class TaskQuartzImplUtil {
 				tb.withSchedule(cronScheduleNonvalidatedExpression(sch.getCronLikePattern()));			// may throw ParseException
         	} else
         		throw new IllegalStateException("The schedule for task " + task + " is neither fixed nor cron-like one.");
+        } else {
+            // even non-recurrent tasks will be triggered, to check whether they should not be restarted
+            // (their trigger will be erased when these tasks will be completed)
+
+            tb.withSchedule(simpleSchedule().withIntervalInMilliseconds(SINGLE_TASK_CHECK_INTERVAL).repeatForever());
         }
 
 		return tb.build();

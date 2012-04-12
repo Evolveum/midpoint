@@ -140,7 +140,7 @@ public class TaskListController extends SortableListController<TaskItem> {
         	
         	try {
         		Task task = taskManager.getTask(oid, result);
-        		wasRunning = taskManager.isTaskThreadActive(task.getTaskIdentifier());
+        		wasRunning = taskManager.isTaskThreadActive(oid);
         		if (wasRunning)
         			isRunning = !taskManager.suspendTask(task, 1000L, result);
         	}
@@ -245,89 +245,20 @@ public class TaskListController extends SortableListController<TaskItem> {
     }
 
     public String deactivate() {
-
-        // temporary solution: deactivates all running task manager threads
-
-        taskManager.deactivateServiceThreads();
-        FacesUtils
-                .addWarnMessage("All task manager threads have been stopped. (Although tasks remain in RUNNING state, they will not be executed until you reactivate task manager threads.)");
+        if (taskManager.deactivateServiceThreads(1000L)) {
+            FacesUtils.addSuccessMessage("All task manager threads have been deactivated. Tasks are left in RUNNING state, but they will not be executed on this node until service threads are reactivated.");
+        } else {
+            FacesUtils.addWarnMessage("Task manager threads were requested to stop. Either some of them are still alive, or there was some problem. Please see the log.");
+        }
         return null;
-
-        // boolean selected = false;
-        //
-        // for (TaskItem task : getObjects()) {
-        // if (task != null && task.isSelected()) {
-        // selected = true;
-        // break;
-        // }
-        // }
-        //
-        // if (selected) {
-        // // taskManager.deactivateServiceThreads();
-        //
-        // Set<Task> tasks = taskManager.getRunningTasks();
-        // List<TaskItem> runningTasks = getObjects();
-        // runningTasks.clear();
-        // // System.out.println(">>>>>>>>>>>>>>>> Filling runningTasks");
-        // for (Task currTask : tasks) {
-        // // System.out.println(">>>>>>>>>>>>>>>> start: " +
-        // // currTask.getName());
-        // runningTasks.add(new TaskItem(currTask));
-        // // System.out.println(">>>>>>>>>>>>>>>> stop: " +
-        // // currTask.getName());
-        // }
-        //
-        // for (TaskItem task : getObjects()) {
-        // // LOGGER.info("delete user {} is selected {}",
-        // // guiUserDto.getFullName(), guiUserDto.isSelected());
-        // // System.out.println(">>>>>>>>>>>>>>>> aaa: "+task.getName());
-        //
-        // if (task.isSelected() && runningTasks.contains(task)) {
-        // try {
-        // // System.out.println(">>>>>>>>>>>>>>>> deactivate task");
-        // taskManager.deactivateServiceThreads();
-        // setActivated(isActivated());
-        // } catch (Exception ex) {
-        // // LoggingUtils.logException(LOGGER,
-        // // "Delete user failed", ex);
-        // FacesUtils.addErrorMessage("Deactivate task failed: " +
-        // ex.getMessage());
-        // }
-        // }
-        // }
-        // listAll = false;
-        // setSelectAll(false);
-        // return PAGE_NAVIGATION;
-        //
-        // } else {
-        // FacesUtils.addErrorMessage("No task selected.");
-        // }
-        // return null;
     }
 
     public void reactivate() {
-
-        taskManager.reactivateServiceThreads();
-        FacesUtils.addSuccessMessage("All task manager threads have been reactivated.");
-        return;
-
-        //
-        // boolean selected = false;
-        //
-        // for (TaskItem task : getObjects()) {
-        // if (task != null && task.isSelected()) {
-        // selected = true;
-        // break;
-        // }
-        // }
-        //
-        // if (selected) {
-        // taskManager.reactivateServiceThreads();
-        // setActivated(isActivated());
-        // } else {
-        // FacesUtils.addErrorMessage("No task selected.");
-        // }
-
+        if (taskManager.reactivateServiceThreads()) {
+            FacesUtils.addSuccessMessage("All task manager threads have been reactivated.");
+        } else {
+            FacesUtils.addErrorMessage("Task manager threads could not be reactivated, please see the log.");
+        }
     }
 
     public boolean isActivated() {

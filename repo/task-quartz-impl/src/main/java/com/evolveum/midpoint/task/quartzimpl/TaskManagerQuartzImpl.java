@@ -27,14 +27,7 @@ import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -42,12 +35,7 @@ import javax.annotation.PreDestroy;
 //import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 //import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 //import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.TriggerKey;
-import org.quartz.UnableToInterruptJobException;
+import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -181,11 +169,34 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 //            qprops.put("org.quartz.dataSource.myDS.user", sqlConfig.getJdbcUsername());
 //            qprops.put("org.quartz.dataSource.myDS.password", sqlConfig.getJdbcPassword());
 
+            String driver = "org.h2.Driver";
+            String url = "jdbc:h2:tcp://localhost/~/midpoint";
+            String user = "sa";
+            String password = "";
+
+            try {
+                createQuartzDbSchema(driver, url, user, password);
+            } catch (SQLException e) {
+                throw new SystemException("Could not create Quartz database schema", e);
+            }
+
+            qprops.put("org.quartz.dataSource.myDS.driver", driver);
+            qprops.put("org.quartz.dataSource.myDS.URL", url);
+            qprops.put("org.quartz.dataSource.myDS.user", user);
+            qprops.put("org.quartz.dataSource.myDS.password", password);
+
+            qprops.put("org.quartz.jobStore.isClustered", "true");
+
         } else {
 			qprops.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
         }
 		qprops.put("org.quartz.scheduler.instanceName", "midPointScheduler");
-		qprops.put("org.quartz.scheduler.instanceId", "AUTO");
+
+        String instanceId = System.getProperty("com.evolveum.midpoint.instanceId");
+        if (instanceId == null)
+            instanceId = "AUTO";
+		qprops.put("org.quartz.scheduler.instanceId", instanceId);
+
 		qprops.put("org.quartz.scheduler.skipUpdateCheck", "true");
 		qprops.put("org.quartz.threadPool.threadCount", "5");
 		qprops.put("org.quartz.scheduler.idleWaitTime", "10000");
@@ -206,15 +217,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		
 		try {
             LOGGER.trace("Quartz scheduler properties: {}", qprops);
-
-//            if (jdbcJobStore) {
-//                try {
-//                    createQuartzDbSchema(sqlConfig);
-//                } catch (SQLException e) {
-//                    throw new SystemException("Could not create Quartz database schema", e);
-//                }
-//            }
-
 			sf.initialize(qprops);
 			quartzScheduler = sf.getScheduler();
 			quartzScheduler.startDelayed(START_DELAY_TIME);
@@ -222,39 +224,41 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 			LoggingUtils.logException(LOGGER, "Cannot get or start Quartz scheduler", e);
 			throw new SystemException("Cannot get or start Quartz scheduler", e);
 		}
-		
-		if (!jdbcJobStore)
-			importQuartzJobs();
+
+        if (checkJobStoresConsistency() == false && !jdbcJobStore) {
+            LOGGER.error("Some or all tasks could not be imported from midPoint repository to Quartz job store. They will therefore not be executed.");
+        }
 		
 		LOGGER.trace("Quartz scheduler initialized and started; it is " + quartzScheduler);
 		
 		LOGGER.info("Task Manager initialized");
 	}
 
-//    private void createQuartzDbSchema(SqlRepositoryConfiguration sqlConfig) throws SQLException {
-//        try {
-//            Class.forName(sqlConfig.getDriverClassName());
-//        } catch (ClassNotFoundException e) {
-//            throw new SystemException("Could not locate database driver class", e);
-//        }
-//        Connection connection = DriverManager.getConnection(sqlConfig.getJdbcUrl(), sqlConfig.getJdbcUsername(), sqlConfig.getJdbcPassword());
-//        try {
-//            try {
-//                connection.prepareStatement("SELECT count(*) FROM qrtz_job_details").executeQuery().close();
-//            } catch (SQLException ignored) {
-//                try {
-//                    connection.prepareStatement(getResource("tables_h2.sql")).executeUpdate();
-//                } catch (IOException ex) {
-//                    throw new SystemException("Could not read Quartz database schema file", ex);
-//                }
-//            }
-//        } finally {
-//            try {
-//                connection.close();
-//            } catch (SQLException ignored) {
-//            }
-//        }
-//    }
+    // TODO: allow use of other databases (not H2 only)
+    private void createQuartzDbSchema(String driver, String url, String user, String password) throws SQLException {
+        try {
+            Class.forName(driver);
+        } catch (ClassNotFoundException e) {
+            throw new SystemException("Could not locate database driver class", e);
+        }
+        Connection connection = DriverManager.getConnection(url, user, password);
+        try {
+            try {
+                connection.prepareStatement("SELECT count(*) FROM qrtz_job_details").executeQuery().close();
+            } catch (SQLException ignored) {
+                try {
+                    connection.prepareStatement(getResource("tables_h2.sql")).executeUpdate();
+                } catch (IOException ex) {
+                    throw new SystemException("Could not read Quartz database schema file", ex);
+                }
+            }
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException ignored) {
+            }
+        }
+    }
 
     private String getResource(String name) throws IOException {
         InputStream stream = getClass().getResourceAsStream(name);
@@ -271,20 +275,28 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
 
-    // imports Quartz jobs, reading them from repository
-	private void importQuartzJobs() {
+    /**
+     * Checks for consistency between Quartz job store and midPoint repository.
+     * In case of conflict, the latter is taken as authoritative source.
+     *
+     * (For RAM Job Store, running this method at startup effectively means that tasks from midPoint repo are imported into Quartz job store.)
+     *
+     * @return
+     */
+	private boolean checkJobStoresConsistency() {
 		
 		OperationResult result = createOperationResult("importQuartzJobs");
-		
-		LOGGER.trace("Importing existing tasks into volatile Quartz job store.");
-		
+
+        // TODO: more meaningful message...
+	    LOGGER.info("Checking consistency between task/job stores (midpoint and Quartz).");
+
 		PagingType paging = new PagingType();
-		List<PrismObject<TaskType>> tasks = null;
+		List<PrismObject<TaskType>> tasks;
 		try {
 			tasks = repositoryService.listObjects(TaskType.class, paging, result);
 		} catch(Exception e) {
-			LoggingUtils.logException(LOGGER, "Tasks cannot be imported, because they cannot be listed from the repository. So the tasks will not be executed.", e);
-			return;
+			LoggingUtils.logException(LOGGER, "The consistency of Quartz job store w.r.t. midpoint repository cannot be checked, because tasks cannot be listed from the repository.", e);
+			return false;
 		}
 
 		if (tasks != null) {
@@ -308,7 +320,19 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		} else {
 			LOGGER.info("No tasks to import.");
 		}
+        return true;
 	}
+
+    private boolean putQuartzIntoStandby() {
+        LOGGER.info("Putting Quartz scheduler into standby mode");
+        try {
+            quartzScheduler.standby();
+            return true;
+        } catch (SchedulerException e1) {
+            LoggingUtils.logException(LOGGER, "Cannot put Quartz scheduler into standby mode", e1);
+            return false;
+        }
+    }
 
 	@PreDestroy
 	public void shutdown() {
@@ -316,19 +340,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		
 		if (quartzScheduler != null) {
 			
-			LOGGER.info("Putting Quartz scheduler into standby mode");
-			try {
-				quartzScheduler.standby();
-			} catch (SchedulerException e1) {
-				LoggingUtils.logException(LOGGER, "Cannot put Quartz scheduler into standby mode", e1);
-			}
-			
-			LOGGER.info("Interrupting all tasks");
-			try {
-				shutdownTasksAndWait(getRunningTasks(), 0);
-			} catch(Exception e) {		// FIXME
-				LoggingUtils.logException(LOGGER, "Cannot shutdown tasks", e);
-			}
+            putQuartzIntoStandby();
+            shutdownAllTasksAndWait(0);
 
 			if (reusableQuartzScheduler) {
 				LOGGER.info("Quartz scheduler will NOT be shutdown. It stays in paused mode.");
@@ -590,8 +603,19 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 		
 	}
-	
-	private boolean shutdownTasksAndWait(Collection<Task> tasks, long waitTime) {
+
+    private boolean shutdownAllTasksAndWait(long timeToWait) {
+        LOGGER.info("Interrupting all tasks");
+        try {
+            return shutdownTasksAndWait(getRunningTasks(), timeToWait);
+        } catch(Exception e) {		// FIXME
+            LoggingUtils.logException(LOGGER, "Cannot shutdown tasks", e);
+            return false;
+        }
+    }
+
+
+    private boolean shutdownTasksAndWait(Collection<Task> tasks, long waitTime) {
 
 		if (tasks.isEmpty())
 			return true;
@@ -710,28 +734,47 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public void deactivateServiceThreads() {
-		// TODO Auto-generated method stub
-		
+	public boolean deactivateServiceThreads(long timeToWait) {
+        boolean result1 = putQuartzIntoStandby();
+        boolean result2 = shutdownAllTasksAndWait(timeToWait);
+        return result1 && result2;
 	}
 
 	@Override
-	public void reactivateServiceThreads() {
-		// TODO Auto-generated method stub
-		
-	}
+	public boolean reactivateServiceThreads() {
+        try {
+            quartzScheduler.start();
+            return true;
+        } catch (SchedulerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot (re)start Quartz scheduler.", e);
+            return false;
+        }
+    }
 
 	@Override
 	public boolean getServiceThreadsActivationState() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+        try {
+            return quartzScheduler.isStarted() && !quartzScheduler.isInStandbyMode() && !quartzScheduler.isShutdown();
+        } catch (SchedulerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot determine the state of the Quartz scheduler", e);
+            return false;
+        }
+    }
 
 
 	@Override
-	public boolean isTaskThreadActive(String taskIdentifier) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean isTaskThreadActive(String oid) {
+        try {
+            for (JobExecutionContext jec : quartzScheduler.getCurrentlyExecutingJobs()) {
+                if (oid.equals(jec.getJobDetail().getKey().getName())) {
+                    return true;
+                }
+            }
+        } catch (SchedulerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot get the list of currently executing jobs", e);
+            return false;
+        }
+        return false;
 	}
 
     private OperationResult createOperationResult(String methodName) {
@@ -780,4 +823,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		
 	}
 
+    @Override
+    public Long getNextRunStartTime(String oid) {
+        Trigger t = null;
+        try {
+            t = quartzScheduler.getTrigger(TaskQuartzImplUtil.createTriggerKeyForTaskOid(oid));
+        } catch (SchedulerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot determine next run start time for task with OID {}", e, oid);
+            return null;
+        }
+        if (t == null) {
+            return null;
+        } else {
+            Date next = t.getNextFireTime();
+            return next == null ? null : next.getTime();
+        }
+
+    }
 }

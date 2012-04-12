@@ -192,7 +192,7 @@ public interface Task extends Dumpable {
 	 * 
 	 * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
 	 * 
-	 * @param handlerUri new handler URI
+	 * @param value new handler URI
 	 */
 	void setHandlerUri(String value);
 	
@@ -314,7 +314,7 @@ public interface Task extends Dumpable {
 	/**
 	 * Sets the human-readable name of the task.
 	 * 
-	 * @param name new human-readable name of the task.
+	 * @param value new human-readable name of the task.
 	 */
 	public void setName(String value);
 	
@@ -368,7 +368,7 @@ public interface Task extends Dumpable {
 	 * Call to this method will make sure that the task contains fresh data.
 	 * 
 	 * This has no effect on transient tasks.
-	 * @param result
+	 * @param parentResult
 	 * @throws SchemaException 
 	 * @throws ObjectNotFoundException 
 	 */

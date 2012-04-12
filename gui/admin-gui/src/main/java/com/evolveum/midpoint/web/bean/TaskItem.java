@@ -130,9 +130,7 @@ public class TaskItem extends SelectableBean {
         if (taskType.getLastRunFinishTimestamp() != null) {
             lastRunFinishTimestampLong = XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp());
         }
-        if (taskType.getNextRunStartTime() != null) {
-            nextRunStartTimeLong = XmlTypeConverter.toMillis(taskType.getNextRunStartTime());
-        }
+        nextRunStartTimeLong = taskManager.getNextRunStartTime(oid);
 
         this.executionStatus = TaskItemExecutionStatus
                 .fromTask(TaskExecutionStatus.fromTaskType(taskType
@@ -395,7 +393,15 @@ public class TaskItem extends SelectableBean {
     }
     
     public boolean isAlive() {
-    	return taskManager.isTaskThreadActive(taskIdentifier);
+    	return taskManager.isTaskThreadActive(oid);
+    }
+
+    public String getAliveAsText() {
+        if (isAlive()) {
+            return "true";
+        } else {
+            return "-";
+        }
     }
     
     public String getCurrentRunTime() {
