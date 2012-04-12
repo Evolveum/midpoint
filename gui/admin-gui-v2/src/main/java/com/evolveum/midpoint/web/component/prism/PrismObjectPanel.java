@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -43,7 +45,8 @@ public class PrismObjectPanel extends Panel {
 
     public PrismObjectPanel(String id, IModel<ObjectWrapper> model, IModel<String> image) {
         super(id);
-        
+        setOutputMarkupId(true);
+
         initLayout(model);
     }
 
@@ -53,8 +56,8 @@ public class PrismObjectPanel extends Panel {
 
         response.renderCSSReference(new PackageResourceReference(PrismObjectPanel.class, "PrismObjectPanel.css"));
     }
-    
-    private void initLayout(IModel<ObjectWrapper> model) {
+
+    private void initLayout(final IModel<ObjectWrapper> model) {
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
         add(headerPanel);
         headerPanel.add(new VisibleEnableBehaviour() {
@@ -68,6 +71,18 @@ public class PrismObjectPanel extends Panel {
         headerPanel.add(new Label("description", new PropertyModel<Object>(model, "description")));
 
         //todo image and buttons
+        initButtons(headerPanel, model);
+
+        WebMarkupContainer body = new WebMarkupContainer("body");
+        body.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                ObjectWrapper wrapper = model.getObject();
+                return !wrapper.isMinimalized();
+            }
+        });
+        add(body);
 
         ListView<ContainerWrapper> containers = new ListView<ContainerWrapper>("containers",
                 new PropertyModel<List<ContainerWrapper>>(model, "containers")) {
@@ -77,7 +92,31 @@ public class PrismObjectPanel extends Panel {
                 item.add(new PrismContainerPanel("container", item.getModel()));
             }
         };
-        add(containers);
+        body.add(containers);
+    }
+
+    private void initButtons(WebMarkupContainer headerPanel, final IModel<ObjectWrapper> model) {
+        headerPanel.add(new AjaxLink("showEmptyButton") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ObjectWrapper wrapper = model.getObject();
+                wrapper.setShowEmpty(!wrapper.isShowEmpty());
+
+                target.add(PrismObjectPanel.this);
+            }
+        });
+
+        headerPanel.add(new AjaxLink("minimizeButton") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ObjectWrapper wrapper = model.getObject();
+                wrapper.setMinimalized(!wrapper.isMinimalized());
+
+                target.add(PrismObjectPanel.this);
+            }
+        });
     }
 
     public boolean isShowHeader() {

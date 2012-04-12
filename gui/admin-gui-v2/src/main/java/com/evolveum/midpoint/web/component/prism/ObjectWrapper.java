@@ -41,6 +41,9 @@ public class ObjectWrapper implements Serializable {
     private String description;
     private List<ContainerWrapper> containers;
 
+    private boolean showEmpty;
+    private boolean minimalized;
+
     public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
@@ -61,6 +64,22 @@ public class ObjectWrapper implements Serializable {
 
     public String getDescription() {
         return description;
+    }
+
+    public boolean isMinimalized() {
+        return minimalized;
+    }
+
+    public void setMinimalized(boolean minimalized) {
+        this.minimalized = minimalized;
+    }
+
+    public boolean isShowEmpty() {
+        return showEmpty;
+    }
+
+    public void setShowEmpty(boolean showEmpty) {
+        this.showEmpty = showEmpty;
     }
 
     public List<ContainerWrapper> getContainers() {

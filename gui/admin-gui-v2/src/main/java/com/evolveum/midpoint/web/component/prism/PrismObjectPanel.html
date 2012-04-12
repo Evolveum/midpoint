@@ -36,16 +36,20 @@
                         <span class="objectFormHeaderDescription" wicket:id="description"/>
                     </div>
                     <div class="objectFormHeaderControllButtons">
-                        <img id="objectFormHeaderControllButtonShowEmptyFields_tableForm1"
-                             class="objectFormHeaderControllButtonShowEmptyFields" title="Show empty fields" alt=""
-                             src="img/formIcon/ShowEmptyFieldsSmall.png"/>
-                        <img id="objectFormHeaderControllButtonMinMax_tableForm01"
-                             class="objectFormHeaderControllButtonMinMax" title="Minimize" alt=""
-                             src="img/formIcon/MinimizeSmall.png"/>
+                        <a wicket:id="showEmptyButton">
+                            <img id="objectFormHeaderControllButtonShowEmptyFields_tableForm1"
+                                 class="objectFormHeaderControllButtonShowEmptyFields" title="Show empty fields" alt=""
+                                 src="img/formIcon/ShowEmptyFieldsSmall.png"/>
+                        </a>
+                        <a wicket:id="minimizeButton">
+                            <img id="objectFormHeaderControllButtonMinMax_tableForm01"
+                                 class="objectFormHeaderControllButtonMinMax" title="Minimize" alt=""
+                                 src="img/formIcon/MinimizeSmall.png"/>
+                        </a>
                     </div>
                 </div>
             </div>
-            <div class="tableFormBody">
+            <div class="tableFormBody" wicket:id="body">
                 <div wicket:id="containers">
                     <div wicket:id="container"/>
                 </div>
