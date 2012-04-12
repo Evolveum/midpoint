@@ -48,18 +48,7 @@ public class PrismPropertyPanel extends Panel {
             public boolean isVisible() {
                 PropertyWrapper property = model.getObject();
                 ContainerWrapper container = property.getContainer();
-                ObjectWrapper object = container.getObject();
-
-                List<ValueWrapper> values = property.getValues();
-                boolean isEmpty = values.isEmpty();
-                if (values.size() == 1) {
-                    ValueWrapper value = values.get(0);
-                    if (ValueStatus.ADDED.equals(value.getStatus())) {
-                        isEmpty = true;
-                    }
-                }
-
-                return object.isShowEmpty() || !isEmpty;
+                return container.isPropertyVisible(property);
             }
         });
 

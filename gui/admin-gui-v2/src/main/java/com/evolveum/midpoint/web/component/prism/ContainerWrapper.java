@@ -81,6 +81,21 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return properties;
     }
 
+    boolean isPropertyVisible(PropertyWrapper property) {
+        ObjectWrapper object = getObject();
+
+        List<ValueWrapper> values = property.getValues();
+        boolean isEmpty = values.isEmpty();
+        if (values.size() == 1) {
+            ValueWrapper value = values.get(0);
+            if (ValueStatus.ADDED.equals(value.getStatus())) {
+                isEmpty = true;
+            }
+        }
+
+        return object.isShowEmpty() || !isEmpty;
+    }
+
     @Override
     public String getDisplayName() {
         return getDisplayNameFromItem(container);

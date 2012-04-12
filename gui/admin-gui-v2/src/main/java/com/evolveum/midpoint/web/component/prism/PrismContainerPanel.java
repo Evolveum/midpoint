@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -52,9 +53,17 @@ public class PrismContainerPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                ContainerWrapper container = model.getObject();
+                ContainerWrapper<? extends PrismContainer> container = model.getObject();
 
-                return !container.getProperties().isEmpty();
+                boolean isVisible = false;
+                for (PropertyWrapper property : container.getProperties()) {
+                    if (container.isPropertyVisible(property)) {
+                        isVisible = true;
+                        break;
+                    }
+                }
+
+                return !container.getProperties().isEmpty() && isVisible;
             }
         });
 
