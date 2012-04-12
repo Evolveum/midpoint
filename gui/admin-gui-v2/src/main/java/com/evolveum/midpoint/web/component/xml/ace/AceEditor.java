@@ -67,7 +67,7 @@ public class AceEditor<T> extends TextArea<T> {
                 .append(this.getMarkupId()).append("')); ");*/
         script.append(" $('#").append(editorId).append("').text($('#").append(this.getMarkupId())
                 .append("').val());");
-        script.append("var ").append(editorId).append(" = ace.edit(\"").append(editorId).append("\"); ");
+        script.append("window.").append(editorId).append(" = ace.edit(\"").append(editorId).append("\"); ");
         script.append(editorId).append(".setTheme(\"ace/theme/").append(THEME).append("\");");
         script.append("var XmlMode = require(\"ace/mode/").append(MODE).append("\").Mode; ");
         script.append(editorId).append(".getSession().setMode(new XmlMode());");
@@ -79,6 +79,12 @@ public class AceEditor<T> extends TextArea<T> {
                 .append(".getSession().getValue()); ");
         script.append("$('#").append(getMarkupId()).append("').trigger('onBlur'); });");
         
+        script.append(" }");
+        
+        script.append("if(").append(readonly).append(") {");
+        script.append("$('.ace_scroller').css('background','#F4F4F4');");
+        script.append(" } else {");
+        script.append("$('.ace_scroller').css('background','#FFFFFF');");
         script.append(" }");
         //System.out.println(script.toString());
         return script.toString();
@@ -110,7 +116,11 @@ public class AceEditor<T> extends TextArea<T> {
         return readonly;
     }
 
-    public void setReadonly(boolean readonly) {
+    public String setReadonly(boolean readonly) {
         this.readonly = readonly;
+        if(readonly){
+        	return "window."+editorId+".setReadOnly("+readonly+"); $('.ace_scroller').css('background','#F4F4F4');";
+        }
+        return "window."+editorId+".setReadOnly("+readonly+"); $('.ace_scroller').css('background','#FFFFFF');";
     }
 }

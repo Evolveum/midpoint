@@ -12,19 +12,27 @@ import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AbstractBehavior;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 public class PageDebugView extends PageAdminConfiguration {
 
     public static final String PARAM_OBJECT_ID = "objectId";
     private IModel<ObjectViewDto> model;
+    private AceEditor<String> editor;
 
     public PageDebugView() {
         model = new LoadableModel<ObjectViewDto>(false) {
@@ -87,10 +95,9 @@ public class PageDebugView extends PageAdminConfiguration {
                 editPerformed(target, editable.getObject());
             }
         });
-
-        AceEditor<String> editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, "xml"));
+        editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, "xml"));
         mainForm.add(editor);
-
+        
         initButtons(mainForm);
     }
 
@@ -122,11 +129,11 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     public void editPerformed(AjaxRequestTarget target, boolean editable) {
-        //todo implement
+    	 target.appendJavaScript(editor.setReadonly(!editable));
     }
 
     public void onSaveError(AjaxRequestTarget target, Form form) {
-        //todo implement
+    	//todo implement
     }
 
     public void savePerformed(AjaxRequestTarget target) {
