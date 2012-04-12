@@ -62,9 +62,11 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 
     private Long getNextId(Set<RAssignment> set) {
         Long id = 0L;
-        for (RAssignment assignment : set) {
-            if (assignment.getId() != null && assignment.getId() > id) {
-                id = assignment.getId();
+        if (set != null) {
+            for (RAssignment assignment : set) {
+                if (assignment.getId() != null && assignment.getId() > id) {
+                    id = assignment.getId();
+                }
             }
         }
 

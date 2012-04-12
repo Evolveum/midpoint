@@ -260,7 +260,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             LOGGER.debug("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(objectType);
+            RObject rObject = createDataObjectFromJAXB(objectType, false);
 
             LOGGER.debug("Saving object.");
             RContainerId containerId = (RContainerId) session.save(rObject);
@@ -471,7 +471,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             LOGGER.debug("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
+            RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable(), true);
 
             session = beginTransaction();
             session.update(rObject);
@@ -586,14 +586,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
     }
 
-    private <T extends ObjectType> RObject createDataObjectFromJAXB(T object) throws InstantiationException,
-            IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    private <T extends ObjectType> RObject createDataObjectFromJAXB(T object, boolean pushCreateIdentificators)
+            throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
         RObject rObject;
         Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
         rObject = clazz.newInstance();
         Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
-        method.invoke(clazz, object, rObject, prismContext);
+        method.invoke(clazz, object, rObject, pushCreateIdentificators, prismContext);
 
         return rObject;
     }
