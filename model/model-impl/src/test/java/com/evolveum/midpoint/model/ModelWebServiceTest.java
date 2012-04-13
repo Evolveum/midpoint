@@ -49,6 +49,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
@@ -79,6 +81,7 @@ import static org.testng.AssertJUnit.assertNotNull;
         "classpath:application-context-configuration-test-no-repo.xml",
         "classpath:application-context-task.xml",
         "classpath:application-context-audit.xml"})
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
     private static final File TEST_FOLDER_CONTROLLER = new File("./src/test/resources/controller");

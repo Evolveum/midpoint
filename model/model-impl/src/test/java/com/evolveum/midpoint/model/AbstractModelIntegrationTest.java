@@ -168,7 +168,12 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
 		
-		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
+		try {
+			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
+		} catch (ObjectAlreadyExistsException e) {
+			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
+					"looks like the previous test haven't cleaned it up", e);
+		}
 		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
 
 		// Connectors
