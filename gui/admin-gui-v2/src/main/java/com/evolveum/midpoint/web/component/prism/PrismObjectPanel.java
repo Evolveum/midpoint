@@ -21,18 +21,21 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.*;
 
 import java.util.List;
 
@@ -43,11 +46,11 @@ public class PrismObjectPanel extends Panel {
 
     private boolean showHeader = true;
 
-    public PrismObjectPanel(String id, IModel<ObjectWrapper> model, IModel<String> image) {
+    public PrismObjectPanel(String id, IModel<ObjectWrapper> model, ResourceReference image) {
         super(id);
         setOutputMarkupId(true);
 
-        initLayout(model);
+        initLayout(model, image);
     }
 
     @Override
@@ -57,7 +60,7 @@ public class PrismObjectPanel extends Panel {
         response.renderCSSReference(new PackageResourceReference(PrismObjectPanel.class, "PrismObjectPanel.css"));
     }
 
-    private void initLayout(final IModel<ObjectWrapper> model) {
+    private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image) {
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
         add(headerPanel);
         headerPanel.add(new VisibleEnableBehaviour() {
@@ -70,7 +73,9 @@ public class PrismObjectPanel extends Panel {
         headerPanel.add(new Label("header", new PropertyModel<Object>(model, "displayName")));
         headerPanel.add(new Label("description", new PropertyModel<Object>(model, "description")));
 
-        //todo image and buttons
+        Image headerImg = new Image("headerImg", image);
+        headerPanel.add(headerImg);
+
         initButtons(headerPanel, model);
 
         WebMarkupContainer body = new WebMarkupContainer("body");
@@ -96,7 +101,7 @@ public class PrismObjectPanel extends Panel {
     }
 
     private void initButtons(WebMarkupContainer headerPanel, final IModel<ObjectWrapper> model) {
-        headerPanel.add(new AjaxLink("showEmptyButton") {
+        AjaxLink showEmpty = new AjaxLink("showEmptyButton") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -105,9 +110,26 @@ public class PrismObjectPanel extends Panel {
 
                 target.add(PrismObjectPanel.this);
             }
-        });
+        };
+        headerPanel.add(showEmpty);
 
-        headerPanel.add(new AjaxLink("minimizeButton") {
+        Image showEmptyImg = new Image("showEmptyImg", new AbstractReadOnlyModel() {
+
+            @Override
+            public Object getObject() {
+                ObjectWrapper wrapper = model.getObject();
+                if (wrapper.isShowEmpty()) {
+                    return new PackageResourceReference(PrismObjectPanel.class,
+                            "ShowEmptyFalse.png");
+                }
+
+                return new PackageResourceReference(PrismObjectPanel.class,
+                        "ShowEmptyTrue.png");
+            }
+        });
+        showEmpty.add(showEmptyImg);
+
+        AjaxLink minimize = new AjaxLink("minimizeButton") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -116,7 +138,24 @@ public class PrismObjectPanel extends Panel {
 
                 target.add(PrismObjectPanel.this);
             }
+        };
+        headerPanel.add(minimize);
+
+        Image minimizeImg = new Image("minimizeImg", new AbstractReadOnlyModel() {
+
+            @Override
+            public Object getObject() {
+                ObjectWrapper wrapper = model.getObject();
+                if (wrapper.isMinimalized()) {
+                    return new PackageResourceReference(PrismObjectPanel.class,
+                            "Maximize.png");
+                }
+
+                return new PackageResourceReference(PrismObjectPanel.class,
+                        "Minimize.png");
+            }
         });
+        minimize.add(minimizeImg);
     }
 
     public boolean isShowHeader() {

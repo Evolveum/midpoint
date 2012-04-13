@@ -92,7 +92,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             getDebugSettings().setDevelopmentUtilitiesEnabled(true);
         }
 
-        //pretty url
+        //pretty url resources
+
+        //pretty url pages
         MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();
         mount(new MountedMapper("/login", PageLogin.class, encoder));
         mount(new MountedMapper("/home", PageHome.class, encoder));

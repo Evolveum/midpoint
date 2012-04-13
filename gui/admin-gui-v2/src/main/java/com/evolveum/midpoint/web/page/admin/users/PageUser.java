@@ -49,6 +49,9 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.resource.PackageResource;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
@@ -150,7 +153,8 @@ public class PageUser extends PageAdminUsers {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        PrismObjectPanel userForm = new PrismObjectPanel("userForm", loadTestWrapper(), null);
+        PrismObjectPanel userForm = new PrismObjectPanel("userForm", loadTestWrapper(),
+                new PackageResourceReference(PageUser.class, "User.png"));
         mainForm.add(userForm);
 
         Accordion accordion = new Accordion("accordion");
@@ -179,7 +183,8 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void populateItem(ListItem<ObjectWrapper> item) {
-                item.add(new PrismObjectPanel("account", loadTestWrapper(), null));
+                item.add(new PrismObjectPanel("account", loadTestWrapper(),
+                        new PackageResourceReference(PageUser.class, "Hdd.png")));
             }
         };
 
