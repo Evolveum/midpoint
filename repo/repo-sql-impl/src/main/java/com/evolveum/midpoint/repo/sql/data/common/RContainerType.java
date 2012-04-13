@@ -27,6 +27,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 public enum RContainerType {
 
     ASSIGNMENT(RAssignment.class),
+    EXCLUSION(RExclusion.class),
 
     ACCOUNT(RAccountShadow.class),
     CONNECTOR(RConnector.class),
@@ -40,7 +41,8 @@ public enum RContainerType {
     SYSTEM_CONFIGURATION(RSystemConfiguration.class),
     TASK(RTask.class),
     USER(RUser.class),
-    USER_TEMPLATE(RUserTemplate.class);
+    USER_TEMPLATE(RUserTemplate.class),
+    NODE(RNode.class);
 
     private Class<? extends RContainer> clazz;
 
