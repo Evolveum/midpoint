@@ -252,5 +252,10 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
     public String getLanguageName() {
         return "XPath 2.0";
     }
+    
+	@Override
+	public String getLanguageUrl() {
+		return XPATH_LANGUAGE_URL;
+	}
 
 }

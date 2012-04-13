@@ -45,13 +45,19 @@
     <bean id="xpathExpressionEvaluator" class="com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator"
           scope="singleton">
     </bean>
+    
+    <bean id="javascriptExpressionEvaluator" class="com.evolveum.midpoint.common.expression.jsr223.Jsr223ExpressionEvaluator"
+          scope="singleton">
+          <constructor-arg name="engineName" value="JavaScript"/>
+    </bean>
 
     <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory"
           factory-method="createExpressionFactory" scope="singleton">
         <constructor-arg>
-            <map>
-                <entry key="http://www.w3.org/TR/xpath/" value-ref="xpathExpressionEvaluator"/>
-            </map>
+        	<list>
+        		<ref bean="xpathExpressionEvaluator"/>
+        		<ref bean="javascriptExpressionEvaluator"/>
+        	</list>
         </constructor-arg>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>

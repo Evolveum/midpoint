@@ -51,4 +51,9 @@ public interface ExpressionEvaluator {
      */
     public String getLanguageName();
 
+	/**
+	 * Returns URL of the language that this evaluator can handle
+	 */
+	public String getLanguageUrl();
+
 }

@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,10 +48,22 @@ public class ExpressionFactory {
 	/**
 	 * Factory method created especially to be used from the Spring context.
 	 */
+	@Deprecated
 	public static ExpressionFactory createExpressionFactory(Map<String,ExpressionEvaluator> evaluators) {
 		ExpressionFactory expressionFactory = new ExpressionFactory();
 		for (Entry<String, ExpressionEvaluator> entry: evaluators.entrySet()) {
 			expressionFactory.registerEvaluator(entry.getKey(), entry.getValue());
+		}
+		return expressionFactory;
+	}
+	
+	/**
+	 * Factory method created especially to be used from the Spring context.
+	 */
+	public static ExpressionFactory createExpressionFactory(Collection<ExpressionEvaluator> evaluators) {
+		ExpressionFactory expressionFactory = new ExpressionFactory();
+		for (ExpressionEvaluator evaluator: evaluators) {
+			expressionFactory.registerEvaluator(evaluator.getLanguageUrl(), evaluator);
 		}
 		return expressionFactory;
 	}

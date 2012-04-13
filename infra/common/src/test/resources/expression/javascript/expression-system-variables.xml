@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
+	<code>
+		user.getGivenName();
+	</code>
+</expression>
