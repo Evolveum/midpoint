@@ -66,6 +66,7 @@
         <h2.version>1.3.163</h2.version>
         <wicket.version>1.5.5</wicket.version>
         <wicketstuff.jslibraries>1.5-RC5.1.1</wicketstuff.jslibraries>
+        <groovy.version>1.8.6</groovy.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -105,6 +106,11 @@
                 <artifactId>wicket-datetime</artifactId>
                 <version>${wicket.version}</version>
             </dependency>
+            <dependency>
+				<groupId>org.codehaus.groovy</groupId>
+				<artifactId>groovy</artifactId>
+				<version>${groovy.version}</version>
+			</dependency>
             <dependency>
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>wicketstuff-jslibraries</artifactId>

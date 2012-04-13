@@ -51,12 +51,18 @@
           <constructor-arg name="engineName" value="JavaScript"/>
     </bean>
 
+    <bean id="groovyExpressionEvaluator" class="com.evolveum.midpoint.common.expression.jsr223.Jsr223ExpressionEvaluator"
+          scope="singleton">
+          <constructor-arg name="engineName" value="groovy"/>
+    </bean>
+
     <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory"
           factory-method="createExpressionFactory" scope="singleton">
         <constructor-arg>
         	<list>
         		<ref bean="xpathExpressionEvaluator"/>
         		<ref bean="javascriptExpressionEvaluator"/>
+        		<ref bean="groovyExpressionEvaluator"/>
         	</list>
         </constructor-arg>
         <property name="objectResolver" ref="modelObjectResolver"/>

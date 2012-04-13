@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -65,6 +66,9 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 	public Jsr223ExpressionEvaluator(String engineName) {
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		scriptEngine = scriptEngineManager.getEngineByName(engineName);
+		if (scriptEngine == null) {
+			throw new SystemException("The JSR-223 scripting engine for '"+engineName+"' was not found");
+		}
 	}
 
 	/* (non-Javadoc)
