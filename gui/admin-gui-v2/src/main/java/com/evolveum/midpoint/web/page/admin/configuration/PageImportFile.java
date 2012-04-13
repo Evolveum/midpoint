@@ -21,22 +21,30 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.util.file.File;
+import org.apache.wicket.util.file.Files;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.form.upload.FileUploadField;
-import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
  */
 public class PageImportFile extends PageAdminConfiguration {
-
+	
+	@Autowired
+    Task task;
+	
     private LoadableModel<ImportOptionsType> model;
 
     public PageImportFile() {
@@ -73,17 +81,64 @@ public class PageImportFile extends PageAdminConfiguration {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                //todo implement
-
-                model.reset();
+            	savePerformed(target, form);
             }
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                //todo implement
+                onSaveError(target, form);
             }
         };
         mainForm.add(saveButton);
+    }
+    
+    private void savePerformed(AjaxRequestTarget target, Form<?> form) {
+    	OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
+    	
+    	try{
+        	FileUploadField file = (FileUploadField)form.get("fileInput");
+        	
+        	if(file.getFileUpload() != null){
+        		
+        		System.out.println(">>>>>>>>>>>"+file.getFileUpload().getClientFileName());
+        		System.out.println(">>>>>>>>>>>"+file.getFileUpload().writeToTempFile());
+        		
+        		// Create new file
+        		File newFile = null;
+				try {
+					newFile = new File(file.getFileUpload().writeToTempFile(), file.getFileUpload().getClientFileName());
+					newFile.createNewFile();
+				} catch (Exception ex) {
+					throw new IllegalStateException("Unable to create file", ex);
+				}
+        		
+				// Check new file, delete if it already existed
+				checkFileExists(newFile);
+				
+        		// Save file
+        		MidPointApplication application = PageImportFile.this.getMidpointApplication();
+                ModelService modelService = application.getModel();
+                modelService.importObjectsFromFile(newFile, model.getObject(), task, result);
+        	} 
+        } catch (Exception ex) {
+        	throw new IllegalStateException("Unable to write file", ex);
+        }
+    }
+    
+    public void onSaveError(AjaxRequestTarget target, Form form) {
+    	//todo implement
+    }
+    
+    private void checkFileExists(File newFile)
+    {
+        if (newFile.exists())
+        {
+            // Try to delete the file
+            if (!Files.remove(newFile))
+            {
+                throw new IllegalStateException("Unable to overwrite " + newFile.getAbsolutePath());
+            }
+        }
     }
 
     //example
