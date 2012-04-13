@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.io.IOException;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -95,34 +97,36 @@ public class PageImportFile extends PageAdminConfiguration {
     private void savePerformed(AjaxRequestTarget target, Form<?> form) {
     	OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
     	
-    	try{
+    	
         	FileUploadField file = (FileUploadField)form.get("fileInput");
         	
         	if(file.getFileUpload() != null){
         		
-        		System.out.println(">>>>>>>>>>>"+file.getFileUpload().getClientFileName());
-        		System.out.println(">>>>>>>>>>>"+file.getFileUpload().writeToTempFile());
-        		
         		// Create new file
         		File newFile = null;
+        		
 				try {
 					newFile = new File(file.getFileUpload().writeToTempFile(), file.getFileUpload().getClientFileName());
-					newFile.createNewFile();
-				} catch (Exception ex) {
-					throw new IllegalStateException("Unable to create file", ex);
+				} catch (IOException ex) {
+					ex.printStackTrace();
 				}
         		
 				// Check new file, delete if it already existed
 				checkFileExists(newFile);
 				
-        		// Save file
-        		MidPointApplication application = PageImportFile.this.getMidpointApplication();
-                ModelService modelService = application.getModel();
-                modelService.importObjectsFromFile(newFile, model.getObject(), task, result);
+				try{
+					// Save file
+					newFile.createNewFile();
+					file.getFileUpload().writeTo(newFile);
+					
+					MidPointApplication application = PageImportFile.this.getMidpointApplication();
+				    ModelService modelService = application.getModel();
+				    modelService.importObjectsFromFile(newFile, model.getObject(), task, result);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
         	} 
-        } catch (Exception ex) {
-        	throw new IllegalStateException("Unable to write file", ex);
-        }
+        
     }
     
     public void onSaveError(AjaxRequestTarget target, Form form) {
@@ -136,7 +140,8 @@ public class PageImportFile extends PageAdminConfiguration {
             // Try to delete the file
             if (!Files.remove(newFile))
             {
-                throw new IllegalStateException("Unable to overwrite " + newFile.getAbsolutePath());
+            	//todo: alert message
+                //throw new IllegalStateException("Unable to overwrite " + newFile.getAbsolutePath());
             }
         }
     }
