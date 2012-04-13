@@ -392,7 +392,7 @@ object.
 						</f:replace>
 					</c:valueFilter>  -->
 					<target>
-						declare namespace my="http://whatever.com/my";
+						declare namespace my="http://myself.me/schemas/whatever";
 						$c:user/c:extension/my:description
                     </target>
 				</inbound>

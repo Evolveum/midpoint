@@ -31,6 +31,17 @@ test initialization (creation of prism context). -->
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
+    <xsd:complexType name="UserExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="description" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="GenericObjectExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
