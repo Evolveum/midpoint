@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.schema.constants;
 
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.Validate;
@@ -66,10 +67,12 @@ public enum ObjectTypes {
     OBJECT("schema.objectTypes.object", SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT,
             ObjectType.class, false),
 
-    ROLE("schema.objectTypes.role", SchemaConstants.ROLE_TYPE, SchemaConstants.ROLE, RoleType.class, false),
+    ROLE("schema.objectTypes.role", RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, false),
 
-    PASSWORD_POLICY("schema.objectTypes.passwordPolicy", SchemaConstants.I_PASSWORD_POLICY_TYPE,
-            SchemaConstants.I_PASSWORD_POLICY, PasswordPolicyType.class, false);
+    PASSWORD_POLICY("schema.objectTypes.passwordPolicy", PasswordPolicyType.COMPLEX_TYPE,
+            SchemaConstantsGenerated.C_PASSWORD_POLICY, PasswordPolicyType.class, false),
+
+    NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, false);
 
     private String localizationKey;
     private QName type;
