@@ -129,6 +129,12 @@ public class JobExecutor implements InterruptableJob {
 			
 			while (handler != null && task.canRun()) {
 				runResult = executeHandler(handler);
+
+                task.refresh(executionResult);
+                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING) {
+                    LOGGER.info("Task not in the RUNNING state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
+                    break;
+                }
 				
 				if (task.canRun())
 					task.finishHandler(executionResult);			// closes the task, if there are no remaining handlers
@@ -180,8 +186,23 @@ public class JobExecutor implements InterruptableJob {
 				// in case the task thread was shut down (e.g. in case of task suspension) while processing...
 				if (!task.canRun())			
 					break;
-				
-				// Determine how long we need to sleep and hit the bed
+
+                // or, was the task suspended (closed, ...) remotely?
+                LOGGER.trace("CycleRunner loop: refreshing task after one iteration, task = {}", task);
+                try {
+                    task.refresh(executionResult);
+                } catch (ObjectNotFoundException ex) {
+                    LOGGER.error("Error refreshing task "+task+": Object not found: "+ex.getMessage(),ex);
+                    return;			// The task object in repo is gone. Therefore this task should not run any more.
+                }
+
+                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING) {
+                    LOGGER.info("Task not in the RUNNING state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
+                    break;
+                }
+
+
+                // Determine how long we need to sleep and hit the bed
 				// TODO: consider the PERMANENT_ERROR state of the last run. in this case we should "suspend" the task
 
 				Integer interval = task.getSchedule() != null ? task.getSchedule().getInterval() : null;
@@ -201,13 +222,20 @@ public class JobExecutor implements InterruptableJob {
 					// Safe to ignore. Next loop iteration will check enabled status.
 				}
 
+                LOGGER.trace("CycleRunner loop: refreshing task after sleep, task = {}", task);
 				try {
 					task.refresh(executionResult);
 				} catch (ObjectNotFoundException ex) {
 					LOGGER.error("Error refreshing task "+task+": Object not found: "+ex.getMessage(),ex);
 					return;			// The task object in repo is gone. Therefore this task should not run any more. Therefore commit seppuku
 				}
-				LOGGER.trace("CycleRunner loop: end");
+
+                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING) {
+                    LOGGER.info("Task not in the RUNNING state, exiting the execution routine. State = {}, Task = {}", task.getExecutionStatus(), task);
+                    break;
+                }
+
+                LOGGER.trace("CycleRunner loop: end");
 			}
 
 		} catch (Throwable t) {

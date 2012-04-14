@@ -435,7 +435,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         logger.info("Waiting for task manager to pick up the task and run it");
-        Thread.sleep(2000);
+        Thread.sleep(4000);
         logger.info("... done");
 
         // Check task status

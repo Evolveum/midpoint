@@ -35,6 +35,7 @@ import javax.annotation.PreDestroy;
 //import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 //import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 //import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.BeansException;
@@ -49,20 +50,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.LightweightIdentifier;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.util.exception.ConcurrencyException;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -79,9 +74,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 @Service(value = "taskManager")
 @DependsOn(value="repositoryService")
 public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
-	
-	private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
+
+    public static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
+    public static final String DEFAULT_JMX_PORT = "20001";
+
+    private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
 	private PrismObjectDefinition<TaskType> taskPrismDefinition;
+    private PrismObject<NodeType> nodePrism;
 
 	private BeanFactory beanFactory;	
 	
@@ -93,8 +92,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
+
+    @Autowired(required=true)
+    private ClusterManager clusterManager;
+
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 	private static final long WAIT_FOR_COMPLETION_INITIAL = 100;			// initial waiting time (for task or tasks to be finished); it is doubled at each step 
 	private static final long WAIT_FOR_COMPLETION_MAX = 1600;				// max waiting time (in one step) for task(s) to be finished
 	
@@ -113,6 +115,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
 	
 	private static boolean jdbcJobStore = false;
+    private static boolean clustered = false;
 	
 	private static int START_DELAY_TIME = 1;								// delay time - how long to wait before starting the scheduler
 	
@@ -133,8 +136,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	
 	@PostConstruct
 	public void init() {
-		LOGGER.info("Task Manager initialization");
+		LOGGER.info("Task Manager initialization. Job Store: " + (jdbcJobStore ? "JDBC":"in-memory") + ", clustered: " + clustered);
 		NoOpTaskHandler.instantiateAndRegister(this);
+
+        OperationResult result = createOperationResult("init");
 		
 		// hacks...
 		JobExecutor.setTaskManagerQuartzImpl(this);
@@ -144,35 +149,38 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		// TODO: take some of the properties from midpoint configuration 
 		Properties qprops = new Properties();
 
-//        if (jdbcJobStore && !(repositoryService instanceof SqlRepositoryServiceImpl)) {
-//            throw new SystemException("It is not possible to use JDBC Quartz job store without SQL repository.");
-//        }
+        if (jdbcJobStore && !(repositoryService instanceof SqlRepositoryServiceImpl)) {
+            throw new SystemException("It is not possible to use JDBC Quartz job store without SQL repository.");
+        }
 
-//        SqlRepositoryConfiguration sqlConfig = null;
+        if (clustered && !jdbcJobStore) {
+            throw new SystemException("Clustered task manager requires JDBC Quartz job store.");
+        }
+
+        SqlRepositoryConfiguration sqlConfig = null;
 
         if (jdbcJobStore) {
 
-//          SqlRepositoryServiceImpl sqlrepo = (SqlRepositoryServiceImpl) repositoryService;
-//            SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) beanFactory.getBean("sqlRepositoryFactory");
-//            if (sqlRepositoryFactory == null) {
-//                throw new SystemException("Cannot initialize quartz task manager, because sqlRepositoryFactory is not available.");
-//            }
+            SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) beanFactory.getBean("sqlRepositoryFactory");
+            if (sqlRepositoryFactory == null) {
+                throw new SystemException("Cannot initialize quartz task manager, because sqlRepositoryFactory is not available.");
+            }
 
 			qprops.put("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
             qprops.put("org.quartz.jobStore.driverDelegateClass", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
             qprops.put("org.quartz.jobStore.dataSource", "myDS");
 
-//            sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
+            sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
 
-//            qprops.put("org.quartz.dataSource.myDS.driver", sqlConfig.getDriverClassName());
-//            qprops.put("org.quartz.dataSource.myDS.URL", sqlConfig.getJdbcUrl());
-//            qprops.put("org.quartz.dataSource.myDS.user", sqlConfig.getJdbcUsername());
-//            qprops.put("org.quartz.dataSource.myDS.password", sqlConfig.getJdbcPassword());
+            String driver = sqlConfig.getDriverClassName();
+            String url = sqlConfig.getJdbcUrl();
+            String user = sqlConfig.getJdbcUsername();
+            String password = sqlConfig.getJdbcPassword();
 
-            String driver = "org.h2.Driver";
-            String url = "jdbc:h2:tcp://localhost/~/midpoint";
-            String user = "sa";
-            String password = "";
+//            String driver = "org.h2.Driver";
+//            String url = "jdbc:h2:tcp://localhost/~/midpoint";
+//            String user = "sa";
+//            String password = "";
 
             try {
                 createQuartzDbSchema(driver, url, user, password);
@@ -185,17 +193,24 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             qprops.put("org.quartz.dataSource.myDS.user", user);
             qprops.put("org.quartz.dataSource.myDS.password", password);
 
-            qprops.put("org.quartz.jobStore.isClustered", "true");
+            qprops.put("org.quartz.jobStore.isClustered", clustered ? "true" : "false");
 
         } else {
 			qprops.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
         }
 		qprops.put("org.quartz.scheduler.instanceName", "midPointScheduler");
 
-        String instanceId = System.getProperty("com.evolveum.midpoint.instanceId");
-        if (instanceId == null)
-            instanceId = "AUTO";
-		qprops.put("org.quartz.scheduler.instanceId", instanceId);
+        String nodeId = System.getProperty(MIDPOINT_NODE_ID_PROPERTY);
+        if (nodeId == null)
+            nodeId = "DefaultNode";
+		qprops.put("org.quartz.scheduler.instanceId", nodeId);
+
+        String port = System.getProperty("com.sun.management.jmxremote.port");
+        if (port == null)
+            port = DEFAULT_JMX_PORT;
+
+        nodePrism = clusterManager.createNodePrism(nodeId, Integer.parseInt(port));
+        clusterManager.registerNode(nodePrism, result);
 
 		qprops.put("org.quartz.scheduler.skipUpdateCheck", "true");
 		qprops.put("org.quartz.threadPool.threadCount", "5");
@@ -233,6 +248,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		
 		LOGGER.info("Task Manager initialized");
 	}
+
+
 
     // TODO: allow use of other databases (not H2 only)
     private void createQuartzDbSchema(String driver, String url, String user, String password) throws SQLException {
@@ -306,7 +323,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 				TaskQuartzImpl task = null;
 				try {
 					task = (TaskQuartzImpl) createTaskInstance(taskPrism, result);
-					task.addOrReplaceQuartzTask();
+					task.addOrReplaceQuartzTask();          // TODO: if the trigger already exists, we reschedule it. This must be fixed.
 				} catch (SchemaException e) {
 					LoggingUtils.logException(LOGGER, "Task Manager cannot create task instance from task stored in repository due to schema exception; OID = {}", e, taskPrism.getOid());
 					errors++;
@@ -341,7 +358,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		if (quartzScheduler != null) {
 			
             putQuartzIntoStandby();
-            shutdownAllTasksAndWait(0);
+            shutdownAllTasksAndWait(0, false);
 
 			if (reusableQuartzScheduler) {
 				LOGGER.info("Quartz scheduler will NOT be shutdown. It stays in paused mode.");
@@ -594,20 +611,20 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		try {
 			quartzScheduler.pauseJob(jobKey);
 			// Stop current task execution
-			return shutdownTaskAndWait(task, waitTime);
+			return shutdownTaskAndWait(task, waitTime, true);
 			
 		} catch (SchedulerException e1) {
 			LoggingUtils.logException(LOGGER, "Cannot pause the Quartz job corresponding to task {}", e1, task);
-			shutdownTaskAndWait(task, waitTime);			// if it is running...
+			shutdownTaskAndWait(task, waitTime, true);			// if it is running...
 			throw new SystemException("Cannot pause the Quartz job corresponding to task " + task, e1);
 		}
 		
 	}
 
-    private boolean shutdownAllTasksAndWait(long timeToWait) {
+    private boolean shutdownAllTasksAndWait(long timeToWait, boolean clusterwide) {
         LOGGER.info("Interrupting all tasks");
         try {
-            return shutdownTasksAndWait(getRunningTasks(), timeToWait);
+            return shutdownTasksAndWait(getRunningTasks(), timeToWait, clusterwide);
         } catch(Exception e) {		// FIXME
             LoggingUtils.logException(LOGGER, "Cannot shutdown tasks", e);
             return false;
@@ -615,39 +632,66 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
 
-    private boolean shutdownTasksAndWait(Collection<Task> tasks, long waitTime) {
+    private boolean shutdownTasksAndWait(Collection<Task> tasks, long waitTime, boolean clusterwide) {
 
 		if (tasks.isEmpty())
 			return true;
 		
-		LOGGER.trace("Stopping tasks " + tasks + " (waiting " + waitTime + " msec)");
+		LOGGER.trace("Stopping tasks " + tasks + " (waiting " + waitTime + " msec); clusterwide = " + clusterwide);
 		
 		for (Task task : tasks)
-			signalShutdownToTask(task);
+			signalShutdownToTask(task, clusterwide);
 		
-		return waitForTaskCompletion(tasks, waitTime);
+		return waitForTaskCompletion(tasks, waitTime, clusterwide);
 	}
 	
-	private boolean shutdownTaskAndWait(Task task, long waitTime) {
+	private boolean shutdownTaskAndWait(Task task, long waitTime, boolean clusterwide) {
 		ArrayList<Task> list = new ArrayList<Task>(1);
 		list.add(task);
-		return shutdownTasksAndWait(list, waitTime);
+		return shutdownTasksAndWait(list, waitTime, clusterwide);
 	}
 
-	
-	private void signalShutdownToTask(Task task) {
+    void signalShutdownToTaskLocally(String oid) {
+        try {
+            quartzScheduler.interrupt(TaskQuartzImplUtil.createJobKeyForTaskOid(oid));
+        } catch (UnableToInterruptJobException e) {
+            LoggingUtils.logException(LOGGER, "Unable to interrupt the task {}", e, oid);			// however, we continue (e.g. to suspend the task)
+        }
+    }
+
+    private void signalShutdownToTaskClusterwide(String oid) {
+
+        LOGGER.trace("Interrupting remote task {} - first finding where it currently runs", oid);
+
+        RunningTasksInfo info = clusterManager.getRunningTasks();
+
+        RunningTasksInfo.NodeInfo nodeInfo = info.findNodeInfoForTask(oid);
+        if (nodeInfo == null) {
+            LOGGER.info("Asked to interrupt task {} but did not find it running at any node.");
+            return;
+        }
+
+        clusterManager.interruptRemoteTask(oid, nodeInfo);
+
+    }
+
+
+    private void signalShutdownToTask(Task task, boolean clusterwide) {
 		
-		LOGGER.info("Signalling shutdown to task " + task + " (via quartz)");
-		
-		try {
-			quartzScheduler.interrupt(TaskQuartzImplUtil.createJobKeyForTask(task));
-		} catch (UnableToInterruptJobException e) {
-			LoggingUtils.logException(LOGGER, "Unable to interrupt the task {}", e, task);			// however, we continue (to suspend the task)
-		}
+		LOGGER.info("Signalling shutdown to task " + task + " (via quartz); clusterwide = " + clusterwide);
+
+        // if the task runs locally or !clusterwide
+        if (isTaskThreadActive(task.getOid()) || !clusterwide) {
+            signalShutdownToTaskLocally(task.getOid());
+        } else {
+            signalShutdownToTaskClusterwide(task.getOid());
+        }
 	}
+
+
 
 	// returns true if tasks are down
-	private boolean waitForTaskCompletion(Collection<Task> tasks, long maxWaitTime) {
+	private boolean waitForTaskCompletion(Collection<Task> tasks, long maxWaitTime, boolean clusterwide) {
 		
 		LOGGER.trace("Waiting for task(s) " + tasks + " to complete, at most for " + maxWaitTime + " ms.");
 		
@@ -660,22 +704,28 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		long started = System.currentTimeMillis();
 		
 		for(;;) {
-			
-			List<JobExecutionContext> jecs;
-			try {
-				jecs = quartzScheduler.getCurrentlyExecutingJobs();
-			} catch (SchedulerException e1) {
-				LoggingUtils.logException(LOGGER, "Cannot get the list of currently executing jobs. Finishing waiting for task(s) completion.", e1);
-				return false;
-			}
 
-			boolean isAnythingExecuting = false;
-			for (JobExecutionContext jec : jecs) {
-				if (oids.contains(jec.getJobDetail().getKey().getName())) {
-					isAnythingExecuting = true;
-					break;
-				}
-			}
+            boolean isAnythingExecuting = false;
+            RunningTasksInfo rtinfo = clusterManager.getRunningTasks(clusterwide);
+            for (String oid : oids) {
+                if (rtinfo.findNodeInfoForTask(oid) != null) {
+                    isAnythingExecuting = true;
+                    break;
+                }
+            }
+//			List<JobExecutionContext> jecs;
+//			try {
+//				jecs = quartzScheduler.getCurrentlyExecutingJobs();
+//			} catch (SchedulerException e1) {
+//				LoggingUtils.logException(LOGGER, "Cannot get the list of currently executing jobs. Finishing waiting for task(s) completion.", e1);
+//				return false;
+//			}
+//			for (JobExecutionContext jec : jecs) {
+//				if (oids.contains(jec.getJobDetail().getKey().getName())) {
+//					isAnythingExecuting = true;
+//					break;
+//				}
+//			}
 			
 			if (!isAnythingExecuting) {
 				LOGGER.trace("The task(s), for which we have been waiting for, have finished.");
@@ -736,7 +786,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	public boolean deactivateServiceThreads(long timeToWait) {
         boolean result1 = putQuartzIntoStandby();
-        boolean result2 = shutdownAllTasksAndWait(timeToWait);
+        boolean result2 = shutdownAllTasksAndWait(timeToWait, false);
         return result1 && result2;
 	}
 
@@ -838,6 +888,24 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             Date next = t.getNextFireTime();
             return next == null ? null : next.getTime();
         }
+    }
 
+    public PrismObject<NodeType> getNodePrism() {
+        return nodePrism;
+    }
+
+    @Override
+    public String getNodeId() {
+        return nodePrism.asObjectable().getNodeIdentifier();
+    }
+
+    @Override
+    public boolean isCurrentNode(PrismObject<NodeType> node) {
+        return getNodeId().equals(node.asObjectable().getNodeIdentifier());
+    }
+
+    @Override
+    public RunningTasksInfo getRunningTasksClusterwide() {
+        return clusterManager.getRunningTasks();
     }
 }

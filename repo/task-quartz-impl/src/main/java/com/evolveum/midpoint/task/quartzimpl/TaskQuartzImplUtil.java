@@ -61,7 +61,7 @@ public class TaskQuartzImplUtil {
 
         //if (task.isCycle() && task.isLooselyBound()) {			// tightly-bound tasks are executed without schedule (their repeating is done within the JobExecutor)
         if (task.isCycle()) {			        // tightly-bound tasks are triggered via Quartz (in case they stop for some reason)
-        	
+
         	ScheduleType sch = task.getSchedule();
         	if (sch == null)
         		throw new IllegalStateException("Recurrent task " + task + " does not have a schedule.");

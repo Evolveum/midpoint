@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.controller.server;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTasksInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.SortableListController;
 import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +58,8 @@ public class TaskListController extends SortableListController<TaskItem> {
     @Autowired(required = true)
     private transient RepositoryManager repositoryManager;
 
+    private RunningTasksInfo runningTasksInfo;
+
     private boolean listAll = false;
     private boolean selectAll = false;
 
@@ -74,10 +78,12 @@ public class TaskListController extends SortableListController<TaskItem> {
     protected String listObjects() {
         List<PrismObject<TaskType>> taskTypeList = repositoryManager.listObjects(TaskType.class, getOffset(),
                 getRowsCount());
+        runningTasksInfo = taskManager.getRunningTasksClusterwide();
+
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
         for (PrismObject<TaskType> task : taskTypeList) {
-            runningTasks.add(new TaskItem(task.asObjectable(), taskManager));
+            runningTasks.add(new TaskItem(task.asObjectable(), taskManager, runningTasksInfo));
         }
 
         listAll = true;
@@ -91,6 +97,9 @@ public class TaskListController extends SortableListController<TaskItem> {
         for (Task task : tasks) {
             runningTasks.add(new TaskItem(task, taskManager));
         }
+
+        runningTasksInfo = null;            // not necessary, because object list itself will contain running tasks
+
         listAll = false;
         return PAGE_NAVIGATION;
     }
@@ -261,13 +270,13 @@ public class TaskListController extends SortableListController<TaskItem> {
         }
     }
 
-    public boolean isActivated() {
-        return taskManager.getServiceThreadsActivationState();
-    }
+//    public boolean isActivated() {
+//        return taskManager.getServiceThreadsActivationState();
+//    }
 
-    public void setActivated(boolean activated) {
-        this.activated = activated;
-    }
+//    public void setActivated(boolean activated) {
+//        this.activated = activated;
+//    }
 
     public TaskItem getSelectedTask() {
         return selectedTask;
@@ -283,5 +292,40 @@ public class TaskListController extends SortableListController<TaskItem> {
 
     public void setListAll(boolean listAll) {
         this.listAll = listAll;
+    }
+
+    // for debugging
+    public String getClusterInfo() {
+
+        if (runningTasksInfo == null) {
+            return "No cluster info; local scheduler is " + (taskManager.getServiceThreadsActivationState() ? "" : "NOT") + " running";
+        }
+
+        StringBuffer retval = new StringBuffer();
+        retval.append("Cluster nodes: \n");         // newlines are not displayed
+        for (RunningTasksInfo.NodeInfo nodeInfo : runningTasksInfo.getNodes()) {
+            NodeType nodeType = nodeInfo.getNodeType().asObjectable();
+            retval.append("{Node " + nodeType.getNodeIdentifier() + " (" + nodeType.getHostname() + "): ");
+            if (nodeInfo.isConnectionError()) {
+                retval.append("*** Connection error: " + nodeInfo.getConnectionError() + " ***");
+            } else {
+                retval.append("running = " + nodeInfo.isSchedulerRunning());
+
+                List<RunningTasksInfo.TaskInfo> taskInfoList = runningTasksInfo.getTasks().get(nodeInfo);
+                retval.append("; tasks: " + taskInfoList.size() + " [");
+                boolean first = true;
+                for (RunningTasksInfo.TaskInfo ti : taskInfoList) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        retval.append(", ");
+                    }
+                    retval.append(ti.getOid());
+                }
+                retval.append("]");
+            }
+            retval.append("}   \n");
+        }
+        return retval.toString();
     }
 }

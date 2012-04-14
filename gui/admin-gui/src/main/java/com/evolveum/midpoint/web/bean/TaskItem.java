@@ -23,17 +23,13 @@ package com.evolveum.midpoint.web.bean;
 
 import java.util.Date;
 
+import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.time.DurationFormatUtils;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
@@ -64,6 +60,8 @@ public class TaskItem extends SelectableBean {
     private OperationResult result;
     private PrismContainer extension;
     private String taskIdentifier;
+
+    private String executesAt;
     
     private TaskManager taskManager;
 
@@ -71,6 +69,7 @@ public class TaskItem extends SelectableBean {
     	this.taskManager = taskManager;
     }
 
+    // used to convert task currently executing at this node
     public TaskItem(Task task, TaskManager taskManager) {
     	this.taskManager = taskManager;
         this.handlerUri = task.getHandlerUri();
@@ -112,9 +111,10 @@ public class TaskItem extends SelectableBean {
             this.extension = task.getExtension();
         }
 
+        this.executesAt = taskManager.getNodeId();        // here we assume the task is executing at current node
     }
 
-    public TaskItem(TaskType taskType, TaskManager taskManager) {
+    public TaskItem(TaskType taskType, TaskManager taskManager, RunningTasksInfo runningTasksInfo) {
     	this.taskManager = taskManager;
         this.handlerUri = taskType.getHandlerUri();
         this.taskIdentifier = taskType.getTaskIdentifier();
@@ -164,6 +164,9 @@ public class TaskItem extends SelectableBean {
         if (taskType.getExtension() != null) {
             this.extension = taskType.asPrismObject().getExtension();
         }
+
+        RunningTasksInfo.NodeInfo nodeInfo = runningTasksInfo.findNodeInfoForTask(this.getOid());
+        this.executesAt = nodeInfo != null ? nodeInfo.getNodeType().asObjectable().getNodeIdentifier() : null;
     }
 
     /**
@@ -392,24 +395,36 @@ public class TaskItem extends SelectableBean {
 			(lastRunFinishTimestampLong == null || lastRunStartTimestampLong > lastRunFinishTimestampLong);
     }
     
-    public boolean isAlive() {
-    	return taskManager.isTaskThreadActive(oid);
+    public boolean isAliveClusterwide() {
+    	return executesAt != null;
     }
 
-    public String getAliveAsText() {
-        if (isAlive()) {
-            return "true";
-        } else {
-            return "-";
-        }
+//    public String getAliveAsText() {
+//        if (isAlive()) {
+//            return "true";
+//        } else {
+//            return "-";
+//        }
+//    }
+
+    public String getExecutesAt() {
+        return executesAt;
     }
-    
+
+    public String getExecutesAtFormatted() {
+        return executesAt == null ? "-" : executesAt;
+    }
+
+    public void setExecutesAt(String executesAt) {
+        this.executesAt = executesAt;
+    }
+
     public String getCurrentRunTime() {
     	if (taskRunNotFinished()) {
-    		if (isAlive()) {
+    		if (isAliveClusterwide()) {
     			return formatTimeInterval(System.currentTimeMillis() - lastRunStartTimestampLong);
     		} else {
-    			return "finish time unknown, task thread dead";
+    			return "-"; //was: "finish time unknown, task thread dead";
     		}
     	} else {
     		return "-";
@@ -420,7 +435,10 @@ public class TaskItem extends SelectableBean {
     	long current = System.currentTimeMillis();
     	if (!TaskItemRecurrenceStatus.RECURRING.equals(recurrenceStatus)) {
     		return "-";
-    	} 
+    	}
+        else if (TaskItemBinding.TIGHT.equals(binding)) {
+            return "runs continually";
+        }
 //    	else if (taskRunNotFinished()) {
 //    		return "to be computed";		
     	else if (nextRunStartTimeLong != null && nextRunStartTimeLong > 0) {

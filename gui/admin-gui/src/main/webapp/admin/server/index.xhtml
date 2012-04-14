@@ -111,10 +111,10 @@
 					<f:facet name="header">
 						<ice:commandSortHeader columnName="thread" arrow="true"
 							actionListener="#{taskList.sortList}">
-							<ice:outputText id="threadTxt" value="Thread alive" />
+							<ice:outputText id="threadTxt" value="Executes at" />
 						</ice:commandSortHeader>
 					</f:facet>
-					<ice:outputText value="#{item.aliveAsText}" />
+					<ice:outputText value="#{item.executesAtFormatted}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
@@ -129,15 +129,14 @@
 					<f:facet name="header">
 						<ice:commandSortHeader columnName="nextRun" arrow="true"
 							actionListener="#{taskList.sortList}">
-							<ice:outputText id="nextRunTxt" value="Scheduled to run again" />
+							<ice:outputText id="nextRunTxt" value="Scheduled to start again" />
 						</ice:commandSortHeader>
 					</f:facet>
 					<ice:outputText value="#{item.startsAgainAfter}" />
 				</ice:column>
 			</ice:dataTable>
 
-            <ice:outputText value="Scheduler thread running: " />
-            <ice:outputText value="#{taskList.activated}" />
+            <ice:outputText value="#{taskList.clusterInfo}" />
 			<div class="button-bar">
 				<idm:button value="Deactivate all execution threads"
 					img="/resources/images/link_break.png"
