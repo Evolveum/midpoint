@@ -27,76 +27,42 @@
         <h1>
             <wicket:message key="page.title"/>
         </h1>
-		
-		<div class="optionPanel">
-	        	<div class="optionLeftBar">
-	        		<span class="optionLeftBarArrow"></span>
-	        	</div>
-	        	<div class="optionRightBar">
-	        		<div class="optionContent">
-	        			<h2>Option panel</h2>
-	        			<div class="optionComponent">
-	        				<span class="optionComponentTitle">Choose action</span>
-	        				<select name="newActions" size="4">
-			        			<option value="" selected="selected">--- New Actions ---</option>
-								<option value="25">aaaaa</option>
-								<option value="50">bbbbb</option>
-								<option value="100">cccc</option>
-							</select>
-	        			</div>
-	        			
-	        			<div class="optionComponent">
-	        				<span class="optionComponentTitle">Choose action</span>
-	        				<select name="newActions" size="4">
-			        			<option value="" selected="selected">--- User Actions ---</option>
-								<option value="25">aaaaa</option>
-								<option value="50">bbbbb</option>
-								<option value="100">cccc</option>
-							</select>
-	        			</div>
-	        			
-	        			<div class="optionComponent">
-	        				<span class="optionComponentTitle">Choose action</span>
-	        				<select name="newActions" size="4">
-			        			<option value="" selected="selected">--- Organization Actions ---</option>
-								<option value="25">aaaaa</option>
-								<option value="50">bbbbb</option>
-								<option value="100">cccc</option>
-							</select>
-	        			</div>
-								
-	        			<div class="optionComponent">
-	        				<span class="optionComponentTitle">Search text</span>
-	        				<input type="text" />
-	        				<table>
-	        					<tr>
-	        						<td><input type="checkbox" /> Summary</td>
-	        						<td><input type="checkbox" /> Description</td>
-	        					</tr>
-	        					<tr>
-	        						<td><input type="checkbox" /> Comments</td>
-	        						<td><input type="checkbox" /> Environment</td>
-	        					</tr>
-	        				</table>
-	        				<input type="button" class="button" value="Search" /><br />
-	        			</div>
-	        			<div class="optionComponent">
-	        				<span class="optionComponentTitle">Select category</span>
-	        				<select size="4">
-	        					<option value="all" selected="selected">All</option>
-	        					<option value="Category1">Category1</option>
-	        					<option value="Category2">Category2</option>
-	        					<option value="Category3">Category3</option>
-	        					<option value="Category4">Category4</option>
-	        				</select>
-	        			</div>	        			
-	        		</div>
-	        	</div>
-        </div>
-        
-        <div class="optionResult">
-	        <div wicket:id="table" />
-	    </div>
+
+        <form wicket:id="mainForm">
+            <div wicket:id="option">
+                <div wicket:id="search">
+                    <input type="text" wicket:id="searchText"/>
+                    <table>
+                        <tr>
+                            <td>
+                                <input type="checkbox" wicket:id="nameCheck"/>
+                                <wicket:message key="pageUsers.name"/>
+                            </td>
+                            <td><input type="checkbox" wicket:id="fullNameCheck"/>
+                                <wicket:message key="pageUsers.fullName"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" wicket:id="givenNameCheck"/>
+                                <wicket:message key="pageUsers.givenName"/>
+                            </td>
+                            <td>
+                                <input type="checkbox" wicket:id="familyNameCheck"/>
+                                <wicket:message key="pageUsers.familyName"/>
+                            </td>
+                        </tr>
+                    </table>
+                    <a wicket:id="searchButton"/>
+                </div>
+                <div wicket:id="action">
+                    <select wicket:id="choice"/>
+                </div>
+            </div>
+            <div wicket:id="optionContent">
+                <div wicket:id="table"/>
+            </div>
+        </form>
     </div>
 </wicket:extend>
 </body>
