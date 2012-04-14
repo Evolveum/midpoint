@@ -320,9 +320,11 @@ public class JobExecutor implements InterruptableJob {
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
 		LOGGER.trace("Signalling shutdown to task " + task + ", executing in thread " + executingThread);
-		task.signalShutdown();
-		if (executingThread != null)			// in case this method would be (mistakenly?) called after the execution is over
-			executingThread.interrupt();
+        if (task != null) {
+		    task.signalShutdown();
+		    if (executingThread != null)			// in case this method would be (mistakenly?) called after the execution is over
+			    executingThread.interrupt();
+        }
 	}
 
 }

@@ -284,7 +284,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // task
        	
         logger.info("Waiting for task manager to pick up the task and run it");
-        Thread.sleep(2000);
+        Thread.sleep(4000);
         logger.info("... done");
 
         // Check task status
@@ -315,8 +315,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // Test for presence of a result. It should be there and it should
         // indicate success
         OperationResult taskResult = task1.getResult();
-        AssertJUnit.assertNotNull(taskResult);
-        AssertJUnit.assertTrue(taskResult.isSuccess());
+        AssertJUnit.assertNotNull("Task result is null", taskResult);
+        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
 
         // Test for no presence of handlers
         AssertJUnit.assertNull("Handler is still present", task1.getHandlerUri());
@@ -324,7 +324,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         		task1.getOtherHandlersUriStack() == null || task1.getOtherHandlersUriStack().getUri().isEmpty());
         
         // Test whether handler has really run
-        AssertJUnit.assertTrue(singleHandler1.hasRun());
+        AssertJUnit.assertTrue("Handler1 has not run", singleHandler1.hasRun());
     }
     
     /*
@@ -376,7 +376,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this
         // task
         LOGGER.trace("Waiting for task manager to pick up the task");
-        Thread.sleep(4000);
+        Thread.sleep(8000);
         LOGGER.trace("... done");
 
         // Check task status
@@ -396,20 +396,20 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
-        AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
-        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
-        AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
-        AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp().longValue() == 0);
+        AssertJUnit.assertNotNull("LastRunFinishTimestamp is null", task.getLastRunFinishTimestamp());
+        AssertJUnit.assertFalse("LastRunFinishTimestamp is 0", task.getLastRunFinishTimestamp().longValue() == 0);
 
         // The progress should be more at least 2 (wait time before task runs is 2 seconds)
-        AssertJUnit.assertTrue(task.getProgress() >= 2);
+        AssertJUnit.assertTrue("Task progress is too small (should be at least 2)", task.getProgress() >= 2);
 
         // Test for presence of a result. It should be there and it should
         // indicate success
         OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull(taskResult);
-        AssertJUnit.assertTrue(taskResult.isSuccess());
-        
+        AssertJUnit.assertNotNull("Task result is null", taskResult);
+        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
     	
@@ -435,7 +435,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         logger.info("Waiting for task manager to pick up the task and run it");
-        Thread.sleep(4000);
+        Thread.sleep(6000);
         logger.info("... done");
 
         // Check task status
@@ -466,9 +466,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // Test for presence of a result. It should be there and it should
         // indicate success
         OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull(taskResult);
-        AssertJUnit.assertTrue(taskResult.isSuccess());
-        
+        AssertJUnit.assertNotNull("Task result is null", taskResult);
+        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+
         // Test for no presence of handlers
         
         AssertJUnit.assertNull("Handler is still present", task.getHandlerUri());
@@ -493,7 +493,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this task
         
         LOGGER.trace("Waiting for task manager to pick up the task");
-        Thread.sleep(5000);
+        Thread.sleep(8000);
         LOGGER.trace("... done");
 
         // Check task status
@@ -524,9 +524,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // Test for presence of a result. It should be there and it should
         // indicate success
         OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull(taskResult);
-        AssertJUnit.assertTrue(taskResult.isSuccess());
-        
+        AssertJUnit.assertNotNull("Task result is null", taskResult);
+        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
     	
@@ -543,7 +543,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // We have to wait sufficiently long in order for the task to be processed at least twice
         
         System.out.println("Waiting for task manager to pick up the task");
-        Thread.sleep(10000);
+        Thread.sleep(12000);
         System.out.println("... done");
 
         // Check task status
@@ -570,9 +570,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // Test for presence of a result. It should be there and it should
         // indicate success
         OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull(taskResult);
-        AssertJUnit.assertTrue(taskResult.isSuccess());
-        
+        AssertJUnit.assertNotNull("Task result is null", taskResult);
+        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
     }
@@ -592,7 +592,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         TaskQuartzImpl task = (TaskQuartzImpl) taskManager.getTask(taskOid(test), result);
         
         System.out.println("Waiting for task manager to pick up the task");
-        Thread.sleep(2000);
+        Thread.sleep(4000);
         System.out.println("... done");
 
         // Check task status
@@ -636,7 +636,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
         System.out.println("Waiting for task manager to pick up the task");
-        Thread.sleep(2000);
+        Thread.sleep(4000);
         System.out.println("... done");
 
         // Check task status (task is running 5 iterations where each takes 2000 ms)
@@ -692,7 +692,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
         System.out.println("Waiting for task manager to pick up the task");
-        Thread.sleep(3000);
+        Thread.sleep(6000);
         System.out.println("... done");
 
         task.refresh(result);
@@ -743,7 +743,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         System.out.println("After setup: " + task.dump());
         
         System.out.println("Waiting for task manager to pick up the task");
-        Thread.sleep(2000);		// task itself takes 8 seconds to finish
+        Thread.sleep(4000);		// task itself takes 8 seconds to finish
         System.out.println("... done");
 
         task.refresh(result);
