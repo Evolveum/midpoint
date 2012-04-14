@@ -109,8 +109,11 @@ public class PageUser extends PageAdminUsers {
             throw new IllegalArgumentException("ffffffffffuuuuuuuu");
         }
 
-        return new ObjectWrapper(null, null, user,
+        ObjectWrapper wrapper = new ObjectWrapper(null, null, user,
                 com.evolveum.midpoint.web.component.prism.ContainerStatus.MODIFYING);
+        wrapper.setShowEmpty(!isEditingUser());
+
+        return wrapper;
     }
 
     private void initLayout() {
@@ -245,6 +248,11 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(cancel);
+    }
+
+    private boolean isEditingUser() {
+        StringValue userOid = getPageParameters().get(PageUser.PARAM_USER_ID);
+        return userOid != null && StringUtils.isNotEmpty(userOid.toString());
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
