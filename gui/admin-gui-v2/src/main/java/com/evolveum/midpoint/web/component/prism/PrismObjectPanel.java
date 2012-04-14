@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -31,11 +30,13 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.*;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.ResourceReference;
 
 import java.util.List;
 
@@ -98,6 +99,21 @@ public class PrismObjectPanel extends Panel {
             }
         };
         body.add(containers);
+
+        WebMarkupContainer footer = createFooterPanel("footer", model);
+        footer.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                ObjectWrapper wrapper = model.getObject();
+                return wrapper.isMinimalized();
+            }
+        });
+        add(footer);
+    }
+
+    public WebMarkupContainer createFooterPanel(String footerId, IModel<ObjectWrapper> model) {
+        return new EmptyPanel(footerId);
     }
 
     private void initButtons(WebMarkupContainer headerPanel, final IModel<ObjectWrapper> model) {

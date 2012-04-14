@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.objectform.ContainerStatus;
 import com.evolveum.midpoint.web.component.objectform.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.AccountFooterPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -45,12 +46,12 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.resource.PackageResource;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
@@ -166,10 +167,6 @@ public class PageUser extends PageAdminUsers {
         accordion.getBodyContainer().add(accounts);
         initAccounts(accounts);
 
-        AccordionItem roles = new AccordionItem("roles", createStringResource("pageUser.roles"));
-        accordion.getBodyContainer().add(roles);
-        initRoles(roles);
-
         AccordionItem assignments = new AccordionItem("assignments", createStringResource("pageUser.assignments"));
         accordion.getBodyContainer().add(assignments);
         initAssignments(assignments);
@@ -183,8 +180,17 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void populateItem(ListItem<ObjectWrapper> item) {
-                item.add(new PrismObjectPanel("account", loadTestWrapper(),
-                        new PackageResourceReference(PageUser.class, "Hdd.png")));
+                PrismObjectPanel account = new PrismObjectPanel("account", loadTestWrapper(),
+                        new PackageResourceReference(PageUser.class, "Hdd.png")) {
+
+                    @Override
+                    public WebMarkupContainer createFooterPanel(String footerId, IModel<ObjectWrapper> model) {
+                        //todo
+                        return new AccountFooterPanel(footerId, new Model("some id"),
+                                new Model<String>("probably active"));
+                    }
+                };
+                item.add(account);
             }
         };
 
@@ -216,20 +222,18 @@ public class PageUser extends PageAdminUsers {
         };
     }
 
-    private void initRoles(AccordionItem roles) {
+    private void initAssignments(AccordionItem assignments) {
         List<IColumn> columns = new ArrayList<IColumn>();
         columns.add(new CheckBoxHeaderColumn());
-        columns.add(new PropertyColumn(createStringResource("pageUser.role.name"), "name", "name"));
+        columns.add(new PropertyColumn(createStringResource("pageUser.assignment.type"), "type", "type"));
+        columns.add(new PropertyColumn(createStringResource("pageUser.assignment.name"), "name", "name"));
+        columns.add(new PropertyColumn(createStringResource("pageUser.assignment.active"), "active", "active"));
 
         ISortableDataProvider provider = new ListDataProvider(createRolesList());
-        TablePanel roleTable = new TablePanel("roleTable", provider, columns);
-        roleTable.setShowPaging(false);
+        TablePanel assignmentTable = new TablePanel("assignmentTable", provider, columns);
+        assignmentTable.setShowPaging(false);
 
-        roles.getBodyContainer().add(roleTable);
-    }
-
-    private void initAssignments(AccordionItem assignments) {
-        //todo implement
+        assignments.getBodyContainer().add(assignmentTable);
     }
 
     private void initButtons(Form mainForm) {
