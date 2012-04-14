@@ -24,15 +24,12 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.objectform.ContainerStatus;
-import com.evolveum.midpoint.web.component.objectform.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.AccountFooterPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
@@ -41,7 +38,6 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -65,96 +61,63 @@ public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_USER_ID = "userId";
 
-    private IModel<ContainerWrapper> model;
+    private IModel<ObjectWrapper> userModel;
+    private IModel<List<ObjectWrapper>> accountsModel;
 
     public PageUser() {
-        model = new LoadableModel<ContainerWrapper>(false) {
+        userModel = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
-            protected ContainerWrapper load() {
-                return loadUser();
+            protected ObjectWrapper load() {
+                return loadUserWrapper();
+            }
+        };
+        accountsModel = new LoadableModel<List<ObjectWrapper>>(false) {
+
+            @Override
+            protected List<ObjectWrapper> load() {
+                return loadAcccountWrappers();
             }
         };
 
         initLayout();
     }
 
-    private ContainerWrapper loadUser() {
-        StringValue userOid = getPageParameters().get(PARAM_USER_ID);
-
+    private ObjectWrapper loadUserWrapper() {
+        PrismObject<UserType> user = null;
         try {
-            if (userOid == null || StringUtils.isEmpty(userOid.toString())) {
-                return createNewUser();
-            }
-
             MidPointApplication application = PageUser.this.getMidpointApplication();
-            ModelService model = application.getModel();
 
-            OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
-            PrismObject<UserType> object = model.getObject(UserType.class, userOid.toString(), null, result);
+            StringValue userOid = getPageParameters().get(PARAM_USER_ID);
+            if (userOid == null || StringUtils.isEmpty(userOid.toString())) {
+                UserType userType = new UserType();
+                application.getPrismContext().adopt(userType);
+                user = userType.asPrismObject();
+            } else {
+                ModelService model = application.getModel();
 
-            return new ContainerWrapper(object, ContainerStatus.MODIFYING);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            //todo error handling
-        }
-
-        try {
-            return createNewUser();
-        } catch (SchemaException ex) {
-            ex.printStackTrace();
-            //todo error handling
-            throw new RestartResponseException(PageUsers.class);
-        }
-    }
-
-    private ContainerWrapper createNewUser() throws SchemaException {
-        UserType user = new UserType();
-
-        MidPointApplication application = getMidpointApplication();
-        application.getPrismContext().adopt(user);
-        return new ContainerWrapper(user.asPrismObject(), ContainerStatus.ADDING);
-    }
-
-    private IModel<ObjectWrapper> loadTestWrapper() {
-        return new LoadableModel<ObjectWrapper>(false) {
-
-            @Override
-            protected ObjectWrapper load() {
-                PrismObject<UserType> user = null;
-                try {
-                    MidPointApplication application = PageUser.this.getMidpointApplication();
-
-                    StringValue userOid = getPageParameters().get(PARAM_USER_ID);
-                    if (userOid == null || StringUtils.isEmpty(userOid.toString())) {
-                        UserType userType = new UserType();
-                        application.getPrismContext().adopt(userType);
-                        user = userType.asPrismObject();
-                    } else {
-                        ModelService model = application.getModel();
-
-                        OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
-                        user = model.getObject(UserType.class, userOid.toString(), null, result);
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
-                if (user == null) {
-                    throw new IllegalArgumentException("ffffffffffuuuuuuuu");
-                }
-
-                return new ObjectWrapper("header text", "header description", user,
-                        com.evolveum.midpoint.web.component.prism.ContainerStatus.MODIFYING);
+                OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
+                user = model.getObject(UserType.class, userOid.toString(), null, result);
             }
-        };
+        } catch (Exception ex) {
+            //todo handle exception
+            ex.printStackTrace();
+        }
+
+        if (user == null) {
+            //todo handle null user...
+            throw new IllegalArgumentException("ffffffffffuuuuuuuu");
+        }
+
+        return new ObjectWrapper("header text", "header description", user,
+                com.evolveum.midpoint.web.component.prism.ContainerStatus.MODIFYING);
     }
 
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        PrismObjectPanel userForm = new PrismObjectPanel("userForm", loadTestWrapper(),
+        PrismObjectPanel userForm = new PrismObjectPanel("userForm", userModel,
                 new PackageResourceReference(PageUser.class, "User.png"));
         mainForm.add(userForm);
 
@@ -176,11 +139,11 @@ public class PageUser extends PageAdminUsers {
 
     private void initAccounts(AccordionItem accounts) {
         ListView<ObjectWrapper> accountList = new ListView<ObjectWrapper>("accountList",
-                createAccountsModel()) {
+                accountsModel) {
 
             @Override
             protected void populateItem(ListItem<ObjectWrapper> item) {
-                PrismObjectPanel account = new PrismObjectPanel("account", loadTestWrapper(),
+                PrismObjectPanel account = new PrismObjectPanel("account", item.getModel(),
                         new PackageResourceReference(PageUser.class, "Hdd.png")) {
 
                     @Override
@@ -197,27 +160,22 @@ public class PageUser extends PageAdminUsers {
         accounts.getBodyContainer().add(accountList);
     }
 
-    private IModel<List<ObjectWrapper>> createAccountsModel() {
-        return new LoadableModel<List<ObjectWrapper>>(false) {
+    private List<ObjectWrapper> loadAcccountWrappers() {
+        List<ObjectWrapper> list = new ArrayList<ObjectWrapper>();
+        //todo implement
+        ObjectWrapper wrapper = loadUserWrapper();
+        wrapper.setMinimalized(true);
+        list.add(wrapper);
 
-            @Override
-            protected List<ObjectWrapper> load() {
-                List<ObjectWrapper> list = new ArrayList<ObjectWrapper>();
-                //todo implement
-                list.add(null);
-                list.add(null);
-
-                return list;
-            }
-        };
+        return list;
     }
 
-    private IModel<List> createRolesList() {
+    private IModel<List> createAssignmentsList() {
         return new LoadableModel<List>(false) {
 
             @Override
             protected List load() {
-                return null;  //todo implement
+                return new ArrayList();
             }
         };
     }
@@ -229,7 +187,7 @@ public class PageUser extends PageAdminUsers {
         columns.add(new PropertyColumn(createStringResource("pageUser.assignment.name"), "name", "name"));
         columns.add(new PropertyColumn(createStringResource("pageUser.assignment.active"), "active", "active"));
 
-        ISortableDataProvider provider = new ListDataProvider(createRolesList());
+        ISortableDataProvider provider = new ListDataProvider(createAssignmentsList());
         TablePanel assignmentTable = new TablePanel("assignmentTable", provider, columns);
         assignmentTable.setShowPaging(false);
 
