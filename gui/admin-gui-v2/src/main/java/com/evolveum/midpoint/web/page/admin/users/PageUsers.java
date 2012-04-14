@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.users.dto.UsersAction;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -168,23 +169,13 @@ public class PageUsers extends PageAdminUsers {
         item.add(searchButton);
     }
 
-    private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {
-        return new LoadableModel<List<ObjectTypes>>(false) {
+    private IModel<List<UsersAction>> createChoiceModel() {
+        return new LoadableModel<List<UsersAction>>(false) {
 
             @Override
-            protected List<ObjectTypes> load() {
-                //todo fix....
-                List<ObjectTypes> choices = new ArrayList<ObjectTypes>();
-                Collections.addAll(choices, ObjectTypes.values());
-                Collections.sort(choices, new Comparator<ObjectTypes>() {
-
-                    @Override
-                    public int compare(ObjectTypes o1, ObjectTypes o2) {
-                        String str1 = (String) renderer.getDisplayValue(o1);
-                        String str2 = (String) renderer.getDisplayValue(o2);
-                        return String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
-                    }
-                });
+            protected List<UsersAction> load() {
+                List<UsersAction> choices = new ArrayList<UsersAction>();
+                Collections.addAll(choices, UsersAction.values());
 
                 return choices;
             }
@@ -192,23 +183,9 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void initAction(OptionItem item) {
-        //todo fix
-        IChoiceRenderer<ObjectTypes> renderer = new IChoiceRenderer<ObjectTypes>() {
-
-            @Override
-            public Object getDisplayValue(ObjectTypes object) {
-                return new StringResourceModel(object.getLocalizationKey(),
-                        (PageBase) PageUsers.this, null).getString();
-            }
-
-            @Override
-            public String getIdValue(ObjectTypes object, int index) {
-                return object.getClassDefinition().getSimpleName();
-            }
-        };
-
         final IModel<ObjectTypes> choice = new Model<ObjectTypes>();
-        ListChoice listChoice = new ListChoice("choice", choice, createChoiceModel(renderer), renderer, 5) {
+        ListChoice listChoice = new ListChoice("choice", choice, createChoiceModel(),
+                new EnumChoiceRenderer(PageUsers.this), 5) {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {

@@ -23,7 +23,9 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -55,6 +57,14 @@ public class ObjectWrapper implements Serializable {
     }
 
     public String getDisplayName() {
+        if (displayName == null) {
+            PrismProperty<String> name = object.findProperty(ObjectType.F_NAME);
+            if (name == null) {
+                return null;
+            }
+
+            return name.getRealValue();
+        }
         return displayName;
     }
 

@@ -41,6 +41,7 @@ public class PrismPropertyPanel extends Panel {
     public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model) {
         super(id);
 
+        setOutputMarkupId(true);
         add(new AttributeAppender("class", new Model<String>("objectFormPanel"), " "));
         add(new VisibleEnableBehaviour() {
 

@@ -21,10 +21,12 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import java.io.Serializable;
+
 /**
  * @author lazyman
  */
-public class UsersDto {
+public class UsersDto implements Serializable {
 
     private String searchText;
     private boolean name = true;

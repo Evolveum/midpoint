@@ -71,8 +71,8 @@ public class PrismObjectPanel extends Panel {
                 return isShowHeader();
             }
         });
-        headerPanel.add(new Label("header", new PropertyModel<Object>(model, "displayName")));
-        headerPanel.add(new Label("description", new PropertyModel<Object>(model, "description")));
+        headerPanel.add(new Label("header", createDisplayName(model)));
+        headerPanel.add(new Label("description", createDescription(model)));
 
         Image headerImg = new Image("headerImg", image);
         headerPanel.add(headerImg);
@@ -114,6 +114,14 @@ public class PrismObjectPanel extends Panel {
 
     public WebMarkupContainer createFooterPanel(String footerId, IModel<ObjectWrapper> model) {
         return new EmptyPanel(footerId);
+    }
+
+    protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
+        return new PropertyModel<String>(model, "displayName");
+    }
+
+    protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+        return new PropertyModel<String>(model, "description");
     }
 
     private void initButtons(WebMarkupContainer headerPanel, final IModel<ObjectWrapper> model) {

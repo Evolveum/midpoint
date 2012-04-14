@@ -23,47 +23,45 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="content">
-        <h1>
-            <wicket:message key="page.title"/>
-        </h1>
+    <h1>
+        <wicket:message key="page.title"/>
+    </h1>
 
-        <form wicket:id="mainForm">
-            <div wicket:id="option">
-                <div wicket:id="search">
-                    <input type="text" wicket:id="searchText"/>
-                    <table>
-                        <tr>
-                            <td>
-                                <input type="checkbox" wicket:id="nameCheck"/>
-                                <wicket:message key="pageUsers.name"/>
-                            </td>
-                            <td><input type="checkbox" wicket:id="fullNameCheck"/>
-                                <wicket:message key="pageUsers.fullName"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <input type="checkbox" wicket:id="givenNameCheck"/>
-                                <wicket:message key="pageUsers.givenName"/>
-                            </td>
-                            <td>
-                                <input type="checkbox" wicket:id="familyNameCheck"/>
-                                <wicket:message key="pageUsers.familyName"/>
-                            </td>
-                        </tr>
-                    </table>
-                    <a wicket:id="searchButton"/>
-                </div>
-                <div wicket:id="action">
-                    <select wicket:id="choice"/>
-                </div>
+    <form wicket:id="mainForm">
+        <div wicket:id="option">
+            <div wicket:id="search">
+                <input type="text" wicket:id="searchText"/>
+                <table>
+                    <tr>
+                        <td>
+                            <input type="checkbox" wicket:id="nameCheck"/>
+                            <wicket:message key="pageUsers.name"/>
+                        </td>
+                        <td><input type="checkbox" wicket:id="fullNameCheck"/>
+                            <wicket:message key="pageUsers.fullName"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" wicket:id="givenNameCheck"/>
+                            <wicket:message key="pageUsers.givenName"/>
+                        </td>
+                        <td>
+                            <input type="checkbox" wicket:id="familyNameCheck"/>
+                            <wicket:message key="pageUsers.familyName"/>
+                        </td>
+                    </tr>
+                </table>
+                <a wicket:id="searchButton"/>
             </div>
-            <div wicket:id="optionContent">
-                <div wicket:id="table"/>
+            <div wicket:id="action">
+                <select wicket:id="choice"/>
             </div>
-        </form>
-    </div>
+        </div>
+        <div wicket:id="optionContent">
+            <div wicket:id="table"/>
+        </div>
+    </form>
 </wicket:extend>
 </body>
 </html>

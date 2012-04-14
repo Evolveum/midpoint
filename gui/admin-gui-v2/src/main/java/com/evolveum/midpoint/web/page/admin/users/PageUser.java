@@ -109,7 +109,7 @@ public class PageUser extends PageAdminUsers {
             throw new IllegalArgumentException("ffffffffffuuuuuuuu");
         }
 
-        return new ObjectWrapper("header text", "header description", user,
+        return new ObjectWrapper(null, null, user,
                 com.evolveum.midpoint.web.component.prism.ContainerStatus.MODIFYING);
     }
 
@@ -118,7 +118,13 @@ public class PageUser extends PageAdminUsers {
         add(mainForm);
 
         PrismObjectPanel userForm = new PrismObjectPanel("userForm", userModel,
-                new PackageResourceReference(PageUser.class, "User.png"));
+                new PackageResourceReference(PageUser.class, "User.png")) {
+
+            @Override
+            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+                return createStringResource("pageUser.description");
+            }
+        };
         mainForm.add(userForm);
 
         Accordion accordion = new Accordion("accordion");
@@ -200,12 +206,12 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                //todo implement
+                savePerformed(target, form);
             }
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                //todo implement
+                onSaveError(target, form);
             }
         };
         mainForm.add(save);
@@ -215,7 +221,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //todo implement
+                recalculatePerformed(target);
             }
         };
         mainForm.add(recalculate);
@@ -225,7 +231,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //todo implement
+                refreshPerformed(target);
             }
         };
         mainForm.add(refresh);
@@ -235,9 +241,29 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //todo implement
+                cancelPerformed(target);
             }
         };
         mainForm.add(cancel);
+    }
+
+    private void cancelPerformed(AjaxRequestTarget target) {
+        setResponsePage(PageUsers.class);
+    }
+
+    private void savePerformed(AjaxRequestTarget target, Form form) {
+        //todo implement
+    }
+
+    private void recalculatePerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void refreshPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void onSaveError(AjaxRequestTarget target, Form form) {
+        //todo implement
     }
 }
