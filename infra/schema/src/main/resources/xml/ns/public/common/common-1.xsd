@@ -2034,6 +2034,14 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
+            <xsd:element name="protected" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specification of a protected account: account that cannot be affected by IDM. It will be
+            			ignored by operations, will not appear in lists, etc. 
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -2217,6 +2225,18 @@
         		</xsd:annotation>
         		<!-- TODO: iteration variable format? -->
         	</xsd:element>
+     	</xsd:sequence>
+     </xsd:complexType>
+     
+     <xsd:complexType name="ResourceObjectPatternType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			Resource object pattern. This data structure defines a pattern that is used to match resource
+     			objects using a native identifier(s). This may be primary or secondary identifier.
+     		</xsd:documentation>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:any namespace="##any" minOccurs="1" maxOccurs="unbounded"/>
      	</xsd:sequence>
      </xsd:complexType>
 

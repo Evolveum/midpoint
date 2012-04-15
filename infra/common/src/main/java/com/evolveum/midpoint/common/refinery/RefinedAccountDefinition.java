@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -56,6 +57,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     private ResourceType resourceType;
     private Collection<ResourceAttributeDefinition> identifiers;
 	private Collection<ResourceAttributeDefinition> secondaryIdentifiers;
+	private Collection<ResourceObjectPattern> protectedAccounts;
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
      */
@@ -151,7 +153,10 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 	private Collection<ResourceAttributeDefinition> createIdentifiersCollection() {
 		return new ArrayList<ResourceAttributeDefinition>();
 	}
-
+	
+	public Collection<ResourceObjectPattern> getProtectedAccounts() {
+		return protectedAccounts;
+	}
 
 	@Override
     public ResourceAttributeContainer instantiate() {
