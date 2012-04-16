@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
@@ -409,7 +410,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     @Test
     public void test001TestConnectionOpenDJ() throws FaultMessage, JAXBException, ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException {
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         displayTestTile("test001TestConnectionOpenDJ");
 
         // GIVEN
@@ -570,7 +571,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     @Test
     public void test002TestConnectionDerby() throws FaultMessage, JAXBException, ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException {
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         displayTestTile("test002TestConnectionDerby");
 
         // GIVEN
@@ -996,7 +997,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     @Test
     public void test016ProvisioningSearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SecurityViolationException {
         displayTestTile("test016ProvisioningSearchAccountsIterative");
 
         // GIVEN

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -50,7 +51,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	@Override
 	public void handleError(ResourceObjectShadowType shadow, Exception ex) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, ConfigurationException {
+			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
 		OperationResult parentResult = OperationResult.createOperationResult(shadow.getResult());
 		OperationResult handleErrorResult = parentResult.createSubresult(ObjectAlreadyExistHandler.class
@@ -117,7 +118,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 	private List<PrismObject<AccountShadowType>> getExistingAccount(QueryType query,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			ConfigurationException, SchemaException {
+			ConfigurationException, SchemaException, SecurityViolationException {
 		final List<PrismObject<AccountShadowType>> foundAccount = new ArrayList<PrismObject<AccountShadowType>>();
 		ResultHandler<AccountShadowType> handler = new ResultHandler() {
 

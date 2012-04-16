@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -156,6 +157,10 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 	
 	public Collection<ResourceObjectPattern> getProtectedAccounts() {
 		return protectedAccounts;
+	}
+	
+	public PrismContext getPrismContext() {
+		return resourceType.asPrismObject().getPrismContext();
 	}
 
 	@Override
@@ -400,11 +405,33 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
                 throw new SchemaException("Definition of attribute " + attrDefType.getRef() + " not found in object class " + objectClassDef.getTypeName() + " as defined in " + contextDescription);
             }
         }
+        
+        parseProtectedAccounts(rAccountDef, accountTypeDefType);
 
         return rAccountDef;
     }
 
-    static RefinedAccountDefinition parse(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
+	private static void parseProtectedAccounts(RefinedAccountDefinition rAccountDef, ResourceAccountTypeDefinitionType accountTypeDefType) throws SchemaException {
+		for (ResourceObjectPatternType protectedType: accountTypeDefType.getProtected()) {
+			ResourceObjectPattern protectedPattern = convertToPatten(protectedType, rAccountDef);
+			rAccountDef.getProtectedAccounts().add(protectedPattern);
+		}
+	}
+
+	private static ResourceObjectPattern convertToPatten(ResourceObjectPatternType protectedType, RefinedAccountDefinition rAccountDef) throws SchemaException {
+		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern();
+		Collection<? extends Item<?>> items = rAccountDef.getPrismContext().getPrismDomProcessor().parseContainerItems(rAccountDef, protectedType.getAny());
+		for(Item<?> item: items) {
+			if (item instanceof ResourceAttribute<?>) {
+				resourceObjectPattern.addIdentifier((ResourceAttribute<?>)item);
+			} else {
+				throw new SchemaException("Unexpected item in pattern for "+rAccountDef+": "+item);
+			}
+		}
+		return resourceObjectPattern;
+	}
+
+	static RefinedAccountDefinition parse(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
             RefinedResourceSchema rSchema,
             PrismContext prismContext, String contextDescription) throws SchemaException {
 

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
@@ -84,7 +85,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	
 	@Test
 	public void test001CreateSystemConfiguration() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException {
+			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException, SecurityViolationException {
 		displayTestTile("test001CreateSystemConfiguration");
 		
 		// GIVEN
@@ -110,7 +111,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 
 	@Test
 	public void test002AddModelSubsystemLogger() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, 
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException {
+			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException, SecurityViolationException {
 		displayTestTile("test002AddModelSubsystemLogger");
 		
 		// GIVEN

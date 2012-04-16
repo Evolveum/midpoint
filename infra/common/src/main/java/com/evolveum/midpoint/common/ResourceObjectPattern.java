@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.common;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -31,6 +32,48 @@ public class ResourceObjectPattern {
 	
 	private Collection<ResourceAttribute<?>> identifiers;
 	
-	// TODO
+	public Collection<ResourceAttribute<?>> getIdentifiers() {
+		if (identifiers == null) {
+			identifiers = new ArrayList<ResourceAttribute<?>>();
+		}
+		return identifiers;
+	}
+	
+	public void addIdentifier(ResourceAttribute<?> identifier) {
+		getIdentifiers().add(identifier);
+	}
+
+	public static boolean matches(Collection<? extends ResourceAttribute<?>> attributesToMatch,
+			Collection<ResourceObjectPattern> protectedAccountPatterns) {
+		for (ResourceObjectPattern pattern: protectedAccountPatterns) {
+			if (pattern.matches(attributesToMatch)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean matches(Collection<? extends ResourceAttribute<?>> attributesToMatch) {
+		for (ResourceAttribute<?> identifier: identifiers) {
+			if (!matches(identifier, attributesToMatch)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean matches(ResourceAttribute<?> identifier, Collection<? extends ResourceAttribute<?>> attributesToMatch) {
+		for (ResourceAttribute<?> attributeToMatch: attributesToMatch) {
+			if (matches(identifier, attributeToMatch)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean matches(ResourceAttribute<?> identifier, ResourceAttribute<?> attributeToMatch) {
+//		 TODO: compare real values only ?
+		return identifier.equals(attributeToMatch);
+	}
 
 }

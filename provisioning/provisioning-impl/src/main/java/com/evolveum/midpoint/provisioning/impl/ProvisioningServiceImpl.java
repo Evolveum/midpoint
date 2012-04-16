@@ -75,6 +75,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -169,7 +170,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
 			PropertyReferenceListType resolve, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -284,7 +285,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException,
-			CommunicationException, ObjectNotFoundException, ConfigurationException {
+			CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		// TODO
 
 		Validate.notNull(object, "Object to add must not be null.");
@@ -334,6 +335,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// result.recordFatalError("Could't add object. Configuration error, "
 				// + ex.getMessage(), ex);
 				throw ex;
+			} catch (SecurityViolationException ex) {
+				logFatalError(LOGGER, result, "Couldn't add object. Security violation: " + ex.getMessage(),
+						ex);
+				throw ex;
 			}
 		} else {
 			oid = cacheRepositoryService.addObject(object, result);
@@ -345,7 +350,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public int synchronize(String resourceOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(resourceOid, "Resource oid must not be null.");
 		Validate.notNull(task, "Task must not be null.");
@@ -515,6 +520,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// e.getMessage(), e);
 			// result.recordFatalError(e.getMessage(), e);
 			throw e;
+		} catch (SecurityViolationException e) {
+			logFatalError(LOGGER, result, "Synchronization error: security violation: " + e.getMessage(), e);
+			throw e;
 		} catch (ConfigurationException e) {
 			logFatalError(LOGGER, result, "Synchronization error: configuration problem: " + e.getMessage(),
 					e);
@@ -667,7 +675,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, ConfigurationException {
+			CommunicationException, ConfigurationException, SecurityViolationException {
 
 		final List<PrismObject<T>> objListType = new ArrayList<PrismObject<T>>();
 
@@ -694,7 +702,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Modifications must not be null.");
@@ -755,6 +763,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					e);
 			// result.recordFatalError(e);
 			throw e;
+		} catch (SecurityViolationException e) {
+			logFatalError(LOGGER, result, "Couldn't modify object: security violation: " + e.getMessage(),
+					e);
+			throw e;
 		}
 
 		LOGGER.trace("Finished modifying of object with oid {}", oid);
@@ -763,7 +775,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException, ConfigurationException {
+			SchemaException, ConfigurationException, SecurityViolationException {
 		// TODO Auto-generated method stub
 
 		Validate.notNull(oid, "Oid of object to delete must not be null.");
@@ -926,7 +938,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query,
 			PagingType paging, final ResultHandler<T> handler, final OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(query, "Search query must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1004,7 +1016,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		} catch (ConfigurationException e) {
 			result.recordFatalError("Configuration error regarding resource with oid " + resourceOid
-					+ "not found. Reason: " + e);
+					+ ". Reason: " + e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			result.recordFatalError("Security violation: " + e);
 			throw e;
 		}
 

@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
@@ -144,7 +145,7 @@ public class ShadowCache {
 	 */
 	public <T extends ResourceObjectShadowType> T getShadow(Class<T> type, String oid, T repositoryShadow,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException, ConfigurationException {
+			SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Object id must not be null.");
 
@@ -205,7 +206,7 @@ public class ShadowCache {
 
 	public String addShadow(ResourceObjectShadowType shadow, ScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ConfigurationException {
+			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(shadow, "Object to add must not be null.");
 
@@ -297,7 +298,7 @@ public class ShadowCache {
 
 	public void deleteShadow(ObjectType objectType, ScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-			ObjectNotFoundException, SchemaException, ConfigurationException {
+			ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(objectType, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -368,7 +369,7 @@ public class ShadowCache {
 	public void modifyShadow(ObjectType objectType, ResourceType resource, String oid,
 			Collection<? extends ItemDelta> modifications, ScriptsType scripts, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-			SchemaException, ConfigurationException {
+			SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(objectType, "Object to modify must not be null.");
 		Validate.notNull(oid, "OID must not be null.");
@@ -482,7 +483,7 @@ public class ShadowCache {
 
 	public List<Change> fetchChanges(ResourceType resourceType, PrismProperty lastToken,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			GenericFrameworkException, SchemaException, ConfigurationException {
+			GenericFrameworkException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		List<Change> changes = null;
 		try {
@@ -742,7 +743,7 @@ public class ShadowCache {
 
 	private ResourceObjectShadowType findOrCreateShadowFromChange(ResourceType resource, Change change,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException, ConfigurationException {
+			CommunicationException, GenericFrameworkException, ConfigurationException, SecurityViolationException {
 
 		// Try to locate existing shadow in the repository
 		List<PrismObject<AccountShadowType>> accountList = searchAccountByIdenifiers(change, parentResult);

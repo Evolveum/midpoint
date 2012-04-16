@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -306,6 +307,12 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             // It may be worth to retry. Error is fatal, but may not be permanent.
             opResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+            runResult.setProgress(handler.getProgress());
+            return runResult;
+		} catch (SecurityViolationException ex) {
+			LOGGER.error("Import: Security violation: {}", ex.getMessage(), ex);
+            opResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             runResult.setProgress(handler.getProgress());
             return runResult;
 		}

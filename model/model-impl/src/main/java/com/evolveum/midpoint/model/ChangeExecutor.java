@@ -82,14 +82,15 @@ public class ChangeExecutor {
     }
 
     public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, OperationResult result) throws
-            ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+            ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
+            SecurityViolationException {
         for (ObjectDelta<? extends ObjectType> change : changes) {
             executeChange(change, result);
         }
     }
 
     public void executeChanges(SyncContext syncContext, OperationResult result) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectDelta<UserType> userDelta = syncContext.getUserDelta();
         if (userDelta != null) {
             LOGGER.trace("Executing USER change " + userDelta);
@@ -209,7 +210,7 @@ public class ChangeExecutor {
     }
 
     public <T extends ObjectType> void executeChange(ObjectDelta<T> objectDelta, OperationResult result) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
         if (objectDelta == null) {
             throw new IllegalArgumentException("Null change");
@@ -234,7 +235,7 @@ public class ChangeExecutor {
     }
 
     private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         PrismObject<T> objectToAdd = change.getObjectToAdd();
 
@@ -312,7 +313,7 @@ public class ChangeExecutor {
 
     private String addProvisioningObject(PrismObject<? extends ObjectType> object, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
         if (object.canRepresent(ResourceObjectShadowType.class)) {
             ResourceObjectShadowType shadow = (ResourceObjectShadowType) object.asObjectable();
@@ -366,7 +367,7 @@ public class ChangeExecutor {
     }
 
     private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException {
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         ScriptsType scripts = null;
         if (object instanceof ResourceType) {
             ResourceType resource = (ResourceType) object;

@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -114,7 +115,8 @@ public class UserSynchronizer {
 	}
 
 	public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException {
+            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, 
+            ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 
 		if (syncContextListener != null) {
         	syncContextListener.beforeSync(context);
@@ -183,7 +185,7 @@ public class UserSynchronizer {
     }
 
     private void checkAccountContextReconciliation(SyncContext context, OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
         OperationResult subResult = result.createSubresult(UserSynchronizer.class + ".checkAccountContextReconciliation");
         try {
@@ -238,7 +240,7 @@ public class UserSynchronizer {
     }
 
     private void loadAccountRefs(SyncContext context, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException {
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         PolicyDecision policyDecision = null;
         if (context.getUserPrimaryDelta() != null && context.getUserPrimaryDelta().getChangeType() == ChangeType.DELETE) {
             // If user is deleted, all accounts should also be deleted
@@ -259,7 +261,8 @@ public class UserSynchronizer {
      * Does not overwrite existing account contexts, just adds new ones.
      */
     private void loadAccountRefsFromUser(SyncContext context, PrismObject<UserType> user, PolicyDecision policyDecision,
-            OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+            OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
+            SecurityViolationException {
     	PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
     	if (accountRef == null) {
     		return;
@@ -295,7 +298,7 @@ public class UserSynchronizer {
 
 	private void loadAccountRefsFromDelta(SyncContext context, PrismObject<UserType> user, 
 			ObjectDelta<UserType> userPrimaryDelta, OperationResult result) throws SchemaException, 
-			ObjectNotFoundException, CommunicationException, ConfigurationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (userPrimaryDelta == null) {
 			return;
 		}
@@ -414,7 +417,8 @@ public class UserSynchronizer {
 		
 	}
 
-	private void loadAccountContextsSync(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	private void loadAccountContextsSync(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
 		for (AccountSyncContext accountCtx: context.getAccountContexts()) {
 			if (accountCtx.getAccountOld() != null) {
 				// already loaded
@@ -475,7 +479,8 @@ public class UserSynchronizer {
 	}
 	
 	private AccountSyncContext getOrCreateAccountContext(SyncContext context, PrismObject<AccountShadowType> account, 
-			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
+			SecurityViolationException {
 		AccountShadowType accountType = account.asObjectable();
         String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
         ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());

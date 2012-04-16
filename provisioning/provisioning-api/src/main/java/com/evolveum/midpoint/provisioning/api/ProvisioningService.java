@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -120,14 +121,17 @@ public interface ProvisioningService {
 	 *             error communicating with the resource
 	 * @throws SchemaException
 	 *             error dealing with resource schema
-	 * @throws ConfigurationException 
+	 * @throws ConfigurationException
+	 * 				Wrong resource or connector configuration 
+	 * @throws SecurityViolationException 
+	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException;
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 	
 	/**
 	 * Add new object.
@@ -170,9 +174,12 @@ public interface ProvisioningService {
 	 *             wrong OID format, etc.
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
+	 * @throws SecurityViolationException 
+	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
 	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException;
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
+			SecurityViolationException;
 
 	/**
 	 * Collect external changes on a resource and call the business logic with
@@ -194,10 +201,12 @@ public interface ProvisioningService {
 	 * @throws SchemaException
 	 *             error dealing with resource schema
 	 * @throws ConfigurationException 
+	 * @throws SecurityViolationException 
+	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException;
+	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * Returns all objects of specified type that are available to the
@@ -252,9 +261,11 @@ public interface ProvisioningService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 * @throws ConfigurationException 
+	 * @throws SecurityViolationException 
+	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	
 	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
@@ -286,10 +297,12 @@ public interface ProvisioningService {
 	 *             unknown property used in search query
 	 * @throws ObjectNotFoundException appropriate connector object was not found
 	 * @throws ConfigurationException 
+	 * @throws SecurityViolationException 
+	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
 	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query, PagingType paging, 
 			final ResultHandler<T> handler, final OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * Modifies object using relative change description. Must fail if user with
@@ -320,10 +333,12 @@ public interface ProvisioningService {
 	 *             wrong OID format, described change is not applicable
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
+	 * @throws SecurityViolationException 
+	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
-			CommunicationException, ConfigurationException;
+			CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * <p>Deletes object with specified OID.</p>
@@ -342,13 +357,15 @@ public interface ProvisioningService {
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
 	 * @throws ConfigurationException 
+	 * @throws SecurityViolationException 
+	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException;
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * Test the resource connection and basic resource connector functionality.

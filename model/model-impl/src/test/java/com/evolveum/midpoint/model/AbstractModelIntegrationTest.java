@@ -78,6 +78,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -315,20 +316,20 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-	PolicyViolationException {
+	PolicyViolationException, SecurityViolationException {
 		modifyUserRoleAssignment(userOid, roleOid, task, true, result);
 	}
 	
 	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-	PolicyViolationException {
+	PolicyViolationException, SecurityViolationException {
 		modifyUserRoleAssignment(userOid, roleOid, task, false, result);
 	}
 	
 	protected void modifyUserRoleAssignment(String userOid, String roleOid, Task task, boolean add, OperationResult result) 
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-			PolicyViolationException {
+			PolicyViolationException, SecurityViolationException {
 		
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();

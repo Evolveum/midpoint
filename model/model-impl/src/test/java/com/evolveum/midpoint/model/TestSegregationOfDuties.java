@@ -60,6 +60,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 
 /**
@@ -83,7 +84,7 @@ public class TestSegregationOfDuties extends AbstractModelIntegrationTest {
 	@Test
     public void test001SimpleExclusion1() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException {
+    		PolicyViolationException, SecurityViolationException {
         displayTestTile(this, "test001SimpleExclusion1");
 
         Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + ".test001AssignAccountToJack");
@@ -111,7 +112,7 @@ public class TestSegregationOfDuties extends AbstractModelIntegrationTest {
 	@Test
     public void test001SimpleExclusion2() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException {
+    		PolicyViolationException, SecurityViolationException {
         displayTestTile(this, "test001SimpleExclusion2");
         
         Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + ".test001SimpleExclusion2");

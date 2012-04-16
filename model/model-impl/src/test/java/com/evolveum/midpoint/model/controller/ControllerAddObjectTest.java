@@ -70,6 +70,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -295,7 +296,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	public void addResourceCorrect() throws JAXBException, FaultMessage, ObjectAlreadyExistsException,
 			SchemaException, CommunicationException, ObjectNotFoundException, ExpressionEvaluationException,
-			FileNotFoundException, ConfigurationException, PolicyViolationException {
+			FileNotFoundException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		displayTestTile("addResourceCorrect");
 		
 		

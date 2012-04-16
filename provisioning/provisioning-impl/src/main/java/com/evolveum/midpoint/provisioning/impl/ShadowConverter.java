@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.common.ResourceObjectPattern;
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -99,7 +102,7 @@ public class ShadowConverter {
 
 	public <T extends ResourceObjectShadowType> T getShadow(Class<T> type, ResourceType resource, T repoShadow,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException, ConfigurationException {
+			SchemaException, ConfigurationException, SecurityViolationException {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
@@ -121,7 +124,7 @@ public class ShadowConverter {
 		}
 
 		// Let's get all the identifiers from the Shadow <attributes> part
-		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(repoShadow);
+		Collection<? extends ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(repoShadow);
 
 		if (identifiers == null || identifiers.isEmpty()) {
 			// No identifiers found
@@ -132,6 +135,11 @@ public class ShadowConverter {
 					"No identifiers found in the respository shadow " + ObjectTypeUtil.toShortString(repoShadow),
 					ex);
 			throw ex;
+		}
+		
+		if (isProtectedShadow(resource, objectClassDefinition, identifiers)) {
+			LOGGER.error("Attempt to fetch protected resource object "+objectClassDefinition+": "+identifiers+"; ignoring the request");
+			throw new SecurityViolationException("Cannot get protected resource object "+objectClassDefinition+": "+identifiers);
 		}
 
 		T resourceShadow = fetchResourceObject(type, objectClassDefinition, identifiers, connector, resource, parentResult);
@@ -161,8 +169,8 @@ public class ShadowConverter {
 	public ResourceObjectShadowType addShadow(ResourceType resource, ResourceObjectShadowType shadowType,
 			Set<Operation> additionalOperations, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
-			ObjectAlreadyExistsException, ConfigurationException {
-
+			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 		ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 		Set<ResourceAttribute> resourceAttributesAfterAdd = null;
@@ -176,6 +184,11 @@ public class ShadowConverter {
 			LOGGER.trace("Shadow after conversion:\n{}",shadow.dump());
 		}
 		
+		if (isProtectedShadow(resource, shadow)) {
+			LOGGER.error("Attempt to add protected shadow "+shadowType+"; ignoring the request");
+			throw new SecurityViolationException("Cannot get protected shadow "+shadowType);
+		}
+
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -250,9 +263,9 @@ public class ShadowConverter {
 
 	public void deleteShadow(ResourceType resource, ResourceObjectShadowType shadow,
 			Set<Operation> additionalOperations, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-
+		
 		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow
@@ -262,7 +275,12 @@ public class ShadowConverter {
 		ShadowCacheUtil.convertToUcfShadow(shadow.asPrismObject(), schema);
 		
 		LOGGER.trace("Getting object identifiers");
-		Collection<? extends ResourceAttribute> identifiers =  ResourceObjectShadowUtil.getIdentifiers(shadow);
+		Collection<? extends ResourceAttribute<?>> identifiers =  ResourceObjectShadowUtil.getIdentifiers(shadow);
+		
+		if (isProtectedShadow(resource, objectClassDefinition, identifiers)) {
+			LOGGER.error("Attempt to delete protected resource object "+objectClassDefinition+": "+identifiers+"; ignoring the request");
+			throw new SecurityViolationException("Cannot delete protected resource object "+objectClassDefinition+": "+identifiers);
+		}
 
 		try {
 
@@ -297,9 +315,9 @@ public class ShadowConverter {
 	public Set<PropertyModificationOperation> modifyShadow(ResourceType resource,
 			ResourceObjectShadowType shadow, Set<Operation> operations, String oid, Collection<? extends ItemDelta> objectChanges,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-			CommunicationException, ConfigurationException {
+			CommunicationException, ConfigurationException, SecurityViolationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-
+		
 		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow.getObjectClass());
@@ -324,8 +342,12 @@ public class ShadowConverter {
 			}
 		}
 
+		Collection<? extends ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow);
 		
-		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow); 
+		if (isProtectedShadow(resource, objectClassDefinition, identifiers)) {
+			LOGGER.error("Attempt to modify protected resource object "+objectClassDefinition+": "+identifiers+"; ignoring the request");
+			throw new SecurityViolationException("Cannot modify protected resource object "+objectClassDefinition+": "+identifiers);
+		}
 
 		getAttributeChanges(objectChanges, operations, objectClassDefinition);
 		
@@ -413,6 +435,8 @@ public class ShadowConverter {
 		List<Change> changes = null;
 		try {
 			changes = connector.fetchChanges(objectClass, lastToken, parentResult);
+			
+			// TODO: filter out changes of protected objects
 
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Schema error: " + ex.getMessage(), ex);
@@ -435,7 +459,7 @@ public class ShadowConverter {
 
 	public ResourceObjectShadowType createNewAccountFromChange(Change change, ResourceType resource,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException, ConfigurationException {
+			CommunicationException, GenericFrameworkException, ConfigurationException, SecurityViolationException {
 
 		ResourceAttributeContainer resourceObject = null;
 
@@ -472,9 +496,14 @@ public class ShadowConverter {
 
 	private <T extends ResourceObjectShadowType> T fetchResourceObject(Class<T> type,
 			ObjectClassComplexTypeDefinition objectClassDefinition,
-			Collection<? extends ResourceAttribute> identifiers, ConnectorInstance connector,
+			Collection<? extends ResourceAttribute<?>> identifiers, ConnectorInstance connector,
 			ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException {
+			CommunicationException, SchemaException, SecurityViolationException {
+		
+		if (isProtectedShadow(resource, objectClassDefinition, identifiers)) {
+			LOGGER.error("Attempt to fetch protected resource object "+objectClassDefinition+": "+identifiers+"; ignoring the request");
+			throw new SecurityViolationException("Cannot get protected resource object "+objectClassDefinition+": "+identifiers);
+		}
 
 		// Set<ResourceObjectAttribute> roIdentifiers = new
 		// HashSet<ResourceObjectAttribute>();
@@ -666,5 +695,33 @@ public class ShadowConverter {
 		PropertyModificationOperation attributeChange = new PropertyModificationOperation(enableAttributeDelta);
 		return attributeChange;
 	}
+	
+	public <T extends ResourceObjectShadowType> boolean isProtectedShadow(ResourceType resource, PrismObject<T> shadow) throws SchemaException {
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		QName objectClass = shadow.asObjectable().getObjectClass();
+		Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
+		return isProtectedShadow(resource, objectClass, identifiers);
+	}
+
+	public boolean isProtectedShadow(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition,
+			Collection<? extends ResourceAttribute<?>> identifiers) throws SchemaException {
+		return isProtectedShadow(resource, objectClassDefinition.getTypeName(), identifiers);
+	}
+	
+	private boolean isProtectedShadow(ResourceType resource, QName objectClass,
+			Collection<? extends ResourceAttribute<?>> identifiers) throws SchemaException {
+		// TODO: support also other types except account
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
+		RefinedAccountDefinition refinedAccountDef = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
+		if (refinedAccountDef == null) {
+			return false;
+		}
+		Collection<ResourceObjectPattern> protectedAccountPatterns = refinedAccountDef.getProtectedAccounts();
+		if (protectedAccountPatterns == null) {
+			return false;
+		}
+		return ResourceObjectPattern.matches(identifiers, protectedAccountPatterns);
+	}
+
 
 }

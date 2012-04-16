@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -169,6 +170,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
+		} catch (SecurityViolationException ex) {
+			LOGGER.error("Recompute: Security violation: {}",ex.getMessage(),ex);
+			opResult.recordFatalError("Security violation: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
 		}
 		
 		opResult.computeStatus("Reconciliation run has failed");
@@ -179,7 +186,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, 
+			CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
 

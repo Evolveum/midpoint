@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -293,7 +294,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		displayTestTile("test005Capabilities");
 
 		// GIVEN
@@ -795,7 +796,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	
 	@Test
     public void test016SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SecurityViolationException {
         displayTestTile("test016SearchAccountsIterative");
 
         // GIVEN

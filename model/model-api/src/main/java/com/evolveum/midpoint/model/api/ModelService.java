@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
@@ -130,7 +131,7 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException, SchemaException;
+			OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException;
 
 	/**
 	 * <p>
@@ -185,8 +186,9 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
-			ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException;
+	<T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult) 
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
 
 	/**
 	 * <p>
@@ -229,7 +231,7 @@ public interface ModelService {
 	 */
 	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
-			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException;
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
 
 	/**
 	 * <p>
@@ -259,7 +261,8 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> void deleteObject(Class<T> type, String oid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException, ConfigurationException, PolicyViolationException;
+			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException, 
+			ConfigurationException, PolicyViolationException, SecurityViolationException;
 
 	/**
 	 * <p>
@@ -376,7 +379,7 @@ public interface ModelService {
 	 *             error communicating with the resource
 	 */
 	List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
-			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException;
+			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
 
 	/**
 	 * <p>
@@ -442,10 +445,10 @@ public interface ModelService {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 	
 	<T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException;
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
 	/**
 	 * <p>
@@ -486,7 +489,7 @@ public interface ModelService {
 	 * @throws SchemaException 
 	 */
 	void importAccountsFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException;
 
 	/**
 	 * Import objects from file.

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
@@ -214,7 +215,7 @@ public class AssignmentBean extends SelectableBean implements Serializable {
         return builder.toString();
     }
 
-    public String getObjectString() throws ObjectNotFoundException, SchemaException {
+    public String getObjectString() throws ObjectNotFoundException, SchemaException, SecurityViolationException {
         StringBuilder builder = new StringBuilder();
         switch (getType()) {
             case ACCOUNT_CONSTRUCTION:

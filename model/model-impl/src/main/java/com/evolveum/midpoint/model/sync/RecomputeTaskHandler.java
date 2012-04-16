@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
@@ -166,6 +167,12 @@ public class RecomputeTaskHandler implements TaskHandler {
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
+		} catch (SecurityViolationException ex) {
+			LOGGER.error("Recompute: Security violation: {}",ex.getMessage(),ex);
+			opResult.recordFatalError("Security violation: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
 		}
 		
 		opResult.computeStatus("Recompute run has failed");
@@ -182,7 +189,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 	 */
 	private void performUserRecompute(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, 
 			ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, ConfigurationException, 
-			PolicyViolationException {
+			PolicyViolationException, SecurityViolationException {
 		
 		PagingType paging = new PagingType();
 		
@@ -208,7 +215,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 
 	private void recomputeUser(PrismObject<UserType> user, OperationResult result) throws SchemaException, 
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
-			ConfigurationException, PolicyViolationException {
+			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Reconciling user {}", user);
 		
 		SyncContext syncContext = new SyncContext(prismContext);

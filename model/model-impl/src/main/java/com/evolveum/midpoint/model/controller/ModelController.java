@@ -91,6 +91,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -286,7 +287,8 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+			ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, 
+			SecurityViolationException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
@@ -390,6 +392,10 @@ public class ModelController implements ModelService {
 			result.recordFatalError(ex);
 			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
 			throw ex;
+		} catch (SecurityViolationException ex) {
+			result.recordFatalError(ex);
+			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
+			throw ex;
 		} catch (RuntimeException ex) {
 			result.recordFatalError(ex);
 			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
@@ -482,7 +488,8 @@ public class ModelController implements ModelService {
 	}
 
 	private SyncContext userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
 
 		UserType userType = user.asObjectable();
 		SyncContext syncContext = new SyncContext(prismContext);
@@ -650,7 +657,8 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException {
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException,
+			SecurityViolationException {
 
 		Validate.notNull(modifications, "Object modification must not be null.");
 		Validate.notEmpty(oid, "Change oid must not be null or empty.");
@@ -780,6 +788,11 @@ public class ModelController implements ModelService {
 			logDebugChange(type, oid, modifications);
 			result.recordFatalError(ex);
 			throw ex;
+		} catch (SecurityViolationException ex) {
+			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
+			logDebugChange(type, oid, modifications);
+			result.recordFatalError(ex);
+			throw ex;
 		} catch (RuntimeException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			logDebugChange(type, oid, modifications);
@@ -818,7 +831,7 @@ public class ModelController implements ModelService {
 
 	private void addAccountToContext(SyncContext syncContext, AccountShadowType accountType,
 			ChangeType changeType, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
 		if (resourceOid == null) {
@@ -847,7 +860,7 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
-			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException {
+			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Validate.notNull(clazz, "Class must not be null.");
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");
@@ -940,6 +953,10 @@ public class ModelController implements ModelService {
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (CommunicationException ex) {
+			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
+			result.recordFatalError(ex);
+			throw ex;
+		} catch (SecurityViolationException ex) {
 			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);
 			throw ex;

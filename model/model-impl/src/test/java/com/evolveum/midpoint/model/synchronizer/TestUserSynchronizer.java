@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 
 /**
@@ -108,7 +109,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 	@Test
     public void test001AssignAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException {
+    		PolicyViolationException, SecurityViolationException {
         displayTestTile(this, "test001AssignAccountToJack");
 
         // GIVEN
@@ -158,7 +159,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 	
 	@Test
     public void test101AssignConflictingAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException {
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
         displayTestTile(this, "test101AssignConflictingAccountToJack");
 
         // GIVEN

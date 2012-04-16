@@ -113,6 +113,16 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		definitions.add(refinedAccountDefinition);
 	}
 	
+	public RefinedAccountDefinition findAccountDefinitionByObjectClass(QName objectClass) {
+		for (RefinedAccountDefinition acctDef: getAccountDefinitions()) {
+			if (acctDef.getObjectClassDefinition().getTypeName().equals(objectClass)) {
+				return acctDef;
+			}
+		}
+		return null;
+	}
+
+	
 	/**
 	 * If already refined, return the version created before
 	 */
@@ -242,20 +252,22 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			PrismContext prismContext, String contextDescription) throws SchemaException {
 
 		RefinedAccountDefinition rAccountDefDefault = null;
-		for(ObjectClassComplexTypeDefinition accountDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
-			QName objectClassname = accountDef.getTypeName();
-			RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(accountDef, resourceType, rSchema, prismContext, 
-					"object class "+objectClassname+" (interpreted as account type definition), in "+contextDescription);
-			
-			if (rAccountDef.isDefault()) {
-				if (rAccountDefDefault == null) {
-					rAccountDefDefault = rAccountDef;
-				} else {
-					throw new SchemaException("More than one default account definitions ("+rAccountDefDefault+", "+rAccountDef+") in " + contextDescription);
-				}
-			}
+		for(ObjectClassComplexTypeDefinition objectClassDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
+			if (objectClassDef.isAccountType()) {
+				QName objectClassname = objectClassDef.getTypeName();
+				RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(objectClassDef, resourceType, rSchema, prismContext, 
+						"object class "+objectClassname+" (interpreted as account type definition), in "+contextDescription);
 				
-			rSchema.add(rAccountDef);
+				if (rAccountDef.isDefault()) {
+					if (rAccountDefDefault == null) {
+						rAccountDefDefault = rAccountDef;
+					} else {
+						throw new SchemaException("More than one default account definitions ("+rAccountDefDefault+", "+rAccountDef+") in " + contextDescription);
+					}
+				}
+					
+				rSchema.add(rAccountDef);
+			}
 		}
 		
 	}
