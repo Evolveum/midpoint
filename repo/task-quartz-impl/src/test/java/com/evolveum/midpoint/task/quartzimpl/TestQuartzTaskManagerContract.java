@@ -436,7 +436,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         logger.info("Waiting for task manager to pick up the task and run it");
-        Thread.sleep(10000);
+        Thread.sleep(15000);
         logger.info("... done");
 
         // Check task status
@@ -458,11 +458,11 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
-        AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
-        AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        AssertJUnit.assertNotNull("Last run finish timestamp not set", task.getLastRunFinishTimestamp());
+        AssertJUnit.assertFalse("Last run finish timestamp is 0", task.getLastRunFinishTimestamp().longValue() == 0);
 
         // The progress should be more than 0 as the task has run at least once
-        AssertJUnit.assertTrue(task.getProgress() > 0);
+        AssertJUnit.assertTrue("Task reported no progress", task.getProgress() > 0);
 
         // Test for presence of a result. It should be there and it should
         // indicate success

@@ -95,7 +95,7 @@ public class TaskQuartzImpl implements Task {
 	private TaskManagerQuartzImpl taskManager;
 	private RepositoryService repositoryService;
 	private OperationResult result;
-	private boolean canRun;
+	private volatile boolean canRun;
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
