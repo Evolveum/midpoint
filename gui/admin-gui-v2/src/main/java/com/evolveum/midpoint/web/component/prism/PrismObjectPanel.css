@@ -110,7 +110,11 @@ div.objectForm .tableForm .tableFormBody .objectFormPanel {
 
 div.objectForm .tableForm .tableFormBody .objectFormLabel, div.objectForm .tableForm .tableFormBody .objectFormValue {
 	position: relative;
-	height: 40px;
+	min-height: 40px;
+}
+
+div.objectForm .tableForm .tableFormBody .feedbackPanel {
+	text-align: left;	
 }
 
 div.objectForm .tableForm .tableFormBody .objectFormLabel {
@@ -157,6 +161,7 @@ div.objectForm .tableForm .tableFormBody .objectFormSeparatorText {
 	font-weight: bold;
 	font-size: 15px;
 	margin-left: 10px;
+	text-align: left;
 }
 
 div.objectForm .tableForm .tableFormBody .objectFormButtons {
@@ -243,21 +248,22 @@ div.objectForm .tableForm .tableFormBody .objectFormValue .objectFormHelpContain
 
 div.objectForm .tableForm .tableFormFoot .objectFormFooter {
 	min-height: 15px;
+	text-align: left;
 }
 
-div.objectForm .tableForm .statusBar {
+div.objectForm .tableForm .objectFormFooter {
 	position: relative;
 	padding: 10px;
 }
 
-div.objectForm .tableForm .statusBar .statusBarHeader {
+div.objectForm .tableForm .objectFormFooter .statusBarHeader {
 	color: #164FA4;
     font-size: 15px;
     font-weight: bold;
     text-shadow: 0 1px 0 #FFFFFF;
 }
 
-div.objectForm .tableForm .statusBar .statusBarContent {
+div.objectForm .tableForm .objectFormFooter .statusBarContent {
 	color: #333333;
     font-size: 13px;
     padding-left: 5px;

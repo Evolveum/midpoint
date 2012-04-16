@@ -51,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType
  */
 public class PageImportFile extends PageAdminConfiguration {
 	private String UPLOAD_FOLDER;
+	private static final String MIDPOINT_HOME = "midpoint.home";
 	
 	@Autowired
     Task task;
@@ -58,10 +59,11 @@ public class PageImportFile extends PageAdminConfiguration {
     
 
     public PageImportFile() { 
-    	//UPLOAD_FOLDER =  + "/temp/";
-    	UPLOAD_FOLDER = RequestCycle.get().getUrlRenderer().renderFullUrl(Url.parse(urlFor(PageImportFile.class,null).toString())) + "/";
-        
-    	
+    	UPLOAD_FOLDER = System.getProperty(MIDPOINT_HOME) + "tmp/";
+    	if(!new File(UPLOAD_FOLDER).exists()){
+    		new File(UPLOAD_FOLDER).mkdir();
+    	}
+
     	model = new LoadableModel<ImportOptionsType>(false) {
 
             @Override
@@ -117,7 +119,6 @@ public class PageImportFile extends PageAdminConfiguration {
         	if(uploadedFile != null){
         		
         		// Create new file
-        		System.out.println(UPLOAD_FOLDER + uploadedFile.getClientFileName());
         		File newFile = new File(UPLOAD_FOLDER + uploadedFile.getClientFileName());
         		
 				// Check new file, delete if it already existed
@@ -132,7 +133,7 @@ public class PageImportFile extends PageAdminConfiguration {
 					
 					MidPointApplication application = PageImportFile.this.getMidpointApplication();
 				    ModelService modelService = application.getModel();
-				    modelService.importObjectsFromFile(newFile, model.getObject(), task, result);
+				    modelService.importObjectsFromStream(newFile.inputStream(), model.getObject(), task, result);
 				    //TODO: success message
 				} catch (Exception ex) {
 					ex.printStackTrace();
