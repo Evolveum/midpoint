@@ -61,6 +61,27 @@ public class RCredentials {
         this.password = password;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RCredentials that = (RCredentials) o;
+
+        if (allowedIdmAdminGuiAccess != null ? !allowedIdmAdminGuiAccess.equals(that.allowedIdmAdminGuiAccess) :
+                that.allowedIdmAdminGuiAccess != null) return false;
+        if (password != null ? !password.equals(that.password) : that.password != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = password != null ? password.hashCode() : 0;
+        result = 31 * result + (allowedIdmAdminGuiAccess != null ? allowedIdmAdminGuiAccess.hashCode() : 0);
+        return result;
+    }
+
     public static void copyToJAXB(RCredentials repo, CredentialsType jaxb, ObjectType parent, PropertyPath path,
             PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");

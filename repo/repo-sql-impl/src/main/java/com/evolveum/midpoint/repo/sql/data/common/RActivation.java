@@ -69,9 +69,30 @@ public class RActivation {
         this.validFrom = validFrom;
     }
 
-
     public void setValidTo(XMLGregorianCalendar validTo) {
         this.validTo = validTo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RActivation that = (RActivation) o;
+
+        if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) return false;
+        if (validFrom != null ? !validFrom.equals(that.validFrom) : that.validFrom != null) return false;
+        if (validTo != null ? !validTo.equals(that.validTo) : that.validTo != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = enabled != null ? enabled.hashCode() : 0;
+        result = 31 * result + (validFrom != null ? validFrom.hashCode() : 0);
+        result = 31 * result + (validTo != null ? validTo.hashCode() : 0);
+        return result;
     }
 
     public static void copyFromJAXB(ActivationType jaxb, RActivation repo, PrismContext prismContext) throws

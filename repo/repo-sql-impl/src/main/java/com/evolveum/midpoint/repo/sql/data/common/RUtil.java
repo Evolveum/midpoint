@@ -195,4 +195,12 @@ public final class RUtil {
         Long value = getLongWrappedFromString(text);
         return value != null ? value : 0;
     }
+
+    public static String getStringFromLong(Long id) {
+        if (id == null) {
+            return null;
+        }
+
+        return id.toString();
+    }
 }
