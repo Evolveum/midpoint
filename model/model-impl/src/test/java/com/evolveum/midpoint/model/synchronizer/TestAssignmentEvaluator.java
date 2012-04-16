@@ -56,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml" })
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentEvaluator extends AbstractModelIntegrationTest {
 	
 	protected static final String TEST_RESOURCE_DIR_NAME = "src/test/resources/synchronizer";
