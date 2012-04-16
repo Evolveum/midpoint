@@ -95,8 +95,7 @@ public class PageImportXml extends PageAdminConfiguration {
     	OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
     	
     	String xml = xmlEditor.getModel().getObject();
-    	
-    	if(xml != "" || xml != null){	
+    	if(xml != null){	
     		// Save xml
 			try{			
 				MidPointApplication application = PageImportXml.this.getMidpointApplication();
