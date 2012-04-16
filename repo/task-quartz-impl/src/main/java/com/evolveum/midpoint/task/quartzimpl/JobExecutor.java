@@ -3,11 +3,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.SystemException;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.InterruptableJob;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.UnableToInterruptJobException;
+import org.quartz.*;
 
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,8 +56,12 @@ public class JobExecutor implements InterruptableJob {
 		}
 
         if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING) {
-            LOGGER.warn("Task is not in RUNNING state (its state is {}), exiting its execution. Task = {}", task.getExecutionStatus(), task);
-            return;
+            LOGGER.warn("Task is not in RUNNING state (its state is {}), exiting its execution and unscheduling its Quartz job. Task = {}", task.getExecutionStatus(), task);
+            try {
+                context.getScheduler().unscheduleJob(context.getTrigger().getKey());
+            } catch (SchedulerException e) {
+                LoggingUtils.logException(LOGGER, "Cannot unschedule job for a non-RUNNING task {}", e, task);
+            }
         }
 		
         executingThread = Thread.currentThread();

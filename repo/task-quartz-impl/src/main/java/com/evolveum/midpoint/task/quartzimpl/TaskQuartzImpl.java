@@ -53,7 +53,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
@@ -209,87 +208,95 @@ public class TaskQuartzImpl implements Task {
 
                     taskManager.modifyTaskChecked(getOid(), pendingModifications, parentResult, this);
 					//repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
-					addOrReplaceQuartzTaskIfNeeded(pendingModifications);
+					synchronizeWithQuartzIfNeeded(pendingModifications);
 					pendingModifications.clear();
 				}
 			}
 		}
 	}
+
+    public void synchronizeWithQuartz() {
+        try {
+            taskManager.synchronizeTaskWithQuartz(this);
+        } catch (SchedulerException e) {
+            throw new SystemException("Cannot create or update quartz job and/or trigger for task " + this, e);
+        }
+    }
 	
-	public void addOrReplaceQuartzTask() {
-
-        LOGGER.trace("addOrReplaceQuartzTask for {}", this);
-
-		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(this);
-		JobDetail job = TaskQuartzImplUtil.createJobDetailForTask(this);
-		TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(this);
-		Trigger trigger;
-		try {
-			trigger = TaskQuartzImplUtil.createTriggerForTask(this);
-		} catch (ParseException e1) {
-			LoggingUtils.logException(LOGGER, "Cannot add/replace a task {} because of a cron expression parsing exception", e1, this);
-			throw new SystemException("Cannot add/replace a task because of a cron expression parsing exception", e1);
-		}
-		
-		Scheduler quartzScheduler = taskManager.getQuartzScheduler();
-		
-		try {
-
-			/*
-			 * TODO: this has to be rethought again -- how to map execution states (and their changes) to quartz task/triggers
-			 * 
-			 * Currently, task in any state maps to a quartz job
-			 * However, trigger is created only if task is RUNNING.
-			 * 
-			 * But, for a task suspended through API, its trigger is not deleted, but paused. 
-			 * So a suspended task can have no trigger (if the task was created as suspended), or paused one (if it was suspended after creation).
-			 */
-
-			// if the job does not exist, create it (and schedule trigger at the same time, if there is any)
-			if (!quartzScheduler.checkExists(jobKey)) {
-
-                LOGGER.trace(" - Quartz job does not exist for {}", this);
-				
-				if (trigger != null) {
-					LOGGER.trace(" - Adding quartz job and trigger for task " + this);
-					quartzScheduler.scheduleJob(job, trigger);
-				} else {
-					LOGGER.trace(" - Adding quartz job (without a trigger) for task " + this);
-					quartzScheduler.addJob(job, false);
-				}
-
-			} else {  // job exists
-
-                LOGGER.trace(" - Quartz job exists for {}", this);
-				
-				if (quartzScheduler.checkExists(triggerKey)) {
-
-                    LOGGER.trace(" - Quartz trigger exists for {}", this);
-					
-					if (trigger == null) {
-						LOGGER.trace(" - Removing existing quartz trigger for task " + this);
-						quartzScheduler.unscheduleJob(triggerKey);
-					} else {
-						LOGGER.trace(" - Replacing quartz trigger for task " + this);
-						quartzScheduler.rescheduleJob(triggerKey, trigger);
-					}
-				
-				} else {
-
-                    LOGGER.trace(" - Quartz trigger does not exist for {}", this);
-					
-					if (trigger != null) {
-						LOGGER.trace(" - Adding quartz trigger for task " + this);
-						quartzScheduler.scheduleJob(trigger);
-					}
-				}
-			}
-
-			
-		} catch (SchedulerException e) {
-			throw new SystemException("Cannot create or update quartz job and/or trigger for task " + this, e);
-		}
-	}
+//	public void addOrReplaceQuartzTask() {
+//
+//        LOGGER.trace("addOrReplaceQuartzTask for {}", this);
+//
+//		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(this);
+//		JobDetail job = TaskQuartzImplUtil.createJobDetailForTask(this);
+//		TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(this);
+//		Trigger trigger;
+//		try {
+//			trigger = TaskQuartzImplUtil.createTriggerForTask(this);
+//		} catch (ParseException e1) {
+//			LoggingUtils.logException(LOGGER, "Cannot add/replace a task {} because of a cron expression parsing exception", e1, this);
+//			throw new SystemException("Cannot add/replace a task because of a cron expression parsing exception", e1);
+//		}
+//
+//		Scheduler quartzScheduler = taskManager.getQuartzScheduler();
+//
+//		try {
+//
+//			/*
+//			 * TODO: this has to be rethought again -- how to map execution states (and their changes) to quartz task/triggers
+//			 *
+//			 * Currently, task in any state maps to a quartz job
+//			 * However, trigger is created only if task is RUNNING.
+//			 *
+//			 * But, for a task suspended through API, its trigger is not deleted, but paused.
+//			 * So a suspended task can have no trigger (if the task was created as suspended), or paused one (if it was suspended after creation).
+//			 */
+//
+//			// if the job does not exist, create it (and schedule trigger at the same time, if there is any)
+//			if (!quartzScheduler.checkExists(jobKey)) {
+//
+//                LOGGER.trace(" - Quartz job does not exist for {}", this);
+//
+//				if (trigger != null) {
+//					LOGGER.trace(" - Adding quartz job and trigger for task " + this);
+//					quartzScheduler.scheduleJob(job, trigger);
+//				} else {
+//					LOGGER.trace(" - Adding quartz job (without a trigger) for task " + this);
+//					quartzScheduler.addJob(job, false);
+//				}
+//
+//			} else {  // job exists
+//
+//                LOGGER.trace(" - Quartz job exists for {}", this);
+//
+//				if (quartzScheduler.checkExists(triggerKey)) {
+//
+//                    LOGGER.trace(" - Quartz trigger exists for {}", this);
+//
+//					if (trigger == null) {
+//						LOGGER.trace(" - Removing existing quartz trigger for task " + this);
+//						quartzScheduler.unscheduleJob(triggerKey);
+//					} else {
+//						LOGGER.trace(" - Replacing quartz trigger for task " + this);
+//						quartzScheduler.rescheduleJob(triggerKey, trigger);
+//					}
+//
+//				} else {
+//
+//                    LOGGER.trace(" - Quartz trigger does not exist for {}", this);
+//
+//					if (trigger != null) {
+//						LOGGER.trace(" - Adding quartz trigger for task " + this);
+//						quartzScheduler.scheduleJob(trigger);
+//					}
+//				}
+//			}
+//
+//
+//		} catch (SchedulerException e) {
+//			throw new SystemException("Cannot create or update quartz job and/or trigger for task " + this, e);
+//		}
+//	}
 
 	private static Set<QName> quartzRelatedProperties = new HashSet<QName>();
 	static {
@@ -298,10 +305,10 @@ public class TaskQuartzImpl implements Task {
 		quartzRelatedProperties.add(TaskType.F_SCHEDULE);
 	}
 	
-	private void addOrReplaceQuartzTaskIfNeeded(Collection<PropertyDelta<?>> deltas) {
+	private void synchronizeWithQuartzIfNeeded(Collection<PropertyDelta<?>> deltas) {
 		for (PropertyDelta<?> delta : deltas) {
 			if (delta.getParentPath().isEmpty() && quartzRelatedProperties.contains(delta.getName())) {
-				addOrReplaceQuartzTask();
+				synchronizeWithQuartz();
 				return;
 			}
 		}
@@ -313,7 +320,7 @@ public class TaskQuartzImpl implements Task {
 			deltas.add(delta);
             taskManager.modifyTaskChecked(getOid(), deltas, parentResult, this);
 			//repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
-			addOrReplaceQuartzTaskIfNeeded(deltas);
+			synchronizeWithQuartzIfNeeded(deltas);
 		}
 	}
 

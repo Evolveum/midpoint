@@ -5,13 +5,7 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 
 import java.text.ParseException;
 
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.JobKey;
-import org.quartz.ScheduleBuilder;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.TriggerKey;
+import org.quartz.*;
 import org.quartz.spi.MutableTrigger;
 
 import com.evolveum.midpoint.task.api.Task;
@@ -59,18 +53,25 @@ public class TaskQuartzImplUtil {
 		      .forJob(createJobKeyForTask(task))
 		      .startNow();
 
-        //if (task.isCycle() && task.isLooselyBound()) {			// tightly-bound tasks are executed without schedule (their repeating is done within the JobExecutor)
-        if (task.isCycle()) {			        // tightly-bound tasks are triggered via Quartz (in case they stop for some reason)
+        String cronExpression = "";
+        int interval = 0;
+        boolean looselyBoundRecurrent;
+
+        if (task.isCycle()) {
+
+            looselyBoundRecurrent = true;
 
         	ScheduleType sch = task.getSchedule();
         	if (sch == null)
         		throw new IllegalStateException("Recurrent task " + task + " does not have a schedule.");
         	
         	if (sch.getInterval() != null) {
+                interval = sch.getInterval().intValue();
         		tb.withSchedule(simpleSchedule()
         				.withIntervalInSeconds(sch.getInterval().intValue())
         				.repeatForever());
         	} else if (sch.getCronLikePattern() != null) {
+                cronExpression = sch.getCronLikePattern();
 				tb.withSchedule(cronScheduleNonvalidatedExpression(sch.getCronLikePattern()));			// may throw ParseException
         	} else
         		throw new IllegalStateException("The schedule for task " + task + " is neither fixed nor cron-like one.");
@@ -78,10 +79,27 @@ public class TaskQuartzImplUtil {
             // even non-recurrent tasks will be triggered, to check whether they should not be restarted
             // (their trigger will be erased when these tasks will be completed)
 
+            looselyBoundRecurrent = false;
             tb.withSchedule(simpleSchedule().withIntervalInMilliseconds(SINGLE_TASK_CHECK_INTERVAL).repeatForever());
         }
 
+        tb.usingJobData("cronExpression", cronExpression);
+        tb.usingJobData("interval", interval);
+        tb.usingJobData("looselyBoundRecurrent", looselyBoundRecurrent);
+
 		return tb.build();
 	}
+
+    // compares scheduling-related data maps of triggers
+    static boolean triggerDataMapsDiffer(Trigger triggerAsIs, Trigger triggerToBe) {
+
+        JobDataMap asIs = triggerAsIs.getJobDataMap();
+        JobDataMap toBe = triggerToBe.getJobDataMap();
+
+        return toBe.getString("cronExpression").equals(asIs.getString("cronExpression")) &&
+                toBe.getInt("interval") == asIs.getInt("interval") &&
+                toBe.getBoolean("looselyBoundRecurrent") == asIs.getBoolean("looselyBoundRecurrent");
+    }
+
 
 }

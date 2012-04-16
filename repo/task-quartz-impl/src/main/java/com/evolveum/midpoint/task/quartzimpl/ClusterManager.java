@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ *
+ */
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.QueryUtil;
@@ -18,6 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.apache.commons.lang.Validate;
 import org.quartz.Scheduler;
 import org.quartz.core.jmx.QuartzSchedulerMBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,6 +148,23 @@ public class ClusterManager {
         LOGGER.trace("Node was successfully registered in the repository.");
     }
 
+    void unregisterNode(OperationResult result) {
+
+        String oid = taskManager.getNodePrism().getOid();
+        String name = taskManager.getNodePrism().asObjectable().getNodeIdentifier();
+
+        LOGGER.trace("Unregistering this node from the repository (name {}, oid {})", name, oid);
+        try {
+            repositoryService.deleteObject(NodeType.class, oid, result);
+            LOGGER.trace("Node successfully unregistered.");
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Cannot unregister this node (name {}, oid {}), because it does not exist.", e,
+                    name, oid);
+        }
+
+    }
+
+
     private String getMyAddress() {
         try {
             InetAddress addr = InetAddress.getLocalHost();
@@ -157,7 +195,7 @@ public class ClusterManager {
 
         RunningTasksInfo retval = new RunningTasksInfo();
 
-        if (clusterwide) {
+        if (taskManager.isClustered() && clusterwide) {
             for (PrismObject<NodeType> node : getAllNodes(result)) {
                 addNodeAndTaskInfo(retval, node);
             }
@@ -183,20 +221,16 @@ public class ClusterManager {
 
             info.addNodeAndTaskInfo(nodeInfo, taskInfoList);
 
-        } else {    // if remote
+        } else {    // if remote (cannot occur if !isClustered)
 
             LOGGER.debug("Getting running task info from remote node ({}, {})", node.asObjectable().getNodeIdentifier(), node.asObjectable().getHostname());
             addNodeAndTaskInfoFromRemoteNode(info, node);
         }
     }
 
-
-    private OperationResult createOperationResult(String methodName) {
-        return new OperationResult(ClusterManager.class.getName() + "." + methodName);
-    }
-
-
     private void addNodeAndTaskInfoFromRemoteNode(RunningTasksInfo info, PrismObject<NodeType> node) {
+
+        Validate.isTrue(taskManager.isClustered(), "This method is applicable in clustered mode only.");
 
         String nodeName = node.asObjectable().getNodeIdentifier();
         String address = node.asObjectable().getHostname();
@@ -262,7 +296,7 @@ public class ClusterManager {
 
     private JMXConnector connectViaJmx(String address) throws IOException {
 
-        MBeanServerConnection mbsc;
+        Validate.isTrue(taskManager.isClustered(), "This method is applicable in clustered mode only.");
 
         JMXServiceURL url =
             new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + address + "/jmxrmi");
@@ -273,10 +307,16 @@ public class ClusterManager {
         return JMXConnectorFactory.connect(url, env);
     }
 
-    public void interruptRemoteTask(String oid, RunningTasksInfo.NodeInfo nodeInfo) {
+    public void interruptTaskClusterwide(String oid, RunningTasksInfo.NodeInfo nodeInfo) {
         LOGGER.debug("Interrupting task " + oid + " running at " + dumpNodeInfo(nodeInfo));
-        if (taskManager.isCurrentNode(nodeInfo.getNodeType())) { // this should not occur, but for sure let's do this check
+
+        if (taskManager.isCurrentNode(nodeInfo.getNodeType())) {
             taskManager.signalShutdownToTaskLocally(oid);
+            return;
+        }
+
+        if (!taskManager.isClustered()) {       // here we should not come
+            LOGGER.warn("Remote task interruption is applicable in clustered mode only; doing nothing.");
             return;
         }
 
@@ -320,5 +360,12 @@ public class ClusterManager {
         NodeType node = nodeInfo.getNodeType().asObjectable();
         return node.getNodeIdentifier() + " (" + node.getHostname() + ")";
     }
+
+    private OperationResult createOperationResult(String methodName) {
+        return new OperationResult(ClusterManager.class.getName() + "." + methodName);
+    }
+
+
+
 }
 
