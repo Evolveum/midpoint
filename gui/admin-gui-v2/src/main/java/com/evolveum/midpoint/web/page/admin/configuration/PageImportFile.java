@@ -21,13 +21,20 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import java.io.IOException;
+import javax.servlet.http.HttpServletRequest;
 
+import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.protocol.http.RequestUtils;
+import org.apache.wicket.request.Url;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.util.file.File;
 import org.apache.wicket.util.file.Files;
+import org.apache.wicket.util.file.Folder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -40,17 +47,22 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 
 /**
- * @author lazyman
+ * @author lazyman, mserbak
  */
 public class PageImportFile extends PageAdminConfiguration {
+	private String UPLOAD_FOLDER;
 	
 	@Autowired
     Task task;
-	
     private LoadableModel<ImportOptionsType> model;
+    
 
-    public PageImportFile() {
-        model = new LoadableModel<ImportOptionsType>(false) {
+    public PageImportFile() { 
+    	//UPLOAD_FOLDER =  + "/temp/";
+    	UPLOAD_FOLDER = RequestCycle.get().getUrlRenderer().renderFullUrl(Url.parse(urlFor(PageImportFile.class,null).toString())) + "/";
+        
+    	
+    	model = new LoadableModel<ImportOptionsType>(false) {
 
             @Override
             protected ImportOptionsType load() {
@@ -74,6 +86,8 @@ public class PageImportFile extends PageAdminConfiguration {
 //        mainForm.setMultiPart(true);
 //        mainForm.setMaxSize(Bytes.kilobytes(100));
 
+        System.out.println();
+        
         initButtons(mainForm);
     }
 
@@ -97,53 +111,37 @@ public class PageImportFile extends PageAdminConfiguration {
     private void savePerformed(AjaxRequestTarget target, Form<?> form) {
     	OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
     	
-    	
         	FileUploadField file = (FileUploadField)form.get("fileInput");
+        	final FileUpload uploadedFile = file.getFileUpload();
         	
-        	if(file.getFileUpload() != null){
+        	if(uploadedFile != null){
         		
         		// Create new file
-        		File newFile = null;
-        		
-				try {
-					newFile = new File(file.getFileUpload().writeToTempFile(), file.getFileUpload().getClientFileName());
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
+        		System.out.println(UPLOAD_FOLDER + uploadedFile.getClientFileName());
+        		File newFile = new File(UPLOAD_FOLDER + uploadedFile.getClientFileName());
         		
 				// Check new file, delete if it already existed
-				checkFileExists(newFile);
+        		if (newFile.exists()) {
+					newFile.delete();
+				}
 				
+        		// Save file
 				try{
-					// Save file
 					newFile.createNewFile();
-					file.getFileUpload().writeTo(newFile);
+					uploadedFile.writeTo(newFile);
 					
 					MidPointApplication application = PageImportFile.this.getMidpointApplication();
 				    ModelService modelService = application.getModel();
 				    modelService.importObjectsFromFile(newFile, model.getObject(), task, result);
+				    //TODO: success message
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
         	} 
-        
     }
     
     public void onSaveError(AjaxRequestTarget target, Form form) {
     	//todo implement
-    }
-    
-    private void checkFileExists(File newFile)
-    {
-        if (newFile.exists())
-        {
-            // Try to delete the file
-            if (!Files.remove(newFile))
-            {
-            	//todo: alert message
-                //throw new IllegalStateException("Unable to overwrite " + newFile.getAbsolutePath());
-            }
-        }
     }
 
     //example
