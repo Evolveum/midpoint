@@ -42,8 +42,8 @@ public class JobExecutor implements InterruptableJob {
 	 * "Each (and every) time the scheduler executes the job, it creates a new instance of 
 	 * the class before calling its execute(..) method."
 	 */
-	private TaskQuartzImpl task;
-	private Thread executingThread;				// used for interruptions
+	private volatile TaskQuartzImpl task;
+	private volatile Thread executingThread;				// used for interruptions
 	
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -322,8 +322,11 @@ public class JobExecutor implements InterruptableJob {
 		LOGGER.trace("Signalling shutdown to task " + task + ", executing in thread " + executingThread);
         if (task != null) {
 		    task.signalShutdown();
-		    if (executingThread != null)			// in case this method would be (mistakenly?) called after the execution is over
-			    executingThread.interrupt();
+		    if (executingThread != null) {			// in case this method would be (mistakenly?) called after the execution is over
+                LOGGER.trace("Interrupting thread {}.", executingThread);
+                executingThread.interrupt();
+                LOGGER.trace("Thread {} interrupted.", executingThread);
+            }
         }
 	}
 

@@ -206,8 +206,9 @@ public class TaskQuartzImpl implements Task {
 		if (pendingModifications != null) {
 			synchronized (pendingModifications) {		// perhaps we should put something like this at more places here...
 				if (!pendingModifications.isEmpty()) {
-					
-					repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
+
+                    taskManager.modifyTaskChecked(getOid(), pendingModifications, parentResult, this);
+					//repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
 					addOrReplaceQuartzTaskIfNeeded(pendingModifications);
 					pendingModifications.clear();
 				}
@@ -310,7 +311,8 @@ public class TaskQuartzImpl implements Task {
 		if (delta != null) {
 			Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>(1);
 			deltas.add(delta);
-			repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
+            taskManager.modifyTaskChecked(getOid(), deltas, parentResult, this);
+			//repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
 			addOrReplaceQuartzTaskIfNeeded(deltas);
 		}
 	}

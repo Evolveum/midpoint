@@ -35,6 +35,7 @@ import javax.annotation.PreDestroy;
 //import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 //import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 //import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
@@ -118,8 +119,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private static boolean clustered = false;
 	
 	private static int START_DELAY_TIME = 1;								// delay time - how long to wait before starting the scheduler
-	
-	public PrismContext getPrismContext() {
+
+    private static final int MAX_LOCKING_PROBLEMS_ATTEMPTS = 3;
+    private static final long LOCKING_PROBLEM_TIMEOUT = 500;
+
+    public PrismContext getPrismContext() {
 		return prismContext;
 	}
 	
@@ -907,5 +911,53 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public RunningTasksInfo getRunningTasksClusterwide() {
         return clusterManager.getRunningTasks();
+    }
+
+    /**
+     * Modifies a task in repo, checks for locking-related exceptions.
+     *
+     * @param oid
+     * @param modifications
+     * @param parentResult
+     * @param task
+     */
+    void modifyTaskChecked(String oid, Collection<PropertyDelta<?>> modifications, OperationResult parentResult, TaskQuartzImpl task) throws ObjectNotFoundException, SchemaException {
+
+        int attempt = 1;
+
+        while (true) {
+            try {
+                repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
+                return;
+            } catch (ObjectNotFoundException e) {
+                throw e;
+            } catch (SchemaException e) {
+                throw e;
+            } catch (SystemException e) {
+                String message = e.getMessage();
+                if (message != null && (message.contains("Deadlock detected") || message.contains("Row was updated or deleted by another transaction"))) {
+
+                    LOGGER.info("A locking-related problem occurred when updating task with oid " + oid + ", retrying after "
+                            + LOCKING_PROBLEM_TIMEOUT + " ms (this was attempt " + attempt + " of " + MAX_LOCKING_PROBLEMS_ATTEMPTS
+                            + "; message = " + message);
+
+                    if (attempt == MAX_LOCKING_PROBLEMS_ATTEMPTS) {
+                        throw e;
+                    }
+
+                    try {
+                        Thread.sleep(LOCKING_PROBLEM_TIMEOUT);
+                    } catch (InterruptedException e1) {
+                        // ignore this
+                    }
+                    if (task != null) {
+                        task.refresh(parentResult);
+                    }
+                    attempt++;
+                } else {
+                    throw e;
+                }
+            }
+        }
     }
 }

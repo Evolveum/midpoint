@@ -25,6 +25,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -792,6 +793,51 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        task.refresh(result);
 //        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
     }
+
+    @Test(enabled = true)
+    public void test999CheckingLeftovers() throws Exception {
+
+        String test = "999CheckingLeftovers";
+        OperationResult result = createResult(test);
+
+        ArrayList<String> leftovers = new ArrayList<String>();
+        checkLeftover(leftovers, "005", result);
+        checkLeftover(leftovers, "006", result);
+        checkLeftover(leftovers, "008", result);
+        checkLeftover(leftovers, "009", result);
+        checkLeftover(leftovers, "010", result);
+        checkLeftover(leftovers, "011", result);
+        checkLeftover(leftovers, "012", result);
+        checkLeftover(leftovers, "013", result);
+        checkLeftover(leftovers, "014", result);
+
+        String message = "Leftover task(s) found:";
+        for (String leftover : leftovers) {
+            message += " " + leftover;
+        }
+
+        AssertJUnit.assertTrue(message, leftovers.isEmpty());
+    }
+
+    private void checkLeftover(ArrayList<String> leftovers, String testNumber, OperationResult result) throws Exception {
+        String oid = taskOid(testNumber);
+        Task t;
+        try {
+            t = taskManager.getTask(oid, result);
+        } catch (ObjectNotFoundException e) {
+            // this is OK, test probably did not start
+            LOGGER.info("Check leftovers: Task " + oid + " does not exist.");
+            return;
+        }
+
+        LOGGER.info("Check leftovers: Task " + oid + " state: " + t.getExecutionStatus());
+
+        if (t.getExecutionStatus() == TaskExecutionStatus.RUNNING) {
+            LOGGER.info("Leftover task: {}", t);
+            leftovers.add(t.getOid());
+        }
+    }
+
 
     // UTILITY METHODS
 
