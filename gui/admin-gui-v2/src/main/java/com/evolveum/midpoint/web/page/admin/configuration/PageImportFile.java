@@ -86,10 +86,7 @@ public class PageImportFile extends PageAdminConfiguration {
 
         //from example
 //        mainForm.setMultiPart(true);
-//        mainForm.setMaxSize(Bytes.kilobytes(100));
-
-        System.out.println();
-        
+//        mainForm.setMaxSize(Bytes.kilobytes(100));        
         initButtons(mainForm);
     }
 
@@ -144,27 +141,4 @@ public class PageImportFile extends PageAdminConfiguration {
     public void onSaveError(AjaxRequestTarget target, Form form) {
     	//todo implement
     }
-
-    //example
-//    protected void onSubmit() {
-//        final List<FileUpload> uploads = fileUploadField.getFileUploads();
-//        if (uploads != null) {
-//            for (FileUpload upload : uploads) {
-//                // Create a new file
-//                File newFile = new File(getUploadFolder(), upload.getClientFileName());
-//
-//                // Check new file, delete if it already existed
-//                checkFileExists(newFile);
-//                try {
-//                    // Save to new file
-//                    newFile.createNewFile();
-//                    upload.writeTo(newFile);
-//
-//                    UploadPage.this.info("saved file: " + upload.getClientFileName());
-//                } catch (Exception e) {
-//                    throw new IllegalStateException("Unable to write file", e);
-//                }
-//            }
-//        }
-//    }
 }

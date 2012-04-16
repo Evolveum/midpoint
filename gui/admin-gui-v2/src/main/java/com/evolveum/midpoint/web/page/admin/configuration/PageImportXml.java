@@ -21,21 +21,34 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 
 /**
- * @author lazyman
+ * @author lazyman, mserbak
  */
 public class PageImportXml extends PageAdminConfiguration {
-
+	
+	@Autowired
+	private Task task;
+	
     private LoadableModel<ImportOptionsType> model;
+    private AceEditor<String> xmlEditor;
     
     public PageImportXml() {
         model = new LoadableModel<ImportOptionsType>(false) {
@@ -52,8 +65,8 @@ public class PageImportXml extends PageAdminConfiguration {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        AceEditor<String> editor = new AceEditor<String>("aceEditor", new Model<String>("aaa"));
-        mainForm.add(editor);
+        xmlEditor = new AceEditor<String>("aceEditor", new Model<String>(""));
+        mainForm.add(xmlEditor);
 
         ImportOptionsPanel importOptions = new ImportOptionsPanel("importOptions", model);
         mainForm.add(importOptions);
@@ -67,16 +80,35 @@ public class PageImportXml extends PageAdminConfiguration {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                //todo implement
-
-                model.reset();
+            	savePerformed(target, form);
             }
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                //todo implement
+                onSaveError(target, form);
             }
         };
         mainForm.add(saveButton);
+    }
+    
+    private void savePerformed(AjaxRequestTarget target, Form<?> form) {
+    	OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
+    	
+    	String xml = xmlEditor.getModel().getObject();
+    	
+    	if(xml != "" || xml != null){	
+    		// Save xml
+			try{			
+				MidPointApplication application = PageImportXml.this.getMidpointApplication();
+				ModelService modelService = application.getModel();
+				modelService.importObjectsFromStream(new ByteArrayInputStream(xml.getBytes()), model.getObject(), task, result);
+			    //TODO: success message
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+    	} 
+    }
+    public void onSaveError(AjaxRequestTarget target, Form form) {
+    	//todo implement
     }
 }
