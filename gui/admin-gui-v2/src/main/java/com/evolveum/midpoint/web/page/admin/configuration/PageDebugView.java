@@ -96,6 +96,7 @@ public class PageDebugView extends PageAdminConfiguration {
             }
         });
         editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, "xml"));
+        editor.setReadonly(!editable.getObject());
         mainForm.add(editor);
         
         initButtons(mainForm);
