@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -34,7 +35,9 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -51,7 +54,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 import static org.testng.AssertJUnit.*;
 
@@ -201,5 +206,48 @@ public class TestRefinedSchema {
         assertTrue("Wrong class for attributes definition: "+attrDef.getClass(), attrDef instanceof ResourceAttributeContainerDefinition);
         
     }
+    
+    @Test
+    public void testProtectedAccount() throws JAXBException, SchemaException, SAXException, IOException {
+
+        // GIVEN
+    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "resource.xml"));
+        ResourceType resourceType = resource.asObjectable();
+        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
+        assertNotNull("Refined schema is null", rSchema);
+        assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
+        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition("user");
+
+        // WHEN
+        Collection<ResourceObjectPattern> protectedAccounts = rAccount.getProtectedAccounts();
+        
+        // THEN
+        assertNotNull("Null protectedAccounts", protectedAccounts);
+        assertFalse("Empty protectedAccounts", protectedAccounts.isEmpty());
+        assertEquals("Unexpected number of protectedAccounts", 2, protectedAccounts.size());
+        Iterator<ResourceObjectPattern> iterator = protectedAccounts.iterator();
+        assertProtectedAccount("first protected account", iterator.next(), "uid=idm,ou=Administrators,dc=example,dc=com");
+        assertProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com");
+    }
+
+	private void assertProtectedAccount(String message, ResourceObjectPattern protectedAccount, String value) {
+		Collection<ResourceAttribute<?>> identifiers = protectedAccount.getIdentifiers();
+		assertNotNull("Null identifiers in "+message, identifiers);
+		assertEquals("Wrong number identifiers in "+message, 1, identifiers.size());
+		ResourceAttribute<?> identifier = identifiers.iterator().next();
+		assertNotNull("Null identifier in "+message, identifier);
+		assertEquals("Wrong identifier value in "+message, identifier.getRealValue(), value);
+		
+		// Try matching
+		ResourceAttributeDefinition testAttrDef = new ResourceAttributeDefinition(ICFS_NAME, ICFS_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+		ResourceAttribute<String> testAttr = testAttrDef.instantiate();
+		testAttr.setRealValue(value);
+		Collection<? extends ResourceAttribute<?>> testAttrs = new ArrayList<ResourceAttribute<?>>(1);
+		((Collection)testAttrs).add(testAttr);
+		assertTrue("Test attr not matched in "+message, protectedAccount.matches(testAttrs));
+		testAttr.setRealValue("huhulumululul");
+		assertFalse("Test attr nonsense was matched in "+message, protectedAccount.matches(testAttrs));
+	}
 
 }

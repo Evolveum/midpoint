@@ -28,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -54,6 +55,19 @@ public class MiscUtil {
 	}
 	
 	public static boolean unorderedCollectionEquals(Collection a, Collection b) {
+		Comparator<?> comparator = new Comparator<Object>() {
+			@Override
+			public int compare(Object o1, Object o2) {
+				return o1.equals(o2) ? 0 : 1;
+			}
+		};
+		return unorderedCollectionEquals(a, b, comparator);
+	}
+	
+	/**
+	 * Only zero vs non-zero value of comparator is important. 
+	 */
+	public static boolean unorderedCollectionEquals(Collection a, Collection b, Comparator comparator) {
 		if (a == null && b == null) {
 			return true;
 		}
@@ -67,7 +81,7 @@ public class MiscUtil {
 			Iterator iterator = outstanding.iterator();
 			while(iterator.hasNext()) {
 				Object oo = iterator.next();
-				if (ao.equals(oo)) {
+				if (comparator.compare(ao, oo) == 0) {
 					iterator.remove();
 					found = true;
 				}
@@ -81,7 +95,6 @@ public class MiscUtil {
 		}
 		return true;
 	}
-	
 	
 	public static int unorderedCollectionHashcode(Collection collection) {
 		// Stupid implmentation, just add all the hashcodes

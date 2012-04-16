@@ -701,7 +701,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 	
 	boolean equalsItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, boolean ignoreMetadata) {
-		Collection<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
+		Collection<? extends ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>();
 		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
 		// we only care whether some deltas are returned or not.
 		diffItems(thisValue, other, PropertyPath.EMPTY_PATH, deltas, ignoreMetadata);

@@ -72,8 +72,7 @@ public class ResourceObjectPattern {
 	}
 
 	private static boolean matches(ResourceAttribute<?> identifier, ResourceAttribute<?> attributeToMatch) {
-//		 TODO: compare real values only ?
-		return identifier.equals(attributeToMatch);
+		return identifier.equalsRealValue(attributeToMatch);
 	}
 
 }

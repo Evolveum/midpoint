@@ -323,6 +323,12 @@
 					</expression>
 				</outbound>
 			</attribute>
+			<protected>
+				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+			</protected>
+			<protected>
+				<icfs:name>uid=root,ou=Administrators,dc=example,dc=com</icfs:name>
+			</protected>
 		</accountType>
 	</schemaHandling>
 		<synchronization>

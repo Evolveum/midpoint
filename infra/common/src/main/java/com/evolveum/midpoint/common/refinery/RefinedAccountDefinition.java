@@ -156,6 +156,9 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 	}
 	
 	public Collection<ResourceObjectPattern> getProtectedAccounts() {
+		if (protectedAccounts == null) {
+			protectedAccounts = new ArrayList<ResourceObjectPattern>();
+		}
 		return protectedAccounts;
 	}
 	

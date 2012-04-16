@@ -38,6 +38,7 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -514,6 +515,44 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 		return result;
 	}
 
+	public boolean equalsRealValue(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Item<?> other = (Item<?>) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		// Do not compare parent at all. This is not relevant.
+		if (values == null) {
+			if (other.values != null)
+				return false;
+		} else if (!equalsRealValues(this.values, other.values))
+			return false;
+		return true;
+	}
+
+	private boolean equalsRealValues(List<V> thisValue, List<?> otherValues) {
+		Comparator<?> comparator = new Comparator<Object>() {
+			@Override
+			public int compare(Object o1, Object o2) {
+				if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
+					PrismValue v1 = (PrismValue)o1;
+					PrismValue v2 = (PrismValue)o2;
+					return v1.equalsRealValue(v2) ? 0 : 1;
+				} else {
+					return -1;
+				}
+			}
+		};
+		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, comparator);
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -522,7 +561,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Item other = (Item) obj;
+		Item<?> other = (Item<?>) obj;
 		if (definition == null) {
 			if (other.definition != null)
 				return false;
