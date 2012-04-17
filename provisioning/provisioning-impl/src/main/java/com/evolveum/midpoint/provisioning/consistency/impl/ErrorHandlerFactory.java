@@ -11,6 +11,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 @Component
@@ -33,6 +34,9 @@ public class ErrorHandlerFactory {
 	
 	@Autowired(required=true)
 	ConfigurationExceptionHandler configurationExceptionHandler;
+	
+	@Autowired(required=true)
+	SecurityViolationHandler securityViolationHandler;
 	
 	
 //	public CommunicationExceptionHandler getCommunicationExceptionHandler() {
@@ -62,6 +66,9 @@ public class ErrorHandlerFactory {
 		}
 		if (ex instanceof ConfigurationException){
 			return configurationExceptionHandler;
+		}
+		if (ex instanceof SecurityViolationException){
+			return securityViolationHandler;
 		}
 		
 		throw new SystemException("Unknown error occurred: "+ex.getMessage(), ex);
