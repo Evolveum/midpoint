@@ -49,6 +49,8 @@ public class ResourceTypeManager {
 	private ResourceSchemaCache resourceSchemaCache;
 	@Autowired(required=true)
 	private ConnectorTypeManager connectorTypeManager;
+	@Autowired(required=true)
+	private ShadowConverter shadowConverter;
 	@Autowired(required = true)
 	private PrismContext prismContext;
 
@@ -509,7 +511,11 @@ public class ResourceTypeManager {
 				LOGGER.trace("Found resource object {}", SchemaDebugUtil.prettyPrint(resourceShadow));
 				ResourceObjectShadowType resultShadowType;
 				try {
-
+					if (shadowConverter.isProtectedShadow(resourceType, resourceShadow)) {
+						// Protected shadow. We will pretend that it does not exist.
+						LOGGER.trace("Skipping protected shadow "+resourceShadow+" in search");
+						return true;
+					}
 					T resourceShadowType = resourceShadow.asObjectable();
 					// Try to find shadow that corresponds to the resource
 					// object
@@ -702,7 +708,7 @@ public class ResourceTypeManager {
 			return;
 		}
 		
-		Set<Object> capabilities = null;
+		Collection<Object> capabilities = null;
 		try {
 			
 			if (connector == null) {

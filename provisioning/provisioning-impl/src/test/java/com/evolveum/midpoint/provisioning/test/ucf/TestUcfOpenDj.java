@@ -237,7 +237,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		
 	}
 
-	private Set<ResourceAttribute> addSampleResourceObject(String name, String givenName, String familyName)
+	private Collection<ResourceAttribute<?>> addSampleResourceObject(String name, String givenName, String familyName)
 			throws CommunicationException, GenericFrameworkException, SchemaException,
 			ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
@@ -274,11 +274,11 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismObject<AccountShadowType> shadow = wrapInShadow(AccountShadowType.class, resourceObject);
 
 		Set<Operation> operation = new HashSet<Operation>();
-		Set<ResourceAttribute> resourceAttributes = cc.addObject(shadow, operation, result);
+		Collection<ResourceAttribute<?>> resourceAttributes = cc.addObject(shadow, operation, result);
 		return resourceAttributes;
 	}
 
-	private String getEntryUuid(Set<ResourceAttribute> identifiers) {
+	private String getEntryUuid(Collection<ResourceAttribute<?>> identifiers) {
 		for (ResourceAttribute<?> identifier : identifiers) {
 			if (identifier.getName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
 				return identifier.getValue(String.class).getValue();
@@ -293,7 +293,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testDelete");
 
-		Set<ResourceAttribute> identifiers = addSampleResourceObject("john", "John", "Smith");
+		Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
 		String uid = null;
 		for (ResourceAttribute<?> resourceAttribute : identifiers) {
@@ -325,7 +325,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testModify");
 
-		Set<ResourceAttribute> identifiers = addSampleResourceObject("john", "John", "Smith");
+		Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
 		Set<Operation> changes = new HashSet<Operation>();
 
@@ -386,7 +386,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// GIVEN
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testDisableAccount");
 
-		Set<ResourceAttribute> identifiers = addSampleResourceObject("blackbeard", "Edward", "Teach");
+		Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("blackbeard", "Edward", "Teach");
 
 		// Check precondition
 		String entryUuid = getEntryUuid(identifiers);
@@ -580,7 +580,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		// WHEN
 
-		Set<Object> capabilities = cc.getCapabilities(result);
+		Collection<Object> capabilities = cc.getCapabilities(result);
 
 		// THEN
 		result.computeStatus("getCapabilities failed");

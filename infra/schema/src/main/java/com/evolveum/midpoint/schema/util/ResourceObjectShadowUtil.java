@@ -20,9 +20,11 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
@@ -47,6 +49,14 @@ public class ResourceObjectShadowUtil {
 		return getAttributesContainer(shadow).getIdentifiers();	
 	}
 	
+	public static Collection<ResourceAttribute<?>> getAttributes(ResourceObjectShadowType shadowType) {
+		return getAttributes(shadowType.asPrismObject());
+	}
+	
+	public static Collection<ResourceAttribute<?>> getAttributes(PrismObject<? extends ResourceObjectShadowType> shadow) {
+		return getAttributesContainer(shadow).getAttributes();	
+	}
+	
 	public static ResourceAttributeContainer getAttributesContainer(ResourceObjectShadowType shadowType) {
 		return getAttributesContainer(shadowType.asPrismObject());
 	}
@@ -61,6 +71,21 @@ public class ResourceObjectShadowUtil {
 		} else {
 			throw new SystemException("Expected that <attributes> will be ResourceAttributeContainer but it is "+attributesContainer.getClass());
 		}
+	}
+	
+	public static ResourceAttributeContainer getOrCreateAttributesContainer(PrismObject<? extends ResourceObjectShadowType> shadow, 
+			ObjectClassComplexTypeDefinition objectClassDefinition) {
+		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+		if (attributesContainer != null) {
+			return attributesContainer;
+		}
+		ResourceAttributeContainer emptyContainer = ResourceAttributeContainer.createEmptyContainer(ResourceObjectShadowType.F_ATTRIBUTES, objectClassDefinition);
+		try {
+			shadow.add(emptyContainer);
+		} catch (SchemaException e) {
+			throw new SystemException("Unexpected schema error: "+e.getMessage(), e);
+		}
+		return emptyContainer;
 	}
 	
 	public static ResourceAttributeContainerDefinition getObjectClassDefinition(ResourceObjectShadowType shadow) {

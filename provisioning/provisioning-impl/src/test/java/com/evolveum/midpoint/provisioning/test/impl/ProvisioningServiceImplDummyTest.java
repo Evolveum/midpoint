@@ -11,7 +11,9 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
@@ -25,8 +27,10 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
@@ -60,6 +64,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -83,12 +88,21 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/object/resource-dummy.xml";
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-	private static final String FILENAME_ACCOUNT_WILL = "src/test/resources/impl/account-dummy.xml";
+	
+	private static final String ACCOUNT_WILL_FILENAME = "src/test/resources/impl/account-dummy.xml";
 	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	private static final String ACCOUNT_WILL_ICF_UID = "will";
-	private static final String FILENAME_ACCOUNT_MORGAN = "src/test/resources/impl/account-dummy-noname.xml";
+	
+	private static final String ACCOUNT_DAEMON_USERNAME = "daemon";
+	private static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
+	private static final String ACCOUNT_DAEMON_FILENAME = "src/test/resources/impl/account-dummy-daemon.xml";
+	
+	private static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
+	
+	private static final String ACCOUNT_MORGAN_FILENAME = "src/test/resources/impl/account-dummy-noname.xml";
 	private static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	private static final String ACCOUNT_MORGAN_NAME = "morgan";
+	
 	private static final String FILENAME_ACCOUNT_SCRIPT = "src/test/resources/impl/account-dummy-script.xml";
 	private static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
 	private static final String FILENAME_ENABLE_ACCOUNT = "src/test/resources/impl/enable-account.xml";
@@ -137,13 +151,17 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		provisioningService.postInit(initResult);
 		resource = addResourceFromFile(FILENAME_RESOURCE_DUMMY, DUMMY_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
-	}
-
-	@BeforeClass
-	public static void initResource() throws Exception {
+		
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
+		
+		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
+		dummyAccountDaemon.setEnabled(true);
+		dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
+		dummyResource.addAccount(dummyAccountDaemon);
+		
+		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, initResult);
 	}
 
 	@Test
@@ -499,7 +517,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test010AddAccount");
 
-		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_WILL, AccountShadowType.class);
+		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 
 		display("Adding shadow", account.asPrismObject());
 
@@ -549,7 +567,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test010Atest011AddAccountWithoutNameddAccount");
 
-		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_MORGAN, AccountShadowType.class);
+		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_MORGAN_FILENAME, AccountShadowType.class);
 
 		display("Adding shadow", account.asPrismObject());
 
@@ -906,7 +924,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
 		assertNotNull("No attributes container in current shadow", attributesContainer);
-		Set<ResourceAttribute> attributes = attributesContainer.getAttributes();
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
 		assertEquals("Unexpected number of attributes", 3, attributes.size());
 		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
@@ -951,7 +969,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
 		assertNotNull("No attributes container in current shadow", attributesContainer);
-		Set<ResourceAttribute> attributes = attributesContainer.getAttributes();
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
 		assertEquals("Unexpected number of attributes", 3, attributes.size());
 		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
@@ -999,7 +1017,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
 		assertNotNull("No attributes container in current shadow", attributesContainer);
-		Set<ResourceAttribute> attributes = attributesContainer.getAttributes();
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
 		assertEquals("Unexpected number of attributes", 3, attributes.size());
 		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
@@ -1007,6 +1025,103 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals("Wrong value of fullname attribute in current shadow", "Sir Francis Drake", fullnameAttribute.getRealValue());
 		
 		checkAllShadows();
+	}
+	
+	@Test
+	public void test500AddProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+		displayTestTile("test500AddProtectedAccount");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test500AddProtectedAccount");
+		
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultAccountDefinition();
+		AccountShadowType shadowType = new AccountShadowType();
+		PrismTestUtil.getPrismContext().adopt(shadowType);
+		shadowType.setName(ACCOUNT_DAVIEJONES_USERNAME);
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resource.getOid());
+		shadowType.setResourceRef(resourceRef);
+		shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
+		PrismObject<AccountShadowType> shadow = shadowType.asPrismObject();
+		PrismContainer<Containerable> attrsCont = shadow.findOrCreateContainer(AccountShadowType.F_ATTRIBUTES);
+		PrismProperty<String> icfsNameProp = attrsCont.findOrCreateProperty(ConnectorFactoryIcfImpl.ICFS_NAME);
+		icfsNameProp.setRealValue(ACCOUNT_DAVIEJONES_USERNAME);
+
+		// WHEN
+		try {
+			provisioningService.addObject(shadow, null, result);
+			AssertJUnit.fail("Expected security exception while adding 'daviejones' account");
+		} catch (SecurityViolationException e) {
+			// This is expected
+		}
+		
+		checkConsistency();
+	}
+	
+	@Test
+	public void test501GetProtectedAccountShadow() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test501GetProtectedAccount");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test501GetProtectedAccount");
+
+		// WHEN
+		try {
+			provisioningService.getObject(AccountShadowType.class,
+					ACCOUNT_DAEMON_OID, null, result);
+			AssertJUnit.fail("Expected security exception while reading 'daemon' account");
+		} catch (SecurityViolationException e) {
+			// This is expected
+		}
+		
+		checkConsistency();
+	}
+	
+	@Test
+	public void test502ModifyProtectedAccountShadow() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test502ModifyProtectedAccountShadow");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test502ModifyProtectedAccountShadow");
+
+		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultAccountDefinition();
+		ResourceAttributeDefinition fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
+		ResourceAttribute fullnameAttr = fullnameAttrDef.instantiate();
+		PropertyDelta fullnameDelta = fullnameAttr.createDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, fullnameAttrDef.getName()));
+		fullnameDelta.setValueToReplace(new PrismPropertyValue<String>("Good Daemon"));
+		((Collection)modifications).add(fullnameDelta);
+		
+		// WHEN
+		try {
+			provisioningService.modifyObject(AccountShadowType.class,
+					ACCOUNT_DAEMON_OID, modifications, null, result);
+			AssertJUnit.fail("Expected security exception while modifying 'daemon' account");
+		} catch (SecurityViolationException e) {
+			// This is expected
+		}
+		
+		checkConsistency();
+	}
+	
+	@Test
+	public void test503DeleteProtectedAccountShadow() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test503DeleteProtectedAccountShadow");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test503DeleteProtectedAccountShadow");
+
+		// WHEN
+		try {
+			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, null, result);
+			AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
+		} catch (SecurityViolationException e) {
+			// This is expected
+		}
+		
+		checkConsistency();
 	}
 	
 	@Test

@@ -26,6 +26,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +37,7 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -45,10 +47,13 @@ import org.xml.sax.SAXException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -62,15 +67,19 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -79,7 +88,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -100,6 +111,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/object/resource-dummy.xml";
 	private static final String FILENAME_CONNECTOR_DUMMY = "src/test/resources/ucf/connector-dummy.xml";
+	private static final String ACCOUNT_JACK_USERNAME = "jack";
+	private static final String ACCOUNT_JACK_FULLNAME = "Jack Sparrow";
 
 	private ConnectorFactory manager;
 	private PrismObject<ResourceType> resource;
@@ -110,7 +123,9 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	private static DummyResource dummyResource;
 
 	@Autowired(required = true)
-	ConnectorFactory connectorFactoryIcfImpl;
+	private ConnectorFactory connectorFactoryIcfImpl;
+	@Autowired(required = true)
+	private PrismContext prismContext;
 	
 	private static Trace LOGGER = TraceManager.getTrace(TestUcfDummy.class);
 	
@@ -289,6 +304,73 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
+	public void test040AddAccount() throws Exception {
+		displayTestTile(this, "test040AddAccount");
+
+		OperationResult result = new OperationResult(this.getClass().getName() + ".test040AddAccount");
+
+		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultAccountDefinition();
+		AccountShadowType shadowType = new AccountShadowType();
+		PrismTestUtil.getPrismContext().adopt(shadowType);
+		shadowType.setName(ACCOUNT_JACK_USERNAME);
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resource.getOid());
+		shadowType.setResourceRef(resourceRef);
+		shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
+		PrismObject<AccountShadowType> shadow = shadowType.asPrismObject();
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
+		ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+		icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
+		
+		// WHEN
+		cc.addObject(shadow, null, result);
+
+		// THEN
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);
+		assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" was not created", dummyAccount);
+		assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" has no username", dummyAccount.getUsername());
+		
+	}
+	
+	@Test
+	public void test050Search() throws UcfException, SchemaException, CommunicationException {
+		displayTestTile("test050Search");
+		// GIVEN
+
+		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		// Determine object class from the schema
+		
+		final List<PrismObject<AccountShadowType>> searchResults = new ArrayList<PrismObject<AccountShadowType>>();
+
+		ResultHandler<AccountShadowType> handler = new ResultHandler<AccountShadowType>() {
+
+			@Override
+			public boolean handle(PrismObject<AccountShadowType> shadow) {
+				System.out.println("Search: found: " + shadow);
+				checkUcfShadow(shadow, accountDefinition);
+				searchResults.add(shadow);
+				return true;
+			}
+		};
+
+		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
+
+		// WHEN
+		cc.search(AccountShadowType.class, accountDefinition, null, handler, result);
+
+		// THEN
+		assertEquals("Unexpected number of search results", 1, searchResults.size());
+	}
+	
+	private void checkUcfShadow(PrismObject<AccountShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
+		assertNotNull("No objectClass in shadow "+shadow, shadow.asObjectable().getObjectClass());
+		assertEquals("Wrong objectClass in shadow "+shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
+		Collection<ResourceAttribute<?>> attributes = ResourceObjectShadowUtil.getAttributes(shadow);
+		assertNotNull("No attributes in shadow "+shadow, attributes);
+		assertFalse("Empty attributes in shadow "+shadow, attributes.isEmpty());
+	}
+	
+	@Test
 	public void test100FetchEmptyChanges() throws Exception {
 		displayTestTile(this, "test100FetchEmptyChanges");
 
@@ -346,6 +428,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertFalse("empty identifiers", identifiers.isEmpty());
 		
 	}
+	
+	
 
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,

@@ -107,7 +107,7 @@ public interface ConnectorInstance {
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException 
 	 */
-	public Set<Object> getCapabilities(OperationResult parentResult) throws CommunicationException,
+	public Collection<Object> getCapabilities(OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ConfigurationException;
 	
     /**
@@ -220,7 +220,7 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Set<ResourceAttribute> addObject(PrismObject<? extends ResourceObjectShadowType> object, Set<Operation> additionalOperations, 
+	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ResourceObjectShadowType> object, Set<Operation> additionalOperations, 
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, 
 			ObjectAlreadyExistsException;
 	
@@ -255,7 +255,7 @@ public interface ConnectorInstance {
 	 * @param serializedToken
 	 * @return
 	 */
-	public PrismProperty deserializeToken(Object serializedToken);
+	public PrismProperty<?> deserializeToken(Object serializedToken);
 	
 	/**
 	 * Returns the latest token. In other words, returns a token that
@@ -266,7 +266,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public PrismProperty fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public PrismProperty<?> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".

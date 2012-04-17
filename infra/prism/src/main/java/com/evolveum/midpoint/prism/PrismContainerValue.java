@@ -526,6 +526,14 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         }
         return createProperty(propertyQName);
     }
+    
+    public <X> PrismProperty<X> findOrCreateProperty(PrismPropertyDefinition propertyDef) throws SchemaException {
+        PrismProperty<X> property = findItem(propertyDef.getName(), PrismProperty.class);
+        if (property != null) {
+            return property;
+        }
+        return createProperty(propertyDef);
+    }
 
 //    public PrismProperty findOrCreateProperty(PropertyPath parentPath, QName propertyQName, Class<?> valueClass) {
 //        PrismContainer container = findOrCreatePropertyContainer(parentPath);
@@ -571,6 +579,12 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         	property = propertyDefinition.instantiate();
         }
         add(property);
+        return property;
+    }
+    
+    public <X> PrismProperty<X> createProperty(PrismPropertyDefinition propertyDefinition) throws SchemaException {
+    	PrismProperty<X> property = propertyDefinition.instantiate();
+    	add(property);
         return property;
     }
     

@@ -738,7 +738,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Set<ResourceAttribute> addObject(PrismObject<? extends ResourceObjectShadowType> object,
+	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ResourceObjectShadowType> object,
 			Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException {
 		validateShadow(object, "add", false);
@@ -899,9 +899,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Uid uid = getUid(identifiers);
 		String originalUid = uid.getUidValue();
 
-		Set<ResourceAttribute> addValues = new HashSet<ResourceAttribute>();
-		Set<ResourceAttribute> updateValues = new HashSet<ResourceAttribute>();
-		Set<ResourceAttribute> valuesToRemove = new HashSet<ResourceAttribute>();
+		Collection<ResourceAttribute<?>> addValues = new HashSet<ResourceAttribute<?>>();
+		Collection<ResourceAttribute<?>> updateValues = new HashSet<ResourceAttribute<?>>();
+		Collection<ResourceAttribute<?>> valuesToRemove = new HashSet<ResourceAttribute<?>>();
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
 		PasswordChangeOperation passwordChangeOperation = null;
@@ -1638,6 +1638,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
 				.findOrCreateContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainerDefinition attributesDefinition = attributesContainer.getDefinition();
+		shadow.setObjectClass(attributesDefinition.getTypeName());
 
 		LOGGER.trace("Resource attribute container definition {}.", attributesDefinition.dump());
 
@@ -1750,11 +1751,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private Set<Attribute> convertFromResourceObject(ResourceAttributeContainer attributesPrism,
 			OperationResult parentResult) throws SchemaException {
-		Collection<ResourceAttribute> resourceAttributes = attributesPrism.getAttributes();
+		Collection<ResourceAttribute<?>> resourceAttributes = attributesPrism.getAttributes();
 		return convertFromResourceObject(resourceAttributes, parentResult);
 	}
 
-	private Set<Attribute> convertFromResourceObject(Collection<ResourceAttribute> resourceAttributes,
+	private Set<Attribute> convertFromResourceObject(Collection<ResourceAttribute<?>> resourceAttributes,
 			OperationResult parentResult) throws SchemaException {
 
 		Set<Attribute> attributes = new HashSet<Attribute>();

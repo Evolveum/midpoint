@@ -73,7 +73,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * @return set of resource object attributes.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Set<ResourceAttribute> getAttributes() {
+	public Collection<ResourceAttribute<?>> getAttributes() {
 		// TODO: Iterate over the list to assert correct types
 		return (Set) getValue().getProperties();
 	}
@@ -229,7 +229,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		if (getDefinition().getNamingAttribute()==null) {
 			return null;
 		}
-		return (ResourceAttribute<String>) findAttribute(getDefinition().getNamingAttribute());
+		return findAttribute(getDefinition().getNamingAttribute());
 	}
 
 	/**
@@ -344,17 +344,22 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 *            attribute definition to find.
 	 * @return found attribute or null
 	 */
-	private ResourceAttribute<?> findAttribute(ResourceAttributeDefinition attributeDefinition) {
-		return (ResourceAttribute<?>) getValue().findProperty(attributeDefinition);
+	public <X> ResourceAttribute<X> findAttribute(ResourceAttributeDefinition attributeDefinition) {
+		return (ResourceAttribute<X>) getValue().findProperty(attributeDefinition);
+	}
+	
+	public <X> ResourceAttribute<X> findOrCreateAttribute(ResourceAttributeDefinition attributeDefinition) throws SchemaException {
+		return (ResourceAttribute<X>) getValue().findOrCreateProperty(attributeDefinition);
+	}
+	
+	public <X> ResourceAttribute<X> findOrCreateAttribute(QName attributeName) throws SchemaException {
+		return (ResourceAttribute<X>) getValue().findOrCreateProperty(attributeName);
 	}
 	
 	public static ResourceAttributeContainer convertFromContainer(PrismContainer<?> container,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
 		QName elementName = container.getName();
-		ResourceAttributeContainerDefinition attributesContainerDefinition = new ResourceAttributeContainerDefinition(elementName,
-				objectClassDefinition, container.getPrismContext());
-		ResourceAttributeContainer attributesContainer = 
-			new ResourceAttributeContainer(elementName, attributesContainerDefinition , container.getPrismContext());
+		ResourceAttributeContainer attributesContainer = createEmptyContainer(elementName, objectClassDefinition);
 		for (Item item: container.getValue().getItems()) {
 			if (item instanceof PrismProperty) {
 				PrismProperty<?> property = (PrismProperty)item;
@@ -375,7 +380,11 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		return attributesContainer;
 	}
 	
-	
+	public static ResourceAttributeContainer createEmptyContainer(QName elementName, ObjectClassComplexTypeDefinition objectClassDefinition) {
+		ResourceAttributeContainerDefinition attributesContainerDefinition = new ResourceAttributeContainerDefinition(elementName,
+				objectClassDefinition, objectClassDefinition.getPrismContext()); 
+		return new ResourceAttributeContainer(elementName, attributesContainerDefinition , objectClassDefinition.getPrismContext());
+	}
 	
 	@Override
 	public ResourceAttributeContainer clone() {

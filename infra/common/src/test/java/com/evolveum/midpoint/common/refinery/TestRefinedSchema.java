@@ -239,15 +239,25 @@ public class TestRefinedSchema {
 		assertNotNull("Null identifier in "+message, identifier);
 		assertEquals("Wrong identifier value in "+message, identifier.getRealValue(), value);
 		
-		// Try matching
-		ResourceAttributeDefinition testAttrDef = new ResourceAttributeDefinition(ICFS_NAME, ICFS_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+		// Try matching	
+		Collection<ResourceAttribute<?>> testAttrs = new ArrayList<ResourceAttribute<?>>(3);
+		ResourceAttribute<String> confusingAttr1 = createStringAttribute(new QName("http://whatever.com","confuseMe"), "HowMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChudkWood");
+		testAttrs.add(confusingAttr1);
+		ResourceAttribute<String> nameAttr = createStringAttribute(ICFS_NAME, value);
+		testAttrs.add(nameAttr);
+		ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com","confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
+		testAttrs.add(confusingAttr2);
+		
+		assertTrue("Test attr not matched in "+message, protectedAccount.matches(testAttrs));
+		nameAttr.setRealValue("huhulumululul");
+		assertFalse("Test attr nonsense was matched in "+message, protectedAccount.matches(testAttrs));
+	}
+
+	private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {
+		ResourceAttributeDefinition testAttrDef = new ResourceAttributeDefinition(attrName, attrName, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 		ResourceAttribute<String> testAttr = testAttrDef.instantiate();
 		testAttr.setRealValue(value);
-		Collection<? extends ResourceAttribute<?>> testAttrs = new ArrayList<ResourceAttribute<?>>(1);
-		((Collection)testAttrs).add(testAttr);
-		assertTrue("Test attr not matched in "+message, protectedAccount.matches(testAttrs));
-		testAttr.setRealValue("huhulumululul");
-		assertFalse("Test attr nonsense was matched in "+message, protectedAccount.matches(testAttrs));
+		return testAttr;
 	}
 
 }
