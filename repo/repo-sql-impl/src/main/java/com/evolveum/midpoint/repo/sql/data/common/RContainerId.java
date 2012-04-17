@@ -21,6 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+
 import java.io.Serializable;
 
 /**
@@ -60,10 +64,6 @@ public class RContainerId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        if (oid == null && id == null) {
-            return false;
-        }
-
         RContainerId that = (RContainerId) o;
 
         if (id != null ? !id.equals(that.id) : that.id != null) return false;
@@ -74,9 +74,13 @@ public class RContainerId implements Serializable {
 
     @Override
     public int hashCode() {
-        return super.hashCode();
-//        int result = oid != null ? oid.hashCode() : 0;
-//        result = 31 * result + (id != null ? id.hashCode() : 0);
-//        return result;
+        int result = oid != null ? oid.hashCode() : 0;
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "RContainerId[" + oid + ", " + id + "]";
     }
 }
