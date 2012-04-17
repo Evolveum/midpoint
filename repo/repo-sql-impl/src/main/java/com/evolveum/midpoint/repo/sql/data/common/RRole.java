@@ -122,6 +122,9 @@ public class RRole extends RObject {
             repo.getAssignments().add(rAssignment);
         }
 
+        if (jaxb.getExclusion() != null && !jaxb.getExclusion().isEmpty()) {
+            repo.setExclusions(new HashSet<RExclusion>());
+        }
         for (ExclusionType exclusion : jaxb.getExclusion()) {
             RExclusion rExclusion = new RExclusion();
             rExclusion.setOwner(repo);
