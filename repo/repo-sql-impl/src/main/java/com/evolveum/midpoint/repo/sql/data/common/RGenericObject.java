@@ -47,6 +47,26 @@ public class RGenericObject extends RObject {
         this.objectType = objectType;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RGenericObject that = (RGenericObject) o;
+
+        if (objectType != null ? !objectType.equals(that.objectType) : that.objectType != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (objectType != null ? objectType.hashCode() : 0);
+        return result;
+    }
+
     public static void copyToJAXB(RGenericObject repo, GenericObjectType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);

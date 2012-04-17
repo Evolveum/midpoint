@@ -75,6 +75,8 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
         String oid = repositoryService.addObject(user, result);
         AssertJUnit.assertEquals(userOid, oid);
 
+        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
+
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
                 new File(TEST_DIR, "change-add.xml"),
                 ObjectModificationType.class);
@@ -84,9 +86,12 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
         repositoryService.modifyObject(UserType.class, oid, deltas, result);
 
-        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
-        ObjectDelta delta = user.diff(userNew);
+        PropertyDelta.applyTo(deltas, userOld);
 
-        AssertJUnit.assertTrue(userNew.equivalent(user));
+        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
+        ObjectDelta<UserType> delta = userOld.diff(userNew);
+        LOGGER.debug("Modify diff \n{}", delta.debugDump(3));
+        AssertJUnit.assertTrue(delta.isEmpty());
+        AssertJUnit.assertTrue(userOld.equivalent(userNew));
     }
 }

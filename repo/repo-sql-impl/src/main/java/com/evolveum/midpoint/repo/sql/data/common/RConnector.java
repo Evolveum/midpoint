@@ -133,6 +133,45 @@ public class RConnector extends RObject {
         this.xmlSchema = xmlSchema;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RConnector that = (RConnector) o;
+
+        if (connectorBundle != null ? !connectorBundle.equals(that.connectorBundle) : that.connectorBundle != null)
+            return false;
+        if (connectorHostRef != null ? !connectorHostRef.equals(that.connectorHostRef) : that.connectorHostRef != null)
+            return false;
+        if (connectorType != null ? !connectorType.equals(that.connectorType) : that.connectorType != null)
+            return false;
+        if (connectorVersion != null ? !connectorVersion.equals(that.connectorVersion) : that.connectorVersion != null)
+            return false;
+        if (framework != null ? !framework.equals(that.framework) : that.framework != null) return false;
+        if (namespace != null ? !namespace.equals(that.namespace) : that.namespace != null) return false;
+        if (targetSystemType != null ? !targetSystemType.equals(that.targetSystemType) : that.targetSystemType != null)
+            return false;
+        if (xmlSchema != null ? !xmlSchema.equals(that.xmlSchema) : that.xmlSchema != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (framework != null ? framework.hashCode() : 0);
+        result = 31 * result + (connectorHostRef != null ? connectorHostRef.hashCode() : 0);
+        result = 31 * result + (connectorType != null ? connectorType.hashCode() : 0);
+        result = 31 * result + (connectorVersion != null ? connectorVersion.hashCode() : 0);
+        result = 31 * result + (connectorBundle != null ? connectorBundle.hashCode() : 0);
+        result = 31 * result + (targetSystemType != null ? targetSystemType.hashCode() : 0);
+        result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
+        result = 31 * result + (xmlSchema != null ? xmlSchema.hashCode() : 0);
+        return result;
+    }
+
     public static void copyToJAXB(RConnector repo, ConnectorType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);

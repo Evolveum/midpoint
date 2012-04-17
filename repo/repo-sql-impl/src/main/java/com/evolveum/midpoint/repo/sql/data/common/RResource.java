@@ -135,6 +135,48 @@ public class RResource extends RObject {
         this.scripts = scripts;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RResource rResource = (RResource) o;
+
+        if (capabilities != null ? !capabilities.equals(rResource.capabilities) : rResource.capabilities != null)
+            return false;
+        if (configuration != null ? !configuration.equals(rResource.configuration) : rResource.configuration != null)
+            return false;
+        if (connectorRef != null ? !connectorRef.equals(rResource.connectorRef) : rResource.connectorRef != null)
+            return false;
+        if (namespace != null ? !namespace.equals(rResource.namespace) : rResource.namespace != null) return false;
+        if (nativeCapabilities != null ? !nativeCapabilities.equals(rResource.nativeCapabilities) : rResource.nativeCapabilities != null)
+            return false;
+        if (schemaHandling != null ? !schemaHandling.equals(rResource.schemaHandling) : rResource.schemaHandling != null)
+            return false;
+        if (scripts != null ? !scripts.equals(rResource.scripts) : rResource.scripts != null) return false;
+        if (synchronization != null ? !synchronization.equals(rResource.synchronization) : rResource.synchronization != null)
+            return false;
+        if (xmlSchema != null ? !xmlSchema.equals(rResource.xmlSchema) : rResource.xmlSchema != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (connectorRef != null ? connectorRef.hashCode() : 0);
+        result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
+        result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
+        result = 31 * result + (xmlSchema != null ? xmlSchema.hashCode() : 0);
+        result = 31 * result + (schemaHandling != null ? schemaHandling.hashCode() : 0);
+        result = 31 * result + (nativeCapabilities != null ? nativeCapabilities.hashCode() : 0);
+        result = 31 * result + (capabilities != null ? capabilities.hashCode() : 0);
+        result = 31 * result + (scripts != null ? scripts.hashCode() : 0);
+        result = 31 * result + (synchronization != null ? synchronization.hashCode() : 0);
+        return result;
+    }
+
     public static void copyToJAXB(RResource repo, ResourceType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
