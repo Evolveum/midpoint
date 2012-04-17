@@ -863,169 +863,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// TODO
 	}
 		
-	@Test
-	public void test100LiveSyncInit() throws ObjectNotFoundException, CommunicationException, SchemaException, 
-			com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test100LiveSyncInit");
-		syncTask = taskManager.createTaskInstance(ProvisioningServiceImplDummyTest.class.getName() + ".syncTask");
-		
-		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
-		syncServiceMock.reset();
-		
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + "test100LiveSyncInit");
-		
-		// Dry run to remember the current sync token in the task instance. Otherwise a last sync token whould be used and
-		// no change would be detected
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
-		
-		// THEN
-		
-		// No change, no fun
-		assertFalse(syncServiceMock.wasCalled());
-		
-		checkAllShadows();
-	}
-
-	@Test
-	public void test101LiveSyncAddBlackbeard() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test101LiveSyncAddBlackbeard");
-		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test101LiveSyncAddBlackbeard");
-		
-		syncServiceMock.reset();
-		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
-		DummyAccount newAccount = new DummyAccount(BLACKBEARD_USERNAME);
-		newAccount.addAttributeValues("fullname", "Edward Teach");
-		newAccount.setEnabled(true);
-		newAccount.setPassword("shiverMEtimbers");
-		dummyResource.addAccount(newAccount);
-		
-		display("Resource before sync", dummyResource.dump());
-		
-		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
-		
-		// THEN
-		
-		result.computeStatus();
-		display("Synchronization result", result);
-		assertSuccess("Synchronization result is not OK", result);
-		
-		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
-		
-		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-		display("The change", lastChange);
-		
-//		assertNull("Old shadow present when not expecting it", lastChange.getOldShadow());
-		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
-		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
-		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
-		assertTrue("Wrong type of current shadow: "+ currentShadowType.getClass().getName(), currentShadowType instanceof AccountShadowType);
-		
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
-		assertNotNull("No attributes container in current shadow", attributesContainer);
-		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
-		assertFalse("Attributes container is empty", attributes.isEmpty());
-		assertEquals("Unexpected number of attributes", 3, attributes.size());
-		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
-		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
-		assertEquals("Wrong value of fullname attribute in current shadow", "Edward Teach", fullnameAttribute.getRealValue());
-		
-		checkAllShadows();
-	}
-	
-	@Test
-	public void test102LiveSyncModifyBlackbeard() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test102LiveSyncModifyBlackbeard");
-		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test102LiveSyncModifyBlackbeard");
-		
-		syncServiceMock.reset();
-		
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(BLACKBEARD_USERNAME);
-		dummyAccount.replaceAttributeValue("fullname", "Captain Blackbeard");
-		
-		display("Resource before sync", dummyResource.dump());
-		
-		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
-		
-		// THEN
-		
-		result.computeStatus();
-		display("Synchronization result", result);
-		assertSuccess("Synchronization result is not OK", result);
-		
-		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
-		
-		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-		display("The change", lastChange);
-		
-//		assertNull("Old shadow present when not expecting it", lastChange.getOldShadow());
-		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
-		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
-		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
-		assertTrue("Wrong type of current shadow: "+ currentShadowType.getClass().getName(), currentShadowType instanceof AccountShadowType);
-		
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
-		assertNotNull("No attributes container in current shadow", attributesContainer);
-		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
-		assertFalse("Attributes container is empty", attributes.isEmpty());
-		assertEquals("Unexpected number of attributes", 3, attributes.size());
-		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
-		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
-		assertEquals("Wrong value of fullname attribute in current shadow", "Captain Blackbeard", fullnameAttribute.getRealValue());
-		
-		checkAllShadows();
-	}
-	
-	@Test
-	public void test101LiveSyncAddDrake() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test101LiveSyncAddDrake");
-		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test101LiveSyncAddDrake");
-		
-		syncServiceMock.reset();
-		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
-		DummyAccount newAccount = new DummyAccount(DRAKE_USERNAME);
-		newAccount.addAttributeValues("fullname", "Sir Francis Drake");
-		newAccount.setEnabled(true);
-		newAccount.setPassword("avast!");
-		dummyResource.addAccount(newAccount);
-		
-		display("Resource before sync", dummyResource.dump());
-		
-		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
-		
-		// THEN
-		
-		result.computeStatus();
-		display("Synchronization result", result);
-		assertSuccess("Synchronization result is not OK", result);
-		
-		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
-		
-		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-		display("The change", lastChange);
-		
-//		assertNull("Old shadow present when not expecting it", lastChange.getOldShadow());
-		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
-		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
-		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
-		assertTrue("Wrong type of current shadow: "+ currentShadowType.getClass().getName(), currentShadowType instanceof AccountShadowType);
-		
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
-		assertNotNull("No attributes container in current shadow", attributesContainer);
-		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
-		assertFalse("Attributes container is empty", attributes.isEmpty());
-		assertEquals("Unexpected number of attributes", 3, attributes.size());
-		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
-		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
-		assertEquals("Wrong value of fullname attribute in current shadow", "Sir Francis Drake", fullnameAttribute.getRealValue());
-		
-		checkAllShadows();
-	}
 	
 	@Test
 	public void test500AddProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
@@ -1122,6 +959,198 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		}
 		
 		checkConsistency();
+	}
+	
+	@Test
+	public void test800LiveSyncInit() throws ObjectNotFoundException, CommunicationException, SchemaException, 
+			com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test800LiveSyncInit");
+		syncTask = taskManager.createTaskInstance(ProvisioningServiceImplDummyTest.class.getName() + ".syncTask");
+		
+		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		syncServiceMock.reset();
+		
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test800LiveSyncInit");
+		
+		// Dry run to remember the current sync token in the task instance. Otherwise a last sync token whould be used and
+		// no change would be detected
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		
+		// THEN
+		
+		// No change, no fun
+		assertFalse(syncServiceMock.wasCalled());
+		
+		checkAllShadows();
+	}
+
+	@Test
+	public void test801LiveSyncAddBlackbeard() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test801LiveSyncAddBlackbeard");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test801LiveSyncAddBlackbeard");
+		
+		syncServiceMock.reset();
+		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		DummyAccount newAccount = new DummyAccount(BLACKBEARD_USERNAME);
+		newAccount.addAttributeValues("fullname", "Edward Teach");
+		newAccount.setEnabled(true);
+		newAccount.setPassword("shiverMEtimbers");
+		dummyResource.addAccount(newAccount);
+		
+		display("Resource before sync", dummyResource.dump());
+		
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		
+		// THEN
+		
+		result.computeStatus();
+		display("Synchronization result", result);
+		assertSuccess("Synchronization result is not OK", result);
+		
+		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
+		
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+		
+//		assertNull("Old shadow present when not expecting it", lastChange.getOldShadow());
+		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
+		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+		assertTrue("Wrong type of current shadow: "+ currentShadowType.getClass().getName(), currentShadowType instanceof AccountShadowType);
+		
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
+		assertNotNull("No attributes container in current shadow", attributesContainer);
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+		assertFalse("Attributes container is empty", attributes.isEmpty());
+		assertEquals("Unexpected number of attributes", 3, attributes.size());
+		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
+		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
+		assertEquals("Wrong value of fullname attribute in current shadow", "Edward Teach", fullnameAttribute.getRealValue());
+		
+		checkAllShadows();
+	}
+	
+	@Test
+	public void test802LiveSyncModifyBlackbeard() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test802LiveSyncModifyBlackbeard");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test802LiveSyncModifyBlackbeard");
+		
+		syncServiceMock.reset();
+		
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(BLACKBEARD_USERNAME);
+		dummyAccount.replaceAttributeValue("fullname", "Captain Blackbeard");
+		
+		display("Resource before sync", dummyResource.dump());
+		
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		
+		// THEN
+		
+		result.computeStatus();
+		display("Synchronization result", result);
+		assertSuccess("Synchronization result is not OK", result);
+		
+		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
+		
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+		
+//		assertNull("Old shadow present when not expecting it", lastChange.getOldShadow());
+		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
+		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+		assertTrue("Wrong type of current shadow: "+ currentShadowType.getClass().getName(), currentShadowType instanceof AccountShadowType);
+		
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
+		assertNotNull("No attributes container in current shadow", attributesContainer);
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+		assertFalse("Attributes container is empty", attributes.isEmpty());
+		assertEquals("Unexpected number of attributes", 3, attributes.size());
+		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
+		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
+		assertEquals("Wrong value of fullname attribute in current shadow", "Captain Blackbeard", fullnameAttribute.getRealValue());
+		
+		checkAllShadows();
+	}
+	
+	@Test
+	public void test803LiveSyncAddDrake() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test803LiveSyncAddDrake");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test803LiveSyncAddDrake");
+		
+		syncServiceMock.reset();
+		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		DummyAccount newAccount = new DummyAccount(DRAKE_USERNAME);
+		newAccount.addAttributeValues("fullname", "Sir Francis Drake");
+		newAccount.setEnabled(true);
+		newAccount.setPassword("avast!");
+		dummyResource.addAccount(newAccount);
+		
+		display("Resource before sync", dummyResource.dump());
+		
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		
+		// THEN
+		
+		result.computeStatus();
+		display("Synchronization result", result);
+		assertSuccess("Synchronization result is not OK", result);
+		
+		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
+		
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+		
+//		assertNull("Old shadow present when not expecting it", lastChange.getOldShadow());
+		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
+		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+		assertTrue("Wrong type of current shadow: "+ currentShadowType.getClass().getName(), currentShadowType instanceof AccountShadowType);
+		
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(currentShadowType);
+		assertNotNull("No attributes container in current shadow", attributesContainer);
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+		assertFalse("Attributes container is empty", attributes.isEmpty());
+		assertEquals("Unexpected number of attributes", 3, attributes.size());
+		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
+		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
+		assertEquals("Wrong value of fullname attribute in current shadow", "Sir Francis Drake", fullnameAttribute.getRealValue());
+		
+		checkAllShadows();
+	}
+
+	@Test
+	public void test810LiveSyncModifyProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test810LiveSyncModifyProtectedAccount");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".test810LiveSyncModifyProtectedAccount");
+		
+		syncServiceMock.reset();
+		
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_DAEMON_USERNAME);
+		dummyAccount.replaceAttributeValue("fullname", "Maxwell deamon");
+		
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		
+		// THEN
+		
+		result.computeStatus();
+		display("Synchronization result", result);
+		assertSuccess("Synchronization result is not OK", result);
+		
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+		
+		assertFalse("Sync service was called (and should not be)", syncServiceMock.wasCalled());
+		
+		checkAllShadows();
 	}
 	
 	@Test

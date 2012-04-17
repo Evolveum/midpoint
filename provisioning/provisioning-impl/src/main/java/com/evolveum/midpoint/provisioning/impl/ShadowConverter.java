@@ -456,6 +456,16 @@ public class ShadowConverter {
 			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
 			throw ex;
 		}
+		
+		Iterator<Change> iterator = changes.iterator();
+		while (iterator.hasNext()) {
+			Change change = iterator.next();
+			if (isProtectedShadowChange(resource, change)) {
+				LOGGER.trace("Skipping change to a protected object: {}",change);
+				iterator.remove();
+			}
+		}
+		
 		parentResult.recordSuccess();
 		LOGGER.trace("Shadow converter, END fetch changes");
 		return changes;
@@ -710,6 +720,15 @@ public class ShadowConverter {
 	public boolean isProtectedShadow(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> attributes) throws SchemaException {
 		return isProtectedShadow(resource, objectClassDefinition.getTypeName(), attributes);
+	}
+
+	private boolean isProtectedShadowChange(ResourceType resource, Change change) throws SchemaException {
+		PrismObject<? extends ResourceObjectShadowType> currentShadow = change.getCurrentShadow();
+		if (currentShadow != null) {
+			return isProtectedShadow(resource, currentShadow);
+		}
+		Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
+		return isProtectedShadow(resource, change.getObjectClassDefinition().getTypeName(), identifiers);
 	}
 	
 	private boolean isProtectedShadow(ResourceType resource, QName objectClass,
