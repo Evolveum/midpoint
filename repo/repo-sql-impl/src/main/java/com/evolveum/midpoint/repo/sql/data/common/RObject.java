@@ -50,6 +50,7 @@ public abstract class RObject extends RContainer {
     private String description;
     @QueryEntity(any = true)
     private RAnyContainer extension;
+    private long version;
 
     @ManyToOne(optional = true)
     @ForeignKey(name = "none")
@@ -73,6 +74,14 @@ public abstract class RObject extends RContainer {
         return name;
     }
 
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        this.version = version;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -83,6 +92,29 @@ public abstract class RObject extends RContainer {
 
     public void setExtension(RAnyContainer extension) {
         this.extension = extension;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RObject rObject = (RObject) o;
+
+        if (description != null ? !description.equals(rObject.description) : rObject.description != null) return false;
+        if (extension != null ? !extension.equals(rObject.extension) : rObject.extension != null) return false;
+        if (name != null ? !name.equals(rObject.name) : rObject.name != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        return result;
     }
 
     public static void copyToJAXB(RObject repo, ObjectType jaxb, PrismContext prismContext) throws

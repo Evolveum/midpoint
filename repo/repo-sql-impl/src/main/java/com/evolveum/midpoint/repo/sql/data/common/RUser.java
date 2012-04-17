@@ -24,11 +24,14 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -248,6 +251,72 @@ public class RUser extends RObject {
         this.fullName = fullName;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (1 == 1) return true;
+
+
+        TraceManager.getTrace(SqlRepositoryServiceImpl.class).info("@@@equals {} \n{}\n{}",
+                new Object[]{getClass().getSimpleName(), ReflectionToStringBuilder.toString(this),
+                        ReflectionToStringBuilder.toString(o)});
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RUser rUser = (RUser) o;
+
+        if (activation != null ? !activation.equals(rUser.activation) : rUser.activation != null) return false;
+        if (additionalNames != null ? !additionalNames.equals(rUser.additionalNames) : rUser.additionalNames != null)
+            return false;
+        if (credentials != null ? !credentials.equals(rUser.credentials) : rUser.credentials != null) return false;
+        if (emailAddress != null ? !emailAddress.equals(rUser.emailAddress) : rUser.emailAddress != null) return false;
+        if (employeeNumber != null ? !employeeNumber.equals(rUser.employeeNumber) : rUser.employeeNumber != null)
+            return false;
+        if (employeeType != null ? !employeeType.equals(rUser.employeeType) : rUser.employeeType != null) return false;
+        if (familyName != null ? !familyName.equals(rUser.familyName) : rUser.familyName != null) return false;
+        if (fullName != null ? !fullName.equals(rUser.fullName) : rUser.fullName != null) return false;
+        if (givenName != null ? !givenName.equals(rUser.givenName) : rUser.givenName != null) return false;
+        if (honorificPrefix != null ? !honorificPrefix.equals(rUser.honorificPrefix) : rUser.honorificPrefix != null)
+            return false;
+        if (honorificSuffix != null ? !honorificSuffix.equals(rUser.honorificSuffix) : rUser.honorificSuffix != null)
+            return false;
+        if (locality != null ? !locality.equals(rUser.locality) : rUser.locality != null) return false;
+        if (organizationalUnit != null ? !organizationalUnit.equals(rUser.organizationalUnit) : rUser.organizationalUnit != null)
+            return false;
+        if (telephoneNumber != null ? !telephoneNumber.equals(rUser.telephoneNumber) : rUser.telephoneNumber != null)
+            return false;
+
+        //        if (assignments != null ? !assignments.equals(rUser.assignments) : rUser.assignments != null) return false;
+        //        if (accountRefs != null ? !accountRefs.equals(rUser.accountRefs) : rUser.accountRefs != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        if (1 == 1) return 37;
+
+        TraceManager.getTrace(SqlRepositoryServiceImpl.class).info("@@@hashCode {} ", getClass().getSimpleName());
+        int result = super.hashCode();
+        result = 31 * result + (fullName != null ? fullName.hashCode() : 0);
+        result = 31 * result + (givenName != null ? givenName.hashCode() : 0);
+        result = 31 * result + (familyName != null ? familyName.hashCode() : 0);
+        result = 31 * result + (additionalNames != null ? additionalNames.hashCode() : 0);
+        result = 31 * result + (honorificPrefix != null ? honorificPrefix.hashCode() : 0);
+        result = 31 * result + (honorificSuffix != null ? honorificSuffix.hashCode() : 0);
+        result = 31 * result + (emailAddress != null ? emailAddress.hashCode() : 0);
+        result = 31 * result + (telephoneNumber != null ? telephoneNumber.hashCode() : 0);
+        result = 31 * result + (employeeNumber != null ? employeeNumber.hashCode() : 0);
+        result = 31 * result + (employeeType != null ? employeeType.hashCode() : 0);
+        result = 31 * result + (organizationalUnit != null ? organizationalUnit.hashCode() : 0);
+        result = 31 * result + (locality != null ? locality.hashCode() : 0);
+        result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
+        result = 31 * result + (activation != null ? activation.hashCode() : 0);
+//        result = 31 * result + (accountRefs != null ? accountRefs.hashCode() : 0);
+//        result = 31 * result + (assignments != null ? assignments.hashCode() : 0);
+        return result;
+    }
+
     public static void copyFromJAXB(UserType jaxb, RUser repo, boolean pushCreateIdentificators,
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
@@ -292,17 +361,17 @@ public class RUser extends RObject {
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
             repo.setAssignments(new HashSet<RAssignment>());
         }
-        long id = 1;
+//        long id = 1;
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment();
             rAssignment.setOwner(repo);
-            if (pushCreateIdentificators) {
-                rAssignment.setOwnerOid(repo.getOid());
-                rAssignment.setOwnerId(repo.getId());
-                rAssignment.setOid(repo.getOid());
-                rAssignment.setId(id);
-                id++;
-            }
+//            if (pushCreateIdentificators) {
+//                rAssignment.setOwnerOid(repo.getOid());
+//                rAssignment.setOwnerId(repo.getId());
+//                rAssignment.setOid(repo.getOid());
+//                rAssignment.setId(id);
+//                id++;
+//            }
             RAssignment.copyFromJAXB(assignment, rAssignment, pushCreateIdentificators, prismContext);
 
             repo.getAssignments().add(rAssignment);

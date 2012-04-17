@@ -217,6 +217,67 @@ public class RTask extends RObject {
         this.schedule = schedule;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RTask rTask = (RTask) o;
+
+        if (binding != rTask.binding) return false;
+        if (claimExpirationTimestamp != null ? !claimExpirationTimestamp.equals(rTask.claimExpirationTimestamp) : rTask.claimExpirationTimestamp != null)
+            return false;
+        if (exclusivityStatus != rTask.exclusivityStatus) return false;
+        if (executionStatus != rTask.executionStatus) return false;
+        if (handlerUri != null ? !handlerUri.equals(rTask.handlerUri) : rTask.handlerUri != null) return false;
+        if (lastRunFinishTimestamp != null ? !lastRunFinishTimestamp.equals(rTask.lastRunFinishTimestamp) : rTask.lastRunFinishTimestamp != null)
+            return false;
+        if (lastRunStartTimestamp != null ? !lastRunStartTimestamp.equals(rTask.lastRunStartTimestamp) : rTask.lastRunStartTimestamp != null)
+            return false;
+        if (modelOperationState != null ? !modelOperationState.equals(rTask.modelOperationState) : rTask.modelOperationState != null)
+            return false;
+        if (nextRunStartTime != null ? !nextRunStartTime.equals(rTask.nextRunStartTime) : rTask.nextRunStartTime != null)
+            return false;
+        if (node != null ? !node.equals(rTask.node) : rTask.node != null) return false;
+        if (objectRef != null ? !objectRef.equals(rTask.objectRef) : rTask.objectRef != null) return false;
+        if (otherHandlersUriStack != null ? !otherHandlersUriStack.equals(rTask.otherHandlersUriStack) : rTask.otherHandlersUriStack != null)
+            return false;
+        if (ownerRef != null ? !ownerRef.equals(rTask.ownerRef) : rTask.ownerRef != null) return false;
+        if (progress != null ? !progress.equals(rTask.progress) : rTask.progress != null) return false;
+        if (recurrence != rTask.recurrence) return false;
+        if (result != null ? !result.equals(rTask.result) : rTask.result != null) return false;
+        if (schedule != null ? !schedule.equals(rTask.schedule) : rTask.schedule != null) return false;
+        if (taskIdentifier != null ? !taskIdentifier.equals(rTask.taskIdentifier) : rTask.taskIdentifier != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result1 = super.hashCode();
+        result1 = 31 * result1 + (taskIdentifier != null ? taskIdentifier.hashCode() : 0);
+        result1 = 31 * result1 + (executionStatus != null ? executionStatus.hashCode() : 0);
+        result1 = 31 * result1 + (exclusivityStatus != null ? exclusivityStatus.hashCode() : 0);
+        result1 = 31 * result1 + (node != null ? node.hashCode() : 0);
+        result1 = 31 * result1 + (claimExpirationTimestamp != null ? claimExpirationTimestamp.hashCode() : 0);
+        result1 = 31 * result1 + (handlerUri != null ? handlerUri.hashCode() : 0);
+        result1 = 31 * result1 + (otherHandlersUriStack != null ? otherHandlersUriStack.hashCode() : 0);
+        result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
+        result1 = 31 * result1 + (lastRunStartTimestamp != null ? lastRunStartTimestamp.hashCode() : 0);
+        result1 = 31 * result1 + (lastRunFinishTimestamp != null ? lastRunFinishTimestamp.hashCode() : 0);
+        result1 = 31 * result1 + (nextRunStartTime != null ? nextRunStartTime.hashCode() : 0);
+        result1 = 31 * result1 + (progress != null ? progress.hashCode() : 0);
+        result1 = 31 * result1 + (recurrence != null ? recurrence.hashCode() : 0);
+        result1 = 31 * result1 + (binding != null ? binding.hashCode() : 0);
+        result1 = 31 * result1 + (schedule != null ? schedule.hashCode() : 0);
+        result1 = 31 * result1 + (modelOperationState != null ? modelOperationState.hashCode() : 0);
+        result1 = 31 * result1 + (objectRef != null ? objectRef.hashCode() : 0);
+        result1 = 31 * result1 + (ownerRef != null ? ownerRef.hashCode() : 0);
+        return result1;
+    }
+
     public static void copyToJAXB(RTask repo, TaskType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);

@@ -152,6 +152,30 @@ public class RAnyContainer implements Serializable {
         this.owner = owner;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RAnyContainer that = (RAnyContainer) o;
+
+        if (clobs != null ? !clobs.equals(that.clobs) : that.clobs != null) return false;
+        if (dates != null ? !dates.equals(that.dates) : that.dates != null) return false;
+        if (longs != null ? !longs.equals(that.longs) : that.longs != null) return false;
+        if (strings != null ? !strings.equals(that.strings) : that.strings != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = ownerOid != null ? ownerOid.hashCode() : 0;
+        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
+        result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
+
+        return result;
+    }
+
     public static void copyToJAXB(RAnyContainer repo, ResourceObjectShadowAttributesType jaxb,
             PrismContext prismContext) throws
             DtoTranslationException {

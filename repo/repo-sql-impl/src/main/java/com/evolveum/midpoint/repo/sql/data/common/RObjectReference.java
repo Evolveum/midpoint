@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
 import org.w3c.dom.Element;
@@ -75,6 +76,7 @@ public class RObjectReference implements Serializable {
             @PrimaryKeyJoinColumn(name = "target_oid", referencedColumnName = "oid"),
             @PrimaryKeyJoinColumn(name = "target_id", referencedColumnName = "id")
     })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RContainer getTarget() {
         return target;
     }
@@ -103,6 +105,9 @@ public class RObjectReference implements Serializable {
         if (targetId == null && target != null) {
             targetId = target.getId();
         }
+//        if (targetId == null) {
+//            targetId = 0L;
+//        }
         return targetId;
     }
 
@@ -112,9 +117,9 @@ public class RObjectReference implements Serializable {
         if (targetOid == null && target != null) {
             targetOid = target.getOid();
         }
-        if (targetOid == null) {
-            targetOid = "";
-        }
+//        if (targetOid == null) {
+//            targetOid = "";
+//        }
         return targetOid;
     }
 
@@ -168,31 +173,30 @@ public class RObjectReference implements Serializable {
         this.targetOid = targetOid;
     }
 
-    //todo hash and equals
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RObjectReference reference = (RObjectReference) o;
+        RObjectReference that = (RObjectReference) o;
 
-//        if (ownerId != null ? !ownerId.equals(reference.ownerId) : reference.ownerId != null) return false;
-//        if (ownerOid != null ? !ownerOid.equals(reference.ownerOid) : reference.ownerOid != null) return false;
-//        if (targetId != null ? !targetId.equals(reference.targetId) : reference.targetId != null) return false;
-//        if (targetOid != null ? !targetOid.equals(reference.targetOid) : reference.targetOid != null) return false;
-//
-//        return true;
-        return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (filter != null ? !filter.equals(that.filter) : that.filter != null) return false;
+        if (getTargetId() != null ? !getTargetId().equals(that.getTargetId()) : that.getTargetId() != null) return false;
+        if (getTargetOid() != null ? !getTargetOid().equals(that.getTargetOid()) : that.getTargetOid() != null) return false;
+        if (type != that.type) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-//        int result = ownerOid != null ? ownerOid.hashCode() : 0;
-//        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
-//        result = 31 * result + (targetOid != null ? targetOid.hashCode() : 0);
-//        result = 31 * result + (targetId != null ? targetId.hashCode() : 0);
-//        return result;
-        return 31;
+        int result = getTargetOid() != null ? getTargetOid().hashCode() : 0;
+        result = 31 * result + (getTargetId() != null ? getTargetId().hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (filter != null ? filter.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        return result;
     }
 
     public static void copyToJAXB(RObjectReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
@@ -217,6 +221,7 @@ public class RObjectReference implements Serializable {
     public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReference repo, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
+        Validate.notEmpty(jaxb.getOid(), "Reference target oid must not be empty.");
 
         repo.setDescription(jaxb.getDescription());
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));

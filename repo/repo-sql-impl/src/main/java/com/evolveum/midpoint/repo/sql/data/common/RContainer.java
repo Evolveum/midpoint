@@ -37,7 +37,6 @@ public abstract class RContainer implements Serializable {
 
     private String oid;
     private Long id;
-    private long version;
 
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
@@ -55,15 +54,6 @@ public abstract class RContainer implements Serializable {
         return oid;
     }
 
-    @Version
-    public long getVersion() {
-        return version;
-    }
-
-    public void setVersion(long version) {
-        this.version = version;
-    }
-
     public void setOid(String oid) {
         this.oid = oid;
     }
@@ -79,18 +69,14 @@ public abstract class RContainer implements Serializable {
 
         RContainer container = (RContainer) o;
 
-//        if (id != null ? !id.equals(container.id) : container.id != null) return false;
-//        if (oid != null ? !oid.equals(container.oid) : container.oid != null) return false;
-//
-//        return true;
-        return false;
+        if (id != null ? !id.equals(container.id) : container.id != null) return false;
+        if (oid != null ? !oid.equals(container.oid) : container.oid != null) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-//        int result = oid != null ? oid.hashCode() : 0;
-//        result = 31 * result + (id != null ? id.hashCode() : 0);
-//        return result;
-        return 31;
+        return super.hashCode();
     }
 }
