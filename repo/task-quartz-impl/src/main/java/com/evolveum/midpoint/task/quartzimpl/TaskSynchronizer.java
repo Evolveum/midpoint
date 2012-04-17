@@ -50,13 +50,13 @@ import static org.quartz.impl.matchers.GroupMatcher.jobGroupEquals;
  *
  * 1) each task corresponds to a job; job name = task oid, job group = DEFAULT
  * 2) each task has 0, 1 or 2 triggers
- *    - if task is RUNNING, it has 1 or 2 triggers
+ *    - if task is RUNNABLE, it has 1 or 2 triggers
  *      (one trigger is standard, with trigger name = task oid, trigger group = DEFAULT;
  *      second trigger is optional, used by Quartz when recovering the task)
  *    - if task is WAITING or CLOSED, it has 0 triggers
  *    - if task is SUSPENDED, it can have 0 to 2 triggers
  *      - 0 if the job was created when task was in SUSPENDED state
- *      - 1 or 2 if a RUNNING task was SUSPENDED (triggers were kept in order to be un-paused when task is resumed)
+ *      - 1 or 2 if a RUNNABLE task was SUSPENDED (triggers were kept in order to be un-paused when task is resumed)
  *
  *
  * @author Pavol Mederly
@@ -180,7 +180,7 @@ public class TaskSynchronizer {
             // 1) If a trigger is mistakenly alive, we simply let it be. JobExecutor will take care of it.
             // 2) If a trigger has wrong parameters, this will be corrected on task resume.
 
-        } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNING) {
+        } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
 
             Trigger triggerToBe;
             try {
@@ -192,7 +192,7 @@ public class TaskSynchronizer {
 
             // if the trigger should exist and it does not...
             if (!triggerExists) {
-                LOGGER.trace(" - creating trigger for a RUNNING task {}", task);
+                LOGGER.trace(" - creating trigger for a RUNNABLE task {}", task);
                 scheduler.scheduleJob(triggerToBe);
             } else {
 

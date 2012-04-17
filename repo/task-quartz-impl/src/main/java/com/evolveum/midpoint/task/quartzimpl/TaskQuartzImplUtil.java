@@ -6,7 +6,6 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import java.text.ParseException;
 
 import org.quartz.*;
-import org.quartz.spi.MutableTrigger;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -45,7 +44,7 @@ public class TaskQuartzImplUtil {
 	
 	public static Trigger createTriggerForTask(Task task) throws ParseException {
 		
-		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING)
+		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE)
 			return null;			// no triggers for such tasks
 
 		TriggerBuilder<Trigger> tb = TriggerBuilder.newTrigger()

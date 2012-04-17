@@ -62,16 +62,12 @@ public class TaskItem extends SelectableBean {
     private String taskIdentifier;
 
     private String executesAt;
-    
-    private TaskManager taskManager;
 
     public TaskItem(TaskManager taskManager) {
-    	this.taskManager = taskManager;
     }
 
     // used to convert task currently executing at this node
     public TaskItem(Task task, TaskManager taskManager) {
-    	this.taskManager = taskManager;
         this.handlerUri = task.getHandlerUri();
         this.taskIdentifier = task.getTaskIdentifier();
         if (task.getObjectRef() != null)
@@ -115,7 +111,6 @@ public class TaskItem extends SelectableBean {
     }
 
     public TaskItem(TaskType taskType, TaskManager taskManager, RunningTasksInfo runningTasksInfo) {
-    	this.taskManager = taskManager;
         this.handlerUri = taskType.getHandlerUri();
         this.taskIdentifier = taskType.getTaskIdentifier();
         if (taskType.getObjectRef() != null)

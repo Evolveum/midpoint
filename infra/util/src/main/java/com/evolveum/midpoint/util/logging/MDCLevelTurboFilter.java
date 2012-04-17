@@ -125,7 +125,7 @@ public class MDCLevelTurboFilter extends TurboFilter {
 	 * @param mdcValue the mdcValue to match with MDCkey
 	 */
 	public void setMDCValue(String mdcValue) {
-		System.out.println("MDCvalue = mdcValue");
+		System.out.println("MDCvalue = " + mdcValue);
 		this.mdcValue = mdcValue;
 	}
 

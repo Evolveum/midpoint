@@ -880,7 +880,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="running">
+            <xsd:enumeration value="runnable">
                 <xsd:annotation>
                     <xsd:documentation>
                         The task is running or is ready to be executed. This state implies that the task is being
@@ -888,7 +888,7 @@
                         task or the system needs to allocate such thread.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="RUNNING"/>
+                        <jaxb:typesafeEnumMember name="RUNNABLE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

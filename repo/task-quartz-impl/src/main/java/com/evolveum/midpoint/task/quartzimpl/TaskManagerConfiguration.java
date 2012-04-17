@@ -26,7 +26,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -40,6 +43,13 @@ public class TaskManagerConfiguration {
     private static final String CONFIG_THREADS = "threads";
     private static final String CONFIG_CLUSTERED = "clustered";
     private static final String CONFIG_JDBC_JOB_STORE = "jdbcJobStore";
+    private static final String CONFIG_JDBC_DRIVER = "jdbcDriver";
+    private static final String CONFIG_JDBC_URL = "jdbcUrl";
+    private static final String CONFIG_JDBC_USER = "jdbcUser";
+    private static final String CONFIG_JDBC_PASSWORD = "jdbcPassword";
+    private static final String CONFIG_SQL_SCHEMA_FILE = "sqlSchemaFile";
+    private static final String CONFIG_JDBC_DRIVER_DELEGATE_CLASS = "jdbcDriverDelegateClass";
+    private static final String CONFIG_USE_THREAD_INTERRUPT = "useThreadInterrupt";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
@@ -49,12 +59,25 @@ public class TaskManagerConfiguration {
     private static final boolean DEFAULT_CLUSTERED = false;             // do not change this value!
     private static final String DEFAULT_NODE_ID = "DefaultNode";
     private static final int DEFAULT_JMX_PORT = 20001;
+    private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
 
     private int threads;
     private boolean jdbcJobStore;
     private boolean clustered;
     private String nodeId;
     private int jmxPort;
+
+    private UseThreadInterrupt useThreadInterrupt;
+
+    // quartz jdbc job store specific information
+    private String sqlSchemaFile;
+    private String jdbcDriverDelegateClass;
+    private String jdbcDriver;
+    private String jdbcUrl;
+    private String jdbcUser;
+    private String jdbcPassword;
+
+    private String hibernateDialect;
 
     /*
       * Whether to allow reusing quartz scheduler after task manager shutdown.
@@ -68,14 +91,6 @@ public class TaskManagerConfiguration {
       */
     private boolean reusableQuartzScheduler = false;
 
-    // quartz jdbc job store specific information
-    private String sqlSchemaFile;
-    private String sqlDriverDelegateClass;
-    private String jdbcDriver;
-    private String jdbcUrl;
-    private String jdbcUser;
-    private String jdbcPassword;
-
     TaskManagerConfiguration(MidpointConfiguration masterConfig) {
         Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIGURATION);
 
@@ -84,11 +99,11 @@ public class TaskManagerConfiguration {
         jdbcJobStore = c.getBoolean(CONFIG_JDBC_JOB_STORE, clustered);
 
         nodeId = System.getProperty(MIDPOINT_NODE_ID_PROPERTY);
-        if (nodeId == null)
+        if (StringUtils.isEmpty(nodeId))
             nodeId = DEFAULT_NODE_ID;
 
         String portString = System.getProperty(JMX_PORT_PROPERTY);
-        if (portString == null) {
+        if (StringUtils.isEmpty(portString)) {
             jmxPort = DEFAULT_JMX_PORT;
         } else {
             try {
@@ -104,37 +119,103 @@ public class TaskManagerConfiguration {
             reusableQuartzScheduler = true;
         }
 
-    }
-
-    void setJdbcJobStoreInformation(SqlRepositoryConfiguration sqlConfig) {
-
-        jdbcDriver = sqlConfig.getDriverClassName();
-        jdbcUrl = sqlConfig.getJdbcUrl();
-        jdbcUser = sqlConfig.getJdbcUsername();
-        jdbcPassword = sqlConfig.getJdbcPassword();
-
-        String dialect = sqlConfig.getHibernateDialect();
-
-        if ("org.hibernate.dialect.H2Dialect".equals(dialect)) {
-            sqlSchemaFile = "tables_h2.sql";
-            sqlDriverDelegateClass = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
-        } else {
-            // TODO: include other databases
-            throw new SystemException("The database with dialect " + dialect + " is not supported for the use as scheduler JDBC job store.");
+        String useTI = c.getString(CONFIG_USE_THREAD_INTERRUPT, USE_THREAD_INTERRUPT_DEFAULT);
+        try {
+            useThreadInterrupt = UseThreadInterrupt.fromValue(useTI);
+        } catch(IllegalArgumentException e) {
+            throw new SystemException("Illegal value for " + CONFIG_USE_THREAD_INTERRUPT + ": " + useTI, e);
         }
+
     }
 
-    void validate(boolean repoIsSql) {
+    private static final Map<String,String> schemas = new HashMap<String,String>();
+    private static final Map<String,String> delegates = new HashMap<String,String>();
+
+    static void addDbInfo(String dialect, String schema, String delegate) {
+        schemas.put(dialect, schema);
+        delegates.put(dialect, delegate);
+    }
+
+    static {
+        addDbInfo("org.hibernate.dialect.H2Dialect", "tables_h2.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo("org.hibernate.dialect.PostgreSQLDialect", "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
+        addDbInfo("org.hibernate.dialect.MySQLDialect", "tables_mysql.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo("org.hibernate.dialect.MySQLInnoDBDialect", "tables_mysql.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo("org.hibernate.dialect.OracleDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo("org.hibernate.dialect.Oracle9Dialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo("org.hibernate.dialect.Oracle8iDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo("org.hibernate.dialect.Oracle9iDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo("org.hibernate.dialect.Oracle10gDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo("org.hibernate.dialect.SQLServerDialect", "tables_sqlServer.sql", "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
+    }
+
+    void setJdbcJobStoreInformation(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig) {
+
+        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIGURATION);
+
+        jdbcDriver = c.getString(CONFIG_JDBC_DRIVER, sqlConfig.getDriverClassName());
+        jdbcUrl = c.getString(CONFIG_JDBC_URL, sqlConfig.getJdbcUrl());
+        jdbcUser = c.getString(CONFIG_JDBC_USER, sqlConfig.getJdbcUsername());
+        jdbcPassword = c.getString(CONFIG_JDBC_PASSWORD, sqlConfig.getJdbcPassword());
+
+        hibernateDialect = sqlConfig.getHibernateDialect();
+
+        String defaultSqlSchemaFile = schemas.get(hibernateDialect);
+        String defaultDriverDelegate = delegates.get(hibernateDialect);
+
+        sqlSchemaFile = c.getString(CONFIG_SQL_SCHEMA_FILE, defaultSqlSchemaFile);
+        jdbcDriverDelegateClass = c.getString(CONFIG_JDBC_DRIVER_DELEGATE_CLASS, defaultDriverDelegate);
+    }
+
+    void validate() {
+
         if (threads < 1) {
             LOGGER.warn("The configured number of threads is too low, setting it to 5.");
             threads = 5;
         }
-        if (jdbcJobStore && !repoIsSql) {
-            throw new SystemException("It is not possible to use JDBC Quartz job store without SQL repository.");
+
+        if (clustered) {
+            mustBeTrue(jdbcJobStore, "Clustered task manager requires JDBC Quartz job store.");
         }
 
-        if (clustered && !jdbcJobStore) {
-            throw new SystemException("Clustered task manager requires JDBC Quartz job store.");
+        notEmpty(nodeId, "Node identifier must be known.");     // only a safeguard, because it gets a default value if not set
+        mustBeFalse(clustered && jmxPort == 0, "JMX port number must be known.");    // the same
+
+    }
+
+    void validateJdbcConfig() {
+
+        notEmpty(jdbcDriver, "JDBC driver must be specified (either explicitly or in SQL repository configuration)");
+        notEmpty(jdbcUrl, "JDBC URL must be specified (either explicitly or in SQL repository configuration).");
+        notNull(jdbcUser, "JDBC user name must be specified (either explicitly or in SQL repository configuration).");
+        notNull(jdbcPassword, "JDBC password must be specified (either explicitly or in SQL repository configuration).");
+        notEmpty(jdbcDriverDelegateClass, "JDBC driver delegate class must be specified (either explicitly or through one of supported Hibernate dialects).");
+        notEmpty(sqlSchemaFile, "SQL schema file must be specified (either explicitly or through one of supported Hibernate dialects).");
+    }
+
+    // TODO: change SystemException to something more reasonable
+
+    private void notEmpty(String value, String message) {
+        if (StringUtils.isEmpty(value)) {
+            throw new SystemException(message);
+        }
+    }
+
+    private void notNull(String value, String message) {
+        if (value == null) {
+            throw new SystemException(message);
+        }
+    }
+
+    private void mustBeTrue(boolean condition, String message) {
+        if (!condition) {
+            throw new SystemException(message);
+        }
+    }
+
+    private void mustBeFalse(boolean condition, String message) {
+        if (condition) {
+            throw new SystemException(message);
         }
     }
 
@@ -162,8 +243,8 @@ public class TaskManagerConfiguration {
         return sqlSchemaFile;
     }
 
-    public String getSqlDriverDelegateClass() {
-        return sqlDriverDelegateClass;
+    public String getJdbcDriverDelegateClass() {
+        return jdbcDriverDelegateClass;
     }
 
     public String getJdbcDriver() {
@@ -186,4 +267,7 @@ public class TaskManagerConfiguration {
         return reusableQuartzScheduler;
     }
 
+    public UseThreadInterrupt getUseThreadInterrupt() {
+        return useThreadInterrupt;
+    }
 }

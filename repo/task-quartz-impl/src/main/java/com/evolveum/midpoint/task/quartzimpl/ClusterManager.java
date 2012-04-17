@@ -138,7 +138,8 @@ public class ClusterManager {
         }
 
         try {
-            repositoryService.addObject(nodePrism, result);
+            String oid = repositoryService.addObject(nodePrism, result);
+            nodePrism.setOid(oid);
         } catch (ObjectAlreadyExistsException e) {
             throw new SystemException("Cannot register this node, because it already exists (this should not happen, as nodes with such a name were just removed)", e);
         } catch (SchemaException e) {

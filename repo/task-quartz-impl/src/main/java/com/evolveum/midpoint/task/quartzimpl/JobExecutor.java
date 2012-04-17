@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.quartz.*;
@@ -29,6 +28,8 @@ public class JobExecutor implements InterruptableJob {
 	}
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
+
+    private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 	
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
@@ -55,12 +56,12 @@ public class JobExecutor implements InterruptableJob {
 			return;
 		}
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING) {
-            LOGGER.warn("Task is not in RUNNING state (its state is {}), exiting its execution and unscheduling its Quartz job. Task = {}", task.getExecutionStatus(), task);
+        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+            LOGGER.warn("Task is not in RUNNABLE state (its state is {}), exiting its execution and unscheduling its Quartz job. Task = {}", task.getExecutionStatus(), task);
             try {
                 context.getScheduler().unscheduleJob(context.getTrigger().getKey());
             } catch (SchedulerException e) {
-                LoggingUtils.logException(LOGGER, "Cannot unschedule job for a non-RUNNING task {}", e, task);
+                LoggingUtils.logException(LOGGER, "Cannot unschedule job for a non-RUNNABLE task {}", e, task);
             }
         }
 		
@@ -131,8 +132,8 @@ public class JobExecutor implements InterruptableJob {
 				runResult = executeHandler(handler);
 
                 task.refresh(executionResult);
-                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING) {
-                    LOGGER.info("Task not in the RUNNING state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
+                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+                    LOGGER.info("Task not in the RUNNABLE state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
                     break;
                 }
 				
@@ -161,6 +162,7 @@ public class JobExecutor implements InterruptableJob {
 
 		try {
 
+mainCycle:
 			while (task.canRun()) {
 				
 				LOGGER.trace("CycleRunner loop: start");
@@ -196,8 +198,8 @@ public class JobExecutor implements InterruptableJob {
                     return;			// The task object in repo is gone. Therefore this task should not run any more.
                 }
 
-                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING) {
-                    LOGGER.info("Task not in the RUNNING state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
+                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+                    LOGGER.info("Task not in the RUNNABLE state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
                     break;
                 }
 
@@ -216,11 +218,18 @@ public class JobExecutor implements InterruptableJob {
 					sleepFor = 0;
 				
 				LOGGER.trace("CycleRunner loop: sleep ({})", sleepFor);
-				try {
-					Thread.sleep(sleepFor);
-				} catch (InterruptedException e) {
-					// Safe to ignore. Next loop iteration will check enabled status.
-				}
+
+                for (long time = 0; time < sleepFor + WATCHFUL_SLEEP_INCREMENT; time += WATCHFUL_SLEEP_INCREMENT) {
+                    try {
+                        Thread.sleep(WATCHFUL_SLEEP_INCREMENT);
+                    } catch (InterruptedException e) {
+                        // safely ignored
+                    }
+                    if (!task.canRun()) {
+                        LOGGER.trace("CycleRunner loop: sleep interrupted, task.canRun == false");
+                        break mainCycle;
+                    }
+                }
 
                 LOGGER.trace("CycleRunner loop: refreshing task after sleep, task = {}", task);
 				try {
@@ -230,8 +239,8 @@ public class JobExecutor implements InterruptableJob {
 					return;			// The task object in repo is gone. Therefore this task should not run any more. Therefore commit seppuku
 				}
 
-                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING) {
-                    LOGGER.info("Task not in the RUNNING state, exiting the execution routine. State = {}, Task = {}", task.getExecutionStatus(), task);
+                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+                    LOGGER.info("Task not in the RUNNABLE state, exiting the execution routine. State = {}, Task = {}", task.getExecutionStatus(), task);
                     break;
                 }
 
@@ -314,20 +323,24 @@ public class JobExecutor implements InterruptableJob {
 			LOGGER.error("Unable to record run finish and close the task: {}", ex.getMessage(), ex);
 			return true;
 		}
-
 	}
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
-		LOGGER.trace("Signalling shutdown to task " + task + ", executing in thread " + executingThread);
+		LOGGER.trace("Trying to shut down the task " + task + ", executing in thread " + executingThread);
         if (task != null) {
 		    task.signalShutdown();
-		    if (executingThread != null) {			// in case this method would be (mistakenly?) called after the execution is over
-                LOGGER.trace("Interrupting thread {}.", executingThread);
-                executingThread.interrupt();
-                LOGGER.trace("Thread {} interrupted.", executingThread);
+		    if (taskManagerImpl.getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS) {
+                sendThreadInterrupt();
             }
         }
 	}
 
+    public void sendThreadInterrupt() {
+        if (executingThread != null) {			// in case this method would be (mistakenly?) called after the execution is over
+            LOGGER.trace("Calling Thread.interrupt on thread {}.", executingThread);
+            executingThread.interrupt();
+            LOGGER.trace("Thread.interrupt was called on thread {}.", executingThread);
+        }
+    }
 }

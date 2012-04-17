@@ -255,7 +255,7 @@ public class TaskListController extends SortableListController<TaskItem> {
 
     public String deactivate() {
         if (taskManager.deactivateServiceThreads(1000L)) {
-            FacesUtils.addSuccessMessage("All task manager threads have been deactivated. Tasks are left in RUNNING state, but they will not be executed on this node until service threads are reactivated.");
+            FacesUtils.addSuccessMessage("All task manager threads have been deactivated. Tasks are left in RUNNABLE state, but they will not be executed on this node until service threads are reactivated.");
         } else {
             FacesUtils.addWarnMessage("Task manager threads were requested to stop. Either some of them are still alive, or there was some problem. Please see the log.");
         }

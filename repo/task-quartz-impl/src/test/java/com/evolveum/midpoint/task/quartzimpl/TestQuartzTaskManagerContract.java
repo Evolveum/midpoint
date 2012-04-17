@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -50,8 +49,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -391,7 +388,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         System.out.println(t.dump());
 
         // .. it should be running
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 
         // .. and claimed
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
@@ -508,7 +505,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         System.out.println(t.dump());
 
         // .. it should be running
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -557,7 +554,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         TaskType t = repositoryService.getObject(TaskType.class, taskOid(test), null, result).getValue().getValue();
         System.out.println(ObjectTypeUtil.dump(t));
 
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -647,7 +644,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
         
-        AssertJUnit.assertEquals("Task is not running", TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals("Task is not running", TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 //        AssertJUnit.assertEquals("Task is not claimed", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
         
         // Now suspend the task
@@ -700,7 +697,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         
         System.out.println("After refresh: " + task.dump());
         
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// task cycle is 1000 ms, so it should be released now 
 
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
@@ -751,7 +748,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         
         System.out.println("After refresh: " + task.dump());
         
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -832,7 +829,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         LOGGER.info("Check leftovers: Task " + oid + " state: " + t.getExecutionStatus());
 
-        if (t.getExecutionStatus() == TaskExecutionStatus.RUNNING) {
+        if (t.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
             LOGGER.info("Leftover task: {}", t);
             leftovers.add(t.getOid());
         }

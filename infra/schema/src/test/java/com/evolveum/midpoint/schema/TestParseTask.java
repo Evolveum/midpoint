@@ -208,7 +208,7 @@ public class TestParseTask {
 		PrismProperty<TaskExecutionStatusType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
 		PrismPropertyValue<TaskExecutionStatusType> executionStatusValue = executionStatusProperty.getValue();
 		TaskExecutionStatusType executionStatus = executionStatusValue.getValue();
-		assertEquals("Wrong execution status", TaskExecutionStatusType.RUNNING, executionStatus);
+		assertEquals("Wrong execution status", TaskExecutionStatusType.RUNNABLE, executionStatus);
 		
 		assertPropertyDefinition(task, "exclusivityStatus", JAXBUtil.getTypeQName(TaskExclusivityStatusType.class), 1, 1);
 		

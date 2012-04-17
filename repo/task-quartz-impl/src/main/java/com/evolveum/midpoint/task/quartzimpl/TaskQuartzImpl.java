@@ -20,7 +20,6 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -31,11 +30,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
-import org.quartz.JobDetail;
-import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -111,7 +107,7 @@ public class TaskQuartzImpl implements Task {
 		this.canRun = true;
 		
 		setTaskIdentifier(taskIdentifier.toString());
-		setExecutionStatusTransient(TaskExecutionStatus.RUNNING);
+		setExecutionStatusTransient(TaskExecutionStatus.RUNNABLE);
 //		setExclusivityStatusTransient(TaskExclusivityStatus.CLAIMED);
 		setPersistenceStatusTransient(TaskPersistenceStatus.TRANSIENT);
 		setRecurrenceStatusTransient(TaskRecurrence.SINGLE);
@@ -246,7 +242,7 @@ public class TaskQuartzImpl implements Task {
 //			 * TODO: this has to be rethought again -- how to map execution states (and their changes) to quartz task/triggers
 //			 *
 //			 * Currently, task in any state maps to a quartz job
-//			 * However, trigger is created only if task is RUNNING.
+//			 * However, trigger is created only if task is RUNNABLE.
 //			 *
 //			 * But, for a task suspended through API, its trigger is not deleted, but paused.
 //			 * So a suspended task can have no trigger (if the task was created as suspended), or paused one (if it was suspended after creation).
@@ -1142,7 +1138,7 @@ public class TaskQuartzImpl implements Task {
 	 */
 
 	public void signalShutdown() {
-		LOGGER.trace("Shutdown signalled for task " + this + " (" + System.identityHashCode(this) + "), setting canRun to false");
+		LOGGER.trace("canRun set to false for task " + this + " (" + System.identityHashCode(this) + ")");
 		canRun = false;
 	}
 

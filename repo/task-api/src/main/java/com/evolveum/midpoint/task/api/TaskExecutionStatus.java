@@ -39,7 +39,7 @@ public enum TaskExecutionStatus {
 	 * on one of the IDM nodes that executes the task or the system needs to
 	 * allocate such thread.
 	 */
-	RUNNING,
+	RUNNABLE,
 
 	/**
 	 * The IDM system is waiting while the task is being executed on an external
@@ -54,7 +54,7 @@ public enum TaskExecutionStatus {
 	
 	/**
 	 * The task has been suspended. It waits until an instruction to resume it arrives.
-	 * After that, it will (usually) go to the RUNNING state again. Or, it can be closed
+	 * After that, it will (usually) go to the RUNNABLE state again. Or, it can be closed
 	 * in the suspended state as well.
 	 * 
 	 * If a task that is currently executing (i.e. claimed) is suspended, it will first
@@ -74,8 +74,8 @@ public enum TaskExecutionStatus {
 		if (executionStatus == null) {
 			return null;
 		}
-		if (executionStatus == TaskExecutionStatusType.RUNNING) {
-			return RUNNING;
+		if (executionStatus == TaskExecutionStatusType.RUNNABLE) {
+			return RUNNABLE;
 		}
 		if (executionStatus == TaskExecutionStatusType.WAITING) {
 			return WAITING;
@@ -90,8 +90,8 @@ public enum TaskExecutionStatus {
 	}
 
 	public TaskExecutionStatusType toTaskType() {
-		if (this==RUNNING) {
-			return TaskExecutionStatusType.RUNNING;
+		if (this== RUNNABLE) {
+			return TaskExecutionStatusType.RUNNABLE;
 		}
 		if (this==WAITING) {
 			return TaskExecutionStatusType.WAITING;

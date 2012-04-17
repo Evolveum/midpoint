@@ -2243,7 +2243,7 @@ public class TestSanity extends AbstractIntegrationTest {
         display("Task after pickup in the repository", o.asObjectable());
 
         // .. it should be running
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 
         // .. and claimed
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
@@ -2533,7 +2533,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(task);
         assertNotNull(task.getOid());
         AssertJUnit.assertTrue(task.isAsynchronous());
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         display("Import task after launch", task);
@@ -2952,7 +2952,7 @@ public class TestSanity extends AbstractIntegrationTest {
         display("Task after pickup in the repository", o.asObjectable());
 
         // .. it should be running
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 
         // .. and claimed
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());

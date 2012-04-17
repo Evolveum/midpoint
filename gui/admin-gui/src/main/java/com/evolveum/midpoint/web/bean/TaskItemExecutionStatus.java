@@ -32,7 +32,7 @@ public enum TaskItemExecutionStatus {
 		if (executionStatus.equals(TaskExecutionStatus.CLOSED)) {
 			return CLOSED;
 		}
-		if (executionStatus.equals(TaskExecutionStatus.RUNNING)) {
+		if (executionStatus.equals(TaskExecutionStatus.RUNNABLE)) {
 			return RUNNING;
 		}
 		if (executionStatus.equals(TaskExecutionStatus.WAITING)) {
@@ -51,7 +51,7 @@ public enum TaskItemExecutionStatus {
 			return TaskExecutionStatus.CLOSED;
 		}
 		if (executionStatus.equals(TaskItemExecutionStatus.RUNNING)) {
-			return TaskExecutionStatus.RUNNING;
+			return TaskExecutionStatus.RUNNABLE;
 		}
 		if (executionStatus.equals(TaskItemExecutionStatus.WAITING)) {
 			return TaskExecutionStatus.WAITING;
