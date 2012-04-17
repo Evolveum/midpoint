@@ -149,6 +149,38 @@ public class RResourceObjectShadow extends RObject {
         this.objectClass = objectClass;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RResourceObjectShadow that = (RResourceObjectShadow) o;
+
+        if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
+        if (attemptNumber != null ? !attemptNumber.equals(that.attemptNumber) : that.attemptNumber != null)
+            return false;
+        if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null) return false;
+        if (failedOperationType != that.failedOperationType) return false;
+        if (objectChange != null ? !objectChange.equals(that.objectChange) : that.objectChange != null) return false;
+        if (objectClass != null ? !objectClass.equals(that.objectClass) : that.objectClass != null) return false;
+        if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
+        if (result != null ? !result.equals(that.result) : that.result != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result1 = super.hashCode();
+        result1 = 31 * result1 + (objectClass != null ? objectClass.hashCode() : 0);
+        result1 = 31 * result1 + (activation != null ? activation.hashCode() : 0);
+        result1 = 31 * result1 + (objectChange != null ? objectChange.hashCode() : 0);
+        result1 = 31 * result1 + (attemptNumber != null ? attemptNumber.hashCode() : 0);
+        result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
+        return result1;
+    }
+
     public static void copyToJAXB(RResourceObjectShadow repo, ResourceObjectShadowType jaxb,
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);

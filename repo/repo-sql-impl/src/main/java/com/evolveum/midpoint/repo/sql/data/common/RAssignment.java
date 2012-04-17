@@ -23,7 +23,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -169,7 +168,8 @@ public class RAssignment extends RContainer implements ROwnable {
 
     @Override
     public int hashCode() {
-        int result = activation != null ? activation.hashCode() : 0;
+        int result = super.hashCode();
+        result = 31 * result + (activation != null ? activation.hashCode() : 0);
         result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
         return result;
     }

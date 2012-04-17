@@ -122,7 +122,6 @@ public class RSystemConfiguration extends RObject {
         result = 31 * result + (globalAccountSynchronizationSettings != null ? globalAccountSynchronizationSettings.hashCode() : 0);
         result = 31 * result + (modelHooks != null ? modelHooks.hashCode() : 0);
         result = 31 * result + (logging != null ? logging.hashCode() : 0);
-//        result = 31 * result + (defaultUserTemplateRef != null ? defaultUserTemplateRef.hashCode() : 0);
         result = 31 * result + (connectorFramework != null ? connectorFramework.hashCode() : 0);
         return result;
     }

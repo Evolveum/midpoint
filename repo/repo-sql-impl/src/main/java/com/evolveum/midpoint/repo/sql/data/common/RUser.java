@@ -301,19 +301,12 @@ public class RUser extends RObject {
         result = 31 * result + (fullName != null ? fullName.hashCode() : 0);
         result = 31 * result + (givenName != null ? givenName.hashCode() : 0);
         result = 31 * result + (familyName != null ? familyName.hashCode() : 0);
-        result = 31 * result + (additionalNames != null ? additionalNames.hashCode() : 0);
         result = 31 * result + (honorificPrefix != null ? honorificPrefix.hashCode() : 0);
         result = 31 * result + (honorificSuffix != null ? honorificSuffix.hashCode() : 0);
-        result = 31 * result + (emailAddress != null ? emailAddress.hashCode() : 0);
-        result = 31 * result + (telephoneNumber != null ? telephoneNumber.hashCode() : 0);
         result = 31 * result + (employeeNumber != null ? employeeNumber.hashCode() : 0);
-        result = 31 * result + (employeeType != null ? employeeType.hashCode() : 0);
-        result = 31 * result + (organizationalUnit != null ? organizationalUnit.hashCode() : 0);
         result = 31 * result + (locality != null ? locality.hashCode() : 0);
         result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
         result = 31 * result + (activation != null ? activation.hashCode() : 0);
-//        result = 31 * result + (accountRefs != null ? accountRefs.hashCode() : 0);
-//        result = 31 * result + (assignments != null ? assignments.hashCode() : 0);
         return result;
     }
 
@@ -361,17 +354,14 @@ public class RUser extends RObject {
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
             repo.setAssignments(new HashSet<RAssignment>());
         }
-//        long id = 1;
+
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment();
             rAssignment.setOwner(repo);
-//            if (pushCreateIdentificators) {
-//                rAssignment.setOwnerOid(repo.getOid());
-//                rAssignment.setOwnerId(repo.getId());
-//                rAssignment.setOid(repo.getOid());
-//                rAssignment.setId(id);
-//                id++;
-//            }
+
+            rAssignment.setOid(repo.getOid());
+            rAssignment.setId(RUtil.getLongFromString(assignment.getId()));
+
             RAssignment.copyFromJAXB(assignment, rAssignment, pushCreateIdentificators, prismContext);
 
             repo.getAssignments().add(rAssignment);

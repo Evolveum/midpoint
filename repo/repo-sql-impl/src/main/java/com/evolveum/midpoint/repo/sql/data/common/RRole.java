@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -43,6 +44,7 @@ import java.util.Set;
 public class RRole extends RObject {
 
     private Set<RAssignment> assignments;
+    private Set<RExclusion> exclusions;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
@@ -51,8 +53,38 @@ public class RRole extends RObject {
         return assignments;
     }
 
+    @OneToMany(mappedBy = "owner")
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RExclusion> getExclusions() {
+        return exclusions;
+    }
+
+    public void setExclusions(Set<RExclusion> exclusions) {
+        this.exclusions = exclusions;
+    }
+
     public void setAssignments(Set<RAssignment> assignments) {
         this.assignments = assignments;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RRole rRole = (RRole) o;
+
+        if (assignments != null ? !assignments.equals(rRole.assignments) : rRole.assignments != null) return false;
+        if (exclusions != null ? !exclusions.equals(rRole.exclusions) : rRole.exclusions != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
     public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext) throws
@@ -64,6 +96,11 @@ public class RRole extends RObject {
                 jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
             }
         }
+        if (repo.getExclusions() != null) {
+            for (RExclusion rExclusion : repo.getExclusions()) {
+                jaxb.getExclusion().add(rExclusion.toJAXB(prismContext));
+            }
+        }
     }
 
     public static void copyFromJAXB(RoleType jaxb, RRole repo, boolean pushCreateIdentificators,
@@ -73,20 +110,27 @@ public class RRole extends RObject {
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
             repo.setAssignments(new HashSet<RAssignment>());
         }
-        long id = 1;
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment();
             rAssignment.setOwner(repo);
-            if (pushCreateIdentificators) {
-                rAssignment.setOwnerOid(repo.getOid());
-                rAssignment.setOwnerId(repo.getId());
-                rAssignment.setOid(repo.getOid());
-                rAssignment.setId(id);
-                id++;
-            }
+
+            rAssignment.setOid(repo.getOid());
+            rAssignment.setId(RUtil.getLongFromString(assignment.getId()));
+
             RAssignment.copyFromJAXB(assignment, rAssignment, pushCreateIdentificators, prismContext);
 
             repo.getAssignments().add(rAssignment);
+        }
+
+        for (ExclusionType exclusion : jaxb.getExclusion()) {
+            RExclusion rExclusion = new RExclusion();
+            rExclusion.setOwner(repo);
+
+            rExclusion.setOid(repo.getOid());
+            rExclusion.setId(RUtil.getLongFromString(exclusion.getId()));
+
+            RExclusion.copyFromJAXB(exclusion, rExclusion, pushCreateIdentificators, prismContext);
+            repo.getExclusions().add(rExclusion);
         }
     }
 

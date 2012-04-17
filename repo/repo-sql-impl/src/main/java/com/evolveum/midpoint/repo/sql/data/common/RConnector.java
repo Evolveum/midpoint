@@ -162,11 +162,9 @@ public class RConnector extends RObject {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (framework != null ? framework.hashCode() : 0);
-        result = 31 * result + (connectorHostRef != null ? connectorHostRef.hashCode() : 0);
         result = 31 * result + (connectorType != null ? connectorType.hashCode() : 0);
         result = 31 * result + (connectorVersion != null ? connectorVersion.hashCode() : 0);
         result = 31 * result + (connectorBundle != null ? connectorBundle.hashCode() : 0);
-        result = 31 * result + (targetSystemType != null ? targetSystemType.hashCode() : 0);
         result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
         result = 31 * result + (xmlSchema != null ? xmlSchema.hashCode() : 0);
         return result;

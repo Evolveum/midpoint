@@ -135,7 +135,6 @@ public class RExclusion extends RContainer {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (targetRef != null ? targetRef.hashCode() : 0);
         result = 31 * result + (policy != null ? policy.hashCode() : 0);
         return result;
     }

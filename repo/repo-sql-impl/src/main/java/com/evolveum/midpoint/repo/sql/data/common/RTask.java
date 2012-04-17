@@ -264,7 +264,6 @@ public class RTask extends RObject {
         result1 = 31 * result1 + (claimExpirationTimestamp != null ? claimExpirationTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (handlerUri != null ? handlerUri.hashCode() : 0);
         result1 = 31 * result1 + (otherHandlersUriStack != null ? otherHandlersUriStack.hashCode() : 0);
-        result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
         result1 = 31 * result1 + (lastRunStartTimestamp != null ? lastRunStartTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (lastRunFinishTimestamp != null ? lastRunFinishTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (nextRunStartTime != null ? nextRunStartTime.hashCode() : 0);
@@ -273,8 +272,6 @@ public class RTask extends RObject {
         result1 = 31 * result1 + (binding != null ? binding.hashCode() : 0);
         result1 = 31 * result1 + (schedule != null ? schedule.hashCode() : 0);
         result1 = 31 * result1 + (modelOperationState != null ? modelOperationState.hashCode() : 0);
-        result1 = 31 * result1 + (objectRef != null ? objectRef.hashCode() : 0);
-        result1 = 31 * result1 + (ownerRef != null ? ownerRef.hashCode() : 0);
         return result1;
     }
 

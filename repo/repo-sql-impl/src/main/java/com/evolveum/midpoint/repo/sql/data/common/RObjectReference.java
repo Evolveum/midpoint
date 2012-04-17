@@ -191,9 +191,7 @@ public class RObjectReference implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = getTargetOid() != null ? getTargetOid().hashCode() : 0;
-        result = 31 * result + (getTargetId() != null ? getTargetId().hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
+        int result = description != null ? description.hashCode() : 0;
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;

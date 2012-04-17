@@ -165,7 +165,6 @@ public class RResource extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (connectorRef != null ? connectorRef.hashCode() : 0);
         result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
         result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
         result = 31 * result + (xmlSchema != null ? xmlSchema.hashCode() : 0);

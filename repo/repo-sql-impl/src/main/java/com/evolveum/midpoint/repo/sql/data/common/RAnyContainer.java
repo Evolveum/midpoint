@@ -169,8 +169,8 @@ public class RAnyContainer implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
+        int result = getOwnerOid() != null ? getOwnerOid().hashCode() : 0;
+        result = 31 * result + (getOwnerId() != null ? getOwnerId().hashCode() : 0);
         result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
 
         return result;
