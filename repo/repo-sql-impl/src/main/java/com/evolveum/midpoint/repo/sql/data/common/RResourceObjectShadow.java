@@ -213,8 +213,8 @@ public class RResourceObjectShadow extends RObject {
     }
 
     public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadow repo,
-            boolean pushCreateIdentificators, PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
+            PrismContext prismContext) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setObjectClass(jaxb.getObjectClass());
         if (jaxb.getActivation() != null) {

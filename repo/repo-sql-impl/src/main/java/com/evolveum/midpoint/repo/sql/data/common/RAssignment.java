@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -201,11 +203,12 @@ public class RAssignment extends RContainer implements ROwnable {
         }
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, boolean pushCreateIdentificators,
-            PrismContext prismContext) throws DtoTranslationException {
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext)
+            throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        repo.setVersion(RUtil.getLongFromString(parent.getVersion()));
         repo.setOid(repo.getOwnerOid());
         repo.setId(RUtil.getLongWrappedFromString(jaxb.getId()));
 

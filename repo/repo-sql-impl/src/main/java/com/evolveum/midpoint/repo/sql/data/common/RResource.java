@@ -206,9 +206,9 @@ public class RResource extends RObject {
         }
     }
 
-    public static void copyFromJAXB(ResourceType jaxb, RResource repo, boolean pushCreateIdentificators,
-            PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
+    public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setNamespace(jaxb.getNamespace());
         repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), repo, prismContext));

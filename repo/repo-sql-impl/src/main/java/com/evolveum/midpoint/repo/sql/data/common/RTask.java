@@ -315,9 +315,9 @@ public class RTask extends RObject {
         }
     }
 
-    public static void copyFromJAXB(TaskType jaxb, RTask repo, boolean pushCreateIdentificators,
-            PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
+    public static void copyFromJAXB(TaskType jaxb, RTask repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
         repo.setClaimExpirationTimestamp(jaxb.getClaimExpirationTimestamp());

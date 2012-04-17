@@ -98,9 +98,9 @@ public class RPasswordPolicy extends RObject {
         }
     }
 
-    public static void copyFromJAXB(PasswordPolicyType jaxb, RPasswordPolicy repo, boolean pushCreateIdentificators
-            , PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
+    public static void copyFromJAXB(PasswordPolicyType jaxb, RPasswordPolicy repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         try {
             repo.setLifetime(RUtil.toRepo(jaxb.getLifetime(), prismContext));

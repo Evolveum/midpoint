@@ -37,6 +37,7 @@ public abstract class RContainer implements Serializable {
 
     private String oid;
     private Long id;
+    private long version;
 
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
@@ -52,6 +53,15 @@ public abstract class RContainer implements Serializable {
     @Column(name = "oid", nullable = false, updatable = false, length = 36)
     public String getOid() {
         return oid;
+    }
+
+    @Version
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        this.version = version;
     }
 
     public void setOid(String oid) {

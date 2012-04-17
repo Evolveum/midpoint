@@ -151,8 +151,8 @@ public class RSystemConfiguration extends RObject {
     }
 
     public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfiguration repo,
-            boolean pushCreateIdentificators, PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
+            PrismContext prismContext) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         if (jaxb.getDefaultUserTemplate() != null) {
             LOGGER.warn("Default user template from system configuration type won't be saved. It should be " +

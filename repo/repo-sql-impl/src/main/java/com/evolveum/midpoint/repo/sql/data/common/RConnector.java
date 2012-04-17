@@ -194,9 +194,9 @@ public class RConnector extends RObject {
         }
     }
 
-    public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, boolean pushCreateIdentificators, PrismContext prismContext) throws
+    public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setConnectorBundle(jaxb.getConnectorBundle());
         repo.setConnectorType(jaxb.getConnectorType());

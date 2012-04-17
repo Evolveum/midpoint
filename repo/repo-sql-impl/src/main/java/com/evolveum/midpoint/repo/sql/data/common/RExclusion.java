@@ -22,9 +22,11 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExclusionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExclusionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -144,15 +146,27 @@ public class RExclusion extends RContainer {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        //todo implement
+        jaxb.setDescription(repo.getDescription());
+        jaxb.setId(RUtil.getStringFromLong(repo.getId()));
+        jaxb.setPolicy(repo.getPolicy());
+
+        if (repo.getTargetRef() != null) {
+            jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
+        }
     }
 
-    public static void copyFromJAXB(ExclusionType jaxb, RExclusion repo, boolean pushCreateIdentificators,
-            PrismContext prismContext) throws DtoTranslationException {
+    public static void copyFromJAXB(ExclusionType jaxb, RExclusion repo, ObjectType parent, PrismContext prismContext)
+            throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        //todo implement
+        repo.setVersion(RUtil.getLongFromString(parent.getVersion()));
+
+        repo.setDescription(jaxb.getDescription());
+        repo.setId(RUtil.getLongFromString(jaxb.getId()));
+        repo.setPolicy(jaxb.getPolicy());
+
+        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), repo, prismContext));
     }
 
     public ExclusionType toJAXB(PrismContext prismContext) throws DtoTranslationException {

@@ -136,9 +136,9 @@ public class RConnectorHost extends RObject {
         }
     }
 
-    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, boolean pushCreateIdentificators, PrismContext prismContext) throws
+    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo,pushCreateIdentificators, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());

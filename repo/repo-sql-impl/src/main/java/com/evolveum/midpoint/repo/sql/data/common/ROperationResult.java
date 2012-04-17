@@ -240,8 +240,7 @@ public class ROperationResult implements Serializable {
         }
     }
 
-    public static void copyFromJAXB(OperationResultType jaxb, ROperationResult repo,
-            PrismContext prismContext) throws
+    public static void copyFromJAXB(OperationResultType jaxb, ROperationResult repo, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");

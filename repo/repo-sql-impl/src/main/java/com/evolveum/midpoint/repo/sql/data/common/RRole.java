@@ -103,9 +103,9 @@ public class RRole extends RObject {
         }
     }
 
-    public static void copyFromJAXB(RoleType jaxb, RRole repo, boolean pushCreateIdentificators,
-            PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
+    public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
             repo.setAssignments(new HashSet<RAssignment>());
@@ -117,7 +117,7 @@ public class RRole extends RObject {
             rAssignment.setOid(repo.getOid());
             rAssignment.setId(RUtil.getLongFromString(assignment.getId()));
 
-            RAssignment.copyFromJAXB(assignment, rAssignment, pushCreateIdentificators, prismContext);
+            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
 
             repo.getAssignments().add(rAssignment);
         }
@@ -129,7 +129,7 @@ public class RRole extends RObject {
             rExclusion.setOid(repo.getOid());
             rExclusion.setId(RUtil.getLongFromString(exclusion.getId()));
 
-            RExclusion.copyFromJAXB(exclusion, rExclusion, pushCreateIdentificators, prismContext);
+            RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
             repo.getExclusions().add(rExclusion);
         }
     }

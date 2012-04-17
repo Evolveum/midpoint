@@ -310,9 +310,9 @@ public class RUser extends RObject {
         return result;
     }
 
-    public static void copyFromJAXB(UserType jaxb, RUser repo, boolean pushCreateIdentificators,
-            PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
+    public static void copyFromJAXB(UserType jaxb, RUser repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setFullName(jaxb.getFullName());
         repo.setGivenName(jaxb.getGivenName());
@@ -362,7 +362,7 @@ public class RUser extends RObject {
             rAssignment.setOid(repo.getOid());
             rAssignment.setId(RUtil.getLongFromString(assignment.getId()));
 
-            RAssignment.copyFromJAXB(assignment, rAssignment, pushCreateIdentificators, prismContext);
+            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
 
             repo.getAssignments().add(rAssignment);
         }

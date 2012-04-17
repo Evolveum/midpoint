@@ -87,9 +87,9 @@ public class RNode extends RObject {
         jaxb.setNodeIdentifier(repo.getNodeIdentifier());
     }
 
-    public static void copyFromJAXB(NodeType jaxb, RNode repo, boolean pushCreateIdentificators,
-            PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, pushCreateIdentificators, prismContext);
+    public static void copyFromJAXB(NodeType jaxb, RNode repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setHostname(jaxb.getHostname());
         repo.setNodeIdentifier(jaxb.getNodeIdentifier());

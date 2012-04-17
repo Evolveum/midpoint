@@ -50,7 +50,6 @@ public abstract class RObject extends RContainer {
     private String description;
     @QueryEntity(any = true)
     private RAnyContainer extension;
-    private long version;
 
     @ManyToOne(optional = true)
     @ForeignKey(name = "none")
@@ -72,14 +71,6 @@ public abstract class RObject extends RContainer {
     @Index(name = "iName")
     public String getName() {
         return name;
-    }
-
-    public long getVersion() {
-        return version;
-    }
-
-    public void setVersion(long version) {
-        this.version = version;
     }
 
     public void setDescription(String description) {
@@ -134,8 +125,8 @@ public abstract class RObject extends RContainer {
         }
     }
 
-    public static void copyFromJAXB(ObjectType jaxb, RObject repo, boolean pushCreateIdentificators,
-            PrismContext prismContext) throws DtoTranslationException {
+    public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext)
+            throws DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
@@ -152,10 +143,10 @@ public abstract class RObject extends RContainer {
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();
             extension.setOwner(repo);
-            if (pushCreateIdentificators) {
-                extension.setOwnerOid(repo.getOid());
-                extension.setOwnerId(repo.getId());
-            }
+
+            extension.setOwnerOid(repo.getOid());
+            extension.setOwnerId(repo.getId());
+
             extension.setOwnerType(RContainerType.getType(repo.getClass()));
             repo.setExtension(extension);
 
