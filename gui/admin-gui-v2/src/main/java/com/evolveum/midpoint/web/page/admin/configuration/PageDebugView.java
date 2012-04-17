@@ -1,10 +1,15 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -27,9 +32,13 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class PageDebugView extends PageAdminConfiguration {
-
+	
+	@Autowired
+	private Task task;
+	
     public static final String PARAM_OBJECT_ID = "objectId";
     private IModel<ObjectViewDto> model;
     private AceEditor<String> editor;
@@ -138,6 +147,30 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     public void savePerformed(AjaxRequestTarget target) {
-        //todo implement
+    	OperationResult result = new OperationResult("Save debug view");
+    	StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
+    	if (objectOid == null) {
+            error("some errorrrororor");//todo change
+        }
+    	
+    	if(editor.getModel().getObject() != null){
+			try {
+				MidPointApplication application = PageDebugView.this.getMidpointApplication();
+				ModelService modelService = application.getModel();
+				PrismContext context = application.getPrismContext();
+				PrismDomProcessor domProcessor = context.getPrismDomProcessor();
+				
+				PrismObject<ObjectType> newObject = domProcessor.parseObject(editor.getModel().getObject());
+				PrismObject<ObjectType> oldObject = modelService.getObject(ObjectType.class, objectOid.toString(), null, result);
+				
+				ObjectDelta<ObjectType> delta = DiffUtil.diff(oldObject, newObject);
+				
+				modelService.modifyObject(ObjectType.class, objectOid.toString(), delta.getModifications(), task, result);
+				
+				setResponsePage(PageDebugList.class);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+    	}
     }
 }
