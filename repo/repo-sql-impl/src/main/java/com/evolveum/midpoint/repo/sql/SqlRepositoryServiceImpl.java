@@ -50,12 +50,17 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.tuple.IdentifierProperty;
+import org.hibernate.tuple.entity.EntityMetamodel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 import org.w3c.dom.Element;
 
 import java.lang.InstantiationException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -70,9 +75,51 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
     @Autowired(required = true)
-    PrismContext prismContext;
+    private PrismContext prismContext;
     @Autowired(required = true)
-    SessionFactory sessionFactory;
+    private SessionFactory sessionFactory;
+
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
+
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
+
+    public SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        //HACK !!! https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
+        fixCompositeIdentifierInMetaModel(RAssignment.class);
+        fixCompositeIdentifierInMetaModel(RExclusion.class);
+        for (RContainerType type : ClassMapper.getKnownTypes()) {
+            fixCompositeIdentifierInMetaModel(type.getClazz());
+        }
+
+        this.sessionFactory = sessionFactory;
+    }
+
+    private void fixCompositeIdentifierInMetaModel(Class<? extends RContainer> clazz) {
+        ClassMetadata classMetadata = sessionFactory.getClassMetadata(clazz);
+        if (classMetadata instanceof AbstractEntityPersister) {
+            AbstractEntityPersister persister = (AbstractEntityPersister) classMetadata;
+            EntityMetamodel model = persister.getEntityMetamodel();
+            IdentifierProperty identifier = model.getIdentifierProperty();
+
+            try {
+                Field field = IdentifierProperty.class.getDeclaredField("hasIdentifierMapper");
+                field.setAccessible(true);
+                field.set(identifier, true);
+                field.setAccessible(false);
+            } catch (Exception ex) {
+                throw new SystemException("Attempt to fix entity meta model with hack failed, reason: "
+                        + ex.getMessage(), ex);
+            }
+        }
+    }
 
     @Override
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
@@ -471,10 +518,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             LOGGER.debug("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable(), true);
+            RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable(), false);
 
             session = beginTransaction();
-            session.update(rObject);
+//            session.merge(rObject);
+            session.saveOrUpdate(rObject);
             session.getTransaction().commit();
         } catch (HibernateOptimisticLockingFailureException ex) {
             rollbackTransaction(session);

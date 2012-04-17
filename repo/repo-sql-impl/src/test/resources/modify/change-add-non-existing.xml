@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
 <!--
   ~ Copyright (c) 2012 Evolveum
   ~
@@ -27,7 +28,7 @@
     <modification>
         <t:modificationType>add</t:modificationType>
         <t:value>
-            <c:accountRef oid="1234567890" />
+            <c:accountRef oid="1234567890aaa" />
         </t:value>
     </modification>
 </objectModification>

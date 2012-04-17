@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -30,9 +29,11 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,7 +43,6 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -62,14 +62,70 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     @Autowired(required = true)
     PrismContext prismContext;
 
-    @Test
-    public void modifyUserTest() throws Exception {
-        System.out.println("=== [ modifyUserTest ] ===");
+    @Test(expectedExceptions = ObjectNotFoundException.class)
+    public void modifyNotExistingUser() throws Exception {
+        System.out.println("=== [ modifyNotExistingUser ] ===");
 
-        File userFile = new File(TEST_DIR, "modify-user.xml");
-        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+                new File(TEST_DIR, "change-add.xml"),
+                ObjectModificationType.class);
+
+        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
+                UserType.class, prismContext);
 
         OperationResult result = new OperationResult("MODIFY");
+        repositoryService.modifyObject(UserType.class, "1234", deltas, result);
+    }
+
+    @Test
+    public void modifyUserOnNonExistingAccountTest() throws Exception {
+        System.out.println("=== [ modifyUserOnNonExistingAccountTest ] ===");
+
+        OperationResult result = new OperationResult("MODIFY");
+
+        //add user
+        File userFile = new File(TEST_DIR, "modify-user.xml");
+        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        user.setOid(null);
+        user.asObjectable().setName("non-existing-account-user");
+
+        String oid = repositoryService.addObject(user, result);
+
+        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
+
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+                new File(TEST_DIR, "change-add-non-existing.xml"),
+                ObjectModificationType.class);
+
+        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
+                UserType.class, prismContext);
+
+        repositoryService.modifyObject(UserType.class, oid, deltas, result);
+
+        PropertyDelta.applyTo(deltas, userOld);
+
+        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
+        ObjectDelta<UserType> delta = userOld.diff(userNew);
+        LOGGER.debug("Modify diff \n{}", delta.debugDump(3));
+        AssertJUnit.assertTrue("Modify was unsuccessful, diff size: "
+                + delta.getModifications().size(), delta.isEmpty());
+        AssertJUnit.assertTrue("User is not equivalent.", userOld.equivalent(userNew));
+    }
+
+    @Test
+    public void modifyUserOnExistingAccountTest() throws Exception {
+        System.out.println("=== [ modifyUserOnExistingAccountTest ] ===");
+
+        OperationResult result = new OperationResult("MODIFY");
+
+        //add account
+        File accountFile = new File(TEST_DIR, "account.xml");
+        PrismObject<AccountShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
+        repositoryService.addObject(account, result);
+
+        //add user
+        File userFile = new File(TEST_DIR, "modify-user.xml");
+        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
 
         String userOid = user.getOid();
         String oid = repositoryService.addObject(user, result);
@@ -91,7 +147,8 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
         PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
         LOGGER.debug("Modify diff \n{}", delta.debugDump(3));
-        AssertJUnit.assertTrue(delta.isEmpty());
-        AssertJUnit.assertTrue(userOld.equivalent(userNew));
+        AssertJUnit.assertTrue("Modify was unsuccessful, diff size: "
+                + delta.getModifications().size(), delta.isEmpty());
+        AssertJUnit.assertTrue("User is not equivalent.", userOld.equivalent(userNew));
     }
 }

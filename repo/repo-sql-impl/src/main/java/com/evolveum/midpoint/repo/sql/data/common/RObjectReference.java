@@ -101,7 +101,6 @@ public class RObjectReference implements Serializable {
 
     @Id
     @Column(name = "target_id")
-    @Cascade({CascadeType.MERGE})
     public Long getTargetId() {
         if (targetId == null && target != null) {
             targetId = target.getId();
@@ -114,7 +113,6 @@ public class RObjectReference implements Serializable {
 
     @Id
     @Column(name = "target_oid", length = 36)
-    @Cascade({CascadeType.MERGE})
     public String getTargetOid() {
         if (targetOid == null && target != null) {
             targetOid = target.getOid();
