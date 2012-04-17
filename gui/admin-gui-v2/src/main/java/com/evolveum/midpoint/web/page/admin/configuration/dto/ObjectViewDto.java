@@ -35,7 +35,7 @@ public class ObjectViewDto implements Serializable {
     public ObjectViewDto() {
     }
 
-    public ObjectViewDto(String name, String oid, String xml) {
+    public ObjectViewDto(String oid, String name, String xml) {
         this.name = name;
         this.oid = oid;
         this.xml = xml;
