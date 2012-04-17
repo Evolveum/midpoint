@@ -27,12 +27,13 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.*;
+import org.hibernate.annotations.CascadeType;
 import org.w3c.dom.Element;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serializable;
 
 /**
@@ -76,7 +77,6 @@ public class RObjectReference implements Serializable {
             @PrimaryKeyJoinColumn(name = "target_oid", referencedColumnName = "oid"),
             @PrimaryKeyJoinColumn(name = "target_id", referencedColumnName = "id")
     })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RContainer getTarget() {
         return target;
     }
@@ -101,25 +101,27 @@ public class RObjectReference implements Serializable {
 
     @Id
     @Column(name = "target_id")
+    @Cascade({CascadeType.MERGE})
     public Long getTargetId() {
         if (targetId == null && target != null) {
             targetId = target.getId();
         }
-//        if (targetId == null) {
-//            targetId = 0L;
-//        }
+        if (targetId == null) {
+            targetId = 0L;
+        }
         return targetId;
     }
 
     @Id
     @Column(name = "target_oid", length = 36)
+    @Cascade({CascadeType.MERGE})
     public String getTargetOid() {
         if (targetOid == null && target != null) {
             targetOid = target.getOid();
         }
-//        if (targetOid == null) {
-//            targetOid = "";
-//        }
+        if (targetOid == null) {
+            targetOid = "";
+        }
         return targetOid;
     }
 
@@ -219,7 +221,6 @@ public class RObjectReference implements Serializable {
     public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReference repo, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notEmpty(jaxb.getOid(), "Reference target oid must not be empty.");
 
         repo.setDescription(jaxb.getDescription());
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));

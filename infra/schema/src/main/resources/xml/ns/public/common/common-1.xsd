@@ -3659,6 +3659,7 @@
     		</xsd:element>
     		<xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0"/>
     	</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
     
     <xsd:simpleType name="ExclusionPolicyType">
