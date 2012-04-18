@@ -140,7 +140,7 @@ public class ShadowCacheUtil {
 			ResourceAttribute activationProperty = attributesContainer.findAttribute(activationCapability
 					.getEnableDisable().getAttribute());
 
-			if (activationProperty.equals(attribute)) {
+			if (activationProperty != null && activationProperty.equals(attribute)) {
 				return true;
 			}
 		}
