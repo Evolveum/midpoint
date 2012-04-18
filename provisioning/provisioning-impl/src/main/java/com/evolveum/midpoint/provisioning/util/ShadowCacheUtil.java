@@ -95,6 +95,10 @@ public class ShadowCacheUtil {
 		if (repoShadow != resourceShadow) {
 			repoAttributesContainer.getValue().clear();
 			for (ResourceAttribute resourceAttribute : resourceAttributesContainer.getAttributes()) {
+				// do not copy simulated activation attrbute
+				if (isSimulatedActivationAttribute(resourceAttribute, resourceShadow, resource)) {
+					continue;
+				}
 				repoAttributesContainer.add(resourceAttribute);
 			}
 		}
@@ -125,41 +129,58 @@ public class ShadowCacheUtil {
 		return repoShadow;
 	}
 
+	private static boolean isSimulatedActivationAttribute(ResourceAttribute attribute,
+			ResourceObjectShadowType shadow, ResourceType resource) {
+		if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+
+			ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+					ActivationCapabilityType.class);
+			ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+					.getAttributesContainer(shadow);
+			ResourceAttribute activationProperty = attributesContainer.findAttribute(activationCapability
+					.getEnableDisable().getAttribute());
+
+			if (activationProperty.equals(attribute)) {
+				return true;
+			}
+		}
+		return false;
+
+	}
+
 	public static <T extends ResourceObjectShadowType> void normalizeShadow(T shadow, OperationResult result)
 			throws SchemaException {
 
-
-		if (shadow.getAttemptNumber() !=  null){
+		if (shadow.getAttemptNumber() != null) {
 			shadow.setAttemptNumber(null);
 		}
-		
-		if (shadow.getFailedOperationType() != null){
+
+		if (shadow.getFailedOperationType() != null) {
 			shadow.setFailedOperationType(null);
 		}
-		
-		if (shadow.getObjectChange() != null){
+
+		if (shadow.getObjectChange() != null) {
 			shadow.setObjectChange(null);
 		}
-		
-		if (shadow.getResult() != null){
+
+		if (shadow.getResult() != null) {
 			shadow.setResult(null);
 		}
-		ResourceAttributeContainer normalizedContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		ResourceAttributeContainer normalizedContainer = ResourceObjectShadowUtil
+				.getAttributesContainer(shadow);
 		ResourceAttributeContainer oldContainer = normalizedContainer.clone();
-		
+
 		normalizedContainer.clear();
-		Collection<ResourceAttribute<?>> identifiers = oldContainer.getIdentifiers();	
+		Collection<ResourceAttribute<?>> identifiers = oldContainer.getIdentifiers();
 		for (PrismProperty<?> p : identifiers) {
 			normalizedContainer.getValue().add(p);
 		}
-		
+
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = oldContainer.getSecondaryIdentifiers();
 		for (PrismProperty<?> p : secondaryIdentifiers) {
 			normalizedContainer.getValue().add(p);
 		}
 
-		
-		
 	}
 
 	/**

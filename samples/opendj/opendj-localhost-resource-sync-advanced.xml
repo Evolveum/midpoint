@@ -178,6 +178,7 @@ object.
 					<xsd:appinfo>
 						 <ra:resourceObject/>
 	                     <ra:identifier>icfs:uid</ra:identifier>
+						 <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
 	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
 	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
 	                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
@@ -225,6 +226,13 @@ object.
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" name="sn" type="xsd:string" />
+					<xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:ignore>true</a:ignore>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string" />
@@ -274,7 +282,7 @@ object.
 				    <initial>true</initial>
 					<expression>
 						<code>
-							concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
+							concat('uid=', $c:user/c:name, $c:iterationToken, ',ou=people,dc=example,dc=com')
 						</code>
 					</expression>
 				</outbound>
@@ -421,6 +429,9 @@ object.
                         </inbound>
                     </enabled>
                 </activation>
+				<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
 		</accountType>
 	</schemaHandling>
 

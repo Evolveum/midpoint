@@ -680,7 +680,7 @@ public class ShadowConverter {
 			if (itemDelta instanceof PropertyDelta) {
 				// we need to skip activation change, because it was actually
 				// processed
-				if (itemDelta.getParentPath().equals(AccountShadowType.F_ACTIVATION)) {
+				if (itemDelta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ACTIVATION))) {
 					continue;
 				}
 				PropertyModificationOperation attributeModification = new PropertyModificationOperation(
