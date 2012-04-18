@@ -168,7 +168,6 @@ public class RExclusion extends RContainer implements ROwnable  {
 
         repo.setOid(parent.getOid());
         repo.setId(RUtil.getLongWrappedFromString(jaxb.getId()));
-        repo.setVersion(RUtil.getLongFromString(parent.getVersion()));
 
         repo.setDescription(jaxb.getDescription());
         repo.setPolicy(jaxb.getPolicy());

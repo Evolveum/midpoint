@@ -185,11 +185,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         ServerSocket ss = null;
         try {
-            ss = new ServerSocket();
+            ss = new ServerSocket(port);
             ss.setReuseAddress(true);
-            SocketAddress endpoint = new InetSocketAddress(port);
-            ss.bind(endpoint);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RepositoryServiceFactoryException("Configured port (" + port + ") for H2 already in use.", e);
         } finally {
             try {

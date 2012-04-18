@@ -92,7 +92,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     public void setSessionFactory(SessionFactory sessionFactory) {
-        // HACK !!! https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
+        // !!! HACK !!! https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
         // problem with composite keys and object merging
         fixCompositeIdentifierInMetaModel(RObjectReference.class);
         fixCompositeIdentifierInMetaModel(RObjectReferenceTaskObject.class);
@@ -103,6 +103,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         for (RContainerType type : ClassMapper.getKnownTypes()) {
             fixCompositeIdentifierInMetaModel(type.getClazz());
         }
+        // END HAC
 
         this.sessionFactory = sessionFactory;
     }

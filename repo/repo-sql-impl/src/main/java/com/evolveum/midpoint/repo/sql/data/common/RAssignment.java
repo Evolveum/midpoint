@@ -210,7 +210,6 @@ public class RAssignment extends RContainer implements ROwnable {
 
         repo.setOid(parent.getOid());
         repo.setId(RUtil.getLongWrappedFromString(jaxb.getId()));
-        repo.setVersion(RUtil.getLongFromString(parent.getVersion()));
 
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();

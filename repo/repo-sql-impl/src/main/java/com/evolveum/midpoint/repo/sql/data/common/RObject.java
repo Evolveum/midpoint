@@ -50,6 +50,7 @@ public abstract class RObject extends RContainer {
     private String description;
     @QueryEntity(any = true)
     private RAnyContainer extension;
+    private long version;
 
     @ManyToOne(optional = true)
     @ForeignKey(name = "none")
@@ -83,6 +84,14 @@ public abstract class RObject extends RContainer {
 
     public void setExtension(RAnyContainer extension) {
         this.extension = extension;
+    }
+
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        this.version = version;
     }
 
     @Override
