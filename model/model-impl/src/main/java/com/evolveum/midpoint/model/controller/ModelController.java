@@ -1300,11 +1300,11 @@ public class ModelController implements ModelService {
 		} catch (ObjectNotFoundException e) {
 			String message = "No system configuration found, skipping application of initial system settings"; 
 			LOGGER.error(message+": "+e.getMessage(), e);
-			result.recordPartialError(message, e);
+			result.recordWarning(message, e);
 		} catch (SchemaException e) {
 			String message = "Schema error in system configuration, skipping application of initial system settings"; 
 			LOGGER.error(message+": "+e.getMessage(), e);
-			result.recordPartialError(message, e);
+			result.recordWarning(message, e);
 		}
 		
 		// TODO: initialize task manager

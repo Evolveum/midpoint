@@ -725,9 +725,9 @@ public class OperationResult implements Serializable, Dumpable {
 			sb.append(INDENT_STRING);
 		}
 		sb.append("Caused by ");
-		sb.append(cause.getClass().getName());
+		sb.append(innerCause.getClass().getName());
 		sb.append(": ");
-		sb.append(cause.getMessage());
+		sb.append(innerCause.getMessage());
 		sb.append("\n");
 		dumpStackTrace(sb, innerCause.getStackTrace(), indent + 1);
 		dumpInnerCauses(sb, innerCause.getCause(), indent);

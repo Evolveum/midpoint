@@ -255,8 +255,10 @@ public class Validator {
 						cont = readFromStreamAndValidate(stream, objectResult,
 								rootNamespaceDeclarations, validatorResult);
 					} catch (RuntimeException e) {
-						// Make sure that unexpected error is recorded.
-						objectResult.recordFatalError(e);
+						if (objectResult.isUnknown()) {
+							// Make sure that unexpected error is recorded.
+							objectResult.recordFatalError(e);
+						}
 						throw e;
 					}
 
@@ -324,7 +326,13 @@ public class Validator {
 			}
 
 			if (handler != null) {
-				EventResult cont = handler.preMarshall(objectElement, postValidationTree, objectResult);
+				EventResult cont;
+				try {
+					cont = handler.preMarshall(objectElement, postValidationTree, objectResult);
+				} catch (RuntimeException e) {
+					objectResult.recordFatalError("Internal error: preMarshall call failed: "+e.getMessage(), e);
+					throw e;
+				}
 				if (!cont.isCont()) {
 					if (objectResult.isUnknown()) {
 						objectResult.recordFatalError("Stopped after preMarshall, no reason given");
@@ -370,7 +378,7 @@ public class Validator {
 					cont = handler.postMarshall(object, objectElement, objectResult);
 				} catch (RuntimeException e) {
 					// Make sure that unhandled exceptions are recorded in object result before they are rethrown
-					objectResult.recordFatalError(e);
+					objectResult.recordFatalError("Internal error: postMarshall call failed: "+e.getMessage(), e);
 					throw e;
 				}
 				if (!cont.isCont()) {
@@ -390,7 +398,13 @@ public class Validator {
 				ex.printStackTrace();
 			}
 			if (handler != null) {
-				handler.handleGlobalError(validatorResult);
+				try {
+					handler.handleGlobalError(validatorResult);
+				} catch (RuntimeException e) {
+					// Make sure that unhandled exceptions are recorded in object result before they are rethrown
+					objectResult.recordFatalError("Internal error: handleGlobalError call failed: "+e.getMessage(), e);
+					throw e;
+				}
 			}
 			objectResult.recordFatalError(ex);
 			return EventResult.skipObject();

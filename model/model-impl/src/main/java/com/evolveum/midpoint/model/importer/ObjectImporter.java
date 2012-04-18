@@ -152,15 +152,15 @@ public class ObjectImporter {
                     LOGGER.info("Imported object {}", object);
 
                 } catch (SchemaException e) {
-                    objectResult.recordFatalError("Schema violation", e);
+                    objectResult.recordFatalError("Schema violation: "+e.getMessage(), e);
                     LOGGER.error("Import of object {} failed: Schema violation: {}",
                             new Object[]{object, e.getMessage(), e});
                 } catch (RuntimeException e) {
-                    objectResult.recordFatalError("Unexpected problem", e);
+                    objectResult.recordFatalError("Unexpected problem: "+e.getMessage(), e);
                     LOGGER.error("Import of object {} failed: Unexpected problem: {}",
                             new Object[]{object, e.getMessage(), e});
                 } catch (ObjectAlreadyExistsException e) {
-                	objectResult.recordFatalError("Object already exists", e);
+                	objectResult.recordFatalError("Object already exists: "+e.getMessage(), e);
                     LOGGER.error("Import of object {} failed: Object already exists: {}",
                             new Object[]{object, e.getMessage(), e});
                     LOGGER.error("Object already exists", e);
