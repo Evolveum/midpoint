@@ -21,8 +21,11 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -32,14 +35,16 @@ import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersAction;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -48,12 +53,13 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -159,10 +165,16 @@ public class PageUsers extends PageAdminUsers {
         CheckBox familyNameCheck = new CheckBox("familyNameCheck", new PropertyModel<Boolean>(model, "familyName"));
         item.add(familyNameCheck);
 
-        AjaxLinkButton searchButton = new AjaxLinkButton("searchButton",
+        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
                 createStringResource("pageUserList.searchButton")) {
+
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                //To change body of implemented methods use File | Settings | File Templates.
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 searchPerformed(target);
             }
         };
@@ -208,8 +220,55 @@ public class PageUsers extends PageAdminUsers {
         setResponsePage(PageUser.class, parameters);
     }
 
+    private TablePanel getTable() {
+        OptionContent content = (OptionContent) get("mainForm:optionContent");
+        return (TablePanel) content.getBodyContainer().get("table");
+    }
+
     private void searchPerformed(AjaxRequestTarget target) {
-        //todo implement
+        QueryType query = createQuery();
+
+        TablePanel panel = getTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(query);
+
+        table.setCurrentPage(0);
+
+        target.add(panel);
+    }
+
+    private QueryType createQuery() {
+        UsersDto dto = model.getObject();
+        QueryType query = null;
+
+        try {
+            Document document = DOMUtil.getDocument();
+            List<Element> elements = new ArrayList<Element>();
+            if (dto.isName()) {
+                elements.add(QueryUtil.createEqualFilter(document, null, ObjectType.F_NAME, dto.getSearchText()));
+            }
+            if (dto.isFamilyName()) {
+                elements.add(QueryUtil.createEqualFilter(document, null, UserType.F_FAMILY_NAME, dto.getSearchText()));
+            }
+            if (dto.isFullName()) {
+                elements.add(QueryUtil.createEqualFilter(document, null, UserType.F_FULL_NAME, dto.getSearchText()));
+            }
+            if (dto.isGivenName()) {
+                elements.add(QueryUtil.createEqualFilter(document, null, UserType.F_GIVEN_NAME, dto.getSearchText()));
+            }
+
+
+            if (!elements.isEmpty()) {
+                query = new QueryType();
+                query.setFilter(QueryUtil.createOrFilter(document, elements.toArray(new Element[elements.size()])));
+            }
+        } catch (Exception ex) {
+            //todo error handling
+            ex.printStackTrace();
+        }
+
+        return query;
     }
 
     private void actionPerformed(AjaxRequestTarget target) {

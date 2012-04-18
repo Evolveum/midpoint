@@ -182,17 +182,26 @@ public class QueryUtil {
         return createEqualFilter(doc, xpath, value);
     }
 
+    public static Element createOrFilter(Document doc, Element... conditions) {
+       return createLogicFilter(doc, SchemaConstantsGenerated.Q_OR, conditions);
+    }
+
     public static Element createAndFilter(Document doc, Element... conditions) {
+        return createLogicFilter(doc, SchemaConstantsGenerated.Q_AND, conditions);
+    }
+
+    private static Element createLogicFilter(Document doc, QName filterName, Element... conditions) {
         Validate.notNull(doc);
+        Validate.notNull(filterName);
         Validate.notNull(conditions);
 
-        Element and = doc.createElementNS(SchemaConstantsGenerated.Q_AND.getNamespaceURI(), SchemaConstantsGenerated.Q_AND.getLocalPart());
+        Element logical = doc.createElementNS(filterName.getNamespaceURI(), filterName.getLocalPart());
         for (Element condition : conditions) {
             Validate.notNull(condition);
-            and.appendChild(condition);
+            logical.appendChild(condition);
         }
 
-        return and;
+        return logical;
     }
 
 //    public static Element createAndFilter(Document doc, Element el1, Element el2) {

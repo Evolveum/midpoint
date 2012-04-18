@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -50,6 +51,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
     private Class<T> type;
+    private QueryType query;
 
     public ObjectDataProvider(Class<T> type) {
         this.type = type;
@@ -76,7 +78,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
             OperationResult result = new OperationResult("list usersssss");
             PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, null, paging, result);
+            List<PrismObject<T>> list = getModel().searchObjects(type, query, paging, result);
             for (PrismObject<T> object : list) {
                 users.add(new SelectableBean<T>(object.asObjectable()));
             }
@@ -94,6 +96,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
         try {
             return getModel().countObjects(type, null, result);
         } catch (Exception ex) {
+            //todo error handling
             ex.printStackTrace();
         }
         return 0;
@@ -107,5 +110,9 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
     public void setType(Class<T> type) {
         Validate.notNull(type);
         this.type = type;
+    }
+
+    public void setQuery(QueryType query) {
+        this.query = query;
     }
 }
