@@ -60,13 +60,13 @@ public class RTask extends RObject {
     private RObjectReferenceTaskObject objectRef;
     private RObjectReferenceTaskOwner ownerRef;
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReferenceTaskObject getObjectRef() {
         return objectRef;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReferenceTaskOwner getOwnerRef() {
         return ownerRef;
@@ -107,7 +107,7 @@ public class RTask extends RObject {
         return recurrence;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public ROperationResult getResult() {
         return result;

@@ -59,7 +59,7 @@ public class RConnector extends RObject {
     private String namespace;
     private String xmlSchema;
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReference getConnectorHostRef() {
         return connectorHostRef;

@@ -523,6 +523,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             session = beginTransaction();
             //get user
+//            Session.LockRequest lock = session.buildLockRequest(LockOptions.READ);
             PrismObject<T> prismObject = getObject(session, type, oid, null);
             //apply diff
             if (LOGGER.isTraceEnabled()) {
@@ -535,6 +536,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             //merge and update user
             LOGGER.debug("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
+//            session.buildLockRequest(LockOptions.UPGRADE);
             session.merge(rObject);
 
             session.getTransaction().commit();

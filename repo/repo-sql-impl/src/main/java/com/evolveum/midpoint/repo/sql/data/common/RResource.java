@@ -74,7 +74,7 @@ public class RResource extends RObject {
         return configuration;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReference getConnectorRef() {
         return connectorRef;

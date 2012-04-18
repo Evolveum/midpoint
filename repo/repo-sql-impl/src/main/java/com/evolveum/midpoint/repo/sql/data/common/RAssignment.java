@@ -71,7 +71,7 @@ public class RAssignment extends RContainer implements ROwnable {
         return owner;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReference getTargetRef() {
         return targetRef;

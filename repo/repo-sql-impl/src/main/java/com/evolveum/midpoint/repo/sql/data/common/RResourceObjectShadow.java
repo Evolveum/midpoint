@@ -68,7 +68,7 @@ public class RResourceObjectShadow extends RObject {
         return objectClass;
     }
 
-    @OneToOne(optional = true)
+    @OneToOne(optional = true, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JoinColumns({
@@ -85,13 +85,13 @@ public class RResourceObjectShadow extends RObject {
         return activation;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public ROperationResult getResult() {
         return result;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReference getResourceRef() {
         return resourceRef;

@@ -46,17 +46,23 @@ public class RRole extends RObject {
     private Set<RAssignment> assignments;
     private Set<RExclusion> exclusions;
 
-    @OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignment> getAssignments() {
+        if (assignments == null) {
+            assignments = new HashSet<RAssignment>();
+        }
         return assignments;
     }
 
-    @OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RExclusion> getExclusions() {
+        if (exclusions == null) {
+            exclusions = new HashSet<RExclusion>();
+        }
         return exclusions;
     }
 

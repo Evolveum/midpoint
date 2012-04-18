@@ -75,17 +75,23 @@ public class RUser extends RObject {
     private Set<RObjectReference> accountRefs;
     private Set<RAssignment> assignments;
 
-    @OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getAccountRefs() {
+        if (accountRefs == null) {
+            accountRefs = new HashSet<RObjectReference>();
+        }
         return accountRefs;
     }
 
-    @OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignment> getAssignments() {
+        if (assignments == null) {
+            assignments = new HashSet<RAssignment>();
+        }
         return assignments;
     }
 
@@ -341,18 +347,11 @@ public class RUser extends RObject {
         repo.setOrganizationalUnit(RUtil.listToSet(jaxb.getOrganizationalUnit()));
         repo.setTelephoneNumber(RUtil.listToSet(jaxb.getTelephoneNumber()));
 
-        if (jaxb.getAccountRef() != null && !jaxb.getAccountRef().isEmpty()) {
-            repo.setAccountRefs(new HashSet<RObjectReference>());
-        }
         for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
             RObjectReference ref = RUtil.jaxbRefToRepo(accountRef, repo, prismContext);
             if (ref != null) {
                 repo.getAccountRefs().add(ref);
             }
-        }
-
-        if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
-            repo.setAssignments(new HashSet<RAssignment>());
         }
 
         for (AssignmentType assignment : jaxb.getAssignment()) {
@@ -395,16 +394,12 @@ public class RUser extends RObject {
         jaxb.getTelephoneNumber().addAll(RUtil.safeSetToList(repo.getTelephoneNumber()));
         jaxb.getOrganizationalUnit().addAll(RUtil.safeSetToList(repo.getOrganizationalUnit()));
 
-        if (repo.getAccountRefs() != null) {
-            for (RObjectReference repoRef : repo.getAccountRefs()) {
-                jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));
-            }
+        for (RObjectReference repoRef : repo.getAccountRefs()) {
+            jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));
         }
 
-        if (repo.getAssignments() != null) {
-            for (RAssignment rAssignment : repo.getAssignments()) {
-                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
-            }
+        for (RAssignment rAssignment : repo.getAssignments()) {
+            jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
         }
     }
 

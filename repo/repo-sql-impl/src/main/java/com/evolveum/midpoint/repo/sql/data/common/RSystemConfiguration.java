@@ -55,7 +55,7 @@ public class RSystemConfiguration extends RObject {
         return connectorFramework;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReference getDefaultUserTemplateRef() {
         return defaultUserTemplateRef;
