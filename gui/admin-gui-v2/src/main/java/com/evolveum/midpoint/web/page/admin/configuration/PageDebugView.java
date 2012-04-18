@@ -42,6 +42,7 @@ public class PageDebugView extends PageAdminConfiguration {
     public static final String PARAM_OBJECT_ID = "objectId";
     private IModel<ObjectViewDto> model;
     private AceEditor<String> editor;
+    private PrismObject<ObjectType> oldObject;
 
     public PageDebugView() {
         model = new LoadableModel<ObjectViewDto>(false) {
@@ -68,7 +69,7 @@ public class PageDebugView extends PageAdminConfiguration {
             OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
             PrismObject<ObjectType> object = model.getObject(ObjectType.class, objectOid.toString(),
                     null, result);
-
+            oldObject = object;
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
             String name = null;
@@ -161,8 +162,6 @@ public class PageDebugView extends PageAdminConfiguration {
 				PrismDomProcessor domProcessor = context.getPrismDomProcessor();
 				
 				PrismObject<ObjectType> newObject = domProcessor.parseObject(editor.getModel().getObject());
-				PrismObject<ObjectType> oldObject = modelService.getObject(ObjectType.class, objectOid.toString(), null, result);
-				
 				ObjectDelta<ObjectType> delta = DiffUtil.diff(oldObject, newObject);
 				
 				modelService.modifyObject(ObjectType.class, objectOid.toString(), delta.getModifications(), task, result);
