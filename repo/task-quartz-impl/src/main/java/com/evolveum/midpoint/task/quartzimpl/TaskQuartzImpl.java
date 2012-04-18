@@ -430,6 +430,7 @@ public class TaskQuartzImpl implements Task {
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_HANDLER_URI, value) : null;
 	}
+
 	
 	/*
 	 * Other handlers URI stack
