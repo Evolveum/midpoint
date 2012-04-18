@@ -104,18 +104,20 @@ public class TestSegregationOfDuties extends AbstractModelIntegrationTest {
         
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
+        assertHasNoRole(USER_JACK_OID, task, result);
+        
 	}
 	
 	/**
 	 * Same thing as before but other way around 
 	 */
 	@Test
-    public void test001SimpleExclusion2() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    public void test002SimpleExclusion2() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test001SimpleExclusion2");
+        displayTestTile(this, "test002SimpleExclusion2");
         
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + ".test001SimpleExclusion2");
+        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + ".test002SimpleExclusion2");
         OperationResult result = task.getResult();
         
         // This should go well

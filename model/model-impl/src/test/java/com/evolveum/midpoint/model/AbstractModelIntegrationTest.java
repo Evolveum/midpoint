@@ -85,6 +85,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
@@ -344,6 +345,17 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>();
 		((Collection)modifications).add(assignmentDelta);
 		modelService.modifyObject(UserType.class, userOid, modifications , task, result);
+	}
+	
+	protected void assertHasNoRole(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		UserType userType = user.asObjectable();
+		for (AssignmentType assignmentType: userType.getAssignment()) {
+			ObjectReferenceType targetRef = assignmentType.getTargetRef();
+			if (RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
+				AssertJUnit.fail("User "+userOid+" has role "+targetRef.getOid()+" while expected no roles");
+			}
+		}
 	}
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
