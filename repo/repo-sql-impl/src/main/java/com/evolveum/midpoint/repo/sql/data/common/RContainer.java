@@ -55,7 +55,7 @@ public abstract class RContainer implements Serializable {
         return oid;
     }
 
-    @Version
+//    @Version
     public long getVersion() {
         return version;
     }

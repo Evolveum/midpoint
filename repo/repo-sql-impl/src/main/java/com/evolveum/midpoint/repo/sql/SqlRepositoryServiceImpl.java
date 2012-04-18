@@ -92,7 +92,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     public void setSessionFactory(SessionFactory sessionFactory) {
-        //HACK !!! https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
+        // HACK !!! https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
+        // problem with composite keys and object merging
         fixCompositeIdentifierInMetaModel(RObjectReference.class);
         fixCompositeIdentifierInMetaModel(RObjectReferenceTaskObject.class);
         fixCompositeIdentifierInMetaModel(RObjectReferenceTaskOwner.class);
@@ -125,6 +126,27 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
     }
 
+    private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid,
+            PropertyReferenceListType resolve) throws ObjectNotFoundException, SchemaException,
+            DtoTranslationException {
+        Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+        query.add(Restrictions.eq("oid", oid));
+        query.add(Restrictions.eq("id", 0L));
+        updateResultFetchInCriteria(query, type, resolve);
+
+        RObject object = (RObject) query.uniqueResult();
+        if (object == null) {
+            throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '"
+                    + oid + "' was not found.", null, oid);
+        }
+
+        LOGGER.debug("Transforming data to JAXB type.");
+        PrismObject<T> objectType = object.toJAXB(prismContext).asPrismObject();
+        validateObjectType(objectType, type);
+
+        return objectType;
+    }
+
     @Override
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -143,23 +165,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             session = beginTransaction();
 
-            Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-            query.add(Restrictions.eq("oid", oid));
-            query.add(Restrictions.eq("id", 0L));
-            updateResultFetchInCriteria(query, type, resolve);
-
-            RObject object = (RObject) query.uniqueResult();
-            if (object == null) {
-                throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '"
-                        + oid + "' was not found.", null, oid);
-            }
-
-            LOGGER.debug("Transforming data to JAXB type.");
-            objectType = object.toJAXB(prismContext).asPrismObject();
+            objectType = getObject(session, type, oid, resolve);
 
             session.getTransaction().commit();
-
-            validateObjectType(objectType, type);
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (NonUniqueResultException ex) {
@@ -512,7 +520,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         Session session = null;
         try {
-            PrismObject<T> prismObject = getObject(type, oid, null, subResult);
+            session = beginTransaction();
+            //get user
+            PrismObject<T> prismObject = getObject(session, type, oid, null);
+            //apply diff
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.dump()});
             }
@@ -520,13 +531,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
             }
-
+            //merge and update user
             LOGGER.debug("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
-
-            session = beginTransaction();
             session.merge(rObject);
-//            session.saveOrUpdate(rObject);
+
             session.getTransaction().commit();
         } catch (HibernateOptimisticLockingFailureException ex) {
             rollbackTransaction(session);
