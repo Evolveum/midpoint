@@ -294,13 +294,17 @@ public class TestSanity extends AbstractIntegrationTest {
     // It will be called only once
     public void initSystem(OperationResult initResult) throws Exception {
         LOGGER.trace("initSystem");
-        addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
         addObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
 
         // This should discover the connectors
         LOGGER.trace("initSystem: trying modelService.postInit()");
         modelService.postInit(initResult);
         LOGGER.trace("initSystem: modelService.postInit() done");
+
+        // We need to add config after calling postInit() so it will not be applied.
+        // we want original logging configuration from the test logback config file, not
+        // the one from the system config.
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 
         // Add broken connector before importing resources
         addObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
