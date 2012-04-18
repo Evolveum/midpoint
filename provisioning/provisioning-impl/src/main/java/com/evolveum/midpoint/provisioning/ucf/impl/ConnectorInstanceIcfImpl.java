@@ -725,13 +725,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			icfResult.recordSuccess();
 		} catch (Exception ex) {
-			// ICF interface does not specify exceptions or other error
-			// conditions.
-			// Therefore this kind of heavy artillery is necessary.
-			// TODO maybe we can try to catch at least some specific exceptions
-			icfResult.recordFatalError(ex);
-			// This is fatal. No point in continuing.
-			throw new GenericFrameworkException(ex);
+			Exception midpointEx = processIcfException(ex, icfResult);
+			icfResult.computeStatus("Add object failed");
+
+			// Do some kind of acrobatics to do proper throwing of checked
+			// exception
+			if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException) midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException) midpointEx;
+			}  else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException) midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+			}
+		
 		}
 
 		return co;

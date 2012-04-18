@@ -177,8 +177,10 @@ public class ShadowCache {
 		LOGGER.trace("Getting fresh object from ucf.");
 
 		T resultShadow = null;
+		OperationResult fetchResult = parentResult.createSubresult("Fetch object result.");
+
 		try {
-			resultShadow = shadowConverter.getShadow(type, resource, repositoryShadow, parentResult);
+			resultShadow = shadowConverter.getShadow(type, resource, repositoryShadow, fetchResult);
 		} catch (ObjectNotFoundException ex) {
 			// TODO: Discovery
 			parentResult.recordFatalError("Object " + ObjectTypeUtil.toShortString(repositoryShadow)
@@ -189,12 +191,17 @@ public class ShadowCache {
 			// + ObjectTypeUtil.toShortString(resource), ex);
 			throw ex;
 		} catch (CommunicationException ex) {
-			parentResult.recordFatalError(
-					"Error communicating with the connector. Reason: " + ex.getMessage(), ex);
+			repositoryShadow.setFetchResult(fetchResult.createOperationResultType());
+			parentResult
+					.recordWarning("Cannot get object from resource, because the resource is not reachable at the moment. The returned shadow is one from the repository.");
+			// parentResult.recordFatalError(
+			// "Error communicating with the connector. Reason: " +
+			// ex.getMessage(), ex);
 			// throw new
 			// CommunicationException("Error communicating with the connector",
 			// ex);
-			throw ex;
+			// throw ex;
+			return repositoryShadow;
 		} catch (ConfigurationException ex) {
 			parentResult.recordFatalError("Configuration error. Reason: " + ex.getMessage(), ex);
 			throw ex;
@@ -251,7 +258,8 @@ public class ShadowCache {
 
 		try {
 
-			shadow = shadowConverter.addShadow(resource, shadow, additionalOperations, isReconciled, shadowConverterResult);
+			shadow = shadowConverter.addShadow(resource, shadow, additionalOperations, isReconciled,
+					shadowConverterResult);
 		} catch (Exception ex) {
 
 			ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
@@ -830,7 +838,10 @@ public class ShadowCache {
 		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, null,
 				parentResult);
 		// return resource;
-		return shadowConverter.completeResource(resource.asObjectable(), parentResult);
+		
+		
+			
+		return shadowConverter.completeResource(resource.asObjectable(), parentResult); 
 	}
 
 	private void addOrReplaceShadowToRepository(ResourceObjectShadowType shadow, boolean isReconciled,
@@ -839,10 +850,10 @@ public class ShadowCache {
 
 		// Store shadow in the repository
 		if (isReconciled && !error) {
-			PrismObject<AccountShadowType> oldShadow = shadow.asPrismObject().clone();	
+			PrismObject<AccountShadowType> oldShadow = shadow.asPrismObject().clone();
 			ResourceObjectShadowUtil.getAttributesContainer(oldShadow).clear();
 			ShadowCacheUtil.normalizeShadow(shadow, parentResult);
-			
+
 			ObjectDelta delta = oldShadow.diff(shadow.asPrismObject());
 			repositoryService.modifyObject(AccountShadowType.class, shadow.getOid(),
 					delta.getModifications(), parentResult);

@@ -212,6 +212,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ResourceObjectShadowType shadow = null;
 			try {
 
+				
 				shadow = getShadowCache().getShadow((Class<ResourceObjectShadowType>) type, oid,
 						(ResourceObjectShadowType) (repositoryObject.asObjectable()), result);
 
@@ -225,6 +226,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid,
 				// e);
 				// result.recordFatalError(e);
+				
 				throw e;
 			} catch (SchemaException e) {
 				logFatalError(LOGGER, result,

@@ -42,14 +42,14 @@ import java.util.Set;
 @Component
 public class ResourceTypeManager {
 
-	@Autowired(required=true)
+	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private ResourceSchemaCache resourceSchemaCache;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private ConnectorTypeManager connectorTypeManager;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private ShadowConverter shadowConverter;
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -137,7 +137,8 @@ public class ResourceTypeManager {
 				try {
 					connector = getConnectorInstance(resource, result);
 				} catch (ObjectNotFoundException e) {
-					throw new ObjectNotFoundException("Error resolving connector reference in " + resource + ": Error creating connector instace: " + e.getMessage(), e);
+					throw new ObjectNotFoundException("Error resolving connector reference in " + resource
+							+ ": Error creating connector instace: " + e.getMessage(), e);
 				}
 				try {
 					// Fetch schema from connector, UCF will convert it to
@@ -225,7 +226,11 @@ public class ResourceTypeManager {
 			newResource = resourceSchemaCache.get(resource);
 		}
 
-		addNativeCapabilities(newResource, connector, result);
+		try {
+			addNativeCapabilities(newResource, connector, result);
+		} catch (CommunicationException ex) {
+			result.recordPartialError("Cannot add native capabilities to resource object because the end resource is unreachable. Resource object returned without native capabilities.");
+		}
 
 		return newResource;
 	}
@@ -268,8 +273,8 @@ public class ResourceTypeManager {
 				.createSubresult(ConnectorTestOperation.CONFIGURATION_VALIDATION.getOperation());
 
 		try {
-			connector.configure(resourceType.asPrismObject().findContainer(ResourceType.F_CONFIGURATION).getValue(),
-					configResult);
+			connector.configure(resourceType.asPrismObject().findContainer(ResourceType.F_CONFIGURATION)
+					.getValue(), configResult);
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {
 			configResult.recordFatalError("Communication error", e);
@@ -445,8 +450,8 @@ public class ResourceTypeManager {
 		return schema;
 	}
 
-	public void listShadows(final ResourceType resource, final QName objectClass, final ShadowHandler handler,
-			final boolean readFromRepository, final OperationResult parentResult)
+	public void listShadows(final ResourceType resource, final QName objectClass,
+			final ShadowHandler handler, final boolean readFromRepository, final OperationResult parentResult)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException {
 
 		Validate.notNull(objectClass);
@@ -455,16 +460,15 @@ public class ResourceTypeManager {
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
 
-		
-		
-		searchObjects(ResourceObjectShadowType.class, objectClass, resource, null, handler, null, readFromRepository, parentResult);
-		
+		searchObjects(ResourceObjectShadowType.class, objectClass, resource, null, handler, null,
+				readFromRepository, parentResult);
 
 	}
 
 	// TODO: maybe this method should be placed in another class...
 	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type,
-			final QName objectClass, final ResourceType resourceType, List<ResourceAttribute> resourceAttributesFilter, final ShadowHandler handler,
+			final QName objectClass, final ResourceType resourceType,
+			List<ResourceAttribute> resourceAttributesFilter, final ShadowHandler handler,
 			final DiscoveryHandler discoveryHandler, final OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
@@ -474,17 +478,17 @@ public class ResourceTypeManager {
 
 		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClass,
 				ObjectTypeUtil.toShortString(resourceType));
-		
-		searchObjects(type, objectClass, resourceType, resourceAttributesFilter, handler, discoveryHandler, true, parentResult);
 
-	
+		searchObjects(type, objectClass, resourceType, resourceAttributesFilter, handler, discoveryHandler,
+				true, parentResult);
+
 	}
 
 	private <T extends ResourceObjectShadowType> void searchObjects(final Class<T> type, QName objectClass,
-			final ResourceType resourceType, List<ResourceAttribute> resourceAttributesFilter, final ShadowHandler handler,
-			final DiscoveryHandler discoveryHandler, final boolean readFromRepository,
-			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, ConfigurationException {
+			final ResourceType resourceType, List<ResourceAttribute> resourceAttributesFilter,
+			final ShadowHandler handler, final DiscoveryHandler discoveryHandler,
+			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 
 		final ResourceSchema schema = getResourceSchema(resourceType, connector, parentResult);
@@ -512,8 +516,9 @@ public class ResourceTypeManager {
 				ResourceObjectShadowType resultShadowType;
 				try {
 					if (shadowConverter.isProtectedShadow(resourceType, resourceShadow)) {
-						// Protected shadow. We will pretend that it does not exist.
-						LOGGER.trace("Skipping protected shadow "+resourceShadow+" in search");
+						// Protected shadow. We will pretend that it does not
+						// exist.
+						LOGGER.trace("Skipping protected shadow " + resourceShadow + " in search");
 						return true;
 					}
 					T resourceShadowType = resourceShadow.asObjectable();
@@ -541,17 +546,15 @@ public class ResourceTypeManager {
 							// the reality (resource)
 
 							try {
-								
-								
+
 								ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(
 										resourceShadowType, resourceType);
 								String oid = getRepositoryService().addObject(repoShadow.asPrismObject(),
 										parentResult);
-								
-								resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType,
-										null, resourceType, parentResult);
 
-								
+								resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType, null,
+										resourceType, parentResult);
+
 								resultShadowType.setOid(oid);
 							} catch (ObjectAlreadyExistsException e) {
 								// This should not happen. We haven't supplied
@@ -591,15 +594,18 @@ public class ResourceTypeManager {
 		};
 
 		try {
-			//TODO: refactor
+			// TODO: refactor
 			QueryType query = null;
-			if (resourceAttributesFilter != null){
-				if (resourceAttributesFilter.size() > 1){
-					throw new UnsupportedOperationException("Now it is only supported to search accounts according to only one shadow attribute.");
+			if (resourceAttributesFilter != null) {
+				if (resourceAttributesFilter.size() > 1) {
+					throw new UnsupportedOperationException(
+							"Now it is only supported to search accounts according to only one shadow attribute.");
 				}
-				
-				if (!resourceAttributesFilter.isEmpty()){
-					Element filter = QueryUtil.createEqualFilter(DOMUtil.getDocument(), null, resourceAttributesFilter.get(0).getName(), (String) resourceAttributesFilter.get(0).getRealValue());
+
+				if (!resourceAttributesFilter.isEmpty()) {
+					Element filter = QueryUtil.createEqualFilter(DOMUtil.getDocument(), null,
+							resourceAttributesFilter.get(0).getName(),
+							(String) resourceAttributesFilter.get(0).getRealValue());
 					query = QueryUtil.createQuery(filter);
 				}
 			}
@@ -632,9 +638,11 @@ public class ResourceTypeManager {
 	private <T extends ResourceObjectShadowType> T lookupShadowInRepository(Class<T> type, T resourceShadow,
 			ResourceType resource, OperationResult parentResult) throws SchemaException {
 
-		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext, parentResult);
+		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext,
+				parentResult);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching for shadow using filter:\n{}", DOMUtil.serializeDOMToString(query.getFilter()));
+			LOGGER.trace("Searching for shadow using filter:\n{}",
+					DOMUtil.serializeDOMToString(query.getFilter()));
 		}
 		PagingType paging = new PagingType();
 
@@ -649,7 +657,7 @@ public class ResourceTypeManager {
 			return null;
 		}
 		if (results.size() > 1) {
-			for (PrismObject<T> result: results) {
+			for (PrismObject<T> result : results) {
 				LOGGER.trace("Search result:\n{}", result.dump());
 			}
 			LOGGER.error("More than one shadows found for " + resourceShadow);
@@ -701,23 +709,25 @@ public class ResourceTypeManager {
 
 	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector,
 			OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException {
-		
-		// This is not really clean now. We need to add caching metadata and things like that
+
+		// This is not really clean now. We need to add caching metadata and
+		// things like that
 		// FIXME
 		if (resource.getNativeCapabilities() != null) {
 			return;
 		}
-		
+
 		Collection<Object> capabilities = null;
 		try {
-			
+
 			if (connector == null) {
 				connector = getConnectorInstance(resource, result);
 			}
 			capabilities = connector.getCapabilities(result);
 
 		} catch (CommunicationException ex) {
-			throw new CommunicationException("Cannot fetch resource native capabilities: " + ex.getMessage(), ex);
+			throw new CommunicationException("Cannot fetch resource native capabilities: " + ex.getMessage(),
+					ex);
 		} catch (GenericFrameworkException ex) {
 			throw new GenericConnectorException("Generic error in connector " + connector + ": "
 					+ ex.getMessage(), ex);
