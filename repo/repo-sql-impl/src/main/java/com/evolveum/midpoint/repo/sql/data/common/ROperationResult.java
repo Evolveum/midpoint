@@ -112,14 +112,17 @@ public class ROperationResult implements Serializable {
         this.owner = owner;
     }
 
+    @Type(type = "org.hibernate.type.TextType")
     public String getDetails() {
         return details;
     }
 
+    @Type(type = "org.hibernate.type.TextType")
     public String getLocalizedMessage() {
         return localizedMessage;
     }
 
+    @Type(type = "org.hibernate.type.TextType")
     public String getMessage() {
         return message;
     }
@@ -128,6 +131,7 @@ public class ROperationResult implements Serializable {
         return messageCode;
     }
 
+    @Type(type = "org.hibernate.type.TextType")
     public String getOperation() {
         return operation;
     }
