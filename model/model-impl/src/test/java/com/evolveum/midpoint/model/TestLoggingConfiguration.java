@@ -110,15 +110,63 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test002AddModelSubsystemLogger() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, 
+	public void test002InitialConfiguration() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, 
 			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException, SecurityViolationException {
 		displayTestTile("test002AddModelSubsystemLogger");
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
 		
-		;
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test001AddConfiguration");
+		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test002InitialConfiguration");
+		OperationResult result = task.getResult();
+		
+		PrismObject<SystemConfigurationType> systemConfiguration = 
+			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
+		
+		SubSystemLoggerConfigurationType modelSubSystemLogger = new SubSystemLoggerConfigurationType();
+		modelSubSystemLogger.setComponent(LoggingComponentType.PROVISIONING);
+		modelSubSystemLogger.setLevel(LoggingLevelType.TRACE);
+		logging.getSubSystemLogger().add(modelSubSystemLogger);
+		
+		PrismObjectDefinition<SystemConfigurationType> systemConfigurationTypeDefinition =
+			prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
+		Collection<? extends ItemDelta> modifications = 
+			PropertyDelta.createModificationReplacePropertyCollection(SystemConfigurationType.F_LOGGING, 
+					systemConfigurationTypeDefinition, logging);
+		
+		// Modify directly in repository, so the logging code in model will not notice the change
+		repositoryService.modifyObject(SystemConfigurationType.class, AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_OID,
+				modifications, result);
+		
+		// precondition
+		tailer.logAndTail();		
+		assertBasicLogging(tailer);
+		tailer.assertNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_PROVISIONING);
+		
+		// WHEN
+		modelService.postInit(result);
+		
+		// THEN
+		tailer.logAndTail();
+		
+		assertBasicLogging(tailer);
+
+		tailer.assertLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_PROVISIONING);
+		
+		tailer.close();
+		
+	}
+
+	@Test
+	public void test003AddModelSubsystemLogger() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, 
+			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException, SecurityViolationException {
+		displayTestTile("test002AddModelSubsystemLogger");
+		
+		// GIVEN
+		LogfileTestTailer tailer = new LogfileTestTailer();
+		
+		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test003AddModelSubsystemLogger");
 		OperationResult result = task.getResult();
 		
 		PrismObject<SystemConfigurationType> systemConfiguration = 

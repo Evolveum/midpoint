@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2011 lazyman                       -->
 <!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-121212121111"
+<role oid="12345111-1111-2222-1111-121212111111"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
     <name>Judge</name>    

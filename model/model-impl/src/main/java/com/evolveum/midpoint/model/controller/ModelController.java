@@ -104,6 +104,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -1291,12 +1292,27 @@ public class ModelController implements ModelService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
 
 		// TODO: initialize repository
+		
+		PrismObject<SystemConfigurationType> systemConfiguration;
+		try {
+			systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+			systemConfigurationHandler.postInit(systemConfiguration, result);
+		} catch (ObjectNotFoundException e) {
+			String message = "No system configuration found, skipping application of initial system settings"; 
+			LOGGER.error(message+": "+e.getMessage(), e);
+			result.recordPartialError(message, e);
+		} catch (SchemaException e) {
+			String message = "Schema error in system configuration, skipping application of initial system settings"; 
+			LOGGER.error(message+": "+e.getMessage(), e);
+			result.recordPartialError(message, e);
+		}
+		
 		// TODO: initialize task manager
 
 		// Initialize provisioning
 		provisioning.postInit(result);
 
-		result.computeStatus("Error occured during post initialization process.");
+		result.computeStatus();
 
 		RepositoryCache.exit();
 	}

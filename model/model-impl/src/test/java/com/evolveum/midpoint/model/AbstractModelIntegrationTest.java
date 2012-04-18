@@ -124,7 +124,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
 
 	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
-	protected static final String ROLE_JUDGE_OID = "12345678-d34d-b33f-f00d-121212121111";
+	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
 	
 	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";

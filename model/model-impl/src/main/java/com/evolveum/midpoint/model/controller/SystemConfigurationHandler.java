@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.controller;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -42,6 +43,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationT
 public class SystemConfigurationHandler {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationHandler.class);
+	
+	public void postInit(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult parentResult) {
+		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
+		LoggingConfigurationType loggingConfigType = systemConfigurationType.getLogging();
+		if (loggingConfigType != null) {
+			LoggingConfigurationManager.configure(loggingConfigType, parentResult);
+		}
+	}
 	
 	public void postChange(ObjectDelta<SystemConfigurationType> objectDelta, Task task, OperationResult parentResult) throws SchemaException {
 		LOGGER.trace("Configuration postChange with delta:\n{}", objectDelta.dump());
