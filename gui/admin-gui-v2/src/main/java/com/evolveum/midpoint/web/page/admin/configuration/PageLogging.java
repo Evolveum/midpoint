@@ -21,23 +21,10 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.accordion.Accordion;
-import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -51,9 +38,31 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.accordion.Accordion;
+import com.evolveum.midpoint.web.component.accordion.AccordionItem;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.SubsystemLevel;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 
 /**
  * @author lazyman
@@ -299,7 +308,10 @@ public class PageLogging extends PageAdminConfiguration {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                System.out.println(model.getObject().getRootLevel());
+            	LoggingConfigurationType configuration = new LoggingConfigurationType();
+            	
+            	
+            	//System.out.println(model.getObject().getRootLevel());
                 //todo implement
             }
 
@@ -401,6 +413,60 @@ public class PageLogging extends PageAdminConfiguration {
             }
         };
     }
+    
+    private LoggingConfigurationType createConfiguration() {
+		LoggingConfigurationType configuration = new LoggingConfigurationType();
+		AuditingConfigurationType audit = new AuditingConfigurationType();
+		audit.setDetails(model.getObject().isAuditDetails());
+		audit.setEnabled(model.getObject().isAuditLog());
+		configuration.setAuditing(audit);
+		configuration.setRootLoggerAppender(model.getObject().getRootAppender());
+		configuration.setRootLoggerLevel(model.getObject().getRootLevel());
+		List<LoggerConfiguration> loggersList = new ArrayList<LoggerConfiguration>();
+
+		for (AppenderConfiguration item : model.getObject().getAppenders()) {
+			AppenderConfigurationType appender = createAppenderType(item);
+			configuration.getAppender().add(appender);
+		}
+		for (LoggerConfiguration item : model.getObject().getLoggers()) {
+			if (item instanceof LoggerConfiguration) {
+				loggersList.add(item);
+				continue;
+			} 
+//				else if (item instanceof SubSystemLoggerConfigurationType) {
+//				SubSystemLoggerConfigurationType logger = createSubsystemLogger(
+//						(LoggerConfiguration) item, appenders);
+//				configuration.getSubSystemLogger().add(logger);
+//			}
+		}
+
+//		for (BasicLoggerListItem item : loggersList) {
+//			if (((LoggerListItem) item).getPackageName().equals("PROFILING")) {
+//				continue;
+//			}
+//			ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) item, appenders);
+//			configuration.getClassLogger().add(logger);
+//		}
+//
+//		updateProfilingLogger(profilingLogger);
+//		ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) profilingLogger, appenders);
+//		configuration.getClassLogger().add(logger);
+
+		return configuration;
+	}
+    
+    private FileAppenderConfigurationType createAppenderType(AppenderConfiguration item) {
+		FileAppenderConfigurationType appender = new FileAppenderConfigurationType();
+		appender.setAppend(item.appending());
+		appender.setFileName(item.getFilePath());
+		appender.setFilePattern(item.getFilePattern());
+		appender.setMaxFileSize(item.getMaxFileSize());
+		appender.setMaxHistory(item.getMaxHistory());
+		appender.setName(item.getName());
+		appender.setPattern(item.getPattern());
+
+		return appender;
+	}
 
     private void addLoggerPerformed(AjaxRequestTarget target) {
         //todo implement
