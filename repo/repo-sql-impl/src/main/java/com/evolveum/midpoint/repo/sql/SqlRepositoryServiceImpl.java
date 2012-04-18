@@ -93,6 +93,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
     public void setSessionFactory(SessionFactory sessionFactory) {
         //HACK !!! https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
+        fixCompositeIdentifierInMetaModel(RObjectReference.class);
+        fixCompositeIdentifierInMetaModel(RObjectReferenceTaskObject.class);
+        fixCompositeIdentifierInMetaModel(RObjectReferenceTaskOwner.class);
+
         fixCompositeIdentifierInMetaModel(RAssignment.class);
         fixCompositeIdentifierInMetaModel(RExclusion.class);
         for (RContainerType type : ClassMapper.getKnownTypes()) {
@@ -102,7 +106,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         this.sessionFactory = sessionFactory;
     }
 
-    private void fixCompositeIdentifierInMetaModel(Class<? extends RContainer> clazz) {
+    private void fixCompositeIdentifierInMetaModel(Class clazz) {
         ClassMetadata classMetadata = sessionFactory.getClassMetadata(clazz);
         if (classMetadata instanceof AbstractEntityPersister) {
             AbstractEntityPersister persister = (AbstractEntityPersister) classMetadata;
@@ -521,8 +525,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
 
             session = beginTransaction();
-//            session.merge(rObject);
-            session.saveOrUpdate(rObject);
+            session.merge(rObject);
+//            session.saveOrUpdate(rObject);
             session.getTransaction().commit();
         } catch (HibernateOptimisticLockingFailureException ex) {
             rollbackTransaction(session);

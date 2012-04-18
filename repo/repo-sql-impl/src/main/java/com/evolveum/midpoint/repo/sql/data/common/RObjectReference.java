@@ -40,6 +40,7 @@ import java.io.Serializable;
  * @author lazyman
  */
 @Entity
+@IdClass(RObjectReferenceId.class)
 @Table(name = "reference")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "reference_type", discriminatorType = DiscriminatorType.INTEGER)
@@ -100,7 +101,7 @@ public class RObjectReference implements Serializable {
     }
 
     @Id
-    @Column(name = "target_id")
+    @Column(name = "target_id", insertable = true,updatable = true,nullable = false)
     public Long getTargetId() {
         if (targetId == null && target != null) {
             targetId = target.getId();
@@ -112,7 +113,7 @@ public class RObjectReference implements Serializable {
     }
 
     @Id
-    @Column(name = "target_oid", length = 36)
+    @Column(name = "target_oid", length = 36, insertable = true,updatable = true,nullable = false)
     public String getTargetOid() {
         if (targetOid == null && target != null) {
             targetOid = target.getOid();
@@ -151,6 +152,11 @@ public class RObjectReference implements Serializable {
 
     public void setTarget(RContainer target) {
         this.target = target;
+//        if (target == null) {
+//            return;
+//        }
+//        setTargetId(target.getId());
+//        setTargetOid(target.getOid());
     }
 
     public void setOwner(RContainer owner) {
