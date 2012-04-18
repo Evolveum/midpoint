@@ -403,6 +403,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			return;
 		}
 		if (valuesToAdd != null) {
+			if (item.getDefinition() == null){
+				throw new SchemaException("Item "+item+" has no definition.");
+			}
 			if (item.getDefinition().isMultiValue()) {
 				item.addAll(valuesToAdd);
 			}
