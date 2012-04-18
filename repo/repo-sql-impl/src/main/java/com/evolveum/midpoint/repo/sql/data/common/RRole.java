@@ -114,9 +114,6 @@ public class RRole extends RObject {
             RAssignment rAssignment = new RAssignment();
             rAssignment.setOwner(repo);
 
-            rAssignment.setOid(repo.getOid());
-            rAssignment.setId(RUtil.getLongFromString(assignment.getId()));
-
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
 
             repo.getAssignments().add(rAssignment);
@@ -128,9 +125,6 @@ public class RRole extends RObject {
         for (ExclusionType exclusion : jaxb.getExclusion()) {
             RExclusion rExclusion = new RExclusion();
             rExclusion.setOwner(repo);
-
-            rExclusion.setOid(repo.getOid());
-            rExclusion.setId(RUtil.getLongFromString(exclusion.getId()));
 
             RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
             repo.getExclusions().add(rExclusion);

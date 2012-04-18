@@ -21,15 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.RRole;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -45,31 +43,43 @@ public class ContainerIdGenerator implements IdentifierGenerator {
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
         if (object instanceof RObject) {
             return 0L;
-        } else if (object instanceof RAssignment) {
-            RAssignment assignment = (RAssignment) object;
-            if (assignment.getId() != null) {
-                return assignment.getId();
+        } else if (object instanceof RContainer) {
+            RContainer container = (RContainer) object;
+            if (container.getId() != null) {
+                return container.getId();
             }
 
-            RObject o = assignment.getOwner();
-            if (o instanceof RUser) {
-                RUser user = (RUser) o;
-                return getNextId(user.getAssignments());
-            } else if (o instanceof RRole) {
-                RRole role = (RRole) o;
-                return getNextId(role.getAssignments());
+            if (container instanceof ROwnable) {
+                RContainer parent = ((ROwnable) container).getContainerOwner();
+
+                if (parent instanceof RUser) {
+                    RUser user = (RUser) parent;
+                    return getNextId(user.getAssignments());
+                } else if (parent instanceof RRole) {
+                    RRole role = (RRole) parent;
+
+                    Set<RContainer> containers = new HashSet<RContainer>();
+                    if (role.getAssignments() != null) {
+                        containers.addAll(role.getAssignments());
+                    }
+                    if (role.getExclusions() != null) {
+                        containers.addAll(role.getExclusions());
+                    }
+
+                    return getNextId(containers);
+                }
             }
         }
 
         return null;
     }
 
-    private Long getNextId(Set<RAssignment> set) {
+    private Long getNextId(Set<? extends RContainer> set) {
         Long id = 0L;
         if (set != null) {
-            for (RAssignment assignment : set) {
-                if (assignment.getId() != null && assignment.getId() > id) {
-                    id = assignment.getId();
+            for (RContainer container : set) {
+                if (container.getId() != null && container.getId() > id) {
+                    id = container.getId();
                 }
             }
         }

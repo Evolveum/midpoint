@@ -208,9 +208,9 @@ public class RAssignment extends RContainer implements ROwnable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setVersion(RUtil.getLongFromString(parent.getVersion()));
-        repo.setOid(repo.getOwnerOid());
+        repo.setOid(parent.getOid());
         repo.setId(RUtil.getLongWrappedFromString(jaxb.getId()));
+        repo.setVersion(RUtil.getLongFromString(parent.getVersion()));
 
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();

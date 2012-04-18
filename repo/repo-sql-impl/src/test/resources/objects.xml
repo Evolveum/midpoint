@@ -1164,4 +1164,19 @@
         <port>8759</port>
         <sharedSecret>secret</sharedSecret>
     </object>
+
+    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+        <name>Judge</name>
+        <assignment id="1">
+            <accountConstruction>
+                <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+            </accountConstruction>
+        </assignment>
+        <exclusion id="2">
+            <description>A judge cannot be a pirate at the same time. At least not openly.</description>
+            <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+            <policy>enforce</policy>
+        </exclusion>
+    </role>
 </objects>

@@ -40,7 +40,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "exclusion")
 @ForeignKey(name = "fk_exclusion")
-public class RExclusion extends RContainer {
+public class RExclusion extends RContainer implements ROwnable  {
 
     //owner
     private RObject owner;
@@ -118,6 +118,12 @@ public class RExclusion extends RContainer {
         this.ownerOid = ownerOid;
     }
 
+    @Transient
+    @Override
+    public RContainer getContainerOwner() {
+        return getOwner();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -160,12 +166,12 @@ public class RExclusion extends RContainer {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        repo.setOid(parent.getOid());
+        repo.setId(RUtil.getLongWrappedFromString(jaxb.getId()));
         repo.setVersion(RUtil.getLongFromString(parent.getVersion()));
 
         repo.setDescription(jaxb.getDescription());
-        repo.setId(RUtil.getLongFromString(jaxb.getId()));
         repo.setPolicy(jaxb.getPolicy());
-
         repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), repo, prismContext));
     }
 
