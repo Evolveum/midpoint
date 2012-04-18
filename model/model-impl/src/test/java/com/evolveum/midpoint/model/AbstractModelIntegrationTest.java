@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -244,7 +245,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	            Item property = userOld.findItem(itemMod.getPath());
 	            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in user", property);
 	            for (Object valueToDelete : itemMod.getValuesToDelete()) {
-	                if (!property.getValues().contains(valueToDelete)) {
+	                if (!property.containsRealValue((PrismValue) valueToDelete)) {
 	                    display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
 	                    display("Deleted value", valueToDelete);
 	                    display("HASHCODE: " + valueToDelete.hashCode());

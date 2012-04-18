@@ -291,6 +291,19 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 		return clonedValues;
 	}
     
+    public boolean contains(V value) {
+    	return getValues().contains(value);
+    }
+    
+    public boolean containsRealValue(V value) {
+    	for (V myValue: getValues()) {
+    		if (myValue.equalsRealValue(value)) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
     public boolean addAll(Collection<V> newValues) throws SchemaException {
     	boolean changed = false;
     	for (V val: newValues) {

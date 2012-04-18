@@ -28,7 +28,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Common midPoint annotations used in various XSD schemas.
+            Common Prism annotations used in various XSD schemas.
 
             TODO
         </xsd:documentation>

@@ -35,7 +35,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Prism query schema. It defines structures that form XML query language for prism objects.
+            TODO
         </xsd:documentation>
     </xsd:annotation>
 

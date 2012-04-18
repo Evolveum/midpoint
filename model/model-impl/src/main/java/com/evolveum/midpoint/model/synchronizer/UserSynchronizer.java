@@ -151,9 +151,6 @@ public class UserSynchronizer {
         userPolicyProcessor.processUserPolicy(context, result);
         context.recomputeUserNew();
         SynchronizerUtil.traceContext("user policy", context, false);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("User delta:\n{}", context.getUserDelta() == null ? "null" : context.getUserDelta().dump());
-        }
         if (consistenceChecks) context.checkConsistence();
 
         assignmentProcessor.processAssignmentsAccounts(context, result);

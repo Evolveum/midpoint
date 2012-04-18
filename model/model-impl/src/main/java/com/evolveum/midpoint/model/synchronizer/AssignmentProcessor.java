@@ -147,14 +147,14 @@ public class AssignmentProcessor {
 
             Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, result);
             
-            if (assignmentsOld.contains(propertyValue)) {
+            if (containsRealValue(assignmentsOld,propertyValue)) {
                 // TODO: remember old state
             }
 
             context.rememberResources(evaluatedAssignment.getResources(result));
 
             // Sort assignments to sets: unchanged (zero), added (plus), removed (minus)
-            if (changedAssignments.contains(propertyValue)) {
+            if (containsRealValue(changedAssignments,propertyValue)) {
                 // There was some change
 
                 if (assignmentDelta.isValueToAdd(propertyValue)) {
@@ -233,6 +233,16 @@ public class AssignmentProcessor {
         
     }
     
+	private boolean containsRealValue(Collection<PrismContainerValue<AssignmentType>> assignmentValuesCollection,
+			PrismContainerValue<AssignmentType> assignmentValue) {
+		for (PrismContainerValue<AssignmentType> colValue: assignmentValuesCollection) {
+			if (colValue.equalsRealValue(assignmentValue)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public void processAssignmentsAccountValues(AccountSyncContext accountContext, OperationResult result) throws SchemaException,
 		ObjectNotFoundException, ExpressionEvaluationException {
             

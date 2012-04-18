@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -39,6 +40,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -321,8 +324,13 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModificationToContext(context, TestUserSynchronizer.REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        
+        context.recomputeUserNew();
 
         display("Input context", context);
+        
+        PrismObject<UserType> userNew = context.getUserNew();
+        assertEquals("Unexpected number of assignemnts in userNew after recompute", 1, userNew.asObjectable().getAssignment().size());
 
         assertUserModificationSanity(context);
 
@@ -330,7 +338,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assignmentProcessor.processAssignmentsAccounts(context, result);
 
         // THEN
-        display("Output context", context);
+        display("Output context", context.dump(true));
         display("outbound processor result", result);
 //		assertSuccess("Outbound processor failed (result)", result);
 

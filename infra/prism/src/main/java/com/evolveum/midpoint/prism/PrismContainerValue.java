@@ -615,14 +615,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 	
 	public boolean equalsRealValue(PrismContainerValue<T> thisValue, PrismContainerValue<T> otherValue) {
-		if (thisValue.getId() != null && otherValue.getId() != null) {
-			if (!(thisValue.getId().equals(otherValue.getId()))) {
-				return false;
-			}
-		}
-		if (thisValue.getId() != null || otherValue.getId() != null) {
-			return false;
-		}
+		// Ignore ID. ID is considered to be meta-data.
 		return equalsItems(thisValue, otherValue, true);
 	}
 	
