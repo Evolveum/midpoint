@@ -6,6 +6,8 @@ public enum TaskItemExecutionStatus {
 
 	RUNNING("runn.png", "Running"),
 
+    RUNNABLE("runn.png", "Runnable"),
+
 	WAITING("hourglass.png", "Waiting"),
 
 	SUSPENDED("stop.png", "Suspended"),
@@ -33,7 +35,7 @@ public enum TaskItemExecutionStatus {
 			return CLOSED;
 		}
 		if (executionStatus.equals(TaskExecutionStatus.RUNNABLE)) {
-			return RUNNING;
+			return RUNNABLE;
 		}
 		if (executionStatus.equals(TaskExecutionStatus.WAITING)) {
 			return WAITING;
@@ -53,7 +55,10 @@ public enum TaskItemExecutionStatus {
 		if (executionStatus.equals(TaskItemExecutionStatus.RUNNING)) {
 			return TaskExecutionStatus.RUNNABLE;
 		}
-		if (executionStatus.equals(TaskItemExecutionStatus.WAITING)) {
+        if (executionStatus.equals(TaskItemExecutionStatus.RUNNABLE)) {
+            return TaskExecutionStatus.RUNNABLE;
+        }
+        if (executionStatus.equals(TaskItemExecutionStatus.WAITING)) {
 			return TaskExecutionStatus.WAITING;
 		}
 		if (executionStatus.equals(TaskItemExecutionStatus.SUSPENDED)) {

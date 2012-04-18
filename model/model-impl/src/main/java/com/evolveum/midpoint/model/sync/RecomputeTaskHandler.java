@@ -247,4 +247,14 @@ public class RecomputeTaskHandler implements TaskHandler {
 		// Do nothing. Everything is fresh already.		
 	}
 
+
+    @Override
+    public String getCategoryName(Task task) {
+        return "User recomputation";
+    }
+
+    @Override
+    public List<String> getCategoryNames() {
+        return null;
+    }
 }

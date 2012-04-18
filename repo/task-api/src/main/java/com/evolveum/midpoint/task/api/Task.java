@@ -439,5 +439,6 @@ public interface Task extends Dumpable {
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException;
 
+    String getCategory();
 	
 }

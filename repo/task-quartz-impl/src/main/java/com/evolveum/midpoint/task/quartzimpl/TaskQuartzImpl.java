@@ -29,6 +29,7 @@ import java.util.Vector;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -46,13 +47,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.LightweightIdentifier;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.api.TaskRecurrence;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -1189,7 +1183,18 @@ public class TaskQuartzImpl implements Task {
 		return taskManager.getPrismContext();
 	}
 
+    public TaskHandler getHandler() {
+        String handlerUri = taskPrism.asObjectable().getHandlerUri();
+        return handlerUri != null ? taskManager.getHandler(handlerUri) : null;
+    }
 
-
-
+    @Override
+    public String getCategory() {
+        TaskHandler h = getHandler();
+        if (h != null) {
+            return h.getCategoryName(this);
+        } else {
+            return null;
+        }
+    }
 }

@@ -42,6 +42,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import java.util.List;
+
 /**
  * The task hander for a live synchronization.
  * 
@@ -161,4 +163,13 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		// Do nothing. Everything is fresh already.		
 	}
 
+    @Override
+    public String getCategoryName(Task task) {
+        return "Live synchronization";
+    }
+
+    @Override
+    public List<String> getCategoryNames() {
+        return null;
+    }
 }

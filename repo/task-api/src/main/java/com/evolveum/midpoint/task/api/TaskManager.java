@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.task.api;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -100,7 +101,7 @@ public interface TaskManager {
 	 * @return new Java representation of the task
 	 */
 	public Task createTaskInstance(String operationName);
-	
+
 	/**
 	 * Creates task instance from the XML task representation.
 	 * 
@@ -406,4 +407,6 @@ public interface TaskManager {
     String getNodeId();
 
     boolean isCurrentNode(PrismObject<NodeType> node);
+
+    public List<String> getAllTaskCategories();
 }

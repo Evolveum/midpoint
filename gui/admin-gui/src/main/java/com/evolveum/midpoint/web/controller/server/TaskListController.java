@@ -28,6 +28,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.TaskItem;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.SortableListController;
@@ -48,6 +52,8 @@ import java.util.Set;
 @Controller("taskList")
 @Scope("session")
 public class TaskListController extends SortableListController<TaskItem> {
+
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskListController.class);
 
     private static final long serialVersionUID = 1L;
     @Autowired(required = true)
@@ -83,7 +89,7 @@ public class TaskListController extends SortableListController<TaskItem> {
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
         for (PrismObject<TaskType> task : taskTypeList) {
-            runningTasks.add(new TaskItem(task.asObjectable(), taskManager, runningTasksInfo));
+            runningTasks.add(new TaskItem(task, taskManager, runningTasksInfo));
         }
 
         listAll = true;
@@ -91,14 +97,40 @@ public class TaskListController extends SortableListController<TaskItem> {
     }
 
     public String listRunningTasks() {
+
         Set<Task> tasks = taskManager.getRunningTasks();
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
         for (Task task : tasks) {
-            runningTasks.add(new TaskItem(task, taskManager));
+            runningTasks.add(new TaskItem(task, taskManager, null));
         }
 
-        runningTasksInfo = null;            // not necessary, because object list itself will contain running tasks
+        runningTasksInfo = null;            // to ensure that cluster info will not display old information
+
+        listAll = false;
+        return PAGE_NAVIGATION;
+    }
+
+    public String listRunningTasksClusterwide() {
+
+        OperationResult result = createOperationResult("listRunningTasksClusterwide");
+
+        runningTasksInfo = taskManager.getRunningTasksClusterwide();
+        List<TaskItem> runningTasks = getObjects();
+        runningTasks.clear();
+        for (RunningTasksInfo.TaskInfo taskInfo : runningTasksInfo.getTasks()) {
+            String oid = taskInfo.getOid();
+            try {
+                Task task = taskManager.getTask(oid, result);
+                runningTasks.add(new TaskItem(task, taskManager, runningTasksInfo));
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Cannot retrieve the task {} from repository, because it does not exist.", e, oid);
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Cannot retrieve the task {} from repository due to schema exception.", e, oid);
+            } catch (SystemException e) {
+                LoggingUtils.logException(LOGGER, "Cannot retrieve the task {} from repository due to system exception.", e, oid);
+            }
+        }
 
         listAll = false;
         return PAGE_NAVIGATION;
@@ -311,7 +343,7 @@ public class TaskListController extends SortableListController<TaskItem> {
             } else {
                 retval.append("running = " + nodeInfo.isSchedulerRunning());
 
-                List<RunningTasksInfo.TaskInfo> taskInfoList = runningTasksInfo.getTasks().get(nodeInfo);
+                List<RunningTasksInfo.TaskInfo> taskInfoList = runningTasksInfo.getTasksOnNode(nodeInfo);
                 retval.append("; tasks: " + taskInfoList.size() + " [");
                 boolean first = true;
                 for (RunningTasksInfo.TaskInfo ti : taskInfoList) {
@@ -328,4 +360,9 @@ public class TaskListController extends SortableListController<TaskItem> {
         }
         return retval.toString();
     }
+
+    private OperationResult createOperationResult(String methodName) {
+        return new OperationResult(TaskListController.class.getName() + "." + methodName);
+    }
+
 }

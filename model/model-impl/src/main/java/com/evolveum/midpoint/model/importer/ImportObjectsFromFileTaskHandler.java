@@ -212,4 +212,13 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
 
+    @Override
+    public String getCategoryName(Task task) {
+        return "Import from file";
+    }
+
+    @Override
+    public List<String> getCategoryNames() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

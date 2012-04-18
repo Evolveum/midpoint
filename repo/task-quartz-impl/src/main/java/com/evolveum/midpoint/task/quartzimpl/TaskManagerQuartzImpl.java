@@ -374,10 +374,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		task.initialize(parentResult);
 		return task;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType, java.lang.String)
-	 */
+
+    /* (non-Javadoc)
+      * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType, java.lang.String)
+      */
 	@Override
 	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
 		TaskQuartzImpl taskImpl = (TaskQuartzImpl) createTaskInstance(taskPrism, parentResult);
@@ -945,5 +945,20 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     public UseThreadInterrupt getUseThreadInterrupt() {
         return configuration.getUseThreadInterrupt();
+    }
+
+    @Override
+    public List<String> getAllTaskCategories() {
+
+        List<String> retval = new ArrayList<String>();
+        for (TaskHandler h : handlers.values()) {
+            List<String> cat = h.getCategoryNames();
+            if (cat != null) {
+                retval.addAll(cat);
+            } else {
+                retval.add(h.getCategoryName(null));
+            }
+        }
+        return retval;
     }
 }

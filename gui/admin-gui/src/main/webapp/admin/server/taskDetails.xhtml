@@ -34,7 +34,7 @@
                 <ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
                     <f:facet name="header">
                         <h3>Task</h3>
-						<b><ice:outputText value="This is an in-memory information about currently running task instance. It might be obsolete and/or inaccurate. Please do not modify it, unless you are sure what you are doing." rendered="#{not taskDetails.adding and not taskList.listAll}"/></b>                    
+						<b><ice:outputText value="This is an in-memory information about currently running task instance. It might be obsolete and/or inaccurate. Please do not modify it, unless you are sure what you are doing." rendered="#{not taskDetails.adding and not taskList.listAll}"/></b>
 					</f:facet>
                     <ice:outputLabel value="Task oid: " rendered="#{not taskDetails.adding}"/>
                     <ice:outputText value="#{taskDetails.task.oid}" rendered="#{not taskDetails.adding}"/>

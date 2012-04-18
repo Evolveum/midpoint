@@ -66,6 +66,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * The task hander for reconciliation.
@@ -386,4 +387,13 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		// Do nothing. Everything is fresh already.
 	}
 
+    @Override
+    public String getCategoryName(Task task) {
+        return "Reconciliation";
+    }
+
+    @Override
+    public List<String> getCategoryNames() {
+        return null;
+    }
 }

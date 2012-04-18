@@ -88,13 +88,23 @@ public class RunningTasksInfo {
 
     private Map<NodeInfo,List<TaskInfo>> tasks = new HashMap<NodeInfo,List<TaskInfo>>();
 
-    public Map<NodeInfo, List<TaskInfo>> getTasks() {
+    public Set<TaskInfo> getTasks() {
+        Set<TaskInfo> retval = new HashSet<TaskInfo>();
+        for (List<TaskInfo> tasksOnNode : tasks.values()) {
+            retval.addAll(tasksOnNode);
+        }
+        return retval;
+    }
+
+    public Map<NodeInfo, List<TaskInfo>> getTasksOnNodes() {
         return tasks;
     }
 
-    public void setTasks(Map<NodeInfo, List<TaskInfo>> tasks) {
-        this.tasks = tasks;
+    public List<TaskInfo> getTasksOnNode(NodeInfo nodeInfo) {
+        return tasks.get(nodeInfo);
     }
+
+
 
     // assumes the task is executing at one node only
     public NodeInfo findNodeInfoForTask(String oid) {

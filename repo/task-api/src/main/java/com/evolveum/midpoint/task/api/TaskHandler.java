@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import java.util.List;
+
 /**
  * @author Radovan Semancik
  *
@@ -31,5 +33,20 @@ public interface TaskHandler {
 	
 	// TODO: fix signature
 	public void refreshStatus(Task task);
+
+    /**
+     * Returns a category name for a given task. In most cases, the name would be independent of concrete task.
+     * @param task a task, whose category is to be determined; if getCategoryNames() returns null, this method
+     *             has to accept null value as this parameter, and return the (one) category name that it gives
+     *             to all tasks
+     * @return a user-understandable name, like "LiveSync" or "Workflow"
+     */
+    public String getCategoryName(Task task);
+
+    /**
+     * Returns names of task categories provided by this handler. Usually it will be one-item list.
+     * @return a list of category names; may be null - in that case the category info is given by getCategoryName(null)
+     */
+    public List<String> getCategoryNames();
 
 }

@@ -29,6 +29,8 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import java.util.List;
+
 /**
  * @author Radovan Semancik
  *
@@ -79,4 +81,13 @@ public class MockCycleTaskHandler implements TaskHandler {
 
 	}
 
+    @Override
+    public String getCategoryName(Task task) {
+        return "Mock";
+    }
+
+    @Override
+    public List<String> getCategoryNames() {
+        return null;
+    }
 }

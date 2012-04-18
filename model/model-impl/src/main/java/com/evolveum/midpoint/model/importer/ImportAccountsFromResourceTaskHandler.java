@@ -55,10 +55,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Task handler for "Import from resource" task.
@@ -351,4 +348,13 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
 
+    @Override
+    public String getCategoryName(Task task) {
+        return "Importing accounts";
+    }
+
+    @Override
+    public List<String> getCategoryNames() {
+        return null;
+    }
 }
