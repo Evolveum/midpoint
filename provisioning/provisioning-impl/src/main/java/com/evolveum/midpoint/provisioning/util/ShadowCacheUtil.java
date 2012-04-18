@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
@@ -120,8 +121,45 @@ public class ShadowCacheUtil {
 		}
 
 		repoShadow.asPrismObject().checkConsistence();
-		
+
 		return repoShadow;
+	}
+
+	public static <T extends ResourceObjectShadowType> void normalizeShadow(T shadow, OperationResult result)
+			throws SchemaException {
+
+
+		if (shadow.getAttemptNumber() !=  null){
+			shadow.setAttemptNumber(null);
+		}
+		
+		if (shadow.getFailedOperationType() != null){
+			shadow.setFailedOperationType(null);
+		}
+		
+		if (shadow.getObjectChange() != null){
+			shadow.setObjectChange(null);
+		}
+		
+		if (shadow.getResult() != null){
+			shadow.setResult(null);
+		}
+		ResourceAttributeContainer normalizedContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		ResourceAttributeContainer oldContainer = normalizedContainer.clone();
+		
+		normalizedContainer.clear();
+		Collection<ResourceAttribute<?>> identifiers = oldContainer.getIdentifiers();	
+		for (PrismProperty<?> p : identifiers) {
+			normalizedContainer.getValue().add(p);
+		}
+		
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = oldContainer.getSecondaryIdentifiers();
+		for (PrismProperty<?> p : secondaryIdentifiers) {
+			normalizedContainer.getValue().add(p);
+		}
+
+		
+		
 	}
 
 	/**
@@ -350,7 +388,7 @@ public class ShadowCacheUtil {
 			if (identifiers.size() == 1) {
 				PrismProperty<?> identifier = identifiers.iterator().next();
 				// Only single-valued identifiers
-				Collection<PrismPropertyValue<?>> values = (Collection)identifier.getValues();
+				Collection<PrismPropertyValue<?>> values = (Collection) identifier.getValues();
 				if (values.size() == 1) {
 					PrismPropertyValue<?> value = values.iterator().next();
 					// and only strings
@@ -358,8 +396,9 @@ public class ShadowCacheUtil {
 						return (String) value.getValue();
 					}
 				}
-			} else{
-				return attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME).getValue(String.class).getValue();
+			} else {
+				return attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME)
+						.getValue(String.class).getValue();
 			}
 			// Identifier is not usable as name
 			// TODO: better identification of a problem
@@ -383,8 +422,6 @@ public class ShadowCacheUtil {
 		ResourceAttributeContainer repoAttributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(repoShadow);
 
-
-		
 		// Clean all repoShadow attributes and add only those that should be
 		// there
 		repoAttributesContainer.getValue().clear();
@@ -396,7 +433,6 @@ public class ShadowCacheUtil {
 		for (PrismProperty<?> p : secondaryIdentifiers) {
 			repoAttributesContainer.getValue().add(p);
 		}
-		
 
 		// We don't want to store credentials in the repo
 		T repoShadowType = repoShadow.asObjectable();
@@ -404,7 +440,6 @@ public class ShadowCacheUtil {
 			((AccountShadowType) repoShadowType).setCredentials(null);
 
 		}
-		
 
 		// additional check if the shadow doesn't contain resource, if yes,
 		// convert to the resource reference.
@@ -412,25 +447,20 @@ public class ShadowCacheUtil {
 			repoShadowType.setResource(null);
 			repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
 		}
-		
-		
-		
-		//if shadow does not contain resource or resource reference, create it now
-		if (repoShadowType.getResourceRef() == null){
+
+		// if shadow does not contain resource or resource reference, create it
+		// now
+		if (repoShadowType.getResourceRef() == null) {
 			repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
 		}
 
-		
-		
 		if (repoShadowType.getName() == null) {
 			repoShadowType.setName(determineShadowName(shadowType));
 		}
-		
-		if (repoShadowType.getObjectClass() == null){
+
+		if (repoShadowType.getObjectClass() == null) {
 			repoShadowType.setObjectClass(attributesContainer.getDefinition().getTypeName());
 		}
-		
-		
 
 		return repoShadowType;
 	}

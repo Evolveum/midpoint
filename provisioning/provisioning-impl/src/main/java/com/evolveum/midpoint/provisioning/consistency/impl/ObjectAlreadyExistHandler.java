@@ -4,6 +4,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -30,7 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
+import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,8 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			account.setActivation(ShadowCacheUtil.completeActivation(account, account.getResource(),
 					parentResult));
 		}
-		change.setObjectDelta(null);
+		
+//		change.setObjectDelta(null);
 		change.setResource(shadow.getResource().asPrismObject());
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
 
@@ -84,23 +86,9 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			changeNotificationDispatcher.notifyChange(change, null, handleErrorResult);
 		}
 
-		List<PrismObject<AccountShadowType>> foundAccountAfterSync = getExistingAccount(query, parentResult);
+//		parentResult.recordSuccess();
+		throw new ObjectAlreadyExistsException(ex.getMessage(), ex);
 
-		if (foundAccountAfterSync.isEmpty()) {
-			provisioningService.addObject(shadow.asPrismObject(), null, parentResult);
-		} 
-		else {
-			shadow.setOid(foundAccount.get(0).getOid());
-		}
-
-		// changeNotificationDispatcher.notifyChange(change, null,
-		// handleErrorResult);
-
-		// try{
-		// provisioningService.addObject(shadow, null, parentResult);
-		// } catch(ObjectAlreadyExistsException e){
-		//
-		// }
 
 	}
 

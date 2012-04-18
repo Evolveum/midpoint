@@ -914,7 +914,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				PropertyDelta delta = change.getPropertyDelta();
 
 				if (delta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
-					if (delta.getDefinition() == null) {
+					if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
 						//
 						ResourceAttributeDefinition def = objectClass
 								.findAttributeDefinition(delta.getName());

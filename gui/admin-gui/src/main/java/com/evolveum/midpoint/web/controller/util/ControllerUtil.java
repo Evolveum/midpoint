@@ -150,6 +150,26 @@ public class ControllerUtil {
 		ObjectManager<GuiUserDto> objectManager = catalog.getObjectManager(UserType.class, GuiUserDto.class);
 		return (UserManager) (objectManager);
 	}
+	
+	public static ObjectManager getManager(ObjectTypeCatalog catalog, String clazz) {
+		if (UserType.class.getSimpleName().equals(clazz)){
+			return getUserManager(catalog);
+		}
+		if (ResourceType.class.getSimpleName().equals(clazz)){
+			return getResourceManager(catalog);
+		}
+		if (AccountShadowType.class.getSimpleName().equals(clazz)){
+			return getAccountManager(catalog);
+		}
+		if (RoleType.class.getSimpleName().equals(clazz)){
+			return getRoleManager(catalog);
+		}
+		if (SystemConfigurationType.class.getSimpleName().equals(clazz)){
+			return getSystemManager(catalog);
+		}
+		throw new UnsupportedOperationException("Unsupported object type: "+ clazz);
+		
+	}
 
 	public static ResourceManager getResourceManager(ObjectTypeCatalog catalog) {
 		Validate.notNull(catalog, "Object type catalog must not be null.");

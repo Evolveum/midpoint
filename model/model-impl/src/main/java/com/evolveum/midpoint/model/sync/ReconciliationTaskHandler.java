@@ -20,15 +20,22 @@
  */
 package com.evolveum.midpoint.model.sync;
 
+import java.util.Collection;
+import java.util.List;
+
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,16 +45,22 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,53 +70,55 @@ import javax.xml.namespace.QName;
 /**
  * The task hander for reconciliation.
  * 
- *  This handler takes care of executing reconciliation "runs". It means that the handler "run" method will
- *  be as scheduled (every few days). The responsibility is to iterate over accounts and compare the
- *  real state with the assumed IDM state.
+ * This handler takes care of executing reconciliation "runs". It means that the
+ * handler "run" method will be as scheduled (every few days). The
+ * responsibility is to iterate over accounts and compare the real state with
+ * the assumed IDM state.
  * 
  * @author Radovan Semancik
- *
+ * 
  */
 @Component
 public class ReconciliationTaskHandler implements TaskHandler {
-	
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/sync/reconciliation-handler-1";
-	
-	@Autowired(required=true)
-	private TaskManager taskManager;
-	
-	@Autowired(required=true)
-	private ProvisioningService provisioningService;
-	
-	@Autowired(required=true)
-	private RepositoryService repositoryService;
-	
-	@Autowired(required=true)
-	private PrismContext prismContext;
-	
-    @Autowired(required = true)
-    private UserSynchronizer userSynchronizer;
-    
-    @Autowired
-    private ChangeExecutor changeExecutor;
-    
-    @Autowired(required = true)
-    private ChangeNotificationDispatcher changeNotificationDispatcher;
 
-	
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/sync/reconciliation-handler-1";
+
+	@Autowired(required = true)
+	private TaskManager taskManager;
+
+	@Autowired(required = true)
+	private ProvisioningService provisioningService;
+
+	@Autowired(required = true)
+	private RepositoryService repositoryService;
+
+	@Autowired(required = true)
+	private PrismContext prismContext;
+
+	@Autowired(required = true)
+	private UserSynchronizer userSynchronizer;
+
+	@Autowired
+	private ChangeExecutor changeExecutor;
+
+	@Autowired(required = true)
+	private ChangeNotificationDispatcher changeNotificationDispatcher;
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
 	private static final int SEARCH_MAX_SIZE = 100;
+
+	private static final int MAX_ITERATIONS = 10;
 
 	@PostConstruct
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
-	
+
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.trace("ReconciliationTaskHandler.run starting");
-		
+
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
 		TaskRunResult runResult = new TaskRunResult();
@@ -111,106 +126,251 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		String resourceOid = task.getObjectOid();
 		opResult.addContext("resourceOid", resourceOid);
 
-		if (resourceOid==null) {
+		if (resourceOid == null) {
 			throw new IllegalArgumentException("Resource OID is missing in task extension");
 		}
-			
+
 		try {
 
 			performResourceReconciliation(resourceOid, task, opResult);
-			
+			performRepoReconciliation(task, opResult);
+
 		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("Reconciliation: Resource does not exist, OID: {}",resourceOid,ex);
+			LOGGER.error("Reconciliation: Resource does not exist, OID: {}", resourceOid, ex);
 			// This is bad. The resource does not exist. Permanent problem.
-			opResult.recordFatalError("Resource does not exist, OID: "+resourceOid,ex);
+			opResult.recordFatalError("Resource does not exist, OID: " + resourceOid, ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
-//		} catch (ObjectAlreadyExistsException ex) {
-//			LOGGER.error("Reconciliation: Object already exist: {}",ex.getMessage(),ex);
-//			// This is bad. The resource does not exist. Permanent problem.
-//			opResult.recordFatalError("Object already exist: "+ex.getMessage(),ex);
-//			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-//			runResult.setProgress(progress);
-//			return runResult;
+		} catch (ObjectAlreadyExistsException ex) {
+			LOGGER.error("Reconciliation: Object already exist: {}", ex.getMessage(), ex);
+			// This is bad. The resource does not exist. Permanent problem.
+			opResult.recordFatalError("Object already exist: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+
 		} catch (CommunicationException ex) {
-			LOGGER.error("Reconciliation: Communication error: {}",ex.getMessage(),ex);
+			LOGGER.error("Reconciliation: Communication error: {}", ex.getMessage(), ex);
 			// Error, but not critical. Just try later.
-			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
+			opResult.recordPartialError("Communication error: " + ex.getMessage(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (SchemaException ex) {
-			LOGGER.error("Reconciliation: Error dealing with schema: {}",ex.getMessage(),ex);
-			// Not sure about this. But most likely it is a misconfigured resource or connector
-			// It may be worth to retry. Error is fatal, but may not be permanent.
-			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
+			LOGGER.error("Reconciliation: Error dealing with schema: {}", ex.getMessage(), ex);
+			// Not sure about this. But most likely it is a misconfigured
+			// resource or connector
+			// It may be worth to retry. Error is fatal, but may not be
+			// permanent.
+			opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
-//		} catch (ExpressionEvaluationException ex) {
-//			LOGGER.error("Reconciliation: Error evaluating expression: {}",ex.getMessage(),ex);
-//			opResult.recordFatalError("Error evaluating expression: "+ex.getMessage(),ex);
-//			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-//			runResult.setProgress(progress);
-//			return runResult;
+			// } catch (ExpressionEvaluationException ex) {
+			// LOGGER.error("Reconciliation: Error evaluating expression: {}",ex.getMessage(),ex);
+			// opResult.recordFatalError("Error evaluating expression: "+ex.getMessage(),ex);
+			// runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			// runResult.setProgress(progress);
+			// return runResult;
 		} catch (RuntimeException ex) {
-			LOGGER.error("Reconciliation: Internal Error: {}",ex.getMessage(),ex);
+			LOGGER.error("Reconciliation: Internal Error: {}", ex.getMessage(), ex);
 			// Can be anything ... but we can't recover from that.
-			// It is most likely a programming error. Does not make much sense to retry.
-			opResult.recordFatalError("Internal Error: "+ex.getMessage(),ex);
+			// It is most likely a programming error. Does not make much sense
+			// to retry.
+			opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (ConfigurationException ex) {
-			LOGGER.error("Reconciliation: Configuration error: {}",ex.getMessage(),ex);
-			// Not sure about this. But most likely it is a misconfigured resource or connector
-			// It may be worth to retry. Error is fatal, but may not be permanent.
-			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
+			LOGGER.error("Reconciliation: Configuration error: {}", ex.getMessage(), ex);
+			// Not sure about this. But most likely it is a misconfigured
+			// resource or connector
+			// It may be worth to retry. Error is fatal, but may not be
+			// permanent.
+			opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (SecurityViolationException ex) {
-			LOGGER.error("Recompute: Security violation: {}",ex.getMessage(),ex);
-			opResult.recordFatalError("Security violation: "+ex.getMessage(),ex);
+			LOGGER.error("Recompute: Security violation: {}", ex.getMessage(), ex);
+			opResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		}
-		
+
 		opResult.computeStatus("Reconciliation run has failed");
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
-		LOGGER.trace("Reconciliation.run stopping, result: {}",opResult.getStatus());
+		LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
 		return runResult;
 	}
 
-	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, 
-			CommunicationException, ConfigurationException, SecurityViolationException {
-		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
+	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
+
+		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result)
+				.asObjectable();
 
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
 		RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
-        LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}", ObjectTypeUtil.toShortString(resource), refinedAccountDefinition);
+		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}",
+				ObjectTypeUtil.toShortString(resource), refinedAccountDefinition);
 
-        // Instantiate result handler. This will be called with every search result in the following iterative search
-        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
-        handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
-        handler.setProcessShortName("reconciliation");
-        handler.setStopOnError(false);
-                
+		// Instantiate result handler. This will be called with every search
+		// result in the following iterative search
+		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource,
+				refinedAccountDefinition, task, changeNotificationDispatcher);
+		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
+		handler.setProcessShortName("reconciliation");
+		handler.setStopOnError(false);
+
 		QueryType query = createAccountSearchQuery(resource, refinedAccountDefinition);
-		
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query , null, handler , result);
-				
-		
+
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, result);
+
 		// TODO: process result
 	}
 
-	private QueryType createAccountSearchQuery(ResourceType resource, RefinedAccountDefinition refinedAccountDefinition) throws SchemaException {
+	private void performRepoReconciliation(Task task, OperationResult result) throws SchemaException,
+			ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException,
+			ConfigurationException, SecurityViolationException {
+		// find accounts
+//		QueryType query = QueryUtil.createQuery(QueryUtil.createEqualFilter(DOMUtil.getDocument(), null,
+//				AccountShadowType.F_FAILED_OPERATION_TYPE, "!=null"));
+		List<PrismObject<AccountShadowType>> shadows = repositoryService.listObjects(
+				AccountShadowType.class, new PagingType(), result);
+
+		for (PrismObject<AccountShadowType> shadow : shadows) {
+
+			// if (shadow.asObjectable().getAttemptNumber().intValue() >
+			// MAX_ITERATIONS){
+			// normalizeShadow(shadow, result);
+			// }
+			if (shadow.asObjectable().getFailedOperationType() == null){
+				continue;
+			}
+
+			try {
+				retryFailedOperation(shadow.asObjectable(), result);
+			} catch (Exception ex) {
+				Collection<? extends ItemDelta> modifications = PropertyDelta
+						.createModificationReplacePropertyCollection(AccountShadowType.F_ATTEMPT_NUMBER,
+								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
+				repositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
+						result);
+			}
+		}
+
+		// for each try the operation again
+	}
+
+	// private void normalizeShadow(PrismObject<AccountShadowType> shadow,
+	// OperationResult parentResult){
+	//
+	// }
+
+	private void retryFailedOperation(AccountShadowType shadow, OperationResult parentResult)
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
+			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.ADD)) {
+			addObject(shadow.asPrismObject(), parentResult);
+
+		}
+		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.MODIFY)) {
+			ObjectDeltaType shadowDelta = shadow.getObjectChange();
+			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
+					shadowDelta.getModification(), shadow.asPrismObject().getDefinition());
+
+			modifyObject(shadow.getOid(), modifications, parentResult);
+		}
+
+		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.DELETE)) {
+			deleteObject(shadow.getOid(), parentResult);
+		}
+	}
+
+	private void addObject(PrismObject<AccountShadowType> shadow, OperationResult parentResult)
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
+			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+		try {
+			provisioningService.addObject(shadow, null, parentResult);
+		} catch (ObjectAlreadyExistsException e) {
+			parentResult.recordFatalError("Cannot add object: object already exist: " + e.getMessage(), e);
+			throw e;
+		} catch (SchemaException e) {
+			parentResult.recordFatalError("Cannot add object: schema violation: " + e.getMessage(), e);
+			throw e;
+		} catch (CommunicationException e) {
+			parentResult.recordFatalError("Cannot add object: communication problem: " + e.getMessage(), e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			parentResult.recordFatalError("Cannot add object: object not found: " + e.getMessage(), e);
+			throw e;
+		} catch (ConfigurationException e) {
+			parentResult.recordFatalError("Cannot add object: configuration problem: " + e.getMessage(), e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			parentResult.recordFatalError("Cannot add object: security violation: " + e.getMessage(), e);
+			throw e;
+		}
+	}
+
+	private void modifyObject(String oid, Collection<? extends ItemDelta> modifications,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+		try {
+			provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null, parentResult);
+		} catch (ObjectNotFoundException e) {
+			parentResult.recordFatalError("Cannot modify object: object not found: " + e.getMessage(), e);
+			throw e;
+		} catch (SchemaException e) {
+			parentResult.recordFatalError("Cannot modify object: schema violation: " + e.getMessage(), e);
+			throw e;
+		} catch (CommunicationException e) {
+			parentResult
+					.recordFatalError("Cannot modify object: communication problem: " + e.getMessage(), e);
+			throw e;
+		} catch (ConfigurationException e) {
+			parentResult
+					.recordFatalError("Cannot modify object: configuration problem: " + e.getMessage(), e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			parentResult.recordFatalError("Cannot modify object: security violation: " + e.getMessage(), e);
+			throw e;
+		}
+	}
+
+	private void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		try {
+			provisioningService.deleteObject(AccountShadowType.class, oid, null, parentResult);
+		} catch (ObjectNotFoundException e) {
+			parentResult.recordFatalError("Cannot delete object: object not found: " + e.getMessage(), e);
+			throw e;
+		} catch (CommunicationException e) {
+			parentResult
+					.recordFatalError("Cannot delete object: communication problem: " + e.getMessage(), e);
+			throw e;
+		} catch (SchemaException e) {
+			parentResult.recordFatalError("Cannot delete object: schema violation: " + e.getMessage(), e);
+			throw e;
+		} catch (ConfigurationException e) {
+			parentResult
+					.recordFatalError("Cannot delete object: configuration problem: " + e.getMessage(), e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			parentResult.recordFatalError("Cannot delete object: security violation: " + e.getMessage(), e);
+			throw e;
+		}
+	}
+
+	private QueryType createAccountSearchQuery(ResourceType resource,
+			RefinedAccountDefinition refinedAccountDefinition) throws SchemaException {
 		QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
 		return QueryUtil.createResourceAndAccountQuery(resource, objectClass, null);
 	}
@@ -223,7 +383,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	@Override
 	public void refreshStatus(Task task) {
-		// Do nothing. Everything is fresh already.		
+		// Do nothing. Everything is fresh already.
 	}
 
 }

@@ -256,6 +256,7 @@ public class ChangeExecutor {
             if (oid == null) {
             	throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
             }
+            result.addReturn("createdAccountOid", oid);
         } else {
             oid = cacheRepositoryService.addObject(objectToAdd, result);
             if (oid == null) {

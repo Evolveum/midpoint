@@ -173,9 +173,18 @@ public class RoleEditController implements Serializable {
 	        task.setOwner(principal.getUser().asPrismObject());
 			role.normalizeAssignments();
 			newObject = getObjectFromXml(xml, result);
+			RoleDto createdRole = null;
+			if (newObject instanceof RoleType){
+				createdRole = new RoleDto((RoleType)newObject);
+			} else{
+				result.recordFatalError("Only roles are supported.");
+				ControllerUtil.printResults(LOGGER, result, "Role changes saved sucessfully.");
+				throw new UnsupportedOperationException("Only roles are supported.");
+			}
+			
 			RoleManager manager = ControllerUtil.getRoleManager(catalog);
 			if (isNewRole()) {
-				manager.add(role);
+				manager.add(createdRole);
 			} else {
 				manager.submit(getRole(), task, result);
 			}
@@ -183,9 +192,9 @@ public class RoleEditController implements Serializable {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
 			result.recordFatalError("Couldn't submit role '" + role.getName() + "'.", ex);
 		} finally {
-			if (!repositoryManager.saveObject(newObject.asPrismObject(), xml)) {
-				result.recordFatalError("Couln't update role '" + newObject.getName() + "'.");
-			}
+//			if (!repositoryManager.saveObject(newObject.asPrismObject(), xml)) {
+//				result.recordFatalError("Couln't update role '" + newObject.getName() + "'.");
+//			}
 			initController();
 			result.computeStatus();
 			ControllerUtil.printResults(LOGGER, result, "Role changes saved sucessfully.");

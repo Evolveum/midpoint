@@ -228,6 +228,7 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 	/**
 	 * called when user clicks on OK button in object browser
 	 */
+	@SuppressWarnings("rawtypes")
 	public void okBrowseAction() {
 		// we get selected object oid from object browser
 		String objectOid = FacesUtils.getRequestParameter(BrowserBean.PARAM_OBJECT_OID);
@@ -235,9 +236,15 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 			FacesUtils.addErrorMessage("Object oid from browser was not defined.");
 			return;
 		}
-
-		ObjectManager<ObjectDto<ObjectType>> manager = ControllerUtil.getObjectManager(catalog);
-		ObjectDto<ObjectType> objectDto = manager.get(objectOid, new PropertyReferenceListType());
+		
+		String objectType = FacesUtils.getRequestParameter(BrowserBean.PARAM_OBJECT_TYPE);
+		if (StringUtils.isEmpty(objectType)) {
+			FacesUtils.addErrorMessage("Object type from browser was not defined.");
+			return;
+		}
+		
+		ObjectManager manager = ControllerUtil.getManager(catalog, objectType);
+		ObjectDto objectDto = (ObjectDto) manager.get(objectOid, new PropertyReferenceListType());
 		if (objectDto == null || objectDto.getXmlObject() == null) {
 			return;
 		}

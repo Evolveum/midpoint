@@ -52,6 +52,7 @@
 						</f:facet>
 						<ice:commandLink style="text-decoration: underline;" value="#{item.name}" action="#{cc.attrs.okAction}">
 							<f:param name="objectOid" value="#{item.oid}" />
+							<f:param name="objectType" value="#{item.type.simpleName}" />
 						</ice:commandLink>
 					</ice:column>
 					<ice:column>

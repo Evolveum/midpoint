@@ -52,6 +52,7 @@ public class BrowserBean<T extends Serializable> extends ListController<BrowserI
      * This constant is used when returning selected object as request parameter
      */
     public static final String PARAM_OBJECT_OID = "objectOid";
+    public static final String PARAM_OBJECT_TYPE = "objectType";
     private static final long serialVersionUID = 8414430107567167458L;
     private static final Trace LOGGER = TraceManager.getTrace(BrowserBean.class);
     private static final List<SelectItem> types = new ArrayList<SelectItem>();
@@ -204,12 +205,12 @@ public class BrowserBean<T extends Serializable> extends ListController<BrowserI
         getObjects().clear();
         for (ObjectType object : result) {
             // TODO: refactor - object type from class name??? wtf
-            ObjectTypes objectType = ObjectTypes.getObjectType(object.getClass().getSimpleName());
+//            ObjectTypes objectType = ObjectTypes.getObjectType(object.getClass().getSimpleName());
 
-            String localizationKey = objectType == null ? "Unknown" : objectType.getLocalizationKey();
+//            String localizationKey = objectType == null ? "Unknown" : objectType.getLocalizationKey();
+//            String localizationKey = object.getClass().getSimpleName();
             getObjects().add(
-                    new BrowserItem(object.getOid(), object.getName(), FacesUtils
-                            .translateKey(localizationKey)));
+                    new BrowserItem(object.getOid(), object.getName(), object.getClass().getSimpleName()));
         }
     }
 }

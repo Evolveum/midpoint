@@ -185,8 +185,9 @@ public class ModelController implements ModelService {
 	SystemConfigurationHandler systemConfigurationHandler;
 
 	@Override
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
+			PropertyReferenceListType resolve, OperationResult result) throws ObjectNotFoundException,
+			SchemaException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
 		Validate.notNull(clazz, "Object class must not be null.");
@@ -239,7 +240,7 @@ public class ModelController implements ModelService {
 				AccountShadowType account = getObject(AccountShadowType.class, accountRef.getOid(), resolve,
 						subResult).asObjectable();
 				user.getAccount().add(account);
-//				refToBeDeleted.add(accountRef);
+				// refToBeDeleted.add(accountRef);
 				subResult.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't resolve account with oid {}", ex,
@@ -363,7 +364,8 @@ public class ModelController implements ModelService {
 
 				// Non-systemic solition. TODO: cleanup
 				if (objectType instanceof SystemConfigurationType) {
-					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta, task, result);
+					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
+							task, result);
 				}
 
 			}
@@ -420,8 +422,8 @@ public class ModelController implements ModelService {
 	 *         TODO in the future, maybe some error status returned from hooks
 	 *         should be considered here.
 	 */
-	private HookOperationMode executePreChangePrimary(Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task,
-			OperationResult result) {
+	private HookOperationMode executePreChangePrimary(
+			Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task, OperationResult result) {
 
 		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
 		if (hookRegistry != null) {
@@ -437,8 +439,8 @@ public class ModelController implements ModelService {
 	/**
 	 * A convenience method when there is only one delta.
 	 */
-	private HookOperationMode executePreChangePrimary(ObjectDelta<? extends ObjectType> objectDelta, Task task,
-			OperationResult result) {
+	private HookOperationMode executePreChangePrimary(ObjectDelta<? extends ObjectType> objectDelta,
+			Task task, OperationResult result) {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(objectDelta);
 		return executePreChangePrimary(deltas, task, result);
@@ -447,8 +449,8 @@ public class ModelController implements ModelService {
 	/**
 	 * Executes preChangeSecondary. See above for comments.
 	 */
-	private HookOperationMode executePreChangeSecondary(Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task,
-			OperationResult result) {
+	private HookOperationMode executePreChangeSecondary(
+			Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task, OperationResult result) {
 
 		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
 		if (hookRegistry != null) {
@@ -464,8 +466,8 @@ public class ModelController implements ModelService {
 	/**
 	 * Executes postChange. See above for comments.
 	 */
-	private HookOperationMode executePostChange(Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task,
-			OperationResult result) {
+	private HookOperationMode executePostChange(Collection<ObjectDelta<? extends ObjectType>> objectDeltas,
+			Task task, OperationResult result) {
 
 		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
 		if (hookRegistry != null) {
@@ -481,7 +483,8 @@ public class ModelController implements ModelService {
 	/**
 	 * A convenience method when there is only one delta.
 	 */
-	private HookOperationMode executePostChange(ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult result) {
+	private HookOperationMode executePostChange(ObjectDelta<? extends ObjectType> objectDelta, Task task,
+			OperationResult result) {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(objectDelta);
 		return executePostChange(deltas, task, result);
@@ -639,8 +642,8 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException {
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		// TODO: implement properly
 
         try {
@@ -655,8 +658,9 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
+			Collection<? extends ItemDelta> modifications, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException,
 			SecurityViolationException {
 
@@ -707,24 +711,40 @@ public class ModelController implements ModelService {
 			ObjectDelta<T> objectDelta = null;
 
 			if (UserType.class.isAssignableFrom(type)) {
+				
 				SyncContext syncContext = userTypeModifyToContext(oid, modifications, result);
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
 
-				userSynchronizer.synchronizeUser(syncContext, parentResult);
-
-				// Deltas after sync will be different
-				auditRecord.clearDeltas();
-				auditRecord.addDeltas(syncContext.getAllChanges());
+				Collection<ItemDelta> modificationsCloned = new ArrayList<ItemDelta>();
+				
+				for (ItemDelta delta : modifications){
+					ItemDelta deltaNew = delta.clone();
+					modificationsCloned.add(deltaNew);
+					
+				}
+				
 
 				try {
-					changeExecutor.executeChanges(syncContext, parentResult);
+					userSynchronizer.synchronizeUser(syncContext, result);
+
+					// Deltas after sync will be different
+					auditRecord.clearDeltas();
+					auditRecord.addDeltas(syncContext.getAllChanges());
+					changeExecutor.executeChanges(syncContext, result);
 					result.computeStatus();
 				} catch (ObjectAlreadyExistsException e) {
-					// This should not happen
-					// TODO Better handling
-					throw new SystemException(e.getMessage(), e);
+					syncContext = userTypeModifyToContext(oid, modificationsCloned, result);
+					result = parentResult.createSubresult(MODIFY_OBJECT);
+					result.addParam("syncContext", syncContext);
+					userSynchronizer.synchronizeUser(syncContext, result);
+					try {
+						changeExecutor.executeChanges(syncContext, parentResult);
+					} catch (ObjectAlreadyExistsException ex) {
+						throw new SystemException(ex.getMessage(), ex);
+					}
+
 				}
 
 			} else {
@@ -758,11 +778,15 @@ public class ModelController implements ModelService {
 					// This should not happen
 					// TODO Better handling
 					throw new SystemException(e.getMessage(), e);
-				}
+				} 
+//				catch (ObjectNotFoundException ex) {
+//					cacheRepositoryService.listAccountShadowOwner(oid, parentResult);
+//				}
 
 				// Non-systemic solition. TODO: cleanup
 				if (SystemConfigurationType.class.isAssignableFrom(type)) {
-					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta, task, result);
+					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
+							task, result);
 				}
 			}
 
@@ -774,10 +798,10 @@ public class ModelController implements ModelService {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);
 			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
+//		} catch (ObjectAlreadyExistsException ex) {
+//			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
+//			result.recordFatalError(ex);
+//			throw ex;
 		} catch (SchemaException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			logDebugChange(type, oid, modifications);
@@ -809,8 +833,8 @@ public class ModelController implements ModelService {
 
 	private void logDebugChange(Class<?> type, String oid, Collection<? extends ItemDelta> modifications) {
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("model.modifyObject class={}, oid={}, change:\n{}", new Object[]{
-					oid, type.getName(), DebugUtil.debugDump(modifications)});
+			LOGGER.debug("model.modifyObject class={}, oid={}, change:\n{}",
+					new Object[] { oid, type.getName(), DebugUtil.debugDump(modifications) });
 		}
 	}
 
@@ -841,12 +865,14 @@ public class ModelController implements ModelService {
 		// This is pure XML and does not contain
 		// parsed schema. Fetching cached resource from provisioning is much
 		// more efficient
-		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
+		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, null, result)
+				.asObjectable();
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType,
 				prismContext);
 		syncContext.rememberResource(resourceType);
 
-		// Chances are that the account is already "refined", but let's make sure
+		// Chances are that the account is already "refined", but let's make
+		// sure
 		PrismObject<AccountShadowType> refinedAccount = refinedSchema.refine(accountType.asPrismObject());
 		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(
 				AccountShadowType.class, changeType);
@@ -936,7 +962,8 @@ public class ModelController implements ModelService {
 
 				// Non-systemic solition. TODO: cleanup
 				if (SystemConfigurationType.class.isAssignableFrom(clazz)) {
-					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta, task, result);
+					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
+							task, result);
 				}
 
 				result.computeStatus();
@@ -1015,8 +1042,9 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
+	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(
+			String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 

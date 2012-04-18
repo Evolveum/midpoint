@@ -163,14 +163,15 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public void addValuesToAdd(Collection<V> newValues) {
-		for (V val: newValues) {
+		for (V val : newValues) {
 			addValueToAdd(val);
 		}
 	}
 
 	public void addValueToAdd(V newValue) {
 		if (valuesToReplace != null) {
-			throw new IllegalStateException("Delta "+this+" already has values to replace, attempt to add value to add");
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to replace, attempt to add value to add");
 		}
 		if (valuesToAdd == null) {
 			valuesToAdd = newValueCollection();
@@ -180,14 +181,15 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public void addValuesToDelete(Collection<V> newValues) {
-		for (V val: newValues) {
+		for (V val : newValues) {
 			addValueToDelete(val);
 		}
 	}
 
 	public void addValueToDelete(V newValue) {
 		if (valuesToReplace != null) {
-			throw new IllegalStateException("Delta "+this+" already has values to replace, attempt to add value to delete");
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to replace, attempt to add value to delete");
 		}
 		if (valuesToDelete == null) {
 			valuesToDelete = newValueCollection();
@@ -198,17 +200,19 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	public void setValuesToReplace(Collection<V> newValues) {
 		if (valuesToAdd != null) {
-			throw new IllegalStateException("Delta "+this+" already has values to add, attempt to set value to replace");
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to add, attempt to set value to replace");
 		}
 		if (valuesToDelete != null) {
-			throw new IllegalStateException("Delta "+this+" already has values to delete, attempt to set value to replace");
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to delete, attempt to set value to replace");
 		}
 		if (valuesToReplace == null) {
 			valuesToReplace = newValueCollection();
 		} else {
 			valuesToReplace.clear();
 		}
-		for (V val: newValues) {
+		for (V val : newValues) {
 			valuesToReplace.add(val);
 			val.setParent(this);
 		}
@@ -216,10 +220,12 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	public void setValueToReplace(V newValue) {
 		if (valuesToAdd != null) {
-			throw new IllegalStateException("Delta "+this+" already has values to add, attempt to set value to replace");
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to add, attempt to set value to replace");
 		}
 		if (valuesToDelete != null) {
-			throw new IllegalStateException("Delta "+this+" already has values to delete, attempt to set value to replace");
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to delete, attempt to set value to replace");
 		}
 		if (valuesToReplace == null) {
 			valuesToReplace = newValueCollection();
@@ -272,20 +278,20 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		valuesToAdd = null;
 		valuesToDelete = null;
 	}
-	
+
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
-		for (ItemDelta<?> delta: deltas) {
+		for (ItemDelta<?> delta : deltas) {
 			delta.checkConsistence();
 		}
 	}
 
 	public void checkConsistence() {
 		if (parentPath == null) {
-			throw new IllegalStateException("Null parent path in "+this);
+			throw new IllegalStateException("Null parent path in " + this);
 		}
-//		if (definition == null) {
-//			throw new IllegalStateException("Null definition in "+this);
-//		}
+		// if (definition == null) {
+		// throw new IllegalStateException("Null definition in "+this);
+		// }
 		if (valuesToReplace != null && (valuesToAdd != null || valuesToDelete != null)) {
 			throw new IllegalStateException(
 					"The delta cannot be both 'replace' and 'add/delete' at the same time");
@@ -294,35 +300,37 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		assertSetConsistence(valuesToAdd, "add");
 		assertSetConsistence(valuesToDelete, "delete");
 	}
-	
+
 	private void assertSetConsistence(Collection<V> values, String type) {
 		if (values == null) {
 			return;
 		}
-//		This may be not be 100% correct but we can tolerate it now
-//		if (values.isEmpty()) {
-//			throw new IllegalStateException("The "+type+" values set in "+this+" is not-null but it is empty");
-//		}
-		for (V val: values) {
+		// This may be not be 100% correct but we can tolerate it now
+		// if (values.isEmpty()) {
+		// throw new
+		// IllegalStateException("The "+type+" values set in "+this+" is not-null but it is empty");
+		// }
+		for (V val : values) {
 			if (val == null) {
-				throw new IllegalStateException("Null value in the "+type+" values set in "+this);
+				throw new IllegalStateException("Null value in the " + type + " values set in " + this);
 			}
 		}
 	}
 
 	/**
-	 * Distributes the replace values of this delta to add and delete with respect to provided existing values.
+	 * Distributes the replace values of this delta to add and delete with
+	 * respect to provided existing values.
 	 */
 	public void distributeReplace(Collection<V> existingValues) {
 		if (existingValues != null) {
-			for (V existingVal: existingValues) {
+			for (V existingVal : existingValues) {
 				if (!isIn(getValuesToReplace(), existingVal)) {
-					addValueToDelete((V)existingVal.clone());
+					addValueToDelete((V) existingVal.clone());
 				}
 			}
 		}
-		for (V replaceVal: getValuesToReplace()) {
-			if (!isIn(existingValues,replaceVal) && !isIn(getValuesToAdd(), replaceVal)) {
+		for (V replaceVal : getValuesToReplace()) {
+			if (!isIn(existingValues, replaceVal) && !isIn(getValuesToAdd(), replaceVal)) {
 				getValuesToAdd().add(replaceVal);
 			}
 		}
@@ -333,7 +341,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (values == null) {
 			return false;
 		}
-		for (V v: values) {
+		for (V v : values) {
 			if (v.equalsRealValue(val)) {
 				return true;
 			}
@@ -379,7 +387,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 	}
 
-	public static void applyTo(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer) throws SchemaException {
+	public static void applyTo(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer)
+			throws SchemaException {
 		for (ItemDelta delta : deltas) {
 			delta.applyTo(propertyContainer);
 		}
@@ -394,7 +403,12 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			return;
 		}
 		if (valuesToAdd != null) {
-			item.addAll(valuesToAdd);
+			if (item.getDefinition().isMultiValue()) {
+				item.addAll(valuesToAdd);
+			}
+			if (item.getDefinition().isSingleValue()) {
+				item.replaceAll(valuesToAdd);
+			}
 		}
 		if (valuesToDelete != null) {
 			item.removeAll(valuesToDelete);
@@ -416,9 +430,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		item.getValues().addAll((Collection) valuesToReplace);
 		return item;
 	}
-	
+
 	public abstract ItemDelta clone();
-	
+
 	protected void copyValues(ItemDelta clone) {
 		clone.definition = this.definition;
 		clone.name = this.name;
@@ -433,8 +447,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			return null;
 		}
 		Collection<V> clonedSet = newValueCollection();
-		for (V thisVal: thisSet) {
-			V clonedVal = (V)thisVal.clone();
+		for (V thisVal : thisSet) {
+			V clonedVal = (V) thisVal.clone();
 			clonedVal.setParent(this);
 			clonedSet.add(clonedVal);
 		}
