@@ -152,13 +152,9 @@ public abstract class RObject extends RContainer {
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();
             extension.setOwner(repo);
-
-            extension.setOwnerOid(repo.getOid());
-            extension.setOwnerId(repo.getId());
-
             extension.setOwnerType(RContainerType.getType(repo.getClass()));
-            repo.setExtension(extension);
 
+            repo.setExtension(extension);
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
         }
     }

@@ -248,8 +248,9 @@ public class RResourceObjectShadow extends RObject {
         if (jaxb.getAttributes() != null) {
             RAnyContainer attributes = new RAnyContainer();
             attributes.setOwner(repo);
-            repo.setAttributes(attributes);
+            attributes.setOwnerType(RContainerType.getType(repo.getClass()));
 
+            repo.setAttributes(attributes);
             RAnyContainer.copyFromJAXB(jaxb.getAttributes(), attributes, prismContext);
         }
     }
