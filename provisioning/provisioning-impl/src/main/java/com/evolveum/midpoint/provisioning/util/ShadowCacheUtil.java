@@ -135,6 +135,13 @@ public class ShadowCacheUtil {
 
 			ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 					ActivationCapabilityType.class);
+
+			if (activationCapability == null) {
+				// TODO: maybe the warning message is needed that the resource
+				// does not have either simulater or native capabilities
+				return false;
+			}
+
 			ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 					.getAttributesContainer(shadow);
 			ResourceAttribute activationProperty = attributesContainer.findAttribute(activationCapability
