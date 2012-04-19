@@ -46,7 +46,7 @@ public class LoggingDto implements Serializable {
 
     private List<LoggerConfiguration> loggers = new ArrayList<LoggerConfiguration>();
 
-    private SubsystemLevel subsystemLevel;
+    private ProfilingLevel subsystemLevel;
     private String subsystemAppender;
 
     private List<AppenderConfiguration> appenders = new ArrayList<AppenderConfiguration>();
@@ -179,11 +179,11 @@ public class LoggingDto implements Serializable {
         this.subsystemAppender = subsystemAppender;
     }
 
-    public SubsystemLevel getSubsystemLevel() {
+    public ProfilingLevel getSubsystemLevel() {
         return subsystemLevel;
     }
 
-    public void setSubsystemLevel(SubsystemLevel subsystemLevel) {
+    public void setSubsystemLevel(ProfilingLevel subsystemLevel) {
         this.subsystemLevel = subsystemLevel;
     }
 

@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -52,12 +53,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.SubsystemLevel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
@@ -203,22 +199,22 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void initSubsystem(AccordionItem loggers) {
-        IChoiceRenderer<SubsystemLevel> renderer = new IChoiceRenderer<SubsystemLevel>() {
+        IChoiceRenderer<ProfilingLevel> renderer = new IChoiceRenderer<ProfilingLevel>() {
 
             @Override
-            public Object getDisplayValue(SubsystemLevel object) {
+            public Object getDisplayValue(ProfilingLevel object) {
                 return new StringResourceModel(object.getLocalizationKey(),
                         PageLogging.this, null).getString();
             }
 
             @Override
-            public String getIdValue(SubsystemLevel object, int index) {
+            public String getIdValue(ProfilingLevel object, int index) {
                 return object.name();
             }
         };
 
-        DropDownChoice<SubsystemLevel> subsystemLevel = createComboBox("subsystemLevel",
-                new PropertyModel<SubsystemLevel>(model, "subsystemLevel"), createSubsystemLevelModel(), renderer);
+        DropDownChoice<ProfilingLevel> subsystemLevel = createComboBox("subsystemLevel",
+                new PropertyModel<ProfilingLevel>(model, "subsystemLevel"), createSubsystemLevelModel(), renderer);
         loggers.getBodyContainer().add(subsystemLevel);
 
         DropDownChoice<String> subsystemAppender = createComboBox("subsystemAppender",
@@ -226,13 +222,13 @@ public class PageLogging extends PageAdminConfiguration {
         loggers.getBodyContainer().add(subsystemAppender);
     }
 
-    private IModel<List<SubsystemLevel>> createSubsystemLevelModel() {
-        return new AbstractReadOnlyModel<List<SubsystemLevel>>() {
+    private IModel<List<ProfilingLevel>> createSubsystemLevelModel() {
+        return new AbstractReadOnlyModel<List<ProfilingLevel>>() {
 
             @Override
-            public List<SubsystemLevel> getObject() {
-                List<SubsystemLevel> levels = new ArrayList<SubsystemLevel>();
-                Collections.addAll(levels, SubsystemLevel.values());
+            public List<ProfilingLevel> getObject() {
+                List<ProfilingLevel> levels = new ArrayList<ProfilingLevel>();
+                Collections.addAll(levels, ProfilingLevel.values());
 
                 return levels;
             }
