@@ -616,7 +616,15 @@ public class TaskQuartzImpl implements Task {
 		}
 	}
 
-	public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    @Override
+    public void setInitialExecutionStatus(TaskExecutionStatus value) {
+        if (isPersistent()) {
+            throw new IllegalStateException("Initial execution state can be set only on transient tasks.");
+        }
+        taskPrism.asObjectable().setExecutionStatus(value.toTaskType());
+    }
+
+    public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		processModificationNow(setExecutionStatusAndPrepareDelta(value), parentResult);
 	}
 
@@ -692,8 +700,9 @@ public class TaskQuartzImpl implements Task {
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_RECURRENCE, value.toTaskType()) : null;
 	}
-	
-	public void makeRecurrent(int interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException 
+
+    @Override
+	public void makeRecurrentSimple(int interval)
 	{
 		setRecurrenceStatus(TaskRecurrence.RECURRING);
 
@@ -701,13 +710,23 @@ public class TaskQuartzImpl implements Task {
 		schedule.setInterval(interval);
 		
 		setSchedule(schedule);
-		savePendingModifications(parentResult);
 	}
 
-	
-	/*
-	 * Schedule
-	 */
+    @Override
+    public void makeRecurrentCron(String cronLikeSpecification)
+    {
+        setRecurrenceStatus(TaskRecurrence.RECURRING);
+
+        ScheduleType schedule = new ScheduleType();
+        schedule.setCronLikePattern(cronLikeSpecification);
+
+        setSchedule(schedule);
+    }
+
+
+    /*
+      * Schedule
+      */
 	
 	@Override
 	public ScheduleType getSchedule() {

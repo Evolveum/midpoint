@@ -99,7 +99,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Autowired(required=true)
     private ClusterManager clusterManager;
 
-    @Autowired(required=true)
     private TaskSynchronizer taskSynchronizer;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
@@ -215,11 +214,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             StdSchedulerFactory sf = new StdSchedulerFactory();
             sf.initialize(quartzProperties);
 			quartzScheduler = sf.getScheduler();
-			quartzScheduler.start();
 		} catch (SchedulerException e) {
 			LoggingUtils.logException(LOGGER, "Cannot initialize the Quartz scheduler", e);
 			throw new SystemException("Cannot initialize the Quartz scheduler", e);
 		}
+
+        taskSynchronizer = new TaskSynchronizer(this);
 
         // populate the scheduler with jobs (if RAM-based), or synchronize with midPoint repo
         if (taskSynchronizer.synchronizeJobStores(result) == false) {
@@ -230,16 +230,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             }
         }
 
-        // start the scheduler
-        try {
-            LOGGER.trace("Starting the Quartz scheduler");
-            quartzScheduler.start();
-        } catch (SchedulerException e) {
-            LoggingUtils.logException(LOGGER, "Cannot start the Quartz scheduler", e);
-            throw new SystemException("Cannot start the Quartz scheduler", e);
-        }
-
-        LOGGER.trace("Quartz scheduler initialized and started; it is " + quartzScheduler);
+        LOGGER.trace("Quartz scheduler initialized (not yet started, however); it is " + quartzScheduler);
 		
 		LOGGER.info("Task Manager initialized");
 	}
@@ -497,6 +488,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	 */
 	@Override
 	public void registerHandler(String uri, TaskHandler handler) {
+        LOGGER.trace("Registering task handler for URI " + uri);
 		handlers.put(uri, handler);
 	}
 	
@@ -960,5 +952,20 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             }
         }
         return retval;
+    }
+
+    public TaskManagerConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    @Override
+    public void postInit(OperationResult result) {
+        try {
+            LOGGER.info("Starting the Quartz scheduler");
+            quartzScheduler.start();
+        } catch (SchedulerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot start the Quartz scheduler", e);
+            throw new SystemException("Cannot start the Quartz scheduler", e);
+        }
     }
 }

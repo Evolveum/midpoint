@@ -50,6 +50,7 @@ public class TaskManagerConfiguration {
     private static final String CONFIG_SQL_SCHEMA_FILE = "sqlSchemaFile";
     private static final String CONFIG_JDBC_DRIVER_DELEGATE_CLASS = "jdbcDriverDelegateClass";
     private static final String CONFIG_USE_THREAD_INTERRUPT = "useThreadInterrupt";
+    private static final String CONFIG_JMX_CONNECT_TIMEOUT = "jmxConnectTimeout";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
@@ -59,13 +60,15 @@ public class TaskManagerConfiguration {
     private static final boolean DEFAULT_CLUSTERED = false;             // do not change this value!
     private static final String DEFAULT_NODE_ID = "DefaultNode";
     private static final int DEFAULT_JMX_PORT = 20001;
-    private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
+    private static final int DEFAULT_JMX_CONNECT_TIMEOUT = 5;
+    private static final String DEFAULT_USE_THREAD_INTERRUPT = "whenNecessary";
 
     private int threads;
     private boolean jdbcJobStore;
     private boolean clustered;
     private String nodeId;
     private int jmxPort;
+    private int jmxConnectTimeout;
 
     private UseThreadInterrupt useThreadInterrupt;
 
@@ -113,18 +116,22 @@ public class TaskManagerConfiguration {
             }
         }
 
+        jmxConnectTimeout = c.getInt(CONFIG_JMX_CONNECT_TIMEOUT, DEFAULT_JMX_CONNECT_TIMEOUT);
+
         Properties sp = System.getProperties();
         if (sp.containsKey(SUREFIRE_PRESENCE_PROPERTY)) {
             LOGGER.info("Determined to run in a test environment, setting reusableQuartzScheduler to 'true'.");
             reusableQuartzScheduler = true;
         }
 
-        String useTI = c.getString(CONFIG_USE_THREAD_INTERRUPT, USE_THREAD_INTERRUPT_DEFAULT);
+        String useTI = c.getString(CONFIG_USE_THREAD_INTERRUPT, DEFAULT_USE_THREAD_INTERRUPT);
         try {
             useThreadInterrupt = UseThreadInterrupt.fromValue(useTI);
         } catch(IllegalArgumentException e) {
             throw new SystemException("Illegal value for " + CONFIG_USE_THREAD_INTERRUPT + ": " + useTI, e);
         }
+
+
 
     }
 
@@ -269,5 +276,9 @@ public class TaskManagerConfiguration {
 
     public UseThreadInterrupt getUseThreadInterrupt() {
         return useThreadInterrupt;
+    }
+
+    public int getJmxConnectTimeout() {
+        return jmxConnectTimeout;
     }
 }

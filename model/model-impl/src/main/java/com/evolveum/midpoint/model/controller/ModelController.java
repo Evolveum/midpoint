@@ -29,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -60,30 +59,21 @@ import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
@@ -1306,8 +1296,8 @@ public class ModelController implements ModelService {
 			LOGGER.error(message+": "+e.getMessage(), e);
 			result.recordWarning(message, e);
 		}
-		
-		// TODO: initialize task manager
+
+        taskManager.postInit(result);
 
 		// Initialize provisioning
 		provisioning.postInit(result);

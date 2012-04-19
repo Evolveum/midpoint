@@ -379,6 +379,9 @@ public class TaskItem extends SelectableBean {
     	if (!TaskItemRecurrenceStatus.RECURRING.equals(recurrenceStatus)) {
     		return "-";
     	}
+        else if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+            return "-";
+        }
         else if (TaskItemBinding.TIGHT.equals(binding)) {
             return "runs continually";
         }

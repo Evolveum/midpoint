@@ -61,16 +61,18 @@ import static org.quartz.impl.matchers.GroupMatcher.jobGroupEquals;
  *
  * @author Pavol Mederly
  */
-@Component
+
 public class TaskSynchronizer {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskSynchronizer.class);
 
-    @Autowired(required = true)
     private TaskManagerQuartzImpl taskManager;
-
-    @Autowired(required = true)
     private RepositoryService repositoryService;
+
+    public TaskSynchronizer(TaskManagerQuartzImpl taskManager) {
+        this.taskManager = taskManager;
+        this.repositoryService = taskManager.getRepositoryService();
+    }
 
     /**
      * Checks for consistency between Quartz job store and midPoint repository.

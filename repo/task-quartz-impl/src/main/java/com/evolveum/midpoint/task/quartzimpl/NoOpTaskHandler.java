@@ -74,8 +74,8 @@ public class NoOpTaskHandler implements TaskHandler {
 
         PrismContainer taskExtension = task.getExtension();
 
-        PrismProperty<Integer> delayProp = taskExtension.findProperty(DELAY_QNAME);
-        PrismProperty<Integer> stepsProp = taskExtension.findProperty(STEPS_QNAME);
+        PrismProperty<Integer> delayProp = taskExtension != null ? taskExtension.findProperty(DELAY_QNAME) : null;
+        PrismProperty<Integer> stepsProp = taskExtension != null ? taskExtension.findProperty(STEPS_QNAME) : null;
 
 		PrismPropertyDefinition delayPropDef = new PrismPropertyDefinition(DELAY_QNAME, DELAY_QNAME, DOMUtil.XSD_INT, taskManagerImpl.getPrismContext());
 		PrismPropertyDefinition stepsPropDef = new PrismPropertyDefinition(STEPS_QNAME, STEPS_QNAME, DOMUtil.XSD_INT, taskManagerImpl.getPrismContext());

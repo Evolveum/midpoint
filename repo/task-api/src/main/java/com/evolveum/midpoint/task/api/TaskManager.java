@@ -409,4 +409,9 @@ public interface TaskManager {
     boolean isCurrentNode(PrismObject<NodeType> node);
 
     public List<String> getAllTaskCategories();
+
+    /**
+     * Post initialization, e.g. starts the actual scheduling of tasks on this node.
+     */
+    void postInit(OperationResult result);
 }

@@ -58,6 +58,7 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Copyright (c) 2011 Evolveum
@@ -92,7 +93,6 @@ public class ClusterManager {
 
     @Autowired(required=true)
     private TaskManagerQuartzImpl taskManager;
-
 
     PrismObject<NodeType> createNodePrism(String instanceId, int port) {
 
@@ -305,7 +305,8 @@ public class ClusterManager {
         Map<String,Object> env = new HashMap<String,Object>();
         String[] creds = {"midpoint", "secret"};
         env.put(JMXConnector.CREDENTIALS, creds);
-        return JMXConnectorFactory.connect(url, env);
+        return JmxClient.connectWithTimeout(url, env,
+                taskManager.getConfiguration().getJmxConnectTimeout(), TimeUnit.SECONDS);
     }
 
     public void interruptTaskClusterwide(String oid, RunningTasksInfo.NodeInfo nodeInfo) {

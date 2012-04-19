@@ -93,16 +93,13 @@ public interface Task extends Dumpable {
 	public TaskExecutionStatus getExecutionStatus();
 	
 	/**
-	 * Sets task execution status. It changes the in-memory task instance,
-	 * and (for persistent tasks) adds a property delta to the list of pending modifications
-	 * that will be written to the repository via @see Task#savePendingModifications(OperationResult)
-	 * method.
-	 * 
+	 * Sets task execution status. Can be used only for transient tasks (for safety reasons).
+     *
 	 * @see TaskExecutionStatus
 	 * 
-	 * @param executionStatus new task execution status.
+	 * @param value new task execution status.
 	 */
-//	public void setExecutionStatus(TaskExecutionStatus value);
+	public void setInitialExecutionStatus(TaskExecutionStatus value);
 
 	/**
 	 * Sets task execution status, in memory as well as in repository (for persistent tasks). 
@@ -440,5 +437,8 @@ public interface Task extends Dumpable {
 			SchemaException;
 
     String getCategory();
-	
+
+    void makeRecurrentSimple(int interval);
+
+    void makeRecurrentCron(String cronLikeSpecification);
 }
