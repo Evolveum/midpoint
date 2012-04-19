@@ -302,6 +302,49 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notNull(object, "Object must not be null.");
         validateName(object);
         Validate.notNull(result, "Operation result must not be null.");
+
+        final String operation = "adding";
+        int attempt = 1;
+
+        String oid = object.getOid();
+        while (true) {
+            try {
+                return addObjectAttempt(object, result);
+            } catch (PessimisticLockException ex) {
+                attempt = logOperationAttempt(oid, operation, attempt, ex);
+            } catch (LockAcquisitionException ex) {
+                attempt = logOperationAttempt(oid, operation, attempt, ex);
+            } catch (HibernateOptimisticLockingFailureException ex) {
+                attempt = logOperationAttempt(oid, operation, attempt, ex);
+            }
+        }
+    }
+
+    private <T extends ObjectType> void checkNameUniqueness(Session session, Class<T> type, PrismObject object)
+            throws ObjectAlreadyExistsException {
+        LOGGER.debug("Checking name uniqueness.");
+
+        String name = null;
+        if (object.findProperty(ObjectType.F_NAME) != null) {
+            name = (String) object.findProperty(ObjectType.F_NAME).getRealValue();
+        }
+
+        if (StringUtils.isEmpty(name)) {
+            throw new SystemException("Name in object must not be null or empty.");
+        }
+
+        Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type), "o");
+        criteria.add(Restrictions.eq("o.name", name));
+        criteria.setProjection(Projections.rowCount());
+
+        Long objectsCount = (Long) criteria.uniqueResult();
+        if (objectsCount == null || objectsCount != 0) {
+            throw new ObjectAlreadyExistsException("Object with the same name already exists.");
+        }
+    }
+
+    private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, OperationResult result) throws
+            ObjectAlreadyExistsException, SchemaException {
         LOGGER.debug("Adding object type '{}'", new Object[]{object.getClass().getSimpleName()});
 
         String oid = null;
@@ -314,17 +357,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             //check name uniqueness (by type)
-            String name = (String) object.findProperty(ObjectType.F_NAME).getRealValue();
-            LOGGER.debug("Checking name uniqueness.");
             session = beginTransaction();
-            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()), "o");
-            criteria.add(Restrictions.eq("o.name", name));
-            criteria.setProjection(Projections.rowCount());
-
-            Long objectsCount = (Long) criteria.uniqueResult();
-            if (objectsCount == null || objectsCount != 0) {
-                throw new ObjectAlreadyExistsException("Object with the same name already exists.");
-            }
+            checkNameUniqueness(session, object.getCompileTimeClass(), object);
 
             LOGGER.debug("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(objectType);
@@ -336,6 +370,15 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             LOGGER.debug("Saved object '{}' with oid '{}'",
                     new Object[]{object.getCompileTimeClass().getSimpleName(), oid});
+        } catch (PessimisticLockException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (LockAcquisitionException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (HibernateOptimisticLockingFailureException ex) {
+            rollbackTransaction(session);
+            throw ex;
         } catch (ObjectAlreadyExistsException ex) {
             rollbackTransaction(session);
             throw ex;
@@ -361,6 +404,26 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
+
+        final String operation = "deleting";
+        int attempt = 1;
+
+        while (true) {
+            try {
+                deleteObjectAttempt(type, oid, result);
+                return;
+            } catch (PessimisticLockException ex) {
+                attempt = logOperationAttempt(oid, operation, attempt, ex);
+            } catch (LockAcquisitionException ex) {
+                attempt = logOperationAttempt(oid, operation, attempt, ex);
+            } catch (HibernateOptimisticLockingFailureException ex) {
+                attempt = logOperationAttempt(oid, operation, attempt, ex);
+            }
+        }
+    }
+
+    private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result) throws
+            ObjectNotFoundException {
         LOGGER.debug("Deleting object type '{}' with oid '{}'", new Object[]{type.getSimpleName(), oid});
 
         OperationResult subResult = result.createSubresult(DELETE_OBJECT);
@@ -378,6 +441,15 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
             session.delete(object);
             session.getTransaction().commit();
+        } catch (PessimisticLockException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (LockAcquisitionException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (HibernateOptimisticLockingFailureException ex) {
+            rollbackTransaction(session);
+            throw ex;
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session);
             throw ex;
@@ -392,6 +464,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
     }
 
+    @Deprecated
     @Override
     public void claimTask(String oid, OperationResult result) throws ObjectNotFoundException,
             ConcurrencyException, SchemaException {
@@ -402,6 +475,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         updateTaskExclusivity(oid, TaskExclusivityStatusType.CLAIMED, subResult);
     }
 
+    @Deprecated
     @Override
     public void releaseTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
         Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -515,7 +589,12 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
             Collection<? extends ItemDelta> modifications,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
+        Validate.notNull(modifications, "Modifications must not be null.");
+        Validate.notNull(type, "Object class in delta must not be null.");
+        Validate.notEmpty(oid, "Oid must not null or empty.");
+        Validate.notNull(result, "Operation result must not be null.");
 
+        final String operation = "modifying";
         int attempt = 1;
 
         while (true) {
@@ -523,20 +602,20 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 modifyObjectAttempt(type, oid, modifications, result);
                 return;
             } catch (PessimisticLockException ex) {
-                attempt = logModifyAttempt(oid, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex);
             } catch (LockAcquisitionException ex) {
-                attempt = logModifyAttempt(oid, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex);
             } catch (HibernateOptimisticLockingFailureException ex) {
-                attempt = logModifyAttempt(oid, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex);
             }
         }
     }
 
-    private int logModifyAttempt(String oid, int attempt, Exception ex) {
+    private int logOperationAttempt(String oid, String operation, int attempt, Exception ex) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("A locking-related problem occurred when updating object with oid '{}', retrying after "
-                    + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{oid, LOCKING_TIMEOUT, attempt,
-                    LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
+            LOGGER.trace("A locking-related problem occurred when {} object with oid '{}', retrying after "
+                    + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, LOCKING_TIMEOUT,
+                    attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
         }
 
         if (attempt > LOCKING_MAX_ATTEMPTS) {
@@ -553,14 +632,20 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return ++attempt;
     }
 
+    private boolean hasNameChanged(Collection<? extends ItemDelta> modifications) {
+        for (ItemDelta delta : modifications) {
+            PropertyPath parent = delta.getParentPath();
+            if ((parent == null || parent.isEmpty()) && ObjectType.F_NAME.equals(delta.getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
             Collection<? extends ItemDelta> modifications, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        Validate.notNull(modifications, "Modifications must not be null.");
-        Validate.notNull(type, "Object class in delta must not be null.");
-        Validate.notEmpty(oid, "Oid must not null or empty.");
-        Validate.notNull(result, "Operation result must not be null.");
-
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Modifications: {}", new Object[]{DebugUtil.prettyPrint(modifications)});
@@ -581,6 +666,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             PropertyDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
+            }
+
+            //check name uniqueness if necessary
+            if (hasNameChanged(modifications)) {
+                checkNameUniqueness(session, type, prismObject);
             }
 
             //merge and update user
@@ -659,6 +749,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return list;
     }
 
+    @Deprecated
     private void updateTaskExclusivity(String oid, TaskExclusivityStatusType newStatus, OperationResult result)
             throws ObjectNotFoundException {
 
