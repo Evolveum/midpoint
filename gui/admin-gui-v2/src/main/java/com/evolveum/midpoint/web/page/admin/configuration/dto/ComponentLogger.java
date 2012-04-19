@@ -47,4 +47,8 @@ public class ComponentLogger extends LoggerConfiguration {
     public String getName() {
         return component.value();
     }
+    
+    public LoggingComponentType getComponent(){
+    	return component;
+    }
 }

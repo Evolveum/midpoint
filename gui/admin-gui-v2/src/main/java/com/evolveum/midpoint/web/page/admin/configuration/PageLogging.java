@@ -23,7 +23,9 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -51,6 +53,8 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SubsystemLevel;
@@ -428,28 +432,29 @@ public class PageLogging extends PageAdminConfiguration {
 			AppenderConfigurationType appender = createAppenderType(item);
 			configuration.getAppender().add(appender);
 		}
+
 		for (LoggerConfiguration item : model.getObject().getLoggers()) {
-			if (item instanceof LoggerConfiguration) {
+			if (item instanceof ClassLogger) {
 				loggersList.add(item);
 				continue;
-			} 
-//				else if (item instanceof SubSystemLoggerConfigurationType) {
-//				SubSystemLoggerConfigurationType logger = createSubsystemLogger(
-//						(LoggerConfiguration) item, appenders);
-//				configuration.getSubSystemLogger().add(logger);
-//			}
+			}
+			else if (item instanceof ComponentLogger) {
+				SubSystemLoggerConfigurationType logger = createSubsystemLogger((ComponentLogger)item, model.getObject().getAppenders());
+				configuration.getSubSystemLogger().add(logger);
+			}
 		}
-
-//		for (BasicLoggerListItem item : loggersList) {
-//			if (((LoggerListItem) item).getPackageName().equals("PROFILING")) {
-//				continue;
-//			}
-//			ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) item, appenders);
-//			configuration.getClassLogger().add(logger);
-//		}
+		
+		for (LoggerConfiguration item : loggersList) {
+			if (((ClassLogger) item).getName().equals("PROFILING")) {
+				continue;
+			}
+			ClassLoggerConfigurationType logger = createClassLogger((ClassLogger) item, model.getObject().getAppenders());
+			configuration.getClassLogger().add(logger);
+		}
+		
 //
-//		updateProfilingLogger(profilingLogger);
-//		ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) profilingLogger, appenders);
+		updateProfilingLogger(model.getObject().getProfilingLogger());
+		//ClassLoggerConfigurationType logger = createClassLogger((ClassLogger) profilingLogger, appenders);
 //		configuration.getClassLogger().add(logger);
 
 		return configuration;
@@ -466,6 +471,55 @@ public class PageLogging extends PageAdminConfiguration {
 		appender.setPattern(item.getPattern());
 
 		return appender;
+	}
+    
+    private SubSystemLoggerConfigurationType createSubsystemLogger(ComponentLogger item,
+			List<AppenderConfiguration> appenders) {
+		SubSystemLoggerConfigurationType logger = new SubSystemLoggerConfigurationType();
+		logger.setLevel(item.getLevel());
+		logger.setComponent(item.getComponent());
+		item.getAppenders().addAll(createAppendersForLogger(item, appenders));
+		return logger;
+	}
+    
+    private List<String> createAppendersForLogger(LoggerConfiguration item, List<AppenderConfiguration> appenders) {
+		Set<String> existingAppenders = new HashSet<String>();
+		for (AppenderConfiguration appender : appenders) {
+			existingAppenders.add(appender.getName());
+		}
+
+		List<String> appenderNames = new ArrayList<String>();
+		for (String appender : item.getAppenders()) {
+			if (!existingAppenders.contains(appender)) {
+				String name = "unknown";
+				if (item instanceof ClassLogger) {
+					name = ((ClassLogger) item).getName();
+				} else if (item instanceof ComponentLogger) {
+					name = ((ComponentLogger) item).getName();
+				}
+	
+				//TODO:	FacesUtils.addWarnMessage("Ignoring unknown appender '" + appender + "' for logger '" + name + "'.");
+				continue;
+			}
+			appenderNames.add(appender);
+		}
+
+		return appenderNames;
+	}
+    
+    private ClassLoggerConfigurationType createClassLogger(ClassLogger item,
+			List<AppenderConfiguration> appenders) {
+		ClassLoggerConfigurationType logger = new ClassLoggerConfigurationType();
+		logger.setLevel(item.getLevel());
+		logger.setPackage(item.getName());
+		logger.getAppender().addAll(createAppendersForLogger(item, appenders));
+
+		return logger;
+	}
+    
+    private void updateProfilingLogger(LoggerConfiguration profilingLogger) {
+		//LoggingLevelType level = model.getObject().getSubsystemLevel().;
+		//profilingLogger.setLevel(level);
 	}
 
     private void addLoggerPerformed(AjaxRequestTarget target) {

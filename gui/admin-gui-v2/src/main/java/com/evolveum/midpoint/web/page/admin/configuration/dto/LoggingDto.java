@@ -21,12 +21,17 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
 
 /**
  * @author lazyman
@@ -49,7 +54,8 @@ public class LoggingDto implements Serializable {
     private boolean auditLog;
     private boolean auditDetails;
     private String auditAppender;
-
+    private ClassLogger profilingLogger = null;
+    
     private boolean advanced;
 
     public LoggingDto() {
@@ -74,6 +80,10 @@ public class LoggingDto implements Serializable {
         }
 
         for (ClassLoggerConfigurationType logger : config.getClassLogger()) {
+        	if ("PROFILING".equals(logger.getPackage())) {
+				profilingLogger = new ClassLogger(logger);
+				break;
+			}
             loggers.add(new ClassLogger(logger));
         }
 
@@ -89,7 +99,11 @@ public class LoggingDto implements Serializable {
         Collections.sort(appenders);
     }
 
-    public List<LoggerConfiguration> getLoggers() {
+    public ClassLogger getProfilingLogger() {
+		return profilingLogger;
+	}
+
+	public List<LoggerConfiguration> getLoggers() {
         return loggers;
     }
 
