@@ -161,7 +161,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             File databaseFile = new File(config.getBaseDir(), config.getFileName());
             jdbcUrl.append(databaseFile.getAbsolutePath());
         }
-        jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE");
+        jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1");
 
         config.setJdbcUrl(jdbcUrl.toString());
         LOGGER.trace("JDBC url created: {}", new Object[]{config.getJdbcUrl()});

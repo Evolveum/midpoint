@@ -504,8 +504,56 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return list;
     }
 
+    private static final int MAX_LOCKING_PROBLEMS_ATTEMPTS = 5;
+    private static final long LOCKING_PROBLEM_TIMEOUT = 0; // it seems that 0 works best here (i.e. it is best to repeat operation immediately)
+
+    /*
+     * BRUTAL HACK, only for testing purposes!
+     */
+
     @Override
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
+                                                           Collection<? extends ItemDelta> modifications,
+                                                           OperationResult result) throws ObjectNotFoundException, SchemaException {
+
+        int attempt = 1;
+
+        while (true) {
+            try {
+                modifyObjectAttempt(type, oid, modifications, result);
+                return;
+            } catch (ObjectNotFoundException e) {
+                throw e;
+            } catch (SchemaException e) {
+                throw e;
+            } catch (SystemException e) {
+                String message = e.getMessage();
+                if (message != null && (message.contains("Deadlock detected") || message.contains("Row was updated or deleted by another transaction"))) {
+
+                    LOGGER.info("A locking-related problem occurred when updating object with oid " + oid + ", retrying after "
+                            + LOCKING_PROBLEM_TIMEOUT + " ms (this was attempt " + attempt + " of " + MAX_LOCKING_PROBLEMS_ATTEMPTS
+                            + "; message = " + message);
+
+                    if (attempt == MAX_LOCKING_PROBLEMS_ATTEMPTS) {
+                        throw e;
+                    }
+
+                    if (LOCKING_PROBLEM_TIMEOUT > 0) {
+                        try {
+                            Thread.sleep(LOCKING_PROBLEM_TIMEOUT);
+                        } catch (InterruptedException e1) {
+                            // ignore this
+                        }
+                    }
+                    attempt++;
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    public <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
             Collection<? extends ItemDelta> modifications,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
         Validate.notNull(modifications, "Modifications must not be null.");

@@ -48,7 +48,7 @@ import java.util.List;
         "../../../../../application-context-configuration-sql-test.xml"})
 public class DeleteTest extends AbstractTestNGSpringContextTests {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ConcurrencyTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DeleteTest.class);
 
     @Autowired(required = true)
     RepositoryService repositoryService;
