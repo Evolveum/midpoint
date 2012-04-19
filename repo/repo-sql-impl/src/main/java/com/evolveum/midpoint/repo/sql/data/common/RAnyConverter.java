@@ -172,7 +172,7 @@ public class RAnyConverter {
 
     }
 
-    private RClobValue createClobValue(PrismPropertyValue propertyValue) {
+    private RClobValue createClobValue(PrismPropertyValue propertyValue) throws SchemaException {
         String value;
         Object object = propertyValue.getValue();
         if (object instanceof Element) {
@@ -181,6 +181,12 @@ public class RAnyConverter {
         } else {
             value = object.toString();
         }
+
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        Element root = createElement(RUtil.CUSTOM_OBJECT);
+//
+//        domProcessor.serializeValueToDom(propertyValue, root);
+//        String value = DOMUtil.serializeDOMToString(root);
 
         return new RClobValue(value);
     }
@@ -302,6 +308,10 @@ public class RAnyConverter {
     private Object createRealValue(RValue rValue, ItemDefinition definition) throws SchemaException {
         if (rValue instanceof RClobValue) {
             RClobValue clob = (RClobValue) rValue;
+            LOGGER.info("CLOB:\n'{}'", new Object[]{clob.getValue()});
+
+            PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+
             return DOMUtil.parseDocument(clob.getValue()).getDocumentElement();
         }
 

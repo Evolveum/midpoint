@@ -41,6 +41,7 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
+@IdClass(RAnyContainerId.class)
 @Table(name = "any")
 public class RAnyContainer implements Serializable {
 

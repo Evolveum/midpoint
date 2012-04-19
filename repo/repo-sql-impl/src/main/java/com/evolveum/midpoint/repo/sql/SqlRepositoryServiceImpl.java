@@ -101,6 +101,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     public void setSessionFactory(SessionFactory sessionFactory) {
         // !!! HACK !!! https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
         // problem with composite keys and object merging
+        fixCompositeIdentifierInMetaModel(RAnyContainer.class);
+
         fixCompositeIdentifierInMetaModel(RObjectReference.class);
         fixCompositeIdentifierInMetaModel(RObjectReferenceTaskObject.class);
         fixCompositeIdentifierInMetaModel(RObjectReferenceTaskOwner.class);

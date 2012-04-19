@@ -121,8 +121,8 @@ public class RAssignment extends RContainer implements ROwnable {
 
     public void setExtension(RAnyContainer extension) {
         this.extension = extension;
-        if (extension != null) {
-            extension.setOwnerType(RContainerType.ASSIGNMENT);
+        if (this.extension != null) {
+            this.extension.setOwnerType(RContainerType.ASSIGNMENT);
         }
     }
 
@@ -214,7 +214,7 @@ public class RAssignment extends RContainer implements ROwnable {
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();
             extension.setOwner(repo);
-            extension.setOwnerType(RContainerType.ASSIGNMENT);
+//            extension.setOwnerType(RContainerType.ASSIGNMENT);
 
             repo.setExtension(extension);
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);

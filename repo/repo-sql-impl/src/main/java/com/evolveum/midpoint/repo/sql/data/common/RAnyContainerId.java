@@ -26,12 +26,11 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class RObjectReferenceId implements Serializable {
+public class RAnyContainerId implements Serializable {
 
     private String ownerOid;
     private Long ownerId;
-    private String targetOid;
-    private Long targetId;
+    private RContainerType ownerType;
 
     public Long getOwnerId() {
         return ownerId;
@@ -49,20 +48,12 @@ public class RObjectReferenceId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Long getTargetId() {
-        return targetId;
+    public RContainerType getOwnerType() {
+        return ownerType;
     }
 
-    public void setTargetId(Long targetId) {
-        this.targetId = targetId;
-    }
-
-    public String getTargetOid() {
-        return targetOid;
-    }
-
-    public void setTargetOid(String targetOid) {
-        this.targetOid = targetOid;
+    public void setOwnerType(RContainerType ownerType) {
+        this.ownerType = ownerType;
     }
 
     @Override
@@ -70,12 +61,11 @@ public class RObjectReferenceId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RObjectReferenceId that = (RObjectReferenceId) o;
+        RAnyContainerId that = (RAnyContainerId) o;
 
         if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
-        if (targetId != null ? !targetId.equals(that.targetId) : that.targetId != null) return false;
-        if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null) return false;
+        if (ownerType != that.ownerType) return false;
 
         return true;
     }
@@ -84,13 +74,12 @@ public class RObjectReferenceId implements Serializable {
     public int hashCode() {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
         result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
-        result = 31 * result + (targetOid != null ? targetOid.hashCode() : 0);
-        result = 31 * result + (targetId != null ? targetId.hashCode() : 0);
+        result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "RObjectReferenceId[" + ownerOid + "," + ownerId + "," + targetOid + "," + targetId + ']';
+        return "RAnyContainerId[" + ownerOid + "," + ownerId + "," + ownerType + "]";
     }
 }

@@ -140,8 +140,8 @@ public class RResourceObjectShadow extends RObject {
 
     public void setAttributes(RAnyContainer attributes) {
         this.attributes = attributes;
-        if (attributes != null) {
-            attributes.setOwnerType(RContainerType.RESOURCE_OBJECT_SHADOW);
+        if (this.attributes != null) {
+            this.attributes.setOwnerType(RContainerType.RESOURCE_OBJECT_SHADOW);
         }
     }
 
@@ -248,7 +248,7 @@ public class RResourceObjectShadow extends RObject {
         if (jaxb.getAttributes() != null) {
             RAnyContainer attributes = new RAnyContainer();
             attributes.setOwner(repo);
-            attributes.setOwnerType(RContainerType.getType(repo.getClass()));
+//            attributes.setOwnerType(RContainerType.getType(repo.getClass()));
 
             repo.setAttributes(attributes);
             RAnyContainer.copyFromJAXB(jaxb.getAttributes(), attributes, prismContext);

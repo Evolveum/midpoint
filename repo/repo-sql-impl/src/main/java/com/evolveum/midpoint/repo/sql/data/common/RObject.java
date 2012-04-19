@@ -84,6 +84,9 @@ public abstract class RObject extends RContainer {
 
     public void setExtension(RAnyContainer extension) {
         this.extension = extension;
+        if (this.extension != null) {
+            this.extension.setOwnerType(RContainerType.OBJECT);
+        }
     }
 
     public long getVersion() {
@@ -152,7 +155,7 @@ public abstract class RObject extends RContainer {
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();
             extension.setOwner(repo);
-            extension.setOwnerType(RContainerType.getType(repo.getClass()));
+//            extension.setOwnerType(RContainerType.getType(repo.getClass()));
 
             repo.setExtension(extension);
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
