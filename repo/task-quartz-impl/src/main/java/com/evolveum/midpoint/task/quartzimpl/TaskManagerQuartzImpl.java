@@ -231,6 +231,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
 
         LOGGER.trace("Quartz scheduler initialized (not yet started, however); it is " + quartzScheduler);
+
+        // FIXME: brutal hack -- if running in test mode, the postInit will not be executed... so we have to run it here
+        if (configuration.isReusableQuartzScheduler()) {
+            postInit(result);
+        }
 		
 		LOGGER.info("Task Manager initialized");
 	}
