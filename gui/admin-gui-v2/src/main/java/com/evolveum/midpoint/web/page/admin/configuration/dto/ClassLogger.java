@@ -46,4 +46,16 @@ public class ClassLogger extends LoggerConfiguration {
     public String getName() {
         return _package;
     }
+
+	@Override
+	public void setName(String name) {
+		this._package = name;
+	} 
+    
+	public ClassLoggerConfigurationType toXmlType() {
+		ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
+		type.setPackage(_package);
+		type.setLevel(getLevel());
+		return type;
+	}
 }

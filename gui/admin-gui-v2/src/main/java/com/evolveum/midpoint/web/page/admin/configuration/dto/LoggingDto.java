@@ -46,15 +46,14 @@ public class LoggingDto implements Serializable {
 
     private List<LoggerConfiguration> loggers = new ArrayList<LoggerConfiguration>();
 
-    private ProfilingLevel subsystemLevel;
-    private String subsystemAppender;
+    private ProfilingLevel profilingLevel;
+    private String profilingAppender;
 
     private List<AppenderConfiguration> appenders = new ArrayList<AppenderConfiguration>();
 
     private boolean auditLog;
     private boolean auditDetails;
     private String auditAppender;
-    private ClassLogger profilingLogger = null;
     
     private boolean advanced;
 
@@ -80,11 +79,7 @@ public class LoggingDto implements Serializable {
         }
 
         for (ClassLoggerConfigurationType logger : config.getClassLogger()) {
-        	if ("PROFILING".equals(logger.getPackage())) {
-				profilingLogger = new ClassLogger(logger);
-				break;
-			}
-            loggers.add(new ClassLogger(logger));
+			loggers.add(new ClassLogger(logger));
         }
 
         Collections.sort(loggers, new LoggersComparator());
@@ -98,10 +93,6 @@ public class LoggingDto implements Serializable {
         }
         Collections.sort(appenders);
     }
-
-    public ClassLogger getProfilingLogger() {
-		return profilingLogger;
-	}
 
 	public List<LoggerConfiguration> getLoggers() {
         return loggers;
@@ -171,20 +162,20 @@ public class LoggingDto implements Serializable {
         this.advanced = advanced;
     }
 
-    public String getSubsystemAppender() {
-        return subsystemAppender;
+    public String getProfilingAppender() {
+        return profilingAppender;
     }
 
-    public void setSubsystemAppender(String subsystemAppender) {
-        this.subsystemAppender = subsystemAppender;
+    public void setProfilingAppender(String profilingAppender) {
+        this.profilingAppender = profilingAppender;
     }
 
-    public ProfilingLevel getSubsystemLevel() {
-        return subsystemLevel;
+    public ProfilingLevel getProfilingLevel() {
+        return profilingLevel;
     }
 
-    public void setSubsystemLevel(ProfilingLevel subsystemLevel) {
-        this.subsystemLevel = subsystemLevel;
+    public void setProfilingLevel(ProfilingLevel profilingLevel) {
+        this.profilingLevel = profilingLevel;
     }
 
     public List<AppenderConfiguration> getAppenders() {

@@ -36,6 +36,7 @@ public abstract class LoggerConfiguration extends Selectable {
     private List<String> appenders = new ArrayList<String>();
 
     public abstract String getName();
+    public abstract void setName(String name);
 
     public List<String> getAppenders() {
         return appenders;
@@ -52,4 +53,6 @@ public abstract class LoggerConfiguration extends Selectable {
     public void setLevel(LoggingLevelType level) {
         this.level = level;
     }
+    
+    
 }

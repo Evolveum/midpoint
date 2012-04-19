@@ -37,7 +37,7 @@ public class AppenderConfiguration<T extends AppenderConfigurationType> extends 
         this.config = config;
     }
 
-    protected T getConfig() {
+    public T getConfig() {
         return config;
     }
 

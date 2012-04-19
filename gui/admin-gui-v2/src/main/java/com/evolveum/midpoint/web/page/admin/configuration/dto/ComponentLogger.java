@@ -21,11 +21,14 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
 import org.apache.commons.lang.Validate;
 
 import java.util.List;
+
+import javax.swing.LayoutStyle.ComponentPlacement;
 
 /**
  * @author lazyman
@@ -51,4 +54,16 @@ public class ComponentLogger extends LoggerConfiguration {
     public LoggingComponentType getComponent(){
     	return component;
     }
+
+	@Override
+	public void setName(String name) {
+		this.component = LoggingComponentType.valueOf(name);		
+	}
+	
+	public SubSystemLoggerConfigurationType toXmlType() {
+		SubSystemLoggerConfigurationType type = new SubSystemLoggerConfigurationType();
+		type.setComponent(component);
+		type.setLevel(getLevel());
+		return type;
+	}
 }
