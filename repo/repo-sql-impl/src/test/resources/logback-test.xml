@@ -31,6 +31,6 @@
 		<appender-ref ref="X" />
 	</root>
     <logger name="com.evolveum.midpoint.repo.sql" level="TRACE" />
-    <logger name="org.hibernate" level="TRACE" />
+    <!--<logger name="org.hibernate" level="TRACE" />-->
 </configuration>
 

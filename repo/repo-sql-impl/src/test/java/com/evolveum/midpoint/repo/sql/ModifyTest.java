@@ -30,10 +30,12 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,6 +44,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -62,9 +65,39 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     @Autowired(required = true)
     PrismContext prismContext;
 
+    @Test(expectedExceptions = SystemException.class)
+    public void test010ModifyWithExistingName() throws Exception {
+        LOGGER.info("=== [ modifyWithExistingName ] ===");
+
+        OperationResult result = new OperationResult("MODIFY");
+
+        File userFile = new File(TEST_DIR, "modify-user.xml");
+        //add first user
+        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        user.setOid(null);
+        user.setPropertyRealValue(ObjectType.F_NAME, "existingName");
+        repositoryService.addObject(user, result);
+
+        //add second user
+        user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        user.setOid(null);
+        user.setPropertyRealValue(ObjectType.F_NAME, "otherName");
+        String oid = repositoryService.addObject(user, result);
+
+        //modify second user name to "existingName"
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+                new File(TEST_DIR, "change-name.xml"),
+                ObjectModificationType.class);
+        modification.setOid(oid);
+        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
+                UserType.class, prismContext);
+
+        repositoryService.modifyObject(UserType.class, oid, deltas, result);
+    }
+
     @Test(expectedExceptions = ObjectNotFoundException.class)
-    public void modifyNotExistingUser() throws Exception {
-        System.out.println("=== [ modifyNotExistingUser ] ===");
+    public void test020ModifyNotExistingUser() throws Exception {
+        LOGGER.info("=== [ modifyNotExistingUser ] ===");
 
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
                 new File(TEST_DIR, "change-add.xml"),
@@ -78,8 +111,8 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void modifyUserOnNonExistingAccountTest() throws Exception {
-        System.out.println("=== [ modifyUserOnNonExistingAccountTest ] ===");
+    public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
+        LOGGER.info("=== [ modifyUserOnNonExistingAccountTest ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
 
@@ -113,8 +146,8 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void modifyUserOnExistingAccountTest() throws Exception {
-        System.out.println("=== [ modifyUserOnExistingAccountTest ] ===");
+    public void test031ModifyUserOnExistingAccountTest() throws Exception {
+        LOGGER.info("=== [ modifyUserOnExistingAccountTest ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
 
