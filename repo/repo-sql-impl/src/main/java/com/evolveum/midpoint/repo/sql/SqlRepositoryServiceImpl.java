@@ -50,6 +50,7 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.tuple.IdentifierProperty;
@@ -74,6 +75,12 @@ import java.util.List;
 public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
+    // how many times we want to repeat operation after lock aquisition,
+    // pessimistic, optimistic exception
+    private static final int LOCKING_MAX_ATTEMPTS = 5;
+    // time in ms to wait before next operation attempt. it seems that 0
+    // works best here (i.e. it is best to repeat operation immediately)
+    private static final long LOCKING_TIMEOUT = 0;
     @Autowired(required = true)
     private PrismContext prismContext;
     @Autowired(required = true)
@@ -504,17 +511,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return list;
     }
 
-    private static final int MAX_LOCKING_PROBLEMS_ATTEMPTS = 5;
-    private static final long LOCKING_PROBLEM_TIMEOUT = 0; // it seems that 0 works best here (i.e. it is best to repeat operation immediately)
-
-    /*
-     * BRUTAL HACK, only for testing purposes!
-     */
-
     @Override
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-                                                           Collection<? extends ItemDelta> modifications,
-                                                           OperationResult result) throws ObjectNotFoundException, SchemaException {
+            Collection<? extends ItemDelta> modifications,
+            OperationResult result) throws ObjectNotFoundException, SchemaException {
 
         int attempt = 1;
 
@@ -522,40 +522,40 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             try {
                 modifyObjectAttempt(type, oid, modifications, result);
                 return;
-            } catch (ObjectNotFoundException e) {
-                throw e;
-            } catch (SchemaException e) {
-                throw e;
-            } catch (SystemException e) {
-                String message = e.getMessage();
-                if (message != null && (message.contains("Deadlock detected") || message.contains("Row was updated or deleted by another transaction"))) {
-
-                    LOGGER.info("A locking-related problem occurred when updating object with oid " + oid + ", retrying after "
-                            + LOCKING_PROBLEM_TIMEOUT + " ms (this was attempt " + attempt + " of " + MAX_LOCKING_PROBLEMS_ATTEMPTS
-                            + "; message = " + message);
-
-                    if (attempt == MAX_LOCKING_PROBLEMS_ATTEMPTS) {
-                        throw e;
-                    }
-
-                    if (LOCKING_PROBLEM_TIMEOUT > 0) {
-                        try {
-                            Thread.sleep(LOCKING_PROBLEM_TIMEOUT);
-                        } catch (InterruptedException e1) {
-                            // ignore this
-                        }
-                    }
-                    attempt++;
-                } else {
-                    throw e;
-                }
+            } catch (PessimisticLockException ex) {
+                attempt = logModifyAttempt(oid, attempt, ex);
+            } catch (LockAcquisitionException ex) {
+                attempt = logModifyAttempt(oid, attempt, ex);
+            } catch (HibernateOptimisticLockingFailureException ex) {
+                attempt = logModifyAttempt(oid, attempt, ex);
             }
         }
     }
 
-    public <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
-            Collection<? extends ItemDelta> modifications,
-            OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private int logModifyAttempt(String oid, int attempt, Exception ex) {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("A locking-related problem occurred when updating object with oid '{}', retrying after "
+                    + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{oid, LOCKING_TIMEOUT, attempt,
+                    LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
+        }
+
+        if (attempt > LOCKING_MAX_ATTEMPTS) {
+            throw new SystemException(ex.getMessage(), ex);
+        }
+
+        if (LOCKING_TIMEOUT > 0) {
+            try {
+                Thread.sleep(LOCKING_TIMEOUT);
+            } catch (InterruptedException ex1) {
+                // ignore this
+            }
+        }
+        return ++attempt;
+    }
+
+    private <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
+            Collection<? extends ItemDelta> modifications, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         Validate.notNull(modifications, "Modifications must not be null.");
         Validate.notNull(type, "Object class in delta must not be null.");
         Validate.notEmpty(oid, "Oid must not null or empty.");
@@ -570,9 +570,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Session session = null;
         try {
             session = beginTransaction();
+
             //get user
-//            Session.LockRequest lock = session.buildLockRequest(LockOptions.READ);
             PrismObject<T> prismObject = getObject(session, type, oid, null);
+
             //apply diff
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.dump()});
@@ -581,16 +582,22 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
             }
+
             //merge and update user
             LOGGER.debug("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
-//            session.buildLockRequest(LockOptions.UPGRADE);
             session.merge(rObject);
 
             session.getTransaction().commit();
+        } catch (PessimisticLockException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (LockAcquisitionException ex) {
+            rollbackTransaction(session);
+            throw ex;
         } catch (HibernateOptimisticLockingFailureException ex) {
             rollbackTransaction(session);
-            throw new SystemException(ex.getMessage(), ex);
+            throw ex;
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session);
             throw ex;

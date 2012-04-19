@@ -161,7 +161,10 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             File databaseFile = new File(config.getBaseDir(), config.getFileName());
             jdbcUrl.append(databaseFile.getAbsolutePath());
         }
-        jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1");
+        //disable database closing on exit. By default, a database is closed when the last connection is closed.
+        jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE");
+        //Both read locks and write locks are kept until the transaction commits.
+        jdbcUrl.append(";LOCK_MODE=1");
 
         config.setJdbcUrl(jdbcUrl.toString());
         LOGGER.trace("JDBC url created: {}", new Object[]{config.getJdbcUrl()});
