@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -452,6 +454,29 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			clonedSet.add(clonedVal);
 		}
 		return clonedSet;
+	}
+	
+	public void assertDefinitions(String sourceDescription) throws SchemaException {
+		if (definition == null) {
+			throw new SchemaException("No definition in "+this+" in "+sourceDescription);
+		}
+		assertDefinitions(valuesToAdd, "values to add in "+sourceDescription);
+		assertDefinitions(valuesToReplace, "values to replace in "+sourceDescription);
+		assertDefinitions(valuesToDelete, "values to delete in "+sourceDescription);
+	}
+
+	private void assertDefinitions(Collection<V> values, String sourceDescription) throws SchemaException {
+		if (values == null) {
+			return;
+		}
+		for(V val: values) {
+			if (val instanceof PrismContainerValue<?>) {
+				PrismContainerValue<?> cval = (PrismContainerValue<?>)val;
+				for (Item<?> item: cval.getItems()) {
+					item.assertDefinitions(cval.toString()+" in "+sourceDescription);
+				}
+			}
+		}
 	}
 
 	@Override

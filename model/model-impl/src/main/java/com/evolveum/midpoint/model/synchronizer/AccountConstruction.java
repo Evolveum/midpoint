@@ -215,7 +215,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {
 		return refinedAccountDefinition.getObjectClassDefinition().findAttributeDefinition(attributeName);
 	}
-	
+		
 	@Override
 	public int hashCode() {
 		final int prime = 31;

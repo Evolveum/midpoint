@@ -34,6 +34,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -84,8 +86,13 @@ public class TestAssignmentEvaluator extends AbstractModelIntegrationTest {
 		
 		AssignmentType assignmentType = unmarshallJaxbFromFile(TEST_RESOURCE_DIR_NAME + "/assignment-direct.xml", AssignmentType.class);
 		
+		// We need to make sure that the assignment has a parent
+		PrismContainerDefinition assignmentContainerDefinition = userTypeJack.asPrismObject().getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+		PrismContainer assignmentContainer = assignmentContainerDefinition.instantiate();
+		assignmentContainer.add(assignmentType.asPrismContainerValue());
+		
 		// WHEN
-		Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, userTypeJack, result);
+		Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, userTypeJack, "testDirect", result);
 		
 		// THEN
 		assertNotNull(evaluatedAssignment);

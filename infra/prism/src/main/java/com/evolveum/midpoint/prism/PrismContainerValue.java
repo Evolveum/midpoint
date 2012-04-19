@@ -839,6 +839,12 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			}
 		}
 	}
+    
+	public void assertDefinitions(String sourceDescription) throws SchemaException {
+		for (Item<?> item: getItems()) {
+			item.assertDefinitions("value("+getId()+") in "+sourceDescription);
+		}
+	}
 
 	public PrismContainerValue<T> clone() {
     	PrismContainerValue<T> clone = new PrismContainerValue<T>(getType(), getSource(), getParent(), getId());

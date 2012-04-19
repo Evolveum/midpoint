@@ -142,10 +142,18 @@ public class AssignmentProcessor {
         Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
         for (PrismContainerValue<AssignmentType> propertyValue : allAssignments) {
             AssignmentType assignmentType = propertyValue.asContainerable();
+            
+            boolean isAssignmentChanged = containsRealValue(changedAssignments,propertyValue);
+            String assignmentPlacementDesc;
+            if (isAssignmentChanged) {
+            	assignmentPlacementDesc = "delta for "+source;
+            } else {
+            	assignmentPlacementDesc = source.toString();
+            }
 
             LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));
 
-            Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, result);
+            Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, result);
             
             if (containsRealValue(assignmentsOld,propertyValue)) {
                 // TODO: remember old state
@@ -154,7 +162,7 @@ public class AssignmentProcessor {
             context.rememberResources(evaluatedAssignment.getResources(result));
 
             // Sort assignments to sets: unchanged (zero), added (plus), removed (minus)
-            if (containsRealValue(changedAssignments,propertyValue)) {
+            if (isAssignmentChanged) {
                 // There was some change
 
                 if (assignmentDelta.isValueToAdd(propertyValue)) {

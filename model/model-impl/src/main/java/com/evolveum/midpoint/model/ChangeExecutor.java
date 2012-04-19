@@ -215,6 +215,11 @@ public class ChangeExecutor {
         if (objectDelta == null) {
             throw new IllegalArgumentException("Null change");
         }
+        
+        // Other types than user type may not be definition-complete (e.g. accounts and resources are completed in provisioning)
+        if (UserType.class.isAssignableFrom(objectDelta.getObjectTypeClass())) {
+        	objectDelta.assertDefinitions();
+        }
 
     	if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("\n---[ EXECUTE delta of {} {} ]---------------------\n{}" +

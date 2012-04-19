@@ -627,5 +627,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
         return "Item";
     }
 
+	public void assertDefinitions(String sourceDescription) throws SchemaException {
+		if (definition == null) {
+			throw new SchemaException("No definition in "+this+" in "+sourceDescription);
+		}
+	}
 
 }

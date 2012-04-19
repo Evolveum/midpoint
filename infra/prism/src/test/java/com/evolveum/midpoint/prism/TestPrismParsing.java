@@ -261,8 +261,9 @@ public class TestPrismParsing {
 //	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
 //	}
 	
-	private void assertUserBar(PrismObject<UserType> user) {
+	private void assertUserBar(PrismObject<UserType> user) throws SchemaException {
 		user.checkConsistence();
+		user.assertDefinitions("test");
 		assertUserContent(user);
 		assertUserExtensionBar(user);
 		assertVisitor(user,42);

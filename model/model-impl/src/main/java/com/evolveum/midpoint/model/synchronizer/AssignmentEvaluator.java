@@ -23,6 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -91,31 +96,31 @@ public class AssignmentEvaluator {
 		this.valueConstructionFactory = valueConstructionFactory;
 	}
 
-	public SimpleDelta<Assignment> evaluate(SimpleDelta<AssignmentType> assignmentTypeDelta, ObjectType source,
+	public SimpleDelta<Assignment> evaluate(SimpleDelta<AssignmentType> assignmentTypeDelta, ObjectType source, String sourceDescription,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		SimpleDelta<Assignment> delta = new SimpleDelta<Assignment>();
 		delta.setType(assignmentTypeDelta.getType());
 		for (AssignmentType assignmentType : assignmentTypeDelta.getChange()) {
 			assertSource(source, assignmentType);
-			Assignment assignment = evaluate(assignmentType, source, result);
+			Assignment assignment = evaluate(assignmentType, source, sourceDescription, result);
 			delta.getChange().add(assignment);
 		}
 		return delta;
 	}
 	
-	public Assignment evaluate(AssignmentType assignmentType, ObjectType source, OperationResult result)
+	public Assignment evaluate(AssignmentType assignmentType, ObjectType source, String sourceDescription, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignmentType);
 		Assignment assignment = new Assignment();
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentType, null);
 		
-		evaluateAssignment(assignment, assignmentPathSegment, source, assignmentPath, result);
+		evaluateAssignment(assignment, assignmentPathSegment, source, sourceDescription, assignmentPath, result);
 		
 		return assignment;
 	}
 	
-	private void evaluateAssignment(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, 
+	private void evaluateAssignment(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		
@@ -123,17 +128,19 @@ public class AssignmentEvaluator {
 		
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
 		
+		checkSchema(assignmentType, sourceDescription);
+		
 		if (assignmentType.getAccountConstruction()!=null) {
 			
-			evaluateConstruction(assignment, assignmentPathSegment, source, assignmentPath, result);
+			evaluateConstruction(assignment, assignmentPathSegment, source, sourceDescription, assignmentPath, result);
 			
 		} else if (assignmentType.getTarget() != null) {
 			
-			evaluateTarget(assignment, assignmentPathSegment, assignmentType.getTarget(), source, assignmentPath, result);
+			evaluateTarget(assignment, assignmentPathSegment, assignmentType.getTarget(), source, sourceDescription, assignmentPath, result);
 			
 		} else if (assignmentType.getTargetRef() != null) {
 			
-			evaluateTargetRef(assignment, assignmentPathSegment, assignmentType.getTargetRef(), source, assignmentPath, result);
+			evaluateTargetRef(assignment, assignmentPathSegment, assignmentType.getTargetRef(), source, sourceDescription, assignmentPath, result);
 
 		} else {
 			throw new SchemaException("No target or accountConstrucion in assignment in "+ObjectTypeUtil.toShortString(source));
@@ -142,7 +149,7 @@ public class AssignmentEvaluator {
 		assignmentPath.remove(assignmentPathSegment);
 	}
 
-	private void evaluateConstruction(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, 
+	private void evaluateConstruction(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, assignment);
 		
@@ -162,7 +169,7 @@ public class AssignmentEvaluator {
 	}
 
 	private void evaluateTargetRef(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectReferenceType targetRef, ObjectType source,
-			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			String sourceDescription, AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		
 		String oid = targetRef.getOid();
@@ -174,42 +181,43 @@ public class AssignmentEvaluator {
 		if (targetRef.getType() != null) {
 			clazz = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
 			if (clazz == null) {
-				throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignment + " in " + source);
+				throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignment + " in " + sourceDescription);
 			}
 		} else {
-			throw new SchemaException("Missing type in target reference in " + assignment + " in " + source);
+			throw new SchemaException("Missing type in target reference in " + assignment + " in " + sourceDescription);
 		}
 		PrismObject<? extends ObjectType> target = null;
 		try {
 			target = repository.getObject(clazz, oid, null, result);
 			if (target == null) {
-				throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+ObjectTypeUtil.toShortString(source));
+				throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
 			}
 		} catch (ObjectNotFoundException ex) {
-			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+ObjectTypeUtil.toShortString(source),ex);
+			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
 		}
 		
-		evaluateTarget(assignment, assignmentPathSegment, target.asObjectable(), source, assignmentPath, result);
+		evaluateTarget(assignment, assignmentPathSegment, target.asObjectable(), source, sourceDescription, assignmentPath, result);
 	}
 
 
-	private void evaluateTarget(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType target, ObjectType source, 
+	private void evaluateTarget(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType target, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		assignmentPathSegment.setTarget(target);
 		if (target instanceof RoleType) {
-			evaluateRole(assignment, assignmentPathSegment, (RoleType)target, source, assignmentPath, result);
+			evaluateRole(assignment, assignmentPathSegment, (RoleType)target, source, sourceDescription, assignmentPath, result);
 		} else {
-			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(target)+" in "+ObjectTypeUtil.toShortString(source));
+			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(target)+" in "+sourceDescription);
 		}
 	}
 
-	private void evaluateRole(Assignment assignment, AssignmentPathSegment assignmentPathSegment, RoleType role, ObjectType source,
+	private void evaluateRole(Assignment assignment, AssignmentPathSegment assignmentPathSegment, RoleType role, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		for (AssignmentType roleAssignment : role.getAssignment()) {
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleAssignment, null);
-			evaluateAssignment(assignment, roleAssignmentPathSegment, role, assignmentPath, result);
+			String subSourceDescription = role+" in "+sourceDescription;
+			evaluateAssignment(assignment, roleAssignmentPathSegment, role, subSourceDescription, assignmentPath, result);
 		}
 	}
 
@@ -222,6 +230,31 @@ public class AssignmentEvaluator {
 	private void assertSource(ObjectType source, AssignmentType assignmentType) {
 		if (source == null) {
 			throw new IllegalArgumentException("Source cannot be null (while evaluating assignment "+assignmentType+")");
+		}
+	}
+	
+	private void checkSchema(AssignmentType assignmentType, String sourceDescription) throws SchemaException {
+		PrismContainerValue<AssignmentType> assignmentContainerValue = assignmentType.asPrismContainerValue();
+		PrismContainerable<AssignmentType> assignmentContainer = assignmentContainerValue.getParent();
+		if (assignmentContainer == null) {
+			throw new SchemaException("The assignment "+assignmentType+" does not have a parent in "+sourceDescription);
+		}
+		if (assignmentContainer.getDefinition() == null) {
+			throw new SchemaException("The assignment "+assignmentType+" does not have definition in "+sourceDescription);
+		}
+		PrismContainer<Containerable> extensionContainer = assignmentContainerValue.findContainer(AssignmentType.F_EXTENSION);
+		if (extensionContainer != null) {
+			if (extensionContainer.getDefinition() == null) {
+				throw new SchemaException("Extension does not have a definition in assignment "+assignmentType+" in "+sourceDescription);
+			}
+			for (Item<?> item: extensionContainer.getValue().getItems()) {
+				if (item == null) {
+					throw new SchemaException("Null item in extension in assignment "+assignmentType+" in "+sourceDescription);
+				}
+				if (item.getDefinition() == null) {
+					throw new SchemaException("Item "+item+" has no definition in extension in assignment "+assignmentType+" in "+sourceDescription);
+				}
+			}
 		}
 	}
 

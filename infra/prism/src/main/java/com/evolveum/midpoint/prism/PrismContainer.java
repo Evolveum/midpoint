@@ -528,6 +528,14 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 			throw new IllegalArgumentException("Definition "+def+" cannot be applied to container "+this);
 		}
 	}
+	
+	@Override
+	public void assertDefinitions(String sourceDescription) throws SchemaException {
+		super.assertDefinitions(sourceDescription);
+		for (PrismContainerValue<V> val: getValues()) {
+			val.assertDefinitions(this.toString()+" in "+sourceDescription);
+		}
+	}
 
 	@Override
     public PrismContainer<V> clone() {

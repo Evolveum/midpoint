@@ -510,6 +510,20 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 			throw new IllegalStateException("Unknown change type "+getChangeType()+" in delta "+this);
 		}
     }
+    
+    /**
+     * Assert that all the items has appropriate definition.
+     */
+    public void assertDefinitions() throws SchemaException {
+    	if (changeType == ChangeType.ADD) {
+    		objectToAdd.assertDefinitions("add delta");
+    	}
+    	if (changeType == ChangeType.MODIFY) {
+    		for (ItemDelta<?> mod: modifications) {
+    			mod.assertDefinitions("modify delta for "+getOid());
+    		}
+    	}
+    }
 
     @Override
     public String toString() {
