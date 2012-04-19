@@ -30,12 +30,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Columns;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.xml.namespace.QName;
 
 
@@ -44,6 +43,8 @@ import javax.xml.namespace.QName;
  */
 @Entity
 @Table(name = "resource_shadow")
+@org.hibernate.annotations.Table(appliesTo = "resource_shadow",
+        indexes = {@Index(name = "iResourceObjectShadowEnabled", columnNames = "enabled")})
 @ForeignKey(name = "fk_resource_object_shadow")
 public class RResourceObjectShadow extends RObject {
 

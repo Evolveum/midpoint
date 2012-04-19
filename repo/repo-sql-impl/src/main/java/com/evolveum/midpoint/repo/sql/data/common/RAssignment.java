@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -43,6 +44,8 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "assignment")
+@org.hibernate.annotations.Table(appliesTo = "assignment",
+        indexes = {@Index(name = "iAssignmentEnabled", columnNames = "enabled")})
 @ForeignKey(name = "fk_assignment")
 public class RAssignment extends RContainer implements ROwnable {
 

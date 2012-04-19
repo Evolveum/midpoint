@@ -51,7 +51,7 @@ public class RExclusion extends RContainer implements ROwnable  {
     private RObjectReference targetRef;
     private ExclusionPolicyType policy;
 
-    @ForeignKey(name = "fk_assignment_owner")
+    @ForeignKey(name = "fk_exclusion_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({

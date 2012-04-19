@@ -45,7 +45,6 @@ public class RActivation {
     @QueryAttribute
     private XMLGregorianCalendar validTo;
 
-    @Index(name = "iEnabled")
     @Column(nullable = true)
     public Boolean isEnabled() {
         return enabled;

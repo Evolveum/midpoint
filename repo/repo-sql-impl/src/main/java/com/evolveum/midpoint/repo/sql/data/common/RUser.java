@@ -32,11 +32,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,6 +45,8 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "user")
+@org.hibernate.annotations.Table(appliesTo = "user",
+        indexes = {@Index(name = "iUserEnabled", columnNames = "enabled")})
 @ForeignKey(name = "fk_user")
 public class RUser extends RObject {
 
