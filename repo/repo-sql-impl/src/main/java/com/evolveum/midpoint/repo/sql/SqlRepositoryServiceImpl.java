@@ -387,6 +387,19 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             //check name uniqueness (by type)
             session = beginTransaction();
+            if (StringUtils.isNotEmpty(objectType.getOid())) {
+                LOGGER.debug("Checking oid uniqueness.");
+                Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
+                criteria.add(Restrictions.eq("oid", object.getOid()));
+                criteria.setProjection(Projections.rowCount());
+
+                Long count = (Long) criteria.uniqueResult();
+                if (count != null && count > 0) {
+                    throw new ObjectAlreadyExistsException("Object '" + object.getCompileTimeClass().getSimpleName()
+                            + "' with oid '" + object.getOid() + "' already exists.");
+                }
+            }
+
             checkNameUniqueness(session, object.getCompileTimeClass(), object);
 
             LOGGER.debug("Translating JAXB to data type.");
@@ -411,9 +424,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         } catch (ObjectAlreadyExistsException ex) {
             rollbackTransaction(session, ex, result);
             throw ex;
-        } catch (ConstraintViolationException ex) {
-            rollbackTransaction(session, ex, result);
-            throw new ObjectAlreadyExistsException("Object with oid '" + object.getOid() + "' already exists.", ex);
         } catch (Exception ex) {
             handleGeneralException(ex, session, result);
         } finally {

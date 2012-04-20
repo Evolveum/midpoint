@@ -22,8 +22,10 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.data.common.RContainer;
-import com.evolveum.midpoint.repo.sql.data.common.ROwnable;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.ROwnable;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
@@ -37,6 +39,8 @@ import java.util.UUID;
  */
 public class OidGenerator implements IdentifierGenerator {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ContainerIdGenerator.class);
+
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
         RContainer container = null;
@@ -47,13 +51,31 @@ public class OidGenerator implements IdentifierGenerator {
         }
 
         if (container == null) {
-            return null;
+            throw new IllegalStateException("Couldn't create id for '"
+                    + object.getClass().getSimpleName() + "' (should not happen).");
         }
 
         if (StringUtils.isNotEmpty(container.getOid())) {
+            LOGGER.trace("Created oid='{}' for '{}'.", new Object[]{container.getOid(), toString(object)});
             return container.getOid();
         }
 
-        return UUID.randomUUID().toString();
+        String oid = UUID.randomUUID().toString();
+        LOGGER.trace("Created oid='{}' for '{}'.", new Object[]{oid, toString(object)});
+        return oid;
+    }
+
+    private String toString(Object object) {
+        RContainer container = (RContainer) object;
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(object.getClass().getSimpleName());
+        builder.append("[");
+        builder.append(container.getOid());
+        builder.append(",");
+        builder.append(container.getId());
+        builder.append("]");
+
+        return builder.toString();
     }
 }

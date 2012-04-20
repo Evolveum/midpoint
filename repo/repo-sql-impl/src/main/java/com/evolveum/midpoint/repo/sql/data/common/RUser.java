@@ -261,12 +261,6 @@ public class RUser extends RObject {
 
     @Override
     public boolean equals(Object o) {
-        if (1 == 1) return true;
-
-
-        TraceManager.getTrace(SqlRepositoryServiceImpl.class).info("@@@equals {} \n{}\n{}",
-                new Object[]{getClass().getSimpleName(), ReflectionToStringBuilder.toString(this),
-                        ReflectionToStringBuilder.toString(o)});
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
@@ -293,18 +287,14 @@ public class RUser extends RObject {
             return false;
         if (telephoneNumber != null ? !telephoneNumber.equals(rUser.telephoneNumber) : rUser.telephoneNumber != null)
             return false;
-
-        //        if (assignments != null ? !assignments.equals(rUser.assignments) : rUser.assignments != null) return false;
-        //        if (accountRefs != null ? !accountRefs.equals(rUser.accountRefs) : rUser.accountRefs != null) return false;
+        if (assignments != null ? !assignments.equals(rUser.assignments) : rUser.assignments != null) return false;
+        if (accountRefs != null ? !accountRefs.equals(rUser.accountRefs) : rUser.accountRefs != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        if (1 == 1) return 37;
-
-        TraceManager.getTrace(SqlRepositoryServiceImpl.class).info("@@@hashCode {} ", getClass().getSimpleName());
         int result = super.hashCode();
         result = 31 * result + (fullName != null ? fullName.hashCode() : 0);
         result = 31 * result + (givenName != null ? givenName.hashCode() : 0);

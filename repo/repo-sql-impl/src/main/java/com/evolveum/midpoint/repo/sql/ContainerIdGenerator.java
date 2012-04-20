@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
@@ -31,21 +33,21 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/3/12
- * Time: 12:30 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 public class ContainerIdGenerator implements IdentifierGenerator {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ContainerIdGenerator.class);
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
         if (object instanceof RObject) {
+            LOGGER.trace("Created id='0' for '{}'.", new Object[]{toString(object)});
             return 0L;
         } else if (object instanceof RContainer) {
             RContainer container = (RContainer) object;
-            if (container.getId() != null) {
+            if (container.getId() != null && container.getId() != 0) {
+                LOGGER.trace("Created id='{}' for '{}'.", new Object[]{container.getId(), toString(object)});
                 return container.getId();
             }
 
@@ -54,7 +56,10 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 
                 if (parent instanceof RUser) {
                     RUser user = (RUser) parent;
-                    return getNextId(user.getAssignments());
+
+                    Long id = getNextId(user.getAssignments());
+                    LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(object)});
+                    return id;
                 } else if (parent instanceof RRole) {
                     RRole role = (RRole) parent;
 
@@ -66,20 +71,38 @@ public class ContainerIdGenerator implements IdentifierGenerator {
                         containers.addAll(role.getExclusions());
                     }
 
-                    return getNextId(containers);
+                    Long id = getNextId(containers);
+                    LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(object)});
+                    return id;
                 }
             }
         }
 
-        return null;
+        throw new IllegalStateException("Couldn't create id for '"
+                + object.getClass().getSimpleName() + "' (should not happen).");
+    }
+
+    private String toString(Object object) {
+        RContainer container = (RContainer) object;
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(object.getClass().getSimpleName());
+        builder.append("[");
+        builder.append(container.getOid());
+        builder.append(",");
+        builder.append(container.getId());
+        builder.append("]");
+
+        return builder.toString();
     }
 
     private Long getNextId(Set<? extends RContainer> set) {
         Long id = 0L;
         if (set != null) {
             for (RContainer container : set) {
-                if (container.getId() != null && container.getId() > id) {
-                    id = container.getId();
+                Long contId = container.getId();
+                if (contId != null && contId > id) {
+                    id = contId;
                 }
             }
         }
