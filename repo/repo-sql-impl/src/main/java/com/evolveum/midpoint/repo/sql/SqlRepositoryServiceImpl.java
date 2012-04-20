@@ -306,19 +306,21 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         validateName(object);
         Validate.notNull(result, "Operation result must not be null.");
 
+        OperationResult subResult = result.createSubresult(ADD_OBJECT);
+
         final String operation = "adding";
         int attempt = 1;
 
         String oid = object.getOid();
         while (true) {
             try {
-                return addObjectAttempt(object, result);
+                return addObjectAttempt(object, subResult);
             } catch (PessimisticLockException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             } catch (LockAcquisitionException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             } catch (HibernateOptimisticLockingFailureException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
         }
     }
@@ -351,7 +353,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         LOGGER.debug("Adding object type '{}'", new Object[]{object.getClass().getSimpleName()});
 
         String oid = null;
-        OperationResult subResult = result.createSubresult(ADD_OBJECT);
         Session session = null;
         try {
             ObjectType objectType = object.asObjectable();
@@ -374,28 +375,28 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.debug("Saved object '{}' with oid '{}'",
                     new Object[]{object.getCompileTimeClass().getSimpleName(), oid});
         } catch (PessimisticLockException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session);
             throw ex;
         } catch (LockAcquisitionException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session);
             throw ex;
         } catch (HibernateOptimisticLockingFailureException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session);
             throw ex;
         } catch (ObjectAlreadyExistsException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw ex;
         } catch (ConstraintViolationException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw new ObjectAlreadyExistsException("Object with oid '" + object.getOid() + "' already exists.", ex);
         } catch (SystemException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
-            cleanupSessionAndResult(session, subResult);
+            cleanupSessionAndResult(session, result);
         }
 
         return oid;
@@ -411,16 +412,18 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         final String operation = "deleting";
         int attempt = 1;
 
+        OperationResult subResult = result.createSubresult(DELETE_OBJECT);
+
         while (true) {
             try {
-                deleteObjectAttempt(type, oid, result);
+                deleteObjectAttempt(type, oid, subResult);
                 return;
             } catch (PessimisticLockException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             } catch (LockAcquisitionException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             } catch (HibernateOptimisticLockingFailureException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
         }
     }
@@ -429,7 +432,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             ObjectNotFoundException {
         LOGGER.debug("Deleting object type '{}' with oid '{}'", new Object[]{type.getSimpleName(), oid});
 
-        OperationResult subResult = result.createSubresult(DELETE_OBJECT);
         Session session = null;
         try {
             session = beginTransaction();
@@ -445,25 +447,25 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session.delete(object);
             session.getTransaction().commit();
         } catch (PessimisticLockException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session);
             throw ex;
         } catch (LockAcquisitionException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session);
             throw ex;
         } catch (HibernateOptimisticLockingFailureException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session);
             throw ex;
         } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw ex;
         } catch (SystemException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
-            cleanupSessionAndResult(session, subResult);
+            cleanupSessionAndResult(session, result);
         }
     }
 
@@ -597,24 +599,25 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notEmpty(oid, "Oid must not null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
+        OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         final String operation = "modifying";
         int attempt = 1;
 
         while (true) {
             try {
-                modifyObjectAttempt(type, oid, modifications, result);
+                modifyObjectAttempt(type, oid, modifications, subResult);
                 return;
             } catch (PessimisticLockException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             } catch (LockAcquisitionException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             } catch (HibernateOptimisticLockingFailureException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex);
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
         }
     }
 
-    private int logOperationAttempt(String oid, String operation, int attempt, Exception ex) {
+    private int logOperationAttempt(String oid, String operation, int attempt, Exception ex, OperationResult result) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("A locking-related problem occurred when {} object with oid '{}', retrying after "
                     + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, LOCKING_TIMEOUT,
@@ -622,6 +625,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
 
         if (attempt > LOCKING_MAX_ATTEMPTS) {
+            if (ex != null && result != null) {
+                result.recordFatalError(ex.getMessage());
+            }
             throw new SystemException(ex.getMessage(), ex);
         }
 
@@ -654,14 +660,12 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.trace("Modifications: {}", new Object[]{DebugUtil.prettyPrint(modifications)});
         }
 
-        OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         Session session = null;
         try {
             session = beginTransaction();
 
             //get user
             PrismObject<T> prismObject = getObject(session, type, oid, null);
-
             //apply diff
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.dump()});
@@ -670,12 +674,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
             }
-
             //check name uniqueness if necessary
             if (hasNameChanged(modifications)) {
                 checkNameUniqueness(session, type, prismObject);
             }
-
             //merge and update user
             LOGGER.debug("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
@@ -683,25 +685,25 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             session.getTransaction().commit();
         } catch (PessimisticLockException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session);
             throw ex;
         } catch (LockAcquisitionException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session);
             throw ex;
         } catch (HibernateOptimisticLockingFailureException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session);
             throw ex;
         } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw ex;
         } catch (SystemException ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, subResult);
+            rollbackTransaction(session, ex, result);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
-            cleanupSessionAndResult(session, subResult);
+            cleanupSessionAndResult(session, result);
         }
     }
 
@@ -870,6 +872,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return session;
     }
 
+    private void rollbackTransaction(Session session) {
+        rollbackTransaction(session, null, null);
+    }
+
     private void rollbackTransaction(Session session, Exception ex, OperationResult result) {
         if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
             return;
@@ -877,7 +883,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
         session.getTransaction().rollback();
 
-        result.recordFatalError(ex.getMessage());
+        if (ex != null && result != null) {
+            result.recordFatalError(ex.getMessage());
+        }
     }
 
     private void cleanupSessionAndResult(Session session, OperationResult result) {
