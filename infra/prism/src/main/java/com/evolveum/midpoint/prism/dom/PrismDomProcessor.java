@@ -232,15 +232,9 @@ public class PrismDomProcessor {
 	            addValuesToContainerValue(pval, newContainerItems);
 	            container.add(pval);
         	} else if (value instanceof JAXBElement) {
-        		PrismContainerValue<T> pval = parsePrismContainerFromValueObject(((JAXBElement)value).getValue(), container.getDefinition());
-        		if (pval != null) {
-        			container.add(pval);
-        		}
+        		parsePrismContainerFromValueObject(((JAXBElement)value).getValue(), container.getDefinition(), container);
         	} else {
-        		PrismContainerValue<T> pval = parsePrismContainerFromValueObject(value, container.getDefinition());
-        		if (pval != null) {
-        			container.add(pval);
-        		}
+        		parsePrismContainerFromValueObject(value, container.getDefinition(), container);
         	}
         }
         return container;
@@ -262,9 +256,13 @@ public class PrismDomProcessor {
 		}
 	}
 	
-	private <T extends Containerable> PrismContainerValue<T> parsePrismContainerFromValueObject(Object value, PrismContainerDefinition def) throws SchemaException {
+	private <T extends Containerable> PrismContainerValue<T> parsePrismContainerFromValueObject(Object value, PrismContainerDefinition def,
+			PrismContainer<T> parent) throws SchemaException {
 		if (value instanceof Containerable) {
 			PrismContainerValue<T> containerValue = ((Containerable)value).asPrismContainerValue();
+			// This may be a JAXB parsed or constructed bean without a context. Make sure the context is set.
+			containerValue.revive(parent.getPrismContext());
+			parent.add(containerValue);
 			containerValue.applyDefinition(def);
 			return containerValue;
 		}

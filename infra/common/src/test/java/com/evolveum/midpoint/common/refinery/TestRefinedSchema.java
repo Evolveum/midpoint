@@ -165,6 +165,7 @@ public class TestRefinedSchema {
         PrismAsserts.assertPropertyValue(accObject, new QName(SchemaConstants.NS_C, "accountType"), "user");
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
+        assertEquals("Wrong type of <attributes> definition in account", RefinedAccountDefinition.class, attributes.getDefinition().getClass());
         RefinedAccountDefinition attrDef = (RefinedAccountDefinition) attributes.getDefinition();
         assertAttributeDefs(attrDef, resourceType);
 

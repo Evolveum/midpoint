@@ -761,7 +761,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			rawElements = null;
 		}
 		for (Item<?> item: items) {
-			if (!force && item.getDefinition() != null) {
+			if (item.getDefinition() != null && !force) {
 				// Item has a definition already, no need to apply it
 				continue;
 			}
@@ -779,7 +779,12 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 					throw new SchemaException("No definition for item "+item.getName()+" in "+getParent());
 				}
 			}
-			item.applyDefinition(itemDefinition);
+			if (itemDefinition == null && item.getDefinition() != null && item.getDefinition().isDynamic()) {
+				// We will not apply the null definition here. The item has a dynamic definition that we don't
+				// want to destroy as it cannot be reconstructed later.
+			} else {
+				item.applyDefinition(itemDefinition);
+			}
 		}
 	}
 

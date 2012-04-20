@@ -143,7 +143,7 @@ public class PrismContext {
 	public void adopt(Objectable objectable) throws SchemaException {
 		adopt(objectable.asPrismObject(), objectable.getClass());
 	}
-
+	
     /**
      * Method used to marshal objects to xml in debug messages.
      * @param object
@@ -167,4 +167,5 @@ public class PrismContext {
         }
         return xml;
     }
+
 }

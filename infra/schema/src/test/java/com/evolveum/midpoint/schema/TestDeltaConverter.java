@@ -97,6 +97,8 @@ public class TestDeltaConverter {
     	assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
     	PrismReferenceValue accountRefVal = valuesToAdd.iterator().next();
     	assertNotNull("No object in accountRef value", accountRefVal.getObject());
+    	
+    	objectDelta.assertDefinitions();
     }
     
     @Test
@@ -128,6 +130,8 @@ public class TestDeltaConverter {
     	PrismProperty<ProtectedStringType> protectedStringProperty = user.findProperty(CREDENTIALS_PASSWORD_PROTECTED_STRING_PATH);
     	PrismPropertyValue<ProtectedStringType> protectedStringPropertyValue = protectedStringProperty.getValue();
     	assertTrue("protectedString not equivalent", protectedStringPropertyValue.equalsRealValue(protectedStringVal));
+    	
+    	objectDelta.assertDefinitions();
     }
     
     @Test
@@ -161,6 +165,8 @@ public class TestDeltaConverter {
     	assertNotNull("No targetRef value in assignment", targetRefVal);
     	assertEquals("Wrong OID in targetRef value", "12345678-d34d-b33f-f00d-987987987988", targetRefVal.getOid());
     	assertEquals("Wrong type in targetRef value", RoleType.COMPLEX_TYPE, targetRefVal.getTargetType());
+    	
+    	objectDelta.assertDefinitions();
     	
     	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(COMMON_TEST_DIR, "user-jack.xml"));
     	// apply to user
