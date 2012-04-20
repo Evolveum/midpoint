@@ -56,6 +56,10 @@ public class ObjectWrapper implements Serializable {
         this.status = status;
     }
 
+    public PrismObject getObject() {
+        return object;
+    }
+
     public String getDisplayName() {
         if (displayName == null) {
             PrismProperty<String> name = object.findProperty(ObjectType.F_NAME);

@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -60,6 +62,7 @@ import java.util.List;
 public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_USER_ID = "userId";
+    private static final String OPERATION_LOAD_USER = "pageUser.loadUser";
 
     private IModel<ObjectWrapper> userModel;
     private IModel<List<ObjectWrapper>> accountsModel;
@@ -84,6 +87,8 @@ public class PageUser extends PageAdminUsers {
     }
 
     private ObjectWrapper loadUserWrapper() {
+        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+
         PrismObject<UserType> user = null;
         try {
             MidPointApplication application = PageUser.this.getMidpointApplication();
@@ -96,8 +101,10 @@ public class PageUser extends PageAdminUsers {
             } else {
                 ModelService model = application.getModel();
 
-                OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
-                user = model.getObject(UserType.class, userOid.toString(), null, result);
+                PropertyReferenceListType resolve = new PropertyReferenceListType();
+                resolve.getProperty().add(Utils.fillPropertyReference("account"));
+
+                user = model.getObject(UserType.class, userOid.toString(), resolve, result);
             }
         } catch (Exception ex) {
             //todo handle exception
@@ -171,6 +178,11 @@ public class PageUser extends PageAdminUsers {
 
     private List<ObjectWrapper> loadAcccountWrappers() {
         List<ObjectWrapper> list = new ArrayList<ObjectWrapper>();
+
+        ObjectWrapper user = userModel.getObject();
+        PrismObject<UserType> prismUser = user.getObject();
+        System.out.println(prismUser.debugDump(3));
+
         //todo implement
         ObjectWrapper wrapper = loadUserWrapper();
         wrapper.setMinimalized(true);
