@@ -94,7 +94,7 @@ public class PrismAsserts {
 	}
 	
 	public static <T> void assertPropertyValues(String message, Collection<T> expected, Collection<PrismPropertyValue<T>> results) {
-		assertEquals(message, expected.size(), results.size());
+		assertEquals(message+" - unexpected number of results", expected.size(), results.size());
 
         Set<Object> values = new HashSet<Object>();
         for (PrismPropertyValue<T> result : results) {

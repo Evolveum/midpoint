@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
@@ -100,12 +101,12 @@ public class ValueConstructionFactory {
 		constructors.put(element.getName(), constructor);
 	}
 
-	public ValueConstruction createValueConstruction(ValueConstructionType valueConstructionType, ItemDefinition outputDefinition,
+	public <V extends PrismValue> ValueConstruction<V> createValueConstruction(ValueConstructionType valueConstructionType, ItemDefinition outputDefinition,
 			String shortDesc) {
 		if (constructors == null) {
 			initialize();
 		}
-		ValueConstruction construction = new ValueConstruction(valueConstructionType, outputDefinition, shortDesc, constructors);
+		ValueConstruction<V> construction = new ValueConstruction<V>(valueConstructionType, outputDefinition, shortDesc, constructors, expressionFactory);
 		return construction;
 	}
 	

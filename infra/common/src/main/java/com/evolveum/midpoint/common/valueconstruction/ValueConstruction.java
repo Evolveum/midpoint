@@ -30,12 +30,14 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -64,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.VariableDefinitionTy
 public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugDumpable {
 
 	private Map<QName,ValueConstructor> constructors;
+	private ExpressionFactory expressionFactory;
 	private Map<QName,Object> variables;
 	private String shortDesc;
 	private ValueConstructionType valueConstructionType;
@@ -75,10 +78,11 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	private static final Trace LOGGER = TraceManager.getTrace(ValueConstruction.class);
 	
 	ValueConstruction(ValueConstructionType valueConstructionType, ItemDefinition outputDefinition,
-			String shortDesc, Map<QName,ValueConstructor> constructors) {
+			String shortDesc, Map<QName,ValueConstructor> constructors, ExpressionFactory expressionFactory) {
 		this.shortDesc = shortDesc;
 		this.valueConstructionType = valueConstructionType;
 		this.constructors = constructors;
+		this.expressionFactory = expressionFactory;
 		this.variables = new HashMap<QName,Object>();
 		this.input = null;
 		this.output = null;
@@ -195,12 +199,32 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		if (outputDefinition == null) {
 			throw new IllegalArgumentException("No output definition, cannot evaluate construction "+shortDesc);
 		}
-		// TODO: evaluate condition
+		
+		boolean conditionResult = evaluateCondition(result);
+		
+		if (!conditionResult) {
+			// TODO: tracing
+			return;
+		}
 		// TODO: input filter
 		evaluateValueConstructors(result);
 		// TODO: output filter
 	}
 	
+	private boolean evaluateCondition(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		ExpressionType conditionExpressionType = valueConstructionType.getCondition();
+		if (conditionExpressionType == null) {
+			return true;
+		}
+		Expression conditionExpression = expressionFactory.createExpression(conditionExpressionType, "condition in "+shortDesc);
+		conditionExpression.addVariableDefinitions(variables);
+		PrismPropertyValue<Boolean> conditionValue = conditionExpression.evaluateScalar(Boolean.class, result);
+		if (conditionValue == null || conditionValue.getValue() == null) {
+			return true;
+		}
+		return conditionValue.getValue();
+	}
+
 	private void evaluateValueConstructors(OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		if (valueConstructionType.getValueConstructor() != null && valueConstructionType.getSequence() != null) {
 			throw new SchemaException("Both constructor and sequence was specified, ambiguous situation in "+shortDesc);
@@ -256,9 +280,9 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	/**
 	 * Shallow clone. Only the output is cloned deeply.
 	 */
-	public ValueConstruction clone() {
-		ValueConstruction clone = new ValueConstruction(valueConstructionType, outputDefinition, 
-				shortDesc, constructors);
+	public ValueConstruction<V> clone() {
+		ValueConstruction<V> clone = new ValueConstruction<V>(valueConstructionType, outputDefinition, 
+				shortDesc, constructors, expressionFactory);
 		clone.input = this.input;
 		clone.objectResolver = this.objectResolver;
 		clone.output = this.output.clone();
