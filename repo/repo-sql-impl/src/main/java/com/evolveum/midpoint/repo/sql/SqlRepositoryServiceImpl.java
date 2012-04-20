@@ -798,14 +798,21 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
     }
 
-    private <T extends ObjectType> RObject createDataObjectFromJAXB(T object)
-            throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    private <T extends ObjectType> RObject createDataObjectFromJAXB(T object) throws SchemaException {
 
         RObject rObject;
         Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
-        rObject = clazz.newInstance();
-        Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
-        method.invoke(clazz, object, rObject, prismContext);
+        try {
+            rObject = clazz.newInstance();
+            Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
+            method.invoke(clazz, object, rObject, prismContext);
+        } catch (Exception ex) {
+            String message = ex.getMessage();
+            if (StringUtils.isEmpty(message) && ex.getCause() != null) {
+                message = ex.getCause().getMessage();
+            }
+            throw new SchemaException(message, ex);
+        }
 
         return rObject;
     }
