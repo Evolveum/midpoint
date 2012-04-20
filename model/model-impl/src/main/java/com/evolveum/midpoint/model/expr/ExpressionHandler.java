@@ -25,6 +25,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -89,7 +90,9 @@ public class ExpressionHandler {
 		
 		Expression expression = expressionFactory.createExpression(expressionType, shortDesc);
 		expression.addVariableDefinitions(variables);
-		return expression.evaluateScalar(String.class, result).getValue();
+
+        PrismPropertyValue<String> value = expression.evaluateScalar(String.class, result);
+        return value != null ? value.getValue() : null;
 	}
 
 	public boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
