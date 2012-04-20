@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.xml.resolver.apps.resolver;
 import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
@@ -164,13 +165,33 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
+        final String operation = "getting";
+        int attempt = 1;
+
+        OperationResult subResult = result.createSubresult(GET_OBJECT);
+
+        while (true) {
+            try {
+                return getObjectAttempt(type, oid, resolve, subResult);
+            } catch (PessimisticLockException ex) {
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+            } catch (LockAcquisitionException ex) {
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+            } catch (HibernateOptimisticLockingFailureException ex) {
+                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+            }
+        }
+    }
+
+    private <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid, PropertyReferenceListType resolve,
+            OperationResult result) throws ObjectNotFoundException, SchemaException {
         LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Resolving\n{}", new Object[]{prismContext.silentMarshalObject(resolve)});
         }
 
         PrismObject<T> objectType = null;
-        OperationResult subResult = result.createSubresult(GET_OBJECT);
+
         Session session = null;
         try {
             session = beginTransaction();
@@ -178,23 +199,22 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             objectType = getObject(session, type, oid, resolve);
 
             session.getTransaction().commit();
-        } catch (ObjectNotFoundException ex) {
+        } catch (PessimisticLockException ex) {
+            rollbackTransaction(session);
             throw ex;
-        } catch (NonUniqueResultException ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw new SystemException("There are more objects of type '"
-                    + type.getSimpleName() + "' with oid '" + oid + "': " + ex.getMessage(), ex);
-        } catch (DtoTranslationException ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw new SchemaException(ex.getMessage(), ex);
-        } catch (SystemException ex) {
-            rollbackTransaction(session, ex, subResult);
+        } catch (LockAcquisitionException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (HibernateOptimisticLockingFailureException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (ObjectNotFoundException ex) {
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw new SystemException(ex.getMessage(), ex);
+            handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, subResult);
+            cleanupSessionAndResult(session, result);
         }
 
         return objectType;
@@ -262,8 +282,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     new Object[]{(users != null ? users.size() : 0)});
 
             if (users == null || users.isEmpty()) {
-//                throw new ObjectNotFoundException("Account shadow owner for account '"
-//                        + accountOid + "' was not found.");
+                //account shadow owner was not found
                 return null;
             }
 
@@ -276,15 +295,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             userType = user.toJAXB(prismContext);
 
             session.getTransaction().commit();
-//        } catch (ObjectNotFoundException ex) {
-//            rollbackTransaction(session, ex, subResult);
-//            throw ex;
-        } catch (SystemException ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw new SystemException(ex.getMessage(), ex);
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, subResult);
         }
@@ -389,12 +401,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         } catch (ConstraintViolationException ex) {
             rollbackTransaction(session, ex, result);
             throw new ObjectAlreadyExistsException("Object with oid '" + object.getOid() + "' already exists.", ex);
-        } catch (SystemException ex) {
-            rollbackTransaction(session, ex, result);
-            throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, result);
-            throw new SystemException(ex.getMessage(), ex);
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -458,12 +466,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session, ex, result);
             throw ex;
-        } catch (SystemException ex) {
-            rollbackTransaction(session, ex, result);
-            throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, result);
-            throw new SystemException(ex.getMessage(), ex);
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -520,12 +524,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.debug("Selecting total count.");
             Long longCount = (Long) criteria.uniqueResult();
             count = longCount.intValue();
-        } catch (SystemException ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw new SystemException(ex.getMessage(), ex);
+            handleGeneralException(ex, session, subResult);
         } finally {
             cleanupSessionAndResult(session, subResult);
         }
@@ -577,12 +577,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             session.getTransaction().commit();
-        } catch (SystemException ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw new SystemException(ex.getMessage(), ex);
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, subResult);
         }
@@ -696,12 +692,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session, ex, result);
             throw ex;
-        } catch (SystemException ex) {
-            rollbackTransaction(session, ex, result);
-            throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, result);
-            throw new SystemException(ex.getMessage(), ex);
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -741,12 +733,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
             session.getTransaction().commit();
             LOGGER.debug("Done.");
-        } catch (SystemException ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, subResult);
-            throw new SystemException(ex.getMessage(), ex);
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, subResult);
         }
@@ -783,12 +771,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session, ex, result);
             throw ex;
-        } catch (SystemException ex) {
-            rollbackTransaction(session, ex, result);
-            throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session, ex, result);
-            throw new SystemException(ex.getMessage(), ex);
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -894,5 +878,13 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
 
         result.computeStatus();
+    }
+
+    private void handleGeneralException(Exception ex, Session session, OperationResult result) {
+        rollbackTransaction(session, ex, result);
+        if (ex instanceof SystemException) {
+            throw (SystemException) ex;
+        }
+        throw new SystemException(ex.getMessage(), ex);
     }
 }
