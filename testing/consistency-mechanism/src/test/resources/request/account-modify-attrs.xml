@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+
+<!-- Object modification description that is changing account of "guybrush" -->
+
+<objectModification
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+	<oid>will be replaced by the test code</oid>
+	<modification>
+		<t:modificationType>replace</t:modificationType>
+		<t:path>c:attributes</t:path>
+		<t:value>
+			<ri:roomNumber>captain's cabin</ri:roomNumber>
+		</t:value>
+	</modification>
+	<modification>
+		<t:modificationType>add</t:modificationType>
+		<t:path>c:attributes</t:path>
+		<t:value>
+			<ri:businessCategory>capsize</ri:businessCategory>
+			<ri:businessCategory>fighting</ri:businessCategory>
+		</t:value>
+	</modification>
+</objectModification>

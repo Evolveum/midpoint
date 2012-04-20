@@ -56,9 +56,13 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -111,7 +115,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * that are implemented here.
  * <p/>
  * Great deal of code is copied from the old ModelControllerImpl.
- *
+ * 
  * @author lazyman
  * @author Radovan Semancik
  */
@@ -277,15 +281,15 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, 
-			SecurityViolationException {
+	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task,
+			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
 		T objectType = object.asObjectable();
-		//FIXME??
+		// FIXME??
 		prismContext.adopt(objectType);
 		if (!(objectType instanceof ResourceObjectShadowType)) {
 			Validate.notEmpty(objectType.getName(), "Object name must not be null or empty.");
@@ -407,9 +411,9 @@ public class ModelController implements ModelService {
 	/**
 	 * Executes preChangePrimary on all registered hooks. Parameters (delta,
 	 * task, result) are simply passed to these hooks.
-	 *
+	 * 
 	 * @return FOREGROUND, if all hooks returns FOREGROUND; BACKGROUND if not.
-	 *
+	 * 
 	 *         TODO in the future, maybe some error status returned from hooks
 	 *         should be considered here.
 	 */
@@ -637,23 +641,23 @@ public class ModelController implements ModelService {
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		// TODO: implement properly
 
-        try {
-            if (ObjectTypes.isObjectTypeManagedByProvisioning(type)) {
-                return provisioning.countObjects(type, query, parentResult);
-            } else {
-                return cacheRepositoryService.countObjects(type, query, parentResult);
-            }
-        } catch (Exception ex) {
-            throw new SystemException(ex.getMessage(),  ex);
-        }
+		try {
+			if (ObjectTypes.isObjectTypeManagedByProvisioning(type)) {
+				return provisioning.countObjects(type, query, parentResult);
+			} else {
+				return cacheRepositoryService.countObjects(type, query, parentResult);
+			}
+		} catch (Exception ex) {
+			throw new SystemException(ex.getMessage(), ex);
+		}
 	}
 
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException,
-			SecurityViolationException {
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
 
 		Validate.notNull(modifications, "Object modification must not be null.");
 		Validate.notEmpty(oid, "Change oid must not be null or empty.");
@@ -702,22 +706,22 @@ public class ModelController implements ModelService {
 			ObjectDelta<T> objectDelta = null;
 
 			if (UserType.class.isAssignableFrom(type)) {
-				
+
 				SyncContext syncContext = userTypeModifyToContext(oid, modifications, result);
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
 
 				Collection<ItemDelta> modificationsCloned = new ArrayList<ItemDelta>();
-				
-				for (ItemDelta delta : modifications){
+
+				for (ItemDelta delta : modifications) {
 					ItemDelta deltaNew = delta.clone();
 					modificationsCloned.add(deltaNew);
-					
+
 				}
-				
 
 				try {
+				
 					userSynchronizer.synchronizeUser(syncContext, result);
 
 					// Deltas after sync will be different
@@ -726,7 +730,7 @@ public class ModelController implements ModelService {
 					changeExecutor.executeChanges(syncContext, result);
 					result.computeStatus();
 				} catch (ObjectAlreadyExistsException e) {
-					syncContext = userTypeModifyToContext(oid, modificationsCloned, result);
+					syncContext = userTypeModifyToContextAssertRecon(oid, modificationsCloned, result);
 					result = parentResult.createSubresult(MODIFY_OBJECT);
 					result.addParam("syncContext", syncContext);
 					userSynchronizer.synchronizeUser(syncContext, result);
@@ -769,10 +773,11 @@ public class ModelController implements ModelService {
 					// This should not happen
 					// TODO Better handling
 					throw new SystemException(e.getMessage(), e);
-				} 
-//				catch (ObjectNotFoundException ex) {
-//					cacheRepositoryService.listAccountShadowOwner(oid, parentResult);
-//				}
+				}
+				// catch (ObjectNotFoundException ex) {
+				// cacheRepositoryService.listAccountShadowOwner(oid,
+				// parentResult);
+				// }
 
 				// Non-systemic solition. TODO: cleanup
 				if (SystemConfigurationType.class.isAssignableFrom(type)) {
@@ -789,10 +794,11 @@ public class ModelController implements ModelService {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);
 			throw ex;
-//		} catch (ObjectAlreadyExistsException ex) {
-//			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-//			result.recordFatalError(ex);
-//			throw ex;
+			// } catch (ObjectAlreadyExistsException ex) {
+			// LOGGER.error("model.modifyObject failed: {}", ex.getMessage(),
+			// ex);
+			// result.recordFatalError(ex);
+			// throw ex;
 		} catch (SchemaException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			logDebugChange(type, oid, modifications);
@@ -844,9 +850,26 @@ public class ModelController implements ModelService {
 		return syncContext;
 	}
 
+	private SyncContext userTypeModifyToContextAssertRecon(String oid, Collection<? extends ItemDelta> modifications,
+			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
+		
+		SyncContext syncContext = new SyncContext(prismContext);
+		syncContext.setDoReconciliationForAllAccounts(true);
+
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class);
+
+		// TODO? userOld?
+
+		syncContext.setUserOld(null);
+		syncContext.setUserNew(null);
+		syncContext.setUserPrimaryDelta(userDelta);
+
+		return syncContext;
+	}
+	
 	private void addAccountToContext(SyncContext syncContext, AccountShadowType accountType,
-			ChangeType changeType, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ChangeType changeType, OperationResult result) throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
 
 		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
 		if (resourceOid == null) {
@@ -877,7 +900,8 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
-			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
+			SecurityViolationException {
 		Validate.notNull(clazz, "Class must not be null.");
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");
@@ -914,7 +938,6 @@ public class ModelController implements ModelService {
 			auditService.audit(auditRecord, task);
 
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
-
 
 			Collection<ObjectDelta<? extends ObjectType>> changes = null;
 
@@ -1244,7 +1267,7 @@ public class ModelController implements ModelService {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * com.evolveum.midpoint.model.api.ModelService#discoverConnectors(com.evolveum
 	 * .midpoint.xml.ns._public.common.common_1.ConnectorHostType,
@@ -1270,7 +1293,7 @@ public class ModelController implements ModelService {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * com.evolveum.midpoint.model.api.ModelService#initialize(com.evolveum.
 	 * midpoint.common.result.OperationResult)
@@ -1282,18 +1305,19 @@ public class ModelController implements ModelService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
 
 		// TODO: initialize repository
-		
+
 		PrismObject<SystemConfigurationType> systemConfiguration;
 		try {
-			systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+			systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class,
+					SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 			systemConfigurationHandler.postInit(systemConfiguration, result);
 		} catch (ObjectNotFoundException e) {
-			String message = "No system configuration found, skipping application of initial system settings"; 
-			LOGGER.error(message+": "+e.getMessage(), e);
+			String message = "No system configuration found, skipping application of initial system settings";
+			LOGGER.error(message + ": " + e.getMessage(), e);
 			result.recordWarning(message, e);
 		} catch (SchemaException e) {
-			String message = "Schema error in system configuration, skipping application of initial system settings"; 
-			LOGGER.error(message+": "+e.getMessage(), e);
+			String message = "Schema error in system configuration, skipping application of initial system settings";
+			LOGGER.error(message + ": " + e.getMessage(), e);
 			result.recordWarning(message, e);
 		}
 

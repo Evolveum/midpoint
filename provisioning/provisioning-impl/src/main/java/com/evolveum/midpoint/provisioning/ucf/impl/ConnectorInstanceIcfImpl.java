@@ -1419,7 +1419,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						throw new UnsupportedOperationException("Support for only one attribute filter.");
 					}
 					Node node = filter.getFirstChild();
-					if (QNameUtil.compareQName(SchemaConstants.C_VALUE, node)) {
+					if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_VALUE, node)) {
 						String icfAttrName = convertAttributeNameToIcf(QNameUtil.getNodeQName(node.getFirstChild()),
 								parentResult);
 						Object value = convertValueToIcf(node.getFirstChild().getTextContent(), QNameUtil.getNodeQName(node.getFirstChild()));
