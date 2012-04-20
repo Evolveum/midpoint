@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -38,9 +39,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -76,12 +75,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 public class PageLogging extends PageAdminConfiguration {
 	private String CLASS_NAME = PageLogging.class.getName() + ".";
 	private String UPDATE_LOGGING_CONFIGURATION = CLASS_NAME + "updateLoggingConfiguration";
-	
+
 	private LoadableModel<LoggingDto> model;
 	private PrismObject<SystemConfigurationType> oldObject;
 
 	@SpringBean(name = "taskManager")
-    TaskManager taskManager;
+	TaskManager taskManager;
 
 	public PageLogging() {
 		model = new LoadableModel<LoggingDto>(false) {
@@ -135,7 +134,7 @@ public class PageLogging extends PageAdminConfiguration {
 				createStringResource("pageLogging.appenders"));
 		accordion.getBodyContainer().add(appenders);
 		initAppenders(appenders);
-		
+
 		AccordionItem auditing = new AccordionItem("auditing", createStringResource("pageLogging.audit"));
 		accordion.getBodyContainer().add(auditing);
 		initAudit(auditing);
@@ -145,9 +144,9 @@ public class PageLogging extends PageAdminConfiguration {
 
 	private void initLoggers(AccordionItem loggers) {
 		List<IColumn<LoggerConfiguration>> columns = new ArrayList<IColumn<LoggerConfiguration>>();
-		
+
 		initRoot(loggers);
-		
+
 		IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
 		columns.add(column);
 
@@ -189,6 +188,7 @@ public class PageLogging extends PageAdminConfiguration {
 		ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(
 				new PropertyModel<List<LoggerConfiguration>>(model, "loggers"));
 		TablePanel table = new TablePanel<LoggerConfiguration>("loggersTable", provider, columns);
+		table.setOutputMarkupId(true);
 		table.setShowPaging(false);
 		table.setTableCssClass("autowidth");
 		loggers.getBodyContainer().add(table);
@@ -282,6 +282,7 @@ public class PageLogging extends PageAdminConfiguration {
 		ISortableDataProvider<AppenderConfiguration> provider = new ListDataProvider<AppenderConfiguration>(
 				new PropertyModel<List<AppenderConfiguration>>(model, "appenders"));
 		TablePanel table = new TablePanel<AppenderConfiguration>("appendersTable", provider, columns);
+		table.setOutputMarkupId(true);
 		table.setShowPaging(false);
 		appenders.getBodyContainer().add(table);
 
@@ -309,7 +310,7 @@ public class PageLogging extends PageAdminConfiguration {
 	private void initRoot(final AccordionItem loggers) {
 		DropDownChoice<LoggingLevelType> rootLevel = createComboBox("rootLevel",
 				new PropertyModel<LoggingLevelType>(model, "rootLevel"), createLoggingLevelModel());
-		
+
 		loggers.getBodyContainer().add(rootLevel);
 
 		DropDownChoice<String> rootAppender = createComboBox("rootAppender", new PropertyModel<String>(model,
@@ -333,14 +334,13 @@ public class PageLogging extends PageAdminConfiguration {
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				OperationResult result = new OperationResult("Save logging configuration");
 				String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-				
+
 				try {
 					Task task = taskManager.createTaskInstance(UPDATE_LOGGING_CONFIGURATION);
 					PrismObject<SystemConfigurationType> newObject = oldObject.clone();
 					newObject.asObjectable().setLogging(createConfiguration());
 
 					ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
-					
 					getModelService().modifyObject(SystemConfigurationType.class, oid,
 							delta.getModifications(), task, result);
 				} catch (Exception ex) {
@@ -473,7 +473,7 @@ public class PageLogging extends PageAdminConfiguration {
 				configuration.getSubSystemLogger().add(((ComponentLogger) item).toXmlType());
 			}
 		}
-		
+
 		if (dto.getProfilingLevel() != null && dto.getProfilingAppender() != null) {
 			ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
 			type.setPackage("PROFILING");
@@ -485,8 +485,20 @@ public class PageLogging extends PageAdminConfiguration {
 		return configuration;
 	}
 
+	private TablePanel getLoggersTable() {
+		Accordion accordion = (Accordion) get("mainForm:accordion");
+		AccordionItem item = (AccordionItem)accordion.getBodyContainer().get("loggers");
+		return (TablePanel) item.getBodyContainer().get("loggersTable");
+	}
+	
+	private TablePanel getAppendersTable() {
+		Accordion accordion = (Accordion) get("mainForm:accordion");
+		AccordionItem item = (AccordionItem)accordion.getBodyContainer().get("appenders");
+		return (TablePanel) item.getBodyContainer().get("appendersTable");
+	}
+
 	private void addLoggerPerformed(AjaxRequestTarget target) {
-		// todo implement
+		Iterator<LoggerConfiguration> iterator = model.getObject().getLoggers().iterator();
 	}
 
 	private void addAppenderPerformed(AjaxRequestTarget target) {
@@ -494,19 +506,25 @@ public class PageLogging extends PageAdminConfiguration {
 	}
 
 	private void deleteAppenderPerformed(AjaxRequestTarget target) {
-		for (AppenderConfiguration item : model.getObject().getAppenders()) {
+		Iterator<AppenderConfiguration> iterator = model.getObject().getAppenders().iterator();
+		while (iterator.hasNext()) {
+			AppenderConfiguration item = iterator.next();
 			if (item.isSelected()) {
-				// TODO delete selected appender
+				iterator.remove();
 			}
 		}
+		target.add(getAppendersTable());
 	}
 
 	private void deleteLoggerPerformed(AjaxRequestTarget target) {
-		for (LoggerConfiguration item : model.getObject().getLoggers()) {
+		Iterator<LoggerConfiguration> iterator = model.getObject().getLoggers().iterator();
+		while (iterator.hasNext()) {
+			LoggerConfiguration item = iterator.next();
 			if (item.isSelected()) {
-				// TODO delete selected appender
+				iterator.remove();
 			}
 		}
+		target.add(getLoggersTable());
 	}
 
 	private void onLoggerClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
