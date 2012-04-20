@@ -37,6 +37,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -78,7 +79,7 @@ public class PageLogging extends PageAdminConfiguration {
 	private LoadableModel<LoggingDto> model;
 	private PrismObject<SystemConfigurationType> oldObject;
 
-	@Autowired(required = true)
+	@SpringBean(name = "taskManager")
     TaskManager taskManager;
 
 	public PageLogging() {
