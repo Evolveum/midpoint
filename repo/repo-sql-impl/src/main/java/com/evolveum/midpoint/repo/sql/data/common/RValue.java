@@ -108,4 +108,21 @@ public abstract class RValue<T> {
     public void setDynamic(boolean dynamic) {
         this.dynamic = dynamic;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(getClass().getSimpleName());
+        builder.append("[n=");
+        builder.append(name);
+        builder.append(",t=");
+        builder.append(type);
+        builder.append(",d=");
+        builder.append(dynamic);
+        builder.append(",type=");
+        builder.append(valueType);
+        builder.append("]");
+
+        return builder.toString();
+    }
 }

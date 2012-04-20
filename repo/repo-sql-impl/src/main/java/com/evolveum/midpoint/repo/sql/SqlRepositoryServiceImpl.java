@@ -45,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.xml.resolver.apps.resolver;
 import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
@@ -61,9 +60,7 @@ import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureExcep
 import org.springframework.stereotype.Repository;
 import org.w3c.dom.Element;
 
-import java.lang.InstantiationException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -173,17 +170,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         while (true) {
             try {
                 return getObjectAttempt(type, oid, resolve, subResult);
-            } catch (PessimisticLockException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-            } catch (LockAcquisitionException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-            } catch (HibernateOptimisticLockingFailureException ex) {
+            } catch (RuntimeException ex) {
                 attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
         }
     }
 
-    private <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid, PropertyReferenceListType resolve,
+    private <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid,
+            PropertyReferenceListType resolve,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
         LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         if (LOGGER.isTraceEnabled()) {
@@ -267,8 +261,22 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notEmpty(accountOid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        UserType userType = null;
+        final String operation = "listing account shadow owner";
+        int attempt = 1;
+
         OperationResult subResult = result.createSubresult(LIST_ACCOUNT_SHADOW);
+        while (true) {
+            try {
+                return listAccountShadowOwnerAttempt(accountOid, subResult);
+            } catch (RuntimeException ex) {
+                attempt = logOperationAttempt(accountOid, operation, attempt, ex, subResult);
+            }
+        }
+    }
+
+    private PrismObject<UserType> listAccountShadowOwnerAttempt(String accountOid, OperationResult result)
+            throws ObjectNotFoundException {
+        UserType userType = null;
         Session session = null;
         try {
             session = beginTransaction();
@@ -295,10 +303,19 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             userType = user.toJAXB(prismContext);
 
             session.getTransaction().commit();
+        } catch (PessimisticLockException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (LockAcquisitionException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (HibernateOptimisticLockingFailureException ex) {
+            rollbackTransaction(session);
+            throw ex;
         } catch (Exception ex) {
             handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, subResult);
+            cleanupSessionAndResult(session, result);
         }
 
         return userType.asPrismObject();
@@ -327,11 +344,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         while (true) {
             try {
                 return addObjectAttempt(object, subResult);
-            } catch (PessimisticLockException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-            } catch (LockAcquisitionException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-            } catch (HibernateOptimisticLockingFailureException ex) {
+            } catch (RuntimeException ex) {
                 attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
         }
@@ -426,11 +439,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             try {
                 deleteObjectAttempt(type, oid, subResult);
                 return;
-            } catch (PessimisticLockException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-            } catch (LockAcquisitionException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-            } catch (HibernateOptimisticLockingFailureException ex) {
+            } catch (RuntimeException ex) {
                 attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
         }
@@ -603,17 +612,20 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             try {
                 modifyObjectAttempt(type, oid, modifications, subResult);
                 return;
-            } catch (PessimisticLockException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-            } catch (LockAcquisitionException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-            } catch (HibernateOptimisticLockingFailureException ex) {
+            } catch (RuntimeException ex) {
                 attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
         }
     }
 
-    private int logOperationAttempt(String oid, String operation, int attempt, Exception ex, OperationResult result) {
+    private int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
+            OperationResult result) {
+        if (!(ex instanceof PessimisticLockException) && !(ex instanceof LockAcquisitionException)
+                && !(ex instanceof HibernateOptimisticLockingFailureException)) {
+            //it's not locking exception (optimistic, pesimistic lock or simple lock acquisition)
+            throw ex;
+        }
+
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("A locking-related problem occurred when {} object with oid '{}', retrying after "
                     + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, LOCKING_TIMEOUT,

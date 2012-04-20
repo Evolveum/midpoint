@@ -169,7 +169,6 @@ public class RAnyConverter {
         String value = domProcessor.serializeObjectToString(containerValue, root);
 
         return new RClobValue(value);
-
     }
 
     private RClobValue createClobValue(PrismPropertyValue propertyValue) throws SchemaException {
@@ -273,9 +272,41 @@ public class RAnyConverter {
         return DOMUtil.createElement(document, name);
     }
 
-    private void addValueToItem(RValue value, Item item) throws SchemaException {
-        Object realValue = createRealValue(value, item.getDefinition());
+    private void addClobValueToItem(RClobValue value, Item item) throws SchemaException {
+//        LOGGER.info("REMOVE!!!!!!!!!!!!!!!!!!!! CLOB:\n'{}'", new Object[]{value.getValue()});
+        //todo reimplement !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        Element root =  DOMUtil.parseDocument(value.getValue()).getDocumentElement();
 
+        switch (value.getValueType()) {
+            case REFERENCE:
+                throw new UnsupportedOperationException("Not implemented yet.");
+//                PrismReferenceValue referenceValue = domProcessor.parseReferenceValue(DOMUtil.getFirstChildElement(root));
+//                item.add(referenceValue);
+            case PROPERTY:
+                PrismPropertyValue propertyValue = new PrismPropertyValue(
+                        DOMUtil.parseDocument(value.getValue()).getDocumentElement(), null, null);
+                item.add(propertyValue);
+                break;
+            case OBJECT:
+            case CONTAINER:
+                //todo implement
+                // PrismContainerValue containerValue = new PrismContainerValue();
+                // item.add(containerValue);
+                throw new UnsupportedOperationException("Not implemented yet.");
+        }
+    }
+
+    private void addValueToItem(RValue value, Item item) throws SchemaException {
+        if (value instanceof RClobValue) {
+            addClobValueToItem((RClobValue) value, item);
+        }
+
+        Object realValue = createRealValue(value, item.getDefinition());
+        if (realValue == null) {
+            throw new SchemaException("Real value must not be null. Some error occurred when adding value "
+                    + value + " to item " + item);
+        }
         switch (value.getValueType()) {
             case REFERENCE:
                 //todo implement
@@ -306,15 +337,6 @@ public class RAnyConverter {
      * @throws SchemaException
      */
     private Object createRealValue(RValue rValue, ItemDefinition definition) throws SchemaException {
-        if (rValue instanceof RClobValue) {
-            RClobValue clob = (RClobValue) rValue;
-            LOGGER.info("CLOB:\n'{}'", new Object[]{clob.getValue()});
-
-            PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-
-            return DOMUtil.parseDocument(clob.getValue()).getDocumentElement();
-        }
-
         Object value = rValue.getValue();
         if (rValue instanceof RDateValue) {
             if (value instanceof Date) {
