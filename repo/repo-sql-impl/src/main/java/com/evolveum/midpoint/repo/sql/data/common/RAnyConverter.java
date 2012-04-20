@@ -83,7 +83,7 @@ public class RAnyConverter {
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
                 if (value instanceof PrismContainerValue) {
-                    rValue = createClobValue((PrismContainerValue) value);
+                    rValue = createClobValue(value);
                 } else if (value instanceof PrismPropertyValue) {
                     PrismPropertyValue propertyValue = (PrismPropertyValue) value;
                     switch (getValueType(definition.getTypeName())) {
@@ -163,29 +163,11 @@ public class RAnyConverter {
         return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
     }
 
-    private RClobValue createClobValue(PrismContainerValue containerValue) throws SchemaException {
+    private RClobValue createClobValue(PrismValue prismValue) throws SchemaException {
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         Element root = createElement(RUtil.CUSTOM_OBJECT);
-        String value = domProcessor.serializeObjectToString(containerValue, root);
-
-        return new RClobValue(value);
-    }
-
-    private RClobValue createClobValue(PrismPropertyValue propertyValue) throws SchemaException {
-        String value;
-        Object object = propertyValue.getValue();
-        if (object instanceof Element) {
-            Element element = (Element) object;
-            value = DOMUtil.serializeDOMToString(element);
-        } else {
-            value = object.toString();
-        }
-
-//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-//        Element root = createElement(RUtil.CUSTOM_OBJECT);
-//
-//        domProcessor.serializeValueToDom(propertyValue, root);
-//        String value = DOMUtil.serializeDOMToString(root);
+        domProcessor.serializeValueToDom(prismValue, root);
+        String value = DOMUtil.serializeDOMToString(root);
 
         return new RClobValue(value);
     }
@@ -273,33 +255,18 @@ public class RAnyConverter {
     }
 
     private void addClobValueToItem(RClobValue value, Item item) throws SchemaException {
-//        LOGGER.info("REMOVE!!!!!!!!!!!!!!!!!!!! CLOB:\n'{}'", new Object[]{value.getValue()});
-        //todo reimplement !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-//        Element root =  DOMUtil.parseDocument(value.getValue()).getDocumentElement();
+        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        Element root =  DOMUtil.parseDocument(value.getValue()).getDocumentElement();
 
-        switch (value.getValueType()) {
-            case REFERENCE:
-                throw new UnsupportedOperationException("Not implemented yet.");
-//                PrismReferenceValue referenceValue = domProcessor.parseReferenceValue(DOMUtil.getFirstChildElement(root));
-//                item.add(referenceValue);
-            case PROPERTY:
-                PrismPropertyValue propertyValue = new PrismPropertyValue(
-                        DOMUtil.parseDocument(value.getValue()).getDocumentElement(), null, null);
-                item.add(propertyValue);
-                break;
-            case OBJECT:
-            case CONTAINER:
-                //todo implement
-                // PrismContainerValue containerValue = new PrismContainerValue();
-                // item.add(containerValue);
-                throw new UnsupportedOperationException("Not implemented yet.");
-        }
+        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), value.getName(), item.getDefinition());
+
+        item.addAll(parsedItem.getValues());
     }
 
     private void addValueToItem(RValue value, Item item) throws SchemaException {
         if (value instanceof RClobValue) {
             addClobValueToItem((RClobValue) value, item);
+            return;
         }
 
         Object realValue = createRealValue(value, item.getDefinition());
