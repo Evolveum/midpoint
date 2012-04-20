@@ -61,10 +61,11 @@ public class ListAccountShadowOwnerTest extends AbstractTestNGSpringContextTests
         AssertJUnit.assertEquals("atestuserX00003", name.getRealValue());
     }
 
-    @Test(expectedExceptions = ObjectNotFoundException.class)
+    @Test//(expectedExceptions = ObjectNotFoundException.class)
     public void listNonExistingOwner() throws Exception {
         OperationResult result = new OperationResult("LIST OWNER");
 
         PrismObject<UserType> user = repositoryService.listAccountShadowOwner("12345", result);
+        AssertJUnit.assertNull(user);
     }
 }

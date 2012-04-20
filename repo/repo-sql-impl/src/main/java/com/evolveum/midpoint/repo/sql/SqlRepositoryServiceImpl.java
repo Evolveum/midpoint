@@ -181,17 +181,17 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (NonUniqueResultException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SystemException("There are more objects of type '"
                     + type.getSimpleName() + "' with oid '" + oid + "': " + ex.getMessage(), ex);
         } catch (DtoTranslationException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SchemaException(ex.getMessage(), ex);
         } catch (SystemException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -262,8 +262,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     new Object[]{(users != null ? users.size() : 0)});
 
             if (users == null || users.isEmpty()) {
-                throw new ObjectNotFoundException("Account shadow owner for account '"
-                        + accountOid + "' was not found.");
+//                throw new ObjectNotFoundException("Account shadow owner for account '"
+//                        + accountOid + "' was not found.");
+                return null;
             }
 
             if (users.size() > 1) {
@@ -275,14 +276,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             userType = user.toJAXB(prismContext);
 
             session.getTransaction().commit();
-        } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session);
-            throw ex;
+//        } catch (ObjectNotFoundException ex) {
+//            rollbackTransaction(session, ex, subResult);
+//            throw ex;
         } catch (SystemException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -373,25 +374,25 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.debug("Saved object '{}' with oid '{}'",
                     new Object[]{object.getCompileTimeClass().getSimpleName(), oid});
         } catch (PessimisticLockException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (LockAcquisitionException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (HibernateOptimisticLockingFailureException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (ObjectAlreadyExistsException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (ConstraintViolationException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new ObjectAlreadyExistsException("Object with oid '" + object.getOid() + "' already exists.", ex);
         } catch (SystemException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -444,22 +445,22 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session.delete(object);
             session.getTransaction().commit();
         } catch (PessimisticLockException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (LockAcquisitionException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (HibernateOptimisticLockingFailureException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (SystemException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -518,10 +519,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             Long longCount = (Long) criteria.uniqueResult();
             count = longCount.intValue();
         } catch (SystemException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -575,10 +576,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             session.getTransaction().commit();
         } catch (SystemException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -682,22 +683,22 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             session.getTransaction().commit();
         } catch (PessimisticLockException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (LockAcquisitionException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (HibernateOptimisticLockingFailureException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (SystemException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -739,10 +740,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session.getTransaction().commit();
             LOGGER.debug("Done.");
         } catch (SystemException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, subResult);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -775,16 +776,16 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session.getTransaction().commit();
             LOGGER.debug("Task status updated.");
         } catch (HibernateOptimisticLockingFailureException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, result);
             throw new SystemException(ex.getMessage(), ex);
         } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, result);
             throw ex;
         } catch (SystemException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, result);
             throw ex;
         } catch (Exception ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, result);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, result);
@@ -869,12 +870,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return session;
     }
 
-    private void rollbackTransaction(Session session) {
+    private void rollbackTransaction(Session session, Exception ex, OperationResult result) {
         if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
             return;
         }
 
         session.getTransaction().rollback();
+
+        result.recordFatalError(ex.getMessage());
     }
 
     private void cleanupSessionAndResult(Session session, OperationResult result) {
