@@ -26,7 +26,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
@@ -51,7 +53,7 @@ public class LoggingDto implements Serializable {
 
     private List<AppenderConfiguration> appenders = new ArrayList<AppenderConfiguration>();
 
-    private boolean auditLog;
+    private boolean auditLog = false;
     private boolean auditDetails;
     private String auditAppender;
     
@@ -77,8 +79,20 @@ public class LoggingDto implements Serializable {
         for (SubSystemLoggerConfigurationType logger : config.getSubSystemLogger()) {
             loggers.add(new ComponentLogger(logger));
         }
+        
+        AuditingConfigurationType auditing = config.getAuditing();
+        if(auditing != null){
+        	setAuditLog(auditing.isEnabled());
+        	setAuditDetails(auditing.isDetails());
+        	setAuditAppender(auditing.getAppender() != null && auditing.getAppender().size() > 0 ? auditing.getAppender().get(0) : null);
+        }
 
         for (ClassLoggerConfigurationType logger : config.getClassLogger()) {
+        	if ("PROFILING".equals(logger.getPackage())) {
+        		setProfilingAppender(logger.getAppender() != null && logger.getAppender().size() > 0 ? logger.getAppender().get(0) : null);
+        		setProfilingLevel(ProfilingLevel.fromLoggerLevelType(logger.getLevel()));
+        		continue;
+        	}
 			loggers.add(new ClassLogger(logger));
         }
 
@@ -92,6 +106,7 @@ public class LoggingDto implements Serializable {
             }
         }
         Collections.sort(appenders);
+        
     }
 
 	public List<LoggerConfiguration> getLoggers() {

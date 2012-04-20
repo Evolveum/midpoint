@@ -40,6 +40,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -121,8 +122,6 @@ public class PageLogging extends PageAdminConfiguration {
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
-		initRoot(mainForm);
-
 		Accordion accordion = new Accordion("accordion");
 		accordion.setMultipleSelect(true);
 		accordion.setOpenedPanel(0);
@@ -136,15 +135,19 @@ public class PageLogging extends PageAdminConfiguration {
 				createStringResource("pageLogging.appenders"));
 		accordion.getBodyContainer().add(appenders);
 		initAppenders(appenders);
-
-		initAudit(mainForm);
+		
+		AccordionItem auditing = new AccordionItem("auditing", createStringResource("pageLogging.audit"));
+		accordion.getBodyContainer().add(auditing);
+		initAudit(auditing);
 
 		initButtons(mainForm);
 	}
 
 	private void initLoggers(AccordionItem loggers) {
 		List<IColumn<LoggerConfiguration>> columns = new ArrayList<IColumn<LoggerConfiguration>>();
-
+		
+		initRoot(loggers);
+		
 		IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
 		columns.add(column);
 
@@ -303,22 +306,23 @@ public class PageLogging extends PageAdminConfiguration {
 		appenders.getBodyContainer().add(deleteAppender);
 	}
 
-	private void initRoot(final Form mainForm) {
+	private void initRoot(final AccordionItem loggers) {
 		DropDownChoice<LoggingLevelType> rootLevel = createComboBox("rootLevel",
 				new PropertyModel<LoggingLevelType>(model, "rootLevel"), createLoggingLevelModel());
-		mainForm.add(rootLevel);
+		
+		loggers.getBodyContainer().add(rootLevel);
 
 		DropDownChoice<String> rootAppender = createComboBox("rootAppender", new PropertyModel<String>(model,
 				"rootAppender"), createAppendersListModel());
-		mainForm.add(rootAppender);
+		loggers.getBodyContainer().add(rootAppender);
 
 		DropDownChoice<LoggingLevelType> midPointLevel = createComboBox("midPointLevel",
 				new PropertyModel<LoggingLevelType>(model, "midPointLevel"), createLoggingLevelModel());
-		mainForm.add(midPointLevel);
+		loggers.getBodyContainer().add(midPointLevel);
 
 		DropDownChoice<String> midPointAppender = createComboBox("midPointAppender",
 				new PropertyModel<String>(model, "midPointAppender"), createAppendersListModel());
-		mainForm.add(midPointAppender);
+		loggers.getBodyContainer().add(midPointAppender);
 	}
 
 	private void initButtons(final Form mainForm) {
@@ -378,17 +382,17 @@ public class PageLogging extends PageAdminConfiguration {
 		mainForm.add(advancedButton);
 	}
 
-	private void initAudit(Form mainForm) {
+	private void initAudit(AccordionItem audit) {
 		CheckBox auditLog = new CheckBox("auditLog", new PropertyModel<Boolean>(model, "auditLog"));
-		mainForm.add(auditLog);
+		audit.getBodyContainer().add(auditLog);
 
 		CheckBox auditDetails = new CheckBox("auditDetails",
 				new PropertyModel<Boolean>(model, "auditDetails"));
-		mainForm.add(auditDetails);
+		audit.getBodyContainer().add(auditDetails);
 
 		DropDownChoice<String> auditAppender = createComboBox("auditAppender", new PropertyModel<String>(
 				model, "auditAppender"), createAppendersListModel());
-		mainForm.add(auditAppender);
+		audit.getBodyContainer().add(auditAppender);
 	}
 
 	private <T> DropDownChoice<T> createComboBox(String id, IModel<T> choice, IModel<List<T>> choices) {
@@ -447,13 +451,14 @@ public class PageLogging extends PageAdminConfiguration {
 		LoggingDto dto = model.getObject();
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		AuditingConfigurationType audit = new AuditingConfigurationType();
-		audit.setDetails(model.getObject().isAuditDetails());
-		audit.setEnabled(model.getObject().isAuditLog());
+		audit.setEnabled(dto.isAuditLog());
+		audit.setDetails(dto.isAuditDetails());
+		audit.getAppender().add(dto.getAuditAppender());
 		configuration.setAuditing(audit);
 		configuration.setRootLoggerAppender(dto.getRootAppender());
-		configuration.setRootLoggerLevel(model.getObject().getRootLevel());
+		configuration.setRootLoggerLevel(dto.getRootLevel());
 
-		for (AppenderConfiguration item : model.getObject().getAppenders()) {
+		for (AppenderConfiguration item : dto.getAppenders()) {
 			configuration.getAppender().add(item.getConfig());
 		}
 

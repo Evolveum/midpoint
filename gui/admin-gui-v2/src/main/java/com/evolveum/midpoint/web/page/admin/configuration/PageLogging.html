@@ -26,41 +26,40 @@
     <h1>
         <wicket:message key="page.title"/>
     </h1>
-    <form wicket:id="mainForm">
-        <table cellspacing="0" cellpadding="0">
-            <tr>
-                <td class="label">
-                    <wicket:message key="pageLogging.rootLevel"/>
-                </td>
-                <td class="values">
-                    <select wicket:id="rootLevel"/>
-                </td>
-                <td class="label">
-                    <wicket:message key="pageLogging.rootAppender"/>
-                </td>
-                <td class="values">
-                    <select wicket:id="rootAppender"/>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">
-                    <wicket:message key="pageLogging.midPointLevel"/>
-                </td>
-                <td class="values">
-                    <select wicket:id="midPointLevel"/>
-                </td>
-                <td class="label">
-                    <wicket:message key="pageLogging.midPointAppender"/>
-                </td>
-                <td class="values">
-                    <select wicket:id="midPointAppender"/>
-                </td>
-            </tr>
-        </table>
+    <form wicket:id="mainForm">	
         <div wicket:id="accordion">
             <li wicket:id="loggers">
+                <table cellspacing="0" cellpadding="0">
+		            <tr>
+		                <td class="label">
+		                    <wicket:message key="pageLogging.rootLevel"/>
+		                </td>
+		                <td class="values">
+		                    <select wicket:id="rootLevel"/>
+		                </td>
+		                <td class="label">
+		                    <wicket:message key="pageLogging.rootAppender"/>
+		                </td>
+		                <td class="values">
+		                    <select wicket:id="rootAppender"/>
+		                </td>
+		            </tr>
+		            <tr>
+		                <td class="label">
+		                    <wicket:message key="pageLogging.midPointLevel"/>
+		                </td>
+		                <td class="values">
+		                    <select wicket:id="midPointLevel"/>
+		                </td>
+		                <td class="label">
+		                    <wicket:message key="pageLogging.midPointAppender"/>
+		                </td>
+		                <td class="values">
+		                    <select wicket:id="midPointAppender"/>
+		                </td>
+		            </tr>
+		        </table>
                 <div wicket:id="loggersTable"/>
-
                 <h4>
                     <wicket:message key="pageLogging.logSubsystemEntryExit"/>
                 </h4>
@@ -89,32 +88,32 @@
                 <a wicket:id="addAppender"/>
                 <a wicket:id="deleteAppender"/>
             </li>
+            <li wicket:id="auditing">
+		        <table cellspacing="0" cellpadding="0">
+		            <tr>
+		                <td class="label">
+		                    <wicket:message key="pageLogging.auditLog"/>
+		                </td>
+		                <td class="values">
+		                    <input type="checkbox" wicket:id="auditLog"/>
+		                </td>
+		                <td class="label">
+		                    <wicket:message key="pageLogging.details"/>
+		                </td>
+		                <td class="values">
+		                    <input type="checkbox" wicket:id="auditDetails"/>
+		                </td>
+		                <td class="label">
+		                    <wicket:message key="pageLogging.appender"/>
+		                </td>
+		                <td class="values">
+		                    <select wicket:id="auditAppender"/>
+		                </td>
+		            </tr>
+		        </table>
+            </li>
         </div>
-        <h4>
-            <wicket:message key="pageLogging.audit"/>
-        </h4>
-        <table cellspacing="0" cellpadding="0">
-            <tr>
-                <td class="label">
-                    <wicket:message key="pageLogging.auditLog"/>
-                </td>
-                <td class="values">
-                    <input type="checkbox" wicket:id="auditLog"/>
-                </td>
-                <td class="label">
-                    <wicket:message key="pageLogging.details"/>
-                </td>
-                <td class="values">
-                    <input type="checkbox" wicket:id="auditDetails"/>
-                </td>
-                <td class="label">
-                    <wicket:message key="pageLogging.appender"/>
-                </td>
-                <td class="values">
-                    <select wicket:id="auditAppender"/>
-                </td>
-            </tr>
-        </table>
+        
 
         <div class="operatingFormButtons">
             <a wicket:id="saveButton"/>
