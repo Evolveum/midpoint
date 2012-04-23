@@ -260,8 +260,8 @@ public class AssignmentProcessor {
     	}
     	ResourceAccountType rat = accountContext.getResourceAccountType();
     	Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
-        LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());
-        LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
+//        LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());
+//        LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
 
         accountContext.addToAttributeValueDeltaSetTripleMap(attributeValueDeltaMap);        
     }

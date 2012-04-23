@@ -431,6 +431,9 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
         if (def != null) {
             sb.append(" def(");
             sb.append(DebugUtil.prettyPrint(def.getTypeName()));
+            if (def.isDynamic()) {
+            	sb.append(",dyn");
+            }
             sb.append(")");
         }
         return sb.toString();

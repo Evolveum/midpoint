@@ -287,8 +287,23 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(toString());
-
+                
+        sb.append("PPV(");
+        dumpSuffix(sb);
+        sb.append("):");
+        // getValue() must not be here. getValue() contains exception that in turn causes a call to toString()
+        if (value != null) {
+        	sb.append(value.getClass().getSimpleName()).append(":");
+        	if (value instanceof DebugDumpable) {
+        		sb.append("\n");
+        		sb.append(((DebugDumpable)value).debugDump(indent + 1));
+        	} else {
+        		sb.append(DebugUtil.prettyPrint(value));
+        	}
+        } else {
+            sb.append("null");
+        }
+        
         return sb.toString();
     }
 
@@ -304,10 +319,17 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         // getValue() must not be here. getValue() contains exception that in turn causes a call to toString()
         if (value != null) {
         	builder.append(value.getClass().getSimpleName()).append(":");
-            builder.append(DebugUtil.prettyPrint(value));
+        	builder.append(DebugUtil.prettyPrint(value));
         } else {
             builder.append("null");
         }
+        dumpSuffix(builder);
+        builder.append(")");
+
+        return builder.toString();
+    }
+
+	private void dumpSuffix(StringBuilder builder) {
         if (getType() != null) {
 	        builder.append(", type: ");
 	        builder.append(getType());
@@ -320,8 +342,5 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	        builder.append(", raw element: ");
 	        builder.append(DebugUtil.prettyPrint(getRawElement()));
         }
-        builder.append(")");
-
-        return builder.toString();
-    }
+	}
 }

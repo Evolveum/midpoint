@@ -614,6 +614,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         if (def != null) {
             sb.append(" def(");
             sb.append(DebugUtil.prettyPrint(def.getTypeName()));
+            if (def.isRuntimeSchema()) {
+            	sb.append(",runtime");
+            }
+            if (def.isDynamic()) {
+            	sb.append(",dyn");
+            }
             sb.append(")");
         }
         Iterator<PrismContainerValue<V>> i = getValues().iterator();

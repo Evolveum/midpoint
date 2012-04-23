@@ -96,7 +96,7 @@ public class AccountValuesProcessor {
 				consolidationProcessor.consolidateValues(context, accountContext, result);
 		        context.recomputeNew();
 		 
-		        SynchronizerUtil.traceContext("values", context, false);
+		        SynchronizerUtil.traceContext("values", context, true);
 		        
 		        if (satisfiesConstraints(accountContext, result)) {
 		        	break;

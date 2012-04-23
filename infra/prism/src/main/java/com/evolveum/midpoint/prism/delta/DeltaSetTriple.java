@@ -187,9 +187,13 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
 	private void debugDumpSet(StringBuilder sb, String label, Collection<PrismPropertyValue<T>> set, int indent) {
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(label).append(":");
-		for (PrismPropertyValue<T> pval: set) {
-			sb.append("\n");
-			sb.append(pval.debugDump(indent +1));
+		if (set == null) {
+			sb.append(" null");
+		} else {
+			for (PrismPropertyValue<T> pval: set) {
+				sb.append("\n");
+				sb.append(pval.debugDump(indent +1));
+			}
 		}
 	}
 

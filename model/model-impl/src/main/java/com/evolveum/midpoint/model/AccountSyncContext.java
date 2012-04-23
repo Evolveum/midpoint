@@ -499,6 +499,17 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         }
 
         if (showTriples) {
+        	
+        	sb.append("\n");
+	        SchemaDebugUtil.indentDebugDump(sb, indent);
+	        sb.append("ACCOUNT accountConstructionDeltaSetTriple:");
+	        if (accountConstructionDeltaSetTriple == null) {
+	            sb.append(" null");
+	        } else {
+	            sb.append("\n");
+	            sb.append(accountConstructionDeltaSetTriple.debugDump(indent + 1));
+	        }
+        	
 	        sb.append("\n");
 	        SchemaDebugUtil.indentDebugDump(sb, indent);
 	        sb.append("ACCOUNT attribute DeltaSetTriple map:");
