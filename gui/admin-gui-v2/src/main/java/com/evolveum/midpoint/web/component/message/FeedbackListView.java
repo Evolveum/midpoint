@@ -57,6 +57,7 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
                 FeedbackMessage message = model.getObject();
                 switch (message.getLevel()) {
                     case FeedbackMessage.INFO:
+                        return "messages-info";
                     case FeedbackMessage.SUCCESS:
                         return "messages-succ";
                     case FeedbackMessage.ERROR:

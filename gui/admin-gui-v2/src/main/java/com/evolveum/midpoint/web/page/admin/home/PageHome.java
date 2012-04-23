@@ -21,9 +21,12 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 
@@ -40,20 +43,49 @@ public class PageHome extends PageAdmin {
         Form form = new Form("mainForm");
         add(form);
 
-        final MainFeedback feedback = new MainFeedback("feedback");
+        MainFeedback feedback = new MainFeedback("feedback");
         form.add(feedback);
 
         AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("test")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                PageHome.this.error("some error message.");
-                PageHome.this.info("info message.");
-                PageHome.this.warn("warn message.");
-
-                target.add(feedback);
+                testPerformed(target);
             }
         };
         form.add(test);
+    }
+
+    private void testPerformed(AjaxRequestTarget target) {
+        PageHome.this.error("some error message.");
+        PageHome.this.info("info message.");
+        PageHome.this.warn("warn message.");
+        PageHome.this.success("success message.");
+
+        OperationResult result = new OperationResult("get non existing object");
+        try {
+            getMidpointApplication().getModel().getObject(UserType.class, "f00", null, result);
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get object.", ex);
+        } finally {
+            result.recomputeStatus();
+
+            PageHome.this.error(result);
+        }
+
+        result = new OperationResult("get existing object");
+        try {
+            getMidpointApplication().getModel().getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value()
+                    , null, result);
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get object.", ex);
+        } finally {
+            result.recomputeStatus();
+
+            PageHome.this.success(result);
+        }
+
+        MainFeedback feedback = (MainFeedback) get("mainForm:feedback");
+        target.add(feedback);
     }
 }
