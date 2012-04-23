@@ -286,12 +286,4 @@ public class RAnyContainer implements Serializable {
             }
         }
     }
-
-    public ResourceObjectShadowAttributesType toJAXBAttributes(PrismContext prismContext) throws
-            DtoTranslationException {
-        ResourceObjectShadowAttributesType attributes = new ResourceObjectShadowAttributesType();
-        RAnyContainer.copyToJAXB(this, attributes, prismContext);
-
-        return attributes;
-    }
 }

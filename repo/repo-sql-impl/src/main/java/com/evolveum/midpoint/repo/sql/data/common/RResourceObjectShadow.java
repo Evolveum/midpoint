@@ -27,7 +27,9 @@ import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.hibernate.annotations.*;
@@ -209,7 +211,9 @@ public class RResourceObjectShadow extends RObject {
         }
 
         if (repo.getAttributes() != null) {
-            jaxb.setAttributes(repo.getAttributes().toJAXBAttributes(prismContext));
+            ResourceObjectShadowAttributesType attributes = new ResourceObjectShadowAttributesType();
+            jaxb.setAttributes(attributes);
+            RAnyContainer.copyToJAXB(repo.getAttributes(), attributes, prismContext);
         }
     }
 
