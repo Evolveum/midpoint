@@ -54,7 +54,7 @@ public enum RContainerType {
         return clazz;
     }
 
-    public static RContainerType getType(Class<? extends RContainer> clazz) {
+    public static <T extends RContainer> RContainerType getType(Class<T> clazz) {
         for (RContainerType type : RContainerType.values()) {
             if (type.getClazz().equals(clazz)) {
                 return type;

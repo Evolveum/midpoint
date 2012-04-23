@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.ROwnable;
@@ -37,12 +38,28 @@ import java.util.UUID;
 /**
  * @author lazyman
  */
-public class OidGenerator implements IdentifierGenerator {
+public class ContainerOidGenerator implements IdentifierGenerator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerIdGenerator.class);
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
+        if (object instanceof RAnyContainer) {
+            RAnyContainer any = (RAnyContainer) object;
+            RContainer owner = any.getOwner();
+            String oid = owner.getOid();
+            if (oid == null) {
+                oid = generate(owner);
+                owner.setOid(oid);
+            }
+            LOGGER.trace("Created oid='{}' for any.", new Object[]{oid});
+            return oid;
+        }
+
+        return generate(object);
+    }
+
+    private String generate(Object object) {
         RContainer container = null;
         if (object instanceof ROwnable) {
             container = ((ROwnable) object).getContainerOwner();
@@ -51,7 +68,7 @@ public class OidGenerator implements IdentifierGenerator {
         }
 
         if (container == null) {
-            throw new IllegalStateException("Couldn't create id for '"
+            throw new HibernateException("Couldn't create id for '"
                     + object.getClass().getSimpleName() + "' (should not happen).");
         }
 

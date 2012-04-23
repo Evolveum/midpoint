@@ -49,7 +49,7 @@ import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.engine.spi.IdentifierValue;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
@@ -375,7 +375,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, OperationResult result) throws
             ObjectAlreadyExistsException, SchemaException {
-        LOGGER.debug("Adding object type '{}'", new Object[]{object.getClass().getSimpleName()});
+        LOGGER.debug("Adding object type '{}'", new Object[]{object.getCompileTimeClass().getSimpleName()});
 
         String oid = null;
         Session session = null;
@@ -699,8 +699,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             //merge and update user
             LOGGER.debug("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
-            session.merge(rObject);
 
+            session.merge(rObject);
             session.getTransaction().commit();
         } catch (PessimisticLockException ex) {
             rollbackTransaction(session);

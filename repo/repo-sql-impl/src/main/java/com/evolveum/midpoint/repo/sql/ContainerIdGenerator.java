@@ -41,45 +41,70 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (object instanceof RObject) {
-            LOGGER.trace("Created id='0' for '{}'.", new Object[]{toString(object)});
-            return 0L;
-        } else if (object instanceof RContainer) {
-            RContainer container = (RContainer) object;
-            if (container.getId() != null && container.getId() != 0) {
-                LOGGER.trace("Created id='{}' for '{}'.", new Object[]{container.getId(), toString(object)});
-                return container.getId();
+        if (object instanceof RAnyContainer) {
+            RAnyContainer any = (RAnyContainer) object;
+            RContainer owner = any.getOwner();
+            Long id = owner.getId();
+            if (id == null) {
+                id = generate(owner);
+                owner.setId(id);
             }
+            LOGGER.trace("Created id='{}' for any.", new Object[]{id});
+            return id;
+        }
 
-            if (container instanceof ROwnable) {
-                RContainer parent = ((ROwnable) container).getContainerOwner();
+        if (!(object instanceof RContainer)) {
+            throw new HibernateException("Couldn't create id for '"
+                    + object.getClass().getSimpleName() + "' not instance of RContainer.");
+        }
 
-                if (parent instanceof RUser) {
-                    RUser user = (RUser) parent;
+        return generate((RContainer) object);
+    }
 
-                    Long id = getNextId(user.getAssignments());
-                    LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(object)});
-                    return id;
-                } else if (parent instanceof RRole) {
-                    RRole role = (RRole) parent;
+    private Long generate(RContainer container) {
+        if (container instanceof RObject) {
+            LOGGER.trace("Created id='0' for '{}'.", new Object[]{toString(container)});
+            return 0L;
+        }
 
-                    Set<RContainer> containers = new HashSet<RContainer>();
-                    if (role.getAssignments() != null) {
-                        containers.addAll(role.getAssignments());
-                    }
-                    if (role.getExclusions() != null) {
-                        containers.addAll(role.getExclusions());
-                    }
+        if (container.getId() != null && container.getId() != 0) {
+            LOGGER.trace("Created id='{}' for '{}'.", new Object[]{container.getId(), toString(container)});
+            return container.getId();
+        }
 
-                    Long id = getNextId(containers);
-                    LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(object)});
-                    return id;
+        if (container instanceof ROwnable) {
+            RContainer parent = ((ROwnable) container).getContainerOwner();
+
+            if (parent instanceof RUser) {
+                RUser user = (RUser) parent;
+
+                Long id = getNextId(user.getAssignments());
+                LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
+                return id;
+            } else if (parent instanceof RRole) {
+                RRole role = (RRole) parent;
+
+                Set<RContainer> containers = new HashSet<RContainer>();
+                if (role.getAssignments() != null) {
+                    containers.addAll(role.getAssignments());
                 }
+                if (role.getExclusions() != null) {
+                    containers.addAll(role.getExclusions());
+                }
+
+                Long id = getNextId(containers);
+                LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
+                return id;
+            } else {
+                return null;
+//                throw new HibernateException("Couldn't create id for '"
+//                        + container.getClass().getSimpleName() + "' assignment have unknown parent '"
+//                        + parent + "'.");
             }
         }
 
-        throw new IllegalStateException("Couldn't create id for '"
-                + object.getClass().getSimpleName() + "' (should not happen).");
+        throw new HibernateException("Couldn't create id for '"
+                + container.getClass().getSimpleName() + "' (should not happen).");
     }
 
     private String toString(Object object) {

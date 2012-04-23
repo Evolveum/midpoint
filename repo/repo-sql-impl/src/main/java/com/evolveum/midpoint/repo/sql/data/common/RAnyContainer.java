@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -55,12 +56,17 @@ public class RAnyContainer implements Serializable {
     private Set<RDateValue> dates;
     private Set<RClobValue> clobs;
 
-    @Transient
+    @ForeignKey(name = "none")
+    @MapsId("owner")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumns({
+            @JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "owner_id", referencedColumnName = "id")
+    })
     public RContainer getOwner() {
         return owner;
     }
 
-    @Id
     @Column(name = "owner_id")
     public Long getOwnerId() {
         if (ownerId == null && owner != null) {
@@ -69,7 +75,6 @@ public class RAnyContainer implements Serializable {
         return ownerId;
     }
 
-    @Id
     @Column(name = "owner_oid", length = 36)
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
@@ -79,6 +84,8 @@ public class RAnyContainer implements Serializable {
     }
 
     @Id
+    @GeneratedValue(generator = "ContainerTypeGenerator")
+    @GenericGenerator(name = "ContainerTypeGenerator", strategy = "com.evolveum.midpoint.repo.sql.ContainerTypeGenerator")
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "ownerType")
     public RContainerType getOwnerType() {
@@ -170,9 +177,7 @@ public class RAnyContainer implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = getOwnerOid() != null ? getOwnerOid().hashCode() : 0;
-        result = 31 * result + (getOwnerId() != null ? getOwnerId().hashCode() : 0);
-        result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
+        int result = ownerType != null ? ownerType.hashCode() : 0;
 
         return result;
     }

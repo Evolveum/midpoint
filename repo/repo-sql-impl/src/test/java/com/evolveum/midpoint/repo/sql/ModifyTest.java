@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -64,6 +65,8 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     RepositoryService repositoryService;
     @Autowired(required = true)
     PrismContext prismContext;
+    @Autowired
+    SessionFactory factory;
 
     @Test(expectedExceptions = SystemException.class)
     public void test010ModifyWithExistingName() throws Exception {
@@ -112,7 +115,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
-        LOGGER.info("=== [ modifyUserOnNonExistingAccountTest ] ===");
+        LOGGER.info("=== [ test030ModifyUserOnNonExistingAccountTest ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
 
@@ -147,7 +150,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
-        LOGGER.info("=== [ modifyUserOnExistingAccountTest ] ===");
+        LOGGER.info("=== [ test031ModifyUserOnExistingAccountTest ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
 

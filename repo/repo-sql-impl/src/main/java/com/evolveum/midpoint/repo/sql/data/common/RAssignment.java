@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.sql.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -96,13 +96,13 @@ public class RAssignment extends RContainer implements ROwnable {
         return ownerOid;
     }
 
-    @ManyToOne(optional = true)
+    @OneToOne(optional = true, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
-            @PrimaryKeyJoinColumn(name = "extId", referencedColumnName = "owner_id"),
-            @PrimaryKeyJoinColumn(name = "extType", referencedColumnName = "ownerType")
+    @JoinColumns({
+            @JoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
+            @JoinColumn(name = "extId", referencedColumnName = "owner_id"),
+            @JoinColumn(name = "extType", referencedColumnName = "ownerType")
     })
     public RAnyContainer getExtension() {
         return extension;
@@ -217,10 +217,11 @@ public class RAssignment extends RContainer implements ROwnable {
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();
             extension.setOwner(repo);
-//            extension.setOwnerType(RContainerType.ASSIGNMENT);
 
             repo.setExtension(extension);
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+
+            new ContainerIdGenerator().generate(null, extension);
         }
 
         if (jaxb.getActivation() != null) {

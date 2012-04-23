@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExclusionType;
@@ -116,11 +117,14 @@ public class RRole extends RObject {
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
             repo.setAssignments(new HashSet<RAssignment>());
         }
+
+        ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment();
             rAssignment.setOwner(repo);
 
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
+            gen.generate(null, rAssignment);
 
             repo.getAssignments().add(rAssignment);
         }
@@ -133,6 +137,8 @@ public class RRole extends RObject {
             rExclusion.setOwner(repo);
 
             RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
+            gen.generate(null, rExclusion);
+
             repo.getExclusions().add(rExclusion);
         }
     }

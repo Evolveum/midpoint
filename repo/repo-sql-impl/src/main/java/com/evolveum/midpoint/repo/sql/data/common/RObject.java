@@ -52,7 +52,7 @@ public abstract class RObject extends RContainer {
     private RAnyContainer extension;
     private long version;
 
-    @ManyToOne(optional = true)
+    @OneToOne(optional = true, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JoinColumns({
@@ -155,7 +155,6 @@ public abstract class RObject extends RContainer {
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();
             extension.setOwner(repo);
-//            extension.setOwnerType(RContainerType.getType(repo.getClass()));
 
             repo.setExtension(extension);
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);

@@ -23,20 +23,18 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.repo.sql.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -346,15 +344,13 @@ public class RUser extends RObject {
             }
         }
 
+//        ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment();
             rAssignment.setOwner(repo);
-
-            rAssignment.setOid(repo.getOid());
-            rAssignment.setId(RUtil.getLongFromString(assignment.getId()));
-
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
 
+//            gen.generate(null, rAssignment);
             repo.getAssignments().add(rAssignment);
         }
     }
