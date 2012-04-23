@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+
 a {
 	outline: none;
 	color: #52AACC;
@@ -462,34 +483,34 @@ h4 {
 	width: 20px;
 }
 
-#messages {
+ul.messagesTop {
 	margin: 0px;
 	margin-bottom: 20px;
 	padding: 0px;
 }
 
-#messages ul {
+ul.messagesTop ul {
 	list-style: none outside none;
 	margin: 0px;
 	padding: 0px;
 }
 
 
-#messages li {
+ul.messagesTop li {
 	padding-bottom: 5px;
 	list-style: none outside none;
 	margin: 0px;
 }
 
-#messages ul li{
+ul.messagesTop ul li{
 	padding: 1px 0px;
 }
 
-#messages .messages-details {
+ul.messagesTop .messages-details {
 	margin-top: 5px;
 }
 
-#messages .messages-error {
+ul.messagesTop .messages-error {
 	color: #cc0a0c;
 	border: 1px solid #d21f1e;
 	padding: 0px;
@@ -501,13 +522,13 @@ h4 {
 	display: block;
 }
 
-#messages .messages-error .messages-error-content {
+ul.messagesTop .messages-error .messages-error-content {
 	display: none;
 	padding-left: 20px;
 	padding-bottom: 5px;
 }
 
-#messages .messages-error .messages-topError {
+ul.messagesTop .messages-error .messages-topError {
 	padding: 10px 5px 10px 40px;
 	font-weight: bold;
 	background-image: url(../img/messages-error-icon.png);
@@ -515,16 +536,16 @@ h4 {
 	background-position: 12px center;
 }
 
-#messages .messages-error .messages-topError:hover {
+ul.messagesTop .messages-error .messages-topError:hover {
 	cursor: pointer;
 	background-color: #ffc2ae;
 }
 
-#messages .messages-error .selected {
+ul.messagesTop .messages-error .selected {
 	background-color: #ffc2ae;
 }
 
-#messages .messages-error .messages-topError-arrow {
+ul.messagesTop .messages-error .messages-topError-arrow {
 	background-image: url(../img/messages-error-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -533,15 +554,15 @@ h4 {
     float: right;
 }
 
-#messages .messages-topError .arrow-down {
+ul.messagesTop .messages-topError .arrow-down {
 	background-position: 0px -32px;
 }
 
-#messages .messages-topError .arrow-up {
+ul.messagesTop .messages-topError .arrow-up {
 	background-position: 0px 0px;
 }
 
-#messages .messages-error .messages-error-details-section {
+ul.messagesTop .messages-error .messages-error-details-section {
 	padding: 2px 0px;
 	padding-left: 25px;
 	font-size: 12px;
@@ -552,22 +573,22 @@ h4 {
 	margin-top: 5px;
 }
 
-#messages .messages-error .selected-section {
+ul.messagesTop .messages-error .selected-section {
 	background-color: #ffe8e0; 
 }
 
-#messages .messages-error .messages-details-bold {
+ul.messagesTop .messages-error .messages-details-bold {
 	padding: 3px 0px;
 	font-weight: bold;
 }
 
-#messages .messages-error .messages-details-bold:hover {
+ul.messagesTop .messages-error .messages-details-bold:hover {
 	cursor: pointer;
 	text-decoration: underline;
 	/* background-color: #ffc2ae; */
 }
 
-#messages .messages-error .messages-error-details-section .messages-details-bold .messages-details-bold-arrow {
+ul.messagesTop .messages-error .messages-error-details-section .messages-details-bold .messages-details-bold-arrow {
 	background-image: url(../img/messages-error-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -577,38 +598,38 @@ h4 {
     margin: 0px 5px;
 }
 
-#messages .messages-error .messages-error-details-section .messages-details-bold .arrow-right {
+ul.messagesTop .messages-error .messages-error-details-section .messages-details-bold .arrow-right {
 	background-position: 0px -16px;
 }
 
-#messages .messages-error .messages-error-details-section .messages-details-bold .arrow-down {
+ul.messagesTop .messages-error .messages-error-details-section .messages-details-bold .arrow-down {
 	background-position: 0px -32px;
 }
 
-#messages .messages-error .messages-details-content {
+ul.messagesTop .messages-error .messages-details-content {
 	display: none;
 	padding-left: 30px;
 }
 
-#messages .messages-error .message-info .errorStack {
+ul.messagesTop .messages-error .message-info .errorStack {
 	color: #555555;
 	font-weight: bold;
 	font-size: 12px;
 	margin-left: 5px;
 }
 
-#messages .messages-error .message-info .errorStack:hover {
+ul.messagesTop .messages-error .message-info .errorStack:hover {
 	text-decoration: underline;
 	cursor: pointer;
 }
 
-#messages .messages-error .errorStack-content {
+ul.messagesTop .messages-error .errorStack-content {
 	margin: 5px 0 5px 15px;
 	overflow: auto;
 	display: none;
 }
 
-#messages .messages-warn {
+ul.messagesTop .messages-warn {
 	color: #9F6000;
 	border: 1px solid #9F6000;
 	padding: 0px;
@@ -620,7 +641,7 @@ h4 {
 	display: block;
 }
 
-#messages .messages-warn .messages-topWarn {
+ul.messagesTop .messages-warn .messages-topWarn {
 	padding: 10px 5px 10px 40px;
 	font-weight: bold;
 	background-image: url(../img/messages-warn-icon.png);
@@ -628,7 +649,7 @@ h4 {
 	background-position: 12px center;
 }
 
-#messages .messages-error .messages-warn-details-section {
+ul.messagesTop .messages-error .messages-warn-details-section {
 	padding: 2px 0px;
 	padding-left: 25px;
 	font-size: 12px;
@@ -639,7 +660,7 @@ h4 {
 	color: #d28b1e;
 }
 
-#messages .messages-error .messages-warn-details-section .messages-details-bold .messages-details-bold-arrow {
+ul.messagesTop .messages-error .messages-warn-details-section .messages-details-bold .messages-details-bold-arrow {
 	background-image: url(../img/messages-warn-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -649,15 +670,15 @@ h4 {
     margin: 0px 5px;
 }
 
-#messages .messages-error .messages-warn-details-section .messages-details-bold .arrow-right {
+ul.messagesTop .messages-error .messages-warn-details-section .messages-details-bold .arrow-right {
 	background-position: 0px -16px;
 }
 
-#messages .messages-error .messages-warn-details-section .messages-details-bold .arrow-down {
+ul.messagesTop .messages-error .messages-warn-details-section .messages-details-bold .arrow-down {
 	background-position: 0px -32px;
 }
 
-#messages .messages-succ {
+ul.messagesTop .messages-succ {
 	color: #4F8A10;
 	border: 1px solid #4F8A10;
 	padding: 0px;
@@ -669,7 +690,7 @@ h4 {
 	display: block;
 }
 
-#messages .messages-succ .messages-topSucc {
+ul.messagesTop .messages-succ .messages-topSucc {
 	padding: 10px 5px 10px 40px;
 	font-weight: bold;
 	background-image: url(../img/messages-succ-icon.png);
@@ -677,7 +698,7 @@ h4 {
 	background-position: 12px center;
 }
 
-#messages .messages-error .messages-succ-details-section {
+ul.messagesTop .messages-error .messages-succ-details-section {
 	padding: 2px 0px;
 	padding-left: 25px;
 	font-size: 12px;
@@ -688,7 +709,7 @@ h4 {
 	margin-top: 5px;
 }
 
-#messages .messages-error .messages-succ-details-section .messages-details-bold .messages-details-bold-arrow {
+ul.messagesTop .messages-error .messages-succ-details-section .messages-details-bold .messages-details-bold-arrow {
 	background-image: url(../img/messages-succ-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -698,11 +719,11 @@ h4 {
     margin: 0px 5px;
 }
 
-#messages .messages-error .messages-succ-details-section .messages-details-bold .arrow-right {
+ul.messagesTop .messages-error .messages-succ-details-section .messages-details-bold .arrow-right {
 	background-position: 0px -16px;
 }
 
-#messages .messages-error .messages-succ-details-section .messages-details-bold .arrow-down {
+ul.messagesTop .messages-error .messages-succ-details-section .messages-details-bold .arrow-down {
 	background-position: 0px -32px;
 }
 

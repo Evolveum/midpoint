@@ -805,6 +805,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             throw new SystemException("Result ('" + prismObject.toDebugName() + "') is not assignable to '"
                     + type.getSimpleName() + "' [really should not happen].");
         }
+        //todo remove probably
+        prismObject.checkConsistence();
     }
 
     private <T extends ObjectType> RObject createDataObjectFromJAXB(T object) throws SchemaException {

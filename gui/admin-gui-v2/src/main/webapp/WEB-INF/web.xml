@@ -28,7 +28,7 @@
 
     <context-param>
         <param-name>availableLocales</param-name>
-        <param-value>sk_SK en_US</param-value>
+        <param-value>en_US</param-value>
     </context-param>
 
     <context-param>

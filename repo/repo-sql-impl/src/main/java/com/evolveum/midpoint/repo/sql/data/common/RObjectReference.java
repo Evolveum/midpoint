@@ -152,11 +152,6 @@ public class RObjectReference implements Serializable {
 
     public void setTarget(RContainer target) {
         this.target = target;
-//        if (target == null) {
-//            return;
-//        }
-//        setTargetId(target.getId());
-//        setTargetOid(target.getOid());
     }
 
     public void setOwner(RContainer owner) {

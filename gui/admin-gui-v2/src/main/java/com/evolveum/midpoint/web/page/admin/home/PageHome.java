@@ -21,7 +21,11 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
 
 /**
  * @author lazyman
@@ -29,8 +33,27 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 public class PageHome extends PageAdmin {
 
     public PageHome() {
-        
+        initLayout();
     }
 
-    
+    private void initLayout() {
+        Form form = new Form("mainForm");
+        add(form);
+
+        final MainFeedback feedback = new MainFeedback("feedback");
+        form.add(feedback);
+
+        AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("test")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                PageHome.this.error("some error message.");
+                PageHome.this.info("info message.");
+                PageHome.this.warn("warn message.");
+
+                target.add(feedback);
+            }
+        };
+        form.add(test);
+    }
 }
