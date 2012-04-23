@@ -21,21 +21,23 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
  * @author lazyman
@@ -63,12 +65,14 @@ public class PageResources extends PageAdminResources {
         columns.add(column);
 
         //todo fix connector resolving...
-//        column = new PropertyColumn(createStringResource("pageResources.bundle"), "value.connector.connectorBundle");
-//        columns.add(column);
-//        column = new PropertyColumn(createStringResource("pageResources.version"), "value.connector.connectorVersion");
-//        columns.add(column);
+        column = new PropertyColumn(createStringResource("pageResources.bundle"), "connectorBundle", "value.connector.connectorBundle");
+        columns.add(column);
+        column = new PropertyColumn(createStringResource("pageResources.version"), "connectorVersion", "value.connector.connectorVersion");
+        columns.add(column);
 
-//        column = new PropertyColumn(createStringResource("pageResources.status"), "value.connector.connectorVersion");
+        column = new IconColumn<ResourceType>(createStringResource("pageResources.status"));
+        //column.populateItem(cellItem, componentId, rowModel);
+        columns.add(column);
 //        columns.add(column);
 //        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
 //        columns.add(column);
