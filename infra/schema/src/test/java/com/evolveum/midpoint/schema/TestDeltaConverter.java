@@ -166,11 +166,16 @@ public class TestDeltaConverter {
     	assertEquals("Wrong OID in targetRef value", "12345678-d34d-b33f-f00d-987987987988", targetRefVal.getOid());
     	assertEquals("Wrong type in targetRef value", RoleType.COMPLEX_TYPE, targetRefVal.getTargetType());
     	
-    	objectDelta.assertDefinitions();
-    	
     	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(COMMON_TEST_DIR, "user-jack.xml"));
+    	
+    	objectDelta.assertDefinitions("delta before test");
+    	user.assertDefinitions("user before test");
+    	
     	// apply to user
     	objectDelta.applyTo(user);
+    	
+    	objectDelta.assertDefinitions("delta after test");
+    	user.assertDefinitions("user after test");
 
     	// TODO
     }

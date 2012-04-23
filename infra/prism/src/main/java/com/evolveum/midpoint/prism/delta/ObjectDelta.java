@@ -511,16 +511,20 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 		}
     }
     
+    public void assertDefinitions() throws SchemaException {
+    	assertDefinitions("");
+    }
+    
     /**
      * Assert that all the items has appropriate definition.
      */
-    public void assertDefinitions() throws SchemaException {
+    public void assertDefinitions(String sourceDescription) throws SchemaException {
     	if (changeType == ChangeType.ADD) {
-    		objectToAdd.assertDefinitions("add delta");
+    		objectToAdd.assertDefinitions("add delta in "+sourceDescription);
     	}
     	if (changeType == ChangeType.MODIFY) {
     		for (ItemDelta<?> mod: modifications) {
-    			mod.assertDefinitions("modify delta for "+getOid());
+    			mod.assertDefinitions("modify delta for "+getOid()+" in "+sourceDescription);
     		}
     	}
     }

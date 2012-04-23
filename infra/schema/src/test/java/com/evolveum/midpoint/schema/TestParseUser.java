@@ -30,6 +30,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -48,18 +50,13 @@ import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static com.evolveum.midpoint.schema.TestConstants.*;
 
 /**
  * @author semancik
  *
  */
 public class TestParseUser {
-	
-	public static final File USER_FILE = new File("src/test/resources/common/user-jack.xml");
-	
-	private static final String USER_ACCOUNT_REF_1_OID = "2f9b9299-6f45-498f-aaaa-000000001111";
-	private static final String USER_ACCOUNT_REF_2_OID = "2f9b9299-6f45-498f-aaaa-000000002222";
-	private static final String USER_ACCOUNT_REF_3_OID = "2f9b9299-6f45-498f-aaaa-000000003333";
 	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -232,6 +229,22 @@ public class TestParseUser {
 //		PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
 //		assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);
 //		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
+		
+		PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
+		PrismAsserts.assertDefinition(assignmentContainer.getDefinition(), UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
+		assertEquals("Wrong number of assignment values", 1, assignmentContainer.getValues().size());
+		PrismContainerValue<AssignmentType> firstAssignmentValue = assignmentContainer.getValues().iterator().next();
+		
+		PrismContainer<Containerable> assignmentExtensionContainer = firstAssignmentValue.findContainer(AssignmentType.F_EXTENSION);
+		PrismAsserts.assertDefinition(assignmentExtensionContainer.getDefinition(), AssignmentType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
+		List<Item<?>> assignmentExtensionItems = assignmentExtensionContainer.getValue().getItems();
+		assertEquals("Wrong number of assignment extension items", 1, assignmentExtensionItems.size());
+		PrismProperty<String> firstAssignmentExtensionItem = (PrismProperty<String>) assignmentExtensionItems.get(0);
+		PrismAsserts.assertDefinition(firstAssignmentExtensionItem.getDefinition(), EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0, -1);
+		PrismPropertyValue<String> firstValueOfFirstAssignmentExtensionItem = firstAssignmentExtensionItem.getValues().get(0);
+		assertEquals("Wrong value of "+EXTENSION_INT_TYPE_ELEMENT+" in assignment extension", 42, firstValueOfFirstAssignmentExtensionItem.getValue());
+		
+		// TODO: check accountConstruction
 		
 		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
 		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());

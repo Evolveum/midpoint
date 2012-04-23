@@ -48,6 +48,10 @@ public class PrismConstants {
 
 	// Annotations
 
+	public static final QName A_PROPERTY_CONTAINER = new QName(NS_ANNOTATION, "container");
+	public static final QName A_OBJECT = new QName(NS_ANNOTATION, "object");
+
+	
 	public static final QName A_TYPE = new QName(NS_ANNOTATION, "type");
 	public static final QName A_DISPLAY_NAME = new QName(NS_ANNOTATION, "displayName");
 	public static final QName A_HELP = new QName(NS_ANNOTATION, "help");	
@@ -56,8 +60,6 @@ public class PrismConstants {
 	public static final String A_ACCESS_UPDATE = "update";
 	public static final String A_ACCESS_READ = "read";
 	public static final QName A_INDEXED = new QName(NS_ANNOTATION, "indexed");
-	public static final QName A_PROPERTY_CONTAINER = new QName(NS_ANNOTATION, "container");
-	public static final QName A_OBJECT = new QName(NS_ANNOTATION, "object");
 	public static final QName A_IGNORE = new QName(NS_ANNOTATION, "ignore");
 	public static final QName A_EXTENSION = new QName(NS_ANNOTATION, "extension");
 	public static final QName A_EXTENSION_REF = new QName(NS_ANNOTATION, "ref");

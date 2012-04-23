@@ -31,33 +31,35 @@
             Common Prism annotations used in various XSD schemas.
 
             TODO
+            
+            Default prefix: a
         </xsd:documentation>
     </xsd:annotation>
-
-    <xsd:element name="propertyContainer">
+<!-- 
+    <xsd:element name="container">
         <xsd:annotation>
             <xsd:documentation>
-                This is XSD annotation. It marks XSD type that is a property
-                container.
+                Container marker. This annotation marks complex types that are considered prism containers.
 
-                Every first-level element in a property container is either a
-                property or another property container.
+                Every first-level element in a container is either a property or another container.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-
-    <!-- REFACTOR THIS, TAKE PROPERTY CONTAINER ANNOTATION INTO ACCOUNT -->
-    <xsd:element name="midPointContainer">
+    
+    <xsd:element name="object">
         <xsd:annotation>
             <xsd:documentation>
-                This is XSD annotation. It marks XSD type that is a midpoint object
-                property container.
-
-                Every first-level element in a property container is either a
-                property or another property container.
+                Object marker. This annotation marks complex types that are considered prism objects.
+				Note: prism object are also containers.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    
+    
+    
+     -->
+
 
     <xsd:complexType name="ExtensionType">
         <xsd:annotation>

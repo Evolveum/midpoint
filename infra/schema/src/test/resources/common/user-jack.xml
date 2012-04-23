@@ -28,7 +28,8 @@
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" 
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"  
         xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-        xmlns:foo="http://www.example.com/foo">
+        xmlns:foo="http://www.example.com/foo"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>
     <extension>
 		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
@@ -65,6 +66,15 @@
     <activation>
         <enabled>true</enabled>
     </activation>
+    
+    <assignment id="111">
+    	<extension>
+    		<ext:intType>42</ext:intType>
+    	</extension>
+    	<accountConstruction>
+			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>    		
+    	</accountConstruction>
+    </assignment>
     
     <!-- Account as composite object, resource as reference -->
     <account oid="2f9b9299-6f45-498f-aaaa-000000001111">

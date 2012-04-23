@@ -626,6 +626,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     protected String getDebugDumpClassName() {
         return "Item";
     }
+    
+    public void assertDefinitions() throws SchemaException {
+    	assertDefinitions("");
+    }
 
 	public void assertDefinitions(String sourceDescription) throws SchemaException {
 		if (definition == null) {
