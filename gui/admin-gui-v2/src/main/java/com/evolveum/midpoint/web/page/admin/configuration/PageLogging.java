@@ -54,6 +54,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.objectform.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
@@ -170,7 +171,6 @@ public class PageLogging extends PageAdminConfiguration {
 					@Override
 					protected String load() {
 						LoggerConfiguration config = (LoggerConfiguration) rowModel.getObject();
-
 						StringBuilder builder = new StringBuilder();
 						for (String appender : config.getAppenders()) {
 							if (config.getAppenders().indexOf(appender) != 0) {
@@ -259,7 +259,8 @@ public class PageLogging extends PageAdminConfiguration {
 
 		IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
 		columns.add(column);
-
+		
+		
 		column = new LinkColumn<LoggerConfiguration>(createStringResource("pageLogging.appenders.name"),
 				"name") {
 
@@ -499,6 +500,7 @@ public class PageLogging extends PageAdminConfiguration {
 
 	private void addLoggerPerformed(AjaxRequestTarget target) {
 		Iterator<LoggerConfiguration> iterator = model.getObject().getLoggers().iterator();
+		//getAppendersTable().add(new TextPanel<T>(id, model));
 	}
 
 	private void addAppenderPerformed(AjaxRequestTarget target) {
@@ -528,6 +530,10 @@ public class PageLogging extends PageAdminConfiguration {
 	}
 
 	private void onLoggerClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
-		// todo implement
+		if(rowModel.getObject().isEditable()){
+			//TODO show TextPanel
+		} else {
+			//TODO show Label
+		}
 	}
 }
