@@ -344,13 +344,14 @@ public class RUser extends RObject {
             }
         }
 
-//        ContainerIdGenerator gen = new ContainerIdGenerator();
+        ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment();
             rAssignment.setOwner(repo);
-            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
 
-//            gen.generate(null, rAssignment);
+            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
+            gen.generate(null, rAssignment);
+
             repo.getAssignments().add(rAssignment);
         }
     }

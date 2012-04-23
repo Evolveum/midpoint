@@ -59,7 +59,7 @@
         <activation>
             <enabled>true</enabled>
         </activation>
-        <assignment>
+        <assignment id="1">
             <accountConstruction>
                 <description>
                     Account construction.

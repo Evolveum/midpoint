@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -156,6 +158,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void addUserWithAssignmentExtension() throws Exception {
+        LOGGER.info("===[ addUserWithAssignmentExtension ]===");
         File file = new File("./src/test/resources/user-assignment-extension.xml");
         List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
 
@@ -171,6 +174,33 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         }
 
         PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, oid, null, result);
+
+        ObjectDelta<UserType> delta = fileUser.diff(repoUser);
+        AssertJUnit.assertNotNull(delta);
+        LOGGER.info("delta\n{}", new Object[]{delta.debugDump(3)});
+        AssertJUnit.assertTrue(delta.isEmpty());
+    }
+
+    @Test
+    public void getResolveAccount() throws Exception {
+        File file = new File("./src/test/resources/get/user.xml");
+        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
+
+        OperationResult result = new OperationResult("Get user with account");
+        for (int i = 0; i < elements.size(); i++) {
+            PrismObject object = elements.get(i);
+            LOGGER.info("Adding object {}, type {}", new Object[]{(i + 1), object.getCompileTimeClass().getSimpleName()});
+            repositoryService.addObject(object, result);
+        }
+
+        File expectedFile = new File("./src/test/resources/get/expected-user.xml");
+        PrismObject<UserType> fileUser = (PrismObject<UserType>)
+                prismContext.getPrismDomProcessor().parseObjects(expectedFile).get(0);
+
+        PropertyReferenceListType resolve = new PropertyReferenceListType();
+        resolve.getProperty().add(Utils.fillPropertyReference("Account"));
+                                                                    //todo
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, fileUser.getOid(), resolve, result);
 
         ObjectDelta<UserType> delta = fileUser.diff(repoUser);
         AssertJUnit.assertNotNull(delta);
