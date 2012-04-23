@@ -30,7 +30,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,5 +152,28 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         }
 
         AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
+    }
+
+    @Test
+    public void addUserWithAssignmentExtension() throws Exception {
+        File file = new File("./src/test/resources/user-assignment-extension.xml");
+        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
+
+        OperationResult result = new OperationResult("ADDD");
+        String oid = repositoryService.addObject((PrismObject) elements.get(0), result);
+
+        PrismObject<UserType> fileUser = (PrismObject<UserType>)
+                prismContext.getPrismDomProcessor().parseObjects(file).get(0);
+        int id = 1;
+        for (AssignmentType assignment: fileUser.asObjectable().getAssignment()) {
+            assignment.setId(Integer.toString(id));
+            id++;
+        }
+
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, oid, null, result);
+
+        ObjectDelta<UserType> delta = fileUser.diff(repoUser);
+        AssertJUnit.assertNotNull(delta);
+        AssertJUnit.assertTrue(delta.isEmpty());
     }
 }

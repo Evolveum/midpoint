@@ -26,6 +26,8 @@
             xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
+    <xsd:element name="shipName" type="xsd:string"/>
+
     <!-- account shadow extension -->
 
     <xsd:complexType name="AccountShadowExtensionType">
