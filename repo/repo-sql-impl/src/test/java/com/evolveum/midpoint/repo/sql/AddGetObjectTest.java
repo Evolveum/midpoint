@@ -159,7 +159,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         File file = new File("./src/test/resources/user-assignment-extension.xml");
         List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
 
-        OperationResult result = new OperationResult("ADDD");
+        OperationResult result = new OperationResult("ADD");
         String oid = repositoryService.addObject((PrismObject) elements.get(0), result);
 
         PrismObject<UserType> fileUser = (PrismObject<UserType>)

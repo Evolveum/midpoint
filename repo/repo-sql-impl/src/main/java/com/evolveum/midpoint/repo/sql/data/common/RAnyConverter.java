@@ -224,6 +224,7 @@ public class RAnyConverter {
                     case REFERENCE:
                         def = new PrismReferenceDefinition(value.getName(), value.getName(),
                                 value.getType(), prismContext);
+                        break;
                     default:
                         throw new UnsupportedOperationException("Unknown value type " + value.getValueType());
                 }
