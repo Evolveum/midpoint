@@ -32,6 +32,7 @@ import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -65,6 +66,9 @@ public class PageLogin extends PageBase {
                 }
             }
         };
+        
+        form.add(new Image("image", new PackageResourceReference(PageLogin.class, "Key.png")));
+        
         form.add(new RequiredTextField("username", new Model<String>()));
         form.add(new PasswordTextField("password", new Model<String>()));
         form.add(new FeedbackPanel("error"));

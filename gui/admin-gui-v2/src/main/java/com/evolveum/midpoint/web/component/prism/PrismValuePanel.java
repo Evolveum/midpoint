@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.web.component.objectform.InputPanel;
 import com.evolveum.midpoint.web.component.objectform.input.DatePanel;
 import com.evolveum.midpoint.web.component.objectform.input.TextPanel;
+import com.evolveum.midpoint.web.page.login.PageLogin;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -34,12 +36,14 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
 
 import javax.xml.namespace.QName;
 import java.util.Date;
@@ -53,7 +57,6 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 public class PrismValuePanel extends Panel {
 
     private IModel<ValueWrapper> model;
-    private Integer count = 0;
 
     public PrismValuePanel(String id, IModel<ValueWrapper> model) {
         super(id);
@@ -88,20 +91,25 @@ public class PrismValuePanel extends Panel {
         feedback.setFilter(new ComponentFeedbackMessageFilter(input.getComponent()));
 
         //buttons
-        add(new AjaxLink("addButton") {
+        AjaxLink addButton = new AjaxLink("addButton") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addValue(target);
             }
-        });
-        add(new AjaxLink("removeButton") {
+        };
+        addButton.add(new Image("addIcon", new PackageResourceReference(PrismValuePanel.class, "AddSmall.png")));
+        add(addButton);
+        
+        AjaxLink removeButton = new AjaxLink("removeButton") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 removeValue(target);
             }
-        });
+        };
+        removeButton.add(new Image("removeIcon", new PackageResourceReference(PrismValuePanel.class, "DeleteSmall.png")));
+        add(removeButton);
     }
 
     private InputPanel createInputComponent(String id, final FeedbackPanel feedback) {
@@ -126,8 +134,6 @@ public class PrismValuePanel extends Panel {
                 super.onError(target, e);
             }
         });
-
-        count++;
         return component;
     }
 
