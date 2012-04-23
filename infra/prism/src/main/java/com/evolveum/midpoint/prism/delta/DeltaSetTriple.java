@@ -121,13 +121,13 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
      * in zero set in this triple.
      */
     public <O> void distributeAs(PrismPropertyValue<T> myMember, DeltaSetTriple<O> otherTriple, PrismPropertyValue<O> otherMember) {
-        if (otherTriple.getZeroSet() != null && otherTriple.getZeroSet().contains(otherMember)) {
+        if (otherTriple.getZeroSet() != null && PrismPropertyValue.containsRealValue((Collection)otherTriple.getZeroSet(), otherMember)) {
             zeroSet.add(myMember);
         }
-        if (otherTriple.getPlusSet() != null && otherTriple.getPlusSet().contains(otherMember)) {
+        if (otherTriple.getPlusSet() != null && PrismPropertyValue.containsRealValue((Collection)otherTriple.getPlusSet(), otherMember)) {
             plusSet.add(myMember);
         }
-        if (otherTriple.getMinusSet() != null && otherTriple.getMinusSet().contains(otherMember)) {
+        if (otherTriple.getMinusSet() != null && PrismPropertyValue.containsRealValue((Collection)otherTriple.getMinusSet(), otherMember)) {
             minusSet.add(myMember);
         }
     }

@@ -144,6 +144,15 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		clone.value = this.value;
 		clone.rawElement = this.rawElement;
 	}
+	
+	public static boolean containsRealValue(Collection<PrismPropertyValue<?>> collection, PrismPropertyValue<?> value) {
+		for (PrismPropertyValue<?> colVal: collection) {
+			if (value.equalsRealValue(colVal)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
     @Override
 	public int hashCode() {

@@ -260,8 +260,7 @@ public class AssignmentProcessor {
     	}
     	ResourceAccountType rat = accountContext.getResourceAccountType();
     	Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
-//        LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());
-//        LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
+//        LOGGER.trace("Account {}: attributeValueDeltaMap befor adding:\n{}: ", rat, SchemaDebugUtil.dumpMapMultiLine(attributeValueDeltaMap));
 
         accountContext.addToAttributeValueDeltaSetTripleMap(attributeValueDeltaMap);        
     }
@@ -319,7 +318,6 @@ public class AssignmentProcessor {
         for (PrismPropertyValue<AccountConstruction> propertyValue : accountDeltaSetTriple.union()) {
             AccountConstruction ac = propertyValue.getValue();
             for (ValueConstruction<?> attrConstr : ac.getAttributeConstructions()) {
-
                 Item<?> output = attrConstr.getOutput();
                 QName attrName = output.getName();
                 DeltaSetTriple<ValueConstruction<?>> valueTriple = attrMap.get(attrName);

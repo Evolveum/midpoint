@@ -142,6 +142,12 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		}
 	}
 	
+	public static <K, V extends DebugDumpable> String dumpMapMultiLine(Map<K, V> map) {
+		StringBuilder sb = new StringBuilder();
+		debugDumpMapMultiLine(sb, map, 0);
+		return sb.toString();
+	}
+	
 	public static <K, V extends DebugDumpable> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
 		Iterator<Entry<K, V>> i = map.entrySet().iterator();
 		while (i.hasNext()) {
