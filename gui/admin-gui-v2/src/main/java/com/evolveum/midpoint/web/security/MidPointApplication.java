@@ -21,40 +21,38 @@
 
 package com.evolveum.midpoint.web.security;
 
-import ch.qos.logback.core.spi.ContextAware;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
+import com.evolveum.midpoint.web.page.admin.home.PageHome;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.resource.css.CssResources;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.resource.js.JsResources;
+import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.MountedMapper;
+import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.web.page.admin.home.PageHome;
-import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
-import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageAdminTasks;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.error.PageForbidden;
-import com.evolveum.midpoint.web.page.error.PageNotFound;
-import com.evolveum.midpoint.web.page.error.PageServerError;
-import com.evolveum.midpoint.web.page.error.PageUnauthorized;
-import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
+import java.io.File;
+import java.io.FilenameFilter;
 
 /**
  * @author lazyman
@@ -62,6 +60,7 @@ import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 @Component("midpointApplication")
 public class MidPointApplication extends AuthenticatedWebApplication {
 
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
     @Autowired
     ModelService model;
     @Autowired
@@ -93,6 +92,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         }
 
         //pretty url resources
+        mountFiles("/css", CssResources.class);
+        mountFiles("/img", ImgResources.class);
+        mountFiles("/js", JsResources.class);
 
         //pretty url pages
         MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();
@@ -119,6 +121,34 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 //        mount(new MountedMapper("/error/500", PageServerError.class, encoder));
     }
 
+    private void mountFiles(String path, Class<?> clazz) {
+        try {
+            String absPath = getServletContext().getRealPath("WEB-INF/classes") + "/"
+                    + clazz.getPackage().getName().replace('.', '/');
+
+            File folder = new File(absPath);
+            mountFiles(path, clazz, folder);
+        } catch (Exception ex) {
+            //todo error handling
+            ex.printStackTrace();
+        }
+    }
+
+    private void mountFiles(String path, Class<?> clazz, File folder) {
+        File[] files = folder.listFiles(new ResourceFileFilter());
+        for (File file : files) {
+            if (!file.exists()) {
+                LOGGER.warn("Couldn't mount resource {}.", new Object[]{file.getPath()});
+                continue;
+            }
+            if (file.isDirectory()) {
+                mountFiles(path + "/" + file.getName(), clazz, file);
+            } else {
+                mountResource(path + "/" + file.getName(), new SharedResourceReference(clazz, file.getName()));
+            }
+        }
+    }
+
     public ModelService getModel() {
         return model;
     }
@@ -143,5 +173,17 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Override
     protected Class<? extends AbstractAuthenticatedWebSession> getWebSessionClass() {
         return MidPointAuthWebSession.class;
+    }
+
+    private static class ResourceFileFilter implements FilenameFilter {
+
+        @Override
+        public boolean accept(File parent, String name) {
+            if (name.endsWith("class")) {
+                return false;
+            }
+
+            return true;
+        }
     }
 }
