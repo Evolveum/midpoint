@@ -120,6 +120,30 @@ public class ResourceObjectShadowUtil {
 		}
 		return attribute.getRealValue();
 	}
+	
+	public static String getMultiStringAttributeValueAsSingle(ResourceObjectShadowType shadow, QName attrName) {
+		return getMultiStringAttributeValueAsSingle(shadow.asPrismObject(), attrName);
+	}
+	
+
+	private static String getMultiStringAttributeValueAsSingle(PrismObject<ResourceObjectShadowType> shadow, QName attrName) {
+		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null) {
+			return null;
+		}
+		PrismProperty<String> attribute = attributesContainer.findProperty(attrName);
+		if (attribute == null) {
+			return null;
+		}
+		Collection<String> realValues = attribute.getRealValues();
+		if (realValues == null || realValues.isEmpty()) {
+			return null;
+		}
+		if (realValues.size() > 1) {
+			throw new IllegalStateException("More than one value in attribute "+attrName);
+		}
+		return realValues.iterator().next();
+	}
 
 	public static List<Object> getAttributeValues(ResourceObjectShadowType shadowType, QName attrName) {
 		return getAttributeValues(shadowType.asPrismObject(), attrName);

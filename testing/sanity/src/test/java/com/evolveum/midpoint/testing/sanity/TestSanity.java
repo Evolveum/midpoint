@@ -2733,7 +2733,7 @@ public class TestSanity extends AbstractIntegrationTest {
             
             display("Account after import ", account);
             
-            String attributeValueL = ResourceObjectShadowUtil.getSingleStringAttributeValue(account, new QName(resourceTypeOpenDjrepo.getNamespace(), "l"));
+            String attributeValueL = ResourceObjectShadowUtil.getMultiStringAttributeValueAsSingle(account, new QName(resourceTypeOpenDjrepo.getNamespace(), "l"));
             assertEquals("Unexcpected value of l", "middle of nowhere", attributeValueL);
         }
         
@@ -2931,8 +2931,8 @@ public class TestSanity extends AbstractIntegrationTest {
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(TASK_OPENDJ_RECON_OID, result);
                 display("Task while waiting for task manager to pick up the task", task);
-                // wait until the task is picked up
-                return task.getLastRunStartTimestamp() != null;
+                // wait until the task is finished
+                return task.getLastRunFinishTimestamp() != null;
 //                if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {			we cannot check exclusivity status for now
 //                    // wait until the first run is finished
 //                    if (task.getLastRunFinishTimestamp() == null) {
@@ -2968,10 +2968,10 @@ public class TestSanity extends AbstractIntegrationTest {
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
-        assertNotNull(task.getLastRunStartTimestamp());
-        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
-        assertNotNull(task.getLastRunFinishTimestamp());
-        AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        assertNotNull("Null last run start in recon task", task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse("Zero last run start in recon task", task.getLastRunStartTimestamp().longValue() == 0);
+        assertNotNull("Null last run finish in recon task", task.getLastRunFinishTimestamp());
+        AssertJUnit.assertFalse("Zero last run finish in recon task", task.getLastRunFinishTimestamp().longValue() == 0);
 
         // The progress should be 0, as there were no changes yet
         AssertJUnit.assertEquals(0, task.getProgress());
