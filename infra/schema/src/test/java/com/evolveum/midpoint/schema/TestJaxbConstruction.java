@@ -19,8 +19,12 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.schema.TestConstants.*;
+
 import java.io.IOException;
 import javax.xml.bind.JAXBException;
 
@@ -34,13 +38,16 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * @author semancik
@@ -57,6 +64,44 @@ public class TestJaxbConstruction {
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
 	
+	@Test
+	public void testUserConstruction() throws JAXBException, SchemaException {
+		System.out.println("\n\n ===[ testUserConstruction ]===\n");
+		
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		UserType userType = new UserType();
+		prismContext.adopt(userType);
+		
+		PrismObject<UserType> user = userType.asPrismObject();
+		assertNotNull("No object definition after adopt", user.getDefinition());
+		
+		// Extension
+		ExtensionType extension = new ExtensionType();
+		userType.setExtension(extension);
+		
+		user.checkConsistence();
+				
+		PrismContainer<Containerable> extensionContainer = user.findContainer(GenericObjectType.F_EXTENSION);
+		checkExtension(extensionContainer,"user extension after setExtension");
+		checkExtension(extension,"user extension after setExtension");
+		
+		AssignmentType assignmentType = new AssignmentType();
+		userType.getAssignment().add(assignmentType);
+		
+		user.checkConsistence();
+		
+		ExtensionType assignmentExtension = new ExtensionType();
+		assignmentType.setExtension(assignmentExtension);
+		
+		user.checkConsistence();
+		checkExtension(assignmentExtension,"assignment extension after setExtension");
+		user.checkConsistence();
+	}
+	
+
+
 	@Test
 	public void testGenericConstruction() throws JAXBException, SchemaException {
 		System.out.println("\n\n ===[ testGenericConstruction ]===\n");
@@ -78,13 +123,10 @@ public class TestJaxbConstruction {
 		generic.checkConsistence();
 		
 		PrismContainer<Containerable> extensionContainer = generic.findContainer(GenericObjectType.F_EXTENSION);
-		assertNotNull("No extension container after setExtension (prism)", extensionContainer);
-		assertNotNull("No extension definition after setExtension (prism)", extensionContainer.getDefinition());
-
-		PrismContainerValue<ExtensionType> extensionValueFromJaxb = extension.asPrismContainerValue();
-		assertNotNull("No extension container after setExtension (prism)", extensionValueFromJaxb);
-		assertNotNull("No extension definition after setExtension (prism)", extensionValueFromJaxb.getParent().getDefinition());
-
+		checkExtension(extensionContainer,"user extension after setExtension");
+		checkExtension(extension,"user extension after setExtension");
+		
+		generic.checkConsistence();
 	}
 	
 	@Test
@@ -155,4 +197,26 @@ public class TestJaxbConstruction {
         assertNotNull(item);
         object.asPrismObject().checkConsistence();
     }
+    
+	private void checkExtension(PrismContainer<Containerable> extensionContainer, String sourceDescription) {
+		assertNotNull("No extension container in "+sourceDescription+" (prism)", extensionContainer);
+		assertNotNull("No extension definition in "+sourceDescription+" (prism)", extensionContainer.getDefinition());
+		assertTrue("Not runtime in definition in "+sourceDescription+" (prism)", extensionContainer.getDefinition().isRuntimeSchema());		
+	}
+	
+	private void checkExtension(ExtensionType extension, String sourceDescription) throws SchemaException {
+		PrismContainerValue<ExtensionType> extensionValueFromJaxb = extension.asPrismContainerValue();
+		assertNotNull("No extension container in "+sourceDescription+" (jaxb)", extensionValueFromJaxb);
+		assertNotNull("No extension definition in "+sourceDescription+" (jaxb)", extensionValueFromJaxb.getParent().getDefinition());
+		assertTrue("Not runtime in definition in "+sourceDescription+" (jaxb)", extensionValueFromJaxb.getParent().getDefinition().isRuntimeSchema());
+		
+		PrismProperty<Integer> intProperty = extensionValueFromJaxb.findOrCreateProperty(EXTENSION_INT_TYPE_ELEMENT);
+		PrismAsserts.assertDefinition(intProperty.getDefinition(), EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0, -1);
+		intProperty.setRealValue(15);
+		
+		PrismProperty<String> stringProperty = extensionValueFromJaxb.findOrCreateItem(EXTENSION_STRING_TYPE_ELEMENT, PrismProperty.class);
+		PrismAsserts.assertDefinition(stringProperty.getDefinition(), EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+		stringProperty.setRealValue("fifteen men on a dead man chest");
+	}
+
 }
