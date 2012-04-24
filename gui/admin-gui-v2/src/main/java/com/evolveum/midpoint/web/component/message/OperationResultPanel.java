@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -50,7 +51,11 @@ public class OperationResultPanel extends Panel {
 
     private void initLayout(final IModel<OperationResult> model) {
         add(new Label("operation", new PropertyModel<Object>(model, "operation")));//todo localize
-        add(new Label("message", new PropertyModel<String>(model, "message")));
+
+        WebMarkupContainer messageLi = new WebMarkupContainer("messageLi");
+        add(messageLi);
+        messageLi.add(new AttributeAppender("class", createMessageLiClass(model), " "));
+        messageLi.add(new Label("message", new PropertyModel<String>(model, "message")));
 
         ListView<Map.Entry<String, Object>> params = new ListView<Map.Entry<String, Object>>("params",
                 createParamsModel(model)) {
@@ -84,6 +89,33 @@ public class OperationResultPanel extends Panel {
             }
         };
         add(subresults);
+    }
+
+    private IModel<String> createMessageLiClass(final IModel<OperationResult> model) {
+        return new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                OperationResult result = model.getObject();
+                if (result == null || result.getStatus() == null) {
+                    return "messages-warn-details-section";
+                }
+                switch (result.getStatus()) {
+                    case FATAL_ERROR:
+                    case PARTIAL_ERROR:
+                        return "messages-error-details-section";
+                    case IN_PROGRESS:
+                    case NOT_APPLICABLE:
+                        return "messages-info-details-section";
+                    case SUCCESS:
+                        return "messages-succ-details-section";
+                    case UNKNOWN:
+                    case WARNING:
+                    default:
+                        return "messages-warn-details-section";
+                }
+            }
+        };
     }
 
     private IModel<List<Map.Entry<String, Object>>> createParamsModel(final IModel<OperationResult> model) {

@@ -23,8 +23,10 @@
 <wicket:panel>
     <span wicket:id="operation"/>
     <ul>
-        <li>
-            <span class="message-info" wicket:id="message"/>
+        <li wicket:id="messageLi">
+            <span class="message-details-bold" wicket:id="message">
+                <span class="messages-details-bold-arrow arrow-right arrow-down"/>
+            </span>
         </li>
         <li wicket:id="params">
                 <span class="message-info">
@@ -52,7 +54,7 @@
     </ul>
     <ul>
         <li wicket:id="subresults">
-            <div wicket:id="subresult" class="messages-details-content" />
+            <div wicket:id="subresult" class="messages-details-content"/>
         </li>
     </ul>
 </wicket:panel>
