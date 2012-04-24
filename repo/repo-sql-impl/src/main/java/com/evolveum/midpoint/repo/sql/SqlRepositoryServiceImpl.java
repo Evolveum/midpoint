@@ -804,23 +804,23 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             throw new SystemException("Result ('" + prismObject.toDebugName() + "') is not assignable to '"
                     + type.getSimpleName() + "' [really should not happen].");
         }
-        //todo remove probably
-        try {
-            prismObject.checkConsistence();
-            // The object that is returned from getObject may not have definitions for some elements
-            // (e.g. attributes, resource configuration, etc.)
-//            prismObject.assertDefinitions("Validating object, assert definition\n" + prismObject.debugDump(3));
-
-            if (prismObject.getCompileTimeClass().equals(UserType.class)) {
-                UserType u = (UserType) prismObject.asObjectable();
-                for (AssignmentType a: u.getAssignment()) {
-                    a.asPrismContainerValue().assertDefinitions("Assignment assert definitions\n"
-                            + a.asPrismContainerValue().debugDump(3));
-                }
-            }
-        } catch (Exception ex) {
-            throw new SystemException(ex.getMessage(), ex);
-        }
+        //todo remove
+//        try {
+//            prismObject.checkConsistence();
+//            // The object that is returned from getObject may not have definitions for some elements
+//            // (e.g. attributes, resource configuration, etc.)
+////            prismObject.assertDefinitions("Validating object, assert definition\n" + prismObject.debugDump(3));
+//
+//            if (prismObject.getCompileTimeClass().equals(UserType.class)) {
+//                UserType u = (UserType) prismObject.asObjectable();
+//                for (AssignmentType a: u.getAssignment()) {
+//                    a.asPrismContainerValue().assertDefinitions("Assignment assert definitions\n"
+//                            + a.asPrismContainerValue().debugDump(3));
+//                }
+//            }
+//        } catch (Exception ex) {
+//            throw new SystemException(ex.getMessage(), ex);
+//        }
     }
 
     private <T extends ObjectType> RObject createDataObjectFromJAXB(T object) throws SchemaException {

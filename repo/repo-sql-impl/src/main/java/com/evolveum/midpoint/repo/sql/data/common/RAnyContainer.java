@@ -25,12 +25,9 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
@@ -226,8 +223,6 @@ public class RAnyContainer implements Serializable {
                 converter.convertFromRValue(value, containerValue);
             }
         }
-        TraceManager.getTrace(RAnyContainer.class).info("TODO REMOVE >>>>\n" + ReflectionToStringBuilder.reflectionToString(
-                containerValue.getParent(), ToStringStyle.MULTI_LINE_STYLE));
     }
 
     public static void copyFromJAXB(ResourceObjectShadowAttributesType jaxb, RAnyContainer repo,
