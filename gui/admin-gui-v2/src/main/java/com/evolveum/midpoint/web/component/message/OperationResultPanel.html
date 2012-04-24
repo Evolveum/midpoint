@@ -21,41 +21,40 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="messages-details-content">
-        <ul>
-            <li>
-                <span class="message-info" wicket:id="message"/>
-            </li>
-            <li wicket:id="params">
+    <span wicket:id="operation"/>
+    <ul>
+        <li>
+            <span class="message-info" wicket:id="message"/>
+        </li>
+        <li wicket:id="params">
                 <span class="message-info">
                     <em style="text-decoration: underline;">
                         <wicket:message key="operationResultPanel.param"/>
                     </em>
                     <span wicket:id="paramName"/>:<span wicket:id="paramValue"/>
                 </span>
-            </li>
-            <li wicket:id="exception">
+        </li>
+        <li wicket:id="exception">
                 <span class="message-info">
                     <em style="text-decoration: underline;">
                         <wicket:message key="operationResultPanel.cause"/>
                     </em>
                     <span wicket:id="exceptionMessage"/>
-                    <span id="errorStack0" class="errorStack">
+                    <span class="errorStack">
                         <wicket:message key="operationResultPanel.showStack"/>
                     </span>
                 </span>
 
-                <div id="errorStack0_content" class="errorStack-content">
-                    <code wicket:id="exceptionStack"/>
-                </div>
-            </li>
-        </ul>
-        <ul>
-            <li wicket:id="subresults">
-                <div wicket:id="subresult"/>
-            </li>
-        </ul>
-    </div>
+            <div class="errorStack-content">
+                <code wicket:id="exceptionStack"/>
+            </div>
+        </li>
+    </ul>
+    <ul>
+        <li wicket:id="subresults">
+            <div wicket:id="subresult" class="messages-details-content" />
+        </li>
+    </ul>
 </wicket:panel>
 </body>
 </html>

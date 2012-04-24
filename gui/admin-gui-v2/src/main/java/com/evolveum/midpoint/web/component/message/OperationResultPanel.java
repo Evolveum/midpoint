@@ -49,7 +49,8 @@ public class OperationResultPanel extends Panel {
     }
 
     private void initLayout(final IModel<OperationResult> model) {
-        add(new Label("message"));
+        add(new Label("operation", new PropertyModel<Object>(model, "operation")));//todo localize
+        add(new Label("message", new PropertyModel<String>(model, "message")));
 
         ListView<Map.Entry<String, Object>> params = new ListView<Map.Entry<String, Object>>("params",
                 createParamsModel(model)) {
@@ -113,7 +114,7 @@ public class OperationResultPanel extends Panel {
                 if (subresults == null) {
                     subresults = new ArrayList<OperationResult>();
                 }
-
+                System.out.println(result.getOperation() + ": " + result.getMessage() + ": " + subresults.size());
                 return subresults;
             }
         };
