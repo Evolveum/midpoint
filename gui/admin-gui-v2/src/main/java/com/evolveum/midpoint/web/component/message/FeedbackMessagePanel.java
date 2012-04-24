@@ -60,6 +60,7 @@ public class FeedbackMessagePanel extends Panel {
                 return getLabelCss(message);
             }
         }, " "));
+        label.setOutputMarkupId(true);
         add(label);
 
         Panel details;
@@ -80,6 +81,7 @@ public class FeedbackMessagePanel extends Panel {
                 return false;
             }
         });
+        details.setMarkupId(get("message").getMarkupId() + "_content");
         add(details);
     }
 
