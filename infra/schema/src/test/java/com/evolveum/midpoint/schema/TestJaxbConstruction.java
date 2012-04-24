@@ -114,18 +114,27 @@ public class TestJaxbConstruction {
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID);
 		user.checkConsistence();
 		user.assertDefinitions();
-		
-		AccountShadowType accountShadowType = new AccountShadowType();
+
+        assertEquals("1/ Wrong accountRef values", 1, user.findReference(UserType.F_ACCOUNT_REF).getValues().size());
+
+        AccountShadowType accountShadowType = new AccountShadowType();
+        accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
+        userType.getAccount().add(accountShadowType);
+        //value still should be only one... (reference was only resolved)
+        assertEquals("2/ Wrong accountRef values", 1, user.findReference(UserType.F_ACCOUNT_REF).getValues().size());
+
+		accountShadowType = new AccountShadowType();
 		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
-		// TODO: fill something into the account
 		userType.getAccount().add(accountShadowType);
+
+        assertEquals("3/ Wrong accountRef values", 2, user.findReference(UserType.F_ACCOUNT_REF).getValues().size());
 		
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 		user.checkConsistence();
 		user.assertDefinitions();
 		
 		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
-		assertEquals("Wrong accountRef values", 2, accountRef.getValues().size());
+		assertEquals("4/ Wrong accountRef values", 2, accountRef.getValues().size());
 		PrismAsserts.assertReferenceValues(accountRef, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 		
 	}
