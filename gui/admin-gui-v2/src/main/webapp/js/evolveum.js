@@ -158,46 +158,6 @@ function init() {
     
     $(".accordion").togglepanels();
     
-    $(".messages-topError").click(function(){
-    	var idBlock = $(this).attr("id");
-    	var blockContent = $("#" + idBlock + "_content");
-    	if(blockContent.css("display") === "none"){
-    		blockContent.show();
-    		$(this).find(".messages-topError-arrow").addClass("arrow-up");
-    		$(this).addClass("selected");
-    	} else {
-    		blockContent.hide();
-    		$(this).find(".messages-topError-arrow").removeClass("arrow-up");
-    		$(this).removeClass("selected");
-    	}
-    });
-    
-    $(".messages-details-bold").click(function(){
-    	var idBlock = $(this).attr("id");
-    	if($(this).parent().find(".messages-details-content").css("display") === "none"){
-    		$(this).parent().addClass("selected-section");
-    		$("#"+idBlock+"_content").show();
-    		$(this).find(".messages-details-bold-arrow").addClass("arrow-down");
-    	} else {
-    		$(this).parent().removeClass("selected-section");
-    		$("#"+idBlock+"_content").hide();
-    		$(this).find(".messages-details-bold-arrow").removeClass("arrow-down");
-    	}
-    });
-    
-    $(".errorStack").click(function(){
-    	var idBlock = $(this).attr("id");
-    	var text = "";
-    	if($("#"+idBlock+"_content").css("display") === "none"){
-    		text = $(this).text().replace("SHOW","HIDE");
-    		$("#"+idBlock+"_content").show();
-    	} else {
-    		$("#"+idBlock+"_content").hide();
-    		text = $(this).text().replace("HIDE","SHOW");
-    	}
-    	$(this).text(text);
-    });
-    
     $(".optionLeftBar").mouseenter(function(){
     	$(this).css("cursor","pointer");
     	$(this).css("backgroundColor","#BBBBBB");

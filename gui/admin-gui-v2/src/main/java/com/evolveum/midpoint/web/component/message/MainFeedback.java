@@ -29,6 +29,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
+import com.evolveum.midpoint.web.component.accordion.Accordion;
+
 import java.util.List;
 
 /**
@@ -80,5 +82,7 @@ public class MainFeedback extends Panel implements IFeedback {
         super.renderHead(response);
 
         response.renderCSSReference(new CssResourceReference(MainFeedback.class, "MainFeedback.css"));
+        response.renderJavaScriptReference(new PackageResourceReference(MainFeedback.class, "MainFeedback.js"));
+        response.renderOnLoadJavaScript("initMessages()");
     }
 }

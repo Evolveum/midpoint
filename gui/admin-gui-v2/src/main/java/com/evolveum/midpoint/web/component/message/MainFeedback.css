@@ -71,15 +71,18 @@ ul.messagesTop .messages-topError {
 	background-image: url(images/messages-error-icon.png);
 	background-repeat: no-repeat;
 	background-position: 12px center;
-}
-
-ul.messagesTop .messages-topError:hover {
-	cursor: pointer;
-	background-color: #ffc2ae;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
 }
 
 ul.messagesTop .messages-error .selected {
 	background-color: #ffc2ae;
+	-moz-border-radius-bottomright: 0px;
+	border-bottom-right-radius: 0px;
+	-moz-border-radius-bottomleft: 0px;
+	border-bottom-left-radius: 0px;
 }
 
 ul.messagesTop .messages-topError-arrow {
@@ -183,6 +186,18 @@ ul.messagesTop .messages-topWarn {
 	background-image: url(images/messages-warn-icon.png);
 	background-repeat: no-repeat;
 	background-position: 12px center;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+}
+
+ul.messagesTop .messages-warn .selected {
+	background-color: #ffc2ae;
+	-moz-border-radius-bottomright: 0px;
+	border-bottom-right-radius: 0px;
+	-moz-border-radius-bottomleft: 0px;
+	border-bottom-left-radius: 0px;
 }
 
 ul.messagesTop .messages-warn-details-section, ul.messagesTop .messages-warn .messages-warn-details-section {
@@ -232,6 +247,18 @@ ul.messagesTop .messages-topSucc {
 	background-image: url(images/messages-succ-icon.png);
 	background-repeat: no-repeat;
 	background-position: 12px center;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+}
+
+ul.messagesTop .messages-succ .selected {
+	background-color: #d1eba6;
+	-moz-border-radius-bottomright: 0px;
+	border-bottom-right-radius: 0px;
+	-moz-border-radius-bottomleft: 0px;
+	border-bottom-left-radius: 0px;
 }
 
 ul.messagesTop .messages-succ-details-section {
@@ -282,6 +309,18 @@ ul.messagesTop .messages-topInfo {
 	background-image: url(images/messages-info-icon.png);
 	background-repeat: no-repeat;
 	background-position: 12px center;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+}
+
+ul.messagesTop .messages-info .selected {
+	background-color: #ffc2ae;
+	-moz-border-radius-bottomright: 0px;
+	border-bottom-right-radius: 0px;
+	-moz-border-radius-bottomleft: 0px;
+	border-bottom-left-radius: 0px;
 }
 
 ul.messagesTop .messages-info-details-section, ul.messagesTop .messages-info .messages-info-details-section {
