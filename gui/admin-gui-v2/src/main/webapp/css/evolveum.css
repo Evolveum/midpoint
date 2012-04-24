@@ -588,7 +588,7 @@ ul.messagesTop .messages-error .messages-details-bold:hover {
 	/* background-color: #ffc2ae; */
 }
 
-ul.messagesTop .messages-error .messages-error-details-section .messages-details-bold .messages-details-bold-arrow {
+ul.messagesTop .messages-error .messages-error-details-section .messages-details-bold-arrow {
 	background-image: url(../img/messages-error-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -598,11 +598,11 @@ ul.messagesTop .messages-error .messages-error-details-section .messages-details
     margin: 0px 5px;
 }
 
-ul.messagesTop .messages-error .messages-error-details-section .messages-details-bold .arrow-right {
+ul.messagesTop .messages-error .messages-error-details-section .arrow-right {
 	background-position: 0px -16px;
 }
 
-ul.messagesTop .messages-error .messages-error-details-section .messages-details-bold .arrow-down {
+ul.messagesTop .messages-error .messages-error-details-section .arrow-down {
 	background-position: 0px -32px;
 }
 
@@ -660,7 +660,7 @@ ul.messagesTop .messages-error .messages-warn-details-section {
 	color: #d28b1e;
 }
 
-ul.messagesTop .messages-error .messages-warn-details-section .messages-details-bold .messages-details-bold-arrow {
+ul.messagesTop .messages-error .messages-warn-details-section .messages-details-bold-arrow {
 	background-image: url(../img/messages-warn-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -670,11 +670,11 @@ ul.messagesTop .messages-error .messages-warn-details-section .messages-details-
     margin: 0px 5px;
 }
 
-ul.messagesTop .messages-error .messages-warn-details-section .messages-details-bold .arrow-right {
+ul.messagesTop .messages-error .messages-warn-details-section .arrow-right {
 	background-position: 0px -16px;
 }
 
-ul.messagesTop .messages-error .messages-warn-details-section .messages-details-bold .arrow-down {
+ul.messagesTop .messages-error .messages-warn-details-section .arrow-down {
 	background-position: 0px -32px;
 }
 
@@ -709,7 +709,7 @@ ul.messagesTop .messages-error .messages-succ-details-section {
 	margin-top: 5px;
 }
 
-ul.messagesTop .messages-error .messages-succ-details-section .messages-details-bold .messages-details-bold-arrow {
+ul.messagesTop .messages-error .messages-succ-details-section .messages-details-bold-arrow {
 	background-image: url(../img/messages-succ-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -719,11 +719,11 @@ ul.messagesTop .messages-error .messages-succ-details-section .messages-details-
     margin: 0px 5px;
 }
 
-ul.messagesTop .messages-error .messages-succ-details-section .messages-details-bold .arrow-right {
+ul.messagesTop .messages-error .messages-succ-details-section .arrow-right {
 	background-position: 0px -16px;
 }
 
-ul.messagesTop .messages-error .messages-succ-details-section .messages-details-bold .arrow-down {
+ul.messagesTop .messages-error .messages-succ-details-section .arrow-down {
 	background-position: 0px -32px;
 }
 
@@ -759,7 +759,7 @@ ul.messagesTop .messages-info .messages-info-details-section {
 	margin-top: 5px;
 }
 
-ul.messagesTop .messages-infor .messages-info-details-section .messages-details-bold .messages-details-bold-arrow {
+ul.messagesTop .messages-infor .messages-info-details-section .messages-details-bold-arrow {
 	background-image: url(../img/messages-info-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -769,11 +769,11 @@ ul.messagesTop .messages-infor .messages-info-details-section .messages-details-
     margin: 0px 5px;
 }
 
-ul.messagesTop .messages-info .messages-info-details-section .messages-details-bold .arrow-right {
+ul.messagesTop .messages-info .messages-info-details-section .arrow-right {
 	background-position: 0px -16px;
 }
 
-ul.messagesTop .messages-info .messages-info-details-section .messages-details-bold .arrow-down {
+ul.messagesTop .messages-info .messages-info-details-section .arrow-down {
 	background-position: 0px -32px;
 }
 
