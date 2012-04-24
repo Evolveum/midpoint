@@ -44,7 +44,7 @@ ul.messagesTop ul li{
 }
 
 ul.messagesTop .messages-details {
-	margin-top: 5px;
+	margin-top: 0px;
 }
 
 ul.messagesTop .messages-error {

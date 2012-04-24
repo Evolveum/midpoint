@@ -137,7 +137,7 @@ public class OperationResultPanel extends Panel {
                 item.add(new OperationResultPanel("subresult", item.getModel()));
             }
         };
-        add(subresults);
+        messageLi.add(subresults);
     }
 
     private IModel<String> createMessageLiClass(final IModel<OperationResult> model) {
