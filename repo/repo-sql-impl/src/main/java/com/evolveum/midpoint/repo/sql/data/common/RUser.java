@@ -395,7 +395,7 @@ public class RUser extends RObject {
     @Override
     public UserType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         UserType object = new UserType();
-        RUtil.revive(object.asPrismObject(), UserType.class, prismContext);
+        RUtil.revive(object, prismContext);
         RUser.copyToJAXB(this, object, prismContext);
 
         return object;

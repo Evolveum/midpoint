@@ -113,7 +113,7 @@ public class RPasswordPolicy extends RObject {
     @Override
     public PasswordPolicyType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         PasswordPolicyType policy = new PasswordPolicyType();
-        RUtil.revive(policy.asPrismObject(), PasswordPolicyType.class, prismContext);
+        RUtil.revive(policy, prismContext);
         RPasswordPolicy.copyToJAXB(this, policy, prismContext);
 
         return policy;

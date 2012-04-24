@@ -130,7 +130,7 @@ public class RUserTemplate extends RObject {
     @Override
     public UserTemplateType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         UserTemplateType object = new UserTemplateType();
-        RUtil.revive(object.asPrismObject(), UserTemplateType.class, prismContext);
+        RUtil.revive(object, prismContext);
         RUserTemplate.copyToJAXB(this, object, prismContext);
 
         return object;

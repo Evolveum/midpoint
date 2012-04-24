@@ -53,10 +53,10 @@ public final class RUtil {
     private RUtil() {
     }
 
-    public static <T extends Objectable> void revive(PrismObject<T> object, Class<T> clazz, PrismContext prismContext)
+    public static <T extends Objectable> void revive(Objectable object, PrismContext prismContext)
             throws DtoTranslationException {
         try {
-            prismContext.adopt(object, clazz);
+            prismContext.adopt(object);
         } catch (SchemaException ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

@@ -233,7 +233,7 @@ public class RResource extends RObject {
     @Override
     public ResourceType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ResourceType object = new ResourceType();
-        RUtil.revive(object.asPrismObject(), ResourceType.class, prismContext);
+        RUtil.revive(object, prismContext);
         RResource.copyToJAXB(this, object, prismContext);
 
         return object;

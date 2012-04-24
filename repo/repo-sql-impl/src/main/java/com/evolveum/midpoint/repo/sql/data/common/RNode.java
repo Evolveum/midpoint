@@ -98,7 +98,7 @@ public class RNode extends RObject {
     @Override
     public NodeType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         NodeType object = new NodeType();
-        RUtil.revive(object.asPrismObject(), NodeType.class, prismContext);
+        RUtil.revive(object, prismContext);
         RNode.copyToJAXB(this, object, prismContext);
 
         return object;

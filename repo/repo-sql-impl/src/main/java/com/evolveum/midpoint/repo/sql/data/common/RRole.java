@@ -147,7 +147,7 @@ public class RRole extends RObject {
     public RoleType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         RoleType object = new RoleType();
         RRole.copyToJAXB(this, object, prismContext);
-        RUtil.revive(object.asPrismObject(), RoleType.class, prismContext);
+        RUtil.revive(object, prismContext);
         return object;
     }
 }

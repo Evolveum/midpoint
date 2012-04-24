@@ -174,7 +174,7 @@ public class RSystemConfiguration extends RObject {
     @Override
     public SystemConfigurationType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         SystemConfigurationType object = new SystemConfigurationType();
-        RUtil.revive(object.asPrismObject(), SystemConfigurationType.class, prismContext);
+        RUtil.revive(object, prismContext);
         RSystemConfiguration.copyToJAXB(this, object, prismContext);
 
         return object;
