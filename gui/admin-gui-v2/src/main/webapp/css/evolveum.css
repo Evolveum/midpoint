@@ -727,6 +727,56 @@ ul.messagesTop .messages-error .messages-succ-details-section .messages-details-
 	background-position: 0px -32px;
 }
 
+
+ul.messagesTop .messages-info {
+	color: #6966f2;
+	border: 1px solid #6966f2;
+	padding: 0px;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+	background: #d2d1ff;
+	display: block;
+}
+
+ul.messagesTop .messages-info .messages-topInfo {
+	padding: 10px 5px 10px 40px;
+	font-weight: bold;
+	background-image: url(../img/messages-info-icon.png);
+	background-repeat: no-repeat;
+	background-position: 12px center;
+}
+
+ul.messagesTop .messages-info .messages-info-details-section {
+	padding: 2px 0px;
+	padding-left: 25px;
+	font-size: 12px;
+	background-image: url(../img/messages-info-icon.png);
+	background-repeat: no-repeat;
+	background-position: 9px 2px;
+	color: #6966f2;
+	margin-top: 5px;
+}
+
+ul.messagesTop .messages-infor .messages-info-details-section .messages-details-bold .messages-details-bold-arrow {
+	background-image: url(../img/messages-info-arrow.png);
+	background-repeat: no-repeat;
+	display: inline-block;
+    height: 16px;
+    width: 16px;
+    float: left;
+    margin: 0px 5px;
+}
+
+ul.messagesTop .messages-info .messages-info-details-section .messages-details-bold .arrow-right {
+	background-position: 0px -16px;
+}
+
+ul.messagesTop .messages-info .messages-info-details-section .messages-details-bold .arrow-down {
+	background-position: 0px -32px;
+}
+
 .tableFormAccordion {
 	margin: 20px 0px;
 	color: #333333;
