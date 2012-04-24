@@ -2314,7 +2314,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // THEN
 
         // Wait a bit to give the sync cycle time to detect the change
-        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result);
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 4, result);
 
         // Search for the user that should be created now
         UserType user = searchUserByName(WILL_NAME);
@@ -2323,7 +2323,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // TODO: more checks
         
-        assertAndStoreSyncTokenIncrement(syncCycle, 1);
+        assertAndStoreSyncTokenIncrement(syncCycle, 4);
         checkAllShadows();
     }
 
@@ -2341,10 +2341,11 @@ public class TestSanity extends AbstractIntegrationTest {
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
-        final Object tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore.toString());
+        int tokenBefore = findSyncToken(syncCycle);
+        display("Sync token before", tokenBefore);
 
         // WHEN
+        display("Modifying LDAP entry "+entry);
         ModifyOperation modifyOperation = openDJController.getInternalConnection()
                 .processModify((ModifyChangeRecordEntry) entry);
 
@@ -2353,14 +2354,14 @@ public class TestSanity extends AbstractIntegrationTest {
                 modifyOperation.getResultCode());
 
         // Wait a bit to give the sync cycle time to detect the change
-        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result);
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 1, result);
         // Search for the user that should be created now
         UserType user = searchUserByName (WILL_NAME);
 
         AssertJUnit.assertEquals(WILL_NAME, user.getName());
         AssertJUnit.assertEquals("asdf", user.getGivenName());
         
-        assertAndStoreSyncTokenIncrement(syncCycle, 4);
+        assertAndStoreSyncTokenIncrement(syncCycle, 1);
         checkAllShadows();
     }
 
@@ -2394,15 +2395,15 @@ public class TestSanity extends AbstractIntegrationTest {
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
-        final Object tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore.toString());
+        int tokenBefore = findSyncToken(syncCycle);
+        display("Sync token before", tokenBefore);
 
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_E_FILENAME_LINK);
         display("Entry from LDIF", entry);
 
         // THEN
         // Wait a bit to give the sync cycle time to detect the change
-        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result);
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 3, result);
 
         //check user and account ref
         userType = searchUserByName("e");
@@ -2416,7 +2417,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         assertEquals("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
         
-        assertAndStoreSyncTokenIncrement(syncCycle, 1);
+        assertAndStoreSyncTokenIncrement(syncCycle, 3);
         checkAllShadows();
     }
 
@@ -2436,8 +2437,8 @@ public class TestSanity extends AbstractIntegrationTest {
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
-        final Object tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore.toString());
+        int tokenBefore = findSyncToken(syncCycle);
+        display("Sync token before", tokenBefore);
 
         // WHEN
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_WITHOUT_LOCATION_FILENAME);
@@ -2445,7 +2446,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // THEN
         // Wait a bit to give the sync cycle time to detect the change
-        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result, 60000);
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 3, result, 60000);
         // Search for the user that should be created now
         final String userName = "wturner1";
         UserType user = searchUserByName(userName);
@@ -2476,7 +2477,11 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals("Unexpected sync toke value", expectedToken, tokenAfterInt);
 	}
     
-    private Object findSyncToken(Task syncCycle) {
+    private int findSyncToken(Task syncCycle) {
+    	return (Integer)findSyncTokenObject(syncCycle);
+    }
+    
+    private Object findSyncTokenObject(Task syncCycle) {
         Object token = null;
         PrismProperty<?> tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
         if (tokenProperty != null) {
@@ -3197,12 +3202,17 @@ public class TestSanity extends AbstractIntegrationTest {
         return user;
     }
 
-    private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
+    private void basicWaitForSyncChangeDetection(Task syncCycle, Object tokenBefore, int increment,
             final OperationResult result) throws Exception {
-        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result, 40000);
+    	basicWaitForSyncChangeDetection(syncCycle, (int)((Integer)tokenBefore), increment, result);
+    }
+    
+    private void basicWaitForSyncChangeDetection(Task syncCycle, int tokenBefore, int increment,
+            final OperationResult result) throws Exception {
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, increment, result, 40000);
     }
 
-    private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
+    private void basicWaitForSyncChangeDetection(final Task syncCycle, final int tokenBefore, final int increment,
             final OperationResult result, int timeout) throws Exception {
 
         waitFor("Waiting for sync cycle to detect change", new Checker() {
@@ -3210,12 +3220,12 @@ public class TestSanity extends AbstractIntegrationTest {
             public boolean check() throws Exception {
                 syncCycle.refresh(result);
                 display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
-                Object tokenNow = findSyncToken(syncCycle);
+                int tokenNow = findSyncToken(syncCycle);
                 display("tokenNow = " + tokenNow);
-                if (tokenBefore == null) {
-                    return (tokenNow != null);
+                if (tokenNow >= tokenBefore + increment) {
+                    return true;
                 } else {
-                    return (!tokenBefore.equals(tokenNow));
+                    return false;
                 }
             }
 
