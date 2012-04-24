@@ -54,12 +54,13 @@ public abstract class PageBase extends WebPage {
     @SpringBean(name = "cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
     @SpringBean(name = "taskManager")
-    TaskManager taskManager;
+    private TaskManager taskManager;
 
     public PageBase() {
         Injector.get().inject(this);
         validateInjection(modelService, "Model service was not injected.");
         validateInjection(cacheRepositoryService, "Cache repository service was not injected.");
+        validateInjection(taskManager, "Task manager was not injected.");
 
         initLayout();
     }

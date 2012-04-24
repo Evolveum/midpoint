@@ -85,4 +85,14 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
 
         return values;
     }
+
+    boolean hasChanged() {
+        for (ValueWrapper value : getValues()) {
+            if (value.hasValueChanged()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

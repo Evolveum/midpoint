@@ -33,7 +33,7 @@ public class ValueWrapper<T> implements Serializable {
 
     private PropertyWrapper property;
     private PrismPropertyValue<T> value;
-    private T oldValue;
+    private PrismPropertyValue<T> oldValue;
     private ValueStatus status;
 
     public ValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value) {
@@ -47,7 +47,7 @@ public class ValueWrapper<T> implements Serializable {
         this.property = property;
         this.value = value;
         this.status = status;
-        this.oldValue = this.value.getValue();
+        this.oldValue = new PrismPropertyValue<T>(value.getValue(), value.getType(), value.getSource());
     }
 
     public PropertyWrapper getProperty() {
@@ -62,12 +62,16 @@ public class ValueWrapper<T> implements Serializable {
         return value;
     }
 
+    public PrismPropertyValue<T> getOldValue() {
+        return oldValue;
+    }
+
     public void setStatus(ValueStatus status) {
         this.status = status;
     }
 
     public boolean hasValueChanged() {
-        return oldValue != null ? oldValue.equals(value.getValue()) : value.getValue() == null;
+        return oldValue != null ? !oldValue.equals(value) : value != null;
     }
 
     @Override

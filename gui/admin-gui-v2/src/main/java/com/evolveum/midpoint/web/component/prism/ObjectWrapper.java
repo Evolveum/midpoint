@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
@@ -140,23 +141,40 @@ public class ObjectWrapper implements Serializable {
         }
 
         ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY);
+        delta.setOid(object.getOid());
         for (ContainerWrapper containerWrapper : getContainers()) {
-            if (ContainerStatus.MODIFYING.equals(containerWrapper.getStatus())) {
+            if (!containerWrapper.hasChanged()) {
                 //todo handle container changes
                 continue;
             }
 
             for (PropertyWrapper propertyWrapper : (List<PropertyWrapper>) containerWrapper.getProperties()) {
+                if (!propertyWrapper.hasChanged()) {
+                    continue;
+                }
+
+                PropertyDelta pDelta = new PropertyDelta(propertyWrapper.getProperty().getDefinition());
+                delta.addModification(pDelta);
                 for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
-                    if (!valueWrapper.hasValueChanged()) {
+                    if (!valueWrapper.hasValueChanged() && ValueStatus.NOT_CHANGED.equals(valueWrapper.getStatus())) {
                         continue;
                     }
+
+                    PrismPropertyValue val = valueWrapper.getValue();
                     switch (valueWrapper.getStatus()) {
                         case ADDED:
-                            //todo create property delta value add
+                            val.setType(SourceType.USER_ACTION);
+                            pDelta.addValueToAdd(val);
                             break;
                         case DELETED:
-                            //todo create property delta value delete
+                            pDelta.addValueToDelete(val);
+                            break;
+                        case NOT_CHANGED:
+                            //this is modify...
+                            val.setType(SourceType.USER_ACTION);
+
+                            pDelta.addValueToAdd(val);
+                            pDelta.addValueToDelete(valueWrapper.getOldValue());
                             break;
                     }
                 }

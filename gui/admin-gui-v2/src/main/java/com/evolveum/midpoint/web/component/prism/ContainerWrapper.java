@@ -127,4 +127,14 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
         return displayName;
     }
+
+    boolean hasChanged() {
+        for (PropertyWrapper property : getProperties()) {
+            if (property.hasChanged()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
