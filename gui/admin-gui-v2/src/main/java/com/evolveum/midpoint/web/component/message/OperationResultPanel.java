@@ -176,7 +176,7 @@ public class OperationResultPanel extends Panel {
                 if (subresults == null) {
                     subresults = new ArrayList<OperationResult>();
                 }
-                System.out.println(result.getOperation() + ": " + result.getMessage() + ": " + subresults.size());
+
                 return subresults;
             }
         };

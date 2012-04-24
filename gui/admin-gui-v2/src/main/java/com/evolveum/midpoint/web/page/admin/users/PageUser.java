@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
@@ -32,14 +31,17 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.prism.AccountFooterPanel;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -90,30 +92,35 @@ public class PageUser extends PageAdminUsers {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 
         PrismObject<UserType> user = null;
-        try {
-            MidPointApplication application = PageUser.this.getMidpointApplication();
-
-            StringValue userOid = getPageParameters().get(PARAM_USER_ID);
-            if (userOid == null || StringUtils.isEmpty(userOid.toString())) {
-                UserType userType = new UserType();
-                application.getPrismContext().adopt(userType);
-                user = userType.asPrismObject();
-            } else {
-                ModelService model = application.getModel();
-
+        StringValue userOid = getPageParameters().get(PARAM_USER_ID);
+        if (userOid != null && StringUtils.isNotEmpty(userOid.toString())) {
+            try {
                 PropertyReferenceListType resolve = new PropertyReferenceListType();
                 resolve.getProperty().add(Utils.fillPropertyReference("account"));
+                resolve.getProperty().add(Utils.fillPropertyReference("resource"));
 
-                user = model.getObject(UserType.class, userOid.toString(), resolve, result);
+                user = getModelService().getObject(UserType.class, userOid.toString(), resolve, result);
+            } catch (Exception ex) {
+                //todo handle exception
+                ex.printStackTrace();
+            } finally {
+                result.recomputeStatus();
+                showResult(result);
             }
-        } catch (Exception ex) {
-            //todo handle exception
-            ex.printStackTrace();
+        } else {
+            try {
+                UserType userType = new UserType();
+                getMidpointApplication().getPrismContext().adopt(userType);
+                user = userType.asPrismObject();
+            } catch (Exception ex) {
+                //todo error handling
+                ex.printStackTrace();
+            }
         }
 
         if (user == null) {
-            //todo handle null user...
-            throw new IllegalArgumentException("ffffffffffuuuuuuuu");
+            showResult(result);
+            throw new RestartResponseException(PageUsers.class);
         }
 
         ObjectWrapper wrapper = new ObjectWrapper(null, null, user,
@@ -181,12 +188,19 @@ public class PageUser extends PageAdminUsers {
 
         ObjectWrapper user = userModel.getObject();
         PrismObject<UserType> prismUser = user.getObject();
-        System.out.println(prismUser.debugDump(3));
+        List<AccountShadowType> accounts = prismUser.asObjectable().getAccount();
+        for (AccountShadowType account : accounts) {
+            String resourceName = null;
+            ResourceType resource = account.getResource();
+            if (resource != null && StringUtils.isNotEmpty(resource.getName())) {
+                resourceName = resource.getName();
+            }
 
-        //todo implement
-        ObjectWrapper wrapper = loadUserWrapper();
-        wrapper.setMinimalized(true);
-        list.add(wrapper);
+            ObjectWrapper wrapper = new ObjectWrapper(account.getName(), resourceName,
+                    account.asPrismObject(), ContainerStatus.MODIFYING);
+            wrapper.setMinimalized(true);
+            list.add(wrapper);
+        }
 
         return list;
     }

@@ -62,14 +62,14 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
     @Autowired
-    ModelService model;
+    transient ModelService model;
     @Autowired
     @Qualifier("repositoryService")
-    RepositoryService repository;
+    transient RepositoryService repository;
     @Autowired
-    PrismContext prismContext;
+    transient PrismContext prismContext;
     @Autowired
-    TaskManager taskManager;
+    transient TaskManager taskManager;
 
     @Override
     public Class<PageHome> getHomePage() {
