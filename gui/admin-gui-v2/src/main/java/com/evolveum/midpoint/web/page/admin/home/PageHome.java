@@ -48,8 +48,8 @@ public class PageHome extends PageAdmin {
         Form form = new Form("mainForm");
         add(form);
 
-        MainFeedback feedback = new MainFeedback("feedback");
-        form.add(feedback);
+//        MainFeedback feedback = new MainFeedback("feedback");
+//        form.add(feedback);
 
         AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("test")) {
 
@@ -104,7 +104,7 @@ public class PageHome extends PageAdmin {
 //            PageHome.this.showResult(result);
 //        }
 
-        MainFeedback feedback = (MainFeedback) get("mainForm:feedback");
-        target.add(feedback);
+//        MainFeedback feedback = (MainFeedback) get("mainForm:feedback");
+        target.add(getFeedbackPanel());
     }
 }

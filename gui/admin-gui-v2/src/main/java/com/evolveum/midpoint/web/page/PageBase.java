@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenu;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
+import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -55,6 +56,10 @@ public abstract class PageBase extends WebPage {
         validateInjection(modelService, "Model service was not injected.");
         validateInjection(cacheRepositoryService, "Cache repository service was not injected.");
 
+        initLayout();
+    }
+
+    private void initLayout() {
         DebugBar debugPanel = new DebugBar("debugPanel");
         add(debugPanel);
 
@@ -73,6 +78,12 @@ public abstract class PageBase extends WebPage {
             add(loginPanel);
         }*/
         add(loginPanel);
+
+        add(new MainFeedback("feedback"));
+    }
+
+    protected MainFeedback getFeedbackPanel() {
+        return (MainFeedback) get("feedback");
     }
 
     private void validateInjection(Object object, String message) {
