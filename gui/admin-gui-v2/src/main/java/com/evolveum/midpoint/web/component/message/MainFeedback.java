@@ -23,8 +23,11 @@ package com.evolveum.midpoint.web.component.message;
 
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.IFeedback;
+import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.request.resource.CssResourceReference;
+import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.util.List;
 
@@ -70,5 +73,12 @@ public class MainFeedback extends Panel implements IFeedback {
         }
 
         return false;
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.renderCSSReference(new CssResourceReference(MainFeedback.class, "MainFeedback.css"));
     }
 }

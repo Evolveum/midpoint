@@ -64,8 +64,6 @@ public class FeedbackMessagePanel extends Panel {
 
         Panel details;
         if (message.getObject().getMessage() instanceof OperationResult) {
-//            details = new FeedbackDetailsPanel("content",
-//                    new PropertyModel<OperationResult>(message, "message"));
             details = new OperationResultPanel("content", new PropertyModel<OperationResult>(message, "message"));
         } else {
             details = new EmptyPanel("content");
