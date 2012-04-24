@@ -68,9 +68,9 @@ public class PageHome extends PageAdmin {
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get object.", ex);
         } finally {
-            result.recomputeStatus();
+//            result.recomputeStatus();
 
-            PageHome.this.error(result);
+            PageHome.this.showResult(result);
         }
 
         result = new OperationResult("get existing object");
@@ -82,7 +82,7 @@ public class PageHome extends PageAdmin {
         } finally {
             result.recomputeStatus();
 
-            PageHome.this.success(result);
+            PageHome.this.showResult(result);
         }
 
         MainFeedback feedback = (MainFeedback) get("mainForm:feedback");

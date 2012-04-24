@@ -23,7 +23,7 @@ package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.web.component.login.LocalePanel;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenu;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
@@ -32,17 +32,10 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenu;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Application;
-import org.apache.wicket.Page;
-import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.devutils.debugbar.DebugBar;
-import org.apache.wicket.devutils.debugbar.StandardDebugPanel;
-import org.apache.wicket.devutils.diskstore.DebugPageManagerProvider;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import java.util.List;
@@ -75,9 +68,9 @@ public abstract class PageBase extends WebPage {
         add(new LeftMenu("leftMenu", getLeftMenuItems()));
 
         LoginPanel loginPanel = new LoginPanel("loginPanel");
-        
+
         /*if(loginPanel.getIsAdminLoggedIn()){
-        	add(loginPanel);
+            add(loginPanel);
         }*/
         add(loginPanel);
     }
@@ -108,5 +101,28 @@ public abstract class PageBase extends WebPage {
 
     protected StringResourceModel createStringResource(String resourceKey) {
         return new StringResourceModel(resourceKey, this, null);
+    }
+
+    public void showResult(OperationResult result) {
+        Validate.notNull(result, "Operation result must not be null.");
+        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
+
+        switch (result.getStatus()) {
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+                error(result);
+                break;
+            case IN_PROGRESS:
+            case NOT_APPLICABLE:
+                info(result);
+                break;
+            case SUCCESS:
+                success(result);
+                break;
+            case UNKNOWN:
+            case WARNING:
+            default:
+                warn(result);
+        }
     }
 }

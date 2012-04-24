@@ -28,8 +28,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 /**
@@ -60,7 +62,14 @@ public class FeedbackMessagePanel extends Panel {
         }, " "));
         add(label);
 
-        FeedbackDetailsPanel details = new FeedbackDetailsPanel("content");
+        Panel details;
+        if (message.getObject().getMessage() instanceof OperationResult) {
+//            details = new FeedbackDetailsPanel("content",
+//                    new PropertyModel<OperationResult>(message, "message"));
+            details = new OperationResultPanel("content", new PropertyModel<OperationResult>(message, "message"));
+        } else {
+            details = new EmptyPanel("content");
+        }
         details.add(new VisibleEnableBehaviour() {
 
             @Override

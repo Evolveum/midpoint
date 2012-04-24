@@ -24,31 +24,35 @@
     <div class="messages-details-content">
         <ul>
             <li>
-                <span class="message-info">Couldn't update object 'SystemConfiguration'.</span>
+                <span class="message-info" wicket:id="message"/>
             </li>
-            <li>
+            <li wicket:id="params">
                 <span class="message-info">
-                    <u>Params:</u> resolve : com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType@1ddbced
+                    <em style="text-decoration: underline;">
+                        <wicket:message key="operationResultPanel.param"/>
+                    </em>
+                    <span wicket:id="paramName"/>:<span wicket:id="paramValue"/>
                 </span>
             </li>
-            <li>
+            <li wicket:id="exception">
                 <span class="message-info">
-                    <u>Params:</u> oid : 00000000-0000-0000-0000-000000000001
-                </span>
-            </li>
-            <li>
-                <span class="message-info">
-                    <u>Cause:</u> Exception message is null.
-                    <span id="errorStack0" class="errorStack">[ SHOW ERROR STACK ]</span>
+                    <em style="text-decoration: underline;">
+                        <wicket:message key="operationResultPanel.cause"/>
+                    </em>
+                    <span wicket:id="exceptionMessage"/>
+                    <span id="errorStack0" class="errorStack">
+                        <wicket:message key="operationResultPanel.showStack"/>
+                    </span>
                 </span>
 
                 <div id="errorStack0_content" class="errorStack-content">
-                    <code>
-                    at
-                    com.evolveum.midpoint.schema.processor.Schema.parseObject(Schema.java:522)<br/>
-                    at com.evolveum.midpoint.schema.processor.DiffUtil.diff(DiffUtil.java:77)<br/>
-                    </code>
+                    <code wicket:id="exceptionStack"/>
                 </div>
+            </li>
+        </ul>
+        <ul>
+            <li wicket:id="subresults">
+                <div wicket:id="subresult"/>
             </li>
         </ul>
     </div>
