@@ -49,7 +49,6 @@ import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.engine.spi.IdentifierValue;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
@@ -806,7 +805,20 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     + type.getSimpleName() + "' [really should not happen].");
         }
         //todo remove probably
-        prismObject.checkConsistence();
+        try {
+            prismObject.checkConsistence();
+            prismObject.assertDefinitions("Validating object, assert definition\n" + prismObject.debugDump(3));
+
+            if (prismObject.getCompileTimeClass().equals(UserType.class)) {
+                UserType u = (UserType) prismObject.asObjectable();
+                for (AssignmentType a: u.getAssignment()) {
+                    a.asPrismContainerValue().assertDefinitions("Assignment assert definitions\n"
+                            + a.asPrismContainerValue().debugDump(3));
+                }
+            }
+        } catch (Exception ex) {
+            throw new SystemException(ex.getMessage(), ex);
+        }
     }
 
     private <T extends ObjectType> RObject createDataObjectFromJAXB(T object) throws SchemaException {
