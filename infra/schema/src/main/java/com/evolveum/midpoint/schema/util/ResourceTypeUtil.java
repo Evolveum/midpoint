@@ -132,22 +132,28 @@ public class ResourceTypeUtil {
 		return null;
 	}
 
+	/**
+	 * Assumes that native capabilities are cached. 
+	 */
 	public static <T> T getEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
 		if (resource.getCapabilities() != null) {
 			return getCapability(resource.getCapabilities().getAny(), capabilityClass);
-		} else if (resource.getNativeCapabilities() != null) {
-			return getCapability(resource.getNativeCapabilities().getAny(), capabilityClass);
+		} else if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
+			return getCapability(resource.getNativeCapabilities().getCapabilities().getAny(), capabilityClass);
 		} else {
 			// No capabilities at all
 			return null;
 		}
 	}
 
+	/**
+	 * Assumes that native capabilities are cached. 
+	 */
 	public static List<Object> listEffectiveCapabilities(ResourceType resource) {
 		if (resource.getCapabilities() != null) {
 			return resource.getCapabilities().getAny();
-		} else if (resource.getNativeCapabilities() != null) {
-			return resource.getNativeCapabilities().getAny();
+		} else if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
+			return resource.getNativeCapabilities().getCapabilities().getAny();
 		} else {
 			return new ArrayList<Object>();
 		}
@@ -171,8 +177,8 @@ public class ResourceTypeUtil {
 		if (resource.getCapabilities() != null) {
 			return resource.getCapabilities();
 		}
-		if (resource.getNativeCapabilities() != null) {
-			return resource.getNativeCapabilities();
+		if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
+			return resource.getNativeCapabilities().getCapabilities();
 		}
 		
 		return new CapabilitiesType();
@@ -190,8 +196,8 @@ public class ResourceTypeUtil {
 		ActivationCapabilityType activationCapability = null;
 		// check resource native capabilities. if resource cannot do
 		// activation, it sholud be null..
-		if (resource.getNativeCapabilities() != null) {
-			activationCapability = ResourceTypeUtil.getCapability(resource.getNativeCapabilities().getAny(),
+		if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
+			activationCapability = ResourceTypeUtil.getCapability(resource.getNativeCapabilities().getCapabilities().getAny(),
 					ActivationCapabilityType.class);
 		}
 		if (activationCapability == null) {

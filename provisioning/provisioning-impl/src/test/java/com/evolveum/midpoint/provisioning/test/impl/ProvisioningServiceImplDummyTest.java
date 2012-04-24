@@ -432,22 +432,22 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// THEN
 
 		// Check native capabilities
-		CapabilitiesType nativeCapabilities = resourceType.getNativeCapabilities();
+		CachedCapabilitiesType nativeCapabilities = resourceType.getNativeCapabilities();
 		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
 		System.out.println("resource: " + resourceType.asPrismObject().dump());
-		List<Object> capabilities = nativeCapabilities.getAny();
-		assertFalse("Empty capabilities returned", capabilities.isEmpty());
-		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities,
+		List<Object> nativeCapabilitiesList = nativeCapabilities.getCapabilities().getAny();
+		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
+		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
 				CredentialsCapabilityType.class);
 		assertNotNull("password native capability not present", capCred.getPassword());
-		ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(capabilities,
+		ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
 		assertNotNull("native activation capability not present", capAct);
 		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
-		TestConnectionCapabilityType capTest = ResourceTypeUtil.getCapability(capabilities,
+		TestConnectionCapabilityType capTest = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
-		ScriptCapabilityType capScript = ResourceTypeUtil.getCapability(capabilities,
+		ScriptCapabilityType capScript = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
 				ScriptCapabilityType.class);
 		assertNotNull("native script capability not present", capScript);
 		assertNotNull("No host in native script capability", capScript.getHost());

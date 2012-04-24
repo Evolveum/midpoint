@@ -450,6 +450,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 		if (definition != null) {
 			checkDefinition(definition);
 		}
+		if (this.prismContext == null) {
+			this.prismContext = definition.getPrismContext();
+		}
 		this.definition = definition;
 		for (PrismValue pval: getValues()) {
 			pval.applyDefinition(definition, force);

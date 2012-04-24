@@ -766,19 +766,6 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 				continue;
 			}
 			ItemDefinition itemDefinition = determineItemDefinition(item.getName(), definition); 
-				definition.findItemDefinition(item.getName());
-			if (itemDefinition == null) {
-				if (definition.isRuntimeSchema) {
-					// If we have prism context, try to locate global definition. But even if that is not
-					// found it is still OK. This is runtime container. We tolerate quite a lot here.
-					PrismContext prismContext = getPrismContext();
-					if (prismContext != null) {
-						itemDefinition = prismContext.getSchemaRegistry().resolveGlobalItemDefinition(item.getName());
-					}
-				} else {
-					throw new SchemaException("No definition for item "+item.getName()+" in "+getParent());
-				}
-			}
 			if (itemDefinition == null && item.getDefinition() != null && item.getDefinition().isDynamic()) {
 				// We will not apply the null definition here. The item has a dynamic definition that we don't
 				// want to destroy as it cannot be reconstructed later.
@@ -795,7 +782,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	private ItemDefinition determineItemDefinition(QName itemName, PrismContainerDefinition<T> containerDefinition) throws SchemaException {
 		ItemDefinition itemDefinition = containerDefinition.findItemDefinition(itemName);
 		if (itemDefinition == null) {
-			if (containerDefinition.isRuntimeSchema) {
+			if (containerDefinition.isRuntimeSchema()) {
 				// If we have prism context, try to locate global definition. But even if that is not
 				// found it is still OK. This is runtime container. We tolerate quite a lot here.
 				PrismContext prismContext = getPrismContext();

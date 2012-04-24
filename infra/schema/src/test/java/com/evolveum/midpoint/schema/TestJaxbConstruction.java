@@ -91,15 +91,72 @@ public class TestJaxbConstruction {
 		userType.getAssignment().add(assignmentType);
 		
 		user.checkConsistence();
+		user.assertDefinitions();
 		
 		ExtensionType assignmentExtension = new ExtensionType();
 		assignmentType.setExtension(assignmentExtension);
 		
+		user.assertDefinitions();
 		user.checkConsistence();
 		checkExtension(assignmentExtension,"assignment extension after setExtension");
 		user.checkConsistence();
+		user.assertDefinitions();
 	}
-	
+
+	/**
+	 * Similar to testUserConstruction, but some operations are done in a different order
+	 * e.g. assignment is filled in first then set to the user.
+	 */
+	@Test
+	public void testUserConstructionReverse() throws JAXBException, SchemaException {
+		System.out.println("\n\n ===[ testUserConstructionReverse ]===\n");
+		
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		UserType userType = new UserType();
+		prismContext.adopt(userType);
+		
+		PrismObject<UserType> user = userType.asPrismObject();
+		assertNotNull("No object definition after adopt", user.getDefinition());
+		
+		// Extension
+		ExtensionType extension = new ExtensionType();
+		userType.setExtension(extension);
+		
+		user.checkConsistence();
+				
+		PrismContainer<Containerable> extensionContainer = user.findContainer(GenericObjectType.F_EXTENSION);
+		checkExtension(extensionContainer,"user extension after setExtension");
+		checkExtension(extension,"user extension after setExtension");
+		
+		AssignmentType assignmentType = new AssignmentType();
+		ExtensionType assignmentExtension = new ExtensionType();
+		assignmentType.setExtension(assignmentExtension);
+		
+		PrismContainerValue<ExtensionType> assignmentExtensionValueFromJaxb = assignmentExtension.asPrismContainerValue();
+		PrismProperty<Integer> intProperty = assignmentExtensionValueFromJaxb.findOrCreateProperty(EXTENSION_INT_TYPE_ELEMENT);
+		intProperty.setRealValue(15);
+		
+		PrismProperty<String> stringProperty = assignmentExtensionValueFromJaxb.findOrCreateItem(EXTENSION_STRING_TYPE_ELEMENT, PrismProperty.class);
+		stringProperty.setRealValue("fifteen men on a dead man chest");
+
+		// Adding assignemnt to the user should cause application of definitions
+		userType.getAssignment().add(assignmentType);
+
+		PrismAsserts.assertDefinition(assignmentType.asPrismContainerValue().getParent().getDefinition(), 
+				UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
+		PrismAsserts.assertDefinition(assignmentExtensionValueFromJaxb.getParent().getDefinition(), 
+				AssignmentType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
+		assertTrue("assignment extension definition is not runtime", assignmentExtensionValueFromJaxb.getParent().getDefinition().isRuntimeSchema());
+		assertTrue("assignment extension definition is not dynamic", assignmentExtensionValueFromJaxb.getParent().getDefinition().isDynamic());
+		PrismAsserts.assertDefinition(intProperty.getDefinition(), EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0, -1);
+		PrismAsserts.assertDefinition(stringProperty.getDefinition(), EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+
+		user.assertDefinitions();
+		user.checkConsistence();
+	}
+
 
 
 	@Test

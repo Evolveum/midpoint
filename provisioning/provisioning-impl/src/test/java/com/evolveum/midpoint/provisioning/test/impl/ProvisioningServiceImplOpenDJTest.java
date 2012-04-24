@@ -307,7 +307,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		display("Resource from provisioninig", resource);
 		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
 		
-		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
+		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities().getCapabilities();
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
         assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
         CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);

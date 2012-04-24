@@ -402,8 +402,8 @@ public class TestResourceSchema {
 		
 		// THEN
 		
-		if (resource.getNativeCapabilities() != null) {
-			for (Object capability : resource.getNativeCapabilities().getAny()) {
+		if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
+			for (Object capability : resource.getNativeCapabilities().getCapabilities().getAny()) {
 	        	System.out.println("Native Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
 	        }
 		}

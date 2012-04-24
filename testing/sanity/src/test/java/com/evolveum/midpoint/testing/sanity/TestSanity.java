@@ -497,7 +497,8 @@ public class TestSanity extends AbstractIntegrationTest {
         if (!source.equals("repository")) {
             // This is generated on the fly in provisioning
             assertNotNull("Resource from " + source + " has null nativeCapabilities", resource.getNativeCapabilities());
-            assertFalse("Resource from " + source + " has empty nativeCapabilities", resource.getNativeCapabilities().getAny().isEmpty());
+            assertFalse("Resource from " + source + " has empty nativeCapabilities", 
+            		resource.getNativeCapabilities().getCapabilities().getAny().isEmpty());
         }
         assertNotNull("Resource from " + source + " has null capabilities", resource.getCapabilities());
         assertFalse("Resource from " + source + " has empty capabilities", resource.getCapabilities().getAny().isEmpty());
@@ -649,7 +650,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         assertCache();
 
-        CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
+        CapabilitiesType nativeCapabilities = resource.getNativeCapabilities().getCapabilities();
         List<Object> capabilities = nativeCapabilities.getAny();
         assertFalse("Empty capabilities returned", capabilities.isEmpty());
 

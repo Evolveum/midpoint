@@ -738,7 +738,9 @@ public class ResourceTypeManager {
 
 		CapabilitiesType capType = new CapabilitiesType();
 		capType.getAny().addAll(capabilities);
-		resource.setNativeCapabilities(capType);
+		CachedCapabilitiesType cachedCapType = new CachedCapabilitiesType();
+		cachedCapType.setCapabilities(capType);
+		resource.setNativeCapabilities(cachedCapType);
 	}
 
 	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)

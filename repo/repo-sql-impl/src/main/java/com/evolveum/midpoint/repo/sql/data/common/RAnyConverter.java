@@ -207,7 +207,7 @@ public class RAnyConverter {
         Validate.notNull(any, "Parent prism container value must not be null.");
 
         try {
-            Item item;
+            Item<?> item;
             if (value.isDynamic()) {
                 ItemDefinition def;
                 switch (value.getValueType()) {

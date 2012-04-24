@@ -807,7 +807,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         //todo remove probably
         try {
             prismObject.checkConsistence();
-            prismObject.assertDefinitions("Validating object, assert definition\n" + prismObject.debugDump(3));
+            // The object that is returned from getObject may not have definitions for some elements
+            // (e.g. attributes, resource configuration, etc.)
+//            prismObject.assertDefinitions("Validating object, assert definition\n" + prismObject.debugDump(3));
 
             if (prismObject.getCompileTimeClass().equals(UserType.class)) {
                 UserType u = (UserType) prismObject.asObjectable();

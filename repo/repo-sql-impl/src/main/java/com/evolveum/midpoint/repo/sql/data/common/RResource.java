@@ -198,7 +198,7 @@ public class RResource extends RObject {
             jaxb.setCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CAPABILITIES), repo.getCapabilities(),
                     CapabilitiesType.class, prismContext));
             jaxb.setNativeCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_NATIVE_CAPABILITIES),
-                    repo.getNativeCapabilities(), CapabilitiesType.class, prismContext));
+                    repo.getNativeCapabilities(), CachedCapabilitiesType.class, prismContext));
             jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS), repo.getScripts(),
                     ScriptsType.class, prismContext));
         } catch (Exception ex) {
