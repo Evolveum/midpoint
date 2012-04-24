@@ -26,10 +26,13 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.schema.TestConstants.*;
 
 import java.io.IOException;
+import java.util.List;
+
 import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.prism.*;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -93,6 +96,7 @@ public class TestJaxbConstruction {
 		user.checkConsistence();
 		user.assertDefinitions();
 		
+		// Assignment
 		ExtensionType assignmentExtension = new ExtensionType();
 		assignmentType.setExtension(assignmentExtension);
 		
@@ -101,6 +105,46 @@ public class TestJaxbConstruction {
 		checkExtension(assignmentExtension,"assignment extension after setExtension");
 		user.checkConsistence();
 		user.assertDefinitions();
+		
+		// accountRef/account
+		ObjectReferenceType accountRefType = new ObjectReferenceType();
+		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
+		userType.getAccountRef().add(accountRefType);
+		
+		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID);
+		user.checkConsistence();
+		user.assertDefinitions();
+		
+		AccountShadowType accountShadowType = new AccountShadowType();
+		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
+		// TODO: fill something into the account
+		userType.getAccount().add(accountShadowType);
+		
+		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
+		user.checkConsistence();
+		user.assertDefinitions();
+		
+		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		assertEquals("Wrong accountRef values", 2, accountRef.getValues().size());
+		PrismAsserts.assertReferenceValues(accountRef, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
+		
+	}
+
+	private void assertAccountRefs(UserType userType, String... accountOids) {
+		List<ObjectReferenceType> accountRefs = userType.getAccountRef();
+		assertEquals("Wrong number of accountRefs", accountOids.length, accountRefs.size());
+		for (String expectedAccountOid: accountOids) {
+			assertAccountRef(accountRefs, expectedAccountOid);
+		}
+	}
+
+	private void assertAccountRef(List<ObjectReferenceType> accountRefs, String expectedAccountOid) {
+		for (ObjectReferenceType accountRef: accountRefs) {
+			if (accountRef.getOid().equals(expectedAccountOid)) {
+				return;
+			}
+		}
+		AssertJUnit.fail("acountRef for oid "+expectedAccountOid+" was not found");
 	}
 
 	/**

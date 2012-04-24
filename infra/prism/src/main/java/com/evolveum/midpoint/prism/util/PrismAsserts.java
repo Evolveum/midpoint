@@ -22,6 +22,7 @@ package com.evolveum.midpoint.prism.util;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
@@ -110,6 +111,13 @@ public class PrismAsserts {
 //            assertEquals(array[i], array1[i].getValue());
 //        }
     }
+	
+	public static void assertReferenceValues(PrismReference ref, String... oids) {
+		assert oids.length == ref.getValues().size() : "Wrong number of values in "+ref+"; expected "+oids.length+" but was "+ref.getValues().size();
+		for (String oid: oids) {
+			assertReferenceValue(ref, oid);
+		}
+	}
 	
 	public static void assertReferenceValue(PrismReference ref, String oid) {
 		for (PrismReferenceValue val: ref.getValues()) {
