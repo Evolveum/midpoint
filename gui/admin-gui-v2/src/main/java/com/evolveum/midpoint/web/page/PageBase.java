@@ -36,6 +36,8 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
@@ -79,6 +81,7 @@ public abstract class PageBase extends WebPage {
         }*/
         add(loginPanel);
 
+        add(new Label("pageTitle", createPageTitleModel()));
         add(new MainFeedback("feedback"));
     }
 
@@ -104,6 +107,10 @@ public abstract class PageBase extends WebPage {
 
     protected RepositoryService getCacheRepositoryService() {
         return cacheRepositoryService;
+    }
+
+    protected IModel<String> createPageTitleModel() {
+        return createStringResource("page.title");
     }
 
     protected ModelService getModelService() {
