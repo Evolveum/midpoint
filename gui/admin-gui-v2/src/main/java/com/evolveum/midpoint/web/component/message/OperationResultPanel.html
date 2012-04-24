@@ -21,35 +21,40 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <span wicket:id="operation" class="messages-details-bold">
-    	<span class="messages-details-bold-arrow arrow-right"/>
-    </span>
-    <div class="messages-details-content">
-	    <ul>
+	    <ul class="messages-details">
 	        <li wicket:id="messageLi">
-	            <span wicket:id="message" class="message-info"/>         
-	        </li>
-	        <li wicket:id="params">
-		        <span class="message-info">
-		            <u><wicket:message key="operationResultPanel.param"/></u>
-		            <span wicket:id="paramName"/>:<span wicket:id="paramValue"/>
-		        </span>
-	        </li>
-	        <li wicket:id="exception">
-		        <span class="message-info">
-		            <u><wicket:message key="operationResultPanel.cause"/></u>
-		            <span wicket:id="exceptionMessage"/>
-		            <span class="errorStack">
-		                <wicket:message key="operationResultPanel.showStack"/>
-		            </span>
-		        </span>
-		
-		        <div class="errorStack-content">
-		            <code wicket:id="exceptionStack"/>
-		        </div>
+	        	<span wicket:id="operation" class="messages-details-bold">
+			    	<span class="messages-details-bold-arrow arrow-right"/>
+			    </span>
+			    <div class="messages-details-content">
+			    	<ul>
+				    	<li>
+				    		<span wicket:id="message" class="message-info"/>
+				    	</li>
+				    	<li wicket:id="params">
+					        <span class="message-info">
+					            <u><wicket:message key="operationResultPanel.param"/></u>
+					            <span wicket:id="paramName"/>:<span wicket:id="paramValue"/>
+					        </span>
+				        </li>
+				        <li wicket:id="exception">
+					        <span class="message-info">
+					            <u><wicket:message key="operationResultPanel.cause"/></u>
+					            <span wicket:id="exceptionMessage"/>
+					            <span class="errorStack">
+					                <wicket:message key="operationResultPanel.showStack"/>
+					            </span>
+					        </span>
+					
+					        <div class="errorStack-content">
+					            <code wicket:id="exceptionStack"/>
+					            <br />
+					        </div>
+				        </li>
+			        </ul>
+			    </div>      
 	        </li>
 	    </ul>
-	</div>
     <ul>
         <li wicket:id="subresults">
             <div wicket:id="subresult" class="messages-details-content"/>

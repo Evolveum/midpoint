@@ -50,10 +50,9 @@ public class OperationResultPanel extends Panel {
     }
 
     private void initLayout(final IModel<OperationResult> model) {
-        add(new Label("operation", new PropertyModel<Object>(model, "operation")));//todo localize
-
         WebMarkupContainer messageLi = new WebMarkupContainer("messageLi");
         add(messageLi);
+        messageLi.add(new Label("operation", new PropertyModel<Object>(model, "operation")));//todo localize
         messageLi.add(new AttributeAppender("class", createMessageLiClass(model), " "));
         messageLi.add(new Label("message", new PropertyModel<String>(model, "message")));
 
@@ -66,7 +65,7 @@ public class OperationResultPanel extends Panel {
                 item.add(new Label("paramValue", new PropertyModel<Object>(item.getModel(), "value")));
             }
         };
-        add(params);
+        messageLi.add(params);
 
         WebMarkupContainer exception = new WebMarkupContainer("exception") {
 
@@ -76,7 +75,7 @@ public class OperationResultPanel extends Panel {
                 return result.getCause() != null;
             }
         };
-        add(exception);
+        messageLi.add(exception);
         exception.add(new Label("exceptionMessage", new PropertyModel<Object>(model, "cause.message")));
         exception.add(new Label("exceptionStack", new Model<Serializable>("aaaaaaaaaaaaaaaa")));
 
