@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenu;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
@@ -52,6 +53,8 @@ public abstract class PageBase extends WebPage {
     private ModelService modelService;
     @SpringBean(name = "cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
+    @SpringBean(name = "taskManager")
+    TaskManager taskManager;
 
     public PageBase() {
         Injector.get().inject(this);
@@ -107,6 +110,10 @@ public abstract class PageBase extends WebPage {
 
     protected RepositoryService getCacheRepositoryService() {
         return cacheRepositoryService;
+    }
+
+    protected TaskManager getTaskManager() {
+        return taskManager;
     }
 
     protected IModel<String> createPageTitleModel() {

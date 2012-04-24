@@ -23,7 +23,11 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -65,7 +69,9 @@ public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_USER_ID = "userId";
     private static final String OPERATION_LOAD_USER = "pageUser.loadUser";
+    private static final String OPERATION_SAVE_USER = "pageUser.saveUser";
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
     private IModel<List<ObjectWrapper>> accountsModel;
 
@@ -286,6 +292,36 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void savePerformed(AjaxRequestTarget target, Form form) {
+        LOGGER.debug("Saving user changes.");
+        ObjectWrapper userWrapper = userModel.getObject();
+
+        OperationResult result = new OperationResult(OPERATION_SAVE_USER);
+        ObjectDelta delta = userWrapper.getObjectDelta();
+        if (delta == null || delta.isEmpty()) {
+
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("User delta: {}", new Object[]{delta.debugDump(3)});
+        }
+
+        try {
+            Task task = getTaskManager().createTaskInstance(OPERATION_SAVE_USER);
+
+            switch (delta.getChangeType()) {
+                case MODIFY:
+                    getModelService().modifyObject(UserType.class, delta.getOid(), delta.getModifications(), task, result);
+                    break;
+                case ADD:
+
+                    break;
+                case DELETE:
+                default:
+                    error("Unsupported user delta change '" + delta.getChangeType() + "'."); //todo localize
+            }
+        } catch (Exception ex) {
+
+        }
         //todo implement
     }
 

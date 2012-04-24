@@ -21,45 +21,30 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.wicket.Application;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.upload.FileUpload;
-import org.apache.wicket.markup.html.form.upload.FileUploadField;
-import org.apache.wicket.protocol.http.RequestUtils;
-import org.apache.wicket.request.Url;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.http.WebRequest;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.file.File;
-import org.apache.wicket.util.file.Files;
-import org.apache.wicket.util.file.Folder;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.util.file.File;
 
 /**
- * @author lazyman, mserbak
+ * @author lazyman
+ * @author mserbak
  */
 public class PageImportFile extends PageAdminConfiguration {
 	private String UPLOAD_FOLDER;
 	private static final String MIDPOINT_HOME = "midpoint.home";
 	private String CLASS_NAME = PageLogging.class.getName() + ".";
 	private String PAGE_IMPORT = CLASS_NAME + "importFile";
-	
-	@SpringBean(name = "taskManager")
-	TaskManager taskManager;
-	
+
     private LoadableModel<ImportOptionsType> model;
     
 
@@ -130,7 +115,7 @@ public class PageImportFile extends PageAdminConfiguration {
 				
         		// Save file
 				try{
-					Task task = taskManager.createTaskInstance(PAGE_IMPORT);
+					Task task = getTaskManager().createTaskInstance(PAGE_IMPORT);
 					newFile.createNewFile();
 					uploadedFile.writeTo(newFile);
 					

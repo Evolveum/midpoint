@@ -40,13 +40,11 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 
 /**
- * @author lazyman, mserbak
+ * @author lazyman
+ * @author mserbak
  */
 public class PageImportXml extends PageAdminConfiguration {
-	
-	@Autowired
-	private Task task;
-	
+
     private LoadableModel<ImportOptionsType> model;
     private AceEditor<String> xmlEditor;
     
@@ -97,10 +95,10 @@ public class PageImportXml extends PageAdminConfiguration {
     	String xml = xmlEditor.getModel().getObject();
     	if(xml != null){	
     		// Save xml
-			try{			
-				MidPointApplication application = PageImportXml.this.getMidpointApplication();
-				ModelService modelService = application.getModel();
-				modelService.importObjectsFromStream(new ByteArrayInputStream(xml.getBytes()), model.getObject(), task, result);
+			try{
+                Task task = getTaskManager().createTaskInstance("AAAAAAAAAAAAAAAAAA");
+				getModelService().importObjectsFromStream(new ByteArrayInputStream(xml.getBytes()), model.getObject(),
+                        task, result);
 			    //TODO: success message
 			} catch (Exception ex) {
 				ex.printStackTrace();
