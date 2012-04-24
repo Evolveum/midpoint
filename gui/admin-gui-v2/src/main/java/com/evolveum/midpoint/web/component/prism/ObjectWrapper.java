@@ -22,10 +22,11 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -131,5 +132,44 @@ public class ObjectWrapper implements Serializable {
         }
 
         return containers;
+    }
+
+    public ObjectDelta getObjectDelta() {
+        if (ContainerStatus.ADDING.equals(getStatus())) {
+            return createAddingObjectDelta();
+        }
+
+        ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY);
+        for (ContainerWrapper containerWrapper : getContainers()) {
+            if (ContainerStatus.MODIFYING.equals(containerWrapper.getStatus())) {
+                //todo handle container changes
+                continue;
+            }
+
+            for (PropertyWrapper propertyWrapper : (List<PropertyWrapper>) containerWrapper.getProperties()) {
+                for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
+                    if (!valueWrapper.hasValueChanged()) {
+                        continue;
+                    }
+                    switch (valueWrapper.getStatus()) {
+                        case ADDED:
+                            //todo create property delta value add
+                            break;
+                        case DELETED:
+                            //todo create property delta value delete
+                            break;
+                    }
+                }
+            }
+        }
+
+        return delta;
+    }
+
+    private ObjectDelta createAddingObjectDelta() {
+        ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.ADD);
+        //todo implement
+
+        return delta;
     }
 }

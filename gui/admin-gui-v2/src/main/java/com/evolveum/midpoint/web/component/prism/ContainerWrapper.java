@@ -28,6 +28,7 @@ import org.apache.commons.lang.Validate;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -57,6 +58,10 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return object;
     }
 
+    ContainerStatus getStatus() {
+        return status;
+    }
+
     public List<PropertyWrapper> getProperties() {
         if (properties == null) {
             properties = createProperties();
@@ -77,6 +82,8 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                 properties.add(new PropertyWrapper(this, property, ValueStatus.NOT_CHANGED));
             }
         }
+
+        Collections.sort(properties, new PropertyWrapperComparator(definition));
 
         return properties;
     }

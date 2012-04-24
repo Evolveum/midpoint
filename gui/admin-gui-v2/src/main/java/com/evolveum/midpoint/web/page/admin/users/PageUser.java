@@ -245,25 +245,25 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(save);
 
-        AjaxLinkButton recalculate = new AjaxLinkButton("recalculate",
-                createStringResource("pageUser.button.recalculate")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                recalculatePerformed(target);
-            }
-        };
-        mainForm.add(recalculate);
-
-        AjaxLinkButton refresh = new AjaxLinkButton("refresh",
-                createStringResource("pageUser.button.refresh")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                refreshPerformed(target);
-            }
-        };
-        mainForm.add(refresh);
+//        AjaxLinkButton recalculate = new AjaxLinkButton("recalculate",
+//                createStringResource("pageUser.button.recalculate")) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                recalculatePerformed(target);
+//            }
+//        };
+//        mainForm.add(recalculate);
+//
+//        AjaxLinkButton refresh = new AjaxLinkButton("refresh",
+//                createStringResource("pageUser.button.refresh")) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                refreshPerformed(target);
+//            }
+//        };
+//        mainForm.add(refresh);
 
         AjaxLinkButton cancel = new AjaxLinkButton("cancel",
                 createStringResource("pageUser.button.cancel")) {
@@ -289,13 +289,13 @@ public class PageUser extends PageAdminUsers {
         //todo implement
     }
 
-    private void recalculatePerformed(AjaxRequestTarget target) {
-        //todo implement
-    }
-
-    private void refreshPerformed(AjaxRequestTarget target) {
-        //todo implement
-    }
+//    private void recalculatePerformed(AjaxRequestTarget target) {
+//        //todo implement
+//    }
+//
+//    private void refreshPerformed(AjaxRequestTarget target) {
+//        //todo implement
+//    }
 
     private void onSaveError(AjaxRequestTarget target, Form form) {
         //todo implement
