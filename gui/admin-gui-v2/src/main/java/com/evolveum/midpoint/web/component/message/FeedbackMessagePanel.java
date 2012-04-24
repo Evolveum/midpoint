@@ -81,7 +81,7 @@ public class FeedbackMessagePanel extends Panel {
                 return false;
             }
         });
-        details.setMarkupId(get("message").getMarkupId() + "_content");
+        details.setMarkupId(label.getMarkupId() + "_content");
         add(details);
     }
 

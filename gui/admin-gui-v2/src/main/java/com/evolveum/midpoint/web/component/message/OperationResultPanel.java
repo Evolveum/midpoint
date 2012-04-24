@@ -83,10 +83,20 @@ public class OperationResultPanel extends Panel {
     private void initLayout(final IModel<OperationResult> model) {
         WebMarkupContainer messageLi = new WebMarkupContainer("messageLi");
         add(messageLi);
-        messageLi.add(new Label("operation", new PropertyModel<Object>(model, "operation")));//todo localize
+        Label operation = new Label("operation", new PropertyModel<Object>(model, "operation"));
+        operation.setOutputMarkupId(true);
+        
+        
+        
+        messageLi.add(operation);//todo localize
         messageLi.add(new AttributeAppender("class", createMessageLiClass(model), " "));
-        messageLi.add(new Label("message", new PropertyModel<String>(model, "message")));
+        
+        WebMarkupContainer operationContent = new WebMarkupContainer("operationContent");
+        operationContent.setMarkupId(operation.getMarkupId() + "_content");
+        messageLi.add(operationContent);
 
+        operationContent.add(new Label("message", new PropertyModel<String>(model, "message")));
+        
         ListView<Map.Entry<String, Object>> params = new ListView<Map.Entry<String, Object>>("params",
                 createParamsModel(model)) {
 
@@ -96,7 +106,7 @@ public class OperationResultPanel extends Panel {
                 item.add(new Label("paramValue", new PropertyModel<Object>(item.getModel(), "value")));
             }
         };
-        messageLi.add(params);
+        operationContent.add(params);
 
         WebMarkupContainer exception = new WebMarkupContainer("exception") {
 
@@ -106,9 +116,18 @@ public class OperationResultPanel extends Panel {
                 return result.getCause() != null;
             }
         };
-        messageLi.add(exception);
+        operationContent.add(exception);
         exception.add(new Label("exceptionMessage", new PropertyModel<Object>(model, "cause.message")));
-        exception.add(new Label("exceptionStack", new Model<Serializable>("aaaaaaaaaaaaaaaa")));
+        
+        WebMarkupContainer errorStack = new WebMarkupContainer("errorStack");
+        errorStack.setOutputMarkupId(true);
+        exception.add(errorStack);
+        
+        WebMarkupContainer errorStackContent = new WebMarkupContainer("errorStackContent");
+        errorStackContent.setMarkupId(errorStack.getMarkupId() + "_content");
+        exception.add(errorStackContent);
+        
+        errorStackContent.add(new Label("exceptionStack", new Model<Serializable>("aaaaaaaaaaaaaaaa")));
 
         ListView<OperationResult> subresults = new ListView<OperationResult>("subresults",
                 createSubresultsModel(model)) {

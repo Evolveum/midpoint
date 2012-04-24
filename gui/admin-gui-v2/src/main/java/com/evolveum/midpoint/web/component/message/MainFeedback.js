@@ -29,7 +29,7 @@ function initMessages() {
 			$(this).css("cursor","pointer");
 		}
 	}).mouseleave(function(){
-		if(!($(this).attr("css").indexOf("selected") >= 0)){
+		if(!($(this).attr("class").indexOf("selected") >= 0)){
 			$(this).css("backgroundColor","#FFD7CA");
 		}
 	});
@@ -42,7 +42,7 @@ function initMessages() {
 			$(this).css("cursor","pointer");
 		}
 	}).mouseleave(function(){
-		if(!($(this).attr("css").indexOf("selected") >= 0)){
+		if(!($(this).attr("class").indexOf("selected") >= 0)){
 			$(this).css("backgroundColor","#dff2bf");
 		}
 	});
@@ -81,11 +81,11 @@ function initMessages() {
 		if($(this).parent().find(".messages-details-content").css("display") === "none"){
 			$(this).parent().addClass("selected-section");
 			$("#"+idBlock+"_content").show();
-			$(this).find(".messages-details-bold-arrow").addClass("arrow-down");
+			$(this).parent().find(".messages-details-bold-arrow").addClass("arrow-down");
 		} else {
 			$(this).parent().removeClass("selected-section");
 			$("#"+idBlock+"_content").hide();
-			$(this).find(".messages-details-bold-arrow").removeClass("arrow-down");
+			$(this).parent().find(".messages-details-bold-arrow").removeClass("arrow-down");
 		}
 	});
 
