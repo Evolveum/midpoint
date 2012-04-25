@@ -213,6 +213,7 @@ public class ConsolidationProcessor {
             propDelta = consolidateWithSync(accCtx, propDelta);
 
             if (propDelta != null) {
+            	propDelta.simplify();
                 objectDelta.addModification(propDelta);
             }
         }

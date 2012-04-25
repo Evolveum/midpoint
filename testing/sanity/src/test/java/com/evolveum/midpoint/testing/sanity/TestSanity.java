@@ -816,6 +816,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Jack");
         OpenDJController.assertAttribute(entry, "sn", "Sparrow");
         OpenDJController.assertAttribute(entry, "cn", "Jack Sparrow");
+        OpenDJController.assertAttribute(entry, "displayName", "Jack Sparrow");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
@@ -851,6 +852,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Jack Sparrow");
+        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Jack Sparrow");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "middle of nowhere");
         assertNull("carLicense attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "carLicense"));
 
@@ -1127,6 +1129,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // These two should be assigned from the User modification by
         // schemaHandling
         OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
         // This will get translated from "somewhere" to this (outbound expression in schemeHandling)
         OpenDJController.assertAttribute(entry, "l", "There there over the corner");
 
@@ -1202,6 +1205,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // These two should be assigned from the User modification by
         // schemaHandling
         OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
         OpenDJController.assertAttribute(entry, "l", "There there over the corner");
 
         String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
@@ -1233,6 +1237,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // These two should be assigned from the User modification by
         // schemaHandling
         OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
         OpenDJController.assertAttribute(entry, "l", "There there over the corner");
 
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
@@ -1311,6 +1316,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Cpt. Jack Sparrow");
+        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Cpt. Jack Sparrow");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "There there over the corner");
 
         assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
@@ -1328,6 +1334,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // These two should be assigned from the User modification by
         // schemaHandling
         OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
         OpenDJController.assertAttribute(entry, "l", "There there over the corner");
 
         pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
@@ -1421,6 +1428,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Cpt. Jack Sparrow");
+        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Cpt. Jack Sparrow");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "There there over the corner");
 
         assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
@@ -1438,6 +1446,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // These two should be assigned from the User modification by
         // schemaHandling
         OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
         OpenDJController.assertAttribute(entry, "l", "There there over the corner");
 
         // The value of ds-pwp-account-disabled should have been removed
@@ -1670,6 +1679,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
         OpenDJController.assertAttribute(entry, "sn", "Threepwood");
         OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
@@ -1768,6 +1778,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
         OpenDJController.assertAttribute(entry, "sn", "Threepwood");
         OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
@@ -1850,6 +1861,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
         OpenDJController.assertAttribute(entry, "sn", "Threepwood");
         OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
@@ -1902,6 +1914,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
         OpenDJController.assertAttribute(entry, "sn", "Threepwood");
         OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
@@ -1985,6 +1998,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
         OpenDJController.assertAttribute(entry, "sn", "Threepwood");
         OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
@@ -2070,6 +2084,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
         OpenDJController.assertAttribute(entry, "sn", "Threepwood");
         OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
@@ -2870,6 +2885,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
         OpenDJController.assertAttribute(entry, "sn", "Threepwood");
         OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
@@ -3027,6 +3043,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
         OpenDJController.assertAttribute(entry, "sn", "Threepwood");
         OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object. It is not tolerant, therefore the other value should be gone now
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
@@ -3092,6 +3109,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "givenName", "Elaine");
         OpenDJController.assertAttribute(entry, "sn", "Marley");
         OpenDJController.assertAttribute(entry, "cn", "Elaine Marley");
+        OpenDJController.assertAttribute(entry, "displayName", "Elaine Marley");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         // FIXME

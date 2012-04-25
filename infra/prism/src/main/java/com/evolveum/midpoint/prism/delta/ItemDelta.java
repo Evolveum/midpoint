@@ -377,6 +377,22 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			}
 		}
 	}
+	
+	/**
+	 * Transforms the delta to the simplest (and safest) form. E.g. it will transform add delta for
+	 * single-value properties to replace delta. 
+	 */
+	public void simplify() {
+		ItemDefinition itemDefinition = getDefinition();
+		if (itemDefinition == null) {
+			throw new IllegalStateException("Attempt to simplify delta without a definition");
+		}
+		if (itemDefinition.isSingleValue() && isAdd()) {
+			valuesToReplace = valuesToAdd;
+			valuesToAdd = null;
+			valuesToDelete = null;
+		}
+	}
 
 	/**
 	 * Apply this delta (path) to a property container.

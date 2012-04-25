@@ -397,7 +397,22 @@ This is now the only account type that midPoint can work with. -->
                 </inbound>
                 <!-- No inbound expression for description. We don't want to synchronize that -->
             </attribute>
-
+            
+            <attribute>
+                <ref>ri:displayName</ref>
+                <displayName>Display Name</displayName>
+                <outbound>
+                	<description>
+                		It is mapped from "fullName" property of user using ECMAScript (JavaScript) expression.
+                	</description>
+                    <expression>
+                    	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
+                        <code>
+                        	user == null ? null : user.getFullName();
+                        </code>
+                    </expression>
+                </outbound>
+            </attribute>
 
             <!-- Definition of description attribute handling. -->
             <!-- This attribute is using a lookup table to translate the values
