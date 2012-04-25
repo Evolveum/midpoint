@@ -812,6 +812,14 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return false;
 	}
 
+    @Override
+    public boolean isTaskThreadActiveClusterwide(String oid) {
+
+        RunningTasksInfo info = clusterManager.getRunningTasks();
+        return info.findNodeInfoForTask(oid) != null;
+    }
+
+
     private OperationResult createOperationResult(String methodName) {
 		return new OperationResult(TaskManagerQuartzImpl.class.getName() + "." + methodName);
 	}

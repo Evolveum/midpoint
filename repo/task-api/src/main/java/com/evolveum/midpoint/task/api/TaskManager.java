@@ -414,4 +414,6 @@ public interface TaskManager {
      * Post initialization, e.g. starts the actual scheduling of tasks on this node.
      */
     void postInit(OperationResult result);
+
+    boolean isTaskThreadActiveClusterwide(String oid);
 }

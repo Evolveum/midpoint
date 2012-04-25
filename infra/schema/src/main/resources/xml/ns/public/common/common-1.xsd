@@ -686,12 +686,32 @@
                             <xsd:documentation>
                                 Hostname of the node that can be used by other nodes to contact this node over the
                                 network.
-                                
-                                TODO: this is just an idea. It has no use now.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-            	</xsd:sequence>
+                    <xsd:element name="jmxPort" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Port at which this node can be contacted via JMX.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastCheckInTime" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The time when this node last checked-in.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="running" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether this node is running, i.e. it can be queried via JMX.
+                                (This does not necessarily mean that the scheduler thread and task threads are running!)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -701,7 +721,9 @@
     <xsd:complexType name="TaskType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                TaskType contains information about a task (either transient or persistent).
+                For background information and clarification of various terms used here, please see
+                http://wiki.evolveum.com/display/midPoint/Task+Manager.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -716,7 +738,7 @@
 
                                 Task identifier is assigned automatically when the task is created. It is immutable.
                                 It is formally set as optional, however it is mandatory for any task to work. Setting
-                                it to optional allows creating a task without indetifier and generating the identifier
+                                it to optional allows creating a task without identifier and generating the identifier
                                 during import. However any tasks that live inside midPoint (running or stored in repository)
                                 must have valid task identifier. 
                             </xsd:documentation>
@@ -726,7 +748,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 The user that owns this task. It usually means the user that started the task
-                                or a system used that is used to execute the task. The owner will be used to
+                                or a system user that is used to execute the task. The owner will be used to
                                 determine access rights of the task, will be used for auditing, etc.
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -738,34 +760,38 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Execution status provides information about the task overall high-level execution state.
-                                It tells
-                                whether the task is running/runnable, waits for something or is done.
+                                It tells whether the task is running/runnable, waits for something or is done.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="exclusivityStatus" type="tns:TaskExclusivityStatusType">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Exclusivity status tells about task "locking" to a particular node.
+                                (DEPRECATED) Originally: Exclusivity status tells about task "locking" to a particular node.
+
+                                Currently *not* used, because tasks are managed by Quartz scheduler,
+                                who maintains this information in its own data structure (job store).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="node" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Identifier of the node that has claimed this task. Should be only present if
-                                excelusivity status is
-                                "claimed".
+                                Identifier of the node that currently executes this task.
+                                (In case of node crash, the value here may be out-of-date.)
+
+                                NOTE: This attribute is currently not used, its use is planned.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="claimExpirationTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Expiration of the claim. If a "claimed" task is found after the moment specified in this
-                                attribute,
-                                the task is no longer considered claimed.
-                                Should be only present if excelusivity status is "claimed".
+                                (DEPRECATED) Originally: Expiration of the claim. If a "claimed" task is found
+                                after the moment specified in this attribute, the task is no longer considered claimed.
+                                Should be only present if exclusivity status is "claimed".
+
+                                Currently *not* used, because claiming/releasing of tasks is done by Quartz.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -793,6 +819,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Top-level state of the 'result' (OperationResultType).
+                                It is put here for ease of use - mainly filtering, displaying, and so on.
+
+                                NOTE: This attribute is currently not used; its use is planned.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -807,45 +843,64 @@
                     <xsd:element name="lastRunStartTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                The time when the task execution was last started.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastRunFinishTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                The time when the (last) task execution was finished, successfully or unsuccessfully.
+                                (If node crashes, this attribute is not updated.)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="nextRunStartTime" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                A time when the following run is to be executed.
+                                (DEPRECATED) Originally: A time when the following run is to be executed.
 								(It is set usually after task execution cycle, along with lastRunFinishTimestamp.)
+
+                                Currently it is not used, because task start time is managed by Quartz.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="progress" type="xsd:long" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Relative metric of task progress.
-                                TODO
+                                Relative metric of task progress. The meaning of this attribute
+                                is specific to particular task handler.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="recurrence" type="tns:TaskRecurrenceType">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Whether the task activity is to be executed only once (single-run tasks)
+                                or periodically (recurring tasks).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="binding" type="tns:TaskBindingType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO loose - tight
-                                If not present the nodes may decide independently.
+                                Whether a recurring task is bound tightly to one node (having allocated
+                                a thread on this node for the whole time of task execution) or it should
+                                by dynamically placed on any suitable node when its execution time comes.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="canRunOnNode" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether a task is constrained to be run on a particular node,
+                                i.e. it will *not* be executed on a different node.
+                                If this attribute is not specified, the task will be executed on any available node.
+
+                                (There may be other constraints on the node(s) where this task may be run,
+                                determined e.g. by task handler.)
+
+                                NOTE: This attribute is currently not used; its use is planned.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -853,6 +908,16 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Task schedule. Specifies when and how often to execute the task.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="threadStopAction" type="tns:ThreadStopActionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What is to be done when the thread allocated to this task stops
+                                (e.g. via node shutdown or node crash).
+
+                                NOTE: This attribute is currently not used; its use is planned.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -885,7 +950,8 @@
                     <xsd:documentation>
                         The task is running or is ready to be executed. This state implies that the task is being
                         actively executed by IDM nodes, e.g. there is a thread on one of the IDM nodes that executes the
-                        task or the system needs to allocate such thread.
+                        task, or the system needs to allocate such thread, or the task is prepared to be started
+                        when a defined time arrives.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RUNNABLE"/>
@@ -897,7 +963,7 @@
                     <xsd:documentation>
                         The IDM system is waiting while the task is being executed on an external node (e.g. external
                         workflow engine) or is waiting for some kind of external signal (e.g. approval in internal
-                        workflow). The task may be running on external node or blocked on IDM node. One way or another,
+                        workflow). The task may be running on external node or be blocked on IDM node. One way or another,
                         there is no point in allocating a thread to run this task. Other task properties provide more
                         information about the actual "business" state of the task.
                     </xsd:documentation>
@@ -910,12 +976,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The task has been suspended. It waits until an instruction to resume it arrives.
-                        After that, it will (usually) go to the RUNNING state again. Or, it can be closed
+                        After that, it will (usually) go to the RUNNABLE state again. Or, it can be closed
                         in the suspended state as well.
-                        
-                        If a task that is currently executing (i.e. claimed) is suspended, it will first
-                        be in SUSPENDED/CLAIMED state, until its handler finishes the execution. After that,
-                        it will go into SUSPENDED/RELEASED state, where it will remain until resumed.  
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SUSPENDED"/>
@@ -939,7 +1001,7 @@
     <xsd:simpleType name="TaskExclusivityStatusType">
         <xsd:annotation>
             <xsd:documentation>
-                Exclusivity status tells about task "locking" to a particular node.
+                (DEPRECATED) Exclusivity status tells about task "locking" to a particular node.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -973,17 +1035,17 @@
     <xsd:simpleType name="TaskRecurrenceType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Whether the task activity is to be executed only once (single-run tasks)
+                or periodically (recurring tasks).
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="single">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
-                        The task is executed only once, at the first moment that the scedule specifies. If that moment
-                        is in
-                        the past, the task will be executed as soon as any execution environment (node) is available.
+                        The task is executed only once, at the first moment that the schedule
+                        specifies. If that moment is in the past, the task will be executed as
+                        soon as any execution environment (node) is available.
                         Once the task is finished, it will not be executed again.
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -994,7 +1056,6 @@
             <xsd:enumeration value="recurring">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
                         The task is executed as many times as the schedule specifies.
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -1008,22 +1069,23 @@
     <xsd:simpleType name="TaskBindingType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Whether a recurring task is bound tightly to one node (having allocated
+                a thread on this node for the whole time of task execution) or it should
+                by dynamically placed on any suitable node when its execution time comes.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="loose">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The task is claimed (exclusivelly locked) to a specific node only if it is executing.
+                        The task is exclusively assigned to a specific node only during its execution.
 
                         The thread is allocated only for the minimal amount of time.
 
                         It does not matter which node will execute the task as long as there is an appropriate handler.
 
-                        This is efficient for tasks that take long time to execute and the execution mostly waits (e.g.
-                        approvals)
-                        or for tasks which have long interval between executions (e.g. reconciliation).
+                        This is efficient for tasks that take long time to execute and the execution mostly waits
+                        (e.g. approvals) or for tasks which have long interval between executions (e.g. reconciliation).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="LOOSE"/>
@@ -1033,15 +1095,11 @@
             <xsd:enumeration value="tight">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Task is claimed (exclusivelly locked) to a specific node for a long time. It may be claimed
-                        until the
-                        executing node is up and running.
+                        Task is exclusively assigned to a specific node from its start to its finish.
 
-                        A thread may be running and allocated for the task all the time. The thread may go to sleep as
-                        needed,
-                        but during that time the task remains claimed.
-
-                        The node that started to execute this task will be preferred for subsequent executions.
+                        A thread will be running and allocated for the task all the time.
+                        The thread may go to sleep as needed, but during that time the task remains assigned
+                        to the node.
 
                         This is efficient for recurring tasks executed in short intervals, such as live synchronization.
                     </xsd:documentation>
@@ -1053,19 +1111,132 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="ThreadStopActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What is to be done when the thread allocated to this task stops
+                (e.g. via node shutdown or node crash).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="restart">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task will be restarted on first node available
+                        (i.e. either immediately, if there is a suitable node in the cluster,
+                        or later, when a suitable node becomes available).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESTART"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reschedule">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task will be rescheduled according to its schedule
+                        (for single-run tasks this is the same as 'restart').
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESCHEDULE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="suspend">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task will be suspended.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUSPEND"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="close">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task will be closed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOSE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="MisfireActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What is to be done when the planned start time arrives without
+                the task actually starting.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="executeImmediately">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task will be executed immediately.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTE_IMMEDIATELY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reschedule">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task will be rescheduled according to its schedule.
+                        This is to be used only for loosely-bound recurring tasks.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESCHEDULE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="ScheduleType">
         <xsd:annotation>
             <xsd:documentation>
                 Task schedule. Specifies when and how often something should happen.
-                UNSTABLE. This type will most likely change. A lot.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="earliestStartTime" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Earliest time when the task is allowed to start.
+
+                        NOTE: This attribute is currently not used; its use is planned.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="latestStartTime" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Latest time when the task is allowed to start.
+
+                        NOTE: This attribute is currently not used; its use is planned.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="latestFinishTime" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Latest time when the task is allowed to run.
+                        It is the responsibility of the task handler to finish
+                        working when this time arrives.
+
+                        NOTE: This attribute is currently not used; its use is planned.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="interval" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Interval in seconds between task invocations.
-                        UNSTABLE. This element will most likely change. 
+                        Interval in seconds between task runs.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1073,13 +1244,17 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Cron-like pattern specifying time(s) when the task is to be run.
-                        UNSTABLE. This element will most likely change. 
+                        Currently only loosely-bound recurring tasks can use this feature.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="missedScheduleTolerance" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
+                        DEPRECATED:
+
+                        Original meaning:
+
                         Used in connection with cronLikePattern. If the task is not run
                         at a given time instant (e.g. Monday 8:00 AM), e.g. because the
                         midPoint is not running at that moment, what is the end of the
@@ -1089,6 +1264,21 @@
                         
                         If 0, the task can be run at any time after a missed scheduled time instant.
                         UNSTABLE. This element may change.
+
+                        Current situation: Events like this are handled by Quartz.
+                        This tolerance is set globally for all tasks via configuration.
+                        However, individual tasks can be configured how they should behave
+                        when their scheduled start is missed (see actionOnMisfire attribute).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="misfireAction" type="tns:MisfireActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What is to be done when the planned start time arrives without
+                        the task actually starting.
+
+                        NOTE: This attribute is currently not used; its use is planned.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1100,7 +1290,6 @@
             <xsd:documentation>
                 A stack of URIs (used e.g. for managing a stack of handlers to be called when a task is to be run).
                 Last URI is considered to be the top of the stack (i.e. the one that will be retrieved first).
-                EXPERIMENTAL. This type may change.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
