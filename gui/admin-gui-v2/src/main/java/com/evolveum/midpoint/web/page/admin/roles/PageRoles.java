@@ -76,10 +76,14 @@ public class PageRoles extends PageAdminRoles {
         final ModalWindow popupWindow;
         add(popupWindow = new ModalWindow("popupWindow"));
         
-        popupWindow.setContent(new PopupWindow(popupWindow.getContentId(), popupWindow));
+        popupWindow.setContent(new ResourcePopupWindow(popupWindow.getContentId(), popupWindow));
         popupWindow.setResizable(false);
-        popupWindow.setTitle("Test popup window");
-        popupWindow.setCookieName("popupWindow");
+        popupWindow.setTitle("Select resource");
+        popupWindow.setCookieName("Resrource popup window");
+        
+        popupWindow.setInitialWidth(1100);
+        popupWindow.setWidthUnit("px");
+        
         
         popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
 			
