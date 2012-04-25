@@ -4,6 +4,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -198,7 +199,7 @@ public class ResourceTypeManager {
 			PrismProperty<Element> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
 			ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
 
-			Collection modifications = new ArrayList(1);
+			Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
 			modifications.add(schemaContainerDelta);
 
 			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
@@ -707,6 +708,10 @@ public class ResourceTypeManager {
 		}
 	}
 
+	/**
+	 * Add native capabilities to the provided resource. The native capabilities are either
+	 * reused from the cache or retrieved from the resource.
+	 */
 	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector,
 			OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException {
 
@@ -740,6 +745,8 @@ public class ResourceTypeManager {
 		capType.getAny().addAll(capabilities);
 		CachedCapabilitiesType cachedCapType = new CachedCapabilitiesType();
 		cachedCapType.setCapabilities(capType);
+		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+		cachedCapType.setCachingMetadata(cachingMetadata);
 		resource.setNativeCapabilities(cachedCapType);
 	}
 
