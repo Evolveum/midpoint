@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -39,6 +40,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.AssertJUnit;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -60,12 +63,13 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -84,12 +88,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -136,6 +143,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
+	
+	public static final String ACCOUNT_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
 	
 	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
 
@@ -303,6 +312,53 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 	}
 	
+	protected void assertUserJack(PrismObject<UserType> user) {
+		assertEquals("Wrong jack OID (prism)", USER_JACK_OID, user.getOid());
+		UserType userType = user.asObjectable();
+		assertEquals("Wrong jack OID (jaxb)", USER_JACK_OID, userType.getOid());
+		assertEquals("Wrong jack name", "jack", userType.getName());
+		assertEquals("Wrong jack fullName", "Jack Sparrow", userType.getFullName());
+		assertEquals("Wrong jack givenName", "Jack", userType.getGivenName());
+		assertEquals("Wrong jack familyName", "Sparrow", userType.getFamilyName());
+		assertEquals("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
+		assertEquals("Wrong jack honorificSuffix", "PhD.", userType.getHonorificSuffix());
+		assertEquals("Wrong jack emailAddress", "jack.sparrow@evolveum.com", userType.getEmailAddress().get(0));
+		assertEquals("Wrong jack telephoneNumber", "555-1234", userType.getTelephoneNumber().get(0));
+		assertEquals("Wrong jack employeeNumber", "emp1234", userType.getEmployeeNumber());
+		assertEquals("Wrong jack employeeType", "CAPTAIN", userType.getEmployeeType().get(0));
+		assertEquals("Wrong jack organizationalUnit", "Leaders", userType.getOrganizationalUnit().get(0));
+		assertEquals("Wrong jack locality", "Black Pearl", userType.getLocality());
+	}
+	
+	protected void assertDummyShadowRepo(PrismObject<AccountShadowType> accountShadow, String oid, String username) {
+		assertDummyCommon(accountShadow, oid, username);
+	}	
+	
+	protected void assertDummyShadowModel(PrismObject<AccountShadowType> accountShadow, String oid, String username, String fullname) {
+		assertDummyCommon(accountShadow, oid, username);
+		// TODO: assert full attribute schema
+		// TODO: assert fullname
+	}
+
+	private void assertDummyCommon(PrismObject<AccountShadowType> accountShadow, String oid, String username) {
+		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
+		AccountShadowType accountShadowType = accountShadow.asObjectable();
+		assertEquals("Account shadow OID mismatch (jaxb)", oid, accountShadowType.getOid());
+		assertEquals("Account shadow objectclass", new QName(resourceDummyType.getNamespace(), "AccountObjectClass"), accountShadowType.getObjectClass());
+		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
+		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
+		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
+		// TODO: assert name and UID
+	}
+	
+	protected void assertDummyAccount(String username, String fullname, boolean active) {
+		DummyAccount account = dummyResource.getAccountByUsername(username);
+		assertNotNull("No dummy account for username "+username, account);
+		assertEquals("Wrong fullname for dummy account "+username, fullname, account.getAttributeValue("fullname"));
+		assertEquals("Wrong activation for dummy account "+username, active, account.isEnabled());
+	}
+
+	
 	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertLinked");
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
@@ -359,8 +415,28 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		}
 	}
 
-	private PrismObjectDefinition<UserType> getUserDefinition() {
+	protected PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
+	
+	protected void applySyncSettings(AccountSynchronizationSettingsType syncSettings)
+			throws ObjectNotFoundException, SchemaException {
 
+		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
+
+		Collection<? extends ItemDelta> modifications = PropertyDelta
+				.createModificationReplacePropertyCollection(
+						SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS,
+						objectDefinition, syncSettings);
+
+		OperationResult result = new OperationResult("Aplying sync settings");
+
+		repositoryService.modifyObject(SystemConfigurationType.class,
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
+		display("Aplying sync settings result", result);
+		result.computeStatus();
+		assertSuccess("Aplying sync settings failed (result)", result);
+	}
+	
 }
