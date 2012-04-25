@@ -113,32 +113,17 @@ public class ObjectWrapper implements Serializable {
     private List<ContainerWrapper> createContainers() {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
-        Collection<ItemDefinition> definitions = null;
+        Collection<ItemDefinition> definitions = new ArrayList<ItemDefinition>();
         if (AccountShadowType.class.equals(object.getCompileTimeClass())) {
-            try {
-                PrismReference resourceRef = object.findReference(AccountShadowType.F_RESOURCE_REF);
-                PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
-                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-                        object.getPrismContext());
-
-                PrismProperty<QName> objectClassProp = object.findProperty(AccountShadowType.F_OBJECT_CLASS);
-                QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
-
-                RefinedAccountDefinition refinedAccountDef = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
-                definitions = refinedAccountDef.getDefinitions();
-            } catch (Exception ex) {
-                //todo error handling...
-                ex.printStackTrace();
-            }
-
-            if (definitions == null) {
-                definitions = new ArrayList<ItemDefinition>();
-            }
+            ContainerWrapper container = new ContainerWrapper(this, object.findContainer(AccountShadowType.F_ATTRIBUTES),
+                    getStatus(), true);
+            containers.add(container);
+            //todo credentials, activation fix for accounts as well as for user (or other objects)
         } else {
             ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), true);
             containers.add(container);
             PrismObjectDefinition definition = object.getDefinition();
-            definitions = (Collection<ItemDefinition>) definition.getDefinitions();
+            definitions.addAll(definition.getDefinitions());
         }
 
         for (ItemDefinition def : definitions) {
