@@ -24,17 +24,23 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
+        <div>
+            <wicket:message key="pageTasks.list"/>
+            &nbsp;
+            <select wicket:id="type"/>
+        </div>
         <div wicket:id="taskTable"/>
 
-        <h2><wicket:message key="pageTasks.nodes"/></h2>
+        <h2>
+            <wicket:message key="pageTasks.nodes"/>
+        </h2>
         <div wicket:id="nodeTable"/>
 
         <div class="operatingFormButtons">
-            <a href="#" class="button">List all tasks</a>
-            <a href="#" class="button">List currently executing tasks</a>
-            <a href="#" class="button">Deactivate selected threads</a>
-            <a href="#" class="button">Deactivate all execution threads</a>
-            <a href="#" class="button">Reactivate all execution threads</a>
+            <a wicket:id="deactivate"/>
+            <a wicket:id="deactivateAll"/>
+            <a wicket:id="reactivate"/>
+            <a wicket:id="reactivateAll"/>
         </div>
     </form>
 </wicket:extend>

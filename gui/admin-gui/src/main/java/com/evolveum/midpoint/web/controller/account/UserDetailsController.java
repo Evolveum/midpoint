@@ -67,9 +67,9 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @Controller("userDetails")
 @Scope("session")
@@ -79,7 +79,7 @@ public class UserDetailsController implements Serializable {
 	private static final long serialVersionUID = -4537350724118181063L;
 	private static final Trace LOGGER = TraceManager.getTrace(UserDetailsController.class);
 	private static final String TAB_USER = "0";
-	
+
 	@Autowired(required = true)
 	private transient TemplateController template;
 	@Autowired(required = true)
@@ -92,7 +92,7 @@ public class UserDetailsController implements Serializable {
 	private transient TaskManager taskManager;
     @Autowired(required = true)
     private transient PrismContext prismContext;
-	
+
 	private boolean editMode = false;
 	private GuiUserDto user;
 	private List<AccountFormBean> accountList;
@@ -105,11 +105,14 @@ public class UserDetailsController implements Serializable {
 	public Integer getAccountListSize(){
 		return accountList.size();
 	}
-	
+
 	public Integer getRoleListSize(){
+        if (assignmentEditor.getContainsAssignment() == null || assignmentEditor.getContainsAssignment() == null) {
+            return 0;
+        }
 		return assignmentEditor.getContainsAssignment().getAssignments().size();
 	}
-	
+
 	public AssignmentEditor<UserDto> getAssignmentEditor() {
 		return assignmentEditor;
 	}
@@ -183,7 +186,7 @@ public class UserDetailsController implements Serializable {
 				accountList = createFormBeanList(this.user.getAccount(), false);
 				getAvailableResourceList().clear();
 				availableResourceList = createResourceList(this.user.getAccount());
-				
+
 				assignmentEditor.initController(user);
 			}
 		} catch (Exception ex) {
@@ -230,28 +233,28 @@ public class UserDetailsController implements Serializable {
 		PrincipalUser principal = security.getPrincipalUser();
         task.setOwner(principal.getUser().asPrismObject());
 		OperationResult result = task.getResult();
-		
+
 		if (user != null) {
 			LOGGER.debug("Normalizing user assignments");
 			user.normalizeAssignments();
 		}
 		try {
-			
+
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
 			List<AccountShadowType> oldAccounts = readAccounts(accountManager);
-			
+
 
 			processNewAccounts();
-			
-			
+
+
 			List<AccountShadowType> accountsToDelete = processDeletedAccounts();
 			processUnlinkedAccounts();
-			
-			
+
+
 			// we want submit only user changes (if the account was deleted-
-			// unlink account, if added - create and link) 
+			// unlink account, if added - create and link)
 			// modification of account attributes are submited later ->
 			// updateAccounts method
 			LOGGER.debug("Submit user modified in GUI");
@@ -266,10 +269,10 @@ public class UserDetailsController implements Serializable {
 			}
 			LOGGER.debug("Finished processing of deleted accounts");
 
-			
+
 			//check if account was changed, if does, execute them..
 			updateAccounts(accountList, oldAccounts, task, result);
-			
+
 			clearController();
 			result.recordSuccess();
 //			FacesUtils.addSuccessMessage("Changes saved successfully.");
@@ -309,20 +312,20 @@ public class UserDetailsController implements Serializable {
 	private void processNewAccounts() throws SchemaException {
 		// new accounts are processed as modification of user in one operation
 		LOGGER.debug("Start processing of new accounts");
-		
+
 		for (AccountFormBean formBean : accountList) {
 			if (formBean.isNew()) {
-				
+
 				AccountShadowDto newAccountShadow = updateAccountAttributes(formBean);
 				newAccountShadow.setAdded(true);
 				//add new account to the userDto accounts only
-				//later by calling user.submit, this added account will be checked, and only those which are new 
+				//later by calling user.submit, this added account will be checked, and only those which are new
 				//will be used to detect chages..other will be transformed to the accounts ref..
 				prismContext.adopt(newAccountShadow.getXmlObject());
 				user.getAccount().add(newAccountShadow);
 			}
 		}
-		
+
 		LOGGER.debug("Finished processing of new accounts");
 	}
 
@@ -402,7 +405,7 @@ public class UserDetailsController implements Serializable {
 	public void changeActivationOfUserAccounts(ValueChangeEvent evt) {
 
 		// GUI should not change account activation. Model will do it.
-		
+
 //		Boolean newValue = (Boolean) evt.getNewValue();
 //		// System.out.println("new value: "+ newValue);
 //		for (AccountFormBean account : accountList) {

@@ -77,15 +77,15 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         PrismObject parent = getObject().getObject();
         if (AccountShadowType.class.equals(parent.getCompileTimeClass())) {
             try {
-            PrismReference resourceRef = parent.findReference(AccountShadowType.F_RESOURCE_REF);
-            PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
-            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-                    parent.getPrismContext());
+                PrismReference resourceRef = parent.findReference(AccountShadowType.F_RESOURCE_REF);
+                PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
+                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+                        parent.getPrismContext());
 
-            PrismProperty<QName> objectClassProp = parent.findProperty(AccountShadowType.F_OBJECT_CLASS);
-            QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
+                PrismProperty<QName> objectClassProp = parent.findProperty(AccountShadowType.F_OBJECT_CLASS);
+                QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
 
-            definition = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
+                definition = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
             } catch (Exception ex) {
                 //todo handle error
                 ex.printStackTrace();
@@ -94,15 +94,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
             definition = container.getDefinition();
         }
 
-//        Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
-        //todo remove when fixed definitions...
-        Set<PrismPropertyDefinition> propertyDefinitions =  new HashSet<PrismPropertyDefinition>();
-        if (definition instanceof RefinedAccountDefinition) {
-            propertyDefinitions.addAll(((RefinedAccountDefinition)definition).getAttributeDefinitions());
-        }else {
-            propertyDefinitions = definition.getPropertyDefinitions();
-        }
-
+        Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
         for (PrismPropertyDefinition def : propertyDefinitions) {
             PrismProperty property = container.findProperty(def.getName());
             if (property == null) {
