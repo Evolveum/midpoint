@@ -103,7 +103,7 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T> {
     @Override
     public boolean add(T t) {
         PrismReferenceValue value = getValueFrom(t);
-        return reference.add(value);
+        return reference.merge(value);
     }
 
     @Override

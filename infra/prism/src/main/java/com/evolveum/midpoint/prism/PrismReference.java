@@ -97,12 +97,38 @@ public class PrismReference extends Item<PrismReferenceValue> {
         return getValues().iterator().next();
     }
     
+	private PrismReferenceValue getValue(String oid) {
+		for (PrismReferenceValue val: getValues()) {
+			if (oid.equals(val.getOid())) {
+				return val;
+			}
+		}
+		return null;
+	}
+
+    
     public boolean add(PrismReferenceValue value) {
     	value.setParent(this);
     	return getValues().add(value);
     }
     
-    public String getOid() {
+    public boolean merge(PrismReferenceValue value) {
+    	String newOid = value.getOid();
+    	PrismReferenceValue existingValue = getValue(newOid);
+    	if (existingValue == null) {
+    		return add(value);
+    	}
+    	if (value.getObject() != null) {
+    		existingValue.setObject(value.getObject());
+    	} else if (value.getTargetType() != null) {
+    		existingValue.setTargetType(value.getTargetType());
+    	}
+    	// No need to copy OID as OIDs match
+    	return true;
+    }
+    
+
+	public String getOid() {
     	return getValue().getOid();
     }
     
