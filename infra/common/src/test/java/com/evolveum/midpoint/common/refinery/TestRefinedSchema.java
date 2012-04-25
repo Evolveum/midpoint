@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -57,6 +58,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.*;
 
@@ -78,7 +80,8 @@ public class TestRefinedSchema {
 
     @Test
     public void testParseFromResource() throws JAXBException, SchemaException, SAXException, IOException {
-
+    	System.out.println("\n===[ testParseFromResource ]===\n");
+    	
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
@@ -97,41 +100,25 @@ public class TestRefinedSchema {
         RefinedAccountDefinition rAccount = rSchema.getAccountDefinition("user");
 
         assertAttributeDefs(rAccount, resourceType);
+        System.out.println("Refined account definitionn:");
+        System.out.println(rAccount.dump());
+        
+        Collection<RefinedAttributeDefinition> attributeDefinitions = rAccount.getAttributeDefinitions();
+        assertNotNull("Null attributeDefinitions", attributeDefinitions);
+        assertFalse("Empty attributeDefinitions", attributeDefinitions.isEmpty());
+        assertEquals("Unexpected number of attributeDefinitions", 54, attributeDefinitions.size());
+        
+        // This is compatibility with PrismContainerDefinition, it should work well
+        Set<PrismPropertyDefinition> propertyDefinitions = rAccount.getPropertyDefinitions();
+        assertNotNull("Null propertyDefinitions", propertyDefinitions);
+        assertFalse("Empty propertyDefinitions", propertyDefinitions.isEmpty());
+        assertEquals("Unexpected number of propertyDefinitions", 54, propertyDefinitions.size());
     }
 
-    private void assertAttributeDefs(RefinedAccountDefinition rAccount, ResourceType resourceType) {
-        assertNotNull("Null account definition", rAccount);
-        assertEquals("user", rAccount.getAccountTypeName());
-        assertEquals("AccountObjectClass", rAccount.getObjectClassDefinition().getTypeName().getLocalPart());
-        assertTrue(rAccount.isDefault());
-
-        Collection<RefinedAttributeDefinition> attrs = rAccount.getAttributeDefinitions();
-        assertFalse(attrs.isEmpty());
-
-        assertAttributeDef(attrs, ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", true);
-        assertAttributeDef(attrs, ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", false);
-        assertAttributeDef(attrs, new QName(resourceType.getNamespace(), "cn"), DOMUtil.XSD_STRING, 1, -1, "Common Name", true);
-        assertAttributeDef(attrs, new QName(resourceType.getNamespace(), "employeeNumber"), DOMUtil.XSD_STRING, 0, 1, null, false);
-        // TODO: check access
-    }
-
-    private void assertAttributeDef(Collection<RefinedAttributeDefinition> attrDefs, QName name,
-                                    QName typeName, int minOccurs, int maxOccurs, String displayName, boolean hasOutbound) {
-        for (RefinedAttributeDefinition def : attrDefs) {
-            if (def.getName().equals(name)) {
-                assertEquals("Attribute " + name + " type mismatch", typeName, def.getTypeName());
-                assertEquals("Attribute " + name + " minOccurs mismatch", minOccurs, def.getMinOccurs());
-                assertEquals("Attribute " + name + " maxOccurs mismatch", maxOccurs, def.getMaxOccurs());
-                assertEquals("Attribute " + name + " displayName mismatch", displayName, def.getDisplayName());
-                assertEquals("Attribute " + name + " outbound mismatch", hasOutbound, def.getOutboundValueConstructionType() != null);
-                return;
-            }
-        }
-        Assert.fail("Attribute " + name + " not found");
-    }
 
     @Test
     public void testParseAccount() throws JAXBException, SchemaException, SAXException, IOException {
+    	System.out.println("\n===[ testParseAccount ]===\n");
 
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
@@ -182,6 +169,7 @@ public class TestRefinedSchema {
     
     @Test
     public void testCreateShadow() throws JAXBException, SchemaException, SAXException, IOException {
+    	System.out.println("\n===[ testCreateShadow ]===\n");
 
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
@@ -210,6 +198,7 @@ public class TestRefinedSchema {
     
     @Test
     public void testProtectedAccount() throws JAXBException, SchemaException, SAXException, IOException {
+    	System.out.println("\n===[ testProtectedAccount ]===\n");
 
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
@@ -232,6 +221,37 @@ public class TestRefinedSchema {
         assertProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com");
     }
 
+    private void assertAttributeDefs(RefinedAccountDefinition rAccount, ResourceType resourceType) {
+        assertNotNull("Null account definition", rAccount);
+        assertEquals("user", rAccount.getAccountTypeName());
+        assertEquals("AccountObjectClass", rAccount.getObjectClassDefinition().getTypeName().getLocalPart());
+        assertTrue(rAccount.isDefault());
+
+        Collection<RefinedAttributeDefinition> attrs = rAccount.getAttributeDefinitions();
+        assertFalse(attrs.isEmpty());
+
+        assertAttributeDef(attrs, ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", true);
+        assertAttributeDef(attrs, ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", false);
+        assertAttributeDef(attrs, new QName(resourceType.getNamespace(), "cn"), DOMUtil.XSD_STRING, 1, -1, "Common Name", true);
+        assertAttributeDef(attrs, new QName(resourceType.getNamespace(), "employeeNumber"), DOMUtil.XSD_STRING, 0, 1, null, false);
+        // TODO: check access
+    }
+
+    private void assertAttributeDef(Collection<RefinedAttributeDefinition> attrDefs, QName name,
+                                    QName typeName, int minOccurs, int maxOccurs, String displayName, boolean hasOutbound) {
+        for (RefinedAttributeDefinition def : attrDefs) {
+            if (def.getName().equals(name)) {
+                assertEquals("Attribute " + name + " type mismatch", typeName, def.getTypeName());
+                assertEquals("Attribute " + name + " minOccurs mismatch", minOccurs, def.getMinOccurs());
+                assertEquals("Attribute " + name + " maxOccurs mismatch", maxOccurs, def.getMaxOccurs());
+                assertEquals("Attribute " + name + " displayName mismatch", displayName, def.getDisplayName());
+                assertEquals("Attribute " + name + " outbound mismatch", hasOutbound, def.getOutboundValueConstructionType() != null);
+                return;
+            }
+        }
+        Assert.fail("Attribute " + name + " not found");
+    }
+    
 	private void assertProtectedAccount(String message, ResourceObjectPattern protectedAccount, String value) {
 		Collection<ResourceAttribute<?>> identifiers = protectedAccount.getIdentifiers();
 		assertNotNull("Null identifiers in "+message, identifiers);

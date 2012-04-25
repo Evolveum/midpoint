@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -286,8 +287,13 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     public Collection<RefinedAttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
     }
-
+    
     @Override
+	public Set<PrismPropertyDefinition> getPropertyDefinitions() {
+    	return (Set)attributeDefinitions;
+	}
+
+	@Override
     public Collection<ItemDefinition> getDefinitions() {
         return (Collection) attributeDefinitions;
     }
