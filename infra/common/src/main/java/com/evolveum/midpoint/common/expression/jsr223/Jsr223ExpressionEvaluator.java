@@ -110,7 +110,7 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 	}
 	
 	private <T> T convertScalarResult(Class<T> type, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
-		if (type.isInstance(rawValue)) {
+		if (rawValue == null || type.isInstance(rawValue)) {
 			return (T)rawValue;
 		}
 		throw new ExpressionEvaluationException("Expected "+type+" from expression, but got "+rawValue.getClass()+" "+contextDescription);
@@ -133,6 +133,10 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 			String contextDescription, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Bindings bindings = scriptEngine.createBindings();
 		for (Entry<QName, Object> variableEntry: variables.entrySet()) {
+			if (variableEntry.getKey() == null) {
+				// This is the "root" node. We have no use for it in JSR223, just skip it
+				continue;
+			}
 			String variableName = variableEntry.getKey().getLocalPart();
 			Object variableValue = convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, result);
 			bindings.put(variableName, variableValue);
