@@ -23,7 +23,7 @@ div.top-menu {
     font: Helvetica, Arial, sans-serif;
     margin: 0;
     box-shadow: 0 3px 3px 0 rgba(0, 0, 0, 0.6);
-    z-index: 100000;
+    z-index: 20000;
     min-width: 1200px;
     top: 60px;
     left: 0px;

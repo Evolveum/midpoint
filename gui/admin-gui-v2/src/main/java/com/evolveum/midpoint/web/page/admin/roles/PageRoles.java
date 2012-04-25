@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -29,9 +30,11 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -66,6 +69,42 @@ public class PageRoles extends PageAdminRoles {
         columns.add(column);
 
         add(new TablePanel<RoleType>("table", new ObjectDataProvider(PageRoles.class), columns));
+        
+        
+        
+        ///////////////////////// POPUP MODAL WINDOW //////////////////////////////////
+        final ModalWindow popupWindow;
+        add(popupWindow = new ModalWindow("popupWindow"));
+        
+        popupWindow.setContent(new PopupWindow(popupWindow.getContentId(), popupWindow));
+        popupWindow.setResizable(false);
+        popupWindow.setTitle("Test popup window");
+        popupWindow.setCookieName("popupWindow");
+        
+        popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+			
+			@Override
+			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+				return true;
+			}
+		});
+        
+        popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+			
+			@Override
+			public void onClose(AjaxRequestTarget target) {
+				popupWindow.close(target);
+			}
+		});
+        
+        add(new AjaxLinkButton("popup", new Model<String>("Popup")){
+			
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				popupWindow.show(target);
+			}
+		});
+        ///////////////////////////////////////////////////////////////////////////////
     }
 
     public void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
