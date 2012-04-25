@@ -1,0 +1,109 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+
+package com.evolveum.midpoint.web.component.message;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author lazyman
+ */
+public class OpResult implements Serializable {
+
+    private OperationResultStatus status;
+    private String operation;
+    private String message;
+    private List<Param> params;
+    private String exceptionMessage;
+    private String exceptionsStackTrace;
+    private List<OpResult> subresults;
+
+    public OpResult(OperationResult result) {
+        this.message = result.getMessage();
+        this.operation = result.getOperation();
+        this.status = result.getStatus();
+
+        if (result.getCause() != null) {
+            Throwable cause = result.getCause();
+            this.exceptionMessage = cause.getMessage();
+//                    this.exceptionsStackTrace = //todo
+        }
+
+        if (result.getParams() != null) {
+            for (Map.Entry<String, Object> entry : result.getParams().entrySet()) {
+                String paramValue = null;
+                Object value = entry.getValue();
+                if (value != null) {
+                    paramValue = value.toString();
+                }
+
+                getParams().add(new Param(entry.getKey(), paramValue));
+            }
+        }
+
+        if (result.getSubresults() != null) {
+            for (OperationResult subresult : result.getSubresults()) {
+                getSubresults().add(new OpResult(subresult));
+            }
+        }
+    }
+
+    public List<OpResult> getSubresults() {
+        if (subresults == null) {
+            subresults = new ArrayList<OpResult>();
+        }
+        return subresults;
+    }
+
+    public String getExceptionMessage() {
+        return exceptionMessage;
+    }
+
+    public String getExceptionsStackTrace() {
+        return exceptionsStackTrace;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public List<Param> getParams() {
+        if (params == null) {
+            params = new ArrayList<Param>();
+        }
+        return params;
+    }
+
+    public OperationResultStatus getStatus() {
+        return status;
+    }
+}

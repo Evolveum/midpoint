@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenu;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
+import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -133,22 +134,24 @@ public abstract class PageBase extends WebPage {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
-        switch (result.getStatus()) {
+        OpResult opResult = new OpResult(result);
+
+        switch (opResult.getStatus()) {
             case FATAL_ERROR:
             case PARTIAL_ERROR:
-                error(result);
+                error(opResult);
                 break;
             case IN_PROGRESS:
             case NOT_APPLICABLE:
-                info(result);
+                info(opResult);
                 break;
             case SUCCESS:
-                success(result);
+                success(opResult);
                 break;
             case UNKNOWN:
             case WARNING:
             default:
-                warn(result);
+                warn(opResult);
         }
     }
 }

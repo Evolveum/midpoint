@@ -21,30 +21,26 @@
 
 package com.evolveum.midpoint.web.component.message;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author lazyman
  */
 public class OperationResultPanel extends Panel {
 
-    public OperationResultPanel(String id, final IModel<OperationResult> model) {
+    public OperationResultPanel(String id, final IModel<OpResult> model) {
         super(id);
 
         add(new AttributeAppender("class", new LoadableModel<String>(false) {
@@ -58,8 +54,8 @@ public class OperationResultPanel extends Panel {
         initLayout(model);
     }
 
-    private String getDetailsCss(final IModel<OperationResult> model) {
-        OperationResult result = model.getObject();
+    private String getDetailsCss(final IModel<OpResult> model) {
+        OpResult result = model.getObject();
         if (result == null || result.getStatus() == null) {
             return "messages-warn-content";
         }
@@ -80,7 +76,7 @@ public class OperationResultPanel extends Panel {
         }
     }
 
-    private void initLayout(final IModel<OperationResult> model) {
+    private void initLayout(final IModel<OpResult> model) {
         WebMarkupContainer messageLi = new WebMarkupContainer("messageLi");
         add(messageLi);
         Label operation = new Label("operation", new PropertyModel<Object>(model, "operation"));
@@ -88,22 +84,22 @@ public class OperationResultPanel extends Panel {
         WebMarkupContainer arrow = new WebMarkupContainer("arrow");
         arrow.setMarkupId(operation.getMarkupId() + "_arrow");
         messageLi.add(arrow);
-        
+
         messageLi.add(operation);//todo localize
         messageLi.add(new AttributeAppender("class", createMessageLiClass(model), " "));
-        
+
         WebMarkupContainer operationContent = new WebMarkupContainer("operationContent");
         operationContent.setMarkupId(operation.getMarkupId() + "_content");
         messageLi.add(operationContent);
 
         operationContent.add(new Label("message", new PropertyModel<String>(model, "message")));
-        
-        ListView<Map.Entry<String, Object>> params = new ListView<Map.Entry<String, Object>>("params",
+
+        ListView<Param> params = new ListView<Param>("params",
                 createParamsModel(model)) {
 
             @Override
-            protected void populateItem(ListItem<Map.Entry<String, Object>> item) {
-                item.add(new Label("paramName", new PropertyModel<Object>(item.getModel(), "key")));
+            protected void populateItem(ListItem<Param> item) {
+                item.add(new Label("paramName", new PropertyModel<Object>(item.getModel(), "name")));
                 item.add(new Label("paramValue", new PropertyModel<Object>(item.getModel(), "value")));
             }
         };
@@ -113,40 +109,41 @@ public class OperationResultPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                OperationResult result = model.getObject();
-                return result.getCause() != null;
+                OpResult result = model.getObject();
+                return StringUtils.isNotEmpty(result.getExceptionMessage())
+                        || StringUtils.isNotEmpty(result.getExceptionsStackTrace());
             }
         };
         operationContent.add(exception);
-        exception.add(new Label("exceptionMessage", new PropertyModel<Object>(model, "cause.message")));
-        
+        exception.add(new Label("exceptionMessage", new PropertyModel<String>(model, "exceptionMessage")));
+
         WebMarkupContainer errorStack = new WebMarkupContainer("errorStack");
         errorStack.setOutputMarkupId(true);
         exception.add(errorStack);
-        
+
         WebMarkupContainer errorStackContent = new WebMarkupContainer("errorStackContent");
         errorStackContent.setMarkupId(errorStack.getMarkupId() + "_content");
         exception.add(errorStackContent);
-        
-        errorStackContent.add(new Label("exceptionStack", new Model<Serializable>("aaaaaaaaaaaaaaaa")));
 
-        ListView<OperationResult> subresults = new ListView<OperationResult>("subresults",
+        errorStackContent.add(new Label("exceptionStack", new PropertyModel<String>(model, "exceptionsStackTrace")));
+
+        ListView<OpResult> subresults = new ListView<OpResult>("subresults",
                 createSubresultsModel(model)) {
 
             @Override
-            protected void populateItem(ListItem<OperationResult> item) {
+            protected void populateItem(ListItem<OpResult> item) {
                 item.add(new OperationResultPanel("subresult", item.getModel()));
             }
         };
         messageLi.add(subresults);
     }
 
-    private IModel<String> createMessageLiClass(final IModel<OperationResult> model) {
+    private IModel<String> createMessageLiClass(final IModel<OpResult> model) {
         return new LoadableModel<String>(false) {
 
             @Override
             protected String load() {
-                OperationResult result = model.getObject();
+                OpResult result = model.getObject();
                 if (result == null || result.getStatus() == null) {
                     return "messages-warn-details-section";
                 }
@@ -168,33 +165,26 @@ public class OperationResultPanel extends Panel {
         };
     }
 
-    private IModel<List<Map.Entry<String, Object>>> createParamsModel(final IModel<OperationResult> model) {
-        return new LoadableModel<List<Map.Entry<String, Object>>>(false) {
+    private IModel<List<Param>> createParamsModel(final IModel<OpResult> model) {
+        return new LoadableModel<List<Param>>(false) {
 
             @Override
-            protected List<Map.Entry<String, Object>> load() {
-                List<Map.Entry<String, Object>> params = new ArrayList<Map.Entry<String, Object>>();
-
-                OperationResult result = model.getObject();
-                Map<String, Object> map = result.getParams();
-                if (map != null && !map.isEmpty()) {
-                    params.addAll(map.entrySet());
-                }
-
-                return params;
+            protected List<Param> load() {
+                OpResult result = model.getObject();
+                return result.getParams();
             }
         };
     }
 
-    private IModel<List<OperationResult>> createSubresultsModel(final IModel<OperationResult> model) {
-        return new LoadableModel<List<OperationResult>>(false) {
+    private IModel<List<OpResult>> createSubresultsModel(final IModel<OpResult> model) {
+        return new LoadableModel<List<OpResult>>(false) {
 
             @Override
-            protected List<OperationResult> load() {
-                OperationResult result = model.getObject();
-                List<OperationResult> subresults = result.getSubresults();
+            protected List<OpResult> load() {
+                OpResult result = model.getObject();
+                List<OpResult> subresults = result.getSubresults();
                 if (subresults == null) {
-                    subresults = new ArrayList<OperationResult>();
+                    subresults = new ArrayList<OpResult>();
                 }
 
                 return subresults;

@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.component.message;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
@@ -64,8 +63,8 @@ public class FeedbackMessagePanel extends Panel {
         add(label);
 
         Panel details;
-        if (message.getObject().getMessage() instanceof OperationResult) {
-            details = new OperationResultPanel("content", new PropertyModel<OperationResult>(message, "message"));
+        if (message.getObject().getMessage() instanceof OpResult) {
+            details = new OperationResultPanel("content", new PropertyModel<OpResult>(message, "message"));
         } else {
             details = new EmptyPanel("content");
         }
@@ -74,7 +73,7 @@ public class FeedbackMessagePanel extends Panel {
             @Override
             public boolean isVisible() {
                 FeedbackMessage msg = message.getObject();
-                if (msg.getMessage() instanceof OperationResult) {
+                if (msg.getMessage() instanceof OpResult) {
                     return true;
                 }
 
@@ -87,8 +86,8 @@ public class FeedbackMessagePanel extends Panel {
 
     private String getTopMessage(final IModel<FeedbackMessage> model) {
         FeedbackMessage message = model.getObject();
-        if (message.getMessage() instanceof OperationResult) {
-            OperationResult result = (OperationResult) message.getMessage();
+        if (message.getMessage() instanceof OpResult) {
+            OpResult result = (OpResult) message.getMessage();
 
             if (StringUtils.isEmpty(result.getMessage())) {
                 String resourceKey;

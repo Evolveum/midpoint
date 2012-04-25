@@ -62,7 +62,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  * 
  */
-public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
+public class PrismSchema implements Dumpable, DebugDumpable {
 
 	private static final long serialVersionUID = 5068618465625931984L;
 

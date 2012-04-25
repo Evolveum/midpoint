@@ -21,14 +21,19 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import org.apache.commons.lang.Validate;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -108,11 +113,35 @@ public class ObjectWrapper implements Serializable {
     private List<ContainerWrapper> createContainers() {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
-        ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), true);
-        containers.add(container);
+        Collection<ItemDefinition> definitions = null;
+        if (AccountShadowType.class.equals(object.getCompileTimeClass())) {
+            try {
+                PrismReference resourceRef = object.findReference(AccountShadowType.F_RESOURCE_REF);
+                PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
+                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+                        object.getPrismContext());
 
-        PrismObjectDefinition definition = object.getDefinition();
-        for (ItemDefinition def : (Collection<ItemDefinition>) definition.getDefinitions()) {
+                PrismProperty<QName> objectClassProp = object.findProperty(AccountShadowType.F_OBJECT_CLASS);
+                QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
+
+                RefinedAccountDefinition refinedAccountDef = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
+                definitions = refinedAccountDef.getDefinitions();
+            } catch (Exception ex) {
+                //todo error handling...
+                ex.printStackTrace();
+            }
+
+            if (definitions == null) {
+                definitions = new ArrayList<ItemDefinition>();
+            }
+        } else {
+            ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), true);
+            containers.add(container);
+            PrismObjectDefinition definition = object.getDefinition();
+            definitions = (Collection<ItemDefinition>) definition.getDefinitions();
+        }
+
+        for (ItemDefinition def : definitions) {
             if (!(def instanceof PrismContainerDefinition)) {
                 continue;
             }
