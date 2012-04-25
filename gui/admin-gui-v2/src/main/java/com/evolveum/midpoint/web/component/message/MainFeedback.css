@@ -68,7 +68,7 @@ ul.messagesTop .messages-error .messages-error-content, ul.messagesTop .messages
 ul.messagesTop .messages-topError {
 	padding: 10px 5px 10px 40px;
 	font-weight: bold;
-	background-image: url(images/messages-error-icon.png);
+	background-image: url(messages-error-icon.png);
 	background-repeat: no-repeat;
 	background-position: 12px center;
 	-moz-border-radius: 4px; 
@@ -86,7 +86,7 @@ ul.messagesTop .messages-error .selected {
 }
 
 ul.messagesTop .messages-topError-arrow {
-	background-image: url(images/messages-error-arrow.png);
+	background-image: url(messages-error-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
     height: 16px;
@@ -106,7 +106,7 @@ ul.messagesTop .messages-error-details-section {
 	padding: 2px 0px;
 	padding-left: 25px;
 	font-size: 12px;
-	background-image: url(images/messages-error-icon.png);
+	background-image: url(messages-error-icon.png);
 	background-repeat: no-repeat;
 	background-position: 9px 2px;
 	color: #CC0A0C;
@@ -128,7 +128,7 @@ ul.messagesTop .messages-details-bold:hover {
 }
 
 ul.messagesTop .messages-error-details-section .messages-details-bold-arrow {
-	background-image: url(images/messages-error-arrow.png);
+	background-image: url(messages-error-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
     height: 16px;
@@ -183,7 +183,7 @@ ul.messagesTop .messages-warn {
 ul.messagesTop .messages-topWarn {
 	padding: 10px 5px 10px 40px;
 	font-weight: bold;
-	background-image: url(images/messages-warn-icon.png);
+	background-image: url(messages-warn-icon.png);
 	background-repeat: no-repeat;
 	background-position: 12px center;
 	-moz-border-radius: 4px; 
@@ -204,7 +204,7 @@ ul.messagesTop .messages-warn-details-section, ul.messagesTop .messages-warn .me
 	padding: 2px 0px;
 	padding-left: 25px;
 	font-size: 12px;
-	background-image: url(images/messages-warn-icon.png);
+	background-image: url(messages-warn-icon.png);
 	background-repeat: no-repeat;
 	background-position: 9px 2px;
 	margin-top: 5px;
@@ -212,7 +212,7 @@ ul.messagesTop .messages-warn-details-section, ul.messagesTop .messages-warn .me
 }
 
 ul.messagesTop .messages-warn-details-section .messages-details-bold-arrow {
-	background-image: url(images/messages-warn-arrow.png);
+	background-image: url(messages-warn-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
     height: 16px;
@@ -244,7 +244,7 @@ ul.messagesTop .messages-succ {
 ul.messagesTop .messages-topSucc {
 	padding: 10px 5px 10px 40px;
 	font-weight: bold;
-	background-image: url(images/messages-succ-icon.png);
+	background-image: url(messages-succ-icon.png);
 	background-repeat: no-repeat;
 	background-position: 12px center;
 	-moz-border-radius: 4px; 
@@ -265,7 +265,7 @@ ul.messagesTop .messages-succ-details-section {
 	padding: 2px 0px;
 	padding-left: 25px;
 	font-size: 12px;
-	background-image: url(images/messages-succ-icon.png);
+	background-image: url(messages-succ-icon.png);
 	background-repeat: no-repeat;
 	background-position: 9px 2px;
 	color: #4F8A10;
@@ -273,7 +273,7 @@ ul.messagesTop .messages-succ-details-section {
 }
 
 ul.messagesTop .messages-succ-details-section .messages-details-bold-arrow {
-	background-image: url(images/messages-succ-arrow.png);
+	background-image: url(messages-succ-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
     height: 16px;
@@ -306,7 +306,7 @@ ul.messagesTop .messages-info {
 ul.messagesTop .messages-topInfo {
 	padding: 10px 5px 10px 40px;
 	font-weight: bold;
-	background-image: url(images/messages-info-icon.png);
+	background-image: url(messages-info-icon.png);
 	background-repeat: no-repeat;
 	background-position: 12px center;
 	-moz-border-radius: 4px; 
@@ -327,7 +327,7 @@ ul.messagesTop .messages-info-details-section, ul.messagesTop .messages-info .me
 	padding: 2px 0px;
 	padding-left: 25px;
 	font-size: 12px;
-	background-image: url(images/messages-info-icon.png);
+	background-image: url(messages-info-icon.png);
 	background-repeat: no-repeat;
 	background-position: 9px 2px;
 	color: #6966f2;
@@ -335,7 +335,7 @@ ul.messagesTop .messages-info-details-section, ul.messagesTop .messages-info .me
 }
 
 ul.messagesTop .messages-info-details-section .messages-details-bold-arrow {
-	background-image: url(images/messages-info-arrow.png);
+	background-image: url(messages-info-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
     height: 16px;

@@ -23,7 +23,7 @@
 <wicket:panel>
     <ul class="messages-details">
         <li wicket:id="messageLi">
-        	<span class="messages-details-bold-arrow arrow-right"/>
+        	<span wicket:id="arrow" class="messages-details-bold-arrow arrow-right"/>
         	<span wicket:id="operation" class="messages-details-bold" />
 		    <div wicket:id="operationContent" class="messages-details-content">
 		    	<ul>
@@ -52,6 +52,12 @@
 			        </li>
 		        </ul>
 		    </div> 
+		    <!-- TODO:
+		    	modify recursive function to result:
+		    	<wicket:id="subresult">
+		    	
+		    	without UL LI and DIV
+		     -->
 		    <ul class="messages-details">
 			    <li wicket:id="subresults">
 				    <div wicket:id="subresult" />

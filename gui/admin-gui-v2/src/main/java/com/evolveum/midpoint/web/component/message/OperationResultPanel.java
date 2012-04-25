@@ -85,8 +85,9 @@ public class OperationResultPanel extends Panel {
         add(messageLi);
         Label operation = new Label("operation", new PropertyModel<Object>(model, "operation"));
         operation.setOutputMarkupId(true);
-        
-        
+        WebMarkupContainer arrow = new WebMarkupContainer("arrow");
+        arrow.setMarkupId(operation.getMarkupId() + "_arrow");
+        messageLi.add(arrow);
         
         messageLi.add(operation);//todo localize
         messageLi.add(new AttributeAppender("class", createMessageLiClass(model), " "));

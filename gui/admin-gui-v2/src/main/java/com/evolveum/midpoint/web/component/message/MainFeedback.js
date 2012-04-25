@@ -81,11 +81,11 @@ function initMessages() {
 		if($(this).parent().find(".messages-details-content").css("display") === "none"){
 			$(this).parent().addClass("selected-section");
 			$("#"+idBlock+"_content").show();
-			$(this).parent().find(".messages-details-bold-arrow").addClass("arrow-down");
+			$("#"+idBlock+"_arrow").addClass("arrow-down");
 		} else {
 			$(this).parent().removeClass("selected-section");
 			$("#"+idBlock+"_content").hide();
-			$(this).parent().find(".messages-details-bold-arrow").removeClass("arrow-down");
+			$("#"+idBlock+"_arrow").removeClass("arrow-down");
 		}
 	});
 
