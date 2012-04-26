@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -14,24 +13,19 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.dto.DtoUtils;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AbstractBehavior;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -75,13 +69,9 @@ public class PageDebugView extends PageAdminConfiguration {
             oldObject = object;
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
-            String name = null;
-            PrismProperty nameProperty = object.findProperty(ObjectType.F_NAME);
-            if (nameProperty != null) {
-                name = (String) nameProperty.getRealValue();
-            }
 
-            dto = new ObjectViewDto(object.getOid(), name, xml);
+
+            dto = new ObjectViewDto(object.getOid(), DtoUtils.getName(object), xml);
         } catch (Exception ex) {
             ex.printStackTrace();
             //todo implement and fix result

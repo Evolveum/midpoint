@@ -28,6 +28,8 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
+import com.evolveum.midpoint.web.page.admin.dto.DtoUtils;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,6 +37,8 @@ import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
 /**
@@ -45,32 +49,52 @@ public class PageRole extends PageAdminRoles {
     public static final String PARAM_ROLE_ID = "roleId";
     private static final String OPERATION_LOAD_ROLE = "pageRole.loadRole";
     private static final String OPERATION_SAVE_ROLE = "pageRole.saveRole";
-    private IModel<String> model;
+    private IModel<ObjectViewDto> model;
 
     public PageRole() {
-        model = new LoadableModel<String>(false) {
+        model = new LoadableModel<ObjectViewDto>(false) {
 
             @Override
-            protected String load() {
+            protected ObjectViewDto load() {
                 return loadRole();
             }
         };
         initLayout();
     }
 
-    private String loadRole() {
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                if (!isEditing()) {
+                    return PageRole.super.createPageTitleModel().getObject();
+                }
+
+                String name = model.getObject().getName();
+                return new StringResourceModel("pageRole.title.editing", PageRole.this, null, null, name).getString();
+            }
+        };
+    }
+
+    private ObjectViewDto loadRole() {
         StringValue roleOid = getPageParameters().get(PARAM_ROLE_ID);
         if (roleOid == null || StringUtils.isEmpty(roleOid.toString())) {
-            return null;
+            return new ObjectViewDto();
         }
 
+        ObjectViewDto dto = null;
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE);
         try {
         	// TODO: task
             PrismObject<RoleType> role = getModelService().getObject(RoleType.class, roleOid.toString(), null, null, result);
 
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-            return domProcessor.serializeObjectToString(role);
+            String xml = domProcessor.serializeObjectToString(role);
+
+            dto = new ObjectViewDto(role.getOid(), DtoUtils.getName(role), xml);
+            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError(ex.getMessage(), ex);
         }
@@ -79,7 +103,7 @@ public class PageRole extends PageAdminRoles {
             showResult(result);
         }
 
-        return null;
+        return dto != null ? dto : new ObjectViewDto();
     }
 
     private void initLayout() {
@@ -94,7 +118,7 @@ public class PageRole extends PageAdminRoles {
                 editPerformed(target, editable.getObject());
             }
         });
-        AceEditor<String> editor = new AceEditor<String>("aceEditor", model);
+        AceEditor<String> editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, "xml"));
         editor.setReadonly(!editable.getObject());
         mainForm.add(editor);
 

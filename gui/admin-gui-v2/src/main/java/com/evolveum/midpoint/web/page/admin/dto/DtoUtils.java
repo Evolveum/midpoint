@@ -19,41 +19,27 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration.dto;
+package com.evolveum.midpoint.web.page.admin.dto;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * @author lazyman
  */
-public class ObjectViewDto implements Serializable {
+public final class DtoUtils {
 
-    private String oid;
-    private String name;
-    private String xml;
-
-    public ObjectViewDto() {
+    private DtoUtils() {
     }
 
-    public ObjectViewDto(String oid, String name, String xml) {
-        this.name = name;
-        this.oid = oid;
-        this.xml = xml;
-    }
+    public static <T extends ObjectType> String getName(PrismObject<T> object) {
+        String name = null;
+        PrismProperty nameProperty = object.findProperty(ObjectType.F_NAME);
+        if (nameProperty != null) {
+            name = (String) nameProperty.getRealValue();
+        }
 
-    public String getName() {
         return name;
-    }
-
-    public String getOid() {
-        return oid;
-    }
-
-    public String getXml() {
-        return xml;
-    }
-
-    public void setXml(String xml) {
-        this.xml = xml;
     }
 }
