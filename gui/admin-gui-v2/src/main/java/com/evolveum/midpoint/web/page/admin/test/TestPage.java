@@ -30,40 +30,8 @@ public class TestPage extends PageAdmin {
 	}
 
 	private void initLayout() {
-		final ModalWindow popupWindow;
-		add(popupWindow = new ModalWindow("popupWindow"));
-
-		popupWindow.setContent(new ResourcePopupWindow(popupWindow.getContentId(), popupWindow));
-		popupWindow.setResizable(false);
-		popupWindow.setTitle("Select resource");
-		popupWindow.setCookieName("Resrource popup window");
-
-		popupWindow.setInitialWidth(1100);
-		popupWindow.setWidthUnit("px");
-
-		popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-
-			@Override
-			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-				return true;
-			}
-		});
-
-		popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-
-			@Override
-			public void onClose(AjaxRequestTarget target) {
-				popupWindow.close(target);
-			}
-		});
-
-		add(new AjaxLinkButton("popup", new Model<String>("Popup")) {
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				popupWindow.show(target);
-			}
-		});
+		final ModalWindow resourceWindow = createResourceWindow();
+		final ModalWindow accountWindow = createAccountWindow();
 		
 		add(new AjaxLinkButton("save", new Model<String>("Save")) {
 
@@ -101,7 +69,92 @@ public class TestPage extends PageAdmin {
         
         Image maximize = new Image("icon2", new PackageResourceReference(TestPage.class,"Maximize.png"));
         accounts.add(maximize);
+        
+        Image delete = new Image("icon3", new PackageResourceReference(TestPage.class,
+        		"Delete.png"));
+        accounts.add(delete);
+        
+        Image disableEnable = new Image("icon4", new PackageResourceReference(TestPage.class,"Link.png"));
+        accounts.add(disableEnable);
+        
+        resources.add(new AjaxLinkButton("addResource", new Model<String>("Add resource")) {
 
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				resourceWindow.show(target);
+			}
+		});
+		
+		accounts.add(new AjaxLinkButton("addAccount", new Model<String>("Add account")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				accountWindow.show(target);
+			}
+		});
+
+	}
+	
+	private ModalWindow createResourceWindow(){
+		final ModalWindow popupWindow;
+		add(popupWindow = new ModalWindow("resourceWindow"));
+
+		popupWindow.setContent(new ResourcePopupWindow(popupWindow.getContentId(), popupWindow));
+		popupWindow.setResizable(false);
+		popupWindow.setTitle("Select resource");
+		popupWindow.setCookieName("Resrource popup window");
+
+		popupWindow.setInitialWidth(1100);
+		popupWindow.setWidthUnit("px");
+
+		popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+
+			@Override
+			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+				return true;
+			}
+		});
+		
+		popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+
+			@Override
+			public void onClose(AjaxRequestTarget target) {
+				popupWindow.close(target);
+			}
+		});
+		
+		return popupWindow;
+	}
+	
+	private ModalWindow createAccountWindow(){
+		final ModalWindow popupWindow;
+		add(popupWindow = new ModalWindow("accountWindow"));
+
+		popupWindow.setContent(new AccountPopupWindow(popupWindow.getContentId(), popupWindow));
+		popupWindow.setResizable(false);
+		popupWindow.setTitle("Select Account");
+		popupWindow.setCookieName("Account popup window");
+
+		popupWindow.setInitialWidth(1100);
+		popupWindow.setWidthUnit("px");
+
+		popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+
+			@Override
+			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+				return true;
+			}
+		});
+		
+		popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+
+			@Override
+			public void onClose(AjaxRequestTarget target) {
+				popupWindow.close(target);
+			}
+		});
+		
+		return popupWindow;
 	}
 	
 	@Override

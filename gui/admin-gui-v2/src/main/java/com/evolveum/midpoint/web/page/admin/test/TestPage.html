@@ -24,7 +24,8 @@
 	xmlns:wicket="http://wicket.apache.org">
 <body>
 	<wicket:extend>
-		<div wicket:id="popupWindow" />
+		<div wicket:id="accountWindow" />
+		<div wicket:id="resourceWindow" />
 		<table width="100%">
 			<tr>
 				<td style="width: 620px; vertical-align: top;">
@@ -96,6 +97,9 @@
 				<td style="vertical-align: top;">
 					<div wicket:id="accordion">
 						<li wicket:id="accounts">
+							<div align="center" style="position: relative; padding: 10px 0;">
+								<a wicket:id="addAccount" />
+							</div>
 							<div class="objectForm" style="position: relative;" align="center">
 								<div class="tableForm">
 									<div class="tableFormHead">
@@ -116,8 +120,17 @@
 												<img
 													id="objectFormHeaderControllButtonMinMax_tableForm01"
 													class="objectFormHeaderControllButtonMinMax"
-													title="Minimize" alt=""
+													title="Maximize" alt=""
 													wicket:id="icon2" />
+													<br />
+												<img
+													class="objectFormHeaderControllButtonShowEmptyFields"
+													title="Delete account" alt=""
+													wicket:id="icon3" />
+												<img
+													class="objectFormHeaderControllButtonMinMax"
+													title="Disable account" alt=""
+													wicket:id="icon4" />
 											</div>
 										</div>
 									</div>
@@ -137,7 +150,14 @@
 							</div>
 						</li>
 						<li wicket:id="assignments"></li>
-						<li wicket:id="resources"></li>
+						<li wicket:id="resources">
+							<div align="center" style="position: relative; padding: 10px 0;">
+								<a wicket:id="addResource" />
+								<a href="#" class="button">Delete selected resource/s</a>
+								<a href="#" class="button">Delete all resources</a>
+							</div>
+							
+						</li>
 					</div>
 				</td>
 			</tr>
@@ -147,7 +167,6 @@
 		<div class="operatingFormButtons">
 			<a wicket:id="save" />
 			<a wicket:id="cancel" />
-			<a wicket:id="popup" />
 		</div>
 	</wicket:extend>
 </body>
