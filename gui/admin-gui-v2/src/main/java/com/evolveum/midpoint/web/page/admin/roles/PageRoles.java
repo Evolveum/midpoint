@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.test.TestPage;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,39 +74,12 @@ public class PageRoles extends PageAdminRoles {
         
         
         ///////////////////////// POPUP MODAL WINDOW //////////////////////////////////
-        final ModalWindow popupWindow;
-        add(popupWindow = new ModalWindow("popupWindow"));
-        
-        popupWindow.setContent(new ResourcePopupWindow(popupWindow.getContentId(), popupWindow));
-        popupWindow.setResizable(false);
-        popupWindow.setTitle("Select resource");
-        popupWindow.setCookieName("Resrource popup window");
-        
-        popupWindow.setInitialWidth(1100);
-        popupWindow.setWidthUnit("px");
-        
-        
-        popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-			
-			@Override
-			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-				return true;
-			}
-		});
-        
-        popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-			
-			@Override
-			public void onClose(AjaxRequestTarget target) {
-				popupWindow.close(target);
-			}
-		});
-        
-        add(new AjaxLinkButton("popup", new Model<String>("Popup")){
+        add(new AjaxLinkButton("popup", new Model<String>("Open test page")){
 			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				popupWindow.show(target);
+				setResponsePage(TestPage.class);
+				//popupWindow.show(target);
 			}
 		});
         ///////////////////////////////////////////////////////////////////////////////
