@@ -73,6 +73,18 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
      */
     public static <T> DeltaSetTriple<T> diff(Collection<PrismPropertyValue<T>> valuesOld, Collection<PrismPropertyValue<T>> valuesNew) {
         DeltaSetTriple<T> triple = new DeltaSetTriple<T>();
+        if (valuesOld == null && valuesNew == null) {
+        	// No values, no change -> empty triple
+        	return triple;
+        }
+        if (valuesOld == null) {
+        	triple.getPlusSet().addAll(valuesNew);
+        	return triple;
+        }
+        if (valuesNew == null) {
+        	triple.getMinusSet().addAll(valuesOld);
+        	return triple;
+        }
         for (PrismPropertyValue<T> val : valuesOld) {
             if (valuesNew.contains(val)) {
                 triple.getZeroSet().add(val);

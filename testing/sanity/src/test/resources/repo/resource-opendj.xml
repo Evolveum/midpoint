@@ -413,6 +413,27 @@ This is now the only account type that midPoint can work with. -->
                     </expression>
                 </outbound>
             </attribute>
+            
+            <attribute>
+                <ref>ri:postalAddress</ref>
+                <displayName>Display Name</displayName>
+                <outbound>
+                	<description>
+                		Conditional expression. It will be evaluated only if user's locality is set.
+                	</description>
+                    <expression>
+                    	<returnType>scalar</returnType>
+                        <code>
+                        	concat('Number ',$c:user/c:employeeNumber)
+                        </code>
+                    </expression>
+                    <condition>
+                    	<code>
+                    		$c:user/c:employeeNumber
+                    	</code>
+                    </condition>
+                </outbound>
+            </attribute>
 
             <!-- Definition of description attribute handling. -->
             <!-- This attribute is using a lookup table to translate the values

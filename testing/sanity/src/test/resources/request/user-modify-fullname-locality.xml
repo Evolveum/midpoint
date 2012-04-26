@@ -40,4 +40,11 @@
 			<c:locality>somewhere</c:locality>
 		</t:value>
 	</modification>
+	<!-- Give him a number -->
+	<modification>
+		<t:modificationType>replace</t:modificationType>
+		<t:value>
+			<c:employeeNumber>1</c:employeeNumber>
+		</t:value>
+	</modification>
 </objectModification>

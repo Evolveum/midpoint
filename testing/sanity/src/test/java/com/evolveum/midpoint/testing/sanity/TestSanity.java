@@ -854,6 +854,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Jack Sparrow");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "middle of nowhere");
         assertNull("carLicense attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "carLicense"));
+        assertNull("postalAddress attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "postalAddress"));
 
         assertNotNull("Activation is null", modelShadow.getActivation());
         assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().isEnabled());
@@ -1087,8 +1088,9 @@ public class TestSanity extends AbstractIntegrationTest {
         UserType repoUserType = repoUser.asObjectable(); 
         display("repository user", repoUser);
 
-        assertEquals("Cpt. Jack Sparrow", repoUserType.getFullName());
-        assertEquals("somewhere", repoUserType.getLocality());
+        assertEquals("wrong value for fullName", "Cpt. Jack Sparrow", repoUserType.getFullName());
+        assertEquals("wrong value for locality", "somewhere", repoUserType.getLocality());
+        assertEquals("wrong value for employeeNumber", "1", repoUserType.getEmployeeNumber());
 
         // Check if appropriate accountRef is still there
 
@@ -1130,6 +1132,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
         // This will get translated from "somewhere" to this (outbound expression in schemeHandling)
         OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+        OpenDJController.assertAttribute(entry, "postalAddress", "Number 1");
 
     }
 

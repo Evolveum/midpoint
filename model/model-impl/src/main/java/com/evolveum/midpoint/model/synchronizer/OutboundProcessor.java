@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -123,15 +124,34 @@ public class OutboundProcessor {
                 } else {
                     // Diff new and old values, distributed the deltas accordingly
 
-                    Collection<PrismPropertyValue<Object>> valuesOld = evaluatedOutboundValueConstructionOld.getOutput().getValues();
-                    Collection<PrismPropertyValue<Object>> valuesNew = evaluatedOutboundValueConstructionNew.getOutput().getValues();
+                	// The output item may be null, e.g. if condition if evaluated to false
+                    Collection<PrismPropertyValue<Object>> valuesOld = null;
+                    Item<PrismPropertyValue<Object>> outboundValueConstructionOutputOld = evaluatedOutboundValueConstructionOld.getOutput();
+                    if (outboundValueConstructionOutputOld != null) {
+                    	valuesOld = outboundValueConstructionOutputOld.getValues();
+                    }
+                    Collection<PrismPropertyValue<Object>> valuesNew = null;
+                    Item<PrismPropertyValue<Object>> outboundValueConstructionOutputNew = evaluatedOutboundValueConstructionNew.getOutput();
+                    if (outboundValueConstructionOutputNew != null) {
+                    	valuesNew = outboundValueConstructionOutputNew.getValues();
+                    }
                     DeltaSetTriple<Object> valueDeltaTriple = DeltaSetTriple.diff(valuesOld, valuesNew);
 
+                    ValueConstruction evaluatedOutboundValueConstruction = null;
+                    if (evaluatedOutboundValueConstructionNew.getOutput() != null) {
+                    	evaluatedOutboundValueConstruction = evaluatedOutboundValueConstructionNew;
+                    } else if (evaluatedOutboundValueConstructionOld.getOutput() != null) {
+                    	evaluatedOutboundValueConstruction = evaluatedOutboundValueConstructionOld;
+                    } else {
+                    	// Both values are null, that means no change
+                    	continue;
+                    }
+                    
+                    evaluatedOutboundValueConstruction.getOutput().getValues().clear();
                     // Clonning the value construction is necessary, as we need three of them
-                    evaluatedOutboundValueConstructionNew.getOutput().getValues().clear();
-                    ValueConstruction plusValueConstruction = evaluatedOutboundValueConstructionNew;
-                    ValueConstruction minusValueConstruction = evaluatedOutboundValueConstructionNew.clone();
-                    ValueConstruction zeroValueConstruction = evaluatedOutboundValueConstructionNew.clone();
+                    ValueConstruction plusValueConstruction = evaluatedOutboundValueConstruction;
+                    ValueConstruction minusValueConstruction = evaluatedOutboundValueConstruction.clone();
+                    ValueConstruction zeroValueConstruction = evaluatedOutboundValueConstruction.clone();
 
                     plusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getPlusSet());
                     attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction<?>>(plusValueConstruction));
