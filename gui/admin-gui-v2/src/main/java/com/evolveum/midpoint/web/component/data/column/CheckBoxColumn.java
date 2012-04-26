@@ -75,6 +75,6 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
     }
 
     public void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<Selectable<T>> rowModel) {
-        //todo implement
+
     }
 }

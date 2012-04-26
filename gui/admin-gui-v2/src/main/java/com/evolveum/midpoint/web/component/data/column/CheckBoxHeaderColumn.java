@@ -50,6 +50,6 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     }
 
     public void onUpdateHeader(AjaxRequestTarget target, DataTable table) {
-        //todo implement
+
     }
 }

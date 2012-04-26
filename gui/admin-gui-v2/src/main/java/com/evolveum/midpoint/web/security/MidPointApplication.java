@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.home.PageHome;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
@@ -115,6 +116,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));
         mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
         mount(new MountedMapper("/admin/role", PageRole.class, new OnePageParameterEncoder(PageRole.PARAM_ROLE_ID)));
+        mount(new MountedMapper("/admin/task", PageTask.class, new OnePageParameterEncoder(PageTask.PARAM_TASK_ID)));
 
         //todo design error pages...
         //error pages

@@ -23,9 +23,11 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +44,26 @@ public class PageAdminTasks extends PageAdmin {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
         items.add(new BottomMenuItem("pageAdminTasks.listTasks", PageTasks.class));
-        items.add(new BottomMenuItem("pageAdminTasks.newTask", PageUser.class));
+        items.add(new BottomMenuItem("pageAdminTasks.newTask", PageTask.class, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !isEditingTask();
+            }
+        }));
+        items.add(new BottomMenuItem("pageAdminTasks.editTask", PageTask.class, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isEditingTask();
+            }
+        }));
 
         return items;
+    }
+
+    private boolean isEditingTask() {
+        StringValue roleOid = getPageParameters().get(PageTask.PARAM_TASK_ID);
+        return roleOid != null && StringUtils.isNotEmpty(roleOid.toString());
     }
 }
