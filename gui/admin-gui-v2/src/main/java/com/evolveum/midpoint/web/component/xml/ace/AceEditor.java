@@ -21,9 +21,11 @@
 
 package com.evolveum.midpoint.web.component.xml.ace;
 
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 public class AceEditor<T> extends TextArea<T> {
@@ -35,7 +37,7 @@ public class AceEditor<T> extends TextArea<T> {
     private String editorId;
     private String width = "100%";
     private String height = "auto";
-    private boolean readonly = false;
+    private IModel<Boolean> readonly = new Model<Boolean>(false);
 
     public AceEditor(String id, IModel<T> model) {
         super(id, model);
@@ -61,7 +63,7 @@ public class AceEditor<T> extends TextArea<T> {
         StringBuilder script = new StringBuilder();
         script.append("if ($('#").append(editorId).append("').length == 0) {");
         script.append("$(\"<div id='").append(editorId).append("'></div>\").insertAfter($('#")
-        .append(this.getMarkupId()).append("')); ");
+                .append(this.getMarkupId()).append("')); ");
         /*script.append("jQuery(\"<div id='").append(editorId).append("' class='aceEditor' style='width: ")
                 .append(width).append("; height: ").append(height).append(";'></div>\").insertAfter(jQuery('#")
                 .append(this.getMarkupId()).append("')); ");*/
@@ -73,20 +75,20 @@ public class AceEditor<T> extends TextArea<T> {
         script.append(editorId).append(".getSession().setMode(new XmlMode());");
         script.append("$('#").append(this.getMarkupId()).append("').hide();");
         script.append(editorId).append(".setShowPrintMargin(false); ");
-        script.append(editorId).append(".setReadOnly(").append(readonly).append("); ");
+        script.append(editorId).append(".setReadOnly(").append(isReadonly()).append("); ");
         script.append(editorId).append(".on('blur', function() { ");
         script.append("$('#").append(getMarkupId()).append("').val(").append(editorId)
                 .append(".getSession().getValue()); ");
         script.append("$('#").append(getMarkupId()).append("').trigger('onBlur'); });");
-        
+
         script.append(" }");
-        
-        script.append("if(").append(readonly).append(") {");
+
+        script.append("if(").append(isReadonly()).append(") {");
         script.append("$('.ace_scroller').css('background','#F4F4F4');");
         script.append(" } else {");
         script.append("$('.ace_scroller').css('background','#FFFFFF');");
         script.append(" }");
-        //System.out.println(script.toString());
+
         return script.toString();
     }
 
@@ -113,15 +115,34 @@ public class AceEditor<T> extends TextArea<T> {
     }
 
     public boolean isReadonly() {
-        return readonly;
+        return readonly.getObject() != null ? readonly.getObject() : false;
     }
 
-    //todo wtf??? javascript to another method !!!
-    public String setReadonly(boolean readonly) {
+    public void setReadonly(boolean readonly) {
+        this.readonly.setObject(readonly);
+    }
+
+    public void setReadonly(IModel<Boolean> readonly) {
+        Validate.notNull(readonly, "Readonly model must not be null.");
         this.readonly = readonly;
-        if(readonly){
-        	return "window."+editorId+".setReadOnly("+readonly+"); $('.ace_scroller').css('background','#F4F4F4');";
+    }
+
+    public String createJavascriptEditableRefresh() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("window.");
+        builder.append(editorId);
+        builder.append(".setReadOnly(");
+        builder.append(isReadonly());
+        builder.append("); ");
+
+        builder.append("$('.ace_scroller').css('background','");
+        if (isReadonly()) {
+            builder.append("#F4F4F4");
+        } else {
+            builder.append("#FFFFFF");
         }
-        return "window."+editorId+".setReadOnly("+readonly+"); $('.ace_scroller').css('background','#FFFFFF');";
+        builder.append("');");
+
+        return builder.toString();
     }
 }

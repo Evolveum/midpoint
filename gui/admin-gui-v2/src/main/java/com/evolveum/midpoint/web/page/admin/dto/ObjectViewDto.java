@@ -21,24 +21,33 @@
 
 package com.evolveum.midpoint.web.page.admin.dto;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class ObjectViewDto implements Serializable {
+public class ObjectViewDto<T extends ObjectType> implements Serializable {
 
     private String oid;
     private String name;
     private String xml;
+    private PrismObject<T> object;
 
     public ObjectViewDto() {
     }
 
-    public ObjectViewDto(String oid, String name, String xml) {
+    public ObjectViewDto(String oid, String name, PrismObject<T> object, String xml) {
         this.name = name;
         this.oid = oid;
+        this.object = object;
         this.xml = xml;
+    }
+
+    public PrismObject<T> getObject() {
+        return object;
     }
 
     public String getName() {

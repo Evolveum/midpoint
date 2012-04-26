@@ -22,8 +22,10 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -36,7 +38,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
@@ -87,13 +88,14 @@ public class PageRole extends PageAdminRoles {
         ObjectViewDto dto = null;
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE);
         try {
-        	// TODO: task
-            PrismObject<RoleType> role = getModelService().getObject(RoleType.class, roleOid.toString(), null, null, result);
+            Task task = getTaskManager().createTaskInstance(OPERATION_LOAD_ROLE);
+            PrismObject<RoleType> role = getModelService().getObject(RoleType.class, roleOid.toString(),
+                    null, task, result);
 
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
             String xml = domProcessor.serializeObjectToString(role);
 
-            dto = new ObjectViewDto(role.getOid(), DtoUtils.getName(role), xml);
+            dto = new ObjectViewDto(role.getOid(), DtoUtils.getName(role), role, xml);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError(ex.getMessage(), ex);
@@ -110,7 +112,13 @@ public class PageRole extends PageAdminRoles {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        final IModel<Boolean> editable = new Model<Boolean>(isEditing());
+        final IModel<Boolean> editable = new LoadableModel<Boolean>(false) {
+
+            @Override
+            protected Boolean load() {
+                return !isEditing();
+            }
+        };
         mainForm.add(new AjaxCheckBox("edit", editable) {
 
             @Override
@@ -119,7 +127,13 @@ public class PageRole extends PageAdminRoles {
             }
         });
         AceEditor<String> editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, "xml"));
-        editor.setReadonly(!editable.getObject());
+        editor.setReadonly(new LoadableModel<Boolean>(false) {
+
+            @Override
+            protected Boolean load() {
+                return isEditing();
+            }
+        });
         mainForm.add(editor);
 
         initButtons(mainForm);
@@ -164,20 +178,46 @@ public class PageRole extends PageAdminRoles {
     private void editPerformed(AjaxRequestTarget target, boolean editable) {
         AceEditor editor = (AceEditor) get("mainForm:aceEditor");
 
-        target.appendJavaScript(editor.setReadonly(!editable));
+        editor.setReadonly(!editable);
+        target.appendJavaScript(editor.createJavascriptEditableRefresh());
     }
 
     private void savePerformed(AjaxRequestTarget target) {
+        ObjectViewDto dto = model.getObject();
+        if (StringUtils.isEmpty(dto.getXml())) {
+            error("Can't save empty xml as role.");     //todo i18n
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_SAVE_ROLE);
         try {
+            Task task = getTaskManager().createTaskInstance(OPERATION_SAVE_ROLE);
             if (!isEditing()) {
                 //we're adding new role
+                PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+                PrismObject<RoleType> newRole = domProcessor.parseObject(dto.getXml(), RoleType.class);
 
+                getModelService().addObject(newRole, task, result);
             } else {
                 //we're editing existing role
+                PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+                PrismObject<RoleType> oldRole = dto.getObject();
+                PrismObject<RoleType> newRole = domProcessor.parseObject(dto.getXml(), RoleType.class);
 
+                ObjectDelta<RoleType> delta = oldRole.diff(newRole);
+                getModelService().modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), task, result);
             }
-        } catch (Exception ex) {
 
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't save role.", ex);
+        }
+
+        showResult(result);
+        if (result.isSuccess()) {
+            //todo success message is not shown
+            setResponsePage(PageRoles.class);
         }
     }
 }
