@@ -21,11 +21,13 @@
 
 package com.evolveum.midpoint.web.component.message;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +53,10 @@ public class OpResult implements Serializable {
         if (result.getCause() != null) {
             Throwable cause = result.getCause();
             this.exceptionMessage = cause.getMessage();
-//                    this.exceptionsStackTrace = //todo
+
+            Writer writer = new StringWriter();
+            cause.printStackTrace(new PrintWriter(writer));
+            this.exceptionsStackTrace = writer.toString();
         }
 
         if (result.getParams() != null) {

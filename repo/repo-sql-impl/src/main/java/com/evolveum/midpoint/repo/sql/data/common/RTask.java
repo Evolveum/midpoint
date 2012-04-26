@@ -60,6 +60,27 @@ public class RTask extends RObject {
     private RObjectReferenceTaskObject objectRef;
     private RObjectReferenceTaskOwner ownerRef;
 
+    private OperationResultStatusType resultStatus;
+    private String canRunOnNode;
+    private ThreadStopActionType threadStopAction;
+
+    @Column(nullable = true)
+    public String getCanRunOnNode() {
+        return canRunOnNode;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = true)
+    public OperationResultStatusType getResultStatus() {
+        return resultStatus;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = true)
+    public ThreadStopActionType getThreadStopAction() {
+        return threadStopAction;
+    }
+
     @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReferenceTaskObject getObjectRef() {
@@ -73,6 +94,7 @@ public class RTask extends RObject {
     }
 
     @Type(type = "org.hibernate.type.TextType")
+    @Column(nullable = true)
     public String getModelOperationState() {
         return modelOperationState;
     }
@@ -83,11 +105,13 @@ public class RTask extends RObject {
     }
 
     @Type(type = "org.hibernate.type.TextType")
+    @Column(nullable = true)
     public String getSchedule() {
         return schedule;
     }
 
     @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = true)
     public TaskBindingType getBinding() {
         return binding;
     }
@@ -113,6 +137,18 @@ public class RTask extends RObject {
         return result;
     }
 
+    public void setCanRunOnNode(String canRunOnNode) {
+        this.canRunOnNode = canRunOnNode;
+    }
+
+    public void setResultStatus(OperationResultStatusType resultStatus) {
+        this.resultStatus = resultStatus;
+    }
+
+    public void setThreadStopAction(ThreadStopActionType threadStopAction) {
+        this.threadStopAction = threadStopAction;
+    }
+
     public void setObjectRef(RObjectReferenceTaskObject objectRef) {
         this.objectRef = objectRef;
     }
@@ -129,26 +165,32 @@ public class RTask extends RObject {
         return handlerUri;
     }
 
+    @Column(nullable = true)
     public XMLGregorianCalendar getLastRunFinishTimestamp() {
         return lastRunFinishTimestamp;
     }
 
+    @Column(nullable = true)
     public XMLGregorianCalendar getLastRunStartTimestamp() {
         return lastRunStartTimestamp;
     }
 
+    @Column(nullable = true)
     public XMLGregorianCalendar getNextRunStartTime() {
         return nextRunStartTime;
     }
 
+    @Column(nullable = true)
     public String getNode() {
         return node;
     }
 
+    @Column(nullable = true)
     public Long getProgress() {
         return progress;
     }
 
+    @Column(nullable = true)
     public String getTaskIdentifier() {
         return taskIdentifier;
     }
@@ -250,6 +292,10 @@ public class RTask extends RObject {
         if (schedule != null ? !schedule.equals(rTask.schedule) : rTask.schedule != null) return false;
         if (taskIdentifier != null ? !taskIdentifier.equals(rTask.taskIdentifier) : rTask.taskIdentifier != null)
             return false;
+        if (resultStatus != null ? !resultStatus.equals(rTask.resultStatus) : rTask.resultStatus != null) return false;
+        if (canRunOnNode != null ? !canRunOnNode.equals(rTask.canRunOnNode) : rTask.canRunOnNode != null) return false;
+        if (threadStopAction != null ? !threadStopAction.equals(rTask.threadStopAction) :
+                rTask.threadStopAction != null) return false;
 
         return true;
     }
@@ -272,6 +318,10 @@ public class RTask extends RObject {
         result1 = 31 * result1 + (binding != null ? binding.hashCode() : 0);
         result1 = 31 * result1 + (schedule != null ? schedule.hashCode() : 0);
         result1 = 31 * result1 + (modelOperationState != null ? modelOperationState.hashCode() : 0);
+        result1 = 31 * result1 + (resultStatus != null ? resultStatus.hashCode() : 0);
+        result1 = 31 * result1 + (canRunOnNode != null ? canRunOnNode.hashCode() : 0);
+        result1 = 31 * result1 + (threadStopAction != null ? threadStopAction.hashCode() : 0);
+
         return result1;
     }
 
@@ -291,6 +341,9 @@ public class RTask extends RObject {
         jaxb.setBinding(repo.getBinding());
         jaxb.setNextRunStartTime(repo.getNextRunStartTime());
         jaxb.setRecurrence(repo.getRecurrence());
+        jaxb.setResultStatus(repo.getResultStatus());
+        jaxb.setCanRunOnNode(repo.getCanRunOnNode());
+        jaxb.setThreadStopAction(repo.getThreadStopAction());
 
         if (repo.getObjectRef() != null) {
             jaxb.setObjectRef(repo.getObjectRef().toJAXB(prismContext));
@@ -331,6 +384,9 @@ public class RTask extends RObject {
         repo.setBinding(jaxb.getBinding());
         repo.setNextRunStartTime(jaxb.getNextRunStartTime());
         repo.setRecurrence(jaxb.getRecurrence());
+        repo.setResultStatus(jaxb.getResultStatus());
+        repo.setCanRunOnNode(jaxb.getCanRunOnNode());
+        repo.setThreadStopAction(jaxb.getThreadStopAction());
 
         repo.setObjectRef(RUtil.jaxbRefToRepoTaskObject(jaxb.getObjectRef(), repo, prismContext));
         repo.setOwnerRef(RUtil.jaxbRefToRepoTaskOwner(jaxb.getOwnerRef(), repo, prismContext));
