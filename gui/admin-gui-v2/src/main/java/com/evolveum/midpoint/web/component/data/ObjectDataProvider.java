@@ -41,6 +41,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -52,6 +53,8 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
     private Class<T> type;
     private QueryType query;
+    //actual model
+    private List<SelectableBean<T>> availableData;
 
     public ObjectDataProvider(Class<T> type) {
         this.type = type;
@@ -65,7 +68,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
 
     @Override
     public Iterator<SelectableBean<T>> iterator(int first, int count) {
-        List<SelectableBean<T>> users = new ArrayList<SelectableBean<T>>();
+        availableData = new ArrayList<SelectableBean<T>>();
         try {
             SortParam sortParam = getSort();
             OrderDirectionType order;
@@ -80,14 +83,18 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
 
             List<PrismObject<T>> list = getModel().searchObjects(type, query, paging, result);
             for (PrismObject<T> object : list) {
-                users.add(new SelectableBean<T>(object.asObjectable()));
+                availableData.add(new SelectableBean<T>(object.asObjectable()));
             }
 
             //todo error and operation result handling
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return users.iterator();
+        return availableData.iterator();
+    }
+
+    public List<SelectableBean<T>> getAvailableData() {
+        return Collections.unmodifiableList(availableData);
     }
 
     @Override

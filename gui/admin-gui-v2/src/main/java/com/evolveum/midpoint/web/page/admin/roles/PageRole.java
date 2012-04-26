@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,7 +35,6 @@ import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 
 /**
@@ -87,7 +85,7 @@ public class PageRole extends PageAdminRoles {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        final IModel<Boolean> editable = new Model<Boolean>(false);
+        final IModel<Boolean> editable = new Model<Boolean>(isEditing());
         mainForm.add(new AjaxCheckBox("edit", editable) {
 
             @Override
@@ -113,7 +111,7 @@ public class PageRole extends PageAdminRoles {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                onSaveError(target, form);
+                target.add(getFeedbackPanel());
             }
         };
         mainForm.add(saveButton);
@@ -129,17 +127,32 @@ public class PageRole extends PageAdminRoles {
         mainForm.add(backButton);
     }
 
-    public void editPerformed(AjaxRequestTarget target, boolean editable) {
+    private boolean isEditing() {
+        StringValue roleOid = getPageParameters().get(PARAM_ROLE_ID);
+        if (roleOid == null || StringUtils.isEmpty(roleOid.toString())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void editPerformed(AjaxRequestTarget target, boolean editable) {
         AceEditor editor = (AceEditor) get("mainForm:aceEditor");
 
         target.appendJavaScript(editor.setReadonly(!editable));
     }
 
-    public void onSaveError(AjaxRequestTarget target, Form form) {
-        //todo implement
-    }
+    private void savePerformed(AjaxRequestTarget target) {
+        try {
+            if (!isEditing()) {
+                //we're adding new role
 
-    public void savePerformed(AjaxRequestTarget target) {
+            } else {
+                //we're editing existing role
 
+            }
+        } catch (Exception ex) {
+
+        }
     }
 }

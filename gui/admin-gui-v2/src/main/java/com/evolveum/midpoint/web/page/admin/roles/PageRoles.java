@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -28,10 +30,9 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.test.TestPage;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -46,6 +47,8 @@ import java.util.List;
  * @author lazyman
  */
 public class PageRoles extends PageAdminRoles {
+
+    private static final String OPERATION_DELETE_ROLES = "pageRoles.deleteRoles";
 
     public PageRoles() {
         initLayout();
@@ -73,8 +76,10 @@ public class PageRoles extends PageAdminRoles {
         column = new PropertyColumn(createStringResource("pageRoles.description"), "value.description");
         columns.add(column);
 
-        mainForm.add(new TablePanel<RoleType>("table", new ObjectDataProvider(RoleType.class), columns));
-        
+        TablePanel table = new TablePanel<RoleType>("table", new ObjectDataProvider(RoleType.class), columns);
+        table.setOutputMarkupId(true);
+        mainForm.add(table);
+
         AjaxLinkButton delete = new AjaxLinkButton("delete", createStringResource("pageRoles.button.delete")) {
 
             @Override
@@ -83,7 +88,7 @@ public class PageRoles extends PageAdminRoles {
             }
         };
         mainForm.add(delete);
-        
+
         ///////////////////////// POPUP MODAL WINDOW //////////////////////////////////
         mainForm.add(new AjaxLinkButton("popup", new Model<String>("Open test page")) {
 
@@ -97,7 +102,35 @@ public class PageRoles extends PageAdminRoles {
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
+        TablePanel panel = (TablePanel) get("mainForm:table");
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider<RoleType> provider = (ObjectDataProvider<RoleType>) table.getDataProvider();
+
+        List<SelectableBean<RoleType>> rows = provider.getAvailableData();
+        List<SelectableBean<RoleType>> toBeDeleted = new ArrayList<SelectableBean<RoleType>>();
+        for (SelectableBean row : rows) {
+            if (row.isSelected()) {
+                toBeDeleted.add(row);
+            }
+        }
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_ROLES);
+        for (SelectableBean<RoleType> row : toBeDeleted) {
+            try {
+                Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_ROLES);
+                RoleType role = row.getValue();
+                getModelService().deleteObject(RoleType.class, role.getOid(), task, result);
+            } catch (Exception ex) {
+                result.recordPartialError("Couldn't delete role.", ex);
+            }
+        }
+        result.recomputeStatus("Error occurred during role deleting.");
+        showResult(result);
+
+        target.appendJavaScript("alert('deleting " + toBeDeleted.size() + " objects.');");
+        target.add(panel);
         //todo implement
+        System.out.println("aaaa");
     }
 
     private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
