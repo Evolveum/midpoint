@@ -711,6 +711,21 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="clustered" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether this node is a part of a cluster. Used to detect misconfigurations.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="internalNodeIdentifier" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Internal (generated) node identifier, used primarily to detect whether
+                                the node information was not overwritten by another node.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
