@@ -66,7 +66,8 @@ public class PageRole extends PageAdminRoles {
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE);
         try {
-            PrismObject<RoleType> role = getModelService().getObject(RoleType.class, roleOid.toString(), null, result);
+        	// TODO: task
+            PrismObject<RoleType> role = getModelService().getObject(RoleType.class, roleOid.toString(), null, null, result);
 
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
             return domProcessor.serializeObjectToString(role);

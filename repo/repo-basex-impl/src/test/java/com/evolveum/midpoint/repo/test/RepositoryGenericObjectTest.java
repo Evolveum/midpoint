@@ -119,7 +119,7 @@ public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTest
 
 			// get object
 			PrismObject<GenericObjectType> retrievedObject = repositoryService.getObject(GenericObjectType.class, genericObjectOid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+					new OperationResult("test"));
 			PrismAsserts.assertEquals(genericObject, retrievedObject);
 
 			// list objects of type
@@ -132,7 +132,7 @@ public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTest
 			// delete object
 			repositoryService.deleteObject(GenericObjectType.class, genericObjectOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(ObjectType.class, genericObjectOid, new PropertyReferenceListType(), new OperationResult("test"));
+				repositoryService.getObject(ObjectType.class, genericObjectOid, new OperationResult("test"));
 				Assert.fail("Object with oid " + genericObjectOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore

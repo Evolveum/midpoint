@@ -176,11 +176,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test000Integrity");
 
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
 				result).asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
 		ConnectorType connector = repositoryService
-				.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
+				.getObject(ConnectorType.class, connectorOid, result).asObjectable();
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
 		
@@ -203,7 +203,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test001Connectors");
 
 		// WHEN
-		List<PrismObject<ConnectorType>> connectors = repositoryService.listObjects(ConnectorType.class, null, result);
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, null, null, result);
 
 		// THEN
 		assertFalse("No connector found", connectors.isEmpty());
@@ -271,11 +271,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test003Connection");
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
-				null, result).asObjectable();
+				result).asObjectable();
 		assertNotNull("No connector ref", resourceBefore.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceBefore.getConnectorRef().getOid());
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore
-				.getConnectorRef().getOid(), null, result).asObjectable();
+				.getConnectorRef().getOid(), result).asObjectable();
 		assertNotNull(connector);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
@@ -288,7 +288,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("Test result", testResult);
 		assertSuccess("Test resource failed (result)", testResult);
 
-		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable(); 
 		display("Resource after test", resourceTypeRepoAfter);
 
@@ -320,7 +320,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test004Configuration");
 
 		// WHEN
-		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
 		resourceType = resource.asObjectable();
 
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
@@ -426,8 +426,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test006Capabilities");
 
 		// WHEN
-		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
-				result).asObjectable();
+		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result).asObjectable();
 
 		// THEN
 
@@ -482,7 +481,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No resource schema", resourceSchema);
 		
 		// WHEN
-		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_DUMMY_OID, result);
 		
 		//THEN
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
@@ -531,11 +530,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID,
-				new PropertyReferenceListType(), result).asObjectable();
+				result).asObjectable();
 		assertEquals("will", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_WILL_OID, new PropertyReferenceListType(), result).asObjectable();
+				ACCOUNT_WILL_OID, result).asObjectable();
 		display("account from provisioning",provisioningAccountType);
 		assertEquals("will", provisioningAccountType.getName());
 		
@@ -551,7 +550,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
 		
 		// Check if the shadow is in the repo
-		PrismObject<AccountShadowType> shadowFromRepo = repositoryService.getObject(AccountShadowType.class, addedObjectOid, null, result);
+		PrismObject<AccountShadowType> shadowFromRepo = repositoryService.getObject(AccountShadowType.class, addedObjectOid, result);
 		assertNotNull("Shadow was not created in the repository",shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 		
@@ -581,11 +580,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_MORGAN_OID,
-				new PropertyReferenceListType(), result).asObjectable();
+				result).asObjectable();
 		assertEquals("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_MORGAN_OID, new PropertyReferenceListType(), result).asObjectable();
+				ACCOUNT_MORGAN_OID, result).asObjectable();
 		display("account from provisioning",provisioningAccountType);
 		assertEquals("Account name was not generated (provisioning)", ACCOUNT_MORGAN_NAME, provisioningAccountType.getName());
 		
@@ -601,7 +600,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals("Wrong password", "sh1verM3T1mb3rs", dummyAccount.getPassword());
 		
 		// Check if the shadow is in the repo
-		PrismObject<AccountShadowType> shadowFromRepo = repositoryService.getObject(AccountShadowType.class, addedObjectOid, null, result);
+		PrismObject<AccountShadowType> shadowFromRepo = repositoryService.getObject(AccountShadowType.class, addedObjectOid, result);
 		assertNotNull("Shadow was not created in the repository",shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 		
@@ -619,7 +618,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		AccountShadowType shadow = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_WILL_OID, null, result).asObjectable();
+				ACCOUNT_WILL_OID, result).asObjectable();
 
 		// THEN
 		display("Retrieved account shadow", shadow);
@@ -742,7 +741,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test021EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_WILL_OID, null, result).asObjectable();
+				ACCOUNT_WILL_OID, result).asObjectable();
 		assertNotNull(accountType);
 
 		// THEN
@@ -776,7 +775,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test022EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_WILL_OID, null, result).asObjectable();
+				ACCOUNT_WILL_OID, result).asObjectable();
 		assertNotNull(accountType);
 
 		// THEN
@@ -829,11 +828,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals(ACCOUNT_NEW_SCRIPT_OID, addedObjectOid);
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_SCRIPT_OID, new PropertyReferenceListType(), result).asObjectable();
+				ACCOUNT_NEW_SCRIPT_OID, result).asObjectable();
 		assertEquals("william", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_SCRIPT_OID, new PropertyReferenceListType(), result).asObjectable();
+				ACCOUNT_NEW_SCRIPT_OID, result).asObjectable();
 		assertEquals("william", provisioningAccountType.getName());
 
 		
@@ -906,7 +905,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// WHEN
 		try {
 			provisioningService.getObject(AccountShadowType.class,
-					ACCOUNT_DAEMON_OID, null, result);
+					ACCOUNT_DAEMON_OID, result);
 			AssertJUnit.fail("Expected security exception while reading 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
@@ -1163,7 +1162,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	
 		// WHEN
 		try {
-			PrismObject<ResourceType> object = provisioningService.getObject(ResourceType.class, NOT_PRESENT_OID, null, result);
+			PrismObject<ResourceType> object = provisioningService.getObject(ResourceType.class, NOT_PRESENT_OID, result);
 			AssertJUnit.fail("Expected ObjectNotFoundException to be thrown, but getObject returned "+object+" instead");
 		} catch (ObjectNotFoundException e) {
 			// This is expected

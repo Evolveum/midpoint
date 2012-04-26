@@ -114,18 +114,18 @@ public class RepositoryUserTemplateTest extends AbstractTestNGSpringContextTests
             repositoryService.addObject(userTemplate, new OperationResult("test"));
             
             //get object
-            PrismObject<UserTemplateType> retrievedObject = repositoryService.getObject(UserTemplateType.class, userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
+            PrismObject<UserTemplateType> retrievedObject = repositoryService.getObject(UserTemplateType.class, userTemplateOid, new OperationResult("test"));
             PrismAsserts.assertEquals(userTemplate, retrievedObject);
             
             //list object
-            List<PrismObject<UserTemplateType>> objects = repositoryService.listObjects(UserTemplateType.class, new PagingType(), new OperationResult("test"));
+            List<PrismObject<UserTemplateType>> objects = repositoryService.searchObjects(UserTemplateType.class, null, new PagingType(), new OperationResult("test"));
             assertEquals(1, objects.size());
             assertEquals(userTemplateOid, objects.get(0).getOid());
             
 			// delete object
 			repositoryService.deleteObject(UserTemplateType.class, userTemplateOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(ObjectType.class, userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
+				repositoryService.getObject(ObjectType.class, userTemplateOid, new OperationResult("test"));
 				Assert.fail("Object with oid " + userTemplateOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore

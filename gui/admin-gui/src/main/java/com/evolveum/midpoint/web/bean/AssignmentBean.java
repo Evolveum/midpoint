@@ -237,7 +237,7 @@ public class AssignmentBean extends SelectableBean implements Serializable {
                 ObjectReferenceType objectRef = assignment.getTargetRef();
                 if (objectRef != null) {
                     PrismObject<? extends ObjectType> objType = model.getObject(ObjectTypes.getObjectTypeClass(
-                            objectRef.getType().getLocalPart()), objectRef.getOid(), new PropertyReferenceListType(),
+                            objectRef.getType().getLocalPart()), objectRef.getOid(), null, null,
                             new OperationResult("Get object"));
                     builder.append(objType.getName());
                     builder.append(", oid: ");

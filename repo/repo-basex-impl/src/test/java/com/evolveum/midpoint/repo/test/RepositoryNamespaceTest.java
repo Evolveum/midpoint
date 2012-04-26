@@ -116,8 +116,7 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 				LOGGER.debug("Adding connector to repository");
 				String oid = repository.addObject(connector, result);
 
-				connector = repository.getObject(ConnectorType.class, oid, new PropertyReferenceListType(),
-						result);
+				connector = repository.getObject(ConnectorType.class, oid, result);
 				connectorType = connector.asObjectable();
 				Element xsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
 				LOGGER.debug("Parsing dom schema to object");

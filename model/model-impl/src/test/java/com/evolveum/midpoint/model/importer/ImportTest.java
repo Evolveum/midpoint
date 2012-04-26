@@ -33,6 +33,7 @@ import com.evolveum.midpoint.task.quartzimpl.NoOpTaskHandler;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -125,7 +126,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_LDAP_OID, null, result).asObjectable();
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_LDAP_OID, result).asObjectable();
 		assertNotNull(connector);
 		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
 		assertEquals(CONNECTOR_NAMESPACE, connector.getNamespace());
@@ -149,7 +150,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import has failed (result)", result, 2);
 
 		// Check import with fixed OID
-		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
+		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
 		ResourceType resourceType = resource.asObjectable();
 		assertNotNull(resourceType);
 		display("Imported resource",resourceType);
@@ -193,7 +194,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
-		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result).asObjectable();
+		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
 		display("Jack",jack);
 		assertNotNull(jack);
 		assertEquals("Jack", jack.getGivenName());
@@ -255,7 +256,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	// Import the same thing again, this time with overwrite option. This should go well.
 	@Test
 	public void test005ImportUsersWithOverwrite() throws FileNotFoundException, ObjectNotFoundException,
-			SchemaException {
+			SchemaException, SecurityViolationException {
 		displayTestTile(this,"test005ImportUsersWithOverwrite");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
@@ -273,7 +274,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.listObjects(UserType.class, null, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		
@@ -312,7 +313,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	// Import the same thing again, with overwrite and also while keeping OIDs
 	@Test
 	public void test006ImportUsersWithOverwriteKeepOid() throws FileNotFoundException, ObjectNotFoundException,
-			SchemaException {
+			SchemaException, SecurityViolationException {
 		displayTestTile(this,"test006ImportUsersWithOverwriteKeepOid");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
@@ -331,7 +332,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.listObjects(UserType.class, null, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		
@@ -373,7 +374,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		FileInputStream stream = new FileInputStream(IMPORT_TASK_FILE);
 		
 		// well, let's check whether task owner really exists
-		PrismObject<UserType> ownerPrism = repositoryService.getObject(UserType.class, TASK1_OWNER_OID, null, result);
+		PrismObject<UserType> ownerPrism = repositoryService.getObject(UserType.class, TASK1_OWNER_OID, result);
 		assertEquals("Task owner does not exist or has an unexpected OID", TASK1_OWNER_OID, ownerPrism.getOid());
 		
 		// WHEN
@@ -385,7 +386,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import has failed (result)", result);
 
 		// Check import
-		PrismObject<TaskType> task1AsPrism = repositoryService.getObject(TaskType.class, TASK1_OID, null, result);
+		PrismObject<TaskType> task1AsPrism = repositoryService.getObject(TaskType.class, TASK1_OID, result);
 		TaskType task1AsType = task1AsPrism.asObjectable();
 		assertNotNull(task1AsType);
 		assertEquals("Task name not imported correctly", "Task1: basic single-run task (takes 3x60 sec)", task1AsType.getName());

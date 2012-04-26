@@ -34,6 +34,7 @@ import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -66,6 +67,9 @@ public class ExpressionHandler {
 	
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
+	
+	@Autowired(required = true)
+	ModelObjectResolver modelObjectResolver;
 	
 	private XPathExpressionEvaluator xpathEvaluator = null;
 	
@@ -127,8 +131,7 @@ public class ExpressionHandler {
 			throw new ExpressionEvaluationException("Resource shadow object " + shadow + " defines null resource OID.");
 		}
 
-		return getModel().getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(),
-				result).asObjectable();
+		return modelObjectResolver.getObject(ResourceType.class, ref.getOid(), result);
 	}
 
 	public static Map<QName, Object> getDefaultXPathVariables(UserType user,
@@ -160,7 +163,7 @@ public class ExpressionHandler {
 			type = objectTypeType.getClassDefinition();
 		}
 		
-		return repositoryService.getObject(type, ref.getOid(), null, result).asObjectable();
+		return repositoryService.getObject(type, ref.getOid(), result).asObjectable();
 
 	}
 	

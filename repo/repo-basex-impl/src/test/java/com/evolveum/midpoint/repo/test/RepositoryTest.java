@@ -161,7 +161,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	public void getNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to get not existing object, exception is expected
-		repositoryService.getObject(ObjectType.class, oid, null, new OperationResult("test"));
+		repositoryService.getObject(ObjectType.class, oid, new OperationResult("test"));
 	}
 	
 	@Test
@@ -222,7 +222,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		String oid = repositoryService.addObject(task, new OperationResult("test"));
 		
 		// WHEN
-		PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, oid, null, new OperationResult("test"));
+		PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, oid, new OperationResult("test"));
 		PrismContainer<?> repoExtensionContainer = repoTask.getExtension();
 		PrismProperty<Integer> repoTokenProperty = repoExtensionContainer.findProperty(SchemaConstants.SYNC_TOKEN);
 		assertNotNull("No token after reading from repo", repoTokenProperty);

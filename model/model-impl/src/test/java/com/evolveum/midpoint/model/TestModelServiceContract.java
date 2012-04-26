@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
@@ -41,6 +42,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
@@ -53,15 +55,19 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -69,6 +75,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentPolicyEnforcementType;
@@ -104,7 +111,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test050GetObjectUser");
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, result);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         
 	}
@@ -137,24 +144,59 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		
 		// THEN
 		// Check accountRef
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, result);
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
         ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
         accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
         
 		// Check shadow
-        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, null, result);
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, result);
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
+	}
+	
+	@Test
+    public void test110GetAccountResolve() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test110GetAccountResolve");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test110GetAccountResolve");
+        OperationResult result = task.getResult();
+
+        Document document = DOMUtil.getDocument();
+        Collection<PropertyPath> resolve = new ArrayList<PropertyPath>();
+        PropertyPath accountPath = new PropertyPath(UserType.F_ACCOUNT);
+        resolve.add(accountPath);
+        
+		// WHEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, resolve , task, result);
+		
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
+
+        // TODO:  userJackType.getAccount()
 	}
 	
 }

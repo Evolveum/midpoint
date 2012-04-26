@@ -26,6 +26,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -34,6 +35,7 @@ import org.springframework.util.CollectionUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
@@ -140,18 +142,16 @@ public class Utils {
 		}
 	}
 
-	public static boolean haveToResolve(String propertyName, PropertyReferenceListType resolve) {
+	public static boolean haveToResolve(String propertyName, Collection<PropertyPath> resolve) {
 		if (resolve == null) {
 			return false;
 		}
-		for (Element property : resolve.getProperty()) {
-			XPathHolder xpath = new XPathHolder(property);
-			List<XPathSegment> segments = xpath.toSegments();
-			if (CollectionUtils.isEmpty(segments)) {
+		for (PropertyPath path : resolve) {
+			if (path.isEmpty()) {
 				continue;
 			}
 
-			if (getPropertyName(propertyName).equals(segments.get(0).getQName().getLocalPart())) {
+			if (getPropertyName(propertyName).equals(path.getSegments().get(0).getName().getLocalPart())) {
 				return true;
 			}
 		}

@@ -42,9 +42,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.model.TestModelServiceContract;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -75,6 +78,8 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
+	@Autowired(required = true)
+	private TaskManager taskManager;
 
 	@BeforeMethod
 	public void before() {
@@ -83,34 +88,35 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void getObjectNullOid() throws ObjectNotFoundException, SchemaException {
-		controller.getObject(null, null, null, null);
+		controller.getObject(null, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void getObjectNullPropertyReferenceListType() throws ObjectNotFoundException, SchemaException {
-		controller.getObject(null, "1", null, null);
+		controller.getObject(null, "1", null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void getObjectNullResultType() throws ObjectNotFoundException, SchemaException {
-		controller.getObject(null, "1", new PropertyReferenceListType(), null);
+		controller.getObject(null, "1", null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullClass() throws Exception {
-		controller.getObject(null, "abababab-abab-abab-abab-000000000001", new PropertyReferenceListType(),
-				new OperationResult("Get Object"));
+		Task task = taskManager.createTaskInstance("Get Object");
+		controller.getObject(null, "abababab-abab-abab-abab-000000000001", null, task,
+				task.getResult());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test(expectedExceptions = ObjectNotFoundException.class)
 	public void getNonExistingObject() throws ObjectNotFoundException, SchemaException {
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repository.getObject(any(Class.class),eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
+		Task task = taskManager.createTaskInstance("Get Object");
+		when(repository.getObject(any(Class.class),eq(oid), any(OperationResult.class)))
 				.thenThrow(new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
-		controller.getObject(ObjectType.class, oid, new PropertyReferenceListType(), new OperationResult(
-				"Get Object"));
+		controller.getObject(ObjectType.class, oid, null, task, task.getResult());
 	}
 
 	@Test
@@ -120,21 +126,21 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 				"get-user-correct.xml"), UserType.class);
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repository.getObject(eq(UserType.class),eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
+		when(repository.getObject(eq(UserType.class),eq(oid), any(OperationResult.class)))
 				.thenReturn(expectedUser.asPrismObject());
 
-		OperationResult result = new OperationResult("Get Object");
+		Task task = taskManager.createTaskInstance("Get Object");
 		try {
-			final UserType user = controller.getObject(UserType.class, oid, new PropertyReferenceListType(),
-					result).asObjectable();
+			final UserType user = controller.getObject(UserType.class, oid, null, task, task.getResult()
+					).asObjectable();
 
 			assertNotNull(user);
 			assertEquals(expectedUser.getName(), user.getName());
 
-			verify(repository, atLeastOnce()).getObject(eq(UserType.class), eq(oid), any(PropertyReferenceListType.class),
+			verify(repository, atLeastOnce()).getObject(eq(UserType.class), eq(oid),
 					any(OperationResult.class));
 		} finally {
-			LOGGER.debug("getUserCorrect" + result.dump());
+			LOGGER.debug("getUserCorrect" + task.getResult().dump());
 		}
 	}
 }

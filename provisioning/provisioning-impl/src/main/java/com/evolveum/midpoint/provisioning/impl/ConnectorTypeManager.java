@@ -156,7 +156,7 @@ public class ConnectorTypeManager {
 					+ ObjectTypeUtil.toShortString(resource));
 		}
 		String connOid = resource.getConnectorRef().getOid();
-		PrismObject<ConnectorType> connectorPrism = repositoryService.getObject(ConnectorType.class, connOid, null, result);
+		PrismObject<ConnectorType> connectorPrism = repositoryService.getObject(ConnectorType.class, connOid, result);
 		return connectorPrism.asObjectable();
 	}
 

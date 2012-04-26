@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.web.test;
 
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.ResourceManager;
@@ -50,7 +51,7 @@ public class ResourceManagerImplMock implements ResourceManager {
 	}
 
 	@Override
-	public GuiResourceDto get(String oid, PropertyReferenceListType resolve) {
+	public GuiResourceDto get(String oid, Collection<PropertyPath> resolve) {
 		for (GuiResourceDto resource : resourceTypeList.values()) {
 			if (resource.getOid().equals(oid)) {
 				return resource;

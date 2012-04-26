@@ -292,7 +292,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task1);
         System.out.println("getTask returned: " + task1.dump());
 
-        PrismObject<TaskType> po = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
+        PrismObject<TaskType> po = repositoryService.getObject(TaskType.class, taskOid(test), result);
         System.out.println("getObject returned: " + po.dump());
 
         // .. it should be closed
@@ -355,7 +355,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Read from repo
         
-        PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), null, result);
+        PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), result);
         TaskType repoTaskType = repoTask.asObjectable();
         
         extensionContainer = repoTask.getExtension();
@@ -384,7 +384,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
+        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), result);
         System.out.println(t.dump());
 
         // .. it should be running
@@ -443,7 +443,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
@@ -501,7 +501,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
+        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), result);
         System.out.println(t.dump());
 
         // .. it should be running
@@ -551,7 +551,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        TaskType t = repositoryService.getObject(TaskType.class, taskOid(test), null, result).getValue().getValue();
+        TaskType t = repositoryService.getObject(TaskType.class, taskOid(test), result).getValue().getValue();
         System.out.println(ObjectTypeUtil.dump(t));
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());

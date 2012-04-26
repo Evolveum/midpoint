@@ -127,7 +127,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
         String oid = repositoryService.addObject(user, result);
 
-        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
+        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, result);
 
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
                 new File(TEST_DIR, "change-add-non-existing.xml"),
@@ -140,7 +140,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
         PropertyDelta.applyTo(deltas, userOld);
 
-        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
+        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
         LOGGER.debug("Modify diff \n{}", delta.debugDump(3));
         AssertJUnit.assertTrue("Modify was unsuccessful, diff size: "
@@ -167,7 +167,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
         String oid = repositoryService.addObject(user, result);
         AssertJUnit.assertEquals(userOid, oid);
 
-        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
+        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, result);
 
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
                 new File(TEST_DIR, "change-add.xml"),
@@ -180,7 +180,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
         PropertyDelta.applyTo(deltas, userOld);
 
-        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
+        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
         LOGGER.debug("Modify diff \n{}", delta.debugDump(3));
         AssertJUnit.assertTrue("Modify was unsuccessful, diff size: "

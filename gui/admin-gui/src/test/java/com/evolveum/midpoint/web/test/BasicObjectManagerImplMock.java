@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.test;
 
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.ObjectManager;
@@ -49,7 +50,7 @@ public class BasicObjectManagerImplMock implements ObjectManager<ObjectType> {
 	}
 
 	@Override
-	public ObjectType get(String oid, PropertyReferenceListType resolve) {
+	public ObjectType get(String oid, Collection<PropertyPath> resolve) {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -84,6 +85,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     private AuditService auditService;
     @Autowired(required = true)
     private PrismContext prismContext;
+    @Autowired(required = true)
+    private RepositoryService repositoryService;
 
     @PostConstruct
     public void registerForResourceObjectChangeNotifications() {
@@ -158,7 +161,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         try {
             String shadowOid = getOidFromChange(change);
             Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
-            PrismObject<UserType> user = controller.listAccountShadowOwner(shadowOid, subResult);
+            PrismObject<UserType> user = repositoryService.listAccountShadowOwner(shadowOid, subResult);
 
             if (user != null) {
             	UserType userType = user.asObjectable();
@@ -444,7 +447,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                         currentShadow.getOid(), SchemaDebugUtil.prettyPrint(query)});
             }
             PagingType paging = new PagingType();
-            users = controller.searchObjects(UserType.class, query, paging, result);
+            users = repositoryService.searchObjects(UserType.class, query, paging, result);
 
             if (users == null) {
                 users = new ArrayList<PrismObject<UserType>>();

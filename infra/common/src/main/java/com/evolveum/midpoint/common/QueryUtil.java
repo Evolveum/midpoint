@@ -297,6 +297,9 @@ public class QueryUtil {
 
 
 	public static String dump(QueryType query) {
+		if (query == null) {
+			return "null";
+		}
 		StringBuilder sb = new StringBuilder("Query(");
 		sb.append(query.getDescription()).append("):\n");
 		if (query.getFilter() != null)

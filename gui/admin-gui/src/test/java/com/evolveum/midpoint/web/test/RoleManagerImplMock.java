@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.test;
 
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.RoleManager;
@@ -51,7 +52,7 @@ public class RoleManagerImplMock implements RoleManager {
 	}
 
 	@Override
-	public RoleDto get(String oid, PropertyReferenceListType resolve) {
+	public RoleDto get(String oid, Collection<PropertyPath> resolve) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -61,26 +61,26 @@ public class ControllerListResourceObjectsTest extends AbstractTestNGSpringConte
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResourceOid() throws Exception {
-		controller.listResourceObjects(null, null, null, null);
+		controller.listResourceObjects(null, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyResourceOid() throws Exception {
-		controller.listResourceObjects("", null, null, null);
+		controller.listResourceObjects("", null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullQName() throws Exception {
-		controller.listResourceObjects("1", null, null, null);
+		controller.listResourceObjects("1", null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.listResourceObjects("1", new QName("local name"), null, null);
+		controller.listResourceObjects("1", new QName("local name"), null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.listResourceObjects("1", new QName("local name"), PagingTypeFactory.createListAllPaging(), null);
+		controller.listResourceObjects("1", new QName("local name"), PagingTypeFactory.createListAllPaging(), null, null);
 	}
 }

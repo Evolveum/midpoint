@@ -27,10 +27,15 @@ import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -100,6 +105,15 @@ public class MiscSchemaUtil {
 		List<String> list = new ArrayList<String>(1);
 		list.add(entry);
 		return list;
+	}
+
+	public static Collection<PropertyPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve) {
+		Collection<PropertyPath> itemPathList = new ArrayList<PropertyPath>(resolve.getProperty().size());
+		for (Element itemXPathElement: resolve.getProperty()) {
+			XPathHolder itemXPath = new XPathHolder(itemXPathElement);
+			itemPathList.add(itemXPath.toPropertyPath());
+		}
+		return itemPathList;
 	}
 
 }

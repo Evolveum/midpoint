@@ -22,8 +22,11 @@
 package com.evolveum.midpoint.web.controller.account;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -39,6 +42,8 @@ import com.evolveum.midpoint.web.util.GuiUserDtoComparator;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,9 +96,10 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 		try {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 
-			PropertyReferenceListType resolve = new PropertyReferenceListType();
-			resolve.getProperty().add(Utils.fillPropertyReference("Account"));
-			resolve.getProperty().add(Utils.fillPropertyReference("Resource"));
+			Collection<PropertyPath> resolve = MiscUtil.createCollection(
+					new PropertyPath(UserType.F_ACCOUNT),
+					new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
+				);
 
 			user = (GuiUserDto) userManager.get(userOid, resolve);
 	

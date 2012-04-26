@@ -46,6 +46,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -76,6 +78,8 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
+	@Autowired(required = true)
+	private TaskManager taskManager;
 
 	@BeforeMethod
 	public void before() {
@@ -84,17 +88,17 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullAccountOid() throws Exception {
-		controller.listAccountShadowOwner(null, null);
+		controller.listAccountShadowOwner(null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyAccountOid() throws Exception {
-		controller.listAccountShadowOwner("", null);
+		controller.listAccountShadowOwner("", null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.listAccountShadowOwner("1", null);
+		controller.listAccountShadowOwner("1", null, null);
 	}
 
 	@Test
@@ -102,12 +106,12 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 		final String accountOid = "1";
 		when(repository.listAccountShadowOwner(eq(accountOid), any(OperationResult.class))).thenReturn(null);
 
-		OperationResult result = new OperationResult("accountWithoutOwner");
+		Task task = taskManager.createTaskInstance("accountWithoutOwner");
 		try {
-			final PrismObject<UserType> returned = controller.listAccountShadowOwner("1", result);
+			final PrismObject<UserType> returned = controller.listAccountShadowOwner("1", task, task.getResult());
 			assertNull(returned);
 		} finally {
-			LOGGER.debug(result.dump());
+			LOGGER.debug(task.getResult().dump());
 		}
 	}
 
@@ -120,13 +124,13 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 
 		when(repository.listAccountShadowOwner(eq(accountOid), any(OperationResult.class))).thenReturn(
 				expected.asPrismObject());
-		OperationResult result = new OperationResult("correctListAccountShadowOwner");
+		Task task = taskManager.createTaskInstance("correctListAccountShadowOwner");
 		try {
-			final UserType returned = controller.listAccountShadowOwner(accountOid, result).asObjectable();
+			final UserType returned = controller.listAccountShadowOwner(accountOid, task, task.getResult()).asObjectable();
 			assertNotNull(returned);
 			assertEquals(expected, returned);
 		} finally {
-			LOGGER.debug(result.dump());
+			LOGGER.debug(task.getResult().dump());
 		}
 	}
 }

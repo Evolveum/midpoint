@@ -74,7 +74,7 @@ public class RoleManagerImpl extends ObjectManagerImpl<RoleType, RoleDto> implem
         OperationResult result = parentResult.createSubresult("Save role");
         try {
             if (!isNew) {
-                RoleDto oldRole = get(newRole.getOid(), new PropertyReferenceListType());
+                RoleDto oldRole = get(newRole.getOid(), null);
 
                 ObjectDelta<RoleType> delta = DiffUtil.diff(oldRole.getXmlObject().asPrismObject(),
                         newRole.getXmlObject().asPrismObject());

@@ -152,5 +152,13 @@ public class MiscUtil {
 					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
 		}
 	}
+
+	public static <T> Collection<T> createCollection(T... items) {
+		Collection<T> collection = new ArrayList<T>(items.length);
+		for (T item: items) {
+			collection.add(item);
+		}
+		return collection;
+	}
 		
 }

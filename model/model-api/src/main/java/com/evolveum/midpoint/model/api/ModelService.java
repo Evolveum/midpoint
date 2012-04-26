@@ -29,6 +29,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -130,8 +131,8 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException;
+	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<PropertyPath> resolve,
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException;
 
 	/**
 	 * <p>
@@ -291,7 +292,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
+	PrismObject<UserType> listAccountShadowOwner(String accountOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**
@@ -326,7 +327,7 @@ public interface ModelService {
 	 * @throws ObjectNotFoundException
 	 */
 	<T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
+			Class<T> resourceObjectShadowType, Task task, OperationResult parentResult) throws ObjectNotFoundException;
 
 	/**
 	 * <p>
@@ -379,7 +380,7 @@ public interface ModelService {
 	 *             error communicating with the resource
 	 */
 	List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
-			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
 
 	/**
 	 * <p>
@@ -408,7 +409,7 @@ public interface ModelService {
 	 *             wrong object type
 	 */
 	@Deprecated
-	<T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging, OperationResult result);
+	<T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging, Task task, OperationResult result);
 
 	/**
 	 * <p>
@@ -445,9 +446,9 @@ public interface ModelService {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+			Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 	
-	<T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
+	<T extends ObjectType> int countObjects(Class<T> type, QueryType query, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
 	/**
@@ -476,7 +477,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
+	OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException;
 
 	/**
 	 * <p>

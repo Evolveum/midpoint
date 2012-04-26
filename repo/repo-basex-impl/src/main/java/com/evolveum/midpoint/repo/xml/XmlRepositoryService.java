@@ -220,15 +220,13 @@ public class XmlRepositoryService implements RepositoryService {
 	 * com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
-			PropertyReferenceListType resolve, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException {
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, OperationResult parentResult) 
+				throws ObjectNotFoundException, SchemaException {
 
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName()
 				+ ".getObject");
 		result.addParam(OperationResult.PARAM_OID, oid);
 		result.addParam(OperationResult.PARAM_TYPE, type);
-		result.addParam("resolve", resolve);
 
 		validateOid(oid);
 
@@ -335,6 +333,12 @@ public class XmlRepositoryService implements RepositoryService {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("midPoint query: {}", QueryUtil.dump(query));
 		}
+		
+		if (query == null) {
+			List<PrismObject<T>> objects = listObjects(clazz, paging, result);
+			result.computeStatus();
+			return objects;
+		}
 
 		validateQuery(query);
 
@@ -417,7 +421,7 @@ public class XmlRepositoryService implements RepositoryService {
 		validateOid(oid);
 		validateObjectModifications(modifications);
 
-		PrismObject<T> object = this.getObject(type, oid, null, result);
+		PrismObject<T> object = this.getObject(type, oid, result);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("OBJECT before:\n{}", object.dump());
@@ -466,7 +470,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// TODO: check has to be atomic
 		try {
-			PrismObject<T> retrievedObject = getObject(type, oid, null, result);
+			PrismObject<T> retrievedObject = getObject(type, oid, result);
 		} catch (SchemaException ex) {
 			LoggingUtils
 					.logException(
@@ -570,7 +574,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// Check whether the task is claimed
 		
-		PrismObject<TaskType> task = getObject(TaskType.class, oid, null, result);
+		PrismObject<TaskType> task = getObject(TaskType.class, oid, result);
 		TaskType taskType = task.asObjectable();
 
 		if (taskType.getExclusivityStatus() != TaskExclusivityStatusType.RELEASED) {

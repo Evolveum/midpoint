@@ -207,8 +207,7 @@ public class ResourceDetailsController extends ListController<ResourceObjectType
 		manager = ControllerUtil.getResourceManager(objectTypeCatalog);
         capabilitiesName = new ArrayList<String>();
 		try{
-            PropertyReferenceListType propertyReferenceList = new PropertyReferenceListType();
-            GuiResourceDto resourceDto = manager.get(resource.getOid(), propertyReferenceList);
+            GuiResourceDto resourceDto = manager.get(resource.getOid(), null);
 			List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resourceDto.getXmlObject());
 			
 			if (capabilitiesList != null && !capabilitiesList.isEmpty()) {

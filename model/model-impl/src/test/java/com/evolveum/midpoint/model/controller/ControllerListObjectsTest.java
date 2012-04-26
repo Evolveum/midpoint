@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
@@ -69,6 +71,8 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
+	@Autowired(required = true)
+	private TaskManager taskManager;
 
 	@BeforeMethod
 	public void before() {
@@ -77,17 +81,17 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullClassType() throws Exception {
-		controller.listObjects(null, null, null);
+		controller.listObjects(null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.listObjects(UserType.class, null, null);
+		controller.listObjects(UserType.class, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.listObjects(UserType.class, PagingTypeFactory.createListAllPaging(), null);
+		controller.listObjects(UserType.class, PagingTypeFactory.createListAllPaging(), null, null);
 	}
 
 	@Test
@@ -99,16 +103,16 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 		when(repository.listObjects(eq(UserType.class), any(PagingType.class), any(OperationResult.class)))
 				.thenReturn(expectedUserList);
 
-		OperationResult result = new OperationResult("List Users");
+		Task task = taskManager.createTaskInstance("List Users");
 		try {
 			final List<PrismObject<UserType>> returnedUserList = controller.listObjects(UserType.class, new PagingType(),
-					result);
+					task, task.getResult());
 
 			verify(repository, times(1)).listObjects(eq(ObjectTypes.USER.getClassDefinition()),
 					any(PagingType.class), any(OperationResult.class));
 			testObjectList((List)expectedUserList, (List)returnedUserList);
 		} finally {
-			LOGGER.debug(result.dump());
+			LOGGER.debug(task.getResult().dump());
 		}
 	}
 

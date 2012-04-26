@@ -159,7 +159,7 @@ public class BrowserBean<T extends Serializable> extends ListController<BrowserI
         List<ObjectType> list = new ArrayList<ObjectType>();
         try {
             List<PrismObject<ObjectType>> results = model.searchObjects(ObjectType.class, query,
-                    new PagingType(), new OperationResult("List by name"));
+                    new PagingType(), null, new OperationResult("List by name"));
             for (PrismObject<ObjectType> object : results) {
                 list.add(object.asObjectable());
             }
@@ -179,7 +179,7 @@ public class BrowserBean<T extends Serializable> extends ListController<BrowserI
             PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(),
                     OrderDirectionType.ASCENDING, "name");
             Class<T> clazz = (Class<T>)  ObjectTypes.getObjectType(type).getClassDefinition();
-            List<PrismObject<T>> results = model.listObjects(clazz, paging,
+            List<PrismObject<T>> results = model.listObjects(clazz, paging, null,
                     new OperationResult("List by type"));
 
             for (PrismObject<? extends ObjectType> object : results) {

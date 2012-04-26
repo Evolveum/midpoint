@@ -276,8 +276,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	private Task fetchTaskFromRepository(String taskOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		PrismObject<TaskType> task = repositoryService.getObject(TaskType.class, taskOid, resolve, result);
+		PrismObject<TaskType> task = repositoryService.getObject(TaskType.class, taskOid, result);
 
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
 		return createTaskInstance(task, result);

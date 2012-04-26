@@ -109,8 +109,6 @@ public interface ProvisioningService {
 	 * @param type the type (class) of object to get
 	 * @param oid
 	 *            OID of the object to get
-	 * @param resolve
-	 *            list of properties to resolve in the fetched object
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return Object fetched from repository and/or resource
@@ -130,7 +128,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 	
 	/**

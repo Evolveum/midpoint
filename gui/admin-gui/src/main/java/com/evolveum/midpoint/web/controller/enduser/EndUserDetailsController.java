@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.controller.enduser;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,7 @@ import javax.faces.event.ActionEvent;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import org.apache.commons.lang.StringUtils;
@@ -48,6 +50,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -73,6 +76,7 @@ import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -179,9 +183,10 @@ public class EndUserDetailsController implements Serializable {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 
 			LOGGER.info("userSelectionListener start");
-			PropertyReferenceListType resolve = new PropertyReferenceListType();
-			resolve.getProperty().add(Utils.fillPropertyReference("Account"));
-			resolve.getProperty().add(Utils.fillPropertyReference("Resource"));
+			Collection<PropertyPath> resolve = MiscUtil.createCollection(
+					new PropertyPath(UserType.F_ACCOUNT),
+					new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
+				);
 
 			curUser = (GuiUserDto) userManager.get(userOid, resolve);
 			accountList = createFormBeanList(curUser.getAccount(), false);

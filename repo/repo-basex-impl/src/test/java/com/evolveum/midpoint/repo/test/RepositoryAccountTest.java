@@ -145,7 +145,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			System.out.println(namespaceProp.dump());
 			repositoryService.addObject(resource, new OperationResult("test"));
 			PrismObject<ResourceType> retrievedResource = repositoryService.getObject(ResourceType.class, resourceOid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+					new OperationResult("test"));
 			assertEquals(resource.getOid(), retrievedResource.getOid());
 
 			// add account
@@ -157,7 +157,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 
 			// get account object
 			PrismObject<AccountShadowType> retrievedAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+					new OperationResult("test"));
             LOGGER.debug("A\n{}", prismContext.silentMarshalObject(accountShadow.asObjectable()));
             LOGGER.debug("B\n{}", prismContext.silentMarshalObject(retrievedAccount.asObjectable()));
             EncryptedDataType data1 = accountShadow.asObjectable().getCredentials().getPassword().getProtectedString().getEncryptedData();
@@ -177,7 +177,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult("test"));
 			try {
 				repositoryService.getObject(AccountShadowType.class, accountOid,
-						new PropertyReferenceListType(), new OperationResult("test"));
+						new OperationResult("test"));
 				Assert.fail("Object with oid " + accountOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				// ignore
@@ -212,7 +212,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			System.out.println(namespaceProp.dump());
 			repositoryService.addObject(resource, new OperationResult("test"));
 			PrismObject<ResourceType> retrievedResource = repositoryService.getObject(ResourceType.class, resourceOid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+					new OperationResult("test"));
 			assertEquals(resource.getOid(), retrievedResource.getOid());
 
 			// add account
@@ -237,7 +237,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult("test"));
 			try {
 				repositoryService.getObject(AccountShadowType.class, accountOid,
-						new PropertyReferenceListType(), new OperationResult("test"));
+						new OperationResult("test"));
 				Assert.fail("Object with oid " + accountOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				// ignore

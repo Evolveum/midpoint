@@ -56,16 +56,16 @@ public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTest
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullQuery() throws Exception {
-		controller.searchObjects(null, null, null, null);
+		controller.searchObjects(null, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.searchObjects(null, new QueryType(), null, null);
+		controller.searchObjects(null, new QueryType(), null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.searchObjects(null, new QueryType(), PagingTypeFactory.createListAllPaging(), null);
+		controller.searchObjects(null, new QueryType(), PagingTypeFactory.createListAllPaging(), null, null);
 	}
 }

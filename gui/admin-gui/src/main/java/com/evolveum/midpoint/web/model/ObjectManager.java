@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -75,7 +76,7 @@ public interface ObjectManager<T> {
      * @param oid OID of object to return
      * @return complete object retrieved from the repository
      */
-    T get(String oid, PropertyReferenceListType resolve);
+    T get(String oid, Collection<PropertyPath> resolve);
 
     /**
      * Create an empty object.

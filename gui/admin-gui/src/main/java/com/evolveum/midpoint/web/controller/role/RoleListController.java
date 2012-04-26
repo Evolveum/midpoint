@@ -123,7 +123,7 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 		String nextPage = null;
 		try {
 			RoleManager manager = ControllerUtil.getRoleManager(catalog);
-			RoleDto role = manager.get(roleOid, new PropertyReferenceListType());
+			RoleDto role = manager.get(roleOid, null);
 			roleEditor.setRole(role);
 			
 			nextPage = roleEditor.viewObject();

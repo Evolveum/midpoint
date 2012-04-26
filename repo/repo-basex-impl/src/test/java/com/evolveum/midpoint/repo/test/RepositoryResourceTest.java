@@ -146,7 +146,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			
 			// GET resource
 			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, RESOURCE_OID,
-					new PropertyReferenceListType(), new OperationResult("test"));
+					new OperationResult("test"));
 			
 			checkResource(retrievedObject, "after get");
 			
@@ -163,7 +163,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			// delete resource
 			repositoryService.deleteObject(ResourceType.class, RESOURCE_OID, new OperationResult("test"));
 			try {
-				repositoryService.getObject(ObjectType.class, RESOURCE_OID, new PropertyReferenceListType(), new OperationResult("test"));
+				repositoryService.getObject(ObjectType.class, RESOURCE_OID, new OperationResult("test"));
 				Assert.fail("Object with oid " + RESOURCE_OID + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
@@ -254,7 +254,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 
 			// get object
 			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+					new OperationResult("test"));
 			PrismAsserts.assertEquals(resource, retrievedObject);
 
 			// modify object
@@ -270,7 +270,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			repositoryService.modifyObject(ResourceType.class, objectModificationType.getOid(), 
 					objectModificationType.getModifications(), new OperationResult("test"));
 			retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+					new OperationResult("test"));
 			
 			//we need to remove the configuration part of the resource which is parsed
 			//after the real definition is applied..(the resource in the repo contain this definition,

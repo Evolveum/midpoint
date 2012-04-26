@@ -73,7 +73,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
         OperationResult result = new OperationResult(LIST_OBJECT_SHADOWS);
         List<ResourceObjectShadowDto<T>> resourceObjectShadowDtoList = new ArrayList<ResourceObjectShadowDto<T>>();
         try {
-            List<PrismObject<T>> list = getModel().listResourceObjectShadows(oid, resourceObjectShadowType, result);
+            List<PrismObject<T>> list = getModel().listResourceObjectShadows(oid, resourceObjectShadowType, null, result);
             for (PrismObject<T> object : list) {
                 ResourceObjectShadowDto<T> dto = new ResourceObjectShadowDto<T>(object.asObjectable());
                 resourceObjectShadowDtoList.add(dto);
@@ -98,7 +98,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 
         OperationResult result = null;
         try {
-            result = getModel().testResource(resourceOid);
+            result = getModel().testResource(resourceOid, null);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't test resource {}", ex, resourceOid);
             result.recordFatalError("Couldn't test resource '" + resourceOid + "'.", ex);
@@ -151,7 +151,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
         OperationResult result = new OperationResult(ResourceManager.LIST_RESOURCE_OBJECTS);
         Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> collection = new ArrayList<ResourceObjectShadowDto<ResourceObjectShadowType>>();
         try {
-            List<PrismObject<? extends ResourceObjectShadowType>> list = getModel().listResourceObjects(resourceOid, objectClass, paging, result);
+            List<PrismObject<? extends ResourceObjectShadowType>> list = getModel().listResourceObjects(resourceOid, objectClass, paging, null, result);
             if (list != null) {
                 for (PrismObject<? extends ResourceObjectShadowType> object : list) {
                     collection.add(new ResourceObjectShadowDto<ResourceObjectShadowType>(object.asObjectable()));
@@ -174,7 +174,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
     public ConnectorDto getConnector(String oid) {
         ConnectorType connector;
         try {
-            PrismObject<ConnectorType> object = get(ConnectorType.class, oid, new PropertyReferenceListType());
+            PrismObject<ConnectorType> object = get(ConnectorType.class, oid, null);
             connector = object.asObjectable();
         } catch (Exception ex) {
             // TODO: error handling

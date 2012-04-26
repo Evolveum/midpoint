@@ -99,9 +99,10 @@ public class PageLogging extends PageAdminConfiguration {
 
 		OperationResult result = new OperationResult("Get model");
 		try {
+			// TODO: task
 			PrismObject<SystemConfigurationType> config = getModelService().getObject(
 					SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-					result);
+					null, result);
 			oldObject = config;
 			SystemConfigurationType systemConfiguration = config.asObjectable();
 			LoggingConfigurationType logging = systemConfiguration.getLogging();

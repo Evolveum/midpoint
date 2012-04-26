@@ -302,7 +302,7 @@ public class ObjectImporter {
             PrismObject<ConnectorType> connector = null;
             ConnectorType connectorType = null;
             try {
-                connector = repository.getObject(ConnectorType.class, connectorOid, null, objectResult);
+                connector = repository.getObject(ConnectorType.class, connectorOid, objectResult);
                 connectorType = connector.asObjectable();
             } catch (ObjectNotFoundException e) {
                 // No connector, no fun. We can't check the schema. But this is referential integrity problem.
@@ -514,7 +514,7 @@ public class ObjectImporter {
             // Nothing to resolve, but let's check if the OID exists
             PrismObject<? extends ObjectType> object = null;
             try {
-                object = repository.getObject(type, refVal.getOid(), null, result);
+                object = repository.getObject(type, refVal.getOid(), result);
             } catch (ObjectNotFoundException e) {
             	String message = "Reference " + refName + " refers to a non-existing object " + refVal.getOid();
             	if (enforceReferentialIntegrity) {

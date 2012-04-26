@@ -41,7 +41,7 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
         SystemConfigurationType config;
         try {
             PrismObject<SystemConfigurationType> object = get(SystemConfigurationType.class,
-                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), new PropertyReferenceListType());
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), null);
             config = object.asObjectable();
         } catch (ObjectNotFoundException ex) {
             // TODO: error handling
@@ -78,7 +78,7 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
         OperationResult result = task.getResult();
         try {
         	String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-        	SystemConfigurationType oldConfig = getModel().getObject(SystemConfigurationType.class, oid, null, result).asObjectable();
+        	SystemConfigurationType oldConfig = getModel().getObject(SystemConfigurationType.class, oid, null, null, result).asObjectable();
         	PrismObject<SystemConfigurationType> oldPrism = oldConfig.asPrismObject();
         	PrismObject<SystemConfigurationType> newPrism = oldPrism.clone();
         	newPrism.asObjectable().setLogging(configuration);
@@ -104,7 +104,7 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 		SystemConfigurationType config = null;
 		try {
 			PrismObject<SystemConfigurationType> object = getModel().getObject(SystemConfigurationType.class,
-					SystemObjectsType.SYSTEM_CONFIGURATION.value(), new PropertyReferenceListType(),
+					SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, null,
 					getSystemConfigResult);
 			config = object.asObjectable();
 

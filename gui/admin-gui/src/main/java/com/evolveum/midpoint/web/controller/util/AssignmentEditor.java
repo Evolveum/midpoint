@@ -244,7 +244,7 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 		}
 		
 		ObjectManager manager = ControllerUtil.getManager(catalog, objectType);
-		ObjectDto objectDto = (ObjectDto) manager.get(objectOid, new PropertyReferenceListType());
+		ObjectDto objectDto = (ObjectDto) manager.get(objectOid, null);
 		if (objectDto == null || objectDto.getXmlObject() == null) {
 			return;
 		}

@@ -138,7 +138,7 @@ public class XPathDebugController implements Serializable {
 				if (variable.getType().equals("Object")) {
 					try {
 						PrismObject<ObjectType> objectType = modelService.getObject(ObjectType.class, variable.getValue(),
-								new PropertyReferenceListType(), new OperationResult("Get object"));
+								null, null, new OperationResult("Get object"));
 						// Variable only accepts String or Node, but here we
 						// will get a JAXB object. Need to convert it.
                         PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();

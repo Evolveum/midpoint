@@ -213,10 +213,10 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		displayTestTile("test003Connection");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test003Connection");
-		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
+		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result).asObjectable();
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceTypeBefore.getConnectorRef().getOid());
-		connector = repositoryService.getObject(ConnectorType.class, resourceTypeBefore.getConnectorRef().getOid(), null, result);
+		connector = repositoryService.getObject(ConnectorType.class, resourceTypeBefore.getConnectorRef().getOid(), result);
 		ConnectorType connectorType = connector.asObjectable();
 		assertNotNull(connectorType);
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
@@ -227,7 +227,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		display("Test connection result",operationResult);
 		assertSuccess("Test connection failed",operationResult);
 
-		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 		
 		display("Resource after testResource (repository)",resourceTypeRepoAfter);
@@ -261,7 +261,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		displayTestTile("test004ResourceAndConnectorCaching");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ResourceAndConnectorCaching");
-		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result);
 		ResourceType resourceType = resource.asObjectable();
 		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(resource.asObjectable(), result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
@@ -269,7 +269,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNotNull("No resource schema", resourceSchema);
 		
 		// WHEN
-		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result);
 		
 		// THEN
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
@@ -301,7 +301,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test005Capabilities");
 
 		// WHEN
-		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result).asObjectable();
+		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, result).asObjectable();
 		
 		// THEN
 		display("Resource from provisioninig", resource);
@@ -364,7 +364,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertEquals(ACCOUNT1_OID, addedObjectOid);
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, resolve, result).asObjectable();
+			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, result).asObjectable();
 
 			assertNotNull(acct);
 
@@ -395,10 +395,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".test008GetObjectNotFoundRepo");
-		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		try {
-			ObjectType object = provisioningService.getObject(ObjectType.class, NON_EXISTENT_OID, resolve, result).asObjectable();
+			ObjectType object = provisioningService.getObject(ObjectType.class, NON_EXISTENT_OID, result).asObjectable();
 			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -438,10 +437,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".test009GetObjectNotFoundResource");
-		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		try {
-			ObjectType object = provisioningService.getObject(ObjectType.class, ACCOUNT_BAD_OID, resolve, result).asObjectable();
+			ObjectType object = provisioningService.getObject(ObjectType.class, ACCOUNT_BAD_OID, result).asObjectable();
 			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -488,11 +486,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
 			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-					new PropertyReferenceListType(), result).asObjectable();
+					result).asObjectable();
 			assertEquals("will", accountType.getName());
 
 			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-					new PropertyReferenceListType(), result).asObjectable();
+					result).asObjectable();
 			assertEquals("will", provisioningAccountType.getName());
 		} finally {
 			try {
@@ -561,7 +559,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			AccountShadowType objType = null;
 
 			try {
-				objType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
+				objType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID,
 						result).asObjectable();
 				Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
 			} catch (ObjectNotFoundException ex) {
@@ -570,7 +568,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			}
 
 			try {
-				objType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
+				objType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID,
 						result).asObjectable();
 				// objType = container.getObject();
 				Assert.fail("Expected exception, but haven't got one.");
@@ -618,7 +616,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 					delta.getModifications(), null, result);
 			
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-					ACCOUNT_MODIFY_OID, new PropertyReferenceListType(), result).asObjectable();
+					ACCOUNT_MODIFY_OID, result).asObjectable();
 			
 			display("Object after change",accountType);
 
@@ -686,7 +684,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertEquals(ACCOUNT_MODIFY_PASSWORD_OID, addedObjectOid);
 			
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-					ACCOUNT_MODIFY_PASSWORD_OID, new PropertyReferenceListType(), result).asObjectable();
+					ACCOUNT_MODIFY_PASSWORD_OID, result).asObjectable();
 			
 			display("Object before password change",accountType);
 			
@@ -753,11 +751,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
 
 			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
-					new PropertyReferenceListType(), result).asObjectable();
+					result).asObjectable();
 			assertEquals("lechuck", accountType.getName());
 
 			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
-					new PropertyReferenceListType(), result).asObjectable();
+					result).asObjectable();
 			assertEquals("lechuck", provisioningAccountType.getName());
 			
 			String uid = null;
@@ -871,7 +869,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 					delta.getModifications(), null, result);
 			
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-					ACCOUNT_DISABLE_SIMULATED_OID, new PropertyReferenceListType(), result).asObjectable();
+					ACCOUNT_DISABLE_SIMULATED_OID, result).asObjectable();
 			
 			display("Object after change",accountType);
 			
@@ -1064,11 +1062,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertEquals(ACCOUNT_NEW_OID, addedObjectOid2);
 
 			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-					new PropertyReferenceListType(), result).asObjectable();
+					result).asObjectable();
 			assertEquals("will", accountType.getName());
 
 			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-					new PropertyReferenceListType(), result).asObjectable();
+					result).asObjectable();
 			assertEquals("will", provisioningAccountType.getName());
 		} finally {
 			try {

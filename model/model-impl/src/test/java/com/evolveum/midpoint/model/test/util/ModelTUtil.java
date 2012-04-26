@@ -77,7 +77,7 @@ public class ModelTUtil {
 		when(
 				repository.getObject(eq(SystemConfigurationType.class),
 						eq(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
-						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+						any(OperationResult.class))).thenReturn(
 				systemConfiguration.asPrismObject());
 	}
 
@@ -140,12 +140,12 @@ public class ModelTUtil {
 			userOidExpected = user.getOid();
 			when(
 					repository.getObject(any(Class.class), eq(user.getOid()),
-							any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+							any(OperationResult.class))).thenReturn(
 					user.asPrismObject());
 		} else {
 			when(
 					repository.getObject(any(Class.class), eq(userOid),
-							any(PropertyReferenceListType.class), any(OperationResult.class))).thenThrow(
+							any(OperationResult.class))).thenThrow(
 					new ObjectNotFoundException("user not found."));
 		}
 

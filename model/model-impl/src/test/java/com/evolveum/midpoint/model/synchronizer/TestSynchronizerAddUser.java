@@ -112,7 +112,7 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 
 		when(
 				provisioning.getObject(eq(ResourceType.class), eq(resourceOid),
-						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+						any(OperationResult.class))).thenReturn(
 				resourceType.asPrismObject());
 		when(
 				provisioning.addObject(any(PrismObject.class), any(ScriptsType.class),

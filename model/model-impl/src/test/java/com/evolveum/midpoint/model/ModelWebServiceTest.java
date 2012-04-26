@@ -179,11 +179,14 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(expectedExceptions = FaultMessage.class)
-    public void getNonexistingObject() throws FaultMessage, ObjectNotFoundException, SchemaException {
+    public void getNonexistingObject() throws FaultMessage, ObjectNotFoundException, SchemaException, FileNotFoundException, JAXBException {
+    	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         try {
             final String oid = "abababab-abab-abab-abab-000000000001";
             when(
-                    repositoryService.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
+                    repositoryService.getObject(any(Class.class), eq(oid),
                             any(OperationResult.class))).thenThrow(
                     new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
@@ -192,6 +195,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertObjectNotFoundFault(ex);
+        } finally {
+        	SecurityContextHolder.getContext().setAuthentication(null);
         }
         Assert.fail("get must fail");
     }
@@ -221,7 +226,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         try {
             final String oid = "abababab-abab-abab-abab-000000000001";
             when(
-                    repositoryService.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
+                    repositoryService.getObject(any(Class.class), eq(oid),
                             any(OperationResult.class))).thenThrow(
                     new ObjectNotFoundException("Object with oid '' not found."));
 
@@ -269,17 +274,22 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(expectedExceptions = FaultMessage.class)
-    public void badPagingList() throws FaultMessage {
+    public void badPagingList() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
         PagingType paging = new PagingType();
         paging.setMaxSize(-1);
         paging.setOffset(-1);
 
+        final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         try {
             modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
+        } finally {
+        	SecurityContextHolder.getContext().setAuthentication(null);
         }
         Assert.fail("Illegal argument exception was not thrown.");
     }
@@ -309,17 +319,22 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(expectedExceptions = FaultMessage.class)
-    public void badPagingSearch() throws FaultMessage {
+    public void badPagingSearch() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
         PagingType paging = new PagingType();
         paging.setMaxSize(-1);
         paging.setOffset(-1);
 
+        final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         try {
             modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), new QueryType(), paging,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
+        } finally {
+        	SecurityContextHolder.getContext().setAuthentication(null);
         }
         Assert.fail("Illegal argument exception was not thrown.");
     }
@@ -347,7 +362,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         modification.setOid(oid);
 
         when(
-                repositoryService.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
+                repositoryService.getObject(any(Class.class), eq(oid),
                         any(OperationResult.class))).thenThrow(
                 new ObjectNotFoundException("Oid '" + oid + "' not found."));
 
@@ -408,8 +423,11 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
     @SuppressWarnings("unchecked")
     @Test(expectedExceptions = FaultMessage.class)
-    public <T extends ResourceObjectShadowType> void nonexistingResourceOidListResourceShadow() throws FaultMessage, ObjectNotFoundException {
+    public <T extends ResourceObjectShadowType> void nonexistingResourceOidListResourceShadow() throws FaultMessage, ObjectNotFoundException, SchemaException, FileNotFoundException, JAXBException {
         final String resourceOid = "abababab-abab-abab-abab-000000000001";
+        final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         when(
                 repositoryService.listResourceObjectShadows(eq(resourceOid),
                         eq((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class))).thenThrow(
@@ -421,11 +439,16 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertObjectNotFoundFault(ex);
+        } finally {
+        	SecurityContextHolder.getContext().setAuthentication(null);
         }
     }
 
     @Test
-    public void badResourceShadowTypeListResourceObjectShadows() throws FaultMessage {
+    public void badResourceShadowTypeListResourceObjectShadows() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
+    	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         Holder<ResourceObjectShadowListType> listHolder = new Holder<ResourceObjectShadowListType>();
         modelService.listResourceObjectShadows(
                 "abababab-abab-abab-abab-000000000001", ObjectTypes.GENERIC_OBJECT.getObjectTypeUri(),
@@ -434,6 +457,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
         assertNotNull(listHolder.value);
         assertEquals(0, listHolder.value.getObject().size());
+        SecurityContextHolder.getContext().setAuthentication(null);
     }
 
     @Test(expectedExceptions = FaultMessage.class)

@@ -168,8 +168,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
-			PropertyReferenceListType resolve, OperationResult parentResult) throws ObjectNotFoundException,
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, OperationResult parentResult) 
+			throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
@@ -182,13 +182,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				+ ".getObject");
 		result.addParam(OperationResult.PARAM_OID, oid);
 		result.addParam(OperationResult.PARAM_TYPE, type);
-		result.addParam("resolve", resolve);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		PrismObject<T> repositoryObject = null;
 
 		try {
-			repositoryObject = getCacheRepositoryService().getObject(type, oid, resolve, result);
+			repositoryObject = getCacheRepositoryService().getObject(type, oid, result);
 		} catch (ObjectNotFoundException e) {
 			logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(),
 					e);
@@ -367,8 +366,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			// Resolve resource
-			PrismObject<ResourceType> resourceObject = getObject(ResourceType.class, resourceOid,
-					new PropertyReferenceListType(), result);
+			PrismObject<ResourceType> resourceObject = getObject(ResourceType.class, resourceOid, result);
 
 			ResourceType resourceType = resourceObject.asObjectable();
 
@@ -723,8 +721,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		// getting object to modify
-		PrismObject<T> object = getCacheRepositoryService().getObject(type, oid,
-				new PropertyReferenceListType(), parentResult);
+		PrismObject<T> object = getCacheRepositoryService().getObject(type, oid, parentResult);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("**PROVISIONING: modifyObject: object to modify:\n{}.", object.dump());
@@ -793,8 +790,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		PrismObject<T> object = null;
 		try {
-			object = getCacheRepositoryService().getObject(type, oid, new PropertyReferenceListType(),
-					parentResult);
+			object = getCacheRepositoryService().getObject(type, oid, parentResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.dump());
 			}
@@ -866,7 +862,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ResourceType resourceType = null;
 		try {
 			PrismObject<ResourceType> resource = getCacheRepositoryService().getObject(ResourceType.class,
-					resourceOid, new PropertyReferenceListType(), parentResult);
+					resourceOid, parentResult);
 
 			resourceType = resource.asObjectable();
 			resourceTypeManager.testConnection(resourceType, parentResult);
@@ -904,8 +900,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		PrismObject<ResourceType> resource = null;
 		try {
-			resource = getCacheRepositoryService().getObject(ResourceType.class, resourceOid,
-					new PropertyReferenceListType(), result);
+			resource = getCacheRepositoryService().getObject(ResourceType.class, resourceOid, result);
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError("Resource with oid " + resourceOid + "not found. Reason: " + e);
@@ -1011,7 +1006,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			// Don't use repository. Repository resource will not have properly
 			// set capabilities
-			resource = getObject(ResourceType.class, resourceOid, null, result);
+			resource = getObject(ResourceType.class, resourceOid, result);
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError("Resource with oid " + resourceOid + "not found. Reason: " + e);

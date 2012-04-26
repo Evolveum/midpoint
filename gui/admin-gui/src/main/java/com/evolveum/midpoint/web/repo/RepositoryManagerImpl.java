@@ -133,8 +133,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
         OperationResult result = new OperationResult(GET_OBJECT);
         PrismObject<T> object = null;
         try {
-            object = repositoryService.getObject(type, oid,
-                    new PropertyReferenceListType(), result);
+            object = repositoryService.getObject(type, oid, result);
             result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}", ex, oid);
@@ -166,8 +165,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
                 AuditEventStage.REQUEST);
         boolean saved = false;
         try {
-            PrismObject<ObjectType> oldObject = repositoryService.getObject(ObjectType.class, object.getOid(),
-                    new PropertyReferenceListType(), result);
+            PrismObject<ObjectType> oldObject = repositoryService.getObject(ObjectType.class, object.getOid(), result);
             if (oldObject != null) {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("DIFF: object before:\n{}", oldObject.toString());

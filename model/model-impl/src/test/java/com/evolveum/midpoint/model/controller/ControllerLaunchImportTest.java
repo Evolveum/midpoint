@@ -58,11 +58,11 @@ public class ControllerLaunchImportTest extends AbstractTestNGSpringContextTests
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResourceOid() throws Exception {
-		controller.testResource(null);
+		controller.testResource(null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyResourceOid() throws Exception {
-		controller.testResource("");
+		controller.testResource("", null);
 	}
 }

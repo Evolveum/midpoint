@@ -67,9 +67,11 @@ public class PageHome extends PageAdmin {
         PageHome.this.warn("warn message.");
         PageHome.this.success("success message.");
 
+        // TODO: task
+        Task task = null;
         OperationResult result = new OperationResult("get non existing object");
         try {
-            getMidpointApplication().getModel().getObject(UserType.class, "f00", null, result);
+            getMidpointApplication().getModel().getObject(UserType.class, "f00", null, task, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get object.", ex);
         } finally {
@@ -81,7 +83,7 @@ public class PageHome extends PageAdmin {
         result = new OperationResult("get existing object");
         try {
             getMidpointApplication().getModel().getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value()
-                    , null, result);
+                    , null, task, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get object.", ex);
         } finally {

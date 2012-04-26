@@ -83,8 +83,7 @@ public class InitialDataImport {
 
                 boolean importObject = true;
                 try {
-                    model.getObject(object.getClass(), object.getOid(), new PropertyReferenceListType(),
-                            result);
+                    model.getObject(object.getClass(), object.getOid(), null, null, result);
                     importObject = false;
                     result.recordSuccess();
                 } catch (ObjectNotFoundException ex) {

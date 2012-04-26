@@ -213,7 +213,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
-		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result)
+		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, result)
 				.asObjectable();
 
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);

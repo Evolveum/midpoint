@@ -830,7 +830,7 @@ public class TaskQuartzImpl implements Task {
 			throw new SchemaException("Task "+getOid()+" does not have an owner (missing ownerRef)");
 		}
 		try {
-			return repositoryService.getObject(UserType.class, ownerRef.getOid(), null, result);
+			return repositoryService.getObject(UserType.class, ownerRef.getOid(), result);
 		} catch (ObjectNotFoundException e) {
 			throw new SystemException("The owner of task "+getOid()+" cannot be found (owner OID: "+ownerRef.getOid()+")",e);
 		}
@@ -897,7 +897,7 @@ public class TaskQuartzImpl implements Task {
 		
 		try {
 			// Note: storing this value in field, not local variable. It will be reused.
-			PrismObject<T> object = repositoryService.getObject(type, objectRef.getOid(), null, result);
+			PrismObject<T> object = repositoryService.getObject(type, objectRef.getOid(), result);
 			objectRef.getValue().setObject(object);
 			result.recordSuccess();
 			return object;
@@ -1120,7 +1120,7 @@ public class TaskQuartzImpl implements Task {
 		
 		PrismObject<TaskType> repoObj = null;
 		try {
-			repoObj = repositoryService.getObject(TaskType.class, getOid(), null, result);
+			repoObj = repositoryService.getObject(TaskType.class, getOid(), result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found", ex);
 			throw ex;

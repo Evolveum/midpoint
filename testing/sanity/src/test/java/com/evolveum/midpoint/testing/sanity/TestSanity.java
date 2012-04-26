@@ -272,15 +272,12 @@ public class TestSanity extends AbstractIntegrationTest {
 
     @BeforeMethod
     public void beforeMethod() throws Exception {
-        LOGGER.info("BEFORE METHOD");
-        OperationResult result = new OperationResult("get administrator");
+        Task task = taskManager.createTaskInstance("get administrator");
         PrismObject<UserType> object = modelService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(),
-                null, result);
+                null, task, task.getResult());
 
         assertNotNull("Administrator user is null", object.asObjectable());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(object.asObjectable(), null));
-
-        LOGGER.info("BEFORE METHOD END");
     }
 
     @AfterMethod
@@ -369,31 +366,30 @@ public class TestSanity extends AbstractIntegrationTest {
         
         assertCache();
 
-        OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
+        Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test000Integrity");
+        OperationResult result = task.getResult();
 
         // Check if OpenDJ resource was imported correctly
 
-        PrismObject<ResourceType> openDjResource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
-                result);
+        PrismObject<ResourceType> openDjResource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, result);
         display("Imported OpenDJ resource (repository)", openDjResource);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
 
         assertCache();
 
         String ldapConnectorOid = openDjResource.asObjectable().getConnectorRef().getOid();
-        PrismObject<ConnectorType> ldapConnector = repositoryService.getObject(ConnectorType.class, ldapConnectorOid, null, result);
+        PrismObject<ConnectorType> ldapConnector = repositoryService.getObject(ConnectorType.class, ldapConnectorOid, result);
         display("LDAP Connector: ", ldapConnector);
 
         // Check if Derby resource was imported correctly
 
-        PrismObject<ResourceType> derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
-                result);
+        PrismObject<ResourceType> derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
         AssertJUnit.assertEquals(RESOURCE_DERBY_OID, derbyResource.getOid());
 
         assertCache();
 
         String dbConnectorOid = derbyResource.asObjectable().getConnectorRef().getOid();
-        PrismObject<ConnectorType> dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, null, result);
+        PrismObject<ConnectorType> dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, result);
         display("DB Connector: ", dbConnector);
 
         // Check if password was encrypted during import
@@ -406,7 +402,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // TODO: test if OpenDJ and Derby are running
         
-        repositoryService.getObject(GenericObjectType.class, SAMPLE_CONFIGURATION_OBJECT_OID, null, result);
+        repositoryService.getObject(GenericObjectType.class, SAMPLE_CONFIGURATION_OBJECT_OID, result);
     }
 
     /**
@@ -434,7 +430,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnectionOpenDJ");
 
-        PrismObject<ResourceType> resourceOpenDjRepo = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+        PrismObject<ResourceType> resourceOpenDjRepo = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
         resourceTypeOpenDjrepo = resourceOpenDjRepo.asObjectable();
 
         assertCache();
@@ -444,12 +440,11 @@ public class TestSanity extends AbstractIntegrationTest {
         Element resourceOpenDjXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceTypeOpenDjrepo);
         assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
-        PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
-                opResult);
+        PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, 
+        		opResult);
         display("Initialized OpenDJ resource resource (provisioning)", openDjResourceProvisioninig);
 
-        PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
-                opResult);
+        PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
         display("Initialized OpenDJ resource OpenDJ resource (model)", openDjResourceModel);
 
         checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
@@ -467,13 +462,13 @@ public class TestSanity extends AbstractIntegrationTest {
     
     private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoOpenDjResource");
-    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
+    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, result);
     	checkOpenDjResource(resource.asObjectable(), "repository");
     }
 
     private void checkRepoDerbyResource() throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoDerbyResource");
-    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
+    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
     	checkDerbyResource(resource, "repository");
     }
 
@@ -596,7 +591,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test002TestConnectionDerby");
 
-        PrismObject<ResourceType> rObject = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, opResult);
+        PrismObject<ResourceType> rObject = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, opResult);
         resourceDerby = rObject.asObjectable();
         checkDerbyResource(rObject, "repository(after test)");
 
@@ -607,11 +602,11 @@ public class TestSanity extends AbstractIntegrationTest {
         Element resourceDerbyXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceDerby);
         assertNotNull("Resource schema was not generated", resourceDerbyXsdSchemaElement);
 
-        PrismObject<ResourceType> derbyResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
+        PrismObject<ResourceType> derbyResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID,
                 opResult);
         display("Initialized Derby resource (provisioning)", derbyResourceProvisioninig);
 
-        PrismObject<ResourceType> derbyResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
+        PrismObject<ResourceType> derbyResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID,
                 opResult);
         display("Initialized Derby resource (model)", derbyResourceModel);
 
@@ -723,9 +718,8 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertEquals(USER_JACK_OID, oidHolder.value);
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, oidHolder.value, resolve, repoResult);
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, oidHolder.value, repoResult);
         UserType repoUser = uObject.asObjectable();
 
         repoResult.computeStatus();
@@ -771,9 +765,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
         UserType repoUserType = repoUser.asObjectable();
 
         repoResult.computeStatus();
@@ -791,7 +784,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj,
-                resolve, repoResult);
+                repoResult);
         AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
@@ -831,6 +824,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
         // WHEN
         modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
@@ -890,9 +884,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
         UserType repoUser = uObject.asObjectable();
 
         repoResult.computeStatus();
@@ -916,7 +909,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidDerby,
-                resolve, repoResult);
+                repoResult);
         AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("addObject has failed", repoResult);
@@ -954,6 +947,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
         // WHEN
         modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidDerby,
@@ -1084,8 +1078,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
         UserType repoUserType = repoUser.asObjectable(); 
         display("repository user", repoUser);
 
@@ -1106,7 +1099,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
 
         repoResult = new OperationResult("getObject");
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
         display("repository shadow", repoShadow);
@@ -1162,8 +1155,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
         UserType repoUserType = repoUser.asObjectable();
         display("repository user", repoUser);
 
@@ -1183,7 +1175,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
         display("repository shadow", repoShadow);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
@@ -1257,8 +1249,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
         display("repository user", repoUser);
         UserType repoUserType = repoUser.asObjectable();
 
@@ -1278,7 +1269,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
         display("repo shadow", repoShadow);
         AccountShadowType repoShadowType = repoShadow.asObjectable();
 
@@ -1294,6 +1285,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        PropertyReferenceListType resolve = new PropertyReferenceListType();
         assertCache();
 
         // WHEN
@@ -1369,8 +1361,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
         UserType repoUser = uObject.asObjectable();
         display("repo user", repoUser);
 
@@ -1390,7 +1381,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj,
+        		repoResult);
         AccountShadowType repoShadowType = repoShadow.asObjectable();
 
         repoResult.computeStatus();
@@ -1406,6 +1398,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        PropertyReferenceListType resolve = new PropertyReferenceListType();
         assertCache();
 
         // WHEN
@@ -1491,9 +1484,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
         UserType repoUser = uObject.asObjectable();
         repoResult.computeStatus();
         display("User (repository)", repoUser);
@@ -1532,7 +1524,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         try {
             repositoryService.getObject(AccountShadowType.class, accountShadowOidDerby,
-                    null, repoResult);
+                    repoResult);
             AssertJUnit.fail("Shadow was not deleted");
         } catch (ObjectNotFoundException ex) {
             display("Caught expected exception from getObject(shadow): " + ex);
@@ -1572,9 +1564,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // User should be gone from the repository
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
         try {
-            repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+            repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
             AssertJUnit.fail("User still exists in repo after delete");
         } catch (ObjectNotFoundException e) {
             // This is expected
@@ -1583,7 +1574,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // Account shadow should be gone from the repository
         repoResult = new OperationResult("getObject");
         try {
-            repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
+            repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
             AssertJUnit.fail("Shadow still exists in repo after delete");
         } catch (ObjectNotFoundException e) {
             // This is expected, but check also the result
@@ -1641,9 +1632,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, repoResult);
         UserType repoUser = uObject.asObjectable();
         repoResult.computeStatus();
         display("User (repository)", repoUser);
@@ -1659,7 +1649,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
-                resolve, repoResult);
+                repoResult);
         AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
@@ -1743,9 +1733,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, repoResult);
         UserType repoUser = uObject.asObjectable();
         repoResult.computeStatus();
         display("User (repository)", repoUser);
@@ -1760,7 +1749,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
-                resolve, repoResult);
+                repoResult);
         AccountShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
@@ -1826,9 +1815,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, repoResult);
         UserType repoUser = uObject.asObjectable();
         repoResult.computeStatus();
         display("User (repository)", repoUser);
@@ -1843,7 +1831,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
-                resolve, repoResult);
+                repoResult);
         AccountShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
@@ -1962,9 +1950,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, repoResult);
         UserType repoUserType = repoUser.asObjectable();
         repoResult.computeStatus();
         display("User (repository)", repoUser);
@@ -1980,7 +1967,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
-                resolve, repoResult);
+                repoResult);
         AccountShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
@@ -2048,9 +2035,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, repoResult);
         UserType repoUserType = repoUser.asObjectable();
         repoResult.computeStatus();
         display("User (repository)", repoUser);
@@ -2066,7 +2052,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
-                resolve, repoResult);
+                repoResult);
         AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
@@ -2137,7 +2123,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResult repoResult = new OperationResult("getObject");
         PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, repoResult);
         UserType repoUserType = repoUser.asObjectable();
         repoResult.computeStatus();
         display("User (repository)", repoUserType);
@@ -2151,7 +2137,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         try {
             PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
-                    resolve, repoResult);
+                    repoResult);
             AssertJUnit.fail("Account shadow was not deleted from repo");
         } catch (ObjectNotFoundException ex) {
             // This is expected
@@ -2171,15 +2157,15 @@ public class TestSanity extends AbstractIntegrationTest {
 
 
     @Test
-    public void test060ListResourcesWithBrokenResource() {
+    public void test060ListResourcesWithBrokenResource() throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         displayTestTile("test060ListResourcesWithBrokenResource");
 
         // GIVEN
-        final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test060ListResourcesWithBrokenResource");
+        Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test060ListResourcesWithBrokenResource");
+        final OperationResult result = task.getResult();
 
         // WHEN
-        List<PrismObject<ResourceType>> resources = modelService.listObjects(ResourceType.class, null, result);
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
 
         // THEN
         assertNotNull("listObjects returned null list", resources);
@@ -2259,7 +2245,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(task);
         display("Task after pickup", task);
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_OPENDJ_SYNC_OID, null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_OPENDJ_SYNC_OID, result);
         display("Task after pickup in the repository", o.asObjectable());
 
         // .. it should be running
@@ -2563,7 +2549,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         display("Import task after launch", task);
 
-        PrismObject<TaskType> tObject = repositoryService.getObject(TaskType.class, task.getOid(), null, result);
+        PrismObject<TaskType> tObject = repositoryService.getObject(TaskType.class, task.getOid(), result);
         TaskType taskAfter = tObject.asObjectable();
         display("Import task in repo after launch", taskAfter);
 
@@ -2743,7 +2729,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 AssertJUnit.fail("accountRef does not point to existing account " + accountRef.getOid());
             }
             
-            PrismObject<AccountShadowType> aObject = modelService.getObject(AccountShadowType.class, accountRef.getOid(), null, result);
+            PrismObject<AccountShadowType> aObject = modelService.getObject(AccountShadowType.class, accountRef.getOid(), null, task, result);
             AccountShadowType account = aObject.asObjectable();
             
             display("Account after import ", account);
@@ -2817,7 +2803,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(task.getTaskIdentifier());
         assertFalse(task.getTaskIdentifier().isEmpty());
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_USER_RECOMPUTE_OID, null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_USER_RECOMPUTE_OID, result);
         display("Task after pickup in the repository", o.asObjectable());
 
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
@@ -2846,9 +2832,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> object = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        PrismObject<UserType> object = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, repoResult);
         UserType repoUser = object.asObjectable();
 
         repoResult.computeStatus();
@@ -2865,7 +2850,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
          PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
-                resolve, repoResult);
+                repoResult);
         AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
@@ -2974,7 +2959,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(task);
         display("Task after pickup", task);
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_OPENDJ_RECON_OID, null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_OPENDJ_RECON_OID, result);
         display("Task after pickup in the repository", o.asObjectable());
 
         // .. it should be running
@@ -3005,9 +2990,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, repoResult);
         UserType repoUser = uObject.asObjectable();
         repoResult.computeStatus();
         displayJaxb("User (repository)", repoUser, new QName("user"));
@@ -3023,7 +3007,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
-                resolve, repoResult);
+                repoResult);
         AccountShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
@@ -3089,7 +3073,7 @@ public class TestSanity extends AbstractIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidElaineOpendj,
-                resolve, repoResult);
+                repoResult);
         repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
@@ -3295,7 +3279,7 @@ public class TestSanity extends AbstractIntegrationTest {
             ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("Asserting sync settings");
         PrismObject<SystemConfigurationType> systemConfigurationType = repositoryService.getObject(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
         result.computeStatus();
         assertSuccess("Asserting sync settings failed (result)", result);
         AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfigurationType.asObjectable().getGlobalAccountSynchronizationSettings();

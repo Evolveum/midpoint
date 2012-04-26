@@ -139,8 +139,6 @@ public interface RepositoryService {
 	 * 
 	 * @param oid
 	 *            OID of the object to get
-	 * @param resolve
-	 *            list of properties to resolve in the fetched object
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return Object fetched from repository
@@ -152,7 +150,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
 	/**

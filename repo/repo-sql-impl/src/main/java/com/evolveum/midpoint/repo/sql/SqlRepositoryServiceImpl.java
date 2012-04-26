@@ -133,13 +133,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
     }
 
-    private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid,
-            PropertyReferenceListType resolve) throws ObjectNotFoundException, SchemaException,
-            DtoTranslationException {
+    private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid) 
+    		throws ObjectNotFoundException, SchemaException, DtoTranslationException {
         Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
         query.add(Restrictions.eq("oid", oid));
         query.add(Restrictions.eq("id", 0L));
-        updateResultFetchInCriteria(query, type, resolve);
 
         RObject object = (RObject) query.uniqueResult();
         if (object == null) {
@@ -155,7 +153,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -168,7 +166,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
         while (true) {
             try {
-                return getObjectAttempt(type, oid, resolve, subResult);
+                return getObjectAttempt(type, oid, subResult);
             } catch (RuntimeException ex) {
                 attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
@@ -176,12 +174,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     private <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid,
-            PropertyReferenceListType resolve,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
         LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Resolving\n{}", new Object[]{prismContext.silentMarshalObject(resolve)});
-        }
 
         PrismObject<T> objectType = null;
 
@@ -189,7 +183,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             session = beginTransaction();
 
-            objectType = getObject(session, type, oid, resolve);
+            objectType = getObject(session, type, oid);
 
             session.getTransaction().commit();
         } catch (PessimisticLockException ex) {
@@ -211,36 +205,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
 
         return objectType;
-    }
-
-    private <T extends ObjectType> void updateResultFetchInCriteria(Criteria criteria, Class<T> type,
-            PropertyReferenceListType resolve) {
-
-        if (resolve == null || resolve.getProperty().isEmpty()) {
-            return;
-        }
-
-        //resolving properties
-        try {
-            QueryRegistry registry = QueryRegistry.getInstance();
-            EntityDefinition definition = registry.findDefinition(ObjectTypes.getObjectType(type).getQName());
-            for (Element property : resolve.getProperty()) {
-                PropertyPath path = new XPathHolder(property).toPropertyPath();
-                if (path == null || path.size() != 1) {
-                    LOGGER.warn("Resolving property path with size not equal 1 is not supported '"
-                            + path + "'.");
-                    continue;
-                }
-                Definition def = definition.findDefinition(path.first().getName());
-                if (def == null) {
-                    LOGGER.warn("Unknown path '" + path + "', couldn't find definition for it, will not be resolved.");
-                    continue;
-                }
-                criteria.setFetchMode(def.getRealName(), FetchMode.JOIN);
-            }
-        } catch (QueryException ex) {
-            throw new SystemException(ex.getMessage(), ex);
-        }
     }
 
     @Deprecated
@@ -682,7 +646,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session = beginTransaction();
 
             //get user
-            PrismObject<T> prismObject = getObject(session, type, oid, null);
+            PrismObject<T> prismObject = getObject(session, type, oid);
             //apply diff
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.dump()});

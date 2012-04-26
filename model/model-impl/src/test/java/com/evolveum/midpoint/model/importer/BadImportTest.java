@@ -102,7 +102,7 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 
 		// Jack is OK in the import file, he should be imported
 		try {
-			UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result).asObjectable();
+			UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
 			AssertJUnit.assertNotNull("Jack is null", jack);
 		} catch (ObjectNotFoundException e) {
 			AssertJUnit.fail("Jack was not imported");

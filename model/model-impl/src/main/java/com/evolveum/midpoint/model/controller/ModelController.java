@@ -47,6 +47,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ChangeExecutor;
+import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -152,7 +153,7 @@ public class ModelController implements ModelService {
 	private ProvisioningService provisioning;
 
 	@Autowired(required = true)
-	private ObjectResolver objectResolver;
+	private ModelObjectResolver objectResolver;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -178,10 +179,14 @@ public class ModelController implements ModelService {
 
 	@Autowired(required = true)
 	SystemConfigurationHandler systemConfigurationHandler;
+	
+	public ModelObjectResolver getObjectResolver() {
+		return objectResolver;
+	}
 
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
-			PropertyReferenceListType resolve, OperationResult result) throws ObjectNotFoundException,
+			Collection<PropertyPath> resolve, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -200,28 +205,28 @@ public class ModelController implements ModelService {
 
 			// todo will be fixed after another interface cleanup
 			// fix for resolving object properties.
-			resolveObjectAttributes(object, resolve, subResult);
+			resolveObjectAttributes(object, resolve, task, subResult);
 		} finally {
 			RepositoryCache.exit();
 		}
 		return object.asPrismObject();
 	}
 
-	protected void resolveObjectAttributes(ObjectType object, PropertyReferenceListType resolve,
-			OperationResult result) {
+	protected void resolveObjectAttributes(ObjectType object, Collection<PropertyPath> resolve,
+			Task task, OperationResult result) {
 		if (object == null || resolve == null) {
 			return;
 		}
 
 		if (object instanceof UserType) {
-			resolveUserAttributes((UserType) object, resolve, result);
+			resolveUserAttributes((UserType) object, resolve, task, result);
 		} else if (object instanceof AccountShadowType) {
-			resolveAccountAttributes((AccountShadowType) object, resolve, result);
+			resolveAccountAttributes((AccountShadowType) object, resolve, task, result);
 		}
 	}
 
-	private void resolveUserAttributes(UserType user, PropertyReferenceListType resolve,
-			OperationResult result) {
+	private void resolveUserAttributes(UserType user, Collection<PropertyPath> resolve,
+			Task task, OperationResult result) {
 		if (!Utils.haveToResolve("Account", resolve)) {
 			return;
 		}
@@ -233,7 +238,7 @@ public class ModelController implements ModelService {
 			subResult.addParams(new String[] { "user", "accountRef" }, user, accountRef);
 			try {
 				AccountShadowType account = getObject(AccountShadowType.class, accountRef.getOid(), resolve,
-						subResult).asObjectable();
+						task, subResult).asObjectable();
 				user.getAccount().add(account);
 				// refToBeDeleted.add(accountRef);
 				subResult.recordSuccess();
@@ -250,8 +255,8 @@ public class ModelController implements ModelService {
 
 	}
 
-	private void resolveAccountAttributes(AccountShadowType account, PropertyReferenceListType resolve,
-			OperationResult result) {
+	private void resolveAccountAttributes(AccountShadowType account, Collection<PropertyPath> resolve,
+			Task task, OperationResult result) {
 		if (!Utils.haveToResolve("Resource", resolve)) {
 			return;
 		}
@@ -266,7 +271,7 @@ public class ModelController implements ModelService {
 		subResult.addParams(new String[] { "account", "resolve" }, account, resolve);
 		try {
 			ResourceType resource = getObject(ResourceType.class, account.getResourceRef().getOid(), resolve,
-					result).asObjectable();
+					task, result).asObjectable();
 			account.setResource(resource);
 			account.setResourceRef(null);
 			subResult.recordSuccess();
@@ -521,7 +526,7 @@ public class ModelController implements ModelService {
 
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
-			OperationResult result) {
+			Task task, OperationResult result) {
 		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
@@ -578,7 +583,7 @@ public class ModelController implements ModelService {
 
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
-			PagingType paging, OperationResult result) throws SchemaException, ObjectNotFoundException {
+			PagingType paging, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
@@ -638,7 +643,7 @@ public class ModelController implements ModelService {
 
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+			Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		// TODO: implement properly
 
 		try {
@@ -684,7 +689,7 @@ public class ModelController implements ModelService {
 				AuditEventStage.REQUEST);
 		PrismObject<T> object = null;
 		try {
-			object = cacheRepositoryService.getObject(type, oid, null, result);
+			object = cacheRepositoryService.getObject(type, oid, result);
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			RepositoryCache.exit();
@@ -747,9 +752,9 @@ public class ModelController implements ModelService {
 					// Need to read the shadow to get reference to resource and
 					// account type
 					AccountShadowType shadow = (AccountShadowType) cacheRepositoryService.getObject(type,
-							oid, null, result).asObjectable();
+							oid, result).asObjectable();
 					String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
-					ResourceType resource = provisioning.getObject(ResourceType.class, resourceOid, null,
+					ResourceType resource = provisioning.getObject(ResourceType.class, resourceOid,
 							result).asObjectable();
 					RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
 							prismContext);
@@ -879,7 +884,7 @@ public class ModelController implements ModelService {
 		// This is pure XML and does not contain
 		// parsed schema. Fetching cached resource from provisioning is much
 		// more efficient
-		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, null, result)
+		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, result)
 				.asObjectable();
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType,
 				prismContext);
@@ -915,7 +920,7 @@ public class ModelController implements ModelService {
 				AuditEventStage.REQUEST);
 		PrismObject<T> object = null;
 		try {
-			object = cacheRepositoryService.getObject(clazz, oid, null, result);
+			object = cacheRepositoryService.getObject(clazz, oid, result);
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			RepositoryCache.exit();
@@ -1015,7 +1020,7 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
+	public PrismObject<UserType> listAccountShadowOwner(String accountOid, Task task, OperationResult result)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -1057,7 +1062,7 @@ public class ModelController implements ModelService {
 
 	@Override
 	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(
-			String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
+			String resourceOid, Class<T> resourceObjectShadowType, Task task, OperationResult result)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -1108,7 +1113,7 @@ public class ModelController implements ModelService {
 
 	@Override
 	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
-			QName objectClass, PagingType paging, OperationResult result) throws SchemaException,
+			QName objectClass, PagingType paging, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object type must not be null.");
@@ -1165,7 +1170,7 @@ public class ModelController implements ModelService {
 	// execution but rather to track the execution of resource tests (that in
 	// fact happen in provisioning).
 	@Override
-	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
+	public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		RepositoryCache.enter();
 		LOGGER.trace("Testing resource OID: {}", new Object[] { resourceOid });
@@ -1220,10 +1225,9 @@ public class ModelController implements ModelService {
 		// TODO: add context to the result
 
 		// Fetch resource definition from the repo/provisioning
-		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		ResourceType resource = null;
 		try {
-			resource = getObject(ResourceType.class, resourceOid, resolve, result).asObjectable();
+			resource = getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found");
 			RepositoryCache.exit();
@@ -1309,7 +1313,7 @@ public class ModelController implements ModelService {
 		PrismObject<SystemConfigurationType> systemConfiguration;
 		try {
 			systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class,
-					SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+					SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
 			systemConfigurationHandler.postInit(systemConfiguration, result);
 		} catch (ObjectNotFoundException e) {
 			String message = "No system configuration found, skipping application of initial system settings";

@@ -227,7 +227,7 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 		ResourceType resource = null;
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-			ResourceDto resourceDto = manager.get(resourceOid, new PropertyReferenceListType());
+			ResourceDto resourceDto = manager.get(resourceOid, null);
 			if (resourceDto != null) {
 				resource = resourceDto.getXmlObject();
 			}

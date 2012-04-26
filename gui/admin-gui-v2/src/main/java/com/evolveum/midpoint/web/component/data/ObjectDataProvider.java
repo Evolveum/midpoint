@@ -81,7 +81,8 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
             OperationResult result = new OperationResult("list usersssss");
             PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, query, paging, result);
+            // TODO: task
+            List<PrismObject<T>> list = getModel().searchObjects(type, query, paging, null, result);
             for (PrismObject<T> object : list) {
                 availableData.add(new SelectableBean<T>(object.asObjectable()));
             }
@@ -101,7 +102,8 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
     public int size() {
         OperationResult result = new OperationResult("list objects");
         try {
-            return getModel().countObjects(type, null, result);
+        	// TODO: task
+            return getModel().countObjects(type, null, null, result);
         } catch (Exception ex) {
             //todo error handling
             ex.printStackTrace();

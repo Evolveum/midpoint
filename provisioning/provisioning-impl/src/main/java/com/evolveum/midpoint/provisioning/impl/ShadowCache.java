@@ -158,7 +158,7 @@ public class ShadowCache {
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
 		if (repositoryShadow == null) {
-			PrismObject<T> repositoryPrism = getRepositoryService().getObject(type, oid, null, parentResult);
+			PrismObject<T> repositoryPrism = getRepositoryService().getObject(type, oid, parentResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Found shadow object:\n{}", repositoryPrism.dump());
 			}
@@ -835,8 +835,7 @@ public class ShadowCache {
 			throw new IllegalArgumentException("Cannot get resource with an empty OID");
 		}
 		// TODO: add some caching
-		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, null,
-				parentResult);
+		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, parentResult);
 		// return resource;
 		
 		

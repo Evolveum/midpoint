@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -78,7 +79,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
     }
 
     protected <O extends ObjectType> PrismObject<O> get(Class<O> objectClass, String oid,
-            PropertyReferenceListType resolve) throws ObjectNotFoundException {
+            Collection<PropertyPath> resolve) throws ObjectNotFoundException {
         Validate.notEmpty(oid, "Object oid must not be null or empty.");
         Validate.notNull(objectClass, "Object class must not be null.");
 
@@ -87,7 +88,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
         PrismObject<O> objectType = null;
         try {
-            objectType = getModel().getObject(objectClass, oid, resolve, result);
+            objectType = getModel().getObject(objectClass, oid, resolve, null, result);
             result.recordSuccess();
         } catch (ObjectNotFoundException ex) {
             throw ex;
@@ -108,7 +109,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
     @SuppressWarnings("unchecked")
     @Override
-    public T get(String oid, PropertyReferenceListType resolve) {
+    public T get(String oid, Collection<PropertyPath> resolve) {
         Validate.notEmpty(oid, "Object oid must not be null or empty.");
         LOGGER.debug("Get object with oid {}.", new Object[]{oid});
         OperationResult result = new OperationResult(GET);
@@ -186,7 +187,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
         Collection<O> collection = new ArrayList<O>();
         OperationResult result = new OperationResult(LIST);
         try {
-            List<PrismObject<O>> objectList = getModel().listObjects(type, paging, result);
+            List<PrismObject<O>> objectList = getModel().listObjects(type, paging, null, result);
             LOGGER.debug("Found {} objects of type {}.", new Object[]{objectList.size(), type});
             for (PrismObject<O> object : objectList) {
                 collection.add(object.asObjectable());

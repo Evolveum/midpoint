@@ -156,11 +156,11 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		if (!isCacheable(type)) {
 			LOGGER.trace("Cache: PASS {} ({})", oid, type.getSimpleName());
-			return repository.getObject(type, oid, resolve, parentResult);
+			return repository.getObject(type, oid, parentResult);
 		}
 		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache == null) {
@@ -173,7 +173,7 @@ public class RepositoryCache implements RepositoryService {
 			}
 			LOGGER.trace("Cache: MISS {} ({})", oid, type.getSimpleName());
 		}
-		PrismObject<T> object = repository.getObject(type, oid, resolve, parentResult);
+		PrismObject<T> object = repository.getObject(type, oid, parentResult);
 		if (cache != null) {
 			cache.put(oid, ((PrismObject<ObjectType>) object).clone());
 		}

@@ -204,7 +204,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		UserType user = null;
 		OperationResult result = new OperationResult(AccountManager.SUBMIT);
 		try {
-			PrismObject<UserType> object = getModel().listAccountShadowOwner(oid, result);
+			PrismObject<UserType> object = getModel().listAccountShadowOwner(oid, null, result);
 			user = object.asObjectable();
 			result.recordSuccess();
 		} catch (Exception ex) {
@@ -224,8 +224,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 			ResourceDto resource = account.getResource();
 			if (resource == null) {
 				ObjectReferenceDto ref = account.getResourceRef();
-				PrismObject<ResourceType> object = get(ResourceType.class, ref.getOid(),
-						new PropertyReferenceListType());
+				PrismObject<ResourceType> object = get(ResourceType.class, ref.getOid(), null);
 				resource = new ResourceDto(object.asObjectable());
 			}
 

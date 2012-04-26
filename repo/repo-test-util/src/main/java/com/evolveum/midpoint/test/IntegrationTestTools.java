@@ -415,7 +415,7 @@ public class IntegrationTestTools {
         assertNotNull("Null OID in "+shadowType, shadowType.getOid());
         PrismObject<AccountShadowType> repoShadow = null;
         try {
-        	repoShadow = repositoryService.getObject(AccountShadowType.class, shadowType.getOid(), null, parentResult);
+        	repoShadow = repositoryService.getObject(AccountShadowType.class, shadowType.getOid(), parentResult);
 		} catch (Exception e) {
 			AssertJUnit.fail("Got exception while trying to read "+shadowType+
 					": "+e.getCause()+": "+e.getMessage());
@@ -428,7 +428,7 @@ public class IntegrationTestTools {
 		assertEquals("Resource OID mismatch", resourceOid, repoResourceOid);
 		
 		try {
-        	repositoryService.getObject(ResourceType.class, resourceOid, null, parentResult);
+        	repositoryService.getObject(ResourceType.class, resourceOid, parentResult);
 		} catch (Exception e) {
 			AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+shadowType+
 					": "+e.getCause()+": "+e.getMessage());

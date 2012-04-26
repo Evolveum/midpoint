@@ -170,7 +170,7 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
 
                 PrismObject<UserType> user;
                 try {
-                    user = repositoryService.getObject(UserType.class, oid, new PropertyReferenceListType(), result);
+                    user = repositoryService.getObject(UserType.class, oid, result);
                 } catch (Exception e) {
                     threadResult = new RuntimeException("getObject failed while getting attribute " + attribute.getLocalPart(), e);
                     LOGGER.error("getObject failed while getting attribute " + attribute.getLocalPart(), e);

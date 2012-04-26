@@ -150,7 +150,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     private UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
-        ObjectType object = repositoryService.getObject(UserType.class, oid, null,
+        ObjectType object = repositoryService.getObject(UserType.class, oid,
                 new OperationResult(OPERATION_GET_USER)).asObjectable();
         if (object != null && (object instanceof UserType)) {
             return (UserType) object;

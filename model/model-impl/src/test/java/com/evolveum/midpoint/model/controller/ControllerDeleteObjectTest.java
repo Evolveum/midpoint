@@ -126,7 +126,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
-				repository.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
+				repository.getObject(any(Class.class), eq(oid),
 						any(OperationResult.class))).thenReturn(expectedUser.asPrismObject());
 		OperationResult result = new OperationResult("Delete Object From Repo");
 		try {
@@ -147,7 +147,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
-				repository.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
+				repository.getObject(any(Class.class), eq(oid),
 						any(OperationResult.class))).thenReturn(expectedResource.asPrismObject());
 		OperationResult result = new OperationResult("Delete Object From Provisioning");
 		try {

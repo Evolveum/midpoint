@@ -192,7 +192,7 @@ public class UserSynchronizer {
                 }
 
                 AccountShadowType account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
-                        null, subResult).asObjectable();
+                        subResult).asObjectable();
                 ResourceType resource = Utils.getResource(account, provisioningService, result);
                 PrismObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
                         resource, prismContext).getObjectDefinition(account);
@@ -232,7 +232,7 @@ public class UserSynchronizer {
         	throw new IllegalArgumentException("No OID in primary user delta");
         }
 
-        PrismObject<UserType> user = cacheRepositoryService.getObject(UserType.class, userOid, null, result);
+        PrismObject<UserType> user = cacheRepositoryService.getObject(UserType.class, userOid, result);
         context.setUserOld(user);
     }
 
@@ -276,7 +276,7 @@ public class UserSynchronizer {
         	PrismObject<AccountShadowType> account = accountRefVal.getObject();
         	if (account == null) {
 	            // Fetching from repository instead of provisioning so we avoid reading in a full account
-	            account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+	            account = cacheRepositoryService.getObject(AccountShadowType.class, oid, result);
         	}
         	AccountSyncContext accountSyncContext = getOrCreateAccountContext(context, account, result);
         	if (accountSyncContext.getPolicyDecision() == null) {
@@ -346,7 +346,7 @@ public class UserSynchronizer {
 					// We have OID. This is either linking of exising account or add of new account
 					// therefore check for account existence to decide
 					try {
-						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, result);
 						// Create account context from retrieved object
 						accountSyncContext = getOrCreateAccountContext(context, account, result);
 						accountSyncContext.setAccountOld(account);
@@ -379,7 +379,7 @@ public class UserSynchronizer {
 					throw new SchemaException("Cannot delete account ref withot an oid in " + user);
 				} else {
 					try {
-						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, result);
 						// Create account context from retrieved object
 						accountSyncContext = getOrCreateAccountContext(context, account, result);
 						accountSyncContext.setAccountOld(account);
@@ -436,7 +436,7 @@ public class UserSynchronizer {
 					if (oid == null) {
 						throw new IllegalArgumentException("No OID in sync delta in "+accountCtx);
 					}
-					account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+					account = cacheRepositoryService.getObject(AccountShadowType.class, oid, result);
 					// We will not set old account if the delta is delete. The account does not really exists now.
 					// (but the OID and resource will be set from the repo shadow)
 					if (syncDelta.getChangeType() != ChangeType.DELETE) {
@@ -452,7 +452,7 @@ public class UserSynchronizer {
 					if (resourceOid == null) {
 						throw new IllegalArgumentException("No resource OID in "+account);
 					}
-					ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
+					ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, result).asObjectable();
 	                context.rememberResource(resourceType);
 	                accountCtx.setResource(resourceType);
 				}
@@ -486,7 +486,7 @@ public class UserSynchronizer {
             ResourceType resource = context.getResource(rat);
             if (resource == null) {
                 // Fetching from provisioning to take advantage of caching and pre-parsed schema
-                resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
+                resource = provisioningService.getObject(ResourceType.class, resourceOid, result).asObjectable();
                 context.rememberResource(resource);
             }
             accountSyncContext = context.createAccountSyncContext(rat);
@@ -508,7 +508,7 @@ public class UserSynchronizer {
     private void loadFromSystemConfig(SyncContext context, OperationResult result) throws ObjectNotFoundException,
             SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration = 
-        	cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
+        	cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
         			result);
         if (systemConfiguration == null) {
             // throw new SystemException("System configuration object is null (should not happen!)");

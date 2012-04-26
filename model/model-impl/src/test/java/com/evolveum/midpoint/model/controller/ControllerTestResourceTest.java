@@ -54,7 +54,7 @@ public class ControllerTestResourceTest extends AbstractTestNGSpringContextTests
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testResourceNullOid() throws ObjectNotFoundException {
-		controller.testResource(null);
+		controller.testResource(null, null);
 	}
 
 }

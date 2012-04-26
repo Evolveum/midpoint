@@ -89,7 +89,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         Validate.notNull(changedObject, "User object must not be null.");
 
         Set<PropertyChange> set = null;
-        UserDto oldUser = get(changedObject.getOid(), new PropertyReferenceListType());
+        UserDto oldUser = get(changedObject.getOid(), null);
 
         // we don't want user to have resolved all account
         // only those which were added are needed to create appropriate link
@@ -294,7 +294,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                 GuiResourceDto.class);
         ResourceDto resourceDto = null;
         try {
-            resourceDto = manager.get(resourceOid, new PropertyReferenceListType());
+            resourceDto = manager.get(resourceOid, null);
         } catch (Exception ex) {
             FacesUtils.addErrorMessage("User add account failed, reason: " + ex.getMessage(), ex);
             return null;
@@ -316,7 +316,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         OperationResult result = new OperationResult(SEARCH);
         List<UserDto> users = new ArrayList<UserDto>();
         try {
-            List<PrismObject<UserType>> list = getModel().searchObjects(UserType.class, search, paging, result);
+            List<PrismObject<UserType>> list = getModel().searchObjects(UserType.class, search, paging, null, result);
             for (PrismObject<UserType> object : list) {
                 UserDto userDto = createObject(object.asObjectable());
                 users.add(userDto);

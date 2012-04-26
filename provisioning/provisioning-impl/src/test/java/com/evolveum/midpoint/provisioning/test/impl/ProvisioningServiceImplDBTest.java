@@ -91,9 +91,9 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplDBTest.class.getName()+".test000Integrity");
 		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result).asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, result).asObjectable();
 		assertNotNull(connector);
 		display("DB Connector",connector);
 	}
@@ -108,7 +108,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		display("Test result",testResult);
 		assertSuccess("Test resource failed (result)", testResult);
 		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result).asObjectable();
 		display("Resource after test",resource);
 	}
 	
@@ -133,12 +133,10 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		assertSuccess("addObject has failed (result)",result);
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
-		AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-				new PropertyReferenceListType(), result).asObjectable();
+		AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, result).asObjectable();
 		assertEquals("will", accountType.getName());
 
-		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-				new PropertyReferenceListType(), result).asObjectable();
+		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, result).asObjectable();
 		assertEquals("will", provisioningAccountType.getName());
 		
 		// Check database content

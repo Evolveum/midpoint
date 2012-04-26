@@ -23,6 +23,7 @@
 package com.evolveum.midpoint.web.test;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -97,7 +98,7 @@ public class UserManagerImplMock implements UserManager {
 		AccountShadowDto accountDto = new AccountShadowDto();
 		AccountShadowType accountType = new AccountShadowType();
 		accountType.setAttributes(new ResourceObjectShadowAttributesType());
-		ResourceDto resourceDto = resourceManagerMock.get(resourceOid, new PropertyReferenceListType());
+		ResourceDto resourceDto = resourceManagerMock.get(resourceOid, null);
 		accountType.setResource((ResourceType) resourceDto.getXmlObject());
 		accountDto.setXmlObject(accountType);
 
@@ -108,7 +109,7 @@ public class UserManagerImplMock implements UserManager {
 	}
 
 	@Override
-	public GuiUserDto get(String oid, PropertyReferenceListType resolve) {
+	public GuiUserDto get(String oid, Collection<PropertyPath> resolve) {
 
 		System.out.println("user mock");
 		System.out.println("wanted " + oid);
@@ -120,10 +121,10 @@ public class UserManagerImplMock implements UserManager {
 			}
 		}
 
-		if (!resolve.getProperty().isEmpty()) {
+		if (resolve != null && !resolve.isEmpty()) {
 			Collection<AccountShadowDto> accounts = accountManagerMock.list();
 			Collection<GuiResourceDto> resources = resourceManagerMock.list();
-			for (Element property : resolve.getProperty()) {
+			for (PropertyPath property : resolve) {
 				if (Utils.getPropertyName("Account").equals(
 						(new XPathHolder(property)).getXPath())) {
 					for (AccountShadowDto acc : accounts) {

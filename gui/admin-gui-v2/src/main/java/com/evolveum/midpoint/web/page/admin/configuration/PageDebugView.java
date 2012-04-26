@@ -69,8 +69,9 @@ public class PageDebugView extends PageAdminConfiguration {
             ModelService model = application.getModel();
 
             OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
+            // TODO: task
             PrismObject<ObjectType> object = model.getObject(ObjectType.class, objectOid.toString(),
-                    null, result);
+                    null, null, result);
             oldObject = object;
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);

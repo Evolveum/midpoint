@@ -221,13 +221,13 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected void fillContextWithUser(SyncContext context, String userOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
         context.setUserOld(user);
     }
 
 	protected void fillContextWithAccount(SyncContext context, String accountOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException {
-        PrismObject<AccountShadowType> account = repositoryService.getObject(AccountShadowType.class, accountOid, null, result);
+        PrismObject<AccountShadowType> account = repositoryService.getObject(AccountShadowType.class, accountOid, result);
         AccountShadowType accountType = account.asObjectable();
         ResourceAccountType rat = new ResourceAccountType(accountType.getResourceRef().getOid(), accountType.getAccountType());
         AccountSyncContext accountSyncContext = context.createAccountSyncContext(rat);
@@ -361,7 +361,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertLinked");
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
 		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
 		boolean found = false; 
 		for (PrismReferenceValue val: accountRef.getValues()) {
@@ -405,7 +405,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertHasNoRole(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();

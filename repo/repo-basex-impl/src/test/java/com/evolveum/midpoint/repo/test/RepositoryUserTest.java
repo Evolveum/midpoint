@@ -143,8 +143,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(user, new OperationResult("test"));
 
 			//get the object
-			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid, new OperationResult("test"));
 			
 			PrismAsserts.assertEquals(user, retrievedObject);
 
@@ -165,7 +164,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			// delete object
 			repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(ObjectType.class, oid, new PropertyReferenceListType(), new OperationResult("test"));
+				repositoryService.getObject(ObjectType.class, oid, new OperationResult("test"));
 				Assert.fail("Object with oid " + oid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
@@ -190,8 +189,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
 					"src/test/resources/user-without-extension.xml"));
 			repositoryService.addObject(user, new OperationResult("test"));
-			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid, new OperationResult("test"));
 			PrismAsserts.assertEquals(user, retrievedObject);
 			
 			PrismObject<UserType> userAddedExtension = PrismTestUtil.parseObject(new File(
@@ -210,7 +208,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(), new OperationResult("test"));
 
 			//check the extension in the object
-			retrievedObject = repositoryService.getObject(UserType.class, oid, new PropertyReferenceListType(), new OperationResult("test"));
+			retrievedObject = repositoryService.getObject(UserType.class, oid, new OperationResult("test"));
 			PrismAsserts.assertEquals(userAddedExtension, retrievedObject);
 
 		} finally {
@@ -233,8 +231,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
 					"src/test/resources/user-without-oid.xml"));	
 			oid = repositoryService.addObject(user, new OperationResult("test"));
-			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid, new OperationResult("test"));
 			//check if oid was generated for the object
 			assertEquals(oid, retrievedObject.getOid());
 			user.setOid(oid);
@@ -294,8 +291,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(), new OperationResult("test"));
 
 			//check if account ref was removed from the object
-			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid,
-					new PropertyReferenceListType(), new OperationResult("test"));
+			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid, new OperationResult("test"));
 			assertEquals(oid, retrievedObject.getOid());
 			assertEquals(0, retrievedObject.asObjectable().getAccountRef().size());
 		} finally {

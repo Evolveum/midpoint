@@ -136,7 +136,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
                 object.asObjectable().setOid(oids.get(i));
 
                 Class<? extends ObjectType> clazz = object.getCompileTimeClass();
-                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), null, result);
+                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), result);
                 ObjectDelta delta = object.diff(newObject);
                 if (delta == null) {
                     continue;
@@ -173,7 +173,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             id++;
         }
 
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, oid, null, result);
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, oid, result);
 
         ObjectDelta<UserType> delta = fileUser.diff(repoUser);
         AssertJUnit.assertNotNull(delta);
@@ -181,29 +181,4 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue(delta.isEmpty());
     }
 
-    @Test
-    public void getResolveAccount() throws Exception {
-        File file = new File("./src/test/resources/get/user.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
-
-        OperationResult result = new OperationResult("Get user with account");
-        for (int i = 0; i < elements.size(); i++) {
-            PrismObject object = elements.get(i);
-            LOGGER.info("Adding object {}, type {}", new Object[]{(i + 1), object.getCompileTimeClass().getSimpleName()});
-            repositoryService.addObject(object, result);
-        }
-
-        File expectedFile = new File("./src/test/resources/get/expected-user.xml");
-        PrismObject<UserType> fileUser = (PrismObject<UserType>)
-                prismContext.getPrismDomProcessor().parseObjects(expectedFile).get(0);
-
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
-        resolve.getProperty().add(Utils.fillPropertyReference("Account"));
-                                                                    //todo
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, fileUser.getOid(), resolve, result);
-
-        ObjectDelta<UserType> delta = fileUser.diff(repoUser);
-        AssertJUnit.assertNotNull(delta);
-        AssertJUnit.assertTrue(delta.isEmpty());
-    }
 }

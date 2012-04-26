@@ -28,6 +28,8 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -73,6 +75,8 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
     private RepositoryService repository;
     @Autowired(required = true)
     private ProvisioningService provisioning;
+    @Autowired(required = true)
+    private TaskManager taskManager;
 
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -87,22 +91,22 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullResourceOid() throws Exception {
-        controller.listResourceObjectShadows(null, null, null);
+        controller.listResourceObjectShadows(null, null, null, null);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void emptyResourceOid() throws Exception {
-        controller.listResourceObjectShadows("", null, null);
+        controller.listResourceObjectShadows("", null, null, null);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullClassType() throws Exception {
-        controller.listResourceObjectShadows("1", null, null);
+        controller.listResourceObjectShadows("1", null, null, null);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullResult() throws Exception {
-        controller.listResourceObjectShadows("1", AccountShadowType.class, null);
+        controller.listResourceObjectShadows("1", AccountShadowType.class, null, null);
     }
 
     @Test
@@ -118,16 +122,16 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
                         eq((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class)))
                 .thenReturn((List)expected);
 
-        OperationResult result = new OperationResult("List Resource Object Shadows");
+        Task task = taskManager.createTaskInstance("List Resource Object Shadows");
         try {
             List<PrismObject<T>> returned = controller.listResourceObjectShadows(resourceOid,
-                    (Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), result);
+                    (Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), task, task.getResult());
 
             assertNotNull(expected);
             assertNotNull(returned);
             assertShadowListType(expected, returned);
         } finally {
-            LOGGER.debug(result.dump());
+            LOGGER.debug(task.getResult().dump());
         }
     }
 

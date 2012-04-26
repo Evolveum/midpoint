@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -97,10 +98,13 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notNullArgument(resolve, "Property reference list  must not be null.");
 
-		OperationResult operationResult = new OperationResult(GET_OBJECT);
+		OperationResult operationResult = null;
 		try {
+			Task task = createTaskInstance(GET_OBJECT);
+			setTaskOwner(task);
+			operationResult = task.getResult();
 			PrismObject<? extends ObjectType> object = model.getObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri)
-					.getClassDefinition(), oid, resolve, operationResult);
+					.getClassDefinition(), oid, MiscSchemaUtil.itemReferenceListTypeToItemPathList(resolve), task, operationResult);
 			handleOperationResult(operationResult, resultHolder);
 			objectHolder.value = object.asObjectable();
 			return;
@@ -115,10 +119,13 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			throws FaultMessage {
 		notEmptyArgument(objectType, "Object type must not be null or empty.");
 
-		OperationResult operationResult = new OperationResult(LIST_OBJECTS);
+		OperationResult operationResult = null;
 		try {
+			Task task = createTaskInstance(LIST_OBJECTS);
+			setTaskOwner(task);
+			operationResult = task.getResult();
 			List<PrismObject<? extends ObjectType>> list = (List)model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
-					.getClassDefinition(), paging, operationResult);
+					.getClassDefinition(), paging, task, operationResult);
 			handleOperationResult(operationResult, result);
 
 			ObjectListType listType = new ObjectListType();
@@ -138,11 +145,14 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(query, "Query must not be null.");
 
-		OperationResult operationResult = new OperationResult(SEARCH_OBJECTS);
+		OperationResult operationResult = null;
 		try {
+			Task task = createTaskInstance(SEARCH_OBJECTS);
+			setTaskOwner(task);
+			operationResult = task.getResult();
 			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(
 					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, paging,
-					operationResult);
+					task, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ObjectType> o : list) {
@@ -159,10 +169,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	public OperationResultType modifyObject(String objectTypeUri, ObjectModificationType change) throws FaultMessage {
 		notNullArgument(change, "Object modification must not be null.");
 
-		Task task = createTaskInstance(MODIFY_OBJECT);
-        setTaskOwner(task);
-		OperationResult operationResult = task.getResult();
+		OperationResult operationResult = null;
 		try {
+			Task task = createTaskInstance(MODIFY_OBJECT);
+	        setTaskOwner(task);
+			operationResult = task.getResult();
 			Class<? extends ObjectType> type = ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition();
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(change, type, prismContext);
 			model.modifyObject(type, change.getOid(),
@@ -180,10 +191,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notEmptyArgument(objectTypeUri, "objectType must not be null or empty.");
 
-		Task task = createTaskInstance(DELETE_OBJECT);
-        setTaskOwner(task);
-		OperationResult operationResult = task.getResult();
+		OperationResult operationResult = null;
 		try {
+			Task task = createTaskInstance(DELETE_OBJECT);
+	        setTaskOwner(task);
+			operationResult = task.getResult();
 			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
 					task, operationResult);
 			return handleOperationResult(operationResult);
@@ -199,9 +211,12 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			throws FaultMessage {
 		notEmptyArgument(accountOid, "Account oid must not be null or empty.");
 
-		OperationResult operationResult = new OperationResult(LIST_ACCOUNT_SHADOW_OWNER);
+		OperationResult operationResult = null;
 		try {
-			PrismObject<UserType> user = model.listAccountShadowOwner(accountOid, operationResult);
+			Task task = createTaskInstance(LIST_ACCOUNT_SHADOW_OWNER);
+			setTaskOwner(task);
+			operationResult = task.getResult();
+			PrismObject<UserType> user = model.listAccountShadowOwner(accountOid, task, operationResult);
 			handleOperationResult(operationResult, result);
 			if (user != null) {
 				userHolder.value = user.asObjectable();
@@ -221,12 +236,14 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notEmptyArgument(resourceObjectShadowType, "Resource object shadow type must not be null or empty.");
 
-		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECT_SHADOWS);
+		OperationResult operationResult = null;
 		try {
+			Task task = createTaskInstance(LIST_RESOURCE_OBJECT_SHADOWS);
+			setTaskOwner(task);
+			operationResult = task.getResult();
 			List<PrismObject<ResourceObjectShadowType>> list = model.listResourceObjectShadows(
-					resourceOid,
-					(Class<ResourceObjectShadowType>) ObjectTypes.getObjectTypeFromUri(
-							resourceObjectShadowType).getClassDefinition(), operationResult);
+					resourceOid, (Class<ResourceObjectShadowType>) ObjectTypes.getObjectTypeFromUri(
+							resourceObjectShadowType).getClassDefinition(), task, operationResult);
 			handleOperationResult(operationResult, result);
 
 			ResourceObjectShadowListType resultList = new ResourceObjectShadowListType();
@@ -249,9 +266,13 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(objectType, "Object type must not be null.");
 		notNullArgument(paging, "Paging  must not be null.");
 
-		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECTS);
+		OperationResult operationResult = null;
 		try {
-			List<PrismObject<? extends ResourceObjectShadowType>> list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
+			Task task = createTaskInstance(LIST_RESOURCE_OBJECTS);
+			setTaskOwner(task);
+			operationResult = task.getResult();
+			List<PrismObject<? extends ResourceObjectShadowType>> list = model.listResourceObjects(
+					resourceOid, objectType, paging, task, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ResourceObjectShadowType> o : list) {
@@ -270,7 +291,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 
 		try {
-			OperationResult testResult = model.testResource(resourceOid);
+			Task task = createTaskInstance(TEST_RESOURCE);
+			setTaskOwner(task);
+			OperationResult testResult = model.testResource(resourceOid, task);
 			return handleOperationResult(testResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);

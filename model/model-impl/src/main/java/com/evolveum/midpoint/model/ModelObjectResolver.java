@@ -74,22 +74,21 @@ public class ModelObjectResolver implements ObjectResolver {
 				if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
 					expectedType = (Class<T>) typeClass;
 				}
-				return getObject(expectedType, oid, null, result);
+				return getObject(expectedType, oid, result);
 	}
 
-	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException {
+	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, OperationResult result) throws ObjectNotFoundException {
 		T objectType = null;
 		try {
 			PrismObject<T> object = null;
 			if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
-				object = provisioning.getObject(clazz, oid, resolve, result);
+				object = provisioning.getObject(clazz, oid, result);
 				if (object == null) {
 					throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
 							+" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());
 				}
 			} else {
-				object = cacheRepositoryService.getObject(clazz, oid, resolve, result);
+				object = cacheRepositoryService.getObject(clazz, oid, result);
 				if (object == null) {
 					throw new SystemException("Got null result from repository.getObject while looking for "+clazz.getSimpleName()
 							+" with OID "+oid+"; using repository implementation "+cacheRepositoryService.getClass().getName());

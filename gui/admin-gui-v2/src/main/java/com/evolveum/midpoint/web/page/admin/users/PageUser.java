@@ -23,9 +23,11 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
@@ -60,6 +62,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -101,11 +104,13 @@ public class PageUser extends PageAdminUsers {
         StringValue userOid = getPageParameters().get(PARAM_USER_ID);
         if (userOid != null && StringUtils.isNotEmpty(userOid.toString())) {
             try {
-                PropertyReferenceListType resolve = new PropertyReferenceListType();
-                resolve.getProperty().add(Utils.fillPropertyReference("account"));
-                resolve.getProperty().add(Utils.fillPropertyReference("resource"));
+            	Collection<PropertyPath> resolve = MiscUtil.createCollection(
+    					new PropertyPath(UserType.F_ACCOUNT),
+    					new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
+    				);
 
-                user = getModelService().getObject(UserType.class, userOid.toString(), resolve, result);
+                // TODO: task
+                user = getModelService().getObject(UserType.class, userOid.toString(), resolve, null, result);
             } catch (Exception ex) {
                 //todo handle exception
                 ex.printStackTrace();
