@@ -142,23 +142,6 @@ public class Utils {
 		}
 	}
 
-	public static boolean haveToResolve(String propertyName, Collection<PropertyPath> resolve) {
-		if (resolve == null) {
-			return false;
-		}
-		for (PropertyPath path : resolve) {
-			if (path.isEmpty()) {
-				continue;
-			}
-
-			if (getPropertyName(propertyName).equals(path.getSegments().get(0).getName().getLocalPart())) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	public static void unresolveResource(ResourceObjectShadowType shadow) {
 		if (shadow == null || shadow.getResource() == null) {
 			return;

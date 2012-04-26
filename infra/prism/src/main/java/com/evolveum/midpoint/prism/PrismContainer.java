@@ -415,6 +415,10 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	return findItem(referenceQName, PrismReference.class);
     }
     
+    public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
+    	return getValue().findReferenceByCompositeObjectElementName(elementName);
+    }
+    
     public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type) throws SchemaException {
         return findCreateItem(containerPath, type, null, true);
     }

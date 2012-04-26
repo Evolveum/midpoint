@@ -25,8 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -77,6 +80,21 @@ public class ModelObjectResolver implements ObjectResolver {
 				return getObject(expectedType, oid, result);
 	}
 
+	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, OperationResult result) throws ObjectNotFoundException {
+		String oid = refVal.getOid();
+		Class<?> typeClass = ObjectType.class;
+		QName typeQName = refVal.getTargetType();
+		if (typeQName == null && refVal.getParent() != null && refVal.getParent().getDefinition() != null) {
+			PrismReferenceDefinition refDef = (PrismReferenceDefinition) refVal.getParent().getDefinition();
+			typeQName = refDef.getTargetTypeName();
+		}
+		if (typeQName != null) {
+			typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
+		}
+		return ((ObjectType) getObject((Class)typeClass, oid, result)).asPrismObject();
+	}
+
+	
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, OperationResult result) throws ObjectNotFoundException {
 		T objectType = null;
 		try {

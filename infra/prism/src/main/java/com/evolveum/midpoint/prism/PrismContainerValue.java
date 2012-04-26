@@ -375,6 +375,21 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	return findItem(elementName, PrismReference.class);
     }
     
+    public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
+    	for (Item item: items) {
+    		if (item instanceof PrismReference) {
+    			PrismReference ref = (PrismReference)item;
+    			PrismReferenceDefinition refDef = ref.getDefinition();
+    			if (refDef != null) {
+    				if (elementName.equals(refDef.getCompositeObjectElementName())) {
+    					return ref;
+    				}
+    			}
+    		}
+    	}
+    	return null;
+    }
+    
     public <I extends Item<?>> I findItem(QName itemName, Class<I> type) {
     	try {
 			return findCreateItem(itemName, type, null, false);

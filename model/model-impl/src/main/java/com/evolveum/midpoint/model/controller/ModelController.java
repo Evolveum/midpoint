@@ -64,6 +64,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -205,83 +206,44 @@ public class ModelController implements ModelService {
 
 			// todo will be fixed after another interface cleanup
 			// fix for resolving object properties.
-			resolveObjectAttributes(object, resolve, task, subResult);
+			resolve(object.asPrismObject(), resolve, task, subResult);
 		} finally {
 			RepositoryCache.exit();
 		}
 		return object.asPrismObject();
 	}
 
-	protected void resolveObjectAttributes(ObjectType object, Collection<PropertyPath> resolve,
-			Task task, OperationResult result) {
+	protected void resolve(PrismObject<?> object, Collection<PropertyPath> resolve,
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (object == null || resolve == null) {
 			return;
 		}
 
-		if (object instanceof UserType) {
-			resolveUserAttributes((UserType) object, resolve, task, result);
-		} else if (object instanceof AccountShadowType) {
-			resolveAccountAttributes((AccountShadowType) object, resolve, task, result);
+		for (PropertyPath path: resolve) {
+			resolve(object, path, task, result);
 		}
 	}
-
-	private void resolveUserAttributes(UserType user, Collection<PropertyPath> resolve,
-			Task task, OperationResult result) {
-		if (!Utils.haveToResolve("Account", resolve)) {
+	
+	private void resolve(PrismObject<?> object, PropertyPath path, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		if (path.isEmpty()) {
 			return;
 		}
-
-		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
-		for (Iterator<ObjectReferenceType> i = user.getAccountRef().iterator(); i.hasNext();) {
-			ObjectReferenceType accountRef = i.next();
-			OperationResult subResult = result.createSubresult(RESOLVE_USER_ATTRIBUTES);
-			subResult.addParams(new String[] { "user", "accountRef" }, user, accountRef);
-			try {
-				AccountShadowType account = getObject(AccountShadowType.class, accountRef.getOid(), resolve,
-						task, subResult).asObjectable();
-				user.getAccount().add(account);
-				// refToBeDeleted.add(accountRef);
-				subResult.recordSuccess();
-			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't resolve account with oid {}", ex,
-						accountRef.getOid());
-				subResult.recordFatalError(
-						"Couldn't resolve account with oid '" + accountRef.getOid() + "'.", ex);
-			} finally {
-				subResult.computeStatus("Couldn't resolve account with oid '" + accountRef.getOid() + "'.");
-				user.getAccountRef().remove(accountRef);
+		PropertyPathSegment first = path.first();
+		PropertyPath rest = path.rest();
+		QName refName = first.getName();
+		PrismReference reference = object.findReferenceByCompositeObjectElementName(refName);
+		if (reference == null) {
+			throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
+		}
+		for (PrismReferenceValue refVal: reference.getValues()) {
+			PrismObject<?> refObject = refVal.getObject();
+			if (refObject == null) {
+				refObject = objectResolver.resolve(refVal, object.toString(), result);
+				refVal.setObject(refObject);
 			}
-		}
-
-	}
-
-	private void resolveAccountAttributes(AccountShadowType account, Collection<PropertyPath> resolve,
-			Task task, OperationResult result) {
-		if (!Utils.haveToResolve("Resource", resolve)) {
-			return;
-		}
-
-		ObjectReferenceType reference = account.getResourceRef();
-		if (reference == null || StringUtils.isEmpty(reference.getOid())) {
-			LOGGER.debug("Skipping resolving resource for account {}, resource reference is null or "
-					+ "doesn't contain oid.", new Object[] { account.getName() });
-			return;
-		}
-		OperationResult subResult = result.createSubresult(RESOLVE_ACCOUNT_ATTRIBUTES);
-		subResult.addParams(new String[] { "account", "resolve" }, account, resolve);
-		try {
-			ResourceType resource = getObject(ResourceType.class, account.getResourceRef().getOid(), resolve,
-					task, result).asObjectable();
-			account.setResource(resource);
-			account.setResourceRef(null);
-			subResult.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils
-					.logException(LOGGER, "Couldn't resolve resource with oid {}", ex, reference.getOid());
-			subResult
-					.recordFatalError("Couldn't resolve resource with oid '" + reference.getOid() + "'.", ex);
-		} finally {
-			subResult.computeStatus("Couldn't resolve resource with oid '" + reference.getOid() + "'.");
+			if (!rest.isEmpty()) {
+				resolve(refObject, rest, task, result);
+			}
 		}
 	}
 
