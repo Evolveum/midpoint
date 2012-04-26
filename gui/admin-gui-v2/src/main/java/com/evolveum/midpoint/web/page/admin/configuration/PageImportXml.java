@@ -21,23 +21,21 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.Model;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
-import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import java.io.ByteArrayInputStream;
 
 /**
  * @author lazyman
@@ -45,9 +43,10 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType
  */
 public class PageImportXml extends PageAdminConfiguration {
 
+    private static final String OPERATION_IMPORT_XML = "pageImportXml.importXml";
     private LoadableModel<ImportOptionsType> model;
-    private AceEditor<String> xmlEditor;
-    
+    private IModel<String> xmlEditorModel;
+
     public PageImportXml() {
         model = new LoadableModel<ImportOptionsType>(false) {
 
@@ -56,14 +55,16 @@ public class PageImportXml extends PageAdminConfiguration {
                 return MiscSchemaUtil.getDefaultImportOptions();
             }
         };
+        xmlEditorModel = new Model<String>(null);
+
         initLayout();
     }
-    
+
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        xmlEditor = new AceEditor<String>("aceEditor", new Model<String>(""));
+        AceEditor<String> xmlEditor = new AceEditor<String>("aceEditor", xmlEditorModel);
         mainForm.add(xmlEditor);
 
         ImportOptionsPanel importOptions = new ImportOptionsPanel("importOptions", model);
@@ -78,34 +79,36 @@ public class PageImportXml extends PageAdminConfiguration {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-            	savePerformed(target, form);
+                savePerformed(target);
             }
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                onSaveError(target, form);
+                target.add(getFeedbackPanel());
             }
         };
         mainForm.add(saveButton);
     }
-    
-    private void savePerformed(AjaxRequestTarget target, Form<?> form) {
-    	OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
-    	
-    	String xml = xmlEditor.getModel().getObject();
-    	if(xml != null){	
-    		// Save xml
-			try{
-                Task task = getTaskManager().createTaskInstance("AAAAAAAAAAAAAAAAAA");
-				getModelService().importObjectsFromStream(new ByteArrayInputStream(xml.getBytes()), model.getObject(),
-                        task, result);
-			    //TODO: success message
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-    	} 
-    }
-    public void onSaveError(AjaxRequestTarget target, Form form) {
-    	//todo implement
+
+    private void savePerformed(AjaxRequestTarget target) {
+        String xml = xmlEditorModel.getObject();
+        if (StringUtils.isEmpty(xml)) {
+            error("Can't save empty xml."); //todo i18n
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_IMPORT_XML);
+        try {
+            Task task = getTaskManager().createTaskInstance(OPERATION_IMPORT_XML);
+            getModelService().importObjectsFromStream(new ByteArrayInputStream(xml.getBytes()), model.getObject(),
+                    task, result);
+
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't import object.", ex);
+        }
+
+        showResult(result);
     }
 }

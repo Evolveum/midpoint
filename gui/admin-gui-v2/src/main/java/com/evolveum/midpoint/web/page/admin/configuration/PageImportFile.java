@@ -40,21 +40,20 @@ import org.apache.wicket.util.file.File;
  * @author mserbak
  */
 public class PageImportFile extends PageAdminConfiguration {
-	private String UPLOAD_FOLDER;
-	private static final String MIDPOINT_HOME = "midpoint.home";
-	private String CLASS_NAME = PageLogging.class.getName() + ".";
-	private String PAGE_IMPORT = CLASS_NAME + "importFile";
+
+    private static final String OPERATION_IMPORT_FILE = "pageImportFile.importFile";
+    private String UPLOAD_FOLDER;
+    private static final String MIDPOINT_HOME = "midpoint.home";
 
     private LoadableModel<ImportOptionsType> model;
-    
 
-    public PageImportFile() { 
-    	UPLOAD_FOLDER = System.getProperty(MIDPOINT_HOME) + "tmp/";
-    	if(!new File(UPLOAD_FOLDER).exists()){
-    		new File(UPLOAD_FOLDER).mkdir();
-    	}
+    public PageImportFile() {
+        UPLOAD_FOLDER = System.getProperty(MIDPOINT_HOME) + "tmp/";
+        if (!new File(UPLOAD_FOLDER).exists()) {
+            new File(UPLOAD_FOLDER).mkdir();
+        }
 
-    	model = new LoadableModel<ImportOptionsType>(false) {
+        model = new LoadableModel<ImportOptionsType>(false) {
 
             @Override
             protected ImportOptionsType load() {
@@ -86,50 +85,46 @@ public class PageImportFile extends PageAdminConfiguration {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-            	savePerformed(target, form);
+                savePerformed(target);
             }
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                onSaveError(target, form);
+                target.add(getFeedbackPanel());
             }
         };
         mainForm.add(saveButton);
     }
-    
-    private void savePerformed(AjaxRequestTarget target, Form<?> form) {
-    	OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
-    	
-        	FileUploadField file = (FileUploadField)form.get("fileInput");
-        	final FileUpload uploadedFile = file.getFileUpload();
-        	
-        	if(uploadedFile != null){
-        		
-        		// Create new file
-        		File newFile = new File(UPLOAD_FOLDER + uploadedFile.getClientFileName());
-        		
-				// Check new file, delete if it already existed
-        		if (newFile.exists()) {
-					newFile.delete();
-				}
-				
-        		// Save file
-				try{
-					Task task = getTaskManager().createTaskInstance(PAGE_IMPORT);
-					newFile.createNewFile();
-					uploadedFile.writeTo(newFile);
-					
-					MidPointApplication application = PageImportFile.this.getMidpointApplication();
-				    ModelService modelService = application.getModel();
-				    modelService.importObjectsFromStream(newFile.inputStream(), model.getObject(), task, result);
-				    //TODO: success message
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-        	} 
-    }
-    
-    public void onSaveError(AjaxRequestTarget target, Form form) {
-    	//todo implement
+
+    private void savePerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_IMPORT_FILE);
+
+        FileUploadField file = (FileUploadField) get("mainForm:fileInput");
+        final FileUpload uploadedFile = file.getFileUpload();
+
+        if (uploadedFile != null) {
+
+            // Create new file
+            File newFile = new File(UPLOAD_FOLDER + uploadedFile.getClientFileName());
+
+            // Check new file, delete if it already existed
+            if (newFile.exists()) {
+                newFile.delete();
+            }
+
+            // Save file
+            try {
+                Task task = getTaskManager().createTaskInstance(OPERATION_IMPORT_FILE);
+                newFile.createNewFile();
+                uploadedFile.writeTo(newFile);
+
+                MidPointApplication application = PageImportFile.this.getMidpointApplication();
+                ModelService modelService = application.getModel();
+                modelService.importObjectsFromStream(newFile.inputStream(), model.getObject(), task, result);
+                //TODO: success message
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 }
