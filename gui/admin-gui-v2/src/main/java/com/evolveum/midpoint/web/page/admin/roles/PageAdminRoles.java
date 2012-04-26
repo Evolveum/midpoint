@@ -23,9 +23,10 @@ package com.evolveum.midpoint.web.page.admin.roles;
 
 
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +43,26 @@ public class PageAdminRoles extends PageAdmin {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
         items.add(new BottomMenuItem("pageAdminRoles.listRoles", PageRoles.class));
-        items.add(new BottomMenuItem("pageAdminRoles.newRole", PageUser.class));
+        items.add(new BottomMenuItem("pageAdminRoles.newRole", PageRole.class, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !isEditingRole();
+            }
+        }));
+        items.add(new BottomMenuItem("pageAdminRoles.editRole", PageRole.class, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isEditingRole();
+            }
+        }));
 
         return items;
+    }
+
+    private boolean isEditingRole() {
+        StringValue roleOid = getPageParameters().get(PageRole.PARAM_ROLE_ID);
+        return roleOid != null && StringUtils.isNotEmpty(roleOid.toString());
     }
 }

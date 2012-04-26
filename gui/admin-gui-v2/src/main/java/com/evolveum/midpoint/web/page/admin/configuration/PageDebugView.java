@@ -18,6 +18,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,8 +58,9 @@ public class PageDebugView extends PageAdminConfiguration {
 
     private ObjectViewDto loadObject() {
         StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
-        if (objectOid == null) {
+        if (objectOid == null || StringUtils.isEmpty(objectOid.toString())) {
             error("some errorrrororor");//todo change
+            return new ObjectViewDto();
         }
 
         ObjectViewDto dto = null;

@@ -116,6 +116,7 @@ public class AceEditor<T> extends TextArea<T> {
         return readonly;
     }
 
+    //todo wtf??? javascript to another method !!!
     public String setReadonly(boolean readonly) {
         this.readonly = readonly;
         if(readonly){
