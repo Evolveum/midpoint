@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -112,6 +113,10 @@ public abstract class PageBase extends WebPage {
 
     protected RepositoryService getCacheRepositoryService() {
         return cacheRepositoryService;
+    }
+
+    protected PrismContext getPrismContext() {
+        return getMidpointApplication().getPrismContext();
     }
 
     protected TaskManager getTaskManager() {

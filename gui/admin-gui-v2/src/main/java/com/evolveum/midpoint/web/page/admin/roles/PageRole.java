@@ -21,11 +21,15 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -33,7 +37,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.string.*;
+import org.apache.wicket.util.string.StringValue;
 
 /**
  * @author lazyman
@@ -41,6 +45,8 @@ import org.apache.wicket.util.string.*;
 public class PageRole extends PageAdminRoles {
 
     public static final String PARAM_ROLE_ID = "roleId";
+    private static final String OPERATION_LOAD_ROLE = "pageRole.loadRole";
+    private static final String OPERATION_SAVE_ROLE = "pageRole.saveRole";
     private IModel<String> model;
 
     public PageRole() {
@@ -56,17 +62,24 @@ public class PageRole extends PageAdminRoles {
 
     private String loadRole() {
         StringValue roleOid = getPageParameters().get(PARAM_ROLE_ID);
-        if (roleOid == null || !StringUtils.isEmpty(roleOid.toString())) {
+        if (roleOid == null || StringUtils.isEmpty(roleOid.toString())) {
             return null;
         }
 
+        OperationResult result = new OperationResult(OPERATION_LOAD_ROLE);
         try {
+            PrismObject<RoleType> role = getModelService().getObject(RoleType.class, roleOid.toString(), null, result);
 
+            PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+            return domProcessor.serializeObjectToString(role);
         } catch (Exception ex) {
-
+            result.recordFatalError(ex.getMessage(), ex);
         }
 
-        //todo implement
+        if (!result.isSuccess()) {
+            showResult(result);
+        }
+
         return null;
     }
 
@@ -82,7 +95,7 @@ public class PageRole extends PageAdminRoles {
                 editPerformed(target, editable.getObject());
             }
         });
-        AceEditor<String> editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, "xml"));
+        AceEditor<String> editor = new AceEditor<String>("aceEditor", model);
         editor.setReadonly(!editable.getObject());
         mainForm.add(editor);
 

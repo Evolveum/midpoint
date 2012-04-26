@@ -34,6 +34,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -51,6 +52,9 @@ public class PageRoles extends PageAdminRoles {
     }
 
     private void initLayout() {
+        Form mainForm = new Form("mainForm");
+        add(mainForm);
+
         List<IColumn<RoleType>> columns = new ArrayList<IColumn<RoleType>>();
 
         IColumn column = new CheckBoxHeaderColumn<RoleType>();
@@ -69,25 +73,36 @@ public class PageRoles extends PageAdminRoles {
         column = new PropertyColumn(createStringResource("pageRoles.description"), "value.description");
         columns.add(column);
 
-        add(new TablePanel<RoleType>("table", new ObjectDataProvider(RoleType.class), columns));
+        mainForm.add(new TablePanel<RoleType>("table", new ObjectDataProvider(RoleType.class), columns));
         
-        
+        AjaxLinkButton delete = new AjaxLinkButton("delete", createStringResource("pageRoles.button.delete")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deletePerformed(target);
+            }
+        };
+        mainForm.add(delete);
         
         ///////////////////////// POPUP MODAL WINDOW //////////////////////////////////
-        add(new AjaxLinkButton("popup", new Model<String>("Open test page")){
-			
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				setResponsePage(TestPage.class);
-				//popupWindow.show(target);
-			}
-		});
+        mainForm.add(new AjaxLinkButton("popup", new Model<String>("Open test page")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                setResponsePage(TestPage.class);
+                //popupWindow.show(target);
+            }
+        });
         ///////////////////////////////////////////////////////////////////////////////
     }
 
-    public void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
+    private void deletePerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageUser.PARAM_USER_ID, oid);
-        setResponsePage(PageUser.class, parameters);
+        parameters.add(PageRole.PARAM_ROLE_ID, oid);
+        setResponsePage(PageRole.class, parameters);
     }
 }

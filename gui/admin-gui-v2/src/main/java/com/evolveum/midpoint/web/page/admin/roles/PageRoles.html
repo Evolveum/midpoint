@@ -23,10 +23,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div wicket:id="table" />
-    <div class="operatingFormButtons">
-        <a wicket:id="popup"/>
-    </div>
+    <form wicket:id="mainForm">
+        <div wicket:id="table"/>
+        <div class="operatingFormButtons">
+            <a wicket:id="delete"/>
+            <a wicket:id="popup"/>
+        </div>
+    </form>
 </wicket:extend>
 </body>
 </html>
