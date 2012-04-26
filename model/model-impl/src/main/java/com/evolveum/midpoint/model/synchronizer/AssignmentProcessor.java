@@ -382,7 +382,7 @@ public class AssignmentProcessor {
 		for (ExclusionType exclusionA :roleA.getExclusion()) {
 			ObjectReferenceType targetRef = exclusionA.getTargetRef();
 			if (roleB.getOid().equals(targetRef.getOid())) {
-				throw new PolicyViolationException("Violation of SoG policy: "+roleA+" excludes "+roleB+
+				throw new PolicyViolationException("Violation of SoD policy: "+roleA+" excludes "+roleB+
 						", they cannot be assigned at the same time");
 			}
 		}

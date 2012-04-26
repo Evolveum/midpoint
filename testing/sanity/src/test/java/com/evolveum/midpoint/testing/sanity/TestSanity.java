@@ -199,6 +199,9 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String ROLE_CAPTAIN_FILENAME = "src/test/resources/repo/role-captain.xml";
     private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
 
+    private static final String ROLE_JUDGE_FILENAME = "src/test/resources/repo/role-judge.xml";
+    private static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
+    
     private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
 
     private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME = "src/test/resources/request/user-modify-add-account-derby.xml";
@@ -212,6 +215,7 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME = "src/test/resources/request/user-modify-add-role-pirate.xml";
     private static final String REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME = "src/test/resources/request/user-modify-add-role-captain-1.xml";
     private static final String REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_2_FILENAME = "src/test/resources/request/user-modify-add-role-captain-2.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ROLE_JUDGE_FILENAME = "src/test/resources/request/user-modify-add-role-judge.xml";
     private static final String REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME = "src/test/resources/request/user-modify-delete-role-pirate.xml";
     private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME = "src/test/resources/request/user-modify-delete-role-captain-1.xml";
     private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME = "src/test/resources/request/user-modify-delete-role-captain-2.xml";
@@ -318,6 +322,7 @@ public class TestSanity extends AbstractIntegrationTest {
         addObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
         addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
         addObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
+        addObjectFromFile(ROLE_JUDGE_FILENAME, initResult);
     }
 
     /**
@@ -1922,6 +1927,53 @@ public class TestSanity extends AbstractIntegrationTest {
 
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword disappeared", guybrushPassword);
+
+    }
+    
+    /**
+     * Judge role excludes pirate role. This assignment should fail. 
+     */
+    @Test
+    public void test054AssignRoleJudge() throws FileNotFoundException, JAXBException, FaultMessage,
+            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
+        displayTestTile("test054AssignRoleJudge");
+
+        // GIVEN
+
+        OperationResultType result = new OperationResultType();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
+        Holder<String> oidHolder = new Holder<String>();
+        assertCache();
+
+        ObjectModificationType objectChange = unmarshallJaxbFromFile(
+                REQUEST_USER_MODIFY_ADD_ROLE_JUDGE_FILENAME, ObjectModificationType.class);
+        try {
+        	
+            // WHEN
+        	result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+            // THEN
+        	AssertJUnit.fail("Expected a failure after assigning conflicting roles but nothing happened and life goes on");
+        } catch (FaultMessage f) {
+        	// This is expected
+        	// TODO: check if the fault is the right one
+        }
+
+        assertCache();
+        displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+        assertSuccess("modifyObject has failed", result);
+
+        // Check if user object remain unmodified in the repo
+
+        OperationResult repoResult = new OperationResult("getObject");
+
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, repoResult);
+        UserType repoUser = uObject.asObjectable();
+        repoResult.computeStatus();
+        display("User (repository)", repoUser);
+
+        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        assertEquals("Unexpected number or accountRefs", 1, accountRefs.size());
 
     }
 
