@@ -135,51 +135,8 @@ public class PrismObjectPanel extends Panel {
                 target.add(PrismObjectPanel.this);
             }
         };
-        headerPanel.add(showEmpty);
-
-        Image showEmptyImg = new Image("showEmptyImg", new AbstractReadOnlyModel() {
-
-            @Override
-            public Object getObject() {
-                ObjectWrapper wrapper = model.getObject();
-                if (wrapper.isShowEmpty()) {
-                    return new PackageResourceReference(PrismObjectPanel.class,
-                            "ShowEmptyFalse.png");
-                }
-
-                return new PackageResourceReference(PrismObjectPanel.class,
-                        "ShowEmptyTrue.png");
-            }
-        });
-        showEmpty.add(showEmptyImg);
-
-        AjaxLink minimize = new AjaxLink("minimizeButton") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                ObjectWrapper wrapper = model.getObject();
-                wrapper.setMinimalized(!wrapper.isMinimalized());
-
-                target.add(PrismObjectPanel.this);
-            }
-        };
-        headerPanel.add(minimize);
-
-        Image minimizeImg = new Image("minimizeImg", new AbstractReadOnlyModel() {
-
-            @Override
-            public Object getObject() {
-                ObjectWrapper wrapper = model.getObject();
-                if (wrapper.isMinimalized()) {
-                    return new PackageResourceReference(PrismObjectPanel.class,
-                            "Maximize.png");
-                }
-
-                return new PackageResourceReference(PrismObjectPanel.class,
-                        "Minimize.png");
-            }
-        });
-        minimize.add(minimizeImg);
+        //TODO: check if is necessary to show checkbox
+        headerPanel.add(new PrismOptionButtonPanel("aa", model, false));
     }
 
     public boolean isShowHeader() {
