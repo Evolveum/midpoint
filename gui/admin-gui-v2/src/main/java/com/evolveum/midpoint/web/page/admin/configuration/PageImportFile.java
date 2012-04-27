@@ -101,30 +101,31 @@ public class PageImportFile extends PageAdminConfiguration {
 
         FileUploadField file = (FileUploadField) get("mainForm:fileInput");
         final FileUpload uploadedFile = file.getFileUpload();
+        if (uploadedFile == null) {
+            error("Uploaded file is null.");
+            target.add(getFeedbackPanel());
+        }
 
-        if (uploadedFile != null) {
-
+        try {
             // Create new file
             File newFile = new File(UPLOAD_FOLDER + uploadedFile.getClientFileName());
-
-            // Check new file, delete if it already existed
+            // Check new file, delete if it already exists
             if (newFile.exists()) {
                 newFile.delete();
             }
-
             // Save file
-            try {
-                Task task = getTaskManager().createTaskInstance(OPERATION_IMPORT_FILE);
-                newFile.createNewFile();
-                uploadedFile.writeTo(newFile);
+            Task task = getTaskManager().createTaskInstance(OPERATION_IMPORT_FILE);
+            newFile.createNewFile();
+            uploadedFile.writeTo(newFile);
 
-                MidPointApplication application = PageImportFile.this.getMidpointApplication();
-                ModelService modelService = application.getModel();
-                modelService.importObjectsFromStream(newFile.inputStream(), model.getObject(), task, result);
-                //TODO: success message
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            //todo ENCODING to UTF-8 !!!!!
+            getModelService().importObjectsFromStream(newFile.inputStream(), model.getObject(), task, result);
+
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't import file.", ex);
         }
+
+        showResult(result);
     }
 }
