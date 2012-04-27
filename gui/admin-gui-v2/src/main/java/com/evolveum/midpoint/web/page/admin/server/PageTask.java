@@ -24,7 +24,16 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.Model;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -41,7 +50,41 @@ public class PageTask extends PageAdminTasks {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        //todo implement
+        DropDownChoice type = new DropDownChoice("type", new Model(), new AbstractReadOnlyModel<List<Object>>() {
+
+            @Override
+            public List<Object> getObject() {
+                return createTypeList();
+            }
+        });
+        mainForm.add(type);
+
+        AjaxLink browse = new AjaxLink("browse") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                browsePerformed(target);
+            }
+        };
+        mainForm.add(browse);
+
+        TextField<String> name = new TextField<String>("name", new Model<String>()); //todo to model
+        mainForm.add(name);
+
+        CheckBox immediately = new CheckBox("immediately", new Model<Boolean>()); //todo model to dto
+        mainForm.add(immediately);
+
+        TextField<Integer> interval = new TextField<Integer>("interval", new Model<Integer>()); //todo to model
+        mainForm.add(interval);
+
+        TextField<String> cron = new TextField<String>("cron", new Model<String>()); //todo to model
+        mainForm.add(cron);
+
+        CheckBox tightlyBound = new CheckBox("tightlyBound", new Model<Boolean>()); //todo model to dto
+        mainForm.add(tightlyBound);
+
+        CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new Model<Boolean>()); // todo to model
+        mainForm.add(runUntilNodeDown);
 
         initButtons(mainForm);
     }
@@ -73,7 +116,17 @@ public class PageTask extends PageAdminTasks {
         mainForm.add(backButton);
     }
 
+    private List<Object> createTypeList() {
+        List<Object> types = new ArrayList<Object>();
+        //todo implement, change Object to something relevant
+        return types;
+    }
+
     private void savePerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void browsePerformed(AjaxRequestTarget target) {
         //todo implement
     }
 }

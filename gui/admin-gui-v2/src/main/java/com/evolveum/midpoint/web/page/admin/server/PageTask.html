@@ -24,7 +24,41 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-
+        <table>
+            <tr>
+                <td><wicket:message key="pageTask.type"/></td>
+                <td><select wicket:id="type"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTask.objectRef"/></td>
+                <td><a wicket:id="browse"><wicket:message key="pageTask.browse"/></a></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTask.name"/></td>
+                <td><input type="text" wicket:id="name"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTask.startImmediately"/></td>
+                <td><input type="checkbox" wicket:id="immediately"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTask.scheduleInterval"/></td>
+                <td><input type="text" wicket:id="interval"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTask.scheduleCronLikeSpecification"/></td>
+                <td><input type="text" wicket:id="cron"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTask.tightlyBound"/></td>
+                <td><input type="checkbox" wicket:id="tightlyBound"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTask.runUntilNodeDown"/></td>
+                <td><input type="checkbox" wicket:id="runUntilNodeDown"/></td>
+            </tr>
+        </table>
+        <span><wicket:message key="pageTask.notes"/></span>
 
         <div class="operatingFormButtons">
             <a wicket:id="backButton"/>

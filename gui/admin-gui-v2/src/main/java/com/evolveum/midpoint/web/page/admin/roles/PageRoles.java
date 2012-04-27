@@ -127,10 +127,9 @@ public class PageRoles extends PageAdminRoles {
         result.recomputeStatus("Error occurred during role deleting.");
         showResult(result);
 
-        target.appendJavaScript("alert('deleting " + toBeDeleted.size() + " objects.');");
+        //todo fix message, add confirmation dialog
+        target.appendJavaScript("alert('deleted " + toBeDeleted.size() + " objects.');");
         target.add(panel);
-        //todo implement
-        System.out.println("aaaa");
     }
 
     private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {

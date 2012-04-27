@@ -47,7 +47,7 @@ import org.apache.wicket.util.string.StringValue;
  */
 public class PageRole extends PageAdminRoles {
 
-    public static final String PARAM_ROLE_ID = "roleId";
+    public static final String PARAM_ROLE_ID = "roleOid";
     private static final String OPERATION_LOAD_ROLE = "pageRole.loadRole";
     private static final String OPERATION_SAVE_ROLE = "pageRole.saveRole";
     private IModel<ObjectViewDto> model;

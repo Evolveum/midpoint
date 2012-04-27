@@ -247,7 +247,7 @@ public class PageTasks extends PageAdminTasks {
         return selected;
     }
 
-    private List<SelectableBean<NodeType>> getSeletedNodes() {
+    private List<SelectableBean<NodeType>> getSelectedNodes() {
         TablePanel panel = (TablePanel) get("mainForm:nodeTable");
         DataTable table = panel.getDataTable();
         ObjectDataProvider<NodeType> provider = (ObjectDataProvider<NodeType>) table.getDataProvider();
@@ -283,7 +283,7 @@ public class PageTasks extends PageAdminTasks {
 
 //        TaskManager manager = getTaskManager();
 //        getSelectedTasks();
-//        getSeletedNodes();
+//        getSelectedNodes();
 
         //todo implement
     }
