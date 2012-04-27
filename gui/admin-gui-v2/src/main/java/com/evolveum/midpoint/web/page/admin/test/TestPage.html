@@ -99,50 +99,65 @@
 						<li wicket:id="accounts">
 							<div align="center" style="position: relative; padding: 10px 0;">
 								<a wicket:id="addAccount" />
+								<a href="#" class="button">Enable selected account/s</a>
+								<a href="#" class="button">Disable selected account/s</a>
+								<a href="#" class="button">Delete selected account/s</a>
 							</div>
 							<div class="objectForm" style="position: relative;" align="center">
 								<div class="tableForm">
 									<div class="tableFormHead">
 										<div class="objectFormHeader">
+											<div style="position: relative; margin: 5px 0 0 5px; display: inline-block; float: left;">
+												<input type="checkbox" style="margin: 2px 2px 5px; padding: 0px; float: left;" /><br />
+												
+												<div style="float: left; display: inline-block;">
+													<img
+													id="objectFormHeaderControllButtonMinMax_tableForm01"
+													class="objectFormHeaderControllButtonMinMax"
+													title="Maximize" alt=""
+													style="margin: 1px;"
+													wicket:id="icon2" />
+													<img
+													id="objectFormHeaderControllButtonShowEmptyFields_tableForm1"
+													class="objectFormHeaderControllButtonShowEmptyFields"
+													title="Show empty fields" alt=""
+													style="margin: 1px;"
+													wicket:id="icon5" />
+												</div>
+												
+											</div>
 											<img class="objectFormHeaderIcon" alt=""
 												src="img/formIcon/Key.png" />
 											<div class="objectFormHeaderText">
-												<span class="objectFormHeaderName">Login form</span> <br>
-												<span class="objectFormHeaderDescription">Please fill
-													in the the following details.</span>
+												<span class="objectFormHeaderName">My cool LDAP server</span> <br>
+												<span class="objectFormHeaderDescription">foobar (user)</span>
 											</div>
 											<div class="objectFormHeaderControllButtons">
 												<img
 													id="objectFormHeaderControllButtonShowEmptyFields_tableForm1"
 													class="objectFormHeaderControllButtonShowEmptyFields"
 													title="Show empty fields" alt=""
+													style="margin: 0px 0px 5px; float: right; display: none;"
 													wicket:id="icon1" />
-												<img
-													id="objectFormHeaderControllButtonMinMax_tableForm01"
-													class="objectFormHeaderControllButtonMinMax"
-													title="Maximize" alt=""
-													wicket:id="icon2" />
-													<br />
-												<img
-													class="objectFormHeaderControllButtonShowEmptyFields"
-													title="Delete account" alt=""
-													wicket:id="icon3" />
-												<img
+												<div style="float: right; display: inline-block;">
+													<img
 													class="objectFormHeaderControllButtonMinMax"
 													title="Disable account" alt=""
+													style="margin: 1px ;"
 													wicket:id="icon4" />
+													<img
+													class="objectFormHeaderControllButtonShowEmptyFields"
+													title="Delete account" alt=""
+													style="margin: 1px ;"
+													wicket:id="icon3" />
+												</div>
 											</div>
 										</div>
 									</div>
 									<div class="tableFormFoot">
 										<div class="objectFormFooter">
 											<div class="statusBar">
-												<span class="statusBarHeader">Status bar</span><br />
-												<div class="statusBarContent">
-													Some info 1 <br /> Some info 2 and other information<br />
-													Some info 3 and more info<br /> Some info 4 something<br />
-													Some info 5 something else<br />
-												</div>
+												
 											</div>
 										</div>
 									</div>

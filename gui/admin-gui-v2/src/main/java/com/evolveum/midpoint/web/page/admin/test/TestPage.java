@@ -67,6 +67,10 @@ public class TestPage extends PageAdmin {
         		"ShowEmptyTrue.png"));
         accounts.add(showEmpty);
         
+        Image showEmpty2 = new Image("icon5", new PackageResourceReference(TestPage.class,
+        		"ShowEmptyTrue.png"));
+        accounts.add(showEmpty2);
+        
         Image maximize = new Image("icon2", new PackageResourceReference(TestPage.class,"Maximize.png"));
         accounts.add(maximize);
         
