@@ -37,10 +37,19 @@
         <div wicket:id="nodeTable"/>
 
         <div class="operatingFormButtons">
-            <a wicket:id="deactivate"/>
-            <a wicket:id="deactivateAll"/>
-            <a wicket:id="reactivate"/>
-            <a wicket:id="reactivateAll"/>
+            Task:
+            <a wicket:id="suspendTask"/>
+            <a wicket:id="resumeTask"/>
+            <a wicket:id="deleteTask"/>
+            <a wicket:id="scheduleTask"/>
+
+            Scheduler:
+            <a wicket:id="stopScheduler"/>
+            <a wicket:id="startScheduler"/>
+            <a wicket:id="pauseScheduler"/>
+
+            Node:
+            <a wicket:id="deleteNode"/>
         </div>
     </form>
 </wicket:extend>

@@ -29,8 +29,10 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -69,7 +71,9 @@ public class PageTasks extends PageAdminTasks {
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);
 
-        initButtons(mainForm);
+        initTaskButtons(mainForm);
+        initSchedulerButtons(mainForm);
+        initNodeButtons(mainForm);
     }
 
     private IModel<List<TaskListType>> createListTypeModel() {
@@ -127,72 +131,168 @@ public class PageTasks extends PageAdminTasks {
         columns.add(new PropertyColumn(createStringResource("pageTasks.task.handler"), "handlerUri", "value.handlerUri"));
 //        columns.add(new PropertyColumn(createStringResource("pageTasks.task.objectRef"), "value.objectRef"));
         columns.add(new PropertyColumn(createStringResource("pageTasks.task.execution"), "value.executionStatus"));
-        columns.add(new PropertyColumn(createStringResource("pageTasks.task.exclusivity"), "value.exclusivityStatus"));
+        columns.add(new PropertyColumn(createStringResource("pageTasks.task.exclusivity"), "value.exclusivityStatus"));//todo delete columns
 //        columns.add(new PropertyColumn(createStringResource("pageTasks.task.threadAlive"), "value.exclusivity"));
 //        columns.add(new PropertyColumn(createStringResource("pageTasks.task.currentRunTime"), "value.exclusivity"));
         columns.add(new PropertyColumn(createStringResource("pageTasks.task.scheduledToRunAgain"), "value.nextRunStartTime"));
         return columns;
     }
 
-    private void initButtons(Form mainForm) {
-        AjaxLinkButton deactivate = new AjaxLinkButton("deactivate",
-                createStringResource("pageTasks.button.deactivate")) {
+    private void initTaskButtons(Form mainForm) {
+        AjaxLinkButton suspend = new AjaxLinkButton("suspendTask",
+                createStringResource("pageTasks.button.suspendTask")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                deactivatePerformed(target);
+                suspendTaskPerformed(target);
+            }
+        };
+        mainForm.add(suspend);
+
+        AjaxLinkButton resume = new AjaxLinkButton("resumeTask",
+                createStringResource("pageTasks.button.resumeTask")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                resumeTaskPerformed(target);
+            }
+        };
+        mainForm.add(resume);
+
+        AjaxLinkButton delete = new AjaxLinkButton("deleteTask",
+                createStringResource("pageTasks.button.deleteTask")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteTaskPerformed(target);
+            }
+        };
+        mainForm.add(delete);
+
+        AjaxLinkButton schedule = new AjaxLinkButton("scheduleTask",
+                createStringResource("pageTasks.button.scheduleTask")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                scheduleTaskPerformed(target);
+            }
+        };
+        mainForm.add(schedule);
+    }
+
+    private void initNodeButtons(Form mainForm) {
+        AjaxLinkButton deactivate = new AjaxLinkButton("deleteNode",
+                createStringResource("pageTasks.button.deleteNode")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteNodePerformed(target);
             }
         };
         mainForm.add(deactivate);
+    }
 
-        AjaxLinkButton deactivateAll = new AjaxLinkButton("deactivateAll",
-                createStringResource("pageTasks.button.deactivateAll")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deactivateAllPerformed(target);
-            }
-        };
-        mainForm.add(deactivateAll);
-
-        AjaxLinkButton reactivate = new AjaxLinkButton("reactivate",
-                createStringResource("pageTasks.button.reactivate")) {
+    private void initSchedulerButtons(Form mainForm) {
+        AjaxLinkButton stop = new AjaxLinkButton("stopScheduler",
+                createStringResource("pageTasks.button.stopScheduler")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                reactivatePerformed(target);
+                stopSchedulerPerformed(target);
             }
         };
-        mainForm.add(reactivate);
+        mainForm.add(stop);
 
-        AjaxLinkButton reactivateAll = new AjaxLinkButton("reactivateAll",
-                createStringResource("pageTasks.button.reactivateAll")) {
+        AjaxLinkButton start = new AjaxLinkButton("startScheduler",
+                createStringResource("pageTasks.button.startScheduler")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                reactivateAllPerformed(target);
+                startSchedulerPerformed(target);
             }
         };
-        mainForm.add(reactivateAll);
+        mainForm.add(start);
+
+        AjaxLinkButton pause = new AjaxLinkButton("pauseScheduler",
+                createStringResource("pageTasks.button.pauseScheduler")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                pauseSchedulerPerformed(target);
+            }
+        };
+        mainForm.add(pause);
+    }
+
+    private List<SelectableBean<TaskType>> getSelectedTasks() {
+        TablePanel panel = (TablePanel) get("mainForm:taskTable");
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider<TaskType> provider = (ObjectDataProvider<TaskType>) table.getDataProvider();
+
+        List<SelectableBean<TaskType>> selected = new ArrayList<SelectableBean<TaskType>>();
+        for (SelectableBean<TaskType> row : provider.getAvailableData()) {
+            if (row.isSelected()) {
+                selected.add(row);
+            }
+        }
+
+        return selected;
+    }
+
+    private List<SelectableBean<NodeType>> getSeletedNodes() {
+        TablePanel panel = (TablePanel) get("mainForm:nodeTable");
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider<NodeType> provider = (ObjectDataProvider<NodeType>) table.getDataProvider();
+
+        List<SelectableBean<NodeType>> selected = new ArrayList<SelectableBean<NodeType>>();
+        for (SelectableBean<NodeType> row : provider.getAvailableData()) {
+            if (row.isSelected()) {
+                selected.add(row);
+            }
+        }
+
+        return selected;
     }
 
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
+        //useful methods :)
+
+//        TaskManager manager = getTaskManager();
+//        getSelectedTasks();
+//        getSeletedNodes();
+
         //todo implement
     }
 
-    private void deactivatePerformed(AjaxRequestTarget target) {
+    private void suspendTaskPerformed(AjaxRequestTarget target) {
         //todo implement
     }
 
-    private void deactivateAllPerformed(AjaxRequestTarget target) {
+    private void resumeTaskPerformed(AjaxRequestTarget target) {
         //todo implement
     }
 
-    private void reactivatePerformed(AjaxRequestTarget target) {
+    private void deleteTaskPerformed(AjaxRequestTarget target) {
         //todo implement
     }
 
-    private void reactivateAllPerformed(AjaxRequestTarget target) {
+    private void scheduleTaskPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void stopSchedulerPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void startSchedulerPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void pauseSchedulerPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void deleteNodePerformed(AjaxRequestTarget target) {
         //todo implement
     }
 }
