@@ -420,6 +420,28 @@ h4 {
 	bottom: 5px;
 }
 
+.operatingFormButtons .operatingFormBlock {
+	display: inline-block;
+	float: left;
+	margin-right: 25px;
+}
+
+.operatingFormButtons .operatingFormBlock .operatingFormText {
+	color: #FFFFFF;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 3px;
+}
+
+
+.operatingFormButtons a.button:active, a.button:active {
+    color: #333;
+	border-color: #999;
+	-moz-box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2) -webkit-box-shadow:0 2px 5px
+		rgba(0, 0, 0, 0.2);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
 .operatingFormButtons a.button, a.button  {
 	color: #6e6e6e;
 	font: bold 12px Helvetica, Arial, sans-serif;

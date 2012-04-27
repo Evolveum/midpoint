@@ -40,19 +40,24 @@
         <div wicket:id="nodeTable"/>
 
         <div class="operatingFormButtons">
-            <wicket:message key="pageTasks.button.label.task"/>
-            <a wicket:id="suspendTask"/>
-            <a wicket:id="resumeTask"/>
-            <a wicket:id="deleteTask"/>
-            <a wicket:id="scheduleTask"/>
-
-            <wicket:message key="pageTasks.button.label.scheduler"/>
-            <a wicket:id="stopScheduler"/>
-            <a wicket:id="startScheduler"/>
-            <a wicket:id="pauseScheduler"/>
-
-            <wicket:message key="pageTasks.button.label.node"/>
-            <a wicket:id="deleteNode"/>
+        	<div class="operatingFormBlock">
+	            <span class="operatingFormText"><wicket:message key="pageTasks.button.label.task"/></span>
+	            <a wicket:id="suspendTask"/>
+	            <a wicket:id="resumeTask"/>
+	            <a wicket:id="deleteTask"/>
+	            <a wicket:id="scheduleTask"/>
+			</div>
+			
+			<div class="operatingFormBlock">
+	            <span class="operatingFormText"><wicket:message key="pageTasks.button.label.scheduler"/></span>
+	            <a wicket:id="stopScheduler"/>
+	            <a wicket:id="startScheduler"/>
+	            <a wicket:id="pauseScheduler"/>
+			</div>
+			<div class="operatingFormBlock">
+	            <span class="operatingFormText"><wicket:message key="pageTasks.button.label.node"/></span>
+	            <a wicket:id="deleteNode"/>
+            </div>
         </div>
     </form>
 </wicket:extend>
