@@ -108,8 +108,13 @@ public class PageTasks extends PageAdminTasks {
         };
         columns.add(column);
 
-        columns.add(new PropertyColumn(createStringResource("pageTasks.node.hostname"), "value.hostname"));
+        columns.add(new PropertyColumn(createStringResource("pageTasks.node.running"), "value.running"));
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.nodeIdentifier"), "value.nodeIdentifier"));
+        columns.add(new PropertyColumn(createStringResource("pageTasks.node.hostname"), "value.hostname")); //todo add jmx port
+        columns.add(new PropertyColumn(createStringResource("pageTasks.node.lastCheckInTime"), "value.lastCheckInTime")); //todo i18n, what is this, it's not date...
+        columns.add(new PropertyColumn(createStringResource("pageTasks.node.clustered"), "value.clustered"));
+//        columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "value.statusMessage")); //todo uncomment later
+
 
         return columns;
     }
