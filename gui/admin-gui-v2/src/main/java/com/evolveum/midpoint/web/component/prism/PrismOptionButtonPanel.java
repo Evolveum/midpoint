@@ -23,25 +23,48 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.awt.LayoutManager;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
+
+import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 
 /**
  * @author mserbak
  */
 public class PrismOptionButtonPanel extends Panel {
 	Boolean showCheckBox = false;
+	private String propertyExpression;
 
 	public PrismOptionButtonPanel(String id, final IModel<ObjectWrapper> model, Boolean showCheckBox) {
 		super(id);
+		IModel<Boolean> selected = null;
+        if (StringUtils.isEmpty(propertyExpression)) {
+            selected = new PropertyModel<Boolean>(model, "selected");
+        } else {
+            selected = new PropertyModel<Boolean>(model, propertyExpression);
+        }
+        
 		this.showCheckBox = showCheckBox;
 		initButtons(model);
+		
+		AjaxCheckBox check = new AjaxCheckBox("check", selected) {
+			
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
+        check.setOutputMarkupId(true);
 	}
 	
 	private void initButtons(final IModel<ObjectWrapper> model){
@@ -53,7 +76,7 @@ public class PrismOptionButtonPanel extends Panel {
                 ObjectWrapper wrapper = model.getObject();
                 wrapper.setShowEmpty(!wrapper.isShowEmpty());
                 //TODO: add link
-                target.add(PrismObjectPanel.class);
+                //target.add(PrismObjectPanel.class);
             }
         };
         headerPanel.add(showEmpty);
@@ -81,7 +104,7 @@ public class PrismOptionButtonPanel extends Panel {
                 ObjectWrapper wrapper = model.getObject();
                 wrapper.setMinimalized(!wrapper.isMinimalized());
                 //TODO: add link
-                target.add(PrismObjectPanel.this);
+                //target.add(PrismObjectPanel.this);
             }
         };
         headerPanel.add(minimize);

@@ -27,6 +27,8 @@
         <div class="tableForm" >
             <div class="tableFormHead">
                 <div class="objectFormHeader" wicket:id="headerPanel">
+                	<!-- <div class="objectFormHeaderControllButtons" /> -->
+                    <div class="objectFormHeaderOptionButtons" wicket:id="optionButtons" />
                     <img class="objectFormHeaderIcon" wicket:id="headerImg"/>
 
                     <div class="objectFormHeaderText">
@@ -34,18 +36,7 @@
                         <br>
                         <span class="objectFormHeaderDescription" wicket:id="description"/>
                     </div>
-                    <div class="objectFormHeaderControllButtons">
-                        <a wicket:id="showEmptyButton">
-                            <img class="objectFormHeaderControllButtonShowEmptyFields"
-                                 wicket:id="showEmptyImg"
-                                 src="img/formIcon/ShowEmptyFieldsSmall.png"/>
-                        </a>
-                        <a wicket:id="minimizeButton">
-                            <img class="objectFormHeaderControllButtonMinMax"
-                                 wicket:id="minimizeImg"
-                                 src="img/formIcon/MinimizeSmall.png"/>
-                        </a>
-                    </div>
+                    <div class="objectFormHeaderOperationButtons" wicket:id="operationButtons" />
                 </div>
             </div>
             <div class="tableFormBody" wicket:id="body">

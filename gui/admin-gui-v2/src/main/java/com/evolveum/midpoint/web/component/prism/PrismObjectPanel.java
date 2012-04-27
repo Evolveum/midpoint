@@ -136,7 +136,8 @@ public class PrismObjectPanel extends Panel {
             }
         };
         //TODO: check if is necessary to show checkbox
-        headerPanel.add(new PrismOptionButtonPanel("aa", model, false));
+        headerPanel.add(new PrismOptionButtonPanel("optionButtons", model, false));
+        headerPanel.add(new PrismOptionButtonPanel("operationButtons", model, false));
     }
 
     public boolean isShowHeader() {
