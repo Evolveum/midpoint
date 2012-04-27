@@ -25,9 +25,12 @@
 <wicket:extend>
     <form wicket:id="mainForm">
         <div>
-            <wicket:message key="pageTasks.list"/>
+            <wicket:message key="pageTasks.state"/>
             &nbsp;
-            <select wicket:id="type"/>
+            <select wicket:id="state"/>
+            <wicket:message key="pageTasks.category"/>
+            &nbsp;
+            <select wicket:id="category"/>
         </div>
         <div wicket:id="taskTable"/>
 
@@ -37,18 +40,18 @@
         <div wicket:id="nodeTable"/>
 
         <div class="operatingFormButtons">
-            Task:
+            <wicket:message key="pageTasks.button.label.task"/>
             <a wicket:id="suspendTask"/>
             <a wicket:id="resumeTask"/>
             <a wicket:id="deleteTask"/>
             <a wicket:id="scheduleTask"/>
 
-            Scheduler:
+            <wicket:message key="pageTasks.button.label.scheduler"/>
             <a wicket:id="stopScheduler"/>
             <a wicket:id="startScheduler"/>
             <a wicket:id="pauseScheduler"/>
 
-            Node:
+            <wicket:message key="pageTasks.button.label.node"/>
             <a wicket:id="deleteNode"/>
         </div>
     </form>

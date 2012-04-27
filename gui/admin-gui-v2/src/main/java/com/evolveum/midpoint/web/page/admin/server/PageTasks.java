@@ -29,7 +29,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -59,9 +58,26 @@ public class PageTasks extends PageAdminTasks {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        DropDownChoice listSelect = new DropDownChoice("type", new Model(TaskListType.ALL), createListTypeModel(),
+        DropDownChoice listSelect = new DropDownChoice("state", new Model(TaskListType.ALL),
+                new AbstractReadOnlyModel<List<TaskListType>>() {
+
+                    @Override
+                    public List<TaskListType> getObject() {
+                        return createTypeList();
+                    }
+                },
                 new EnumChoiceRenderer(PageTasks.this));
         mainForm.add(listSelect);
+
+        DropDownChoice categorySelect = new DropDownChoice("category", new Model(),
+                new AbstractReadOnlyModel<List<String>>() {
+
+                    @Override
+                    public List<String> getObject() {
+                        return createCategoryList();
+                    }
+                });
+        mainForm.add(categorySelect);
 
         List<IColumn<TaskType>> columns = initTaskColumns();
         mainForm.add(new TablePanel<TaskType>("taskTable", new ObjectDataProvider(TaskType.class), columns));
@@ -74,19 +90,6 @@ public class PageTasks extends PageAdminTasks {
         initTaskButtons(mainForm);
         initSchedulerButtons(mainForm);
         initNodeButtons(mainForm);
-    }
-
-    private IModel<List<TaskListType>> createListTypeModel() {
-        return new AbstractReadOnlyModel<List<TaskListType>>() {
-
-            @Override
-            public List<TaskListType> getObject() {
-                List<TaskListType> list = new ArrayList<TaskListType>();
-                Collections.addAll(list, TaskListType.values());
-
-                return list;
-            }
-        };
     }
 
     private List<IColumn<TaskType>> initNodeColumns() {
@@ -253,6 +256,22 @@ public class PageTasks extends PageAdminTasks {
 
         return selected;
     }
+
+    private List<String> createCategoryList() {
+        List<String> categories = new ArrayList<String>();
+        //todo implement
+
+        return categories;
+    }
+
+    private List<TaskListType> createTypeList() {
+        List<TaskListType> list = new ArrayList<TaskListType>();
+        //todo probably reimplement
+        Collections.addAll(list, TaskListType.values());
+
+        return list;
+    }
+
 
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
         //useful methods :)
