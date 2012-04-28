@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.UseThreadInterrupt;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.quartz.*;
 
@@ -296,7 +297,7 @@ mainCycle:
 	}
 	
 	private void logRunFinish() {
-		LOGGER.info("Task run FINISHED "+task);
+		LOGGER.info("Task run FINISHED " + task);
 	}
     
 	private void recordCycleRunStart(OperationResult result) {
@@ -312,7 +313,7 @@ mainCycle:
 	 * Returns a flag whether to continue (false if the task has disappeared)
 	 */
 	private boolean recordCycleRunFinish(TaskRunResult runResult, OperationResult result) {
-		LOGGER.debug("Task cycle run FINISHED "+task);
+		LOGGER.debug("Task cycle run FINISHED " + task);
 		try {
 			task.recordRunFinish(runResult, result);
 			return true;
@@ -330,7 +331,7 @@ mainCycle:
 		LOGGER.trace("Trying to shut down the task " + task + ", executing in thread " + executingThread);
         if (task != null) {
 		    task.signalShutdown();
-		    if (taskManagerImpl.getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS) {
+		    if (taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS) {
                 sendThreadInterrupt();
             }
         }

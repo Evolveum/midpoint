@@ -30,7 +30,7 @@ import java.util.*;
  *
  * @author Pavol Mederly
  */
-public class RunningTasksInfo {
+public class ClusterStatusInformation {
 
     public static class TaskInfo {
         private String oid;

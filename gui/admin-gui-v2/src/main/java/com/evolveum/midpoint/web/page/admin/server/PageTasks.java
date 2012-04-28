@@ -21,6 +21,10 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -289,11 +293,33 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void suspendTaskPerformed(AjaxRequestTarget target) {
-        //todo implement
+        OperationResult result = new OperationResult("temp");
+
+        TaskManager taskManager = getTaskManager();
+        List<SelectableBean<TaskType>> taskTypeList = getSelectedTasks();
+        for (SelectableBean<TaskType> taskType : taskTypeList) {
+            try {
+                Task task = taskManager.getTask(taskType.getValue().getOid(), result);
+                taskManager.suspendTask(task, 1000L, result);
+            } catch(Exception e) {
+                // .... TODO: tell the user, somehow
+            }
+        }
     }
 
     private void resumeTaskPerformed(AjaxRequestTarget target) {
-        //todo implement
+        OperationResult result = new OperationResult("temp");
+
+        TaskManager taskManager = getTaskManager();
+        List<SelectableBean<TaskType>> taskTypeList = getSelectedTasks();
+        for (SelectableBean<TaskType> taskType : taskTypeList) {
+            try {
+                Task task = taskManager.getTask(taskType.getValue().getOid(), result);
+                taskManager.resumeTask(task, result);
+            } catch(Exception e) {
+                // .... TODO: tell the user, somehow
+            }
+        }
     }
 
     private void deleteTaskPerformed(AjaxRequestTarget target) {

@@ -23,9 +23,10 @@ package com.evolveum.midpoint.web.controller.server;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTasksInfo;
+import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -46,6 +47,7 @@ import org.springframework.stereotype.Controller;
 
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -64,7 +66,7 @@ public class TaskListController extends SortableListController<TaskItem> {
     @Autowired(required = true)
     private transient RepositoryManager repositoryManager;
 
-    private RunningTasksInfo runningTasksInfo;
+    private ClusterStatusInformation clusterStatusInformation;
 
     private boolean listAll = false;
     private boolean selectAll = false;
@@ -84,12 +86,12 @@ public class TaskListController extends SortableListController<TaskItem> {
     protected String listObjects() {
         List<PrismObject<TaskType>> taskTypeList = repositoryManager.listObjects(TaskType.class, getOffset(),
                 getRowsCount());
-        runningTasksInfo = taskManager.getRunningTasksClusterwide();
+        clusterStatusInformation = taskManager.getRunningTasksClusterwide();
 
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
         for (PrismObject<TaskType> task : taskTypeList) {
-            runningTasks.add(new TaskItem(task, taskManager, runningTasksInfo));
+            runningTasks.add(new TaskItem(task, taskManager, clusterStatusInformation));
         }
 
         listAll = true;
@@ -98,14 +100,20 @@ public class TaskListController extends SortableListController<TaskItem> {
 
     public String listRunningTasks() {
 
-        Set<Task> tasks = taskManager.getRunningTasks();
+        Set<Task> tasks = null;
+        try {
+            tasks = taskManager.getRunningTasks();
+        } catch (TaskManagerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot get the list of tasks", e);
+            tasks = new HashSet<Task>();
+        }
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
         for (Task task : tasks) {
             runningTasks.add(new TaskItem(task, taskManager, null));
         }
 
-        runningTasksInfo = null;            // to ensure that cluster info will not display old information
+        clusterStatusInformation = null;            // to ensure that cluster info will not display old information
 
         listAll = false;
         return PAGE_NAVIGATION;
@@ -115,14 +123,14 @@ public class TaskListController extends SortableListController<TaskItem> {
 
         OperationResult result = createOperationResult("listRunningTasksClusterwide");
 
-        runningTasksInfo = taskManager.getRunningTasksClusterwide();
+        clusterStatusInformation = taskManager.getRunningTasksClusterwide();
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
-        for (RunningTasksInfo.TaskInfo taskInfo : runningTasksInfo.getTasks()) {
+        for (ClusterStatusInformation.TaskInfo taskInfo : clusterStatusInformation.getTasks()) {
             String oid = taskInfo.getOid();
             try {
                 Task task = taskManager.getTask(oid, result);
-                runningTasks.add(new TaskItem(task, taskManager, runningTasksInfo));
+                runningTasks.add(new TaskItem(task, taskManager, clusterStatusInformation));
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logException(LOGGER, "Cannot retrieve the task {} from repository, because it does not exist.", e, oid);
             } catch (SchemaException e) {
@@ -329,13 +337,13 @@ public class TaskListController extends SortableListController<TaskItem> {
     // for debugging
     public String getClusterInfo() {
 
-        if (runningTasksInfo == null) {
+        if (clusterStatusInformation == null) {
             return "No cluster info; local scheduler is " + (taskManager.getServiceThreadsActivationState() ? "" : "NOT") + " running";
         }
 
         StringBuffer retval = new StringBuffer();
         retval.append("Cluster nodes: \n");         // newlines are not displayed
-        for (RunningTasksInfo.NodeInfo nodeInfo : runningTasksInfo.getNodes()) {
+        for (ClusterStatusInformation.NodeInfo nodeInfo : clusterStatusInformation.getNodes()) {
             NodeType nodeType = nodeInfo.getNodeType().asObjectable();
             retval.append("{Node " + nodeType.getNodeIdentifier() + " (" + nodeType.getHostname() + "): ");
             if (nodeInfo.isConnectionError()) {
@@ -343,10 +351,10 @@ public class TaskListController extends SortableListController<TaskItem> {
             } else {
                 retval.append("running = " + nodeInfo.isSchedulerRunning());
 
-                List<RunningTasksInfo.TaskInfo> taskInfoList = runningTasksInfo.getTasksOnNode(nodeInfo);
+                List<ClusterStatusInformation.TaskInfo> taskInfoList = clusterStatusInformation.getTasksOnNode(nodeInfo);
                 retval.append("; tasks: " + taskInfoList.size() + " [");
                 boolean first = true;
-                for (RunningTasksInfo.TaskInfo ti : taskInfoList) {
+                for (ClusterStatusInformation.TaskInfo ti : taskInfoList) {
                     if (first) {
                         first = false;
                     } else {

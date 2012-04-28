@@ -290,7 +290,7 @@ public interface TaskManager {
 	 * @throws ConcurrencyException 
 	 * @throws ObjectNotFoundException 
 	 */
-	public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException;
+	public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException, TaskManagerException;
 
 	/**
 	 * Switches the provided task to background, making it asynchronous.
@@ -313,7 +313,7 @@ public interface TaskManager {
 	 * 
 	 * @return list of all known tasks
 	 */
-	public Set<Task> listTasks();
+//	public Set<Task> listTasks();
 	
 	// TODO: search
 	
@@ -339,7 +339,7 @@ public interface TaskManager {
 	 * 
 	 * @return tasks that currently run on this node.
 	 */
-	public Set<Task> getRunningTasks();
+	public Set<Task> getRunningTasks() throws TaskManagerException;
 
 	/**
 	 * Deactivate service threads (temporarily).
@@ -352,6 +352,9 @@ public interface TaskManager {
 	 *  WARNING: this feature is intended for development-time diagnostics and should not be used on production environments.
 	 *  Suspending the threads may affect correct behavior of the system (such as timeouts on heartbeats). Use this feature
 	 *  only if you really know what you are doing.
+     *
+     *  timeToWait is only for orientation = it may be so that the implementation would wait 2 or 3 times this value
+     *  (if it waits separately for several threads completion)
 	 */
 	public boolean deactivateServiceThreads(long timeToWait);
 	
@@ -368,6 +371,35 @@ public interface TaskManager {
 	 * @return true if the service threads are running.
 	 */
 	public boolean getServiceThreadsActivationState();
+
+    /**
+     * Stops the scheduler on a given node. This means that at that node no tasks will be started.
+     *
+     * @param nodeIdentifier Node on which the scheduler should be stopped. Null means current node.
+     * @return true if the operation succeeded; false otherwise.
+     *
+     * (TODO: perhaps signal an exception here? also for the other methods)
+     */
+    public void stopScheduler(String nodeIdentifier);
+
+    /**
+     * Starts the scheduler on a given node. A prerequisite is that the node is running and its
+     * TaskManager is not in an error state.
+     *
+     * @param nodeIdentifier Node on which the scheduler should be started. Null means current node.
+     * @return true if the operation succeeded; false otherwise.
+     */
+    public boolean startScheduler(String nodeIdentifier);
+
+    /**
+     * Stops the scheduler on a given node. This means that at that node no tasks will be started.
+     * Moreover, stops all currently executing tasks on this node.
+     *
+     * @param nodeIdentifier
+     * @param timeToWait TODO
+     * @return true if the operation succeeded *and* all tasks are stopped; false otherwise.
+     */
+    public boolean stopSchedulerAndTasks(String nodeIdentifier, long timeToWait);
 
 	/**
 	 * Helper function, used to determine when this task
@@ -402,7 +434,7 @@ public interface TaskManager {
     // TODO
     public Long getNextRunStartTime(String oid);
 
-    public RunningTasksInfo getRunningTasksClusterwide();
+    public ClusterStatusInformation getRunningTasksClusterwide();
 
     String getNodeId();
 

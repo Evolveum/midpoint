@@ -30,7 +30,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.time.DurationFormatUtils;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
@@ -68,11 +67,11 @@ public class TaskItem extends SelectableBean {
     }
 
     // used to convert task currently executing at this node (then runningTaskInfo is null!) or in cluster
-    public TaskItem(Task task, TaskManager taskManager, RunningTasksInfo runningTasksInfo) {
-        initializeFromTask(task, taskManager, runningTasksInfo);
+    public TaskItem(Task task, TaskManager taskManager, ClusterStatusInformation clusterStatusInformation) {
+        initializeFromTask(task, taskManager, clusterStatusInformation);
     }
 
-    private void initializeFromTask(Task task, TaskManager taskManager, RunningTasksInfo runningTasksInfo) {
+    private void initializeFromTask(Task task, TaskManager taskManager, ClusterStatusInformation clusterStatusInformation) {
 
         this.task = task;
 
@@ -113,11 +112,11 @@ public class TaskItem extends SelectableBean {
             this.extension = task.getExtension();
         }
 
-        if (runningTasksInfo == null) {         // when listing nodes currently executing at this node
+        if (clusterStatusInformation == null) {         // when listing nodes currently executing at this node
             this.executesAt = taskManager.getNodeId();
             this.executionStatus = TaskItemExecutionStatus.RUNNING;
         } else {
-            RunningTasksInfo.NodeInfo nodeInfo = runningTasksInfo.findNodeInfoForTask(this.getOid());
+            ClusterStatusInformation.NodeInfo nodeInfo = clusterStatusInformation.findNodeInfoForTask(this.getOid());
             if (nodeInfo != null) {
                 this.executesAt = nodeInfo.getNodeType().asObjectable().getNodeIdentifier();
                 this.executionStatus = TaskItemExecutionStatus.RUNNING;
@@ -129,13 +128,13 @@ public class TaskItem extends SelectableBean {
     }
 
 
-    public TaskItem(PrismObject<TaskType> taskPrism, TaskManager taskManager, RunningTasksInfo runningTasksInfo) {
+    public TaskItem(PrismObject<TaskType> taskPrism, TaskManager taskManager, ClusterStatusInformation clusterStatusInformation) {
 
         OperationResult result = createOperationResult("TaskItem");
 
         try {
             Task task = taskManager.createTaskInstance(taskPrism, result);
-            initializeFromTask(task, taskManager, runningTasksInfo);
+            initializeFromTask(task, taskManager, clusterStatusInformation);
         } catch (SchemaException e) {
             // should not occur
             throw new SystemException("Cannot initialize task instance due to unexpected schema exception", e);

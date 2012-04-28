@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -22,7 +22,8 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
+import com.evolveum.midpoint.task.api.UseThreadInterrupt;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
@@ -33,36 +34,46 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
+ * Task Manager configuration, derived from "taskManager" section of midPoint config,
+ * SQL repository configuration (if present), and some system properties.
+ *
+ * See also the description in midPoint wiki (TODO URL).
+ *
+ * On configuration failures, it throws TaskManagerConfigurationException.
+ *
  * @author Pavol Mederly
  */
 public class TaskManagerConfiguration {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);
 
-    private static final String TASK_MANAGER_CONFIGURATION = "midpoint.taskManager";
-    private static final String CONFIG_THREADS = "threads";
-    private static final String CONFIG_CLUSTERED = "clustered";
-    private static final String CONFIG_JDBC_JOB_STORE = "jdbcJobStore";
-    private static final String CONFIG_JDBC_DRIVER = "jdbcDriver";
-    private static final String CONFIG_JDBC_URL = "jdbcUrl";
-    private static final String CONFIG_JDBC_USER = "jdbcUser";
-    private static final String CONFIG_JDBC_PASSWORD = "jdbcPassword";
-    private static final String CONFIG_SQL_SCHEMA_FILE = "sqlSchemaFile";
-    private static final String CONFIG_JDBC_DRIVER_DELEGATE_CLASS = "jdbcDriverDelegateClass";
-    private static final String CONFIG_USE_THREAD_INTERRUPT = "useThreadInterrupt";
-    private static final String CONFIG_JMX_CONNECT_TIMEOUT = "jmxConnectTimeout";
+    private static final String TASK_MANAGER_CONFIG_SECTION = "midpoint.taskManager";
+    private static final String STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY = "stopOnInitializationFailure";
+    private static final String THREADS_CONFIG_ENTRY = "threads";
+    private static final String CLUSTERED_CONFIG_ENTRY = "clustered";
+    private static final String JDBC_JOB_STORE_CONFIG_ENTRY = "jdbcJobStore";
+    private static final String JDBC_DRIVER_CONFIG_ENTRY = "jdbcDriver";
+    private static final String JDBC_URL_CONFIG_ENTRY = "jdbcUrl";
+    private static final String JDBC_USER_CONFIG = "jdbcUser";
+    private static final String JDBC_PASSWORD_CONFIG = "jdbcPassword";
+    private static final String SQL_SCHEMA_FILE_CONFIG_ENTRY = "sqlSchemaFile";
+    private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
+    private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
+    private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
     private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
 
-    private static final int DEFAULT_THREADS = 10;
-    private static final boolean DEFAULT_CLUSTERED = false;             // do not change this value!
-    private static final String DEFAULT_NODE_ID = "DefaultNode";
-    private static final int DEFAULT_JMX_PORT = 20001;
-    private static final int DEFAULT_JMX_CONNECT_TIMEOUT = 5;
-    private static final String DEFAULT_USE_THREAD_INTERRUPT = "whenNecessary";
+    private static final boolean STOP_ON_INITIALIZATION_FAILURE_DEFAULT = true;
+    private static final int THREADS_DEFAULT = 10;
+    private static final boolean CLUSTERED_DEFAULT = false;             // do not change this value!
+    private static final String NODE_ID_DEFAULT = "DefaultNode";
+    private static final int JMX_PORT_DEFAULT = 20001;
+    private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
+    private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
 
+    private boolean stopOnInitializationFailure;
     private int threads;
     private boolean jdbcJobStore;
     private boolean clustered;
@@ -81,6 +92,7 @@ public class TaskManagerConfiguration {
     private String jdbcPassword;
 
     private String hibernateDialect;
+    private boolean databaseIsEmbedded;
 
     /*
       * Whether to allow reusing quartz scheduler after task manager shutdown.
@@ -94,29 +106,31 @@ public class TaskManagerConfiguration {
       */
     private boolean reusableQuartzScheduler = false;
 
-    TaskManagerConfiguration(MidpointConfiguration masterConfig) {
-        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIGURATION);
+    void setBasicInformation(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
+        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
 
-        threads = c.getInt(CONFIG_THREADS, DEFAULT_THREADS);
-        clustered = c.getBoolean(CONFIG_CLUSTERED, DEFAULT_CLUSTERED);
-        jdbcJobStore = c.getBoolean(CONFIG_JDBC_JOB_STORE, clustered);
+        stopOnInitializationFailure = c.getBoolean(STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY, STOP_ON_INITIALIZATION_FAILURE_DEFAULT);
+
+        threads = c.getInt(THREADS_CONFIG_ENTRY, THREADS_DEFAULT);
+        clustered = c.getBoolean(CLUSTERED_CONFIG_ENTRY, CLUSTERED_DEFAULT);
+        jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
         nodeId = System.getProperty(MIDPOINT_NODE_ID_PROPERTY);
         if (StringUtils.isEmpty(nodeId))
-            nodeId = DEFAULT_NODE_ID;
+            nodeId = NODE_ID_DEFAULT;
 
         String portString = System.getProperty(JMX_PORT_PROPERTY);
         if (StringUtils.isEmpty(portString)) {
-            jmxPort = DEFAULT_JMX_PORT;
+            jmxPort = JMX_PORT_DEFAULT;
         } else {
             try {
                 jmxPort = Integer.parseInt(portString);
             } catch(NumberFormatException nfe) {
-                throw new SystemException("Cannot get JMX management port - invalid integer value of " + portString, nfe);
+                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + portString, nfe);
             }
         }
 
-        jmxConnectTimeout = c.getInt(CONFIG_JMX_CONNECT_TIMEOUT, DEFAULT_JMX_CONNECT_TIMEOUT);
+        jmxConnectTimeout = c.getInt(JMX_CONNECT_TIMEOUT_CONFIG_ENTRY, JMX_CONNECT_TIMEOUT_DEFAULT);
 
         Properties sp = System.getProperties();
         if (sp.containsKey(SUREFIRE_PRESENCE_PROPERTY)) {
@@ -124,11 +138,11 @@ public class TaskManagerConfiguration {
             reusableQuartzScheduler = true;
         }
 
-        String useTI = c.getString(CONFIG_USE_THREAD_INTERRUPT, DEFAULT_USE_THREAD_INTERRUPT);
+        String useTI = c.getString(USE_THREAD_INTERRUPT_CONFIG_ENTRY, USE_THREAD_INTERRUPT_DEFAULT);
         try {
             useThreadInterrupt = UseThreadInterrupt.fromValue(useTI);
         } catch(IllegalArgumentException e) {
-            throw new SystemException("Illegal value for " + CONFIG_USE_THREAD_INTERRUPT + ": " + useTI, e);
+            throw new TaskManagerConfigurationException("Illegal value for " + USE_THREAD_INTERRUPT_CONFIG_ENTRY + ": " + useTI, e);
         }
 
 
@@ -158,23 +172,28 @@ public class TaskManagerConfiguration {
 
     void setJdbcJobStoreInformation(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig) {
 
-        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIGURATION);
+        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
 
-        jdbcDriver = c.getString(CONFIG_JDBC_DRIVER, sqlConfig.getDriverClassName());
-        jdbcUrl = c.getString(CONFIG_JDBC_URL, sqlConfig.getJdbcUrl());
-        jdbcUser = c.getString(CONFIG_JDBC_USER, sqlConfig.getJdbcUsername());
-        jdbcPassword = c.getString(CONFIG_JDBC_PASSWORD, sqlConfig.getJdbcPassword());
+        jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
+        jdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUrl() : null);
+        jdbcUser = c.getString(JDBC_USER_CONFIG, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
+        jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 
-        hibernateDialect = sqlConfig.getHibernateDialect();
+        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
 
         String defaultSqlSchemaFile = schemas.get(hibernateDialect);
         String defaultDriverDelegate = delegates.get(hibernateDialect);
 
-        sqlSchemaFile = c.getString(CONFIG_SQL_SCHEMA_FILE, defaultSqlSchemaFile);
-        jdbcDriverDelegateClass = c.getString(CONFIG_JDBC_DRIVER_DELEGATE_CLASS, defaultDriverDelegate);
+        sqlSchemaFile = c.getString(SQL_SCHEMA_FILE_CONFIG_ENTRY, defaultSqlSchemaFile);
+        jdbcDriverDelegateClass = c.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
     }
 
-    void validate() {
+    /**
+     * Check configuration, except for JDBC JobStore-specific parts.
+     *
+     * @throws TaskManagerConfigurationException
+     */
+    void validateBasicInformation() throws TaskManagerConfigurationException {
 
         if (threads < 1) {
             LOGGER.warn("The configured number of threads is too low, setting it to 5.");
@@ -190,7 +209,7 @@ public class TaskManagerConfiguration {
 
     }
 
-    void validateJdbcConfig() {
+    void validateJdbcJobStoreInformation() throws TaskManagerConfigurationException {
 
         notEmpty(jdbcDriver, "JDBC driver must be specified (either explicitly or in SQL repository configuration)");
         notEmpty(jdbcUrl, "JDBC URL must be specified (either explicitly or in SQL repository configuration).");
@@ -200,29 +219,27 @@ public class TaskManagerConfiguration {
         notEmpty(sqlSchemaFile, "SQL schema file must be specified (either explicitly or through one of supported Hibernate dialects).");
     }
 
-    // TODO: change SystemException to something more reasonable
-
-    private void notEmpty(String value, String message) {
+    private void notEmpty(String value, String message) throws TaskManagerConfigurationException {
         if (StringUtils.isEmpty(value)) {
-            throw new SystemException(message);
+            throw new TaskManagerConfigurationException(message);
         }
     }
 
-    private void notNull(String value, String message) {
+    private void notNull(String value, String message) throws TaskManagerConfigurationException {
         if (value == null) {
-            throw new SystemException(message);
+            throw new TaskManagerConfigurationException(message);
         }
     }
 
-    private void mustBeTrue(boolean condition, String message) {
+    private void mustBeTrue(boolean condition, String message) throws TaskManagerConfigurationException {
         if (!condition) {
-            throw new SystemException(message);
+            throw new TaskManagerConfigurationException(message);
         }
     }
 
-    private void mustBeFalse(boolean condition, String message) {
+    private void mustBeFalse(boolean condition, String message) throws TaskManagerConfigurationException {
         if (condition) {
-            throw new SystemException(message);
+            throw new TaskManagerConfigurationException(message);
         }
     }
 
@@ -280,5 +297,13 @@ public class TaskManagerConfiguration {
 
     public int getJmxConnectTimeout() {
         return jmxConnectTimeout;
+    }
+
+    public boolean isStopOnInitializationFailure() {
+        return stopOnInitializationFailure;
+    }
+
+    public boolean isDatabaseIsEmbedded() {
+        return databaseIsEmbedded;
     }
 }

@@ -67,11 +67,9 @@ public class TaskSynchronizer {
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskSynchronizer.class);
 
     private TaskManagerQuartzImpl taskManager;
-    private RepositoryService repositoryService;
 
     public TaskSynchronizer(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
-        this.repositoryService = taskManager.getRepositoryService();
     }
 
     /**
@@ -90,7 +88,7 @@ public class TaskSynchronizer {
         PagingType paging = new PagingType();
         List<PrismObject<TaskType>> tasks;
         try {
-            tasks = repositoryService.searchObjects(TaskType.class, QueryUtil.createAllObjectsQuery(), paging, result);
+            tasks = getRepositoryService().searchObjects(TaskType.class, QueryUtil.createAllObjectsQuery(), paging, result);
         } catch(Exception e) {
             LoggingUtils.logException(LOGGER, "Synchronization cannot be done, because tasks cannot be listed from the repository.", e);
             return false;
@@ -218,6 +216,9 @@ public class TaskSynchronizer {
         }
     }
 
+    private RepositoryService getRepositoryService() {
+        return taskManager.getRepositoryService();
+    }
 
 
 }
