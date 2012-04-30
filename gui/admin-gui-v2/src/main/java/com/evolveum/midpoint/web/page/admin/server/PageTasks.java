@@ -36,13 +36,18 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -160,8 +165,35 @@ public class PageTasks extends PageAdminTasks {
                 return createStringResource(en).getString();
             }
         });
-        columns.add(new PropertyColumn(createStringResource("pageTasks.task.currentRunTime"), "currentRuntime"));
-        columns.add(new PropertyColumn(createStringResource("pageTasks.task.scheduledToRunAgain"), "scheduledToStartAgain"));
+        columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.currentRunTime")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
+                    final IModel<TaskDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        return createCurrentRuntime(rowModel);
+                    }
+                }));
+            }
+        });
+        columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
+                    final IModel<TaskDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        return createScheduledToRunAgain(rowModel);
+                    }
+                }));
+            }
+        });
+
         columns.add(new EnumPropertyColumn(createStringResource("pageTasks.task.status"), "status") {
 
             @Override
@@ -171,6 +203,32 @@ public class PageTasks extends PageAdminTasks {
         });
 
         return columns;
+    }
+
+    private String createScheduledToRunAgain(IModel<TaskDto> taskModel) {
+        TaskDto task = taskModel.getObject();
+        //todo i18n
+        Long time = task.getScheduledToStartAgain();
+        if (time == null) {
+            return "-";
+        }
+
+        return DurationFormatUtils.formatDurationWords(time, true, true);
+    }
+
+    private String createCurrentRuntime(IModel<TaskDto> taskModel) {
+        TaskDto task = taskModel.getObject();
+        //todo i18n
+        Long time = task.getCurrentRuntime();
+        if (time == null) {
+            return "-";
+        } else if (time == 0) {
+            return "now";
+        } else if (time == -1) {
+            return "runs continually";
+        }
+
+        return "in " +DurationFormatUtils.formatDurationWords(time, true, true);
     }
 
     private void initTaskButtons(Form mainForm) {
@@ -291,7 +349,14 @@ public class PageTasks extends PageAdminTasks {
 
     private List<String> createCategoryList() {
         List<String> categories = new ArrayList<String>();
-        //todo implement
+        TaskManager manager = getTaskManager();
+
+        List<String> list = manager.getAllTaskCategories();
+        if (list != null) {
+            categories.addAll(list);
+            Collections.sort(list);
+        }
+        //todo i18n
 
         return categories;
     }

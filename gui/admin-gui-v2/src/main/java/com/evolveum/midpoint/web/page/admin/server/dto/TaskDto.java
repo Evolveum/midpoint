@@ -23,37 +23,59 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 
-import java.util.Date;
-
 /**
  * @author lazyman
  */
-public class TaskDto  extends Selectable {
+public class TaskDto extends Selectable {
 
     private String oid;
     private String name;
     private String category;
     private ObjectReferenceType objectRef;
     private TaskExecutionStatus execution;
-    private Long currentRuntime;
-    private Date scheduledToStartAgain;
     private OperationResultStatus status;
 
-    public TaskDto(Task task) {
+    //helpers, won't be probably shown
+    private Long lastRunStartTimestampLong;
+    private Long lastRunFinishTimestampLong;
+    private Long nextRunStartTimeLong;
+    private String executesAt;
+    private TaskBinding binding;
+    private TaskRecurrence recurrence;
+
+    public TaskDto(Task task, ClusterStatusInformation clusterStatusInfo, TaskManager taskManager) {
         Validate.notNull(task, "Task must not be null.");
         oid = task.getOid();
         name = task.getName();
         category = task.getCategory();
 //        objectRef = ;
-        execution = task.getExecutionStatus();
-//        currentRuntime =;
+        execution = task.getExecutionStatus();       //todo is this alright?
 //        scheduledToStartAgain=task.;
+        lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
+        lastRunStartTimestampLong = task.getLastRunStartTimestamp();
+        nextRunStartTimeLong = task.getNextRunStartTime();
+
+        if (clusterStatusInfo == null) {         // when listing nodes currently executing at this node
+            this.executesAt = taskManager.getNodeId();
+//            this.execution = TaskItemExecutionStatus.RUNNING;
+        } else {
+            Node node = clusterStatusInfo.findNodeInfoForTask(this.getOid());
+            if (node != null) {
+                this.executesAt = node.getNodeType().asObjectable().getNodeIdentifier();
+//                this.executionStatus = TaskItemExecutionStatus.RUNNING;
+            } else {
+                this.executesAt = null;
+//                this.executionStatus = TaskItemExecutionStatus.fromTask(task.getExecutionStatus());
+            }
+        }
+
+        this.binding = task.getBinding();
+        this.recurrence = task.getRecurrenceStatus();
 
         OperationResult result = task.getResult();
         if (result != null) {
@@ -66,7 +88,13 @@ public class TaskDto  extends Selectable {
     }
 
     public Long getCurrentRuntime() {
-        return currentRuntime;
+        if (isRunNotFinished()) {
+            if (isAliveClusterwide()) {
+                return System.currentTimeMillis() - lastRunStartTimestampLong;
+            }
+        }
+
+        return null;
     }
 
     public TaskExecutionStatus getExecution() {
@@ -85,11 +113,40 @@ public class TaskDto  extends Selectable {
         return oid;
     }
 
-    public Date getScheduledToStartAgain() {
-        return scheduledToStartAgain;
+    public Long getScheduledToStartAgain() {
+        long current = System.currentTimeMillis();
+        if (!TaskRecurrence.RECURRING.equals(recurrence)) {
+            return null;
+        } else if (getExecution() != TaskExecutionStatus.RUNNABLE) {
+            return null;
+        } else if (TaskBinding.TIGHT.equals(binding)) {
+            return -1L;
+        }
+//    	else if (taskRunNotFinished()) {
+//    		return "to be computed";
+        else if (nextRunStartTimeLong != null && nextRunStartTimeLong > 0) {
+            if (nextRunStartTimeLong > current + 1000) {
+                return nextRunStartTimeLong - System.currentTimeMillis();
+            } else {
+                return 0L;
+            }
+        } else {
+            return null;
+            // either a task is not recurring, or the next run start time has not been determined yet
+            // TODO: if necessary, this could be made more clear in the future
+        }
     }
 
     public OperationResultStatus getStatus() {
         return status;
+    }
+
+    private boolean isRunNotFinished() {
+        return lastRunStartTimestampLong != null &&
+                (lastRunFinishTimestampLong == null || lastRunStartTimestampLong > lastRunFinishTimestampLong);
+    }
+
+    private boolean isAliveClusterwide() {
+        return executesAt != null;
     }
 }

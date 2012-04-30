@@ -86,7 +86,7 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
             List<Task> tasks = manager.searchTasks(query, paging, info, result);
 
             for (Task task : tasks) {
-                getAvailableData().add(new TaskDto(task));
+                getAvailableData().add(new TaskDto(task, info, manager));
             }
             result.recordSuccess();
         } catch (Exception ex) {
