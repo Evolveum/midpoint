@@ -23,6 +23,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+	<div wicket:id="accountsPopup" />
+	<div wicket:id="resourcesPopup" />
     <form wicket:id="mainForm">
         <table width="100%">
             <tr>
@@ -54,11 +56,11 @@
 			</div>
 			
 			<div class="operatingFormBlock">
-	            <span class="operatingFormText"><wicket:message key="pageUser.button.label.task"/></span>
-	            <a wicket:id="addTask" />
-                <a wicket:id="enableTask" />
-                <a wicket:id="disableTask" />
-                <a wicket:id="deleteTask" />
+	            <span class="operatingFormText"><wicket:message key="pageUser.button.label.account"/></span>
+	            <a wicket:id="addAccount" />
+                <a wicket:id="enableAccount" />
+                <a wicket:id="disableAccount" />
+                <a wicket:id="deleteAccount" />
 			</div>
 			<div class="operatingFormBlock">
 	            <span class="operatingFormText"><wicket:message key="pageUser.button.label.resource"/></span>

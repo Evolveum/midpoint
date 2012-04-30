@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.test.AccountPopupWindow;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -56,6 +58,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -78,8 +81,12 @@ public class PageUser extends PageAdminUsers {
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
     private IModel<List<ObjectWrapper>> accountsModel;
+    private ModalWindow accountsPopupWindow;
+    private ModalWindow resourcesPopupWindow;
 
     public PageUser() {
+    	accountsPopupWindow = createAccountsWindow();
+    	resourcesPopupWindow = createResourcesWindow();
         userModel = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
@@ -181,10 +188,10 @@ public class PageUser extends PageAdminUsers {
                 PrismObjectPanel account = new PrismObjectPanel("account", item.getModel(),
                         new PackageResourceReference(PageUser.class, "Hdd.png")) {
 
-                	@Override
-        			protected Panel createOperationPanel(String id) {
-        				return new AccountOperationButtons(id, item.getModel());
-        			}
+//                	@Override
+//        			protected Panel createOperationPanel(String id) {
+//        				return new AccountOperationButtons(id, item.getModel());
+//        			}
                 	
                     @Override
                     public WebMarkupContainer createFooterPanel(String footerId, IModel<ObjectWrapper> model) {
@@ -292,18 +299,17 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(cancel);
         
-        AjaxLinkButton addTask = new AjaxLinkButton("addTask",
+        AjaxLinkButton addAccount = new AjaxLinkButton("addAccount",
                 createStringResource("pageUser.button.add")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //TODO open popup with accounts
-            	//cancelPerformed(target);
+            	accountsPopupWindow.show(target);
             }
         };
-        mainForm.add(addTask);
+        mainForm.add(addAccount);
         
-        AjaxLinkButton enableTask = new AjaxLinkButton("enableTask",
+        AjaxLinkButton enableAccount = new AjaxLinkButton("enableAccount",
                 createStringResource("pageUser.button.enable")) {
 
             @Override
@@ -311,9 +317,9 @@ public class PageUser extends PageAdminUsers {
                 //TODO enable selected task
             }
         };
-        mainForm.add(enableTask);
+        mainForm.add(enableAccount);
         
-        AjaxLinkButton disableTask = new AjaxLinkButton("disableTask",
+        AjaxLinkButton disableAccount = new AjaxLinkButton("disableAccount",
                 createStringResource("pageUser.button.disable")) {
 
             @Override
@@ -321,9 +327,9 @@ public class PageUser extends PageAdminUsers {
                 //TODO disable selected task
             }
         };
-        mainForm.add(disableTask);
+        mainForm.add(disableAccount);
         
-        AjaxLinkButton deleteTask = new AjaxLinkButton("deleteTask",
+        AjaxLinkButton deleteAccount = new AjaxLinkButton("deleteAccount",
                 createStringResource("pageUser.button.delete")) {
 
             @Override
@@ -331,14 +337,14 @@ public class PageUser extends PageAdminUsers {
                 //TODO delete selected task
             }
         };
-        mainForm.add(deleteTask);
+        mainForm.add(deleteAccount);
         
         AjaxLinkButton addResource = new AjaxLinkButton("addResource",
                 createStringResource("pageUser.button.add")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //TODO open popup with resources
+            	resourcesPopupWindow.show(target);
             }
         };
         mainForm.add(addResource);
@@ -354,6 +360,68 @@ public class PageUser extends PageAdminUsers {
         mainForm.add(deleteResource);
         
     }
+    
+    private ModalWindow createAccountsWindow(){
+		final ModalWindow popupWindow;
+		add(popupWindow = new ModalWindow("accountsPopup"));
+
+		popupWindow.setContent(new EmptyPanel(popupWindow.getContentId()));
+		popupWindow.setResizable(false);
+		popupWindow.setTitle("Select Account");
+		popupWindow.setCookieName("Account popup window");
+
+		popupWindow.setInitialWidth(1100);
+		popupWindow.setWidthUnit("px");
+
+		popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+
+			@Override
+			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+				return true;
+			}
+		});
+		
+		popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+
+			@Override
+			public void onClose(AjaxRequestTarget target) {
+				popupWindow.close(target);
+			}
+		});
+		
+		return popupWindow;
+	}
+    
+    private ModalWindow createResourcesWindow(){
+		final ModalWindow popupWindow;
+		add(popupWindow = new ModalWindow("resourcesPopup"));
+
+		popupWindow.setContent(new EmptyPanel(popupWindow.getContentId()));
+		popupWindow.setResizable(false);
+		popupWindow.setTitle("Select Resource");
+		popupWindow.setCookieName("Resource popup window");
+
+		popupWindow.setInitialWidth(1100);
+		popupWindow.setWidthUnit("px");
+
+		popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+
+			@Override
+			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+				return true;
+			}
+		});
+		
+		popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+
+			@Override
+			public void onClose(AjaxRequestTarget target) {
+				popupWindow.close(target);
+			}
+		});
+		
+		return popupWindow;
+	}
 
     private boolean isEditingUser() {
         StringValue userOid = getPageParameters().get(PageUser.PARAM_USER_ID);
