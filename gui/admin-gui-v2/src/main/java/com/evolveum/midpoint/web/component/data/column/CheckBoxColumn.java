@@ -79,11 +79,6 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
         this.enabled.setObject(enabled);
     }
 
-    @Override
-    public String getCssClass() {
-        return "tableCheckbox";
-    }
-
     public void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<Selectable<T>> rowModel) {
 
     }

@@ -98,10 +98,14 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(categorySelect);
 
         List<IColumn<TaskDto>> taskColumns = initTaskColumns();
-        mainForm.add(new TablePanel<TaskDto>("taskTable", new TaskDtoProvider(PageTasks.this), taskColumns));
+        TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>("taskTable", new TaskDtoProvider(PageTasks.this),
+                taskColumns);
+        taskTable.setOutputMarkupId(true);
+        mainForm.add(taskTable);
 
         List<IColumn<NodeDto>> nodeColumns = initNodeColumns();
         TablePanel nodeTable = new TablePanel<NodeDto>("nodeTable", new NodeDtoProvider(PageTasks.this), nodeColumns);
+        nodeTable.setOutputMarkupId(true);
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);
 
@@ -461,10 +465,7 @@ public class PageTasks extends PageAdminTasks {
         }
         result.recomputeStatus();
 
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
+        showResult(result);
         //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getTaskTable());
@@ -486,10 +487,7 @@ public class PageTasks extends PageAdminTasks {
         }
         result.recomputeStatus();
 
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
+        showResult(result);
         //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getTaskTable());
