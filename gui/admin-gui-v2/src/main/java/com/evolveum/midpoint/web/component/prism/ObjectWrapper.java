@@ -52,8 +52,10 @@ public class ObjectWrapper implements Serializable {
 
     private boolean showEmpty;
     private boolean minimalized;
+    private boolean selectable;
+    private boolean selected;
 
-    public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
+	public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
 
@@ -102,6 +104,22 @@ public class ObjectWrapper implements Serializable {
     public void setShowEmpty(boolean showEmpty) {
         this.showEmpty = showEmpty;
     }
+    
+    public boolean isSelectable() {
+		return selectable;
+	}
+
+	public void setSelectable(boolean selectable) {
+		this.selectable = selectable;
+	}
+	
+	public boolean isSelected() {
+		return selected;
+	}
+
+	public void setSelected(boolean selected) {
+		this.selected = selected;
+	}
 
     public List<ContainerWrapper> getContainers() {
         if (containers == null) {

@@ -24,9 +24,11 @@ package com.evolveum.midpoint.web.component.prism;
 import java.awt.LayoutManager;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -41,45 +43,31 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
  * @author mserbak
  */
 public class PrismOptionButtonPanel extends Panel {
-	Boolean showCheckBox = false;
-	private String propertyExpression;
-
-	public PrismOptionButtonPanel(String id, final IModel<ObjectWrapper> model, Boolean showCheckBox) {
+	
+	public PrismOptionButtonPanel(String id, final IModel<ObjectWrapper> model) {
 		super(id);
-		IModel<Boolean> selected = null;
-        if (StringUtils.isEmpty(propertyExpression)) {
-            selected = new PropertyModel<Boolean>(model, "selected");
-        } else {
-            selected = new PropertyModel<Boolean>(model, propertyExpression);
-        }
-        
-		this.showCheckBox = showCheckBox;
+
 		initButtons(model);
 		
-		AjaxCheckBox check = new AjaxCheckBox("check", selected) {
-			
+		AjaxCheckBox check = new AjaxCheckBox("check", new PropertyModel<Boolean>(model, "selected")) {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				// TODO Auto-generated method stub
-				
+				PrismOptionButtonPanel.this.checkBoxOnUpdate(target);
 			}
 		};
+		check.setVisible(model.getObject().isSelectable());
         check.setOutputMarkupId(true);
+        add(check);
 	}
 	
 	private void initButtons(final IModel<ObjectWrapper> model){
-		WebMarkupContainer headerPanel = new WebMarkupContainer("header");
 		AjaxLink showEmpty = new AjaxLink("showEmptyButton") {
-
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ObjectWrapper wrapper = model.getObject();
-                wrapper.setShowEmpty(!wrapper.isShowEmpty());
-                //TODO: add link
-                //target.add(PrismObjectPanel.class);
+            	showEmptyOnClick(target);
             }
         };
-        headerPanel.add(showEmpty);
+        add(showEmpty);
         
         Image showEmptyImg = new Image("showEmptyImg", new AbstractReadOnlyModel() {
 
@@ -95,19 +83,23 @@ public class PrismOptionButtonPanel extends Panel {
                         "ShowEmptyTrue.png");
             }
         });
+        showEmptyImg.add(new AttributeAppender("title", ""));
+        if(model.getObject().isShowEmpty()){
+        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.hideEmpty")));
+        } else {
+        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.showEmpty")));
+        }
+        
+        
         showEmpty.add(showEmptyImg);
 
         AjaxLink minimize = new AjaxLink("minimizeButton") {
-
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ObjectWrapper wrapper = model.getObject();
-                wrapper.setMinimalized(!wrapper.isMinimalized());
-                //TODO: add link
-                //target.add(PrismObjectPanel.this);
+            	minimizeOnClick(target);
             }
         };
-        headerPanel.add(minimize);
+        add(minimize);
 
         Image minimizeImg = new Image("minimizeImg", new AbstractReadOnlyModel() {
 
@@ -123,6 +115,21 @@ public class PrismOptionButtonPanel extends Panel {
                         "Minimize.png");
             }
         });
+        minimizeImg.add(new AttributeAppender("title", ""));
+        if(model.getObject().isMinimalized()){
+        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.maximize")));
+        } else {
+        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.minimize")));
+        }
         minimize.add(minimizeImg);
 	}
+	
+	public void minimizeOnClick(AjaxRequestTarget target) {
+	}
+	
+	public void showEmptyOnClick(AjaxRequestTarget target) {
+	}
+	
+	public void checkBoxOnUpdate(AjaxRequestTarget target) {
+    }
 }

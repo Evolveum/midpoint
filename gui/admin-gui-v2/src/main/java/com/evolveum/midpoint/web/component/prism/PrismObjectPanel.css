@@ -70,16 +70,39 @@ div.objectForm .tableForm .tableFormHead .objectFormHeaderText {
 	text-align: left;
 }
 
-div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButtons {
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons {
 	position: relative;
+	margin: 5px 0 0 5px;
 	display: inline-block;
-	width: 40px;
-	margin-top: 5px;
-	margin-right: 5px;
+	float: left;
+}
+
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderCheck {
+	margin: 2px 2px 5px; 
+	padding: 0px; 
+	float: left;
+}
+
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonShowEmptyFields, div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonMinMax {
+	margin: 1px;
+}
+
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOperationButtons {
+	position: relative;
+	margin: 5px 0 0 5px;
+	display: inline-block;
 	float: right;
 }
 
-div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButtons a, div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButtons a:hover {
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonLink, div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonDelete {
+	margin: 1px;
+}
+
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons a, div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons a:hover {
+	text-decoration: none;
+}
+
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOperationButtons a, div.objectForm .tableForm .tableFormHead .objectFormHeaderOperationButtons a:hover {
 	text-decoration: none;
 }
 
@@ -201,7 +224,7 @@ div.objectForm .tableForm .tableFormBody .objectFormInput .yui-skin-sam {
 	top: 11px;
 }
 
-div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButtons .objectFormHeaderControllButtonMinMax:hover, div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButtons .objectFormHeaderControllButtonShowEmptyFields:hover {
+div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButton:hover {
 	cursor: pointer;
 	-webkit-box-shadow: 0px 0px 2px rgba(0, 0, 0, 1);
 	-moz-box-shadow: 0px 0px 2px rgba(0, 0, 0, 1);

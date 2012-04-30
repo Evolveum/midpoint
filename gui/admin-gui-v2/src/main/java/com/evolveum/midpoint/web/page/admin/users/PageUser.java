@@ -56,6 +56,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -176,10 +177,15 @@ public class PageUser extends PageAdminUsers {
                 accountsModel) {
 
             @Override
-            protected void populateItem(ListItem<ObjectWrapper> item) {
+            protected void populateItem(final ListItem<ObjectWrapper> item) {
                 PrismObjectPanel account = new PrismObjectPanel("account", item.getModel(),
                         new PackageResourceReference(PageUser.class, "Hdd.png")) {
 
+                	@Override
+        			protected Panel createOperationPanel(String id) {
+        				return new AccountOperationButtons(id, item.getModel());
+        			}
+                	
                     @Override
                     public WebMarkupContainer createFooterPanel(String footerId, IModel<ObjectWrapper> model) {
                         //todo
@@ -285,6 +291,68 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(cancel);
+        
+        AjaxLinkButton addTask = new AjaxLinkButton("addTask",
+                createStringResource("pageUser.button.add")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO open popup with accounts
+            	//cancelPerformed(target);
+            }
+        };
+        mainForm.add(addTask);
+        
+        AjaxLinkButton enableTask = new AjaxLinkButton("enableTask",
+                createStringResource("pageUser.button.enable")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO enable selected task
+            }
+        };
+        mainForm.add(enableTask);
+        
+        AjaxLinkButton disableTask = new AjaxLinkButton("disableTask",
+                createStringResource("pageUser.button.disable")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO disable selected task
+            }
+        };
+        mainForm.add(disableTask);
+        
+        AjaxLinkButton deleteTask = new AjaxLinkButton("deleteTask",
+                createStringResource("pageUser.button.delete")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO delete selected task
+            }
+        };
+        mainForm.add(deleteTask);
+        
+        AjaxLinkButton addResource = new AjaxLinkButton("addResource",
+                createStringResource("pageUser.button.add")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO open popup with resources
+            }
+        };
+        mainForm.add(addResource);
+        
+        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource",
+                createStringResource("pageUser.button.delete")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO delete selected resources
+            }
+        };
+        mainForm.add(deleteResource);
+        
     }
 
     private boolean isEditingUser() {
