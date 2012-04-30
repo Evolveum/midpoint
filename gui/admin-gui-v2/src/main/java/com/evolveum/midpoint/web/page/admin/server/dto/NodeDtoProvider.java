@@ -24,13 +24,14 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
+import com.evolveum.midpoint.task.api.Node;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -46,15 +47,15 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
+public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
 
-    private static final String OPERATION_LIST_TASKS = "taskDtoProvider.listTasks";
-    private static final String OPERATION_COUNT_TASKS = "taskDtoProvider.countTasks";
+    private static final String OPERATION_LIST_NODES = "taskDtoProvider.listNodes";
+    private static final String OPERATION_COUNT_NODES = "taskDtoProvider.countNodes";
     private PageBase page;
     private QueryType query;
-    private List<TaskDto> availableData;
+    private List<NodeDto> availableData;
 
-    public TaskDtoProvider(PageBase page) {
+    public NodeDtoProvider(PageBase page) {
         Validate.notNull(page, "Page must not be null.");
         this.page = page;
 
@@ -67,10 +68,10 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
     }
 
     @Override
-    public Iterator<? extends TaskDto> iterator(int first, int count) {
+    public Iterator<? extends NodeDto> iterator(int first, int count) {
         getAvailableData().clear();
 
-        OperationResult result = new OperationResult(OPERATION_LIST_TASKS);
+        OperationResult result = new OperationResult(OPERATION_LIST_NODES);
         try {
             SortParam sortParam = getSort();
             OrderDirectionType order;
@@ -84,10 +85,10 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
 
             TaskManager manager = getTaskManager();
             ClusterStatusInformation info = manager.getRunningTasksClusterwide();
-            List<Task> tasks = manager.searchTasks(query, paging, info, result);
+            List<Node> nodes = manager.searchNodes(query, paging, info, result);
 
-            for (Task task : tasks) {
-                getAvailableData().add(new TaskDto(task, info, manager));
+            for (Node node : nodes) {
+                getAvailableData().add(new NodeDto(node));
             }
             result.recordSuccess();
         } catch (Exception ex) {
@@ -97,11 +98,20 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
         return getAvailableData().iterator();
     }
 
-    public List<TaskDto> getAvailableData() {
-        if (availableData == null) {
-            availableData = new ArrayList<TaskDto>();
+    @Override
+    public int size() {
+        //todo reimplement
+
+        try {
+            MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+            return application.getModel().countObjects(NodeType.class, query,
+                    getTaskManager().createTaskInstance(OPERATION_COUNT_NODES),
+                    new OperationResult(OPERATION_COUNT_NODES));
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        return availableData;
+
+        return 0;
     }
 
     public QueryType getQuery() {
@@ -113,23 +123,14 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
     }
 
     @Override
-    public int size() {
-        //todo reimplement
-
-        try {
-            MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-            return application.getModel().countObjects(TaskType.class, query,
-                    getTaskManager().createTaskInstance(OPERATION_COUNT_TASKS),
-                    new OperationResult(OPERATION_COUNT_TASKS));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        return 0;
+    public IModel<NodeDto> model(NodeDto object) {
+        return new Model<NodeDto>(object);
     }
 
-    @Override
-    public IModel<TaskDto> model(TaskDto object) {
-        return new Model<TaskDto>(object);
+    public List<NodeDto> getAvailableData() {
+        if (availableData == null) {
+            availableData = new ArrayList<NodeDto>();
+        }
+        return availableData;
     }
 }

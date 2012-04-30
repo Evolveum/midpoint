@@ -31,9 +31,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskListType;
+import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.apache.commons.lang.StringUtils;
@@ -104,9 +102,8 @@ public class PageTasks extends PageAdminTasks {
         List<IColumn<TaskDto>> taskColumns = initTaskColumns();
         mainForm.add(new TablePanel<TaskDto>("taskTable", new TaskDtoProvider(PageTasks.this), taskColumns));
 
-        List<IColumn<NodeType>> nodeColumns = initNodeColumns();
-        TablePanel nodeTable = new TablePanel<NodeType>("nodeTable", new ObjectDataProvider(PageTasks.this, NodeType.class),
-                nodeColumns);
+        List<IColumn<NodeDto>> nodeColumns = initNodeColumns();
+        TablePanel nodeTable = new TablePanel<NodeDto>("nodeTable", new NodeDtoProvider(PageTasks.this), nodeColumns);
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);
 
@@ -115,28 +112,41 @@ public class PageTasks extends PageAdminTasks {
         initNodeButtons(mainForm);
     }
 
-    private List<IColumn<NodeType>> initNodeColumns() {
-        List<IColumn<NodeType>> columns = new ArrayList<IColumn<NodeType>>();
+    private List<IColumn<NodeDto>> initNodeColumns() {
+        List<IColumn<NodeDto>> columns = new ArrayList<IColumn<NodeDto>>();
 
-        IColumn column = new CheckBoxHeaderColumn<TaskType>();
+        IColumn column = new CheckBoxHeaderColumn<NodeDto>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<NodeType>>(createStringResource("pageTasks.node.name"), "name", "value.name") {
+        column = new LinkColumn<NodeDto>(createStringResource("pageTasks.node.name"), "name", "name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<NodeType>> rowModel) {
-                NodeType node = rowModel.getObject().getValue();
-                taskDetailsPerformed(target, node.getOid());
+            public void onClick(AjaxRequestTarget target, IModel<NodeDto> rowModel) {
+                NodeDto node = rowModel.getObject();
+                nodeDetailsPerformed(target, node.getOid());
             }
         };
         columns.add(column);
 
-        columns.add(new PropertyColumn(createStringResource("pageTasks.node.running"), "value.running"));
-        columns.add(new PropertyColumn(createStringResource("pageTasks.node.nodeIdentifier"), "value.nodeIdentifier"));
-        columns.add(new PropertyColumn(createStringResource("pageTasks.node.hostname"), "value.hostname")); //todo add jmx port
-        columns.add(new PropertyColumn(createStringResource("pageTasks.node.lastCheckInTime"), "value.lastCheckInTime")); //todo i18n, what is this, it's not date...
-        columns.add(new PropertyColumn(createStringResource("pageTasks.node.clustered"), "value.clustered"));
-//        columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "value.statusMessage")); //todo uncomment later
+        columns.add(new PropertyColumn(createStringResource("pageTasks.node.running"), "running"));//todo use checkbox
+        columns.add(new PropertyColumn(createStringResource("pageTasks.node.nodeIdentifier"), "nodeIdentifier"));
+        columns.add(new PropertyColumn(createStringResource("pageTasks.node.hostname"), "hostname"));
+        columns.add(new AbstractColumn<NodeDto>(createStringResource("pageTasks.node.lastCheckInTime")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<NodeDto>> item, String componentId,
+                    final IModel<NodeDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        return createLastCheckInTime(rowModel);
+                    }
+                }));
+            }
+        });
+        columns.add(new PropertyColumn(createStringResource("pageTasks.node.clustered"), "clustered"));//todo use checkbox
+        columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "statusMessage"));
 
         return columns;
     }
@@ -268,6 +278,17 @@ public class PageTasks extends PageAdminTasks {
         return DurationFormatUtils.formatDurationWords(time, true, true);
     }
 
+    private String createLastCheckInTime(IModel<NodeDto> nodeModel) {
+        NodeDto node = nodeModel.getObject();
+        //todo i18n
+        Long time = node.getLastCheckInTime();
+        if (time == null || time == 0) {
+            return "-";
+        }
+
+        return DurationFormatUtils.formatDurationWords(time, true, true) + " ago";
+    }
+
     private void initTaskButtons(Form mainForm) {
         AjaxLinkButton suspend = new AjaxLinkButton("suspendTask",
                 createStringResource("pageTasks.button.suspendTask")) {
@@ -376,12 +397,12 @@ public class PageTasks extends PageAdminTasks {
         return selected;
     }
 
-    private List<SelectableBean<NodeType>> getSelectedNodes() {
+    private List<NodeDto> getSelectedNodes() {
         DataTable table = getNodeTable().getDataTable();
-        ObjectDataProvider<NodeType> provider = (ObjectDataProvider<NodeType>) table.getDataProvider();
+        NodeDtoProvider provider = (NodeDtoProvider) table.getDataProvider();
 
-        List<SelectableBean<NodeType>> selected = new ArrayList<SelectableBean<NodeType>>();
-        for (SelectableBean<NodeType> row : provider.getAvailableData()) {
+        List<NodeDto> selected = new ArrayList<NodeDto>();
+        for (NodeDto row : provider.getAvailableData()) {
             if (row.isSelected()) {
                 selected.add(row);
             }
@@ -411,7 +432,6 @@ public class PageTasks extends PageAdminTasks {
 
         return list;
     }
-
 
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
         //useful methods :)
@@ -471,6 +491,10 @@ public class PageTasks extends PageAdminTasks {
         //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getTaskTable());
+    }
+
+    private void nodeDetailsPerformed(AjaxRequestTarget target, String oid) {
+        //todo implement
     }
 
     private void deleteTaskPerformed(AjaxRequestTarget target) {
