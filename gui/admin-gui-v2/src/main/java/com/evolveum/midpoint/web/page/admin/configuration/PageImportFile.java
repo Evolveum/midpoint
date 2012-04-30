@@ -105,7 +105,6 @@ public class PageImportFile extends PageAdminConfiguration {
             MidPointApplication application=getMidpointApplication();
             WebApplicationConfiguration config = application.getWebApplicationConfiguration();
             File folder = new File(config.getImportFolder());
-            System.out.println(folder.getPath() + ": " + folder.getAbsolutePath());
             if (!folder.exists() || !folder.isDirectory()) {
                 folder.mkdir();
             }

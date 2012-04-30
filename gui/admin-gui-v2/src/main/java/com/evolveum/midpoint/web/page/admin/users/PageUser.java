@@ -21,12 +21,12 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,13 +42,10 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.test.AccountPopupWindow;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -59,7 +56,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -85,8 +81,8 @@ public class PageUser extends PageAdminUsers {
     private ModalWindow resourcesPopupWindow;
 
     public PageUser() {
-    	accountsPopupWindow = createAccountsWindow();
-    	resourcesPopupWindow = createResourcesWindow();
+        accountsPopupWindow = createAccountsWindow();
+        resourcesPopupWindow = createResourcesWindow();
         userModel = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
@@ -107,39 +103,31 @@ public class PageUser extends PageAdminUsers {
 
     private ObjectWrapper loadUserWrapper() {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-
         PrismObject<UserType> user = null;
-        StringValue userOid = getPageParameters().get(PARAM_USER_ID);
-        if (userOid != null && StringUtils.isNotEmpty(userOid.toString())) {
-            try {
-            	Collection<PropertyPath> resolve = MiscUtil.createCollection(
-    					new PropertyPath(UserType.F_ACCOUNT),
-    					new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
-    				);
-
-                // TODO: task
-                user = getModelService().getObject(UserType.class, userOid.toString(), resolve, null, result);
-            } catch (Exception ex) {
-                //todo handle exception
-                ex.printStackTrace();
-            } finally {
-                result.recomputeStatus();
-                showResult(result);
-            }
-        } else {
-            try {
+        try {
+            if (!isEditingUser()) {
                 UserType userType = new UserType();
                 getMidpointApplication().getPrismContext().adopt(userType);
                 user = userType.asPrismObject();
-            } catch (Exception ex) {
-                //todo error handling
-                ex.printStackTrace();
+            } else {
+                Collection<PropertyPath> resolve = MiscUtil.createCollection(
+                        new PropertyPath(UserType.F_ACCOUNT),
+                        new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
+                );
+
+                TaskManager taskManager = getTaskManager();
+                Task task = taskManager.createTaskInstance(OPERATION_LOAD_USER);
+
+                StringValue userOid = getPageParameters().get(PARAM_USER_ID);
+                user = getModelService().getObject(UserType.class, userOid.toString(), resolve, task, result);
             }
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get user.", ex);
         }
 
-        if (user == null) {
+        if (!result.isSuccess()) {
             showResult(result);
-            throw new RestartResponseException(PageUsers.class);
         }
 
         ObjectWrapper wrapper = new ObjectWrapper(null, null, user,
@@ -192,7 +180,7 @@ public class PageUser extends PageAdminUsers {
 //        			protected Panel createOperationPanel(String id) {
 //        				return new AccountOperationButtons(id, item.getModel());
 //        			}
-                	
+
                     @Override
                     public WebMarkupContainer createFooterPanel(String footerId, IModel<ObjectWrapper> model) {
                         //todo
@@ -220,7 +208,7 @@ public class PageUser extends PageAdminUsers {
                 resourceName = resource.getName();
             }
 
-            ObjectWrapper wrapper = new ObjectWrapper(account.getName(), resourceName,
+            ObjectWrapper wrapper = new ObjectWrapper(resourceName, account.getName(),
                     account.asPrismObject(), ContainerStatus.MODIFYING);
             wrapper.setMinimalized(true);
             list.add(wrapper);
@@ -298,17 +286,17 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(cancel);
-        
+
         AjaxLinkButton addAccount = new AjaxLinkButton("addAccount",
                 createStringResource("pageUser.button.add")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-            	accountsPopupWindow.show(target);
+                accountsPopupWindow.show(target);
             }
         };
         mainForm.add(addAccount);
-        
+
         AjaxLinkButton enableAccount = new AjaxLinkButton("enableAccount",
                 createStringResource("pageUser.button.enable")) {
 
@@ -318,7 +306,7 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(enableAccount);
-        
+
         AjaxLinkButton disableAccount = new AjaxLinkButton("disableAccount",
                 createStringResource("pageUser.button.disable")) {
 
@@ -328,7 +316,7 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(disableAccount);
-        
+
         AjaxLinkButton deleteAccount = new AjaxLinkButton("deleteAccount",
                 createStringResource("pageUser.button.delete")) {
 
@@ -338,17 +326,17 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(deleteAccount);
-        
+
         AjaxLinkButton addResource = new AjaxLinkButton("addResource",
                 createStringResource("pageUser.button.add")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-            	resourcesPopupWindow.show(target);
+                resourcesPopupWindow.show(target);
             }
         };
         mainForm.add(addResource);
-        
+
         AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource",
                 createStringResource("pageUser.button.delete")) {
 
@@ -358,70 +346,70 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(deleteResource);
-        
+
     }
-    
-    private ModalWindow createAccountsWindow(){
-		final ModalWindow popupWindow;
-		add(popupWindow = new ModalWindow("accountsPopup"));
 
-		popupWindow.setContent(new EmptyPanel(popupWindow.getContentId()));
-		popupWindow.setResizable(false);
-		popupWindow.setTitle("Select Account");
-		popupWindow.setCookieName("Account popup window");
+    private ModalWindow createAccountsWindow() {
+        final ModalWindow popupWindow;
+        add(popupWindow = new ModalWindow("accountsPopup"));
 
-		popupWindow.setInitialWidth(1100);
-		popupWindow.setWidthUnit("px");
+        popupWindow.setContent(new EmptyPanel(popupWindow.getContentId()));
+        popupWindow.setResizable(false);
+        popupWindow.setTitle("Select Account");
+        popupWindow.setCookieName("Account popup window");
 
-		popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+        popupWindow.setInitialWidth(1100);
+        popupWindow.setWidthUnit("px");
 
-			@Override
-			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-				return true;
-			}
-		});
-		
-		popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+        popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
 
-			@Override
-			public void onClose(AjaxRequestTarget target) {
-				popupWindow.close(target);
-			}
-		});
-		
-		return popupWindow;
-	}
-    
-    private ModalWindow createResourcesWindow(){
-		final ModalWindow popupWindow;
-		add(popupWindow = new ModalWindow("resourcesPopup"));
+            @Override
+            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+                return true;
+            }
+        });
 
-		popupWindow.setContent(new EmptyPanel(popupWindow.getContentId()));
-		popupWindow.setResizable(false);
-		popupWindow.setTitle("Select Resource");
-		popupWindow.setCookieName("Resource popup window");
+        popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
 
-		popupWindow.setInitialWidth(1100);
-		popupWindow.setWidthUnit("px");
+            @Override
+            public void onClose(AjaxRequestTarget target) {
+                popupWindow.close(target);
+            }
+        });
 
-		popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+        return popupWindow;
+    }
 
-			@Override
-			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-				return true;
-			}
-		});
-		
-		popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+    private ModalWindow createResourcesWindow() {
+        final ModalWindow popupWindow;
+        add(popupWindow = new ModalWindow("resourcesPopup"));
 
-			@Override
-			public void onClose(AjaxRequestTarget target) {
-				popupWindow.close(target);
-			}
-		});
-		
-		return popupWindow;
-	}
+        popupWindow.setContent(new EmptyPanel(popupWindow.getContentId()));
+        popupWindow.setResizable(false);
+        popupWindow.setTitle("Select Resource");
+        popupWindow.setCookieName("Resource popup window");
+
+        popupWindow.setInitialWidth(1100);
+        popupWindow.setWidthUnit("px");
+
+        popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+
+            @Override
+            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+                return true;
+            }
+        });
+
+        popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+
+            @Override
+            public void onClose(AjaxRequestTarget target) {
+                popupWindow.close(target);
+            }
+        });
+
+        return popupWindow;
+    }
 
     private boolean isEditingUser() {
         StringValue userOid = getPageParameters().get(PageUser.PARAM_USER_ID);

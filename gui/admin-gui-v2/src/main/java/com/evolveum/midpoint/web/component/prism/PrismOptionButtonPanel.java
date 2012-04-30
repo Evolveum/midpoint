@@ -55,7 +55,7 @@ public class PrismOptionButtonPanel extends Panel {
 				PrismOptionButtonPanel.this.checkBoxOnUpdate(target);
 			}
 		};
-		check.setVisible(model.getObject().isSelectable());
+//		check.setVisible(model.getObject().isSelectable());
         check.setOutputMarkupId(true);
         add(check);
 	}
@@ -83,13 +83,12 @@ public class PrismOptionButtonPanel extends Panel {
                         "ShowEmptyTrue.png");
             }
         });
-        showEmptyImg.add(new AttributeAppender("title", ""));
-        if(model.getObject().isShowEmpty()){
-        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.hideEmpty")));
-        } else {
-        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.showEmpty")));
-        }
-        
+//        showEmptyImg.add(new AttributeAppender("title", ""));
+//        if(model.getObject().isShowEmpty()){
+//        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.hideEmpty")));
+//        } else {
+//        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.showEmpty")));
+//        }
         
         showEmpty.add(showEmptyImg);
 
@@ -115,12 +114,12 @@ public class PrismOptionButtonPanel extends Panel {
                         "Minimize.png");
             }
         });
-        minimizeImg.add(new AttributeAppender("title", ""));
-        if(model.getObject().isMinimalized()){
-        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.maximize")));
-        } else {
-        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.minimize")));
-        }
+//        minimizeImg.add(new AttributeAppender("title", ""));
+//        if(model.getObject().isMinimalized()){
+//        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.maximize")));
+//        } else {
+//        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.minimize")));
+//        }
         minimize.add(minimizeImg);
 	}
 	

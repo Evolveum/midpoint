@@ -125,12 +125,11 @@ public class PrismObjectPanel extends Panel {
     }
 
     private void initButtons(WebMarkupContainer headerPanel, final IModel<ObjectWrapper> model) {
-    	
         headerPanel.add(new PrismOptionButtonPanel("optionButtons", model){
-        	ObjectWrapper wrapper = model.getObject();
         	
         	@Override
         	public void checkBoxOnUpdate(AjaxRequestTarget target) {
+                ObjectWrapper wrapper = model.getObject();
                 wrapper.setSelected(!wrapper.isSelected());
                 target.add(PrismObjectPanel.this);
         		super.checkBoxOnUpdate(target);
@@ -138,6 +137,7 @@ public class PrismObjectPanel extends Panel {
         	
         	@Override
         	public void minimizeOnClick(AjaxRequestTarget target) {
+                ObjectWrapper wrapper = model.getObject();
                 wrapper.setMinimalized(!wrapper.isMinimalized());
                 target.add(PrismObjectPanel.this);
         		super.minimizeOnClick(target);
@@ -145,6 +145,7 @@ public class PrismObjectPanel extends Panel {
         	
         	@Override
         	public void showEmptyOnClick(AjaxRequestTarget target) {
+                ObjectWrapper wrapper = model.getObject();
                 wrapper.setShowEmpty(!wrapper.isShowEmpty());
                 target.add(PrismObjectPanel.this);
         		super.showEmptyOnClick(target);
