@@ -82,7 +82,7 @@ public class PageResources extends PageAdminResources {
 //        column = new PropertyColumn(createStringResource("pageResources.progress"), "value.connector.connectorVersion");
 //        columns.add(column);
 
-        add(new TablePanel<ResourceType>("table", new ObjectDataProvider(ResourceType.class), columns));
+        add(new TablePanel<ResourceType>("table", new ObjectDataProvider(PageResources.this, ResourceType.class), columns));
 
         initConnectorHostTable();
     }
@@ -114,7 +114,7 @@ public class PageResources extends PageAdminResources {
                 "value.protectConnection"));
 
         TablePanel table = new TablePanel<ConnectorHostType>("connectorTable",
-                new ObjectDataProvider(ConnectorHostType.class), columns);
+                new ObjectDataProvider(PageResources.this, ConnectorHostType.class), columns);
         table.setShowPaging(false);
         add(table);
     }

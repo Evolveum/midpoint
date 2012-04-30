@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page.admin.test;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -97,7 +98,7 @@ public class ResourcePopupWindow extends Panel {
 				"value.connector.connectorVersion");
 		columns.add(column);
 
-		add(new TablePanel<ResourceType>("resourceTable", new ObjectDataProvider(ResourceType.class), columns));
+		add(new TablePanel<ResourceType>("resourceTable", new ObjectDataProvider((PageBase)getPage(), ResourceType.class), columns));
 	}
 
 	public void resourceAcceptPerformed(AjaxRequestTarget target, String oid) {

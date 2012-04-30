@@ -147,7 +147,7 @@ public class PageUsers extends PageAdminUsers {
 
     private void initTable(OptionContent content) {
         List<IColumn<UserType>> columns = initColumns();
-        TablePanel table = new TablePanel<UserType>("table", new ObjectDataProvider(UserType.class), columns);
+        TablePanel table = new TablePanel<UserType>("table", new ObjectDataProvider(PageUsers.this, UserType.class), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
     }

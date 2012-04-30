@@ -76,7 +76,7 @@ public class PageRoles extends PageAdminRoles {
         column = new PropertyColumn(createStringResource("pageRoles.description"), "value.description");
         columns.add(column);
 
-        TablePanel table = new TablePanel<RoleType>("table", new ObjectDataProvider(RoleType.class), columns);
+        TablePanel table = new TablePanel<RoleType>("table", new ObjectDataProvider(PageRoles.this, RoleType.class), columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 

@@ -25,15 +25,19 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -51,14 +55,25 @@ import java.util.List;
 public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvider<SelectableBean<T>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
+    private static final String OPERATION_SEARCH_OBJECTS = "objectDataProvider.searchObjects";
+    private static final String OPERATION_COUNT_OBJECTS = "objectDataProvider.countObjects";
+    //parent page
+    private PageBase page;
+
     private Class<T> type;
     private QueryType query;
     //actual model
     private List<SelectableBean<T>> availableData;
 
-    public ObjectDataProvider(Class<T> type) {
+    public ObjectDataProvider(PageBase page, Class<T> type) {
+        this.page = page;
         this.type = type;
         setSort("name", SortOrder.ASCENDING);
+    }
+
+    private TaskManager getTaskManager() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getTaskManager();
     }
 
     private ModelService getModel() {
@@ -68,7 +83,9 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
 
     @Override
     public Iterator<SelectableBean<T>> iterator(int first, int count) {
-        availableData = new ArrayList<SelectableBean<T>>();
+        getAvailableData().clear();
+
+        OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
             SortParam sortParam = getSort();
             OrderDirectionType order;
@@ -78,37 +95,53 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
                 order = OrderDirectionType.DESCENDING;
             }
 
-            OperationResult result = new OperationResult("list usersssss");
             PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
+            TaskManager manager = getTaskManager();
+            Task task = manager.createTaskInstance(OPERATION_SEARCH_OBJECTS);
 
-            // TODO: task
-            List<PrismObject<T>> list = getModel().searchObjects(type, query, paging, null, result);
+            List<PrismObject<T>> list = getModel().searchObjects(type, query, paging, task, result);
             for (PrismObject<T> object : list) {
-                availableData.add(new SelectableBean<T>(object.asObjectable()));
+                getAvailableData().add(new SelectableBean<T>(object.asObjectable()));
             }
 
-            //todo error and operation result handling
+            result.recordSuccess();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            result.recordFatalError("Couldn't list objects.", ex);
         }
-        return availableData.iterator();
+
+        if (!result.isSuccess()) {
+            page.showResult(result);
+        }
+
+        return getAvailableData().iterator();
     }
 
     public List<SelectableBean<T>> getAvailableData() {
-        return Collections.unmodifiableList(availableData);
+        if (availableData == null) {
+            availableData = new ArrayList<SelectableBean<T>>();
+        }
+        return availableData;
     }
 
     @Override
     public int size() {
-        OperationResult result = new OperationResult("list objects");
+        int count = 0;
+        OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-        	// TODO: task
-            return getModel().countObjects(type, null, null, result);
+            TaskManager manager = getTaskManager();
+            Task task = manager.createTaskInstance(OPERATION_COUNT_OBJECTS);
+            count = getModel().countObjects(type, query, task, result);
+
+            result.recordSuccess();
         } catch (Exception ex) {
-            //todo error handling
-            ex.printStackTrace();
+            result.recordFatalError("Couldn't list objects.", ex);
         }
-        return 0;
+
+        if (!result.isSuccess()) {
+            page.showResult(result);
+        }
+
+        return count;
     }
 
     @Override

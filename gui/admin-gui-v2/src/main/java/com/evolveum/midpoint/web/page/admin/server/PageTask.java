@@ -21,8 +21,11 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -30,9 +33,11 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,20 +46,33 @@ import java.util.List;
 public class PageTask extends PageAdminTasks {
 
     public static final String PARAM_TASK_ID = "taskOid";
+    private IModel<TaskType> model;
 
     public PageTask() {
+        model = new LoadableModel<TaskType>(false) {
+
+            @Override
+            protected TaskType load() {
+                return loadTask();
+            }
+        };
         initLayout();
+    }
+
+    private TaskType loadTask() {
+        //todo implement
+        return new TaskType();
     }
 
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        DropDownChoice type = new DropDownChoice("type", new Model(), new AbstractReadOnlyModel<List<Object>>() {
+        DropDownChoice type = new DropDownChoice("type", new Model(), new AbstractReadOnlyModel<List<String>>() {
 
             @Override
-            public List<Object> getObject() {
-                return createTypeList();
+            public List<String> getObject() {
+                return createCategoryList();
             }
         });
         mainForm.add(type);
@@ -116,10 +134,19 @@ public class PageTask extends PageAdminTasks {
         mainForm.add(backButton);
     }
 
-    private List<Object> createTypeList() {
-        List<Object> types = new ArrayList<Object>();
-        //todo implement, change Object to something relevant
-        return types;
+    private List<String> createCategoryList() {
+        List<String> categories = new ArrayList<String>();
+
+        //todo change to something better and add i18n
+        TaskManager manager = getTaskManager();
+        List<String> list  =manager.getAllTaskCategories();
+        if (list != null) {
+            Collections.sort(list);
+
+            categories.addAll(list);
+        }
+
+        return categories;
     }
 
     private void savePerformed(AjaxRequestTarget target) {

@@ -84,10 +84,10 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(categorySelect);
 
         List<IColumn<TaskType>> columns = initTaskColumns();
-        mainForm.add(new TablePanel<TaskType>("taskTable", new ObjectDataProvider(TaskType.class), columns));
+        mainForm.add(new TablePanel<TaskType>("taskTable", new ObjectDataProvider(PageTasks.this, TaskType.class), columns));
 
         columns = initNodeColumns();
-        TablePanel nodeTable = new TablePanel<TaskType>("nodeTable", new ObjectDataProvider(NodeType.class), columns);
+        TablePanel nodeTable = new TablePanel<TaskType>("nodeTable", new ObjectDataProvider(PageTasks.this, NodeType.class), columns);
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);
 

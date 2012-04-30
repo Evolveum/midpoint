@@ -76,7 +76,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OptionContent content = new OptionContent("optionContent");
         main.add(content);
-        TablePanel table = new TablePanel("table", new ObjectDataProvider(UserType.class), columns);
+        TablePanel table = new TablePanel("table", new ObjectDataProvider(PageDebugList.this, UserType.class), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
 
