@@ -21,13 +21,13 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -42,17 +42,10 @@ import org.apache.wicket.util.file.File;
 public class PageImportFile extends PageAdminConfiguration {
 
     private static final String OPERATION_IMPORT_FILE = "pageImportFile.importFile";
-    private String UPLOAD_FOLDER;
-    private static final String MIDPOINT_HOME = "midpoint.home";
 
     private LoadableModel<ImportOptionsType> model;
 
     public PageImportFile() {
-        UPLOAD_FOLDER = System.getProperty(MIDPOINT_HOME) + "tmp/";
-        if (!new File(UPLOAD_FOLDER).exists()) {
-            new File(UPLOAD_FOLDER).mkdir();
-        }
-
         model = new LoadableModel<ImportOptionsType>(false) {
 
             @Override
@@ -71,6 +64,7 @@ public class PageImportFile extends PageAdminConfiguration {
         mainForm.add(importOptions);
 
         FileUploadField fileInput = new FileUploadField("fileInput");
+        fileInput.setOutputMarkupId(true);
         mainForm.add(fileInput);
 
         //from example
@@ -108,7 +102,15 @@ public class PageImportFile extends PageAdminConfiguration {
 
         try {
             // Create new file
-            File newFile = new File(UPLOAD_FOLDER + uploadedFile.getClientFileName());
+            MidPointApplication application=getMidpointApplication();
+            WebApplicationConfiguration config = application.getWebApplicationConfiguration();
+            File folder = new File(config.getImportFolder());
+            System.out.println(folder.getPath() + ": " + folder.getAbsolutePath());
+            if (!folder.exists() || !folder.isDirectory()) {
+                folder.mkdir();
+            }
+
+            File newFile = new File(folder, uploadedFile.getClientFileName());
             // Check new file, delete if it already exists
             if (newFile.exists()) {
                 newFile.delete();
@@ -127,5 +129,6 @@ public class PageImportFile extends PageAdminConfiguration {
         }
 
         showResult(result);
+        target.add(getFeedbackPanel());
     }
 }

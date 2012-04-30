@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.resource.js.JsResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
@@ -63,6 +64,7 @@ import java.io.FilenameFilter;
 @Component("midpointApplication")
 public class MidPointApplication extends AuthenticatedWebApplication {
 
+    private static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
     @Autowired
     transient ModelService model;
@@ -73,6 +75,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient PrismContext prismContext;
     @Autowired
     transient TaskManager taskManager;
+    @Autowired
+    transient MidpointConfiguration configuration;
+    private WebApplicationConfiguration webApplicationConfiguration;
 
     @Override
     public Class<PageHome> getHomePage() {
@@ -156,6 +161,14 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 mountResource(path + "/" + file.getName(), new SharedResourceReference(clazz, file.getName()));
             }
         }
+    }
+
+    public WebApplicationConfiguration getWebApplicationConfiguration() {
+        if (webApplicationConfiguration == null) {
+            Configuration config = configuration.getConfiguration(WEB_APP_CONFIGURATION);
+            webApplicationConfiguration = new WebApplicationConfiguration(config);
+        }
+        return webApplicationConfiguration;
     }
 
     public ModelService getModel() {

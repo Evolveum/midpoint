@@ -102,13 +102,18 @@ public class PageImportXml extends PageAdminConfiguration {
         try {
             Task task = getTaskManager().createTaskInstance(OPERATION_IMPORT_XML);
             getModelService().importObjectsFromStream(new ByteArrayInputStream(xml.getBytes()), model.getObject(),
-                    task, result);
+                    task, result); //todo encoding
 
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't import object.", ex);
         }
 
+        if (result.isSuccess()) {
+            xmlEditorModel.setObject(null);
+        }
+
         showResult(result);
+        target.add(getFeedbackPanel());
     }
 }
