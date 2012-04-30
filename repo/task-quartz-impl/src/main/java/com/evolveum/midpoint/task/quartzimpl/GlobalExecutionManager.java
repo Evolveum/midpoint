@@ -23,10 +23,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.ClusterStatusInformation;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManagerException;
-import com.evolveum.midpoint.task.api.UseThreadInterrupt;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -129,12 +126,13 @@ public class GlobalExecutionManager {
             for (Task task : tasks) {
                 taskInfoList.add(new ClusterStatusInformation.TaskInfo(task.getOid()));
             }
-            ClusterStatusInformation.NodeInfo nodeInfo = new ClusterStatusInformation.NodeInfo(node);
-            nodeInfo.setSchedulerRunning(taskManager.getServiceThreadsActivationState());
+            Node nodeInfo = new Node(node);
+            nodeInfo.setNodeExecutionStatus(taskManager.getLocalNodeExecutionStatus());
+            nodeInfo.setNodeErrorStatus(taskManager.getLocalNodeErrorStatus());
 
             info.addNodeAndTaskInfo(nodeInfo, taskInfoList);
 
-        } else {    // if remote (cannot occur if !isClustered)
+        } else {    // if remote
 
             LOGGER.debug("Getting running task info from remote node ({}, {})", node.asObjectable().getNodeIdentifier(), node.asObjectable().getHostname());
             getRemoteNodesManager().addNodeStatusFromRemoteNode(info, node);
@@ -260,12 +258,12 @@ public class GlobalExecutionManager {
         LOGGER.trace("Interrupting remote task {} - first finding where it currently runs", task);
 
         ClusterStatusInformation info = getClusterStatusInformation(true);
-        ClusterStatusInformation.NodeInfo nodeInfo = info.findNodeInfoForTask(task.getOid());
+        Node node = info.findNodeInfoForTask(task.getOid());
 
-        if (nodeInfo == null) {
+        if (node == null) {
             LOGGER.info("Asked to interrupt task {} but did not find it running at any node.", task);
         } else {
-            getRemoteNodesManager().stopRemoteTask(task.getOid(), nodeInfo);
+            getRemoteNodesManager().stopRemoteTask(task.getOid(), node);
         }
 
     }

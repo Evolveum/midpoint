@@ -116,9 +116,9 @@ public class TaskItem extends SelectableBean {
             this.executesAt = taskManager.getNodeId();
             this.executionStatus = TaskItemExecutionStatus.RUNNING;
         } else {
-            ClusterStatusInformation.NodeInfo nodeInfo = clusterStatusInformation.findNodeInfoForTask(this.getOid());
-            if (nodeInfo != null) {
-                this.executesAt = nodeInfo.getNodeType().asObjectable().getNodeIdentifier();
+            Node node = clusterStatusInformation.findNodeInfoForTask(this.getOid());
+            if (node != null) {
+                this.executesAt = node.getNodeType().asObjectable().getNodeIdentifier();
                 this.executionStatus = TaskItemExecutionStatus.RUNNING;
             } else {
                 this.executesAt = null;

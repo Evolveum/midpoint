@@ -31,8 +31,10 @@ import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * <p>Task Manager Interface.</p>
@@ -314,8 +316,46 @@ public interface TaskManager {
 	 * @return list of all known tasks
 	 */
 //	public Set<Task> listTasks();
-	
-	// TODO: search
+
+    /**
+     * Returns relevant tasks (w.r.t. query and paging specification).
+     *
+     * Comparing to searchObjects(TaskType) in repo, there are the following differences:
+     * (1) This method combines information from the repository with run-time information obtained from cluster nodes
+     *     (clusterStatusInformation), mainly to tell what tasks are really executing at this moment. The repository
+     *     contains 'node' attribute (telling on which node task runs), which may be out-of-date for nodes which
+     *     crashed recently.
+     * (2) this method returns Tasks, not TaskTypes - a Task provides some information (e.g. getNextRunStartTime())
+     *     that is not stored in repository; Task object can be directly used as an input to several methods,
+     *     like suspendTask() or releaseTask().
+     *
+     * However, the reason (2) is only of a technical character. So, if necessary, this method can be changed
+     * to return a list of TaskTypes instead of Tasks.
+     *
+     * @param query Search query
+     * @param paging Paging specification
+     * @param clusterStatusInformation If null, the method will query cluster nodes to get up-to-date runtime information.
+     *                                 If non-null, the method will use the provided information. Used to optimize
+     *                                 network traffic in case of repeating calls to searchTasks/searchNodes (e.g. when
+     *                                 displaying them on one page).
+     * @param result
+     * @return
+     * @throws SchemaException
+     */
+    public List<Task> searchTasks(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
+
+    /**
+     * Returns relevant nodes (w.r.t query and paging specification).
+     * Similar to searchTasks, this method adds some information to the one returned from repository. (Mainly concerned with Node status and error status.)
+     *
+     * @param query
+     * @param paging
+     * @param clusterStatusInformation The same as in searchTasks.
+     * @param result
+     * @return
+     * @throws SchemaException
+     */
+    public List<Node> searchNodes(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 	
 	/**
 	 * Register a handler for a specified handler URI.

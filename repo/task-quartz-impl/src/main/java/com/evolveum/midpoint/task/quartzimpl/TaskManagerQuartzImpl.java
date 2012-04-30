@@ -33,8 +33,10 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -529,10 +531,69 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return next == null ? null : next.getTime();
     }
 
+    /*
+     *  ********************* SEARCHING TASKS AND NODES *********************
+     */
 
     /*
-     *  ********************* MANAGING HANDLERS AND TASK CATEGORIES *********************
+     * Gets nodes from repository and adds runtime information to them (taken from ClusterStatusInformation).
      */
+    @Override
+    public List<Node> searchNodes(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException {
+
+        if (clusterStatusInformation == null) {
+            clusterStatusInformation = getGlobalExecutionManager().getClusterStatusInformation(true);
+        }
+
+        List<PrismObject<NodeType>> nodesInRepository = repositoryService.searchObjects(NodeType.class, query, paging, result);
+
+        List<Node> retval = new ArrayList<Node>();
+        for (PrismObject<NodeType> nodeInRepository : nodesInRepository) {
+            Node node = new Node(nodeInRepository);
+            Node nodeRuntimeInfo = clusterStatusInformation.findNodeById(node.getNodeIdentifier());
+            if (nodeRuntimeInfo != null) {
+                node.setNodeExecutionStatus(nodeRuntimeInfo.getNodeExecutionStatus());
+                node.setNodeErrorStatus(nodeRuntimeInfo.getNodeErrorStatus());
+                node.setConnectionError(nodeRuntimeInfo.getConnectionError());
+            } else {
+                // node is in repo, but no information on it is present in CSI
+                // (should not occur except for some temporary conditions, because CSI contains info on all nodes from repo)
+                node.setNodeExecutionStatus(NodeExecutionStatus.COMMUNICATION_ERROR);
+                node.setConnectionError("Node not known at this moment");       // TODO localize this message
+            }
+            retval.add(node);
+        }
+        return retval;
+    }
+
+    @Override
+    public List<Task> searchTasks(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException {
+
+        if (clusterStatusInformation == null) {
+            clusterStatusInformation = getGlobalExecutionManager().getClusterStatusInformation(true);
+        }
+
+        List<PrismObject<TaskType>> tasksInRepository = repositoryService.searchObjects(TaskType.class, query, paging, result);
+
+        List<Task> retval = new ArrayList<Task>();
+        for (PrismObject<TaskType> taskInRepository : tasksInRepository) {
+            Task task = createTaskInstance(taskInRepository, result);
+            Node runsAt = clusterStatusInformation.findNodeInfoForTask(task.getOid());
+            if (runsAt != null) {
+                ((TaskQuartzImpl) task).setCurrentlyExecutesAt(runsAt);
+            } else {
+                ((TaskQuartzImpl) task).setCurrentlyExecutesAt(null);
+            }
+            retval.add(task);
+        }
+        return retval;
+
+
+    }
+
+    /*
+    *  ********************* MANAGING HANDLERS AND TASK CATEGORIES *********************
+    */
 
 	@Override
 	public void registerHandler(String uri, TaskHandler handler) {
@@ -635,7 +696,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return prismContext;
     }
 
-    public NodeErrorStatus getNodeErrorStatus() {
+    public NodeErrorStatus getLocalNodeErrorStatus() {
         return nodeErrorStatus;
     }
 

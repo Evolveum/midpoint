@@ -240,7 +240,7 @@ public class LocalExecutionManager {
     boolean startSchedulerLocally() {
 
         if (taskManager.isInErrorState()) {
-            LOGGER.warn("Cannot start the scheduler, because Task Manager is in error state ({})", taskManager.getNodeErrorStatus());
+            LOGGER.warn("Cannot start the scheduler, because Task Manager is in error state ({})", taskManager.getLocalNodeErrorStatus());
             return false;
         }
 
@@ -258,7 +258,7 @@ public class LocalExecutionManager {
 
     public NodeExecutionStatus getLocalNodeExecutionStatus() {
 
-        if (taskManager.getNodeErrorStatus() != NodeErrorStatus.OK) {
+        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatus.OK) {
             return NodeExecutionStatus.ERROR;
         } else {
             Scheduler quartzScheduler = getGlobalExecutionManager().getQuartzScheduler();

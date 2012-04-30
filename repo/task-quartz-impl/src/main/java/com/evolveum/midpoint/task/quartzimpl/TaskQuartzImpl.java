@@ -85,10 +85,11 @@ public class TaskQuartzImpl implements Task {
 	private RepositoryService repositoryService;
 	private OperationResult result;
 	private volatile boolean canRun;
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
+    private Node currentlyExecutesAt;
 
-	/**
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
+
+    /**
 	 * Note: This constructor assumes that the task is transient.
 	 * @param taskManager
 	 * @param taskIdentifier
@@ -1214,5 +1215,14 @@ public class TaskQuartzImpl implements Task {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public Node currentlyExecutesAt() {
+        return currentlyExecutesAt;
+    }
+
+    void setCurrentlyExecutesAt(Node node) {
+        currentlyExecutesAt = node;
     }
 }

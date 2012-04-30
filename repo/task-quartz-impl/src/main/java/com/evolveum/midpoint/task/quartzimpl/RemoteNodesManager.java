@@ -21,7 +21,8 @@ package com.evolveum.midpoint.task.quartzimpl;/*
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.Node;
+import com.evolveum.midpoint.task.api.NodeExecutionStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -74,7 +75,7 @@ public class RemoteNodesManager {
 
         String nodeName = node.asObjectable().getNodeIdentifier();
         String address = node.asObjectable().getHostname() + ":" + node.asObjectable().getJmxPort();
-        ClusterStatusInformation.NodeInfo nodeInfo = new ClusterStatusInformation.NodeInfo(node);
+        Node nodeInfo = new Node(node);
 
         JMXConnector connector = null;
 
@@ -96,7 +97,7 @@ public class RemoteNodesManager {
 
                 boolean running = mbeanProxy.isStarted() && !mbeanProxy.isShutdown() && !mbeanProxy.isStandbyMode();
                 LOGGER.trace(" - scheduler running = " + running);
-                nodeInfo.setSchedulerRunning(running);
+                nodeInfo.setNodeExecutionStatus(running ? NodeExecutionStatus.RUNNING : NodeExecutionStatus.PAUSED);
 
                 List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<ClusterStatusInformation.TaskInfo>();
                 TabularData jobs = mbeanProxy.getCurrentlyExecutingJobs();
@@ -111,6 +112,7 @@ public class RemoteNodesManager {
             }
             catch (Exception e) {
                 LoggingUtils.logException(LOGGER, "Cannot get information from the remote node {} at {}", e, nodeName, address);
+                nodeInfo.setNodeExecutionStatus(NodeExecutionStatus.COMMUNICATION_ERROR);
                 nodeInfo.setConnectionError("Cannot get information from the remote node: " + e.getMessage());
                 info.addNodeInfo(nodeInfo);
                 return;
@@ -156,7 +158,7 @@ public class RemoteNodesManager {
         return taskManager.getGlobalExecutionManager();
     }
 
-    void stopRemoteTask(String oid, ClusterStatusInformation.NodeInfo nodeInfo) {
+    void stopRemoteTask(String oid, Node nodeInfo) {
         LOGGER.debug("Interrupting task " + oid + " running at " + getClusterManager().dumpNodeInfo(nodeInfo));
 
 //        if (taskManager.isCurrentNode(nodeInfo.getNodeType())) {

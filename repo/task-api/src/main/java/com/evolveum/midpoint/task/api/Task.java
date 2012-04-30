@@ -91,6 +91,13 @@ public interface Task extends Dumpable {
 	 * @return execution status.
 	 */
 	public TaskExecutionStatus getExecutionStatus();
+
+    /**
+     * Returns the node the task is currently executing at.
+     *
+     * @return
+     */
+    public Node currentlyExecutesAt();
 	
 	/**
 	 * Sets task execution status. Can be used only for transient tasks (for safety reasons).

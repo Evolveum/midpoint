@@ -491,7 +491,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this task
         
         LOGGER.trace("Waiting for task manager to pick up the task");
-        Thread.sleep(10000);
+        Thread.sleep(12000);
         LOGGER.trace("... done");
 
         // Check task status
@@ -517,7 +517,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Progress is none or too small", task.getProgress() >= 1);
 
         // The progress should not be too big (indicates fault in scheduling)
-        AssertJUnit.assertTrue("Progress is too big (fault in scheduling?)", task.getProgress() <= 5);
+        AssertJUnit.assertTrue("Progress is too big (fault in scheduling?)", task.getProgress() <= 7);
 
         // Test for presence of a result. It should be there and it should
         // indicate success

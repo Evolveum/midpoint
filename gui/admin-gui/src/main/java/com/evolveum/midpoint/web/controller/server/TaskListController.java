@@ -23,10 +23,7 @@ package com.evolveum.midpoint.web.controller.server;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.ClusterStatusInformation;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskManagerException;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -343,15 +340,15 @@ public class TaskListController extends SortableListController<TaskItem> {
 
         StringBuffer retval = new StringBuffer();
         retval.append("Cluster nodes: \n");         // newlines are not displayed
-        for (ClusterStatusInformation.NodeInfo nodeInfo : clusterStatusInformation.getNodes()) {
-            NodeType nodeType = nodeInfo.getNodeType().asObjectable();
+        for (Node node : clusterStatusInformation.getNodes()) {
+            NodeType nodeType = node.getNodeType().asObjectable();
             retval.append("{Node " + nodeType.getNodeIdentifier() + " (" + nodeType.getHostname() + "): ");
-            if (nodeInfo.isConnectionError()) {
-                retval.append("*** Connection error: " + nodeInfo.getConnectionError() + " ***");
+            if (node.isConnectionError()) {
+                retval.append("*** Connection error: " + node.getConnectionError() + " ***");
             } else {
-                retval.append("running = " + nodeInfo.isSchedulerRunning());
+                retval.append("running = " + node.isSchedulerRunning());
 
-                List<ClusterStatusInformation.TaskInfo> taskInfoList = clusterStatusInformation.getTasksOnNode(nodeInfo);
+                List<ClusterStatusInformation.TaskInfo> taskInfoList = clusterStatusInformation.getTasksOnNode(node);
                 retval.append("; tasks: " + taskInfoList.size() + " [");
                 boolean first = true;
                 for (ClusterStatusInformation.TaskInfo ti : taskInfoList) {

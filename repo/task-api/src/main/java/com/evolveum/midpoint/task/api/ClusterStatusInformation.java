@@ -20,9 +20,6 @@
 
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
-
 import java.util.*;
 
 /**
@@ -48,45 +45,7 @@ public class ClusterStatusInformation {
         }
     }
 
-    public static class NodeInfo {
-        private PrismObject<NodeType> nodeType;
-        private boolean schedulerRunning;
-        private String connectionError;
-
-        public NodeInfo(PrismObject<NodeType> node) {
-            nodeType = node;
-        }
-
-        public PrismObject<NodeType> getNodeType() {
-            return nodeType;
-        }
-
-        public void setNodeType(PrismObject<NodeType> nodeType) {
-            this.nodeType = nodeType;
-        }
-
-        public boolean isSchedulerRunning() {
-            return schedulerRunning;
-        }
-
-        public void setSchedulerRunning(boolean schedulerRunning) {
-            this.schedulerRunning = schedulerRunning;
-        }
-
-        public boolean isConnectionError() {
-            return connectionError != null;
-        }
-
-        public String getConnectionError() {
-            return connectionError;
-        }
-
-        public void setConnectionError(String connectionError) {
-            this.connectionError = connectionError;
-        }
-    }
-
-    private Map<NodeInfo,List<TaskInfo>> tasks = new HashMap<NodeInfo,List<TaskInfo>>();
+    private Map<Node,List<TaskInfo>> tasks = new HashMap<Node,List<TaskInfo>>();
 
     public Set<TaskInfo> getTasks() {
         Set<TaskInfo> retval = new HashSet<TaskInfo>();
@@ -96,19 +55,19 @@ public class ClusterStatusInformation {
         return retval;
     }
 
-    public Map<NodeInfo, List<TaskInfo>> getTasksOnNodes() {
+    public Map<Node, List<TaskInfo>> getTasksOnNodes() {
         return tasks;
     }
 
-    public List<TaskInfo> getTasksOnNode(NodeInfo nodeInfo) {
-        return tasks.get(nodeInfo);
+    public List<TaskInfo> getTasksOnNode(Node node) {
+        return tasks.get(node);
     }
 
 
 
     // assumes the task is executing at one node only
-    public NodeInfo findNodeInfoForTask(String oid) {
-        for (Map.Entry<NodeInfo,List<TaskInfo>> entry : tasks.entrySet()) {
+    public Node findNodeInfoForTask(String oid) {
+        for (Map.Entry<Node,List<TaskInfo>> entry : tasks.entrySet()) {
             for (TaskInfo ti : entry.getValue()) {
                 if (oid.equals(ti.getOid())) {
                     return entry.getKey();
@@ -118,18 +77,26 @@ public class ClusterStatusInformation {
         return null;
     }
 
-    public Set<NodeInfo> getNodes() {
+    public Set<Node> getNodes() {
         return tasks.keySet();
     }
 
-    public void addNodeInfo(NodeInfo nodeInfo) {
-        tasks.put(nodeInfo, new ArrayList<TaskInfo>());       // TODO: or null? this is safer...
+    public void addNodeInfo(Node node) {
+        tasks.put(node, new ArrayList<TaskInfo>());       // TODO: or null? this is safer...
     }
 
-    public void addNodeAndTaskInfo(NodeInfo nodeInfo, List<TaskInfo> taskInfoList) {
-        tasks.put(nodeInfo, taskInfoList);
+    public void addNodeAndTaskInfo(Node node, List<TaskInfo> taskInfoList) {
+        tasks.put(node, taskInfoList);
     }
 
+    public Node findNodeById(String nodeIdentifier) {
+        for (Node node : tasks.keySet()) {
+            if (node.getNodeIdentifier().equals(nodeIdentifier)) {
+                return node;
+            }
+        }
+        return null;
+    }
 
 
 }
