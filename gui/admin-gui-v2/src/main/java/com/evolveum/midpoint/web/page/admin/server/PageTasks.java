@@ -25,14 +25,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -128,7 +126,9 @@ public class PageTasks extends PageAdminTasks {
         };
         columns.add(column);
 
-        columns.add(new PropertyColumn(createStringResource("pageTasks.node.running"), "running"));//todo use checkbox
+        CheckBoxColumn check = new CheckBoxColumn(createStringResource("pageTasks.node.running"), "running");
+        check.setEnabled(false);
+        columns.add(check);
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.nodeIdentifier"), "nodeIdentifier"));
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.hostname"), "hostname"));
         columns.add(new AbstractColumn<NodeDto>(createStringResource("pageTasks.node.lastCheckInTime")) {
@@ -145,7 +145,9 @@ public class PageTasks extends PageAdminTasks {
                 }));
             }
         });
-        columns.add(new PropertyColumn(createStringResource("pageTasks.node.clustered"), "clustered"));//todo use checkbox
+        check = new CheckBoxColumn(createStringResource("pageTasks.node.clustered"), "clustered");
+        check.setEnabled(false);
+        columns.add(check);
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "statusMessage"));
 
         return columns;

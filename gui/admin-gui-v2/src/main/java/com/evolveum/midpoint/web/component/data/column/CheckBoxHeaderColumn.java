@@ -39,7 +39,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public Component getHeader(String componentId) {
-        return new CheckBoxPanel(componentId, new Model<Boolean>()) {
+        return new CheckBoxPanel(componentId, new Model<Boolean>(), getEnabled()) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {

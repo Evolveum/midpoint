@@ -29,6 +29,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.io.Serializable;
@@ -39,6 +40,7 @@ import java.io.Serializable;
 public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selectable<T>> {
 
     private String propertyExpression;
+    private IModel<Boolean> enabled = new Model<Boolean>(true);
 
     public CheckBoxColumn(IModel<String> displayModel) {
         this(displayModel, null);
@@ -52,14 +54,14 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
     @Override
     public void populateItem(Item<ICellPopulator<Selectable<T>>> cellItem, String componentId,
             final IModel<Selectable<T>> rowModel) {
-        IModel<Boolean> selected = null;
+        IModel<Boolean> selected;
         if (StringUtils.isEmpty(propertyExpression)) {
             selected = new PropertyModel<Boolean>(rowModel, "selected");
         } else {
             selected = new PropertyModel<Boolean>(rowModel, propertyExpression);
         }
 
-        cellItem.add(new CheckBoxPanel(componentId, selected) {
+        cellItem.add(new CheckBoxPanel(componentId, selected, enabled) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
@@ -67,6 +69,14 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
                 onUpdateRow(target, table, rowModel);
             }
         });
+    }
+
+    protected IModel<Boolean> getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled.setObject(enabled);
     }
 
     @Override
