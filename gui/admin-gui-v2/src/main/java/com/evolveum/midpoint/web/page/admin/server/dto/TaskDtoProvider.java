@@ -21,13 +21,23 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,9 +48,15 @@ import java.util.List;
  */
 public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
 
+    private static final String OPERATION_LIST_TASKS = "taskDtoProvider.listTasks";
+    private PageBase page;
+    private QueryType query;
     private List<TaskDto> availableData;
 
-    public TaskDtoProvider() {
+    public TaskDtoProvider(PageBase page) {
+        Validate.notNull(page, "Page must not be null.");
+        this.page = page;
+
         setSort("name", SortOrder.ASCENDING);
     }
 
@@ -53,13 +69,29 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
     public Iterator<? extends TaskDto> iterator(int first, int count) {
         getAvailableData().clear();
 
-//        TaskManager manager = getTaskManager();
-//        ClusterStatusInformation info = manager.getRunningTasksClusterwide();
-//        List<Task> tasks = manager.searchTasks(query, paging, info, result);
-//
-//        for (Task task : tasks) {
-//            getAvailableData().add(new TaskDto(task));
-//        }
+        OperationResult result = new OperationResult(OPERATION_LIST_TASKS);
+        try {
+            SortParam sortParam = getSort();
+            OrderDirectionType order;
+            if (sortParam.isAscending()) {
+                order = OrderDirectionType.ASCENDING;
+            } else {
+                order = OrderDirectionType.DESCENDING;
+            }
+
+            PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
+
+            TaskManager manager = getTaskManager();
+            ClusterStatusInformation info = manager.getRunningTasksClusterwide();
+            List<Task> tasks = manager.searchTasks(query, paging, info, result);
+
+            for (Task task : tasks) {
+                getAvailableData().add(new TaskDto(task));
+            }
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't list tasks.", ex);
+        }
 
         return getAvailableData().iterator();
     }
@@ -71,13 +103,31 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
         return availableData;
     }
 
+    public QueryType getQuery() {
+        return query;
+    }
+
+    public void setQuery(QueryType query) {
+        this.query = query;
+    }
+
     @Override
     public int size() {
+        //todo reimplement
+
+        try {
+            MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+            return application.getModel().countObjects(TaskType.class, query,
+                    getTaskManager().createTaskInstance("count tasks"), new OperationResult("count tasks"));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
         return 0;
     }
 
     @Override
     public IModel<TaskDto> model(TaskDto object) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return new Model<TaskDto>(object);
     }
 }

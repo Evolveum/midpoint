@@ -135,6 +135,11 @@ public abstract class PageBase extends WebPage {
         return new StringResourceModel(resourceKey, this, null);
     }
 
+    protected StringResourceModel createStringResource(Enum e) {
+        String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
+        return createStringResource(resourceKey);
+    }
+
     public void showResult(OperationResult result) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");

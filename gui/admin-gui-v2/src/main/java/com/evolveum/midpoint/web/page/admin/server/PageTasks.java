@@ -24,13 +24,15 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -53,6 +55,16 @@ import java.util.List;
  * @author lazyman
  */
 public class PageTasks extends PageAdminTasks {
+
+    private static final String DOT_CLASS = PageTasks.class.getSimpleName() + ".";
+    private static final String OPERATION_SUSPEND_TASK = DOT_CLASS + "suspendTask";
+    private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
+    private static final String OPERATION_DELETE_TASK = DOT_CLASS + "deleteTask";
+    private static final String OPERATION_SCHEDULE_TASK = DOT_CLASS + "scheduleTask";
+    private static final String OPERATION_DELETE_NODE = DOT_CLASS + "deleteNode";
+    private static final String OPERATION_START_SCHEDULER = DOT_CLASS + "startScheduler";
+    private static final String OPERATION_STOP_SCHEDULER = DOT_CLASS + "stopScheduler";
+    private static final String OPERATION_PAUSE_SCHEDULER = DOT_CLASS + "pauseScheduler";
 
     public PageTasks() {
         initLayout();
@@ -83,11 +95,12 @@ public class PageTasks extends PageAdminTasks {
                 });
         mainForm.add(categorySelect);
 
-        List<IColumn<TaskType>> columns = initTaskColumns();
-        mainForm.add(new TablePanel<TaskType>("taskTable", new ObjectDataProvider(PageTasks.this, TaskType.class), columns));
+        List<IColumn<TaskDto>> taskColumns = initTaskColumns();
+        mainForm.add(new TablePanel<TaskDto>("taskTable", new TaskDtoProvider(PageTasks.this), taskColumns));
 
-        columns = initNodeColumns();
-        TablePanel nodeTable = new TablePanel<TaskType>("nodeTable", new ObjectDataProvider(PageTasks.this, NodeType.class), columns);
+        List<IColumn<NodeType>> nodeColumns = initNodeColumns();
+        TablePanel nodeTable = new TablePanel<NodeType>("nodeTable", new ObjectDataProvider(PageTasks.this, NodeType.class),
+                nodeColumns);
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);
 
@@ -96,18 +109,18 @@ public class PageTasks extends PageAdminTasks {
         initNodeButtons(mainForm);
     }
 
-    private List<IColumn<TaskType>> initNodeColumns() {
-        List<IColumn<TaskType>> columns = new ArrayList<IColumn<TaskType>>();
+    private List<IColumn<NodeType>> initNodeColumns() {
+        List<IColumn<NodeType>> columns = new ArrayList<IColumn<NodeType>>();
 
         IColumn column = new CheckBoxHeaderColumn<TaskType>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.node.name"), "name", "value.name") {
+        column = new LinkColumn<SelectableBean<NodeType>>(createStringResource("pageTasks.node.name"), "name", "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> rowModel) {
-                TaskType role = rowModel.getObject().getValue();
-                taskDetailsPerformed(target, role.getOid());
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<NodeType>> rowModel) {
+                NodeType node = rowModel.getObject().getValue();
+                taskDetailsPerformed(target, node.getOid());
             }
         };
         columns.add(column);
@@ -119,34 +132,44 @@ public class PageTasks extends PageAdminTasks {
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.clustered"), "value.clustered"));
 //        columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "value.statusMessage")); //todo uncomment later
 
-
         return columns;
     }
 
-    private List<IColumn<TaskType>> initTaskColumns() {
-        List<IColumn<TaskType>> columns = new ArrayList<IColumn<TaskType>>();
+    private List<IColumn<TaskDto>> initTaskColumns() {
+        List<IColumn<TaskDto>> columns = new ArrayList<IColumn<TaskDto>>();
 
         IColumn column = new CheckBoxHeaderColumn<TaskType>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.name"), "name", "value.name") {
+        column = new LinkColumn<TaskDto>(createStringResource("pageTasks.task.name"), "name", "name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> rowModel) {
-                TaskType role = rowModel.getObject().getValue();
-                taskDetailsPerformed(target, role.getOid());
+            public void onClick(AjaxRequestTarget target, IModel<TaskDto> rowModel) {
+                TaskDto task = rowModel.getObject();
+                taskDetailsPerformed(target, task.getOid());
             }
         };
         columns.add(column);
 
-        //todo
-        columns.add(new PropertyColumn(createStringResource("pageTasks.task.handler"), "handlerUri", "value.handlerUri"));
-//        columns.add(new PropertyColumn(createStringResource("pageTasks.task.objectRef"), "value.objectRef"));
-        columns.add(new PropertyColumn(createStringResource("pageTasks.task.execution"), "value.executionStatus"));
-        columns.add(new PropertyColumn(createStringResource("pageTasks.task.exclusivity"), "value.exclusivityStatus"));//todo delete columns
-//        columns.add(new PropertyColumn(createStringResource("pageTasks.task.threadAlive"), "value.exclusivity"));
-//        columns.add(new PropertyColumn(createStringResource("pageTasks.task.currentRunTime"), "value.exclusivity"));
-        columns.add(new PropertyColumn(createStringResource("pageTasks.task.scheduledToRunAgain"), "value.nextRunStartTime"));
+        columns.add(new PropertyColumn(createStringResource("pageTasks.task.category"), "category"));
+//        columns.add(new PropertyColumn(createStringResource("pageTasks.task.objectRef"), "value.objectRef"));   //todo
+        columns.add(new EnumPropertyColumn<TaskDto>(createStringResource("pageTasks.task.execution"), "execution") {
+
+            @Override
+            protected String translate(Enum en) {
+                return createStringResource(en).getString();
+            }
+        });
+        columns.add(new PropertyColumn(createStringResource("pageTasks.task.currentRunTime"), "currentRuntime"));
+        columns.add(new PropertyColumn(createStringResource("pageTasks.task.scheduledToRunAgain"), "scheduledToStartAgain"));
+        columns.add(new EnumPropertyColumn(createStringResource("pageTasks.task.status"), "status") {
+
+            @Override
+            protected String translate(Enum en) {
+                return createStringResource(en).getString();
+            }
+        });
+
         return columns;
     }
 
@@ -236,13 +259,13 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(pause);
     }
 
-    private List<SelectableBean<TaskType>> getSelectedTasks() {
+    private List<TaskDto> getSelectedTasks() {
         TablePanel panel = (TablePanel) get("mainForm:taskTable");
         DataTable table = panel.getDataTable();
-        ObjectDataProvider<TaskType> provider = (ObjectDataProvider<TaskType>) table.getDataProvider();
+        TaskDtoProvider provider = (TaskDtoProvider) table.getDataProvider();
 
-        List<SelectableBean<TaskType>> selected = new ArrayList<SelectableBean<TaskType>>();
-        for (SelectableBean<TaskType> row : provider.getAvailableData()) {
+        List<TaskDto> selected = new ArrayList<TaskDto>();
+        for (TaskDto row : provider.getAvailableData()) {
             if (row.isSelected()) {
                 selected.add(row);
             }
@@ -293,32 +316,44 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void suspendTaskPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult("temp");
+        OperationResult result = new OperationResult(OPERATION_SUSPEND_TASK);
 
         TaskManager taskManager = getTaskManager();
-        List<SelectableBean<TaskType>> taskTypeList = getSelectedTasks();
-        for (SelectableBean<TaskType> taskType : taskTypeList) {
+        List<TaskDto> taskTypeList = getSelectedTasks();
+        for (TaskDto taskDto : taskTypeList) {
             try {
-                Task task = taskManager.getTask(taskType.getValue().getOid(), result);
+                Task task = taskManager.getTask(taskDto.getOid(), result);
                 taskManager.suspendTask(task, 1000L, result);
-            } catch(Exception e) {
-                // .... TODO: tell the user, somehow
+                result.recordSuccess();
+            } catch (Exception ex) {
+                result.recordFatalError("Couldn't suspend task.", ex);
             }
+        }
+        result.recomputeStatus();
+
+        if (!result.isSuccess()) {
+            showResult(result);
         }
     }
 
     private void resumeTaskPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult("temp");
+        OperationResult result = new OperationResult(OPERATION_RESUME_TASK);
 
         TaskManager taskManager = getTaskManager();
-        List<SelectableBean<TaskType>> taskTypeList = getSelectedTasks();
-        for (SelectableBean<TaskType> taskType : taskTypeList) {
+        List<TaskDto> taskTypeList = getSelectedTasks();
+        for (TaskDto taskDto : taskTypeList) {
             try {
-                Task task = taskManager.getTask(taskType.getValue().getOid(), result);
+                Task task = taskManager.getTask(taskDto.getOid(), result);
                 taskManager.resumeTask(task, result);
-            } catch(Exception e) {
-                // .... TODO: tell the user, somehow
+                result.recordSuccess();
+            } catch (Exception ex) {
+                result.recordFatalError("Couldn't suspend task.", ex);
             }
+        }
+        result.recomputeStatus();
+
+        if (!result.isSuccess()) {
+            showResult(result);
         }
     }
 
