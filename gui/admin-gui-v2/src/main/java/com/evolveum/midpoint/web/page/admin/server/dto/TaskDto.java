@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
@@ -36,9 +37,12 @@ public class TaskDto extends Selectable {
     private String oid;
     private String name;
     private String category;
-    private ObjectReferenceType objectRef;
     private TaskExecutionStatus execution;
     private OperationResultStatus status;
+
+    private ObjectReferenceType objectRef;
+    private ObjectTypes objectRefType;
+    private String objectRefName;
 
     //helpers, won't be probably shown
     private Long lastRunStartTimestampLong;
@@ -50,6 +54,9 @@ public class TaskDto extends Selectable {
 
     public TaskDto(Task task, ClusterStatusInformation clusterStatusInfo, TaskManager taskManager) {
         Validate.notNull(task, "Task must not be null.");
+        Validate.notNull(clusterStatusInfo, "Cluster status info must not be null.");
+        Validate.notNull(taskManager, "Task manager must not be null.");
+
         oid = task.getOid();
         name = task.getName();
         category = task.getCategory();
@@ -73,6 +80,8 @@ public class TaskDto extends Selectable {
 //                this.executionStatus = TaskItemExecutionStatus.fromTask(task.getExecutionStatus());
             }
         }
+
+        this.objectRef = task.getObjectRef();
 
         this.binding = task.getBinding();
         this.recurrence = task.getRecurrenceStatus();
@@ -103,6 +112,14 @@ public class TaskDto extends Selectable {
 
     public String getName() {
         return name;
+    }
+
+    public String getObjectRefName() {
+        return objectRefName;
+    }
+
+    public ObjectTypes getObjectRefType() {
+        return objectRefType;
     }
 
     public ObjectReferenceType getObjectRef() {

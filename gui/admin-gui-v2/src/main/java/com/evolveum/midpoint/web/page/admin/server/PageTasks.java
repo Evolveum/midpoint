@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -157,7 +158,20 @@ public class PageTasks extends PageAdminTasks {
         columns.add(column);
 
         columns.add(new PropertyColumn(createStringResource("pageTasks.task.category"), "category"));
-//        columns.add(new PropertyColumn(createStringResource("pageTasks.task.objectRef"), "value.objectRef"));   //todo
+        columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.objectRef")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
+                    final IModel<TaskDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        return createObjectRef(rowModel);
+                    }
+                }));
+            }
+        });
         columns.add(new EnumPropertyColumn<TaskDto>(createStringResource("pageTasks.task.execution"), "execution") {
 
             @Override
@@ -205,18 +219,30 @@ public class PageTasks extends PageAdminTasks {
         return columns;
     }
 
-    private String createScheduledToRunAgain(IModel<TaskDto> taskModel) {
+    private String createObjectRef(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
-        //todo i18n
-        Long time = task.getScheduledToStartAgain();
-        if (time == null) {
-            return "-";
+
+        StringBuilder builder = new StringBuilder();
+        if (StringUtils.isNotEmpty(task.getObjectRefName())) {
+            builder.append(task.getObjectRefName());
+        } else {
+            builder.append(createStringResource("pageTasks.unknownRefName").getString());
+            if (task.getObjectRef() != null) {
+                builder.append("(");
+                builder.append(task.getObjectRef().getOid());
+                builder.append(")");
+            }
+        }
+        if (task.getObjectRefType() != null) {
+            builder.append("(");
+            builder.append(createStringResource(task.getObjectRefType()).getString());
+            builder.append(")");
         }
 
-        return DurationFormatUtils.formatDurationWords(time, true, true);
+        return builder.toString();
     }
 
-    private String createCurrentRuntime(IModel<TaskDto> taskModel) {
+    private String createScheduledToRunAgain(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
         //todo i18n
         Long time = task.getCurrentRuntime();
@@ -228,7 +254,18 @@ public class PageTasks extends PageAdminTasks {
             return "runs continually";
         }
 
-        return "in " +DurationFormatUtils.formatDurationWords(time, true, true);
+        return "in " + DurationFormatUtils.formatDurationWords(time, true, true);
+    }
+
+    private String createCurrentRuntime(IModel<TaskDto> taskModel) {
+        TaskDto task = taskModel.getObject();
+        //todo i18n
+        Long time = task.getScheduledToStartAgain();
+        if (time == null) {
+            return "-";
+        }
+
+        return DurationFormatUtils.formatDurationWords(time, true, true);
     }
 
     private void initTaskButtons(Form mainForm) {
@@ -317,9 +354,16 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(pause);
     }
 
+    private TablePanel getTaskTable() {
+        return (TablePanel) get("mainForm:taskTable");
+    }
+
+    private TablePanel getNodeTable() {
+        return (TablePanel) get("mainForm:nodeTable");
+    }
+
     private List<TaskDto> getSelectedTasks() {
-        TablePanel panel = (TablePanel) get("mainForm:taskTable");
-        DataTable table = panel.getDataTable();
+        DataTable table = getTaskTable().getDataTable();
         TaskDtoProvider provider = (TaskDtoProvider) table.getDataProvider();
 
         List<TaskDto> selected = new ArrayList<TaskDto>();
@@ -333,8 +377,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private List<SelectableBean<NodeType>> getSelectedNodes() {
-        TablePanel panel = (TablePanel) get("mainForm:nodeTable");
-        DataTable table = panel.getDataTable();
+        DataTable table = getNodeTable().getDataTable();
         ObjectDataProvider<NodeType> provider = (ObjectDataProvider<NodeType>) table.getDataProvider();
 
         List<SelectableBean<NodeType>> selected = new ArrayList<SelectableBean<NodeType>>();
@@ -399,6 +442,10 @@ public class PageTasks extends PageAdminTasks {
         if (!result.isSuccess()) {
             showResult(result);
         }
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
     }
 
     private void resumeTaskPerformed(AjaxRequestTarget target) {
@@ -420,6 +467,10 @@ public class PageTasks extends PageAdminTasks {
         if (!result.isSuccess()) {
             showResult(result);
         }
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
     }
 
     private void deleteTaskPerformed(AjaxRequestTarget target) {
