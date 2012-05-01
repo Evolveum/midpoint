@@ -44,6 +44,7 @@ public class RTask extends RObject {
     private TaskExecutionStatusType executionStatus;
     private TaskExclusivityStatusType exclusivityStatus;
     private String node;
+    private String category;
     private XMLGregorianCalendar claimExpirationTimestamp;
     private String handlerUri;
     private String otherHandlersUriStack;
@@ -73,6 +74,10 @@ public class RTask extends RObject {
     @Column(nullable = true)
     public OperationResultStatusType getResultStatus() {
         return resultStatus;
+    }
+
+    public String getCategory() {
+        return category;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -159,6 +164,10 @@ public class RTask extends RObject {
 
     public XMLGregorianCalendar getClaimExpirationTimestamp() {
         return claimExpirationTimestamp;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getHandlerUri() {
@@ -296,6 +305,7 @@ public class RTask extends RObject {
         if (canRunOnNode != null ? !canRunOnNode.equals(rTask.canRunOnNode) : rTask.canRunOnNode != null) return false;
         if (threadStopAction != null ? !threadStopAction.equals(rTask.threadStopAction) :
                 rTask.threadStopAction != null) return false;
+        if (category != null ? !category.equals(rTask.category) : rTask.category != null) return false;
 
         return true;
     }
@@ -321,6 +331,7 @@ public class RTask extends RObject {
         result1 = 31 * result1 + (resultStatus != null ? resultStatus.hashCode() : 0);
         result1 = 31 * result1 + (canRunOnNode != null ? canRunOnNode.hashCode() : 0);
         result1 = 31 * result1 + (threadStopAction != null ? threadStopAction.hashCode() : 0);
+        result1 = 31 * result1 + (category != null ? category.hashCode() : 0);
 
         return result1;
     }
@@ -344,6 +355,7 @@ public class RTask extends RObject {
         jaxb.setResultStatus(repo.getResultStatus());
         jaxb.setCanRunOnNode(repo.getCanRunOnNode());
         jaxb.setThreadStopAction(repo.getThreadStopAction());
+        jaxb.setCategory(repo.getCategory());
 
         if (repo.getObjectRef() != null) {
             jaxb.setObjectRef(repo.getObjectRef().toJAXB(prismContext));
@@ -387,6 +399,7 @@ public class RTask extends RObject {
         repo.setResultStatus(jaxb.getResultStatus());
         repo.setCanRunOnNode(jaxb.getCanRunOnNode());
         repo.setThreadStopAction(jaxb.getThreadStopAction());
+        repo.setCategory(jaxb.getCategory());
 
         repo.setObjectRef(RUtil.jaxbRefToRepoTaskObject(jaxb.getObjectRef(), repo, prismContext));
         repo.setOwnerRef(RUtil.jaxbRefToRepoTaskOwner(jaxb.getOwnerRef(), repo, prismContext));
