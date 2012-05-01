@@ -810,7 +810,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="handlerUri" type="xsd:anyURI">
+                    <xsd:element name="category" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Kind of the task, e.g. live sync, reconciliation, workflow, import from resource.
+                                Used mainly for the GUI.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Handler URI indirectly specifies which class is responsible to handle the task. The

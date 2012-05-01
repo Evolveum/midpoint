@@ -322,47 +322,96 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
     }
 
+    @Override
+    public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) {
+
+        return suspendTasks(oneItemSet(task), waitTime, parentResult);
+    }
+
+    private<T> Set<T> oneItemSet(T item) {
+        Set<T> set = new HashSet<T>();
+        set.add(item);
+        return set;
+    }
 
     @Override
-    public boolean suspendTask(Task task, long waitTime, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException {
+    public boolean suspendTasks(Collection<Task> tasks, long waitTime, OperationResult parentResult) {
 
-        LOGGER.info("Suspending task " + task + " (waiting " + waitTime + " msec)");
+        OperationResult result = parentResult.createSubresult(TaskManagerQuartzImpl.class.getName() + ".suspendTasks");
+        result.addParam("tasks", tasks);
 
-        if (task.getOid() == null)
-            throw new IllegalArgumentException("Only persistent tasks can be suspended (for now).");
+        LOGGER.info("Suspending tasks " + tasks + " (waiting " + waitTime + " msec)");
 
-        ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.SUSPENDED, parentResult);
+        for (Task task : tasks) {
 
-        try {
-            globalExecutionManager.unscheduleTask(task);
-        } catch (TaskManagerException e) {
-            LoggingUtils.logException(LOGGER, "Cannot unschedule task {} while suspending it", e, task);
-            // but by setting the execution status to SUSPENDED we hope the task thread will exit on next iteration
-            // (does not apply to single-run tasks, of course)
+            if (task.getOid() == null) {
+                // this should not occur; so we can treat it in such a brutal way
+                throw new IllegalArgumentException("Only persistent tasks can be suspended (for now); task " + task + " is transient.");
+            } else {
+                try {
+                    ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.SUSPENDED, parentResult);
+                } catch (ObjectNotFoundException e) {
+                    String message = "Cannot suspend task because it does not exist; task = " + task;
+                    LoggingUtils.logException(LOGGER, message, e);
+                    result.recordPartialError(message, e);
+                } catch (SchemaException e) {
+                    String message = "Cannot suspend task because of schema exception; task = " + task;
+                    LoggingUtils.logException(LOGGER, message, e);
+                    result.recordPartialError(message, e);
+                }
+                try {
+                    globalExecutionManager.unscheduleTask(task);
+                } catch (TaskManagerException e) {
+                    LoggingUtils.logException(LOGGER, "Cannot unschedule task {} while suspending it", e, task);
+                    result.recordPartialError("Cannot unschedule task " + task + " while suspending it", e);
+                    // but by setting the execution status to SUSPENDED we hope the task thread will exit on next iteration
+                    // (does not apply to single-run tasks, of course)
+                }
+            }
         }
-        return globalExecutionManager.stopTaskAndWait(task, waitTime, true);
+
+        boolean stopped = globalExecutionManager.stopTasksAndWait(tasks, waitTime, true);
+        result.recordSuccessIfUnknown();
+        return stopped;
     }
 
     @Override
     public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
-            ConcurrencyException, SchemaException, TaskManagerException {
+            SchemaException {
+
+        OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".resumeTask");
+        result.addParam("task", task);
 
         if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED) {
-            LOGGER.warn("Attempting to resume a task that is not in the SUSPENDED state (task = " + task + ", state = " + task.getExecutionStatus());
+            String message = "Attempted to resume a task that is not in the SUSPENDED state (task = " + task + ", state = " + task.getExecutionStatus();
+            LOGGER.error(message);
+            result.recordFatalError(message);
             return;
         }
 
-        ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, parentResult);
+        try {
+            ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, parentResult);
+        } catch (ObjectNotFoundException e) {
+            String message = "A task cannot be resumed, because it does not exist; task = " + task;
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordFatalError(message);
+            throw e;
+        } catch (SchemaException e) {
+            String message = "A task cannot be resumed due to schema exception; task = " + task;
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordFatalError(message);
+            throw e;
+        }
 
         try {
-
             // make the trigger as it should be
             taskSynchronizer.synchronizeTask((TaskQuartzImpl) task);
+            result.recordSuccessIfUnknown();
 
         } catch (SchedulerException e) {
-            LoggingUtils.logException(LOGGER, "Cannot resume the Quartz job corresponding to task {}", e, task);
-            throw new TaskManagerException("Cannot resume the Quartz job corresponding to task " + task, e);
+            String message = "Cannot resume the Quartz job corresponding to task " + task;
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordFatalError(message, e);
         }
     }
 
@@ -789,10 +838,26 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return globalExecutionManager.isTaskThreadActiveClusterwide(oid);
     }
 
+    private long lastRunningTasksClusterwideQuery = 0;
+    private ClusterStatusInformation lastClusterStatusInformation = null;
+
     @Override
     public ClusterStatusInformation getRunningTasksClusterwide() {
-        return globalExecutionManager.getClusterStatusInformation(true);
+        lastClusterStatusInformation = globalExecutionManager.getClusterStatusInformation(true);
+        lastRunningTasksClusterwideQuery = System.currentTimeMillis();
+        return lastClusterStatusInformation;
     }
+
+    @Override
+    public ClusterStatusInformation getRunningTasksClusterwide(long allowedAge) {
+        if (lastClusterStatusInformation != null && System.currentTimeMillis() - lastRunningTasksClusterwideQuery < allowedAge) {
+            return lastClusterStatusInformation;
+        } else {
+            return getRunningTasksClusterwide();
+        }
+
+    }
+
 
     @Override
     public boolean isCurrentNode(PrismObject<NodeType> node) {

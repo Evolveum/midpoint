@@ -162,7 +162,7 @@ public class GlobalExecutionManager {
     }
 
     // does not throw exceptions: it tries hard to stop the tasks, if something breaks, it just return 'false'
-    private boolean stopTasksAndWait(Collection<Task> tasks, long waitTime, boolean clusterwide) {
+    boolean stopTasksAndWait(Collection<Task> tasks, long waitTime, boolean clusterwide) {
 
         if (tasks.isEmpty())
             return true;

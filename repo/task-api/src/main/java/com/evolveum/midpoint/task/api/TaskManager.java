@@ -269,16 +269,13 @@ public interface TaskManager {
 	 * 
 	 * TODO
 	 * 
-	 * TODO: EXCEPTIONS
+	 * This method does not throw exceptions; it records its result in OperationResult.
 	 * 
 	 * @param task task instance to claim
-	 * @throws SchemaException 
-	 * @throws ConcurrencyException 
-	 * @throws ObjectNotFoundException
-	 * 
+	 *
 	 * @returns true if the task was stopped in the 'waitTime' interval, false if it is still running
 	 */
-	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult);
 
 	/**
 	 * Resume suspended task.
@@ -292,7 +289,7 @@ public interface TaskManager {
 	 * @throws ConcurrencyException 
 	 * @throws ObjectNotFoundException 
 	 */
-	public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException, TaskManagerException;
+	public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Switches the provided task to background, making it asynchronous.
@@ -488,4 +485,17 @@ public interface TaskManager {
     void postInit(OperationResult result);
 
     boolean isTaskThreadActiveClusterwide(String oid);
+
+    // we do not throw exceptions here -- we do our best to suspend the tasks
+    boolean suspendTasks(Collection<Task> tasks, long waitTime, OperationResult parentResult);
+
+    /**
+     * Returns running tasks; fetches new information only if after last query elapsed at least
+     * 'allowedAge' milliseconds.
+     *
+     * @param allowedAge
+     * @return
+     */
+    ClusterStatusInformation getRunningTasksClusterwide(long allowedAge);
+
 }

@@ -83,7 +83,7 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
             PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
 
             TaskManager manager = getTaskManager();
-            ClusterStatusInformation info = manager.getRunningTasksClusterwide();
+            ClusterStatusInformation info = manager.getRunningTasksClusterwide(500);
             List<Task> tasks = manager.searchTasks(query, paging, info, result);
 
             for (Task task : tasks) {

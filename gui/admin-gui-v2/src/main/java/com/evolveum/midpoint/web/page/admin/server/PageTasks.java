@@ -24,6 +24,8 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -292,7 +294,7 @@ public class PageTasks extends PageAdminTasks {
             return "-";
         }
 
-        return DurationFormatUtils.formatDurationWords(time, true, true) + " ago";
+        return DurationFormatUtils.formatDurationWords(System.currentTimeMillis() - time, true, true) + " ago";
     }
 
     private void initTaskButtons(Form mainForm) {
@@ -454,40 +456,77 @@ public class PageTasks extends PageAdminTasks {
 
         TaskManager taskManager = getTaskManager();
         List<TaskDto> taskTypeList = getSelectedTasks();
-        for (TaskDto taskDto : taskTypeList) {
-            try {
+        List<Task> taskList = new ArrayList<Task>();
+        try {
+            for (TaskDto taskDto : taskTypeList) {
                 Task task = taskManager.getTask(taskDto.getOid(), result);
-                taskManager.suspendTask(task, 1000L, result);
-                result.recordSuccess();
-            } catch (Exception ex) {
-                result.recordFatalError("Couldn't suspend task.", ex);
+                taskList.add(task);
+            }
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get information on tasks to be suspended.", ex);
+        }
+
+        boolean suspended = false;
+        if (!result.isError()) {
+            try {
+                suspended = taskManager.suspendTasks(taskList, 2000L, result);
+            } catch (Exception e) {
+                result.recordFatalError("Couldn't suspend tasks.", e);
             }
         }
-        result.recomputeStatus();
 
-        showResult(result);
+        if (result.isUnknown()) {
+            result.recomputeStatus();
+        }
+
+        if (result.isSuccess()) {
+            if (suspended) {
+                success("The task(s) have been successfully suspended.");
+            } else {
+                warn("Task(s) suspension has been successfully requested; please check for its completion using task list.");
+            }
+        } else {
+            showResult(result);
+        }
+
+        System.out.println(result.dump());
+
         //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getTaskTable());
     }
 
+    /*
+     * TODO: error handling is quite chaotic now... it should be standardized somehow
+     */
     private void resumeTaskPerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_RESUME_TASK);
 
         TaskManager taskManager = getTaskManager();
-        List<TaskDto> taskTypeList = getSelectedTasks();
-        for (TaskDto taskDto : taskTypeList) {
+        List<TaskDto> taskDtoList = getSelectedTasks();
+        for (TaskDto taskDto : taskDtoList) {
             try {
                 Task task = taskManager.getTask(taskDto.getOid(), result);
                 taskManager.resumeTask(task, result);
-                result.recordSuccess();
-            } catch (Exception ex) {
-                result.recordFatalError("Couldn't suspend task.", ex);
+            }
+            // some situations (e.g. resume task that is not suspended) are recorded in OperationResult only (i.e. no exception)
+            // ordinary exceptions (ObjectNotFoundException, SchemaException) are already recorded in the result (and an exception is thrown)
+            // unexpected exceptions are not recorded in OperationResult, only the exception is thrown
+            catch (ObjectNotFoundException e) {
+                // see above
+            } catch (SchemaException e) {
+                // see above
+            }
+            catch (Exception e) {
+                result.recordPartialError("Couldn't resume task due to an unexpected exception.", e);
             }
         }
-        result.recomputeStatus();
-
+        if (result.isUnknown()) {
+            result.recomputeStatus();
+        }
+        System.out.println("Operation result = " + result.dump());
         showResult(result);
+
         //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getTaskTable());

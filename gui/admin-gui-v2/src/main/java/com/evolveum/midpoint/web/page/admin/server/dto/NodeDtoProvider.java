@@ -84,7 +84,7 @@ public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
             PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
 
             TaskManager manager = getTaskManager();
-            ClusterStatusInformation info = manager.getRunningTasksClusterwide();
+            ClusterStatusInformation info = manager.getRunningTasksClusterwide(500);
             List<Node> nodes = manager.searchNodes(query, paging, info, result);
 
             for (Node node : nodes) {
