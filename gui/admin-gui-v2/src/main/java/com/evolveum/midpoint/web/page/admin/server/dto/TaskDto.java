@@ -38,6 +38,7 @@ public class TaskDto extends Selectable {
     private String name;
     private String category;
     private TaskExecutionStatus execution;
+    private String executingAt;
     private OperationResultStatus status;
 
     private ObjectReferenceType objectRef;
@@ -48,7 +49,6 @@ public class TaskDto extends Selectable {
     private Long lastRunStartTimestampLong;
     private Long lastRunFinishTimestampLong;
     private Long nextRunStartTimeLong;
-    private String executesAt;
     private TaskBinding binding;
     private TaskRecurrence recurrence;
 
@@ -68,15 +68,15 @@ public class TaskDto extends Selectable {
         nextRunStartTimeLong = task.getNextRunStartTime();
 
         if (clusterStatusInfo == null) {         // when listing nodes currently executing at this node
-            this.executesAt = taskManager.getNodeId();
+            this.executingAt = taskManager.getNodeId();
 //            this.execution = TaskItemExecutionStatus.RUNNING;
         } else {
             Node node = clusterStatusInfo.findNodeInfoForTask(this.getOid());
             if (node != null) {
-                this.executesAt = node.getNodeType().asObjectable().getNodeIdentifier();
+                this.executingAt = node.getNodeType().asObjectable().getNodeIdentifier();
 //                this.executionStatus = TaskItemExecutionStatus.RUNNING;
             } else {
-                this.executesAt = null;
+                this.executingAt = null;
 //                this.executionStatus = TaskItemExecutionStatus.fromTask(task.getExecutionStatus());
             }
         }
@@ -108,6 +108,10 @@ public class TaskDto extends Selectable {
 
     public TaskExecutionStatus getExecution() {
         return execution;
+    }
+
+    public String getExecutingAt() {
+        return executingAt;
     }
 
     public String getName() {
@@ -164,6 +168,6 @@ public class TaskDto extends Selectable {
     }
 
     private boolean isAliveClusterwide() {
-        return executesAt != null;
+        return executingAt != null;
     }
 }

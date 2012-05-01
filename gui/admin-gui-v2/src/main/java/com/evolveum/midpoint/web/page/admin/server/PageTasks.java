@@ -197,6 +197,7 @@ public class PageTasks extends PageAdminTasks {
                 return createStringResource(en).getString();
             }
         });
+        columns.add(new PropertyColumn<TaskDto>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
         columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.currentRunTime")) {
 
             @Override

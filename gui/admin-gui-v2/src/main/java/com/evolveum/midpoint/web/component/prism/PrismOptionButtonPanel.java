@@ -55,6 +55,7 @@ public class PrismOptionButtonPanel extends Panel {
 				PrismOptionButtonPanel.this.checkBoxOnUpdate(target);
 			}
 		};
+        //todo wtf?
 //		check.setVisible(model.getObject().isSelectable());
         check.setOutputMarkupId(true);
         add(check);
@@ -83,6 +84,7 @@ public class PrismOptionButtonPanel extends Panel {
                         "ShowEmptyTrue.png");
             }
         });
+        //todo wtf?
 //        showEmptyImg.add(new AttributeAppender("title", ""));
 //        if(model.getObject().isShowEmpty()){
 //        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.hideEmpty")));
@@ -114,6 +116,7 @@ public class PrismOptionButtonPanel extends Panel {
                         "Minimize.png");
             }
         });
+        //todo wtf?
 //        minimizeImg.add(new AttributeAppender("title", ""));
 //        if(model.getObject().isMinimalized()){
 //        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.maximize")));
