@@ -26,12 +26,18 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -62,9 +68,17 @@ public class FeedbackMessagePanel extends Panel {
         label.setOutputMarkupId(true);
         add(label);
 
-        Panel details;
+        WebMarkupContainer details;
         if (message.getObject().getMessage() instanceof OpResult) {
-            details = new OperationResultPanel("content", new PropertyModel<OpResult>(message, "message"));
+            ListView<OpResult> subresults = new ListView<OpResult>("subresults",
+                    createSubresultsModel(message)) {
+
+                @Override
+                protected void populateItem(ListItem<OpResult> item) {
+                    item.add(new OperationResultPanel("subresult", item.getModel()));
+                }
+            };
+            details = subresults;
         } else {
             details = new EmptyPanel("content");
         }
@@ -82,6 +96,23 @@ public class FeedbackMessagePanel extends Panel {
         });
         details.setMarkupId(label.getMarkupId() + "_content");
         add(details);
+    }
+
+    private IModel<List<OpResult>> createSubresultsModel(final IModel<FeedbackMessage> model) {
+        return new LoadableModel<List<OpResult>>(false) {
+
+            @Override
+            protected List<OpResult> load() {
+                FeedbackMessage message = model.getObject();
+                Serializable serializable = message.getMessage();
+                if (!(serializable instanceof OpResult)) {
+                    return new ArrayList<OpResult>();
+                }
+
+                OpResult result = (OpResult) serializable;
+                return result.getSubresults();
+            }
+        };
     }
 
     private String getTopMessage(final IModel<FeedbackMessage> model) {

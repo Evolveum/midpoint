@@ -77,20 +77,20 @@ public class OperationResultPanel extends Panel {
     }
 
     private void initLayout(final IModel<OpResult> model) {
-        WebMarkupContainer messageLi = new WebMarkupContainer("messageLi");
-        add(messageLi);
+//        WebMarkupContainer messageLi = new WebMarkupContainer("messageLi");
+//        add(messageLi);
         Label operation = new Label("operation", new PropertyModel<Object>(model, "operation"));
         operation.setOutputMarkupId(true);
         WebMarkupContainer arrow = new WebMarkupContainer("arrow");
         arrow.setMarkupId(operation.getMarkupId() + "_arrow");
-        messageLi.add(arrow);
+        add(arrow);
 
-        messageLi.add(operation);//todo localize
-        messageLi.add(new AttributeAppender("class", createMessageLiClass(model), " "));
+        add(operation);//todo localize
+        add(new AttributeAppender("class", createMessageLiClass(model), " "));
 
         WebMarkupContainer operationContent = new WebMarkupContainer("operationContent");
         operationContent.setMarkupId(operation.getMarkupId() + "_content");
-        messageLi.add(operationContent);
+        add(operationContent);
 
         operationContent.add(new Label("message", new PropertyModel<String>(model, "message")));
 
@@ -135,7 +135,7 @@ public class OperationResultPanel extends Panel {
                 item.add(new OperationResultPanel("subresult", item.getModel()));
             }
         };
-        messageLi.add(subresults);
+        add(subresults);
     }
 
     private IModel<String> createMessageLiClass(final IModel<OpResult> model) {
