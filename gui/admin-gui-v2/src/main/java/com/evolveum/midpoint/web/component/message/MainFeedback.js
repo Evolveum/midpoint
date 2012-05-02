@@ -23,11 +23,11 @@ function initMessages() {
 	jQuery(".messagesTop").find(".messages-topPanel").each(function(index){
 		var arrow;
 		var className = $(this).attr('class');
-		if(className.indexOf("messages-topError")){
+		if(className.indexOf("messages-topError") >= 0){
 			arrow = "messages-topError";
-		} else if(className.indexOf("messages-topSucc")){
+		} else if(className.indexOf("messages-topSucc") >= 0){
 			arrow = "messages-topSucc";
-		} else if(className.indexOf("messages-topWarn")){
+		} else if(className.indexOf("messages-topWarn") >= 0){
 			arrow = "messages-topWarn";
 		} else {
 			arrow = "messages-topInfo";
@@ -36,6 +36,9 @@ function initMessages() {
 		var blockContent = $(this).parent().find(".messages-content");
 		if(blockContent.length > 0){
 			$(this).append("<span class='"+ arrow +"-arrow arrow-down'></span>");
+			if($(this).height() <= 16){
+				$("." + arrow +"-arrow").css("marginTop", 0);
+			}
 		}
 	});
 	

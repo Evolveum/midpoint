@@ -195,14 +195,14 @@ ul.messagesTop .messages-topWarn {
 }
 
 ul.messagesTop .messages-warn .selected {
-	background-color: #ffc2ae;
+	background-color: #fce48d;
 	-moz-border-radius-bottomright: 0px;
 	border-bottom-right-radius: 0px;
 	-moz-border-radius-bottomleft: 0px;
 	border-bottom-left-radius: 0px;
 }
 
-ul.messagesTop .messages-Warn-arrow {
+ul.messagesTop .messages-topWarn-arrow {
 	background-image: url(messages-warn-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -213,11 +213,11 @@ ul.messagesTop .messages-Warn-arrow {
     margin-top: -8px;
 }
 
-ul.messagesTop .messages-Warn .arrow-down {
+ul.messagesTop .messages-topWarn .arrow-down {
 	background-position: 0px -32px;
 }
 
-ul.messagesTop .messages-Warn .arrow-up {
+ul.messagesTop .messages-topWarn .arrow-up {
 	background-position: 0px 0px;
 }
 
@@ -230,6 +230,10 @@ ul.messagesTop .messages-warn-details-section, ul.messagesTop .messages-warn .me
 	background-position: 9px 2px;
 	margin-top: 5px;
 	color: #d28b1e;
+}
+
+ul.messagesTop .messages-warn .selected-section {
+	background-color: #fdf4d5; 
 }
 
 ul.messagesTop .messages-warn-details-section .messages-details-bold-arrow {
@@ -282,7 +286,7 @@ ul.messagesTop .messages-succ .selected {
 	border-bottom-left-radius: 0px;
 }
 
-ul.messagesTop .messages-Succ-arrow {
+ul.messagesTop .messages-topSucc-arrow {
 	background-image: url(messages-succ-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -293,11 +297,11 @@ ul.messagesTop .messages-Succ-arrow {
     margin-top: -8px;
 }
 
-ul.messagesTop .messages-Succ .arrow-down {
+ul.messagesTop .messages-topSucc .arrow-down {
 	background-position: 0px -32px;
 }
 
-ul.messagesTop .messages-Succ .arrow-up {
+ul.messagesTop .messages-topSucc .arrow-up {
 	background-position: 0px 0px;
 }
 
@@ -310,6 +314,10 @@ ul.messagesTop .messages-succ-details-section {
 	background-position: 9px 2px;
 	color: #4F8A10;
 	margin-top: 5px;
+}
+
+ul.messagesTop .messages-succ .selected-section {
+	background-color: #ecfcd2; 
 }
 
 ul.messagesTop .messages-succ-details-section .messages-details-bold-arrow {
@@ -356,14 +364,14 @@ ul.messagesTop .messages-topInfo {
 }
 
 ul.messagesTop .messages-info .selected {
-	background-color: #ffc2ae;
+	background-color: #c3bfff;
 	-moz-border-radius-bottomright: 0px;
 	border-bottom-right-radius: 0px;
 	-moz-border-radius-bottomleft: 0px;
 	border-bottom-left-radius: 0px;
 }
 
-ul.messagesTop .messages-Info-arrow {
+ul.messagesTop .messages-topInfo-arrow {
 	background-image: url(messages-succ-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -374,11 +382,11 @@ ul.messagesTop .messages-Info-arrow {
     margin-top: -8px;
 }
 
-ul.messagesTop .messages-Info .arrow-down {
+ul.messagesTop .messages-topInfo .arrow-down {
 	background-position: 0px -32px;
 }
 
-ul.messagesTop .messages-Info .arrow-up {
+ul.messagesTop .messages-topInfo .arrow-up {
 	background-position: 0px 0px;
 }
 
@@ -391,6 +399,10 @@ ul.messagesTop .messages-info-details-section, ul.messagesTop .messages-info .me
 	background-position: 9px 2px;
 	color: #6966f2;
 	margin-top: 5px;
+}
+
+ul.messagesTop .messages-info .selected-section {
+	background-color: #e8e4ff; 
 }
 
 ul.messagesTop .messages-info-details-section .messages-details-bold-arrow {
