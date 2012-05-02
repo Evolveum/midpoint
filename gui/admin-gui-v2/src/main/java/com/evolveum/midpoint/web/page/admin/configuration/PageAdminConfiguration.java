@@ -22,7 +22,10 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,11 +43,28 @@ public class PageAdminConfiguration extends PageAdmin {
 
         items.add(new BottomMenuItem("pageAdminConfiguration.logging", PageLogging.class));
         items.add(new BottomMenuItem("pageAdminConfiguration.debugList", PageDebugList.class));
-        items.add(new BottomMenuItem("pageAdminConfiguration.debugView", PageDebugView.class));
+        items.add(new BottomMenuItem("pageAdminConfiguration.debugView", PageDebugView.class,
+                new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isEnabled() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isVisible() {
+                        return isEditingObject();
+                    }
+                }));
         items.add(new BottomMenuItem("pageAdminConfiguration.importFromXml", PageImportXml.class));
         items.add(new BottomMenuItem("pageAdminConfiguration.importFromFile", PageImportFile.class));
-       
+
 
         return items;
+    }
+
+    private boolean isEditingObject() {
+        StringValue objectOid = getPageParameters().get(PageDebugView.PARAM_OBJECT_ID);
+        return objectOid != null && StringUtils.isNotEmpty(objectOid.toString());
     }
 }

@@ -246,7 +246,7 @@ public class ObjectWrapper implements Serializable {
                 PrismProperty property = propertyWrapper.getProperty();
                 container.add(property);
                 for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
-                    if (!valueWrapper.hasValueChanged() && ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
+                    if (!valueWrapper.hasValueChanged() || ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
                         continue;
                     }
 

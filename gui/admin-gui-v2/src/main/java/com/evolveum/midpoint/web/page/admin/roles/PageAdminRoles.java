@@ -49,12 +49,22 @@ public class PageAdminRoles extends PageAdmin {
             public boolean isVisible() {
                 return !isEditingRole();
             }
+
+            @Override
+            public boolean isEnabled() {
+                return !(getPage() instanceof PageRole);
+            }
         }));
         items.add(new BottomMenuItem("pageAdminRoles.editRole", PageRole.class, new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
                 return isEditingRole();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return false;
             }
         }));
 

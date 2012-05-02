@@ -49,6 +49,11 @@ public class PageAdminUsers extends PageAdmin {
             public boolean isVisible() {
                 return !isEditingUser();
             }
+
+            @Override
+            public boolean isEnabled() {
+                return !(getPage() instanceof PageUser);
+            }
         }));
         items.add(new BottomMenuItem("pageAdminUsers.editUser", PageUser.class, new VisibleEnableBehaviour() {
 
