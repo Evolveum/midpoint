@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -13,10 +15,12 @@ import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -33,11 +37,17 @@ import java.util.List;
 
 public class PageDebugList extends PageAdminConfiguration {
 
+    private static final String OPERATION_DELETE_OBJECT = "PageDebugList.deleteObject";
+    private static final String OPERATION_DELETE_OBJECTS = "PageDebugList.deleteObjects";
+
     public PageDebugList() {
         initLayout();
     }
 
     private void initLayout() {
+        //listed type
+        final IModel<ObjectTypes> choice = new Model<ObjectTypes>();
+
         List<IColumn<? extends ObjectType>> columns = new ArrayList<IColumn<? extends ObjectType>>();
 
         IColumn column = new CheckBoxHeaderColumn<ObjectType>();
@@ -59,7 +69,7 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<? extends ObjectType>> rowModel) {
                 ObjectType object = rowModel.getObject().getValue();
-                deletePerformed(target, object.getOid());
+                deletePerformed(target, choice, object);
             }
         };
         columns.add(column);
@@ -72,7 +82,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OptionItem item = new OptionItem("category", createStringResource("pageDebugList.selectType"));
         option.getBodyContainer().add(item);
-        initCategory(item);
+        initCategory(item, choice);
 
         OptionContent content = new OptionContent("optionContent");
         main.add(content);
@@ -85,13 +95,13 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                deleteAllPerformed(target);
+                deleteAllPerformed(target, choice);
             }
         };
         main.add(button);
     }
 
-    private void initCategory(OptionItem item) {
+    private void initCategory(OptionItem item, final IModel<ObjectTypes> choice) {
         IChoiceRenderer<ObjectTypes> renderer = new IChoiceRenderer<ObjectTypes>() {
 
             @Override
@@ -106,7 +116,6 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
 
-        final IModel<ObjectTypes> choice = new Model<ObjectTypes>();
         ListChoice listChoice = new ListChoice("choice", choice, createChoiceModel(renderer), renderer, 5) {
 
             @Override
@@ -156,10 +165,6 @@ public class PageDebugList extends PageAdminConfiguration {
         };
     }
 
-    private void deleteAllPerformed(AjaxRequestTarget target) {
-        //todo implement
-    }
-
     private TablePanel getListTable() {
         OptionContent content = (OptionContent) get("mainForm:optionContent");
         return (TablePanel) content.getBodyContainer().get("table");
@@ -182,7 +187,58 @@ public class PageDebugList extends PageAdminConfiguration {
         setResponsePage(PageDebugView.class, parameters);
     }
 
-    private void deletePerformed(AjaxRequestTarget target, String oid) {
-        //todo implement
+    private List<ObjectType> getSelectedObjects() {
+        TablePanel tablePanel = getListTable();
+        DataTable table = tablePanel.getDataTable();
+        ObjectDataProvider<ObjectType> provider = (ObjectDataProvider<ObjectType>) table.getDataProvider();
+
+        List<ObjectType> selected = new ArrayList<ObjectType>();
+        for (SelectableBean<ObjectType> row : provider.getAvailableData()) {
+            if (row.isSelected()) {
+                selected.add(row.getValue());
+            }
+        }
+
+        return selected;
+    }
+
+    private void deleteAllPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice) {
+        MidPointApplication application = getMidpointApplication();
+        RepositoryService repository = application.getRepository();
+        ObjectTypes type = choice.getObject();
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
+        for (ObjectType object : getSelectedObjects()) {
+            OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
+            try {
+                repository.deleteObject(type.getClassDefinition(), object.getOid(), subResult);
+                subResult.recordSuccess();
+            } catch (Exception ex) {
+                subResult.recordFatalError("Couldn't delete object.", ex);
+            }
+        }
+        result.recomputeStatus();
+
+        showResult(result);
+        target.add(getListTable());
+        target.add(getFeedbackPanel());
+    }
+
+    private void deletePerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice, ObjectType object) {
+        MidPointApplication application = getMidpointApplication();
+        RepositoryService repository = application.getRepository();
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
+        try {
+            ObjectTypes type = choice.getObject();
+            repository.deleteObject(type.getClassDefinition(), object.getOid(), result);
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't delete object '" + object.getName() + "'.", ex);
+        }
+
+        showResult(result);
+        target.add(getListTable());
+        target.add(getFeedbackPanel());
     }
 }
