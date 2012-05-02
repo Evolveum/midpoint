@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
@@ -57,7 +56,6 @@ import org.hibernate.tuple.entity.EntityMetamodel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
-import org.w3c.dom.Element;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -133,8 +131,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
     }
 
-    private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid) 
-    		throws ObjectNotFoundException, SchemaException, DtoTranslationException {
+    private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid)
+            throws ObjectNotFoundException, SchemaException, DtoTranslationException {
         Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
         query.add(Restrictions.eq("oid", oid));
         query.add(Restrictions.eq("id", 0L));
@@ -163,6 +161,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         int attempt = 1;
 
         OperationResult subResult = result.createSubresult(GET_OBJECT);
+        subResult.addParam("type", type.getName());
+        subResult.addParam("oid", oid);
 
         while (true) {
             try {
@@ -228,6 +228,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         int attempt = 1;
 
         OperationResult subResult = result.createSubresult(LIST_ACCOUNT_SHADOW);
+        subResult.addParam("accountOid", accountOid);
+
         while (true) {
             try {
                 return listAccountShadowOwnerAttempt(accountOid, subResult);
@@ -299,6 +301,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notNull(result, "Operation result must not be null.");
 
         OperationResult subResult = result.createSubresult(ADD_OBJECT);
+        subResult.addParam("object", object);
 
         final String operation = "adding";
         int attempt = 1;
@@ -407,6 +410,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         int attempt = 1;
 
         OperationResult subResult = result.createSubresult(DELETE_OBJECT);
+        subResult.addParam("type", type.getName());
+        subResult.addParam("oid", oid);
 
         while (true) {
             try {
@@ -490,6 +495,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
         int count = 0;
         OperationResult subResult = result.createSubresult(COUNT_OBJECTS);
+        subResult.addParam("type", type.getName());
+        subResult.addParam("query", query);
+
         Session session = null;
         try {
             session = beginTransaction();
@@ -532,6 +540,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
 
         OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
+        subResult.addParam("type", type.getName());
+        subResult.addParam("query", query);
+        subResult.addParam("paging", paging);
+
         List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
         Session session = null;
         try {
@@ -578,6 +590,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notNull(result, "Operation result must not be null.");
 
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
+        subResult.addParam("type", type.getName());
+        subResult.addParam("oid", oid);
+        subResult.addParam("modifications", modifications);
+
         final String operation = "modifying";
         int attempt = 1;
 
@@ -870,7 +886,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         session.getTransaction().rollback();
 
         if (ex != null && result != null) {
-            result.recordFatalError(ex.getMessage());
+            result.recordFatalError(ex.getMessage(), ex);
         }
     }
 

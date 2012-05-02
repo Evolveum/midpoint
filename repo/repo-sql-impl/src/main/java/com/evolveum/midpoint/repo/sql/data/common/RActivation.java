@@ -101,7 +101,7 @@ public class RActivation {
 
         repo.setEnabled(jaxb.isEnabled());
         repo.setValidFrom(jaxb.getValidFrom());
-        repo.setValidTo(repo.getValidTo());
+        repo.setValidTo(jaxb.getValidTo());
     }
 
     public static void copyToJAXB(RActivation repo, ActivationType jaxb, PrismContext prismContext) {
