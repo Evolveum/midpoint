@@ -33,6 +33,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;
@@ -68,8 +69,9 @@ public class FeedbackMessagePanel extends Panel {
         label.setOutputMarkupId(true);
         add(label);
 
-        WebMarkupContainer details;
+        WebMarkupContainer content;
         if (message.getObject().getMessage() instanceof OpResult) {
+            content = new WebMarkupContainer("content");
             ListView<OpResult> subresults = new ListView<OpResult>("subresults",
                     createSubresultsModel(message)) {
 
@@ -78,11 +80,18 @@ public class FeedbackMessagePanel extends Panel {
                     item.add(new OperationResultPanel("subresult", item.getModel()));
                 }
             };
-            details = subresults;
+            content.add(subresults);
+            content.add(new AttributeAppender("class", new LoadableModel<String>(false) {
+
+                @Override
+                protected String load() {
+                    return getDetailsCss(new PropertyModel<OpResult>(message, "message"));
+                }
+            }, " "));
         } else {
-            details = new EmptyPanel("content");
+            content = new EmptyPanel("content");
         }
-        details.add(new VisibleEnableBehaviour() {
+        content.add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
@@ -94,8 +103,30 @@ public class FeedbackMessagePanel extends Panel {
                 return false;
             }
         });
-        details.setMarkupId(label.getMarkupId() + "_content");
-        add(details);
+        content.setMarkupId(label.getMarkupId() + "_content");
+        add(content);
+    }
+
+    private String getDetailsCss(final IModel<OpResult> model) {
+        OpResult result = model.getObject();
+        if (result == null || result.getStatus() == null) {
+            return "messages-warn-content";
+        }
+
+        switch (result.getStatus()) {
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+                return "messages-error-content";
+            case IN_PROGRESS:
+            case NOT_APPLICABLE:
+                return "messages-info-content";
+            case SUCCESS:
+                return "messages-succ-content";
+            case UNKNOWN:
+            case WARNING:
+            default:
+                return "messages-warn-content";
+        }
     }
 
     private IModel<List<OpResult>> createSubresultsModel(final IModel<FeedbackMessage> model) {

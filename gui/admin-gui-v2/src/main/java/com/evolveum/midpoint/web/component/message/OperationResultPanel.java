@@ -43,37 +43,7 @@ public class OperationResultPanel extends Panel {
     public OperationResultPanel(String id, final IModel<OpResult> model) {
         super(id);
 
-        add(new AttributeAppender("class", new LoadableModel<String>(false) {
-
-            @Override
-            protected String load() {
-                return getDetailsCss(model);
-            }
-        }, " "));
-
         initLayout(model);
-    }
-
-    private String getDetailsCss(final IModel<OpResult> model) {
-        OpResult result = model.getObject();
-        if (result == null || result.getStatus() == null) {
-            return "messages-warn-content";
-        }
-
-        switch (result.getStatus()) {
-            case FATAL_ERROR:
-            case PARTIAL_ERROR:
-                return "messages-error-content";
-            case IN_PROGRESS:
-            case NOT_APPLICABLE:
-                return "messages-info-content";
-            case SUCCESS:
-                return "messages-succ-content";
-            case UNKNOWN:
-            case WARNING:
-            default:
-                return "messages-warn-content";
-        }
     }
 
     private void initLayout(final IModel<OpResult> model) {
