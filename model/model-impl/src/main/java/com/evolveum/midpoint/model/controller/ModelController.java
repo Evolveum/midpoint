@@ -233,7 +233,7 @@ public class ModelController implements ModelService {
 		QName refName = first.getName();
 		PrismReference reference = object.findReferenceByCompositeObjectElementName(refName);
 		if (reference == null) {
-			throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
+			return;//throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
 		}
 		for (PrismReferenceValue refVal: reference.getValues()) {
 			PrismObject<?> refObject = refVal.getObject();
