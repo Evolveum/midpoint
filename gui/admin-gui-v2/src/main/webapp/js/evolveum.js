@@ -33,17 +33,7 @@ function init() {
 	$(".submitTable tbody input[type='checkbox']:checked").parent().parent().find("td").css("background","#d8f4d8");
 	$(".submitTable tbody input[type='checkbox']:checked").parent().parent().find("td").css("border-color","#FFFFFF");
 	
-	$("thead input[type='checkbox']").click(function(){
-		if($(this).is(":checked")){
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("background","#d8f4d8");
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("border-color","#FFFFFF");
-		} else {
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("background","#FFFFFF");
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("border-color","#F2F2F2");
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
-		}
-	});
+	
 	
 	//$(".sortedTable table thead").find(".sortable").find("a").find("div").append("<span class='sortableArrowIcon'></span>");
 	
@@ -70,40 +60,6 @@ function init() {
 			$(this).find("a").animate({opacity : .5}, 250);
 		}
 	});
-	/*//minMaxButton_
-	$(".objectFormHeaderControllButtonMinMax").click(function(){
-		var id = $(this).attr("id");
-		var tableForm = id.substring(13, id.length); 
-		alert(tableForm);
-		
-		if($(this).attr("src").indexOf("Minimize") != -1){
-			//var img = $(this).attr("src").replace("Minimize","Maximize");
-			//$(this).attr("src", img);
-			//$(this).attr("title", "Maximize");
-			$("#bodyPanel_" + tableForm).hide();
-			//$("#tfoot_" + tableForm).hide();
-			
-		} else {
-			var img = $(this).attr("src").replace("Maximize","Minimize");
-			//$(this).attr("src", img);
-			//$(this).attr("title", "Minimize");
-			$("#bodyPanel_" + tableForm).show();
-			//$("#tfoot_" + tableForm).show();
-		}
-	});
-	
-	$(".objectFormHeaderControllButtonShowEmptyFields").click(function(){
-		if($(this).attr("src").indexOf("Show") != -1){
-			var img = $(this).attr("src").replace("Show","Hide");
-			$(this).attr("src", img);
-			$(this).attr("title", "Hide empty fields");
-			
-		} else {
-			var img = $(this).attr("src").replace("Hide","Show");
-			$(this).attr("src", img);
-			$(this).attr("title", "Show empty fields");
-		}
-	});*/
 	
 	$(".objectFormAttribute").mouseenter(function(){
 		objectFormHelpContainer = $(this).find(".objectFormHelpContainer");
@@ -111,22 +67,6 @@ function init() {
 		interval = setTimeout("showFormHelpContainer()",1000);
 	}).mouseleave(function(){
 		hideFormHelpContainer();
-	});
-	
-	$(".sortedTable table tbody tr").mouseenter(function(){
-		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
-			$(this).find("td").css("background", "#c6e9c6");
-		} else {
-			$(this).find("td").css("background", "#f2f2f2");
-		}
-	}).mouseleave(function(){
-		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
-			$(this).find("td").css("background", "#d8f4d8");
-			$(this).find("td").css("border-color","#FFFFFF");
-		} else {
-			$(this).find("td").css("background", "#FFFFFF");
-			$(this).find("td").css("border-color","#F2F2F2");
-		}
 	});
 	
 	$(".submitTable tbody tr").mouseenter(function(){
@@ -155,8 +95,6 @@ function init() {
         if (e.target.value == '')
             e.target.value = e.target.defaultValue;
     });
-    
-    $(".accordion").togglepanels();
     
     $(".optionLeftBar").mouseenter(function(){
     	$(this).css("cursor","pointer");
@@ -226,26 +164,6 @@ function setFooterPos(){
 		$("#footer").css("bottom", 0);
 	}
 }
-
-$.fn.togglepanels = function(){
-  return this.each(function(){
-    $(this).addClass("ui-accordion ui-accordion-icons ui-widget ui-helper-reset")
-  .find("h3")
-    .addClass("ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-corner-bottom")
-    .hover(function() { $(this).toggleClass("ui-state-hover"); })
-    .prepend('<span class="ui-icon ui-icon-triangle-1-e"></span>')
-    .click(function() {
-      $(this)
-        .toggleClass("ui-accordion-header-active ui-state-active ui-state-default ui-corner-bottom")
-        .find("> .ui-icon").toggleClass("ui-icon-triangle-1-e ui-icon-triangle-1-s").end()
-        .next().slideToggle();
-      return false;
-    })
-    .next()
-      .addClass("ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom")
-      .hide();
-  });
-};
 
 function loadScript(url){
     var script = document.createElement("script");

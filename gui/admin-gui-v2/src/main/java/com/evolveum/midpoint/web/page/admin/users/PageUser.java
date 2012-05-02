@@ -101,7 +101,6 @@ public class PageUser extends PageAdminUsers {
                 return loadAcccountWrappers();
             }
         };
-
         initLayout();
     }
 
@@ -148,6 +147,7 @@ public class PageUser extends PageAdminUsers {
         ObjectWrapper wrapper = new ObjectWrapper(null, null, user,
                 com.evolveum.midpoint.web.component.prism.ContainerStatus.MODIFYING);
         wrapper.setShowEmpty(!isEditingUser());
+        wrapper.setSelectable(true);
 
         return wrapper;
     }

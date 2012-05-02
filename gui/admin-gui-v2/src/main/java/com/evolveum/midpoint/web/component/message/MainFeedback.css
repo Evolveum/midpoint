@@ -92,6 +92,8 @@ ul.messagesTop .messages-topError-arrow {
     height: 16px;
     width: 16px;
     float: right;
+    top: 50%;
+    margin-top: -8px;
 }
 
 ul.messagesTop .messages-topError .arrow-down {
@@ -200,6 +202,25 @@ ul.messagesTop .messages-warn .selected {
 	border-bottom-left-radius: 0px;
 }
 
+ul.messagesTop .messages-Warn-arrow {
+	background-image: url(messages-warn-arrow.png);
+	background-repeat: no-repeat;
+	display: inline-block;
+    height: 16px;
+    width: 16px;
+    float: right;
+    top: 50%;
+    margin-top: -8px;
+}
+
+ul.messagesTop .messages-Warn .arrow-down {
+	background-position: 0px -32px;
+}
+
+ul.messagesTop .messages-Warn .arrow-up {
+	background-position: 0px 0px;
+}
+
 ul.messagesTop .messages-warn-details-section, ul.messagesTop .messages-warn .messages-warn-details-section {
 	padding: 2px 0px;
 	padding-left: 25px;
@@ -259,6 +280,25 @@ ul.messagesTop .messages-succ .selected {
 	border-bottom-right-radius: 0px;
 	-moz-border-radius-bottomleft: 0px;
 	border-bottom-left-radius: 0px;
+}
+
+ul.messagesTop .messages-Succ-arrow {
+	background-image: url(messages-succ-arrow.png);
+	background-repeat: no-repeat;
+	display: inline-block;
+    height: 16px;
+    width: 16px;
+    float: right;
+    top: 50%;
+    margin-top: -8px;
+}
+
+ul.messagesTop .messages-Succ .arrow-down {
+	background-position: 0px -32px;
+}
+
+ul.messagesTop .messages-Succ .arrow-up {
+	background-position: 0px 0px;
 }
 
 ul.messagesTop .messages-succ-details-section {
@@ -321,6 +361,25 @@ ul.messagesTop .messages-info .selected {
 	border-bottom-right-radius: 0px;
 	-moz-border-radius-bottomleft: 0px;
 	border-bottom-left-radius: 0px;
+}
+
+ul.messagesTop .messages-Info-arrow {
+	background-image: url(messages-succ-arrow.png);
+	background-repeat: no-repeat;
+	display: inline-block;
+    height: 16px;
+    width: 16px;
+    float: right;
+    top: 50%;
+    margin-top: -8px;
+}
+
+ul.messagesTop .messages-Info .arrow-down {
+	background-position: 0px -32px;
+}
+
+ul.messagesTop .messages-Info .arrow-up {
+	background-position: 0px 0px;
 }
 
 ul.messagesTop .messages-info-details-section, ul.messagesTop .messages-info .messages-info-details-section {

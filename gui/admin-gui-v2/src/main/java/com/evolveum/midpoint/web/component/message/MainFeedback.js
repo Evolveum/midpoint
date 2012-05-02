@@ -20,6 +20,25 @@
  */
 
 function initMessages() {
+	jQuery(".messagesTop").find(".messages-topPanel").each(function(index){
+		var arrow;
+		var className = $(this).attr('class');
+		if(className.indexOf("messages-topError")){
+			arrow = "messages-topError";
+		} else if(className.indexOf("messages-topSucc")){
+			arrow = "messages-topSucc";
+		} else if(className.indexOf("messages-topWarn")){
+			arrow = "messages-topWarn";
+		} else {
+			arrow = "messages-topInfo";
+		}
+		
+		var blockContent = $(this).parent().find(".messages-content");
+		if(blockContent.length > 0){
+			$(this).append("<span class='"+ arrow +"-arrow arrow-down'></span>");
+		}
+	});
+	
 	//$(document).find("messages-topError");
 	$(".messages-topError").mouseenter(function(){
 		var idBlock = $(this).attr("id");
