@@ -42,6 +42,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import java.util.List;
@@ -140,11 +141,9 @@ public abstract class PageBase extends WebPage {
         return createStringResource(resourceKey);
     }
 
-    public void showResult(OperationResult result) {
-        Validate.notNull(result, "Operation result must not be null.");
-        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
-
-        OpResult opResult = new OpResult(result);
+    public void showResult(OpResult opResult) {
+        Validate.notNull(opResult, "Operation result must not be null.");
+        Validate.notNull(opResult.getStatus(), "Operation result status must not be null.");
 
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
@@ -163,5 +162,13 @@ public abstract class PageBase extends WebPage {
             default:
                 warn(opResult);
         }
+    }
+
+    public void showResult(OperationResult result) {
+        Validate.notNull(result, "Operation result must not be null.");
+        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
+
+        OpResult opResult = new OpResult(result);
+        showResult(opResult);
     }
 }

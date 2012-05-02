@@ -26,14 +26,12 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.web.component.objectform.InputPanel;
 import com.evolveum.midpoint.web.component.objectform.input.DatePanel;
 import com.evolveum.midpoint.web.component.objectform.input.TextPanel;
-import com.evolveum.midpoint.web.page.login.PageLogin;
-
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.image.Image;
@@ -117,7 +115,7 @@ public class PrismValuePanel extends Panel {
         InputPanel component = createTypedInputComponent(id);
 
         final FormComponent formComponent = component.getComponent();
-        formComponent.add(new SimpleAttributeModifier("size", "42"));
+        formComponent.add(new AttributeModifier("size", "42"));
         formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
 
             @Override

@@ -42,17 +42,17 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     private T container;
     private ContainerStatus status;
 
-    private boolean main;
+    private PropertyPath path;
     private List<PropertyWrapper> properties;
 
-    public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, boolean main) {
+    public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, PropertyPath path) {
         Validate.notNull(container, "Prism object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
 
         this.object = object;
         this.container = container;
         this.status = status;
-        this.main = main;
+        this.path = path;
     }
 
     ObjectWrapper getObject() {
@@ -130,7 +130,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
 
     public boolean isMain() {
-        return main;
+        return path == null;
     }
 
     static String getDisplayNameFromItem(Item item) {

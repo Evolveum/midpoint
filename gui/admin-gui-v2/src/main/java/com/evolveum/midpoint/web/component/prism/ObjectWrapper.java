@@ -21,8 +21,6 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -30,10 +28,8 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import org.apache.commons.lang.Validate;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +51,7 @@ public class ObjectWrapper implements Serializable {
     private boolean selectable;
     private boolean selected;
 
-	public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
+    public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
 
@@ -104,22 +100,22 @@ public class ObjectWrapper implements Serializable {
     public void setShowEmpty(boolean showEmpty) {
         this.showEmpty = showEmpty;
     }
-    
+
     public boolean isSelectable() {
-		return selectable;
-	}
+        return selectable;
+    }
 
-	public void setSelectable(boolean selectable) {
-		this.selectable = selectable;
-	}
-	
-	public boolean isSelected() {
-		return selected;
-	}
+    public void setSelectable(boolean selectable) {
+        this.selectable = selectable;
+    }
 
-	public void setSelected(boolean selected) {
-		this.selected = selected;
-	}
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
 
     public List<ContainerWrapper> getContainers() {
         if (containers == null) {
@@ -131,20 +127,30 @@ public class ObjectWrapper implements Serializable {
     private List<ContainerWrapper> createContainers() {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
-        Collection<ItemDefinition> definitions = new ArrayList<ItemDefinition>();
         if (AccountShadowType.class.equals(object.getCompileTimeClass())) {
             ContainerWrapper container = new ContainerWrapper(this, object.findContainer(AccountShadowType.F_ATTRIBUTES),
-                    getStatus(), true);
+                    getStatus(), null);
             containers.add(container);
             //todo credentials, activation fix for accounts as well as for user (or other objects)
         } else {
-            ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), true);
+            ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null);
             containers.add(container);
-            PrismObjectDefinition definition = object.getDefinition();
-            definitions.addAll(definition.getDefinitions());
+
+            containers.addAll(createContainerWrapper(object, null));
         }
 
-        for (ItemDefinition def : definitions) {
+        return containers;
+    }
+
+    private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, PropertyPath path) {
+        PrismContainerDefinition definition = parent.getDefinition();
+        List<ContainerWrapper> wrappers = new ArrayList<ContainerWrapper>();
+
+        List<PropertyPathSegment> segments = path != null ? path.getSegments() : new ArrayList<PropertyPathSegment>();
+        segments.add(new PropertyPathSegment(definition.getName()));
+        PropertyPath newPath = new PropertyPath(segments);
+
+        for (ItemDefinition def : (Collection<ItemDefinition>) definition.getDefinitions()) {
             if (!(def instanceof PrismContainerDefinition)) {
                 continue;
             }
@@ -155,16 +161,19 @@ public class ObjectWrapper implements Serializable {
             }
 
             PrismContainer prismContainer = object.findContainer(def.getName());
-            if (prismContainer == null) {
-                containers.add(new ContainerWrapper(this, containerDef.instantiate(),
-                        ContainerStatus.MODIFYING, false));
+            if (prismContainer != null) {
+                wrappers.add(new ContainerWrapper(this, prismContainer,
+                        ContainerStatus.MODIFYING, newPath));
             } else {
-                containers.add(new ContainerWrapper(this, containerDef.instantiate(),
-                        ContainerStatus.ADDING, false));
+                prismContainer = containerDef.instantiate();
+                wrappers.add(new ContainerWrapper(this, prismContainer,
+                        ContainerStatus.ADDING, newPath));
             }
+
+            wrappers.addAll(createContainerWrapper(prismContainer, newPath));
         }
 
-        return containers;
+        return wrappers;
     }
 
     public ObjectDelta getObjectDelta() {
