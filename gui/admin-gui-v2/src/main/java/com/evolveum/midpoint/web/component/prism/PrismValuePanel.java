@@ -22,10 +22,13 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.web.component.objectform.InputPanel;
-import com.evolveum.midpoint.web.component.objectform.input.DatePanel;
-import com.evolveum.midpoint.web.component.objectform.input.TextPanel;
+import com.evolveum.midpoint.web.component.prism.input.DatePanel;
+import com.evolveum.midpoint.web.component.prism.input.PasswordPanel;
+import com.evolveum.midpoint.web.component.prism.input.TextPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -97,8 +100,15 @@ public class PrismValuePanel extends Panel {
             }
         };
         addButton.add(new Image("addIcon", new PackageResourceReference(PrismValuePanel.class, "AddSmall.png")));
+        addButton.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isAddButtonVisible();
+            }
+        });
         add(addButton);
-        
+
         AjaxLink removeButton = new AjaxLink("removeButton") {
 
             @Override
@@ -107,7 +117,55 @@ public class PrismValuePanel extends Panel {
             }
         };
         removeButton.add(new Image("removeIcon", new PackageResourceReference(PrismValuePanel.class, "DeleteSmall.png")));
+        removeButton.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isRemoveButtonVisible();
+            }
+        });
         add(removeButton);
+    }
+
+    private boolean isRemoveButtonVisible() {
+        ValueWrapper valueWrapper = model.getObject();
+        PropertyWrapper propertyWrapper = valueWrapper.getProperty();
+        if (propertyWrapper.getValues().size() == 0) {
+            return false;
+        }
+
+        PrismProperty property = propertyWrapper.getProperty();
+        PrismPropertyDefinition definition = property.getDefinition();
+        if (propertyWrapper.getValues().size() == 1) {
+            ValueWrapper first = propertyWrapper.getValues().get(0);
+            if (ValueStatus.DELETED.equals(first.getStatus())) {
+                return false;
+            }
+
+            if (ValueStatus.ADDED.equals(first.getStatus()) && !first.hasValueChanged()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isAddButtonVisible() {
+        ValueWrapper valueWrapper = model.getObject();
+        PropertyWrapper propertyWrapper = valueWrapper.getProperty();
+        PrismProperty property = propertyWrapper.getProperty();
+
+        PrismPropertyDefinition definition = property.getDefinition();
+        int max = definition.getMaxOccurs();
+        if (max == -1) {
+            return true;
+        }
+
+        if (propertyWrapper.getValues().size() >= max) {
+            return false;
+        }
+
+        return true;
     }
 
     private InputPanel createInputComponent(String id, final FeedbackPanel feedback) {
@@ -142,6 +200,8 @@ public class PrismValuePanel extends Panel {
         InputPanel panel;
         if (new QName(W3C_XML_SCHEMA_NS_URI, "dateTime").equals(valueType)) {
             panel = new DatePanel(id, new PropertyModel<Date>(model, "value.value"));
+        } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
+            panel = new PasswordPanel(id);
         } else {
             panel = new TextPanel<String>(id, new PropertyModel<String>(model, "value.value"));
         }
