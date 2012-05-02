@@ -22,11 +22,14 @@
 package com.evolveum.midpoint.web.component.prism.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.util.MiscUtil;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
 
 /**
@@ -34,17 +37,39 @@ import java.util.Date;
  */
 public class DatePanel extends InputPanel {
 
-    public DatePanel(String id, IModel<Date> model) {
+    public DatePanel(String id, IModel<XMLGregorianCalendar> model) {
         super(id);
 
-        DateTextField date = DateTextField.forDatePattern("input", model, "dd/MMM/yyyy");
+        DateTextField date = DateTextField.forDatePattern("input", createDateModel(model), "dd/MMM/yyyy");
         date.add(new DatePicker());
         add(date);
     }
 
-
     @Override
     public FormComponent getComponent() {
         return (FormComponent) get("input");
+    }
+
+    private IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
+        return new Model<Date>() {
+
+            @Override
+            public Date getObject() {
+                XMLGregorianCalendar calendar = model.getObject();
+                if (calendar == null) {
+                    return null;
+                }
+                return MiscUtil.asDate(calendar);
+            }
+
+            @Override
+            public void setObject(Date object) {
+                if (object == null) {
+                    model.setObject(null);
+                } else {
+                    model.setObject(MiscUtil.asXMLGregorianCalendar(object));
+                }
+            }
+        };
     }
 }

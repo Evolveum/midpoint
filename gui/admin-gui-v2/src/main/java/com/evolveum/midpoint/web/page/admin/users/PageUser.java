@@ -465,6 +465,7 @@ public class PageUser extends PageAdminUsers {
         }
 
         showResult(result);
+        target.add(getFeedbackPanel());
         //todo implement
     }
 

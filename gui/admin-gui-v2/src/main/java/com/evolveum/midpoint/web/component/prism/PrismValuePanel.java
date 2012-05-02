@@ -46,6 +46,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.Date;
 import java.util.List;
@@ -227,7 +228,7 @@ public class PrismValuePanel extends Panel {
 
         InputPanel panel;
         if (new QName(W3C_XML_SCHEMA_NS_URI, "dateTime").equals(valueType)) {
-            panel = new DatePanel(id, new PropertyModel<Date>(model, "value.value"));
+            panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, "value.value"));
 //        } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
 //            panel = new PasswordPanel(id, new PropertyModel<String>(model, "value.value"));
         } else {

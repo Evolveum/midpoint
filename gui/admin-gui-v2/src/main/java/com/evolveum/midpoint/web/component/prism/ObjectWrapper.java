@@ -235,6 +235,9 @@ public class ObjectWrapper implements Serializable {
             }
 
             PrismContainer container = containerWrapper.getContainer();
+            if (containerWrapper.getPath() != null) {
+                object.addReplaceExisting(container);
+            }
             for (PropertyWrapper propertyWrapper : (List<PropertyWrapper>) containerWrapper.getProperties()) {
                 if (!propertyWrapper.hasChanged()) {
                     continue;
@@ -251,6 +254,7 @@ public class ObjectWrapper implements Serializable {
                 }
             }
         }
+        delta.setObjectToAdd(object);
 
         return delta;
     }
