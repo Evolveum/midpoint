@@ -94,7 +94,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected List<ObjectWrapper> load() {
-                return loadAcccountWrappers();
+                return loadAccountWrappers();
             }
         };
         initLayout();
@@ -190,13 +190,6 @@ public class PageUser extends PageAdminUsers {
 //        			protected Panel createOperationPanel(String id) {
 //        				return new AccountOperationButtons(id, item.getModel());
 //        			}
-
-                    @Override
-                    public WebMarkupContainer createFooterPanel(String footerId, IModel<ObjectWrapper> model) {
-                        //todo
-                        return new AccountFooterPanel(footerId, new Model("some id"),
-                                new Model<String>("probably active"));
-                    }
                 };
                 item.add(account);
             }
@@ -205,7 +198,7 @@ public class PageUser extends PageAdminUsers {
         accounts.getBodyContainer().add(accountList);
     }
 
-    private List<ObjectWrapper> loadAcccountWrappers() {
+    private List<ObjectWrapper> loadAccountWrappers() {
         List<ObjectWrapper> list = new ArrayList<ObjectWrapper>();
 
         ObjectWrapper user = userModel.getObject();

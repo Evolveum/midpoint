@@ -276,7 +276,7 @@ div.objectForm .tableForm .tableFormFoot .objectFormFooter {
 
 div.objectForm .tableForm .objectFormFooter {
 	position: relative;
-	padding: 10px;
+	/*padding: 10px;*/
 }
 
 div.objectForm .tableForm .objectFormFooter .statusBarHeader {

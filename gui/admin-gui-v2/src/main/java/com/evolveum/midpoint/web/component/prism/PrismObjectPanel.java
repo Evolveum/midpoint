@@ -101,14 +101,18 @@ public class PrismObjectPanel extends Panel {
         body.add(containers);
 
         WebMarkupContainer footer = createFooterPanel("footer", model);
-        footer.add(new VisibleEnableBehaviour() {
+        if (!(footer instanceof EmptyPanel)) {
+            footer.add(new VisibleEnableBehaviour() {
 
-            @Override
-            public boolean isVisible() {
-                ObjectWrapper wrapper = model.getObject();
-                return wrapper.isMinimalized();
-            }
-        });
+                @Override
+                public boolean isVisible() {
+                    ObjectWrapper wrapper = model.getObject();
+                    return wrapper.isMinimalized();
+                }
+            });
+        } else {
+            footer.setVisible(false);
+        }
         add(footer);
     }
 
@@ -125,37 +129,37 @@ public class PrismObjectPanel extends Panel {
     }
 
     private void initButtons(WebMarkupContainer headerPanel, final IModel<ObjectWrapper> model) {
-        headerPanel.add(new PrismOptionButtonPanel("optionButtons", model){
-        	
-        	@Override
-        	public void checkBoxOnUpdate(AjaxRequestTarget target) {
+        headerPanel.add(new PrismOptionButtonPanel("optionButtons", model) {
+
+            @Override
+            public void checkBoxOnUpdate(AjaxRequestTarget target) {
                 ObjectWrapper wrapper = model.getObject();
                 wrapper.setSelected(!wrapper.isSelected());
                 target.add(PrismObjectPanel.this);
-        		super.checkBoxOnUpdate(target);
-        	}
-        	
-        	@Override
-        	public void minimizeOnClick(AjaxRequestTarget target) {
+                super.checkBoxOnUpdate(target);
+            }
+
+            @Override
+            public void minimizeOnClick(AjaxRequestTarget target) {
                 ObjectWrapper wrapper = model.getObject();
                 wrapper.setMinimalized(!wrapper.isMinimalized());
                 target.add(PrismObjectPanel.this);
-        		super.minimizeOnClick(target);
-        	}
-        	
-        	@Override
-        	public void showEmptyOnClick(AjaxRequestTarget target) {
+                super.minimizeOnClick(target);
+            }
+
+            @Override
+            public void showEmptyOnClick(AjaxRequestTarget target) {
                 ObjectWrapper wrapper = model.getObject();
                 wrapper.setShowEmpty(!wrapper.isShowEmpty());
                 target.add(PrismObjectPanel.this);
-        		super.showEmptyOnClick(target);
-        	}
+                super.showEmptyOnClick(target);
+            }
         });
         headerPanel.add(createOperationPanel("operationButtons"));
     }
-    
+
     protected Panel createOperationPanel(String id) {
-    	return new EmptyPanel(id);
+        return new EmptyPanel(id);
     }
 
     public boolean isShowHeader() {
