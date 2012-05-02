@@ -26,20 +26,21 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.validation.EqualPasswordInputValidator;
+import org.apache.wicket.model.IModel;
 
 /**
  * @author lazyman
  */
 public class PasswordPanel extends InputPanel {
 
-    public PasswordPanel(String id) {
+    public PasswordPanel(String id, IModel<String> model) {
         super(id);
 
-        initLayout();
+        initLayout(model);
     }
 
-    private void initLayout() {
-        PasswordTextField password1 = new PasswordTextField("password1");
+    private void initLayout(IModel<String> model) {
+        PasswordTextField password1 = new PasswordTextField("password1", model);
         add(password1);
 
         PasswordTextField password2 = new PasswordTextField("password2");

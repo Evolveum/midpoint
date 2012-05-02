@@ -56,6 +56,11 @@ public class PageAdminUsers extends PageAdmin {
             public boolean isVisible() {
                 return isEditingUser();
             }
+
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
         }));
 
         return items;

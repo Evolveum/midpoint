@@ -36,7 +36,6 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.prism.AccountFooterPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -47,7 +46,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -60,12 +58,10 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -143,9 +139,8 @@ public class PageUser extends PageAdminUsers {
                 ex.printStackTrace();
             }
         }
-
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, user,
-                com.evolveum.midpoint.web.component.prism.ContainerStatus.MODIFYING);
+        ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        ObjectWrapper wrapper = new ObjectWrapper(null, null, user, status);
         wrapper.setShowEmpty(!isEditingUser());
         wrapper.setSelectable(true);
 
@@ -267,7 +262,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                onSaveError(target, form);
+                target.add(getFeedbackPanel());
             }
         };
         mainForm.add(save);
@@ -302,6 +297,33 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(cancel);
 
+        initAccountButtons(mainForm);
+        initRoleButtons(mainForm);
+    }
+
+    private void initRoleButtons(Form mainForm) {
+        AjaxLinkButton addRole = new AjaxLinkButton("addRole",
+                createStringResource("pageUser.button.add")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                resourcesPopupWindow.show(target);
+            }
+        };
+        mainForm.add(addRole);
+
+        AjaxLinkButton deleteRole = new AjaxLinkButton("deleteRole",
+                createStringResource("pageUser.button.delete")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteAssignmentsPerformed(target);
+            }
+        };
+        mainForm.add(deleteRole);
+    }
+
+    private void initAccountButtons(Form mainForm) {
         AjaxLinkButton addAccount = new AjaxLinkButton("addAccount",
                 createStringResource("pageUser.button.add")) {
 
@@ -317,7 +339,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //TODO enable selected task
+                enableAccountPerformed(target);
             }
         };
         mainForm.add(enableAccount);
@@ -327,7 +349,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //TODO disable selected task
+                disableAccountPerformed(target);
             }
         };
         mainForm.add(disableAccount);
@@ -337,31 +359,10 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //TODO delete selected task
+                deleteAccountPerformed(target);
             }
         };
         mainForm.add(deleteAccount);
-
-        AjaxLinkButton addResource = new AjaxLinkButton("addResource",
-                createStringResource("pageUser.button.add")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                resourcesPopupWindow.show(target);
-            }
-        };
-        mainForm.add(addResource);
-
-        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource",
-                createStringResource("pageUser.button.delete")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                //TODO delete selected resources
-            }
-        };
-        mainForm.add(deleteResource);
-
     }
 
     private ModalWindow createAccountsWindow() {
@@ -440,32 +441,30 @@ public class PageUser extends PageAdminUsers {
         ObjectWrapper userWrapper = userModel.getObject();
 
         OperationResult result = new OperationResult(OPERATION_SAVE_USER);
-        ObjectDelta delta = userWrapper.getObjectDelta();
-        if (delta == null || delta.isEmpty()) {
-
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("User delta: {}", new Object[]{delta.debugDump(3)});
-        }
-
         try {
             Task task = getTaskManager().createTaskInstance(OPERATION_SAVE_USER);
+            ObjectDelta delta = userWrapper.getObjectDelta();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("User delta: {}", new Object[]{delta.debugDump(3)});
+            }
 
             switch (delta.getChangeType()) {
                 case MODIFY:
                     getModelService().modifyObject(UserType.class, delta.getOid(), delta.getModifications(), task, result);
                     break;
                 case ADD:
-
+                    getModelService().addObject(delta.getObjectToAdd(), task, result);
                     break;
                 case DELETE:
                 default:
                     error("Unsupported user delta change '" + delta.getChangeType() + "'."); //todo localize
             }
+            result.recordSuccess();
         } catch (Exception ex) {
-
+            result.recordFatalError("Couldn't save user.", ex);
         }
+
+        showResult(result);
         //todo implement
     }
 
@@ -477,7 +476,19 @@ public class PageUser extends PageAdminUsers {
 //        //todo implement
 //    }
 
-    private void onSaveError(AjaxRequestTarget target, Form form) {
+    private void deleteAssignmentsPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void enableAccountPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void disableAccountPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void deleteAccountPerformed(AjaxRequestTarget target) {
         //todo implement
     }
 }

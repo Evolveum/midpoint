@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -176,7 +177,7 @@ public class ObjectWrapper implements Serializable {
         return wrappers;
     }
 
-    public ObjectDelta getObjectDelta() {
+    public ObjectDelta getObjectDelta() throws SchemaException {
         if (ContainerStatus.ADDING.equals(getStatus())) {
             return createAddingObjectDelta();
         }
@@ -225,9 +226,31 @@ public class ObjectWrapper implements Serializable {
         return delta;
     }
 
-    private ObjectDelta createAddingObjectDelta() {
+    private ObjectDelta createAddingObjectDelta() throws SchemaException {
         ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.ADD);
-        //todo implement
+
+        for (ContainerWrapper containerWrapper : getContainers()) {
+            if (!containerWrapper.hasChanged()) {
+                continue;
+            }
+
+            PrismContainer container = containerWrapper.getContainer();
+            for (PropertyWrapper propertyWrapper : (List<PropertyWrapper>) containerWrapper.getProperties()) {
+                if (!propertyWrapper.hasChanged()) {
+                    continue;
+                }
+
+                PrismProperty property = propertyWrapper.getProperty();
+                container.add(property);
+                for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
+                    if (!valueWrapper.hasValueChanged() && ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
+                        continue;
+                    }
+
+                    property.addValue(valueWrapper.getValue());
+                }
+            }
+        }
 
         return delta;
     }
