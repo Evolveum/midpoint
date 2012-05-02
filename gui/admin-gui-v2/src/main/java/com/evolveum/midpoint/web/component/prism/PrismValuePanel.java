@@ -127,24 +127,52 @@ public class PrismValuePanel extends Panel {
         add(removeButton);
     }
 
+    private int countUsableValues(PropertyWrapper property) {
+        int count = 0;
+        for (ValueWrapper value : property.getValues()) {
+            if (ValueStatus.DELETED.equals(value.getStatus())) {
+                continue;
+            }
+
+            if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
+                continue;
+            }
+
+            count++;
+        }
+        return count;
+    }
+
+    private int countNonDeletedValues(PropertyWrapper property) {
+        int count = 0;
+        for (ValueWrapper value : property.getValues()) {
+            if (ValueStatus.DELETED.equals(value.getStatus())) {
+                continue;
+            }
+            count++;
+        }
+        return count;
+    }
+
+    private boolean hasEmptyPlaceholder(PropertyWrapper property) {
+        for (ValueWrapper value : property.getValues()) {
+            if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private boolean isRemoveButtonVisible() {
         ValueWrapper valueWrapper = model.getObject();
         PropertyWrapper propertyWrapper = valueWrapper.getProperty();
-        if (propertyWrapper.getValues().size() == 0) {
+        PrismPropertyDefinition definition = propertyWrapper.getProperty().getDefinition();
+        int min = definition.getMinOccurs();
+
+        int count = countNonDeletedValues(propertyWrapper);
+        if (count <= 1 || count <= min) {
             return false;
-        }
-
-        PrismProperty property = propertyWrapper.getProperty();
-        PrismPropertyDefinition definition = property.getDefinition();
-        if (propertyWrapper.getValues().size() == 1) {
-            ValueWrapper first = propertyWrapper.getValues().get(0);
-            if (ValueStatus.DELETED.equals(first.getStatus())) {
-                return false;
-            }
-
-            if (ValueStatus.ADDED.equals(first.getStatus()) && !first.hasValueChanged()) {
-                return false;
-            }
         }
 
         return true;
@@ -161,7 +189,7 @@ public class PrismValuePanel extends Panel {
             return true;
         }
 
-        if (propertyWrapper.getValues().size() >= max) {
+        if (countNonDeletedValues(propertyWrapper) >= max) {
             return false;
         }
 
@@ -235,6 +263,11 @@ public class PrismValuePanel extends Panel {
             case NOT_CHANGED:
                 wrapper.setStatus(ValueStatus.DELETED);
                 break;
+        }
+
+        int count = countUsableValues(propertyWrapper);
+        if (count == 0 && !hasEmptyPlaceholder(propertyWrapper)) {
+            values.add(new ValueWrapper(propertyWrapper, new PrismPropertyValue(null), ValueStatus.ADDED));
         }
 
         ListView parent = findParent(ListView.class);

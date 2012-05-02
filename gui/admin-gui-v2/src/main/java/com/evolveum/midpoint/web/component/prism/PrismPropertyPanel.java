@@ -63,10 +63,22 @@ public class PrismPropertyPanel extends Panel {
                 new PropertyModel<List<ValueWrapper>>(model, "values")) {
 
             @Override
-            protected void populateItem(ListItem<ValueWrapper> item) {
+            protected void populateItem(final ListItem<ValueWrapper> item) {
                 item.add(new PrismValuePanel("value", item.getModel()));
+                item.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isVisible() {
+                        return isVisibleValue(item.getModel());
+                    }
+                });
             }
         };
         add(values);
+    }
+
+    private boolean isVisibleValue(IModel<ValueWrapper> model) {
+        ValueWrapper value = model.getObject();
+        return !ValueStatus.DELETED.equals(value.getStatus());
     }
 }
