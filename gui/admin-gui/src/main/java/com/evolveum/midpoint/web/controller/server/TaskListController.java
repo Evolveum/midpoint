@@ -211,7 +211,7 @@ public class TaskListController extends SortableListController<TaskItem> {
             			"However, although requested to shut down, it has not stopped yet. " + 
             			"Please check using the 'List currently executing tasks' function.");
 
-        } catch (ObjectNotFoundException ex) {
+        } catch (Exception ex) {
             FacesUtils.addErrorMessage(
                     "Task with oid " + selectedTask.getOid() + " not found. Reason: " + ex.getMessage(), ex);
             result.recordFatalError(
@@ -300,11 +300,14 @@ public class TaskListController extends SortableListController<TaskItem> {
     }
 
     public void reactivate() {
-        if (taskManager.reactivateServiceThreads()) {
-            FacesUtils.addSuccessMessage("All task manager threads have been reactivated.");
-        } else {
-            FacesUtils.addErrorMessage("Task manager threads could not be reactivated, please see the log.");
-        }
+        OperationResult result = new OperationResult("reactivate service threads.");
+        taskManager.reactivateServiceThreads(result)        ;
+        FacesUtils.addMessage(result);
+//        if () {
+//            FacesUtils.addSuccessMessage("All task manager threads have been reactivated.");
+//        } else {
+//            FacesUtils.addErrorMessage("Task manager threads could not be reactivated, please see the log.");
+//        }
     }
 
 //    public boolean isActivated() {
