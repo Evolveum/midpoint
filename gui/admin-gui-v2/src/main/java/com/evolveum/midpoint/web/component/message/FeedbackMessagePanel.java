@@ -109,7 +109,7 @@ public class FeedbackMessagePanel extends Panel {
         content.setMarkupId(label.getMarkupId() + "_content");
         add(content);
         
-        content.add(new Label("operation", new PropertyModel<String>(message, "operation")));
+        content.add(new Label("operation", new PropertyModel<String>(createResultModel(message), "operation")));
         
         ListView<Param> params = new ListView<Param>("params", 
         		OperationResultPanel.createParamsModel(createResultModel(message))) {
@@ -126,13 +126,13 @@ public class FeedbackMessagePanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                IModel<OpResult> result = createResultModel(message);
-                return StringUtils.isNotEmpty(result.getObject().getExceptionMessage())
-                        || StringUtils.isNotEmpty(result.getObject().getExceptionsStackTrace());
+                OpResult result = createResultModel(message).getObject();
+                return StringUtils.isNotEmpty(result.getExceptionMessage())
+                        || StringUtils.isNotEmpty(result.getExceptionsStackTrace());
             }
         };
         content.add(exception);
-        exception.add(new Label("exceptionMessage", new PropertyModel<String>(message, "exceptionMessage")));
+        exception.add(new Label("exceptionMessage", new PropertyModel<String>(createResultModel(message), "exceptionMessage")));
 
         WebMarkupContainer errorStack = new WebMarkupContainer("errorStack");
         errorStack.setOutputMarkupId(true);
@@ -142,7 +142,7 @@ public class FeedbackMessagePanel extends Panel {
         errorStackContent.setMarkupId(errorStack.getMarkupId() + "_content");
         exception.add(errorStackContent);
 
-        errorStackContent.add(new Label("exceptionStack", new PropertyModel<String>(message, "exceptionsStackTrace")));
+        errorStackContent.add(new Label("exceptionStack", new PropertyModel<String>(createResultModel(message), "exceptionsStackTrace")));
     }
 
     private String getDetailsCss(final IModel<OpResult> model) {
@@ -172,8 +172,12 @@ public class FeedbackMessagePanel extends Panel {
 
             @Override
             protected OpResult load() {
-                OpResult result = (OpResult) model.getObject().getMessage();
-                return result;
+            	Serializable serializable = model.getObject().getMessage();
+            	if(serializable instanceof OpResult){
+            		OpResult result = (OpResult) serializable;
+                    return result;
+            	}
+            	return new OpResult(null);
             }
         };
     }
