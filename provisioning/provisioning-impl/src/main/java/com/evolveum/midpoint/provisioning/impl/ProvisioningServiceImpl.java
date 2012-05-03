@@ -677,6 +677,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			PagingType paging, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException, SecurityViolationException {
 
+        //TODO reimplement !!!!!!!!!!!
+        if (query == null) {
+            return listObjects(type, paging, parentResult);
+        }
+
 		final List<PrismObject<T>> objListType = new ArrayList<PrismObject<T>>();
 
 		final ResultHandler<T> handler = new ResultHandler<T>() {
@@ -695,8 +700,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException {
-		// TODO: Implement
-		throw new UnsupportedOperationException();
+		// TODO: Implement     !!!!!
+
+        OperationResult result = parentResult.createSubresult("REIMPLEMENT !!!!!!!!!!!!!!!");
+        int count = 0;
+        try {
+            count = cacheRepositoryService.countObjects(type, query, result);
+        }   catch (Exception ex) {
+            throw new SystemException(ex.getMessage(), ex);
+        }
+        return count;
 	}
 
 	@Override
