@@ -95,7 +95,22 @@ public class LocalExecutionManager {
 
         quartzProperties.put("org.quartz.scheduler.skipUpdateCheck", "true");
         quartzProperties.put("org.quartz.threadPool.threadCount", Integer.toString(configuration.getThreads()));
-        quartzProperties.put("org.quartz.scheduler.idleWaitTime", "10000");
+
+        // in test mode we set idleWaitTime to a lower value, because on some occasions
+        // the Quartz scheduler "forgots" to fire a trigger immediately after creation,
+        // and the default delay of 10s is too much for most of the tests.
+        int schedulerLoopTime;
+        if (configuration.isReusableQuartzScheduler()) {
+            if (configuration.isJdbcJobStore()) {
+                schedulerLoopTime = 5000;
+            } else {
+                schedulerLoopTime = 2000;
+            }
+        } else {
+            schedulerLoopTime = 10000;
+        }
+
+        quartzProperties.put("org.quartz.scheduler.idleWaitTime", Integer.toString(schedulerLoopTime));
 
         quartzProperties.put("org.quartz.scheduler.jmx.export", "true");
 
@@ -229,28 +244,31 @@ public class LocalExecutionManager {
         }
     }
 
-    void stopSchedulerLocally() {
+    void stopSchedulerLocally(OperationResult result) {
         try {
             pauseScheduler();
         } catch (TaskManagerException e) {
-            LoggingUtils.logException(LOGGER, "An exception occurred while stopping the scheduler", e);
+            LoggingUtils.logException(LOGGER, "An exception occurred while trying to pause the scheduler", e);
+            result.recordFatalError("Cannot pause local scheduler", e);
         }
     }
 
-    boolean startSchedulerLocally() {
+    void startSchedulerLocally(OperationResult result) {
 
         if (taskManager.isInErrorState()) {
-            LOGGER.warn("Cannot start the scheduler, because Task Manager is in error state ({})", taskManager.getLocalNodeErrorStatus());
-            return false;
+            String message = "Cannot start the scheduler, because Task Manager is in error state (" + taskManager.getLocalNodeErrorStatus() + ")";
+            LOGGER.error(message);
+            result.recordFatalError(message);
+            return;
         }
 
         try {
             startScheduler();
             LOGGER.debug("Quartz scheduler started.");
-            return true;
+            result.recordSuccess();
         } catch (TaskManagerException e) {
             LoggingUtils.logException(LOGGER, "Cannot (re)start Quartz scheduler.", e);
-            return false;
+            result.recordFatalError("Cannot (re)start Quartz scheduler.", e);
         }
     }
 

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
+import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.TriggerKey;
@@ -59,13 +60,15 @@ public class GlobalExecutionManager {
      * ==================== NODE-LEVEL METHODS (WITH EFFECTS) ====================
      */
 
-    public void stopScheduler(String nodeIdentifier) {
+    public void stopScheduler(String nodeIdentifier, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".stopScheduler");
+        result.addParam("nodeIdentifier", nodeIdentifier);
         if (isCurrentNode(nodeIdentifier)) {
-            getLocalExecutionManager().stopSchedulerLocally();
+            getLocalExecutionManager().stopSchedulerLocally(result);
         } else {
-            // TODO: use Cluster Manager
-            throw new UnsupportedOperationException();
+            getRemoteNodesManager().stopRemoteScheduler(nodeIdentifier, result);
         }
+        result.recordSuccessIfUnknown();
     }
 
 
@@ -78,13 +81,15 @@ public class GlobalExecutionManager {
         }
     }
 
-    public boolean startScheduler(String nodeIdentifier) {
+    public void startScheduler(String nodeIdentifier, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".startScheduler");
+        result.addParam("nodeIdentifier", nodeIdentifier);
         if (isCurrentNode(nodeIdentifier)) {
-            return getLocalExecutionManager().startSchedulerLocally();
+            getLocalExecutionManager().startSchedulerLocally(result);
         } else {
-            // TODO: use Cluster Manager
-            throw new UnsupportedOperationException();
+            getRemoteNodesManager().startRemoteScheduler(nodeIdentifier, result);
         }
+        result.recordSuccessIfUnknown();
     }
 
     /*
@@ -98,7 +103,7 @@ public class GlobalExecutionManager {
         ClusterStatusInformation retval = new ClusterStatusInformation();
 
         if (clusterwide) {
-            for (PrismObject<NodeType> node : getClusterManager().getAllNodes(result)) {
+            for (PrismObject<NodeType> node : taskManager.getAllNodes(result)) {
                 try {
                     addNodeAndTaskInformation(retval, node);
                 } catch (TaskManagerException e) {
@@ -282,6 +287,16 @@ public class GlobalExecutionManager {
             throw new TaskManagerException("Cannot unschedule task " + task, e);
         }
     }
+
+    public void removeTaskFromQuartz(String oid) throws TaskManagerException {
+        JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTaskOid(oid);
+        try {
+            quartzScheduler.deleteJob(jobKey);
+        } catch (SchedulerException e) {
+            throw new TaskManagerException("Cannot delete task " + oid + " from Quartz job store", e);
+        }
+    }
+
 
     /*
     * ==================== THREAD QUERY METHODS ====================

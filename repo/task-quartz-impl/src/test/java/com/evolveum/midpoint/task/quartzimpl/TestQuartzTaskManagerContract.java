@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 
 import org.opends.server.types.Attribute;
 import org.opends.server.types.SearchResultEntry;
+import org.quartz.JobKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -115,7 +116,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     private static boolean repoInitialized = false;
 
     @Autowired(required = true)
-    private TaskManager taskManager;
+    private TaskManagerQuartzImpl taskManager;
 
     @Autowired(required = true)
     private PrismContext prismContext;
@@ -792,6 +793,37 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     }
 
     @Test(enabled = true)
+    public void test015DeleteTaskFromRepo() throws Exception {
+        String test = "015DeleteTaskFromRepo";
+        OperationResult result = createResult(test);
+
+        PrismObject<ObjectType> object = addObjectFromFile(taskFilename(test));
+        String oid = taskOid(test);
+
+        // is the task in Quartz?
+
+        JobKey key = TaskQuartzImplUtil.createJobKeyForTaskOid(oid);
+        AssertJUnit.assertTrue("Job in Quartz does not exist", taskManager.getGlobalExecutionManager().getQuartzScheduler().checkExists(key));
+
+        // Remove task from repo
+
+        repositoryService.deleteObject(TaskType.class, taskOid(test), result);
+
+        // We need to wait for a sync interval, so the task scanner has a chance
+        // to pick up this task
+
+        LOGGER.trace("Waiting for task manager to pick up the task");
+        Thread.sleep(10000);
+        LOGGER.trace("... done");
+
+        // does the task in Quartz still exist?
+
+        AssertJUnit.assertFalse("Job in Quartz still exists", taskManager.getGlobalExecutionManager().getQuartzScheduler().checkExists(key));
+
+    }
+
+
+    @Test(enabled = true)
     public void test999CheckingLeftovers() throws Exception {
 
         String test = "999CheckingLeftovers";
@@ -898,7 +930,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         }
 	}
 
-	private void delete(PrismObject<ObjectType> object, OperationResult result) throws ObjectNotFoundException {
+	private void delete(PrismObject<ObjectType> object, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (object.canRepresent(TaskType.class)) {
 			taskManager.deleteTask(object.getOid(), result);
 		} else {

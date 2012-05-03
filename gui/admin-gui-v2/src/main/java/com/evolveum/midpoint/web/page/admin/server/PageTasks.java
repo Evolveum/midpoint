@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -526,7 +528,12 @@ public class PageTasks extends PageAdminTasks {
             result.recomputeStatus();
         }
         System.out.println("Operation result = " + result.dump());
-        showResult(result);
+
+        if (result.isSuccess()) {
+            success("The task(s) have been successfully resumed.");
+        } else {
+            showResult(result);
+        }
 
         //refresh feedback and table
         target.add(getFeedbackPanel());
@@ -538,7 +545,54 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void deleteTaskPerformed(AjaxRequestTarget target) {
-        //todo implement
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
+
+        TaskManager taskManager = getTaskManager();
+        List<TaskDto> taskTypeList = getSelectedTasks();
+        List<Task> taskList = new ArrayList<Task>();
+        try {
+            for (TaskDto taskDto : taskTypeList) {
+                Task task = taskManager.getTask(taskDto.getOid(), result);
+                taskList.add(task);
+            }
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get information on tasks to be deleted. Please try again.", ex);
+        }
+
+        if (!result.isError()) {
+            try {
+                taskManager.suspendTasks(taskList, 2000L, result);
+            } catch (Exception e) {
+                result.recordFatalError("Couldn't suspend tasks before deletion.", e);
+            }
+
+            for (Task task : taskList) {
+                try {
+                    taskManager.deleteTask(task.getOid(), result);
+                } catch (ObjectNotFoundException e) {
+                    // already stored in operation result
+                } catch (SchemaException e) {
+                    // already stored in operation result
+                } catch (Exception e) {
+                    result.recordPartialError("Couldn't delete task " + task.getName(), e);
+                }
+            }
+        }
+
+        if (result.isUnknown()) {
+            result.recomputeStatus();
+        }
+
+        if (result.isSuccess()) {
+            success("The task(s) have been successfully deleted.");
+        } else {
+            showResult(result);
+        }
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
     }
 
     private void scheduleTaskPerformed(AjaxRequestTarget target) {
@@ -546,18 +600,129 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void stopSchedulerPerformed(AjaxRequestTarget target) {
-        //todo implement
+        OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULER);
+
+        TaskManager taskManager = getTaskManager();
+        List<NodeDto> nodeDtoList = getSelectedNodes();
+
+        List<String> nodeList = new ArrayList<String>();
+        for (NodeDto nodeDto : nodeDtoList) {
+            nodeList.add(nodeDto.getNodeIdentifier());
+        }
+
+        boolean suspended = false;
+        try {
+            //suspended = taskManager.stopSchedulersAndTasks(nodeList, 2000L, result);
+        } catch (Exception e) {
+            result.recordFatalError("Couldn't stop schedulers.", e);
+        }
+
+        if (result.isUnknown()) {
+            result.recomputeStatus();
+        }
+
+        if (result.isSuccess()) {
+            if (suspended) {
+                success("Selected node scheduler(s) have been successfully stopped, including tasks that have been running on them.");
+            } else {
+                warn("Selected node scheduler(s) have been successfully paused; however, some of the tasks they were executing are still running on them. Please check their completion using task list.");
+            }
+        } else {
+            showResult(result);
+        }
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+        target.add(getNodeTable());
     }
 
     private void startSchedulerPerformed(AjaxRequestTarget target) {
-        //todo implement
+        OperationResult result = new OperationResult(OPERATION_START_SCHEDULER);
+
+        TaskManager taskManager = getTaskManager();
+        List<NodeDto> nodeDtoList = getSelectedNodes();
+
+        for (NodeDto nodeDto : nodeDtoList) {
+            try {
+                taskManager.startScheduler(nodeDto.getNodeIdentifier(), result);
+            } catch (Exception e) {
+                result.recordFatalError("Couldn't start the scheduler on node " + nodeDto.getName(), e);
+            }
+        }
+
+        if (result.isUnknown()) {
+            result.recomputeStatus();
+        }
+
+        if (result.isSuccess()) {
+            success("Selected node scheduler(s) have been successfully started.");
+        } else {
+            showResult(result);
+        }
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+        target.add(getNodeTable());
     }
 
     private void pauseSchedulerPerformed(AjaxRequestTarget target) {
-        //todo implement
+        OperationResult result = new OperationResult(OPERATION_PAUSE_SCHEDULER);
+
+        TaskManager taskManager = getTaskManager();
+        List<NodeDto> nodeDtoList = getSelectedNodes();
+
+        for (NodeDto nodeDto : nodeDtoList) {
+            try {
+                taskManager.stopScheduler(nodeDto.getNodeIdentifier(), result);
+            } catch (Exception e) {
+                result.recordFatalError("Couldn't stop the scheduler on node " + nodeDto.getName(), e);
+            }
+        }
+
+        if (result.isUnknown()) {
+            result.recomputeStatus();
+        }
+
+        if (result.isSuccess()) {
+            success("Selected node scheduler(s) have been successfully paused.");
+        } else {
+            showResult(result);
+        }
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+        target.add(getNodeTable());
     }
 
     private void deleteNodePerformed(AjaxRequestTarget target) {
-        //todo implement
+        OperationResult result = new OperationResult(OPERATION_DELETE_NODE);
+
+        List<NodeDto> nodeDtoList = getSelectedNodes();
+
+        for (NodeDto nodeDto : nodeDtoList) {
+            try {
+                getMidpointApplication().getRepository().deleteObject(NodeType.class, nodeDto.getOid(), result);
+            } catch (Exception e) {
+                result.recordFatalError("Couldn't delete the node " + nodeDto.getName(), e);
+            }
+        }
+
+        if (result.isUnknown()) {
+            result.recomputeStatus();
+        }
+
+        if (result.isSuccess()) {
+            success("Selected node(s) have been successfully deleted.");
+        } else {
+            showResult(result);
+        }
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getNodeTable());
     }
+
 }

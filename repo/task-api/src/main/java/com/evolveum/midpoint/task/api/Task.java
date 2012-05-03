@@ -93,7 +93,10 @@ public interface Task extends Dumpable {
 	public TaskExecutionStatus getExecutionStatus();
 
     /**
-     * Returns the node the task is currently executing at.
+     * Returns the node the task is currently executing at, based on real run-time information.
+     *
+     * BEWARE, this information is valid only when returned from searchTasks
+     * (not e.g. when got via getTask).
      *
      * @return
      */
@@ -448,4 +451,6 @@ public interface Task extends Dumpable {
     void makeRecurrentSimple(int interval);
 
     void makeRecurrentCron(String cronLikeSpecification);
+
+    String getNode();
 }

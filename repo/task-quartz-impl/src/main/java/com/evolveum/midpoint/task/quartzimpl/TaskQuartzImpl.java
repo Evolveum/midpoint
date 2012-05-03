@@ -1225,4 +1225,9 @@ public class TaskQuartzImpl implements Task {
     void setCurrentlyExecutesAt(Node node) {
         currentlyExecutesAt = node;
     }
+
+    @Override
+    public String getNode() {
+        return taskPrism.asObjectable().getNode();
+    }
 }

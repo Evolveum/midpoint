@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -298,15 +299,18 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public boolean reactivateServiceThreads() {
+    public void reactivateServiceThreads(OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".reactivateServiceThreads");
 
         if (!initialized) {
-            return false;
+            result.recordFatalError("Local Task Manager is not initialized.");
+        } else {
+            LOGGER.info("Reactivating Task Manager service threads.");
+            clusterManager.startClusterManagerThread();
+            localExecutionManager.startSchedulerLocally(result);
+            result.recordSuccessIfUnknown();
         }
-
-        LOGGER.info("Reactivating Task Manager service threads.");
-        clusterManager.startClusterManagerThread();
-        return localExecutionManager.startSchedulerLocally();
     }
 
     @Override
@@ -558,10 +562,23 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    @Deprecated
-    public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException {
-        repositoryService.deleteObject(TaskType.class, oid, parentResult);
-//		throw new UnsupportedOperationException("Explicit deletion of a task is not supported. OID = " + oid);
+    public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".deleteTask");
+        result.addParam("oid", oid);
+        try {
+            Task task = getTask(oid, result);
+            if (task.getNode() != null) {
+                result.recordWarning("Deleting a task that seems to be currently executing on node " + task.getNode());
+            }
+            repositoryService.deleteObject(TaskType.class, oid, result);
+            result.recordSuccessIfUnknown();
+        } catch (ObjectNotFoundException e) {
+            result.recordFatalError("Cannot delete the task because it does not exist.", e);
+            throw e;
+        } catch (SchemaException e) {
+            result.recordFatalError("Cannot delete the task because of schema exception.", e);
+            throw e;
+        }
     }
 
     @Override
@@ -616,6 +633,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
+    public int countNodes(QueryType query, OperationResult result) throws SchemaException {
+        return repositoryService.countObjects(NodeType.class, query, result);
+    }
+
+
+    @Override
     public List<Task> searchTasks(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException {
 
         if (clusterStatusInformation == null) {
@@ -636,8 +659,37 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             retval.add(task);
         }
         return retval;
+    }
 
 
+    @Override
+    public int countTasks(QueryType query, OperationResult result) throws SchemaException {
+        return repositoryService.countObjects(TaskType.class, query, result);
+    }
+
+    List<PrismObject<NodeType>> getAllNodes(OperationResult result) {
+        try {
+            return getRepositoryService().searchObjects(NodeType.class, QueryUtil.createAllObjectsQuery(), new PagingType(), result);
+        } catch (SchemaException e) {       // should not occur
+            throw new SystemException("Cannot get the list of nodes from the repository", e);
+        }
+    }
+
+    PrismObject<NodeType> getNodeById(String nodeIdentifier, OperationResult result) throws ObjectNotFoundException {
+        try {
+            QueryType q = QueryUtil.createNameQuery(nodeIdentifier);        // TODO change to query-by-node-id
+            List<PrismObject<NodeType>> nodes = repositoryService.searchObjects(NodeType.class, q, new PagingType(), result);
+            if (nodes.isEmpty()) {
+//                result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");
+                throw new ObjectNotFoundException("A node with identifier " + nodeIdentifier + " does not exist.");
+            } else if (nodes.size() > 1) {
+                throw new SystemException("Multiple nodes with the same identifier '" + nodeIdentifier + "' in the repository.");
+            } else {
+                return nodes.get(0);
+            }
+        } catch (SchemaException e) {       // should not occur
+            throw new SystemException("Cannot get the list of nodes from the repository", e);
+        }
     }
 
     /*
@@ -814,13 +866,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public void stopScheduler(String nodeIdentifier) {
-        globalExecutionManager.stopScheduler(nodeIdentifier);
+    public void stopScheduler(String nodeIdentifier, OperationResult parentResult) {
+        globalExecutionManager.stopScheduler(nodeIdentifier, parentResult);
     }
 
     @Override
-    public boolean startScheduler(String nodeIdentifier) {
-        return globalExecutionManager.startScheduler(nodeIdentifier);
+    public void startScheduler(String nodeIdentifier, OperationResult parentResult) {
+        globalExecutionManager.startScheduler(nodeIdentifier, parentResult);
     }
 
     @Override
@@ -850,9 +902,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public ClusterStatusInformation getRunningTasksClusterwide(long allowedAge) {
-        if (lastClusterStatusInformation != null && System.currentTimeMillis() - lastRunningTasksClusterwideQuery < allowedAge) {
+        long age = System.currentTimeMillis() - lastRunningTasksClusterwideQuery;
+        if (lastClusterStatusInformation != null && age < allowedAge) {
+            LOGGER.info("Using cached ClusterStatusInformation, age = " + age);
             return lastClusterStatusInformation;
         } else {
+            LOGGER.info("Cached ClusterStatusInformation too old, age = " + age);
             return getRunningTasksClusterwide();
         }
 

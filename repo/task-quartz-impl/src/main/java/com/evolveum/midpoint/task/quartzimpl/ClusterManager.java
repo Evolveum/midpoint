@@ -132,14 +132,6 @@ public class ClusterManager {
 
 
 
-    List<PrismObject<NodeType>> getAllNodes(OperationResult result) {
-        try {
-            return getRepositoryService().searchObjects(NodeType.class, QueryUtil.createAllObjectsQuery(), new PagingType(), result);
-        } catch (SchemaException e) {       // should not occur
-            throw new SystemException("Cannot get the list of nodes from the repository", e);
-        }
-    }
-
     private RepositoryService getRepositoryService() {
         return taskManager.getRepositoryService();
     }

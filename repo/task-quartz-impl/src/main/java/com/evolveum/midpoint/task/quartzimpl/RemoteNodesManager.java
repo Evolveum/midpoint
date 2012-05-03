@@ -20,9 +20,11 @@ package com.evolveum.midpoint.task.quartzimpl;/*
  */
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Node;
 import com.evolveum.midpoint.task.api.NodeExecutionStatus;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -128,6 +130,111 @@ public class RemoteNodesManager {
                 LoggingUtils.logException(LOGGER, "Cannot close JMX connection to {}", e, address);
             }
         }
+    }
+
+    private NodeType getNode(String nodeIdentifier, OperationResult result) {
+        try {
+            return taskManager.getNodeById(nodeIdentifier, result).asObjectable();
+        } catch (ObjectNotFoundException e) {
+            result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");
+            return null;
+        }
+    }
+
+    public void stopRemoteScheduler(String nodeIdentifier, OperationResult result) {
+
+        NodeType node = getNode(nodeIdentifier, result);
+        if (node == null) {
+            return;
+        }
+
+        String nodeName = node.getNodeIdentifier();
+        String address = node.getHostname() + ":" + node.getJmxPort();
+
+        JMXConnector connector = null;
+
+        try {
+            MBeanServerConnection mbsc;
+
+            try {
+                connector = connectViaJmx(address);
+                mbsc = connector.getMBeanServerConnection();
+            } catch (IOException e) {
+                LoggingUtils.logException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeName, address);
+                result.recordFatalError("Cannot connect to the remote node: " + e.getMessage());
+                return;
+            }
+
+            try {
+                QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
+                mbeanProxy.standby();
+                return;
+            }
+            catch (Exception e) {
+                LoggingUtils.logException(LOGGER, "Cannot put remote scheduler into standby mode; remote node {} at {}", e, nodeName, address);
+                result.recordFatalError("Cannot put remote scheduler " + nodeName + " at " + address + " into standby mode: " + e.getMessage());
+                return;
+            }
+
+        }
+        finally {
+            try {
+                if (connector != null) {
+                    connector.close();
+                }
+            } catch (IOException e) {
+                LoggingUtils.logException(LOGGER, "Cannot close JMX connection to {}", e, address);
+            }
+        }
+
+    }
+
+    public void startRemoteScheduler(String nodeIdentifier, OperationResult result) {
+
+        NodeType node = getNode(nodeIdentifier, result);
+        if (node == null) {
+            return;
+        }
+
+        String nodeName = node.getNodeIdentifier();
+        String address = node.getHostname() + ":" + node.getJmxPort();
+
+        JMXConnector connector = null;
+
+        try {
+            MBeanServerConnection mbsc;
+
+            try {
+                connector = connectViaJmx(address);
+                mbsc = connector.getMBeanServerConnection();
+            } catch (IOException e) {
+                LoggingUtils.logException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeName, address);
+                result.recordFatalError("Cannot connect to the remote node: " + e.getMessage());
+                return;
+            }
+
+            try {
+                QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
+                mbeanProxy.standby();
+                return;
+            }
+            catch (Exception e) {
+                LoggingUtils.logException(LOGGER, "Cannot start remote scheduler; remote node {} at {}", e, nodeName, address);
+                result.recordFatalError("Cannot start remote scheduler " + nodeName + " at " + address + ": " + e.getMessage());
+                return;
+            }
+
+        }
+        finally {
+            try {
+                if (connector != null) {
+                    connector.close();
+                }
+            } catch (IOException e) {
+                LoggingUtils.logException(LOGGER, "Cannot close JMX connection to {}", e, address);
+            }
+        }
+
     }
 
     private QuartzSchedulerMBean getMBeanProxy(String nodeName, MBeanServerConnection mbsc) throws MalformedObjectNameException {

@@ -52,7 +52,18 @@ public class JobExecutor implements InterruptableJob {
 		String oid = context.getJobDetail().getKey().getName();
         try {
 			task = (TaskQuartzImpl) taskManagerImpl.getTask(oid, executionResult);
-		} catch (Exception e) {
+		} catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, unscheduling Quartz job and exiting the execution routine.", e, oid);
+            try {
+                taskManagerImpl.getGlobalExecutionManager().removeTaskFromQuartz(oid);
+            } catch (Exception e2) {
+                LoggingUtils.logException(LOGGER, "Task with OID {} cannot be removed from Quartz.", e2, oid);
+            }
+            return;
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Task with OID {} cannot be retrieved because of schema exception. Please correct the problem or resynchronize midPoint repository with Quartz job store using 'xxxxxxx' function. Now exiting the execution routine.", e, oid);
+            return;
+        } catch (Exception e) {
 			LoggingUtils.logException(LOGGER, "Task with OID {} could not be retrieved, exiting the execution routine.", e, oid);
 			return;
 		}

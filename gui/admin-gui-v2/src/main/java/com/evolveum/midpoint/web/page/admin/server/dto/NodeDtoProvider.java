@@ -55,6 +55,8 @@ public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
     private QueryType query;
     private List<NodeDto> availableData;
 
+    private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
+
     public NodeDtoProvider(PageBase page) {
         Validate.notNull(page, "Page must not be null.");
         this.page = page;
@@ -84,7 +86,7 @@ public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
             PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
 
             TaskManager manager = getTaskManager();
-            ClusterStatusInformation info = manager.getRunningTasksClusterwide(500);
+            ClusterStatusInformation info = manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE);
             List<Node> nodes = manager.searchNodes(query, paging, info, result);
 
             for (Node node : nodes) {
@@ -100,13 +102,8 @@ public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
 
     @Override
     public int size() {
-        //todo reimplement
-
         try {
-            MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-            return application.getModel().countObjects(NodeType.class, query,
-                    getTaskManager().createTaskInstance(OPERATION_COUNT_NODES),
-                    new OperationResult(OPERATION_COUNT_NODES));
+            return getTaskManager().countNodes(query, new OperationResult("size"));
         } catch (Exception ex) {
             ex.printStackTrace();
         }

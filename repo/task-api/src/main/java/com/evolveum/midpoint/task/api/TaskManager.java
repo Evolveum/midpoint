@@ -206,6 +206,10 @@ public interface TaskManager {
 	/**
 	 * Deletes task with provided OID. Must fail if object with specified OID
 	 * does not exists. Should be atomic.
+     *
+     * BEWARE: call this method only if you are pretty sure the task is not running.
+     * Otherwise the running thread will complain when it will try to store task result into repo.
+     * (I.e. it is a good practice to suspend the task before deleting.)
 	 * 
 	 * @param oid
 	 *            OID of object to delete
@@ -217,8 +221,7 @@ public interface TaskManager {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	@Deprecated		// tasks should not be deleted in this way
-	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException;
+	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 		
 	/**
@@ -341,6 +344,8 @@ public interface TaskManager {
      */
     public List<Task> searchTasks(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
+    int countTasks(QueryType query, OperationResult result) throws SchemaException;
+
     /**
      * Returns relevant nodes (w.r.t query and paging specification).
      * Similar to searchTasks, this method adds some information to the one returned from repository. (Mainly concerned with Node status and error status.)
@@ -353,6 +358,8 @@ public interface TaskManager {
      * @throws SchemaException
      */
     public List<Node> searchNodes(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
+
+    int countNodes(QueryType query, OperationResult result) throws SchemaException;
 	
 	/**
 	 * Register a handler for a specified handler URI.
@@ -398,7 +405,7 @@ public interface TaskManager {
 	/**
 	 * Re-activate the service threads after they have been deactivated.
 	 */
-	public boolean reactivateServiceThreads();
+	public void reactivateServiceThreads(OperationResult parentResult);
 		
 	/**
 	 * Returns true if the service threads are running.
@@ -413,11 +420,10 @@ public interface TaskManager {
      * Stops the scheduler on a given node. This means that at that node no tasks will be started.
      *
      * @param nodeIdentifier Node on which the scheduler should be stopped. Null means current node.
-     * @return true if the operation succeeded; false otherwise.
      *
      * (TODO: perhaps signal an exception here? also for the other methods)
      */
-    public void stopScheduler(String nodeIdentifier);
+    public void stopScheduler(String nodeIdentifier, OperationResult parentResult);
 
     /**
      * Starts the scheduler on a given node. A prerequisite is that the node is running and its
@@ -426,7 +432,7 @@ public interface TaskManager {
      * @param nodeIdentifier Node on which the scheduler should be started. Null means current node.
      * @return true if the operation succeeded; false otherwise.
      */
-    public boolean startScheduler(String nodeIdentifier);
+    public void startScheduler(String nodeIdentifier, OperationResult parentResult);
 
     /**
      * Stops the scheduler on a given node. This means that at that node no tasks will be started.
@@ -497,5 +503,6 @@ public interface TaskManager {
      * @return
      */
     ClusterStatusInformation getRunningTasksClusterwide(long allowedAge);
+
 
 }
