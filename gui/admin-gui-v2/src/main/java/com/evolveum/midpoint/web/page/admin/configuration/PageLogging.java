@@ -34,10 +34,16 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.prism.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.prism.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.configuration.column.EditableLinkColumn;
+import com.evolveum.midpoint.web.page.admin.configuration.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -45,10 +51,10 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -128,25 +134,43 @@ public class PageLogging extends PageAdminConfiguration {
         initButtons(mainForm);
     }
 
-    private void initLoggers(AccordionItem loggers) {
+    private List<IColumn<LoggerConfiguration>> initLoggerColumns() {
         List<IColumn<LoggerConfiguration>> columns = new ArrayList<IColumn<LoggerConfiguration>>();
-
-        initRoot(loggers);
-
         IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
         columns.add(column);
 
-        column = new LinkColumn<LoggerConfiguration>(
+        //name editing column
+        columns.add(new EditableLinkColumn<LoggerConfiguration>(
                 createStringResource("pageLogging.classPackageSubsystem"), "name") {
+
+            @Override
+            protected Component createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
+                if (model.getObject() instanceof ComponentLogger) {
+                    return new DropDownChoicePanel(componentId, createComponentLoggerModel(model),
+                            MiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class));
+                } else {
+                    return new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+                }
+            }
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
                 loggedEditPerformed(target, rowModel);
             }
-        };
-        columns.add(column);
+        });
 
-        columns.add(new PropertyColumn(createStringResource("pageLogging.loggersLevel"), "level"));
+        //level editing column
+        columns.add(new EditablePropertyColumn<LoggerConfiguration>(createStringResource("pageLogging.loggersLevel"),
+                "level") {
+
+            @Override
+            protected Component createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
+                return new DropDownChoicePanel(componentId, new PropertyModel(model, getPropertyExpression()),
+                        MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
+            }
+        });
+
+        //appender editing column
         columns.add(new PropertyColumn(createStringResource("pageLogging.loggersAppender"), "appenders") {
 
             @Override
@@ -170,9 +194,30 @@ public class PageLogging extends PageAdminConfiguration {
             }
         });
 
+        return columns;
+    }
+
+    private IModel<LoggingComponentType> createComponentLoggerModel(final IModel<LoggerConfiguration> model) {
+        return new Model<LoggingComponentType>() {
+
+            @Override
+            public LoggingComponentType getObject() {
+                return LoggingComponentType.valueOf(model.getObject().getName());
+            }
+
+            @Override
+            public void setObject(LoggingComponentType object) {
+                model.getObject().setName(object.name());
+            }
+        };
+    }
+
+    private void initLoggers(AccordionItem loggers) {
+        initRoot(loggers);
+
         ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(
                 new PropertyModel<List<LoggerConfiguration>>(model, "loggers"));
-        TablePanel table = new TablePanel<LoggerConfiguration>("loggersTable", provider, columns);
+        TablePanel table = new TablePanel<LoggerConfiguration>("loggersTable", provider, initLoggerColumns());
         table.setOutputMarkupId(true);
         table.setShowPaging(false);
         table.setTableCssClass("autowidth");
@@ -203,26 +248,13 @@ public class PageLogging extends PageAdminConfiguration {
 
     private void initSubsystem(AccordionItem loggers) {
         DropDownChoice<ProfilingLevel> subsystemLevel = createComboBox("profilingLevel",
-                new PropertyModel<ProfilingLevel>(model, "profilingLevel"), createSubsystemLevelModel(),
-                new EnumChoiceRenderer(PageLogging.this));
+                new PropertyModel<ProfilingLevel>(model, "profilingLevel"),
+                MiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class), new EnumChoiceRenderer(PageLogging.this));
         loggers.getBodyContainer().add(subsystemLevel);
 
         DropDownChoice<String> subsystemAppender = createComboBox("profilingAppender",
                 new PropertyModel<String>(model, "profilingAppender"), createAppendersListModel());
         loggers.getBodyContainer().add(subsystemAppender);
-    }
-
-    private IModel<List<ProfilingLevel>> createSubsystemLevelModel() {
-        return new AbstractReadOnlyModel<List<ProfilingLevel>>() {
-
-            @Override
-            public List<ProfilingLevel> getObject() {
-                List<ProfilingLevel> levels = new ArrayList<ProfilingLevel>();
-                Collections.addAll(levels, ProfilingLevel.values());
-
-                return levels;
-            }
-        };
     }
 
     private void initAppenders(AccordionItem appenders) {
@@ -280,7 +312,8 @@ public class PageLogging extends PageAdminConfiguration {
 
     private void initRoot(final AccordionItem loggers) {
         DropDownChoice<LoggingLevelType> rootLevel = createComboBox("rootLevel",
-                new PropertyModel<LoggingLevelType>(model, "rootLevel"), createLoggingLevelModel());
+                new PropertyModel<LoggingLevelType>(model, "rootLevel"),
+                MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
 
         loggers.getBodyContainer().add(rootLevel);
 
@@ -289,7 +322,8 @@ public class PageLogging extends PageAdminConfiguration {
         loggers.getBodyContainer().add(rootAppender);
 
         DropDownChoice<LoggingLevelType> midPointLevel = createComboBox("midPointLevel",
-                new PropertyModel<LoggingLevelType>(model, "midPointLevel"), createLoggingLevelModel());
+                new PropertyModel<LoggingLevelType>(model, "midPointLevel"),
+                MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
         loggers.getBodyContainer().add(midPointLevel);
 
         DropDownChoice<String> midPointAppender = createComboBox("midPointAppender",
@@ -385,21 +419,6 @@ public class PageLogging extends PageAdminConfiguration {
         };
     }
 
-    private IModel<List<LoggingLevelType>> createLoggingLevelModel() {
-        return new AbstractReadOnlyModel<List<LoggingLevelType>>() {
-
-            @Override
-            public List<LoggingLevelType> getObject() {
-                List<LoggingLevelType> list = new ArrayList<LoggingLevelType>();
-                for (LoggingLevelType type : LoggingLevelType.values()) {
-                    list.add(type);
-                }
-
-                return list;
-            }
-        };
-    }
-
     private LoggingConfigurationType createConfiguration() {
         LoggingDto dto = model.getObject();
         LoggingConfigurationType configuration = new LoggingConfigurationType();
@@ -488,7 +507,7 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void appenderEditPerformed(AjaxRequestTarget target, IModel<AppenderConfiguration> model) {
-         //todo implement
+        //todo implement
     }
 
     private void savePerformed(AjaxRequestTarget target) {
@@ -504,6 +523,12 @@ public class PageLogging extends PageAdminConfiguration {
             ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(dto.getOldConfiguration(), newObject);
             getModelService().modifyObject(SystemConfigurationType.class, oid,
                     delta.getModifications(), task, result);
+
+            //finish editing
+            for (LoggerConfiguration logger : dto.getLoggers()) {
+                logger.setEditing(false);
+            }
+
             result.recordSuccess();
         } catch (Exception ex) {
             result.recomputeStatus();

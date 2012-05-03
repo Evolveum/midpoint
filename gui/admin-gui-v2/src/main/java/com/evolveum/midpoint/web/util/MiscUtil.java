@@ -21,10 +21,16 @@
 
 package com.evolveum.midpoint.web.util;
 
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -76,5 +82,18 @@ public final class MiscUtil {
         } else {
             return xgc.toGregorianCalendar().getTime();
         }
+    }
+
+    public static <T extends Enum> IModel<List<T>> createReadonlyModelFromEnum(final Class<T> type) {
+        return new AbstractReadOnlyModel<List<T>>() {
+
+            @Override
+            public List<T> getObject() {
+                List<T> list = new ArrayList<T>();
+                Collections.addAll(list, type.getEnumConstants());
+
+                return list;
+            }
+        };
     }
 }
