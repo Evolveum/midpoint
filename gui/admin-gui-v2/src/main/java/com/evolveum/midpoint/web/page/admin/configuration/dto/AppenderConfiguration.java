@@ -22,14 +22,17 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.page.admin.configuration.column.Editable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import org.apache.commons.lang.Validate;
 
 /**
  * @author lazyman
  */
-public class AppenderConfiguration<T extends AppenderConfigurationType> extends Selectable implements Comparable<T> {
+public class AppenderConfiguration<T extends AppenderConfigurationType> extends Selectable
+        implements Editable, Comparable<T> {
 
+    private boolean editing;
     private T config;
 
     public AppenderConfiguration(T config) {
@@ -73,8 +76,16 @@ public class AppenderConfiguration<T extends AppenderConfigurationType> extends 
         return null;
     }
 
-    public boolean appending() {
+    public boolean isAppending() {
         return false;
+    }
+
+    public boolean isEditing() {
+        return editing;
+    }
+
+    public void setEditing(boolean editing) {
+        this.editing = editing;
     }
 
     @Override

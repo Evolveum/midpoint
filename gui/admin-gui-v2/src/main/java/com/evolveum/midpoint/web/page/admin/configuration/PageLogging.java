@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.prism.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.prism.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.prism.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -171,7 +172,8 @@ public class PageLogging extends PageAdminConfiguration {
         });
 
         //appender editing column
-        columns.add(new PropertyColumn(createStringResource("pageLogging.loggersAppender"), "appenders") {
+        columns.add(new EditablePropertyColumn<LoggerConfiguration>(createStringResource("pageLogging.loggersAppender"),
+                "appenders") {
 
             @Override
             protected IModel<String> createLabelModel(final IModel rowModel) {
@@ -191,6 +193,18 @@ public class PageLogging extends PageAdminConfiguration {
                         return builder.toString();
                     }
                 };
+            }
+
+            @Override
+            protected Component createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
+                ListMultipleChoicePanel panel = new ListMultipleChoicePanel<String>(componentId,
+                        new PropertyModel<List<String>>(model, getPropertyExpression()), createAppendersListModel());
+
+                ListMultipleChoice choice = (ListMultipleChoice) panel.getComponent();
+                choice.setMaxRows(3);
+
+
+                return panel;
             }
         });
 
@@ -524,9 +538,12 @@ public class PageLogging extends PageAdminConfiguration {
             getModelService().modifyObject(SystemConfigurationType.class, oid,
                     delta.getModifications(), task, result);
 
-            //finish editing
+            //finish editing for loggers and appenders
             for (LoggerConfiguration logger : dto.getLoggers()) {
                 logger.setEditing(false);
+            }
+            for (AppenderConfiguration appender : dto.getAppenders()) {
+                appender.setEditing(false);
             }
 
             result.recordSuccess();
@@ -537,6 +554,7 @@ public class PageLogging extends PageAdminConfiguration {
 
         showResult(result);
         target.add(getFeedbackPanel());
+        target.add(get("mainForm"));
     }
 
     private void resetPerformed(AjaxRequestTarget target) {

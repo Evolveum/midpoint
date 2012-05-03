@@ -33,7 +33,7 @@ public class FileAppender extends AppenderConfiguration<FileAppenderConfiguratio
     }
 
     @Override
-    public boolean appending() {
+    public boolean isAppending() {
         return getConfig().isAppend();
     }
 
