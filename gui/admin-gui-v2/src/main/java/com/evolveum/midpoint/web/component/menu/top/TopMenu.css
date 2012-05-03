@@ -135,7 +135,7 @@ div.bottom-container ul li {
     z-index: 100000;
 }
 
-div.bottom-container li a {
+div.bottom-container li a, div.bottom-container li em {
     display: inline-block;
     height: 22px;
     padding: 5px 5px 0 5px;
@@ -143,12 +143,13 @@ div.bottom-container li a {
     width: auto;
     color: #F0F0F6;
     z-index: 100000;
+    font-style: normal;
 }
 
 div.bottom-container li a:hover {
 	text-decoration: none;
 }
 
-div.bottom-container li a:hover, div.bottom-container li a.selected-bottom {
+div.bottom-container li a:hover, div.bottom-container li a.selected-bottom, div.bottom-container li .selected-bottom em {
     color: #81bacc;
 }
