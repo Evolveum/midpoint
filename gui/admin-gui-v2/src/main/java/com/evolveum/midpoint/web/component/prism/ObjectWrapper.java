@@ -31,10 +31,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -147,9 +146,11 @@ public class ObjectWrapper implements Serializable {
         PrismContainerDefinition definition = parent.getDefinition();
         List<ContainerWrapper> wrappers = new ArrayList<ContainerWrapper>();
 
-        List<PropertyPathSegment> segments = path != null ? path.getSegments() : new ArrayList<PropertyPathSegment>();
-        segments.add(new PropertyPathSegment(definition.getName()));
-        PropertyPath newPath = new PropertyPath(segments);
+        List<PropertyPathSegment> segments = new ArrayList<PropertyPathSegment>();
+        if (path != null) {
+            segments.addAll(path.getSegments());
+        }
+        PropertyPath parentPath = new PropertyPath(segments);
 
         for (ItemDefinition def : (Collection<ItemDefinition>) definition.getDefinitions()) {
             if (!(def instanceof PrismContainerDefinition)) {
@@ -161,6 +162,7 @@ public class ObjectWrapper implements Serializable {
                 continue;
             }
 
+            PropertyPath newPath = createPropertyPath(parentPath, containerDef.getName());
             PrismContainer prismContainer = object.findContainer(def.getName());
             if (prismContainer != null) {
                 wrappers.add(new ContainerWrapper(this, prismContainer,
@@ -175,6 +177,14 @@ public class ObjectWrapper implements Serializable {
         }
 
         return wrappers;
+    }
+
+    private PropertyPath createPropertyPath(PropertyPath path, QName element) {
+        List<PropertyPathSegment> segments = new ArrayList<PropertyPathSegment>();
+        segments.addAll(path.getSegments());
+        segments.add(new PropertyPathSegment(element));
+
+        return new PropertyPath(segments);
     }
 
     public ObjectDelta getObjectDelta() throws SchemaException {
@@ -229,6 +239,10 @@ public class ObjectWrapper implements Serializable {
     private ObjectDelta createAddingObjectDelta() throws SchemaException {
         ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.ADD);
 
+        List<ContainerWrapper> containers = getContainers();
+        //sort containers by path size
+        Collections.sort(containers, new PathSizeComparator());
+
         for (ContainerWrapper containerWrapper : getContainers()) {
             if (!containerWrapper.hasChanged()) {
                 continue;
@@ -236,8 +250,16 @@ public class ObjectWrapper implements Serializable {
 
             PrismContainer container = containerWrapper.getContainer();
             if (containerWrapper.getPath() != null) {
-                object.addReplaceExisting(container);
+                PropertyPath path = containerWrapper.getPath();
+                if (path.size() == 1) {
+                    object.addReplaceExisting(container);
+                } else {
+                    PropertyPath parentPath = path.allExceptLast();
+                    PrismContainer parent = object.findOrCreateContainer(parentPath);
+                    parent.add(container);
+                }
             }
+
             for (PropertyWrapper propertyWrapper : (List<PropertyWrapper>) containerWrapper.getProperties()) {
                 if (!propertyWrapper.hasChanged()) {
                     continue;
@@ -257,5 +279,16 @@ public class ObjectWrapper implements Serializable {
         delta.setObjectToAdd(object);
 
         return delta;
+    }
+
+    private static class PathSizeComparator implements Comparator<ContainerWrapper> {
+
+        @Override
+        public int compare(ContainerWrapper c1, ContainerWrapper c2) {
+            int size1 = c1.getPath() != null ? c1.getPath().size() : 0;
+            int size2 = c2.getPath() != null ? c2.getPath().size() : 0;
+
+            return size1 - size2;
+        }
     }
 }

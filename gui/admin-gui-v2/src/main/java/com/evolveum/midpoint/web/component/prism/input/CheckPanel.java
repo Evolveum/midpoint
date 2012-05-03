@@ -19,21 +19,27 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.component.prism;
+package com.evolveum.midpoint.web.component.prism.input;
 
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author lazyman
  */
-public class AccountFooterPanel extends Panel {
+public class CheckPanel extends InputPanel {
 
-    public AccountFooterPanel(String id, IModel<String> accountId, IModel<String> active) {
+    public CheckPanel(String id, IModel<Boolean> model) {
         super(id);
 
-        add(new Label("accountId", accountId));
-        add(new Label("active", active));
+        CheckBox check = new CheckBox("input", model);
+        add(check);
+    }
+
+    @Override
+    public FormComponent getComponent() {
+        return (FormComponent) get("input");
     }
 }

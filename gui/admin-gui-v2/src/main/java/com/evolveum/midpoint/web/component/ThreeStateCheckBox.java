@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component;
 
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 
@@ -30,11 +31,17 @@ import org.apache.wicket.model.IModel;
 public class ThreeStateCheckBox extends FormComponent<ThreeCheckState> {
 
     public ThreeStateCheckBox(String id) {
-        super(id);
+        this(id, null);
     }
 
     public ThreeStateCheckBox(String id, IModel<ThreeCheckState> model) {
         super(id, model);
+        setType(ThreeCheckState.class);
+    }
+
+    @Override
+    protected void onComponentTag(ComponentTag tag) {
+        super.onComponentTag(tag);    //To change body of overridden methods use File | Settings | File Templates.
     }
 
     //todo implementation

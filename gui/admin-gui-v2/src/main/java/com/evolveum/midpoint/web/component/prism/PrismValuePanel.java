@@ -24,11 +24,13 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.web.component.prism.input.CheckPanel;
 import com.evolveum.midpoint.web.component.prism.input.DatePanel;
-import com.evolveum.midpoint.web.component.prism.input.PasswordPanel;
 import com.evolveum.midpoint.web.component.prism.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,6 +39,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -48,10 +51,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.Date;
 import java.util.List;
-
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
  * @author lazyman
@@ -202,7 +202,9 @@ public class PrismValuePanel extends Panel {
         InputPanel component = createTypedInputComponent(id);
 
         final FormComponent formComponent = component.getComponent();
-        formComponent.add(new AttributeModifier("size", "42"));
+        if (formComponent instanceof TextField) {
+            formComponent.add(new AttributeModifier("size", "42"));
+        }
         formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
 
             @Override
@@ -227,12 +229,19 @@ public class PrismValuePanel extends Panel {
         QName valueType = property.getDefinition().getTypeName();
 
         InputPanel panel;
-        if (new QName(W3C_XML_SCHEMA_NS_URI, "dateTime").equals(valueType)) {
+        if (DOMUtil.XSD_DATETIME.equals(valueType)) {
             panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, "value.value"));
 //        } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
 //            panel = new PasswordPanel(id, new PropertyModel<String>(model, "value.value"));
+        } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
+            panel = new CheckPanel(id, new PropertyModel<Boolean>(model, "value.value"));
         } else {
-            panel = new TextPanel<String>(id, new PropertyModel<String>(model, "value.value"));
+            Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
+            if (type != null && type.isPrimitive()) {
+                type = ClassUtils.primitiveToWrapper(type);
+            }
+            panel = new TextPanel<String>(id, new PropertyModel<String>(model, "value.value"),
+                    type);
         }
 
         return panel;
