@@ -422,3 +422,10 @@ ul.messagesTop .messages-info-details-section .arrow-right {
 ul.messagesTop .messages-info-details-section .arrow-down {
 	background-position: 0px -32px;
 }
+
+ul.messages-topException {
+	font-size: 12px;
+}
+ul.messages-topException li {
+	margin-top: 5px;
+}
