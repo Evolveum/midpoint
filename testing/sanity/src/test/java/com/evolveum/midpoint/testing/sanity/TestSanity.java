@@ -2555,7 +2555,7 @@ public class TestSanity extends AbstractIntegrationTest {
      * Not really a test. Just cleans up after live sync.
      */
     @Test
-    public void test199LiveSyncCleanup() throws ObjectNotFoundException {
+    public void test199LiveSyncCleanup() throws Exception {
         displayTestTile("test199LiveSyncCleanup");
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test199LiveSyncCleanup");
