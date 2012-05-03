@@ -27,7 +27,7 @@
             <class name="com.evolveum.midpoint.repo.sql.EmbeddedServerModeTest"/>
         </classes>
     </test>
-    <test name="Query Add Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
+    <test name="Query Add Tests" parallel="false" preserve-order="true" verbose="10" enabled="false">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest"/>
             <class name="com.evolveum.midpoint.repo.sql.DeleteTest"/>
@@ -41,7 +41,7 @@
             <class name="com.evolveum.midpoint.repo.sql.ConcurrencyTest"/>
         </classes>
     </test>
-    <test name="RAnyConverter" parallel="false" preserve-order="true" verbose="10" enabled="true">
+    <test name="RAnyConverter" parallel="false" preserve-order="true" verbose="10" enabled="false">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.RAnyConverterStaticTest"/>
         </classes>

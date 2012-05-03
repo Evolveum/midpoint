@@ -66,17 +66,17 @@ public class LoggingConfigurationManager {
 		//Generate configuration file as string
 		String configXml = prepareConfiguration(config);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("New loging configuration:");
-			LOGGER.trace(configXml);
+		if (true || LOGGER.isTraceEnabled()) {
+			LOGGER.info("New loging configuration:");
+			LOGGER.info(configXml);
 		}
 
 		InputStream cis = new ByteArrayInputStream(configXml.getBytes());
-		LOGGER.info("Reseting current logging configuration");
+		LOGGER.info("Resetting current logging configuration");
 		lc.getStatusManager().clear();
 		//Set all loggers to error
 		for (Logger l : lc.getLoggerList()) {
-			LOGGER.trace("Disable logger: {}", l);
+			LOGGER.info("Disable logger: {}", l);
 			l.setLevel(Level.ERROR);
 		}
 		// Reset configuration
