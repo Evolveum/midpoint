@@ -62,7 +62,6 @@ public class PageLogging extends PageAdminConfiguration {
     private static final String OPERATION_UPDATE_LOGGING_CONFIGURATION = DOT_CLASS + "updateLoggingConfiguration";
 
     private LoadableModel<LoggingDto> model;
-    private PrismObject<SystemConfigurationType> oldObject;
 
     public PageLogging() {
         model = new LoadableModel<LoggingDto>(false) {
@@ -85,10 +84,9 @@ public class PageLogging extends PageAdminConfiguration {
             PrismObject<SystemConfigurationType> config = getModelService().getObject(
                     SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
                     task, result);
-            oldObject = config;
             SystemConfigurationType systemConfiguration = config.asObjectable();
             LoggingConfigurationType logging = systemConfiguration.getLogging();
-            dto = new LoggingDto(logging);
+            dto = new LoggingDto(config, logging);
 
             result.recordSuccess();
         } catch (Exception ex) {
@@ -484,15 +482,13 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void loggedEditPerformed(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
-        if (rowModel.getObject().isEditable()) {
-            //TODO show TextPanel
-        } else {
-            //TODO show Label
-        }
+        LoggerConfiguration config = rowModel.getObject();
+        config.setEditing(true);
+        target.add(getLoggersTable());
     }
 
     private void appenderEditPerformed(AjaxRequestTarget target, IModel<AppenderConfiguration> model) {
-
+         //todo implement
     }
 
     private void savePerformed(AjaxRequestTarget target) {
@@ -500,16 +496,22 @@ public class PageLogging extends PageAdminConfiguration {
         String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
         try {
             Task task = getTaskManager().createTaskInstance(OPERATION_UPDATE_LOGGING_CONFIGURATION);
-            PrismObject<SystemConfigurationType> newObject = oldObject.clone();
+            LoggingDto dto = model.getObject();
+
+            PrismObject<SystemConfigurationType> newObject = dto.getOldConfiguration().clone();
             newObject.asObjectable().setLogging(createConfiguration());
 
-            ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
+            ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(dto.getOldConfiguration(), newObject);
             getModelService().modifyObject(SystemConfigurationType.class, oid,
                     delta.getModifications(), task, result);
+            result.recordSuccess();
         } catch (Exception ex) {
-            ex.printStackTrace();
-            //todo error handling
+            result.recomputeStatus();
+            result.recordFatalError("Couldn't save logging configuration.", ex); //todo i18n
         }
+
+        showResult(result);
+        target.add(getFeedbackPanel());
     }
 
     private void resetPerformed(AjaxRequestTarget target) {

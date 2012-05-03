@@ -32,7 +32,7 @@ import java.util.List;
  */
 public abstract class LoggerConfiguration extends Selectable {
 	
-	private Boolean editable = false;
+	private boolean editing;
     private LoggingLevelType level;
     private List<String> appenders = new ArrayList<String>();
 
@@ -54,13 +54,12 @@ public abstract class LoggerConfiguration extends Selectable {
     public void setLevel(LoggingLevelType level) {
         this.level = level;
     }
-    
-	public void setEditable(Boolean editable) {
-		this.editable = editable;
-	}
-    
-    public boolean isEditable(){
-    	return editable;
+
+    public boolean isEditing() {
+        return editing;
     }
-    
+
+    public void setEditing(boolean editing) {
+        this.editing = editing;
+    }
 }
