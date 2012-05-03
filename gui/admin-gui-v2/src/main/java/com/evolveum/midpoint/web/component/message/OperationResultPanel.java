@@ -56,7 +56,6 @@ public class OperationResultPanel extends Panel {
         add(arrow);
 
         add(operation);//todo localize
-        add(new AttributeAppender("class", createMessageLiClass(model), " "));
 
         WebMarkupContainer operationContent = new WebMarkupContainer("operationContent");
         operationContent.setMarkupId(operation.getMarkupId() + "_content");
@@ -102,13 +101,14 @@ public class OperationResultPanel extends Panel {
 
             @Override
             protected void populateItem(ListItem<OpResult> item) {
+            	item.add(new AttributeAppender("class", createMessageLiClass(model), " "));
                 item.add(new OperationResultPanel("subresult", item.getModel()));
             }
         };
         add(subresults);
     }
 
-    private IModel<String> createMessageLiClass(final IModel<OpResult> model) {
+    static IModel<String> createMessageLiClass(final IModel<OpResult> model) {
         return new LoadableModel<String>(false) {
 
             @Override
@@ -135,7 +135,7 @@ public class OperationResultPanel extends Panel {
         };
     }
 
-    private IModel<List<Param>> createParamsModel(final IModel<OpResult> model) {
+    static IModel<List<Param>> createParamsModel(final IModel<OpResult> model) {
         return new LoadableModel<List<Param>>(false) {
 
             @Override

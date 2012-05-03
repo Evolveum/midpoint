@@ -665,7 +665,7 @@ div.objectForm .tableForm tbody .objectFormValue .objectFormHelpContainer {
 }
 
 .optionPanel .optionLeftBarArrow {
-	background-image: url(custom-theme/images/searchBarArrow.png);
+	background-image: url(../img/searchBarArrow.png);
 	background-repeat: none;
 	background-position: 0px 0px;
     float: left;
