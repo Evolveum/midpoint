@@ -40,12 +40,12 @@ public class LinkIconColumn<T extends Serializable> extends AbstractColumn<T> {
     }
 
     @Override
-    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
+    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, final IModel<T> rowModel) {
         cellItem.add(new LinkIconPanel(componentId, createIconModel(rowModel)) {
 
             @Override
             protected void onClickPerformed(AjaxRequestTarget target) {
-                LinkIconColumn.this.onClickPerformed(target);
+                LinkIconColumn.this.onClickPerformed(target, rowModel);
             }
         });
     }
@@ -54,7 +54,7 @@ public class LinkIconColumn<T extends Serializable> extends AbstractColumn<T> {
         throw new UnsupportedOperationException("Not implemented, please implement in your column.");
     }
 
-    protected void onClickPerformed(AjaxRequestTarget target) {
+    protected void onClickPerformed(AjaxRequestTarget target, IModel<T> rowModel) {
 
     }
 }

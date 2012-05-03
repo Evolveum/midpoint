@@ -29,8 +29,10 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -56,8 +58,8 @@ public class PageResources extends PageAdminResources {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        TablePanel resources = new TablePanel<ResourceType>("table",
-                new ObjectDataProvider(PageResources.this, ResourceType.class), initResourceColumns());
+        TablePanel resources = new TablePanel<ResourceDto>("table",
+                new ResourceDtoProvider(this), initResourceColumns());
         resources.setOutputMarkupId(true);
         mainForm.add(resources);
 
@@ -82,58 +84,57 @@ public class PageResources extends PageAdminResources {
         mainForm.add(deleteResource);
     }
 
-    private List<IColumn<ResourceType>> initResourceColumns() {
-        List<IColumn<ResourceType>> columns = new ArrayList<IColumn<ResourceType>>();
+    private List<IColumn<ResourceDto>> initResourceColumns() {
+        List<IColumn<ResourceDto>> columns = new ArrayList<IColumn<ResourceDto>>();
 
-        IColumn column = new CheckBoxHeaderColumn<ResourceType>();
+        IColumn column = new CheckBoxHeaderColumn<ResourceDto>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<ResourceType>>(createStringResource("pageResources.name"),
-                "name", "value.name") {
+        column = new LinkColumn<ResourceDto>(createStringResource("pageResources.name"),
+                "name", "name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
-                ResourceType resource = rowModel.getObject().getValue();
+            public void onClick(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
+                ResourceDto resource = rowModel.getObject();
                 resourceDetailsPerformed(target, resource.getOid());
             }
         };
         columns.add(column);
 
-        //todo fix connector resolving...
-        column = new PropertyColumn(createStringResource("pageResources.bundle"), "connectorBundle",
-                "value.connector.connectorBundle");
-        columns.add(column);
-        column = new PropertyColumn(createStringResource("pageResources.version"), "connectorVersion",
-                "value.connector.connectorVersion");
-        columns.add(column);
+        columns.add(new PropertyColumn(createStringResource("pageResources.bundle"), "bundle"));
+        columns.add(new PropertyColumn(createStringResource("pageResources.version"), "version"));
 
-        column = new LinkIconColumn<ResourceType>(createStringResource("pageResources.status")) {
+        column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.status")) {
 
             @Override
-            protected IModel<ResourceReference> createIconModel(IModel<ResourceType> rowModel) {
+            protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
                 return new AbstractReadOnlyModel<ResourceReference>() {
 
                     @Override
                     public ResourceReference getObject() {
-                        return new PackageResourceReference(PageResources.class, "someicon.png");
+                        ResourceDto dto = rowModel.getObject();
+                        ResourceStatus status = dto.getStatus();
+                        if (status == null) {
+                            status = ResourceStatus.NOT_TESTED;
+                        }
+                        return new PackageResourceReference(PageResources.class, status.getIcon());
                     }
                 };
             }
 
             @Override
-            protected void onClickPerformed(AjaxRequestTarget target) {
-                System.out.println("aaa");
+            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
+                testResourcePerformed(target, rowModel);
             }
         };
         columns.add(column);
 
-        //        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
-//        columns.add(column);
-//
-//        column = new PropertyColumn(createStringResource("pageResources.import"), "value.connector.connectorVersion");
-//        columns.add(column);
-//        column = new PropertyColumn(createStringResource("pageResources.progress"), "value.connector.connectorVersion");
-//        columns.add(column);
+        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
+        columns.add(column);
+        column = new PropertyColumn(createStringResource("pageResources.import"), "value.connector.connectorVersion");
+        columns.add(column);
+        column = new PropertyColumn(createStringResource("pageResources.progress"), "value.connector.connectorVersion");
+        columns.add(column);
 
         return columns;
     }
@@ -141,16 +142,16 @@ public class PageResources extends PageAdminResources {
     private List<IColumn<ConnectorHostType>> initConnectorHostsColumns() {
         List<IColumn<ConnectorHostType>> columns = new ArrayList<IColumn<ConnectorHostType>>();
 
-        IColumn column = new CheckBoxHeaderColumn<ResourceType>();
+        IColumn column = new CheckBoxHeaderColumn<ConnectorHostType>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<ResourceType>>(createStringResource("pageResources.connector.name"),
+        column = new LinkColumn<SelectableBean<ConnectorHostType>>(createStringResource("pageResources.connector.name"),
                 "name", "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
-                ResourceType resource = rowModel.getObject().getValue();
-                resourceDetailsPerformed(target, resource.getOid());
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ConnectorHostType>> rowModel) {
+                ConnectorHostType host = rowModel.getObject().getValue();
+                resourceDetailsPerformed(target, host.getOid());
             }
         };
         columns.add(column);
@@ -172,6 +173,10 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourcePerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
         //todo implement
     }
 }

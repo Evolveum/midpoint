@@ -102,6 +102,7 @@ public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
 
     @Override
     public int size() {
+        //todo fix error handling
         try {
             return getTaskManager().countNodes(query, new OperationResult("size"));
         } catch (Exception ex) {

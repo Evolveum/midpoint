@@ -116,6 +116,7 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
 
     @Override
     public int size() {
+        //todo how to handle this???
         try {
             return getTaskManager().countTasks(query, new OperationResult("size"));
         } catch (Exception ex) {
