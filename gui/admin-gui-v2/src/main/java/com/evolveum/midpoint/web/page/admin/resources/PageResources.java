@@ -21,23 +21,27 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.web.component.data.column.*;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -49,12 +53,43 @@ public class PageResources extends PageAdminResources {
     }
 
     private void initLayout() {
+        Form mainForm = new Form("mainForm");
+        add(mainForm);
+
+        TablePanel resources = new TablePanel<ResourceType>("table",
+                new ObjectDataProvider(PageResources.this, ResourceType.class), initResourceColumns());
+        resources.setOutputMarkupId(true);
+        mainForm.add(resources);
+
+        TablePanel connectorHosts = new TablePanel<ConnectorHostType>("connectorTable",
+                new ObjectDataProvider(PageResources.this, ConnectorHostType.class), initConnectorHostsColumns());
+        connectorHosts.setShowPaging(false);
+        connectorHosts.setOutputMarkupId(true);
+        mainForm.add(connectorHosts);
+
+        initButtons(mainForm);
+    }
+
+    private void initButtons(Form mainForm) {
+        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource",
+                createStringResource("pageResources.button.deleteResource")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteResourcePerformed(target);
+            }
+        };
+        mainForm.add(deleteResource);
+    }
+
+    private List<IColumn<ResourceType>> initResourceColumns() {
         List<IColumn<ResourceType>> columns = new ArrayList<IColumn<ResourceType>>();
 
         IColumn column = new CheckBoxHeaderColumn<ResourceType>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<ResourceType>>(createStringResource("pageResources.name"), "name", "value.name") {
+        column = new LinkColumn<SelectableBean<ResourceType>>(createStringResource("pageResources.name"),
+                "name", "value.name") {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
@@ -65,9 +100,11 @@ public class PageResources extends PageAdminResources {
         columns.add(column);
 
         //todo fix connector resolving...
-        column = new PropertyColumn(createStringResource("pageResources.bundle"), "connectorBundle", "value.connector.connectorBundle");
+        column = new PropertyColumn(createStringResource("pageResources.bundle"), "connectorBundle",
+                "value.connector.connectorBundle");
         columns.add(column);
-        column = new PropertyColumn(createStringResource("pageResources.version"), "connectorVersion", "value.connector.connectorVersion");
+        column = new PropertyColumn(createStringResource("pageResources.version"), "connectorVersion",
+                "value.connector.connectorVersion");
         columns.add(column);
 
         column = new LinkIconColumn<ResourceType>(createStringResource("pageResources.status")) {
@@ -89,7 +126,8 @@ public class PageResources extends PageAdminResources {
             }
         };
         columns.add(column);
-//        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
+
+        //        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
 //        columns.add(column);
 //
 //        column = new PropertyColumn(createStringResource("pageResources.import"), "value.connector.connectorVersion");
@@ -97,12 +135,10 @@ public class PageResources extends PageAdminResources {
 //        column = new PropertyColumn(createStringResource("pageResources.progress"), "value.connector.connectorVersion");
 //        columns.add(column);
 
-        add(new TablePanel<ResourceType>("table", new ObjectDataProvider(PageResources.this, ResourceType.class), columns));
-
-        initConnectorHostTable();
+        return columns;
     }
 
-    private void initConnectorHostTable() {
+    private List<IColumn<ConnectorHostType>> initConnectorHostsColumns() {
         List<IColumn<ConnectorHostType>> columns = new ArrayList<IColumn<ConnectorHostType>>();
 
         IColumn column = new CheckBoxHeaderColumn<ResourceType>();
@@ -128,13 +164,14 @@ public class PageResources extends PageAdminResources {
         columns.add(new CheckBoxColumn(createStringResource("pageResources.connector.protectConnection"),
                 "value.protectConnection"));
 
-        TablePanel table = new TablePanel<ConnectorHostType>("connectorTable",
-                new ObjectDataProvider(PageResources.this, ConnectorHostType.class), columns);
-        table.setShowPaging(false);
-        add(table);
+        return columns;
     }
 
-    public void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
+    private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
+        //todo implement
+    }
 
+    private void deleteResourcePerformed(AjaxRequestTarget target) {
+        //todo implement
     }
 }
