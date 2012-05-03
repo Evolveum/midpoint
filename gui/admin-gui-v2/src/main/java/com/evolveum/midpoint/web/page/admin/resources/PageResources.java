@@ -129,12 +129,13 @@ public class PageResources extends PageAdminResources {
         };
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
-        columns.add(column);
-        column = new PropertyColumn(createStringResource("pageResources.import"), "value.connector.connectorVersion");
-        columns.add(column);
-        column = new PropertyColumn(createStringResource("pageResources.progress"), "value.connector.connectorVersion");
-        columns.add(column);
+        //todo sync import progress
+//        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
+//        columns.add(column);
+//        column = new PropertyColumn(createStringResource("pageResources.import"), "value.connector.connectorVersion");
+//        columns.add(column);
+//        column = new PropertyColumn(createStringResource("pageResources.progress"), "value.connector.connectorVersion");
+//        columns.add(column);
 
         return columns;
     }

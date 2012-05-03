@@ -37,6 +37,9 @@ public class ResourceDto extends Selectable {
     private String version;
     private ResourceStatus status;
 
+    public ResourceDto() {
+    }
+
     public ResourceDto(ResourceType resource, ConnectorType connector) {
         Validate.notNull(resource);
 

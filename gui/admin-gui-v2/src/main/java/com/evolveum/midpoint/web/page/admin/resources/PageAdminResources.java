@@ -25,7 +25,6 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +41,8 @@ public class PageAdminResources extends PageAdmin {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
         items.add(new BottomMenuItem("pageAdminResources.listResources", PageResources.class));
-        items.add(new BottomMenuItem("pageAdminResources.newResource", PageUser.class));
-        items.add(new BottomMenuItem("pageAdminResources.detailsResource", PageResourceDetails.class));
+//        items.add(new BottomMenuItem("pageAdminResources.newResource", PageUser.class));
+        items.add(new BottomMenuItem("pageAdminResources.detailsResource", PageResource.class));
 
         return items;
     }
