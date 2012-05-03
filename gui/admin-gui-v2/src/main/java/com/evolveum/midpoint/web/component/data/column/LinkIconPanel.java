@@ -22,36 +22,33 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.ResourceReference;
-
-import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class LinkIconColumn<T extends Serializable> extends AbstractColumn<T> {
+public class LinkIconPanel extends Panel {
 
-    public LinkIconColumn(IModel<String> displayModel) {
-        super(displayModel);
+    public LinkIconPanel(String id, IModel<ResourceReference> model) {
+        super(id);
+
+        initLayout(model);
     }
 
-    @Override
-    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
-        cellItem.add(new LinkIconPanel(componentId, createIconModel(rowModel)) {
+    private void initLayout(IModel<ResourceReference> model) {
+        AjaxLink link = new AjaxLink("link") {
 
             @Override
-            protected void onClickPerformed(AjaxRequestTarget target) {
-                LinkIconColumn.this.onClickPerformed(target);
+            public void onClick(AjaxRequestTarget target) {
+                onClickPerformed(target);
             }
-        });
-    }
-
-    protected IModel<ResourceReference> createIconModel(final IModel<T> rowModel) {
-        throw new UnsupportedOperationException("Not implemented, please implement in your column.");
+        };
+        link.add(new Image("image", model));
+        add(link);
     }
 
     protected void onClickPerformed(AjaxRequestTarget target) {

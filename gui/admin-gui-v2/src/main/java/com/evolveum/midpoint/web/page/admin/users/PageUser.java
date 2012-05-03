@@ -460,6 +460,32 @@ public class PageUser extends PageAdminUsers {
         //todo implement
     }
 
+    private List<ObjectWrapper> getSelectedAccounts() {
+        List<ObjectWrapper> selected = new ArrayList<ObjectWrapper>();
+
+        List<ObjectWrapper> all = accountsModel.getObject();
+        for (ObjectWrapper wrapper : all) {
+            if (wrapper.isSelected()) {
+                selected.add(wrapper);
+            }
+        }
+
+        return selected;
+    }
+
+    private List<ObjectWrapper> getSelectedAssignments() {
+        List<ObjectWrapper> selected = new ArrayList<ObjectWrapper>();
+
+        List<ObjectWrapper> all = new ArrayList<ObjectWrapper>();//todo get from model
+        for (ObjectWrapper wrapper : all) {
+            if (wrapper.isSelected()) {
+                selected.add(wrapper);
+            }
+        }
+
+        return selected;
+    }
+
 //    private void recalculatePerformed(AjaxRequestTarget target) {
 //        //todo implement
 //    }

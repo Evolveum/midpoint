@@ -24,20 +24,20 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.data.column.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.ResourceReference;
 
 /**
  * @author lazyman
@@ -70,10 +70,25 @@ public class PageResources extends PageAdminResources {
         column = new PropertyColumn(createStringResource("pageResources.version"), "connectorVersion", "value.connector.connectorVersion");
         columns.add(column);
 
-        column = new IconColumn<ResourceType>(createStringResource("pageResources.status"));
-        //column.populateItem(cellItem, componentId, rowModel);
+        column = new LinkIconColumn<ResourceType>(createStringResource("pageResources.status")) {
+
+            @Override
+            protected IModel<ResourceReference> createIconModel(IModel<ResourceType> rowModel) {
+                return new AbstractReadOnlyModel<ResourceReference>() {
+
+                    @Override
+                    public ResourceReference getObject() {
+                        return new PackageResourceReference(PageResources.class, "someicon.png");
+                    }
+                };
+            }
+
+            @Override
+            protected void onClickPerformed(AjaxRequestTarget target) {
+                System.out.println("aaa");
+            }
+        };
         columns.add(column);
-//        columns.add(column);
 //        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
 //        columns.add(column);
 //
