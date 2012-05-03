@@ -139,7 +139,6 @@ public class PageUser extends PageAdminUsers {
         ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, user, status);
         wrapper.setShowEmpty(!isEditingUser());
-        wrapper.setSelectable(true);
 
         return wrapper;
     }
@@ -210,6 +209,7 @@ public class PageUser extends PageAdminUsers {
 
             ObjectWrapper wrapper = new ObjectWrapper(resourceName, account.getName(),
                     account.asPrismObject(), ContainerStatus.MODIFYING);
+            wrapper.setSelectable(true);
             wrapper.setMinimalized(true);
             list.add(wrapper);
         }

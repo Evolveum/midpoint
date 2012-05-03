@@ -33,7 +33,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -78,11 +77,11 @@ public class FeedbackMessagePanel extends Panel {
 
                 @Override
                 protected void populateItem(ListItem<OpResult> item) {
-                	item.add(new AttributeAppender("class", 
-                			OperationResultPanel.createMessageLiClass(item.getModel()), " "));
+                    item.add(new AttributeAppender("class",
+                            OperationResultPanel.createMessageLiClass(item.getModel()), " "));
                     item.add(new OperationResultPanel("subresult", item.getModel()));
                 }
-            };            
+            };
             content.add(subresults);
             content.add(new AttributeAppender("class", new LoadableModel<String>(false) {
 
@@ -108,12 +107,12 @@ public class FeedbackMessagePanel extends Panel {
         });
         content.setMarkupId(label.getMarkupId() + "_content");
         add(content);
-        
-        content.add(new Label("operation", new PropertyModel<String>(createResultModel(message), "operation")));
-        
-        ListView<Param> params = new ListView<Param>("params", 
-        		OperationResultPanel.createParamsModel(createResultModel(message))) {
-        	
+
+        content.add(new Label("operation", new PropertyModel<String>(message, "message.operation")));
+
+        ListView<Param> params = new ListView<Param>("params",
+                OperationResultPanel.createParamsModel(new PropertyModel<OpResult>(message, "message"))) {
+
             @Override
             protected void populateItem(ListItem<Param> item) {
                 item.add(new Label("paramName", new PropertyModel<Object>(item.getModel(), "name")));
@@ -121,18 +120,22 @@ public class FeedbackMessagePanel extends Panel {
             }
         };
         content.add(params);
-        
+
         WebMarkupContainer exception = new WebMarkupContainer("exception") {
 
             @Override
             public boolean isVisible() {
-                OpResult result = createResultModel(message).getObject();
+                FeedbackMessage fMessage = message.getObject();
+                if (!(fMessage.getMessage() instanceof OpResult)) {
+                    return false;
+                }
+                OpResult result = (OpResult) fMessage.getMessage();
                 return StringUtils.isNotEmpty(result.getExceptionMessage())
                         || StringUtils.isNotEmpty(result.getExceptionsStackTrace());
             }
         };
         content.add(exception);
-        exception.add(new Label("exceptionMessage", new PropertyModel<String>(createResultModel(message), "exceptionMessage")));
+        exception.add(new Label("exceptionMessage", new PropertyModel<String>(message, "message.exceptionMessage")));
 
         WebMarkupContainer errorStack = new WebMarkupContainer("errorStack");
         errorStack.setOutputMarkupId(true);
@@ -142,7 +145,8 @@ public class FeedbackMessagePanel extends Panel {
         errorStackContent.setMarkupId(errorStack.getMarkupId() + "_content");
         exception.add(errorStackContent);
 
-        errorStackContent.add(new Label("exceptionStack", new PropertyModel<String>(createResultModel(message), "exceptionsStackTrace")));
+        errorStackContent.add(new Label("exceptionStack",
+                new PropertyModel<String>(message, "message.exceptionsStackTrace")));
     }
 
     private String getDetailsCss(final IModel<OpResult> model) {
@@ -165,21 +169,6 @@ public class FeedbackMessagePanel extends Panel {
             default:
                 return "messages-warn-content";
         }
-    }
-    
-    static IModel<OpResult> createResultModel(final IModel<FeedbackMessage> model) {
-        return new LoadableModel<OpResult>(false) {
-
-            @Override
-            protected OpResult load() {
-            	Serializable serializable = model.getObject().getMessage();
-            	if(serializable instanceof OpResult){
-            		OpResult result = (OpResult) serializable;
-                    return result;
-            	}
-            	return new OpResult(null);
-            }
-        };
     }
 
     private IModel<List<OpResult>> createSubresultsModel(final IModel<FeedbackMessage> model) {

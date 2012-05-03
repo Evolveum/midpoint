@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -32,7 +31,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -133,10 +131,7 @@ public class PrismObjectPanel extends Panel {
 
             @Override
             public void checkBoxOnUpdate(AjaxRequestTarget target) {
-                ObjectWrapper wrapper = model.getObject();
-                wrapper.setSelected(!wrapper.isSelected());
                 target.add(PrismObjectPanel.this);
-                super.checkBoxOnUpdate(target);
             }
 
             @Override
@@ -144,7 +139,6 @@ public class PrismObjectPanel extends Panel {
                 ObjectWrapper wrapper = model.getObject();
                 wrapper.setMinimalized(!wrapper.isMinimalized());
                 target.add(PrismObjectPanel.this);
-                super.minimizeOnClick(target);
             }
 
             @Override
@@ -152,7 +146,6 @@ public class PrismObjectPanel extends Panel {
                 ObjectWrapper wrapper = model.getObject();
                 wrapper.setShowEmpty(!wrapper.isShowEmpty());
                 target.add(PrismObjectPanel.this);
-                super.showEmptyOnClick(target);
             }
         });
         headerPanel.add(createOperationPanel("operationButtons"));

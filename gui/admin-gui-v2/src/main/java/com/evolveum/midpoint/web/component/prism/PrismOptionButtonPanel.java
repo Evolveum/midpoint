@@ -21,15 +21,10 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import java.awt.LayoutManager;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -37,39 +32,49 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
-import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
-
 /**
  * @author mserbak
+ * @author lazyman
  */
 public class PrismOptionButtonPanel extends Panel {
-	
-	public PrismOptionButtonPanel(String id, final IModel<ObjectWrapper> model) {
-		super(id);
 
-		initButtons(model);
-		
-		AjaxCheckBox check = new AjaxCheckBox("check", new PropertyModel<Boolean>(model, "selected")) {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				PrismOptionButtonPanel.this.checkBoxOnUpdate(target);
-			}
-		};
-        //todo wtf?
-//		check.setVisible(model.getObject().isSelectable());
+    public PrismOptionButtonPanel(String id, IModel<ObjectWrapper> model) {
+        super(id);
+
+        initLayout(model);
+    }
+
+    private void initLayout(final IModel<ObjectWrapper> model) {
+        AjaxCheckBox check = new AjaxCheckBox("check", new PropertyModel<Boolean>(model, "selected")) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                PrismOptionButtonPanel.this.checkBoxOnUpdate(target);
+            }
+        };
+        check.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return model.getObject().isSelectable();
+            }
+        });
         check.setOutputMarkupId(true);
         add(check);
-	}
-	
-	private void initButtons(final IModel<ObjectWrapper> model){
-		AjaxLink showEmpty = new AjaxLink("showEmptyButton") {
+
+        initButtons(model);
+    }
+
+    private void initButtons(final IModel<ObjectWrapper> model) {
+        AjaxLink showEmpty = new AjaxLink("showEmptyButton") {
+
             @Override
             public void onClick(AjaxRequestTarget target) {
-            	showEmptyOnClick(target);
+                showEmptyOnClick(target);
             }
         };
         add(showEmpty);
-        
+
         Image showEmptyImg = new Image("showEmptyImg", new AbstractReadOnlyModel() {
 
             @Override
@@ -91,13 +96,14 @@ public class PrismOptionButtonPanel extends Panel {
 //        } else {
 //        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.showEmpty")));
 //        }
-        
+
         showEmpty.add(showEmptyImg);
 
         AjaxLink minimize = new AjaxLink("minimizeButton") {
+
             @Override
             public void onClick(AjaxRequestTarget target) {
-            	minimizeOnClick(target);
+                minimizeOnClick(target);
             }
         };
         add(minimize);
@@ -124,14 +130,14 @@ public class PrismOptionButtonPanel extends Panel {
 //        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.minimize")));
 //        }
         minimize.add(minimizeImg);
-	}
-	
-	public void minimizeOnClick(AjaxRequestTarget target) {
-	}
-	
-	public void showEmptyOnClick(AjaxRequestTarget target) {
-	}
-	
-	public void checkBoxOnUpdate(AjaxRequestTarget target) {
+    }
+
+    public void minimizeOnClick(AjaxRequestTarget target) {
+    }
+
+    public void showEmptyOnClick(AjaxRequestTarget target) {
+    }
+
+    public void checkBoxOnUpdate(AjaxRequestTarget target) {
     }
 }
