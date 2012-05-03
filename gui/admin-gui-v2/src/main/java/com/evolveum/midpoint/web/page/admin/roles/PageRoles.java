@@ -21,16 +21,9 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.test.TestPage;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -40,8 +33,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
 /**
  * @author lazyman
@@ -88,17 +88,6 @@ public class PageRoles extends PageAdminRoles {
             }
         };
         mainForm.add(delete);
-
-        ///////////////////////// POPUP MODAL WINDOW //////////////////////////////////
-        mainForm.add(new AjaxLinkButton("popup", new Model<String>("Open test page")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                setResponsePage(TestPage.class);
-                //popupWindow.show(target);
-            }
-        });
-        ///////////////////////////////////////////////////////////////////////////////
     }
 
     private void deletePerformed(AjaxRequestTarget target) {

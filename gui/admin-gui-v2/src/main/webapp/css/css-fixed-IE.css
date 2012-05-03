@@ -41,12 +41,12 @@ div.objectForm .tableForm input[type='text'], div.objectForm .tableForm input[ty
 	padding: 0 0 0 5px;
 }
 
-div.objectForm .tableForm tbody .objectFormInput .yui-skin-sam .yui-calcontainer {
+div.objectForm .tableForm .tableFormBody .objectFormInput .yui-skin-sam .yui-calcontainer {
 	width: 252px;
 	z-index: 99999;
 }
 
-div.objectForm .tableForm tbody .objectFormInput .yui-skin-sam  .yui-calcontainer table {
+div.objectForm .tableForm .tableFormBody .objectFormInput .yui-skin-sam  .yui-calcontainer table {
 	width: 230px;
 	z-index: 99999;
 }

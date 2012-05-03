@@ -155,7 +155,7 @@ div.objectForm .tableForm .tableFormBody .objectFormLabel {
 
 div.objectForm .tableForm .tableFormBody .objectFormLabel .objectFormLabelName {
 	float: right;
-    margin-top: 12px;
+    margin-top: 11px;
 }
 
 div.objectForm .tableForm .tableFormBody input[type='text'], div.objectForm .tableForm .tableFormBody input[type='password'] {
@@ -188,7 +188,7 @@ div.objectForm .tableForm .tableFormBody .objectFormSeparatorText {
 }
 
 div.objectForm .tableForm .tableFormBody .objectFormButtons {
-	padding: 11px 0px 10px 7px;
+	padding: 11px 6px 10px 6px;
 	position: relative;
 	display: inline-block;
 	width: 43px;
@@ -205,6 +205,7 @@ div.objectForm .tableForm .tableFormBody .objectFormInput {
 	width: 345px;
 	position: relative;
 	float: left;
+	text-align: left;
 }
 
 div.objectForm .tableForm .tableFormBody .objectFormValue div.feedbackPanel ul {
