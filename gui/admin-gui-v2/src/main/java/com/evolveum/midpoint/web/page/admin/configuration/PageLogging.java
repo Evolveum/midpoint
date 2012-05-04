@@ -38,9 +38,9 @@ import com.evolveum.midpoint.web.component.prism.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.prism.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.configuration.column.Editable;
-import com.evolveum.midpoint.web.page.admin.configuration.column.EditableLinkColumn;
-import com.evolveum.midpoint.web.page.admin.configuration.column.EditablePropertyColumn;
+import com.evolveum.midpoint.web.component.util.Editable;
+import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -595,7 +595,7 @@ public class PageLogging extends PageAdminConfiguration {
 
     private void addFileAppenderPerformed(AjaxRequestTarget target) {
         LoggingDto dto = model.getObject();
-        FileAppender appender = new FileAppender(new FileAppenderConfigurationType());
+        FileAppenderConfig appender = new FileAppenderConfig(new FileAppenderConfigurationType());
         appender.setEditing(true);
         dto.getAppenders().add(appender);
 
@@ -669,7 +669,7 @@ public class PageLogging extends PageAdminConfiguration {
 
         @Override
         protected boolean isEditing(IModel<T> rowModel) {
-            return super.isEditing(rowModel) && (rowModel.getObject() instanceof FileAppender);
+            return super.isEditing(rowModel) && (rowModel.getObject() instanceof FileAppenderConfig);
         }
     }
 }

@@ -26,9 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigur
 /**
  * @author lazyman
  */
-public class FileAppender extends AppenderConfiguration<FileAppenderConfigurationType, FileAppender> {
+public class FileAppenderConfig extends AppenderConfiguration<FileAppenderConfigurationType, FileAppenderConfig> {
 
-    public FileAppender(FileAppenderConfigurationType config) {
+    public FileAppenderConfig(FileAppenderConfigurationType config) {
         super(config);
     }
 

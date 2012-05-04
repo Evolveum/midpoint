@@ -97,7 +97,7 @@ public class LoggingDto implements Serializable {
 
         for (AppenderConfigurationType appender : config.getAppender()) {
             if (appender instanceof FileAppenderConfigurationType) {
-                appenders.add(new FileAppender((FileAppenderConfigurationType) appender));
+                appenders.add(new FileAppenderConfig((FileAppenderConfigurationType) appender));
             } else {
                 appenders.add(new AppenderConfiguration(appender));
             }

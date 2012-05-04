@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration.column;
+package com.evolveum.midpoint.web.component.util;
 
 import java.io.Serializable;
 

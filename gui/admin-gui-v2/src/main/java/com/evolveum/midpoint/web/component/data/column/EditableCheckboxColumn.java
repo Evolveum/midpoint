@@ -19,39 +19,38 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration.column;
+package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.web.component.prism.input.TextPanel;
+import com.evolveum.midpoint.web.component.util.Editable;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.wicket.Component;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
  */
-public class EditablePropertyColumn<T extends Editable> extends PropertyColumn<T> {
+public class EditableCheckboxColumn<T extends Editable> extends CheckBoxColumn<Selectable<T>> {
 
-    public EditablePropertyColumn(IModel<String> displayModel, String propertyExpression) {
+    public EditableCheckboxColumn(IModel<String> displayModel) {
+        super(displayModel);
+    }
+
+    public EditableCheckboxColumn(IModel<String> displayModel, String propertyExpression) {
         super(displayModel, propertyExpression);
     }
 
-    public EditablePropertyColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {
-        super(displayModel, sortProperty, propertyExpression);
-    }
-
-    @Override
-    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
-            final IModel<T> rowModel) {
-
-        if (!isEditing(rowModel)) {
-            super.populateItem(cellItem, componentId, rowModel);
-        } else {
-            cellItem.add(createInputPanel(componentId, rowModel));
-        }
-    }
+//    @Override
+//    public void populateItem(Item<ICellPopulator<Selectable<T>>> cellItem, String componentId,
+//            final IModel<Selectable<T>> rowModel) {
+//
+//        if (!isEditing(rowModel)) {
+//            super.populateItem(cellItem, componentId, rowModel);
+//        } else {
+//            cellItem.add(createInputPanel(componentId, rowModel));
+//        }
+//    }
 
     protected boolean isEditing(IModel<T> rowModel) {
         Editable editable = rowModel.getObject();

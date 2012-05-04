@@ -19,47 +19,44 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration.column;
+package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.prism.input.TextPanel;
-import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.objectform.input.TextPanel;
+import com.evolveum.midpoint.web.component.util.Editable;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
  */
-public class EditableCheckboxColumn<T extends Editable> extends CheckBoxColumn<Selectable<T>> {
+public class EditableLinkColumn<T extends Editable> extends LinkColumn<T> {
 
-    public EditableCheckboxColumn(IModel<String> displayModel) {
+    public EditableLinkColumn(IModel<String> displayModel) {
         super(displayModel);
     }
 
-    public EditableCheckboxColumn(IModel<String> displayModel, String propertyExpression) {
+    public EditableLinkColumn(IModel<String> displayModel, String propertyExpression) {
         super(displayModel, propertyExpression);
     }
 
-//    @Override
-//    public void populateItem(Item<ICellPopulator<Selectable<T>>> cellItem, String componentId,
-//            final IModel<Selectable<T>> rowModel) {
-//
-//        if (!isEditing(rowModel)) {
-//            super.populateItem(cellItem, componentId, rowModel);
-//        } else {
-//            cellItem.add(createInputPanel(componentId, rowModel));
-//        }
-//    }
+    public EditableLinkColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {
+        super(displayModel, sortProperty, propertyExpression);
+    }
 
-    protected boolean isEditing(IModel<T> rowModel) {
+    @Override
+    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
+            final IModel<T> rowModel) {
         Editable editable = rowModel.getObject();
-        return editable.isEditing();
+        if (!editable.isEditing()) {
+            super.populateItem(cellItem, componentId, rowModel);
+        } else {
+            cellItem.add(createInputPanel(componentId, rowModel));
+        }
     }
 
     protected Component createInputPanel(String componentId, IModel<T> model) {
-        return new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+        return new TextPanel(componentId, model);
     }
 }
