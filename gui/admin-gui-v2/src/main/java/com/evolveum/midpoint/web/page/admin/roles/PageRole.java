@@ -185,7 +185,7 @@ public class PageRole extends PageAdminRoles {
     private void savePerformed(AjaxRequestTarget target) {
         ObjectViewDto dto = model.getObject();
         if (StringUtils.isEmpty(dto.getXml())) {
-            error("Can't save empty xml as role.");     //todo i18n
+            error(getString("pageRole.message.emptyXml"));
             target.add(getFeedbackPanel());
             return;
         }
@@ -215,8 +215,10 @@ public class PageRole extends PageAdminRoles {
         }
 
         showResult(result);
+        target.add(getFeedbackPanel());
+
         if (result.isSuccess()) {
-            //todo success message is not shown
+            showResultInSession(result);
             setResponsePage(PageRoles.class);
         }
     }

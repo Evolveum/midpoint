@@ -133,7 +133,7 @@ public class PageUser extends PageAdminUsers {
             }
 
             if (!result.isSuccess()) {
-                showResult(result);
+                showResultInSession(result);
             }
             throw new RestartResponseException(PageUsers.class);
         }

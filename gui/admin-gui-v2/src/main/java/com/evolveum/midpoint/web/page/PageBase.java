@@ -177,4 +177,35 @@ public abstract class PageBase extends WebPage {
         OpResult opResult = new OpResult(result);
         showResult(opResult);
     }
+
+    public void showResultInSession(OperationResult result) {
+        Validate.notNull(result, "Operation result must not be null.");
+        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
+
+        OpResult opResult = new OpResult(result);
+        showResultInSession(opResult);
+    }
+
+    public void showResultInSession(OpResult opResult) {
+        Validate.notNull(opResult, "Operation result must not be null.");
+        Validate.notNull(opResult.getStatus(), "Operation result status must not be null.");
+
+        switch (opResult.getStatus()) {
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+                getSession().error(opResult);
+                break;
+            case IN_PROGRESS:
+            case NOT_APPLICABLE:
+                getSession().info(opResult);
+                break;
+            case SUCCESS:
+                getSession().success(opResult);
+                break;
+            case UNKNOWN:
+            case WARNING:
+            default:
+                getSession().warn(opResult);
+        }
+    }
 }
