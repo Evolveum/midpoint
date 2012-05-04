@@ -34,17 +34,24 @@ import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -55,6 +62,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
@@ -75,11 +83,13 @@ public class PageUser extends PageAdminUsers {
     private IModel<ObjectWrapper> userModel;
     private IModel<List<ObjectWrapper>> accountsModel;
     private ModalWindow accountsPopupWindow;
-    private ModalWindow resourcesPopupWindow;
+    private ModalWindow rolesPopupWindow;
+    private ModalWindow confirmPopupWindow;
 
     public PageUser() {
         accountsPopupWindow = createAccountsWindow();
-        resourcesPopupWindow = createResourcesWindow();
+        rolesPopupWindow = createRolesWindow();
+        confirmPopupWindow = createConfirmWindow();
         userModel = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
@@ -297,7 +307,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                resourcesPopupWindow.show(target);
+                rolesPopupWindow.show(target);
             }
         };
         mainForm.add(addRole);
@@ -386,19 +396,28 @@ public class PageUser extends PageAdminUsers {
         return popupWindow;
     }
 
-    private ModalWindow createResourcesWindow() {
-        final ModalWindow popupWindow;
-        add(popupWindow = new ModalWindow("resourcesPopup"));
+    private ModalWindow createRolesWindow() {
+        final ModalWindow rolesWindow;
+        add(rolesWindow = new ModalWindow("rolePopup"));
+        
+        //rolesWindow.setContent(createRolesTable(rolesWindow.getContentId()));
+        rolesWindow.setContent(new RolesPopup(rolesWindow.getContentId(), rolesWindow));
+        rolesWindow.setResizable(false);
+        rolesWindow.setTitle("Select Role");
+        rolesWindow.setCookieName("Roles popup window");
 
-        popupWindow.setContent(new EmptyPanel(popupWindow.getContentId()));
-        popupWindow.setResizable(false);
-        popupWindow.setTitle("Select Resource");
-        popupWindow.setCookieName("Resource popup window");
+        rolesWindow.setInitialWidth(1100);
+        rolesWindow.setWidthUnit("px");
+        
+//        rolesWindow.setPageCreator(new ModalWindow.PageCreator() {
+//			
+//			@Override
+//			public Page createPage() {
+//				return RolesPopup(rolesWindow.getContentId(), rolesWindow);
+//			}
+//		});
 
-        popupWindow.setInitialWidth(1100);
-        popupWindow.setWidthUnit("px");
-
-        popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+        rolesWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
 
             @Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
@@ -406,15 +425,49 @@ public class PageUser extends PageAdminUsers {
             }
         });
 
-        popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+        rolesWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
 
             @Override
             public void onClose(AjaxRequestTarget target) {
-                popupWindow.close(target);
+            	rolesWindow.close(target);
             }
         });
 
-        return popupWindow;
+        return rolesWindow;
+    }
+    
+    public ModalWindow createConfirmWindow(){
+    	final ModalWindow confirmPopup;
+        add(confirmPopup = new ModalWindow("confirmPopup"));
+
+        confirmPopup.setCookieName("confirm popup window");
+
+        confirmPopup.setResizable(false);
+        confirmPopup.setInitialWidth(30);
+        confirmPopup.setInitialHeight(15);
+        confirmPopup.setWidthUnit("em");
+        confirmPopup.setHeightUnit("em");
+
+        confirmPopup.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+
+        confirmPopup.setPageCreator(new ModalWindow.PageCreator()
+        {
+            public Page createPage()
+            {
+                return new ConfirmPopup(confirmPopup);
+            }
+        });
+
+        confirmPopup.setCloseButtonCallback(new ModalWindow.CloseButtonCallback()
+        {
+            public boolean onCloseButtonClicked(AjaxRequestTarget target)
+            {
+                target.appendJavaScript("alert('You can\\'t close this modal window using close button."
+                    + " Use the link inside the window instead.');");
+                return false;
+            }
+        });
+        return confirmPopup;
     }
 
     private boolean isEditingUser() {
