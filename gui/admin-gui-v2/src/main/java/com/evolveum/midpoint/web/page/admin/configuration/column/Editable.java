@@ -21,10 +21,12 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.column;
 
+import java.io.Serializable;
+
 /**
  * @author lazyman
  */
-public interface Editable {
+public interface Editable extends Serializable {
 
     boolean isEditing();
 

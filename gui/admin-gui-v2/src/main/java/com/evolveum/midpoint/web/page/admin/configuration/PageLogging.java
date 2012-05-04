@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.component.prism.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.prism.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.configuration.column.Editable;
 import com.evolveum.midpoint.web.page.admin.configuration.column.EditableLinkColumn;
 import com.evolveum.midpoint.web.page.admin.configuration.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
@@ -311,12 +312,11 @@ public class PageLogging extends PageAdminConfiguration {
         //pattern editable column
         columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.pattern"), "pattern"));
         //file path editable column
-        columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.filePath"), "filePath"));
+        columns.add(new FileAppenderColumn(createStringResource("pageLogging.appenders.filePath"), "filePath"));
         //file pattern editable column
-        columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.filePattern"),
-                "filePattern"));
+        columns.add(new FileAppenderColumn(createStringResource("pageLogging.appenders.filePattern"), "filePattern"));
         //max history editable column
-        columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.maxHistory"), "maxHistory") {
+        columns.add(new FileAppenderColumn(createStringResource("pageLogging.appenders.maxHistory"), "maxHistory") {
 
             @Override
             protected Component createInputPanel(String componentId, IModel iModel) {
@@ -327,7 +327,7 @@ public class PageLogging extends PageAdminConfiguration {
             }
         });
         //max file size editable column
-        columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.maxFileSize"),
+        columns.add(new FileAppenderColumn(createStringResource("pageLogging.appenders.maxFileSize"),
                 "maxFileSize") {
 
             @Override
@@ -354,15 +354,25 @@ public class PageLogging extends PageAdminConfiguration {
         table.setShowPaging(false);
         appenders.getBodyContainer().add(table);
 
-        AjaxLinkButton addAppender = new AjaxLinkButton("addAppender",
-                createStringResource("pageLogging.button.addAppender")) {
+        AjaxLinkButton addConsoleAppender = new AjaxLinkButton("addConsoleAppender",
+                createStringResource("pageLogging.button.addConsoleAppender")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addAppenderPerformed(target);
+                addConsoleAppenderPerformed(target);
             }
         };
-        appenders.getBodyContainer().add(addAppender);
+        appenders.getBodyContainer().add(addConsoleAppender);
+
+        AjaxLinkButton addFileAppender = new AjaxLinkButton("addFileAppender",
+                createStringResource("pageLogging.button.addFileAppender")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addFileAppenderPerformed(target);
+            }
+        };
+        appenders.getBodyContainer().add(addFileAppender);
 
         AjaxLinkButton deleteAppender = new AjaxLinkButton("deleteAppender",
                 createStringResource("pageLogging.button.deleteAppender")) {
@@ -574,8 +584,22 @@ public class PageLogging extends PageAdminConfiguration {
         target.add(getLoggersTable());
     }
 
-    private void addAppenderPerformed(AjaxRequestTarget target) {
-        // todo implement
+    private void addConsoleAppenderPerformed(AjaxRequestTarget target) {
+        LoggingDto dto = model.getObject();
+        AppenderConfiguration appender = new AppenderConfiguration(new AppenderConfigurationType());
+        appender.setEditing(true);
+        dto.getAppenders().add(appender);
+
+        target.add(getAppendersTable());
+    }
+
+    private void addFileAppenderPerformed(AjaxRequestTarget target) {
+        LoggingDto dto = model.getObject();
+        FileAppender appender = new FileAppender(new FileAppenderConfigurationType());
+        appender.setEditing(true);
+        dto.getAppenders().add(appender);
+
+        target.add(getAppendersTable());
     }
 
     private void loggedEditPerformed(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
@@ -635,5 +659,17 @@ public class PageLogging extends PageAdminConfiguration {
         dto.setAdvanced(!dto.isAdvanced());
 
         target.add(get("mainForm"));
+    }
+
+    private static class FileAppenderColumn<T extends Editable> extends EditablePropertyColumn<T> {
+
+        private FileAppenderColumn(IModel<String> displayModel, String propertyExpression) {
+            super(displayModel, propertyExpression);
+        }
+
+        @Override
+        protected boolean isEditing(IModel<T> rowModel) {
+            return super.isEditing(rowModel) && (rowModel.getObject() instanceof FileAppender);
+        }
     }
 }

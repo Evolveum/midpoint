@@ -29,8 +29,8 @@ import org.apache.commons.lang.Validate;
 /**
  * @author lazyman
  */
-public class AppenderConfiguration<T extends AppenderConfigurationType> extends Selectable
-        implements Editable, Comparable<T> {
+public class AppenderConfiguration<T extends AppenderConfigurationType, O extends AppenderConfiguration>
+        extends Selectable implements Editable, Comparable<O> {
 
     private boolean editing;
     private T config;
@@ -89,10 +89,10 @@ public class AppenderConfiguration<T extends AppenderConfigurationType> extends 
     }
 
     @Override
-    public int compareTo(T t) {
-        if (t == null) {
+    public int compareTo(O o) {
+        if (o == null) {
             return 0;
         }
-        return String.CASE_INSENSITIVE_ORDER.compare(getName(), t.getName());
+        return String.CASE_INSENSITIVE_ORDER.compare(getName(), o.getName());
     }
 }

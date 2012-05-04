@@ -43,7 +43,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
     private IModel<Boolean> enabled = new Model<Boolean>(true);
 
     public CheckBoxColumn(IModel<String> displayModel) {
-        this(displayModel, null);
+        this(displayModel, "selected");
     }
 
     public CheckBoxColumn(IModel<String> displayModel, String propertyExpression) {
@@ -54,12 +54,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
     @Override
     public void populateItem(Item<ICellPopulator<Selectable<T>>> cellItem, String componentId,
             final IModel<Selectable<T>> rowModel) {
-        IModel<Boolean> selected;
-        if (StringUtils.isEmpty(propertyExpression)) {
-            selected = new PropertyModel<Boolean>(rowModel, "selected");
-        } else {
-            selected = new PropertyModel<Boolean>(rowModel, propertyExpression);
-        }
+        IModel<Boolean> selected = new PropertyModel<Boolean>(rowModel, propertyExpression);
 
         cellItem.add(new CheckBoxPanel(componentId, selected, enabled) {
 
@@ -81,5 +76,9 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
 
     public void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<Selectable<T>> rowModel) {
 
+    }
+
+    protected String getPropertyExpression() {
+        return propertyExpression;
     }
 }
