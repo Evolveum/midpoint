@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -31,6 +32,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,8 @@ import java.util.List;
  */
 public class OperationResultPanel extends Panel {
 
+    static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
+
     public OperationResultPanel(String id, final IModel<OpResult> model) {
         super(id);
 
@@ -47,7 +51,16 @@ public class OperationResultPanel extends Panel {
     }
 
     private void initLayout(final IModel<OpResult> model) {
-        Label operation = new Label("operation", new PropertyModel<Object>(model, "operation"));//todo localize
+        Label operation = new Label("operation", new LoadableModel<Object>() {
+
+            @Override
+            protected Object load() {
+                OpResult result = model.getObject();
+
+                PageBase page = (PageBase) getPage();
+                return page.getString(OPERATION_RESOURCE_KEY_PREFIX + result.getOperation());
+            }
+        });
         operation.setOutputMarkupId(true);
         WebMarkupContainer arrow = new WebMarkupContainer("arrow");
         arrow.setMarkupId(operation.getMarkupId() + "_arrow");

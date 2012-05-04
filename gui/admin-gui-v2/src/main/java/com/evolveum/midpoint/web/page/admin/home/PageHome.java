@@ -22,18 +22,13 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
-
-import java.io.File;
 
 /**
  * @author lazyman
@@ -67,7 +62,6 @@ public class PageHome extends PageAdmin {
         PageHome.this.warn("warn message.");
         PageHome.this.success("success message.");
 
-        // TODO: task
         Task task = null;
         OperationResult result = new OperationResult("get non existing object");
         try {
@@ -92,21 +86,6 @@ public class PageHome extends PageAdmin {
             PageHome.this.showResult(result);
         }
 
-//        result = new OperationResult("complex result");
-//        try {
-//            File file = null;
-//            ImportOptionsType options = MiscSchemaUtil.getDefaultImportOptions();
-//            options.setOverwrite(true);
-//            Task task = null;
-//
-//             getModelService().importObjectsFromFile(file, options, task, result);
-//        } catch ( Exception ex) {
-//            result.recordFatalError("aaaa some error", ex);
-//        } finally {
-//            PageHome.this.showResult(result);
-//        }
-
-//        MainFeedback feedback = (MainFeedback) get("mainForm:feedback");
         target.add(getFeedbackPanel());
     }
 }

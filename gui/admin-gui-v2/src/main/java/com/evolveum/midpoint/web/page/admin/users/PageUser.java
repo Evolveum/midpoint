@@ -34,24 +34,18 @@ import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Page;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -60,9 +54,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
@@ -133,16 +125,19 @@ public class PageUser extends PageAdminUsers {
             showResult(result);
         }
 
-        //todo remove and redirect to PageUsers and show result there...
         if (user == null) {
-            try {
-                UserType userType = new UserType();
-                getMidpointApplication().getPrismContext().adopt(userType);
-                user = userType.asPrismObject();
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            if (isEditingUser()) {
+                getSession().error(getString("pageUser.message.cantEditUser"));
+            } else {
+                getSession().error(getString("pageUser.message.cantNewUser"));
             }
+
+            if (!result.isSuccess()) {
+                showResult(result);
+            }
+            throw new RestartResponseException(PageUsers.class);
         }
+
         ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, user, status);
         wrapper.setShowEmpty(!isEditingUser());
@@ -366,7 +361,7 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(deleteAccount);
     }
-    
+
     private void initResourceButtons(Form mainForm) {
         AjaxLinkButton addResource = new AjaxLinkButton("addResource",
                 createStringResource("pageUser.button.add")) {
@@ -384,7 +379,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-            	deleteResourcePerformed(target);
+                deleteResourcePerformed(target);
             }
         };
         mainForm.add(deleteResource);
@@ -394,7 +389,7 @@ public class PageUser extends PageAdminUsers {
         final ModalWindow resourcesWindow;
         add(resourcesWindow = new ModalWindow("resourcePopup"));
 
-        resourcesWindow.setContent(new ResourcesPopup(PageUser.this.getPageReference(), resourcesWindow.getContentId(),resourcesWindow, PageUser.this));
+        resourcesWindow.setContent(new ResourcesPopup(PageUser.this.getPageReference(), resourcesWindow.getContentId(), resourcesWindow, PageUser.this));
         resourcesWindow.setResizable(false);
         resourcesWindow.setTitle("Select resource");
         resourcesWindow.setCookieName("Resources popup window");
@@ -424,7 +419,7 @@ public class PageUser extends PageAdminUsers {
     private ModalWindow createRolesWindow() {
         final ModalWindow rolesWindow;
         add(rolesWindow = new ModalWindow("rolePopup"));
-        
+
         rolesWindow.setContent(new RolesPopup(PageUser.this.getPageReference(), rolesWindow.getContentId(), rolesWindow, PageUser.this));
         rolesWindow.setResizable(false);
         rolesWindow.setTitle("Select Role");
@@ -445,20 +440,20 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClose(AjaxRequestTarget target) {
-            	rolesWindow.close(target);
+                rolesWindow.close(target);
             }
         });
 
         return rolesWindow;
     }
-    
-    public ModalWindow createConfirmWindow(){
-    	final ModalWindow confirmPopup;
+
+    public ModalWindow createConfirmWindow() {
+        final ModalWindow confirmPopup;
         add(confirmPopup = new ModalWindow("confirmPopup"));
 
         confirmPopup.setCookieName("confirm popup window");
-        
-        confirmPopup.setContent(new ConfirmPopup(confirmPopup.getContentId() ,confirmPopup));
+
+        confirmPopup.setContent(new ConfirmPopup(confirmPopup.getContentId(), confirmPopup));
         confirmPopup.setResizable(false);
         confirmPopup.setInitialWidth(30);
         confirmPopup.setInitialHeight(15);
@@ -466,12 +461,10 @@ public class PageUser extends PageAdminUsers {
         confirmPopup.setHeightUnit("em");
 
         confirmPopup.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        confirmPopup.setCloseButtonCallback(new ModalWindow.CloseButtonCallback()
-        {
-            public boolean onCloseButtonClicked(AjaxRequestTarget target)
-            {
+        confirmPopup.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
                 target.appendJavaScript("alert('You can\\'t close this modal window using close button."
-                    + " Use the link inside the window instead.');");
+                        + " Use the link inside the window instead.');");
                 return false;
             }
         });
@@ -570,7 +563,7 @@ public class PageUser extends PageAdminUsers {
     private void deleteAccountPerformed(AjaxRequestTarget target) {
         //todo implement
     }
-    
+
     private void deleteResourcePerformed(AjaxRequestTarget target) {
         //todo implement
     }

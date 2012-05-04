@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -29,7 +30,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -93,7 +93,16 @@ public class FeedbackMessagePanel extends Panel {
         content.setMarkupId(label.getMarkupId() + "_content");
         add(content);
 
-        content.add(new Label("operation", new PropertyModel<String>(message, "message.operation")));
+        content.add(new Label("operation", new LoadableModel<String>() {
+
+            @Override
+            protected String load() {
+                OpResult result = (OpResult) message.getObject().getMessage();
+
+                PageBase page = (PageBase) getPage();
+                return page.getString(OperationResultPanel.OPERATION_RESOURCE_KEY_PREFIX + result.getOperation());
+            }
+        }));
 
         ListView<Param> params = new ListView<Param>("params",
                 OperationResultPanel.createParamsModel(new PropertyModel<OpResult>(message, "message"))) {
@@ -179,42 +188,42 @@ public class FeedbackMessagePanel extends Panel {
 
     private String getTopMessage(final IModel<FeedbackMessage> model) {
         FeedbackMessage message = model.getObject();
-        if (message.getMessage() instanceof OpResult) {
-            OpResult result = (OpResult) message.getMessage();
-
-            if (StringUtils.isEmpty(result.getMessage())) {
-                String resourceKey;
-                switch (result.getStatus()) {
-                    case FATAL_ERROR:
-                        resourceKey = "feedbackMessagePanel.message.fatalError";
-                        break;
-                    case IN_PROGRESS:
-                        resourceKey = "feedbackMessagePanel.message.inProgress";
-                        break;
-                    case NOT_APPLICABLE:
-                        resourceKey = "feedbackMessagePanel.message.notApplicable";
-                        break;
-                    case WARNING:
-                        resourceKey = "feedbackMessagePanel.message.warn";
-                        break;
-                    case PARTIAL_ERROR:
-                        resourceKey = "feedbackMessagePanel.message.partialError";
-                        break;
-                    case SUCCESS:
-                        resourceKey = "feedbackMessagePanel.message.success";
-                        break;
-                    case UNKNOWN:
-                    default:
-                        resourceKey = "feedbackMessagePanel.message.unknown";
-                }
-
-                return new StringResourceModel(resourceKey, this, null).getString();
-            }
-
-            return result.getMessage(); //todo localize
+        if (!(message.getMessage() instanceof OpResult)) {
+            return message.getMessage().toString();
         }
 
-        return message.getMessage().toString();
+        OpResult result = (OpResult) message.getMessage();
+
+        if (!StringUtils.isEmpty(result.getMessage())) {
+            return result.getMessage();
+        }
+
+        String resourceKey;
+        switch (result.getStatus()) {
+            case FATAL_ERROR:
+                resourceKey = "feedbackMessagePanel.message.fatalError";
+                break;
+            case IN_PROGRESS:
+                resourceKey = "feedbackMessagePanel.message.inProgress";
+                break;
+            case NOT_APPLICABLE:
+                resourceKey = "feedbackMessagePanel.message.notApplicable";
+                break;
+            case WARNING:
+                resourceKey = "feedbackMessagePanel.message.warn";
+                break;
+            case PARTIAL_ERROR:
+                resourceKey = "feedbackMessagePanel.message.partialError";
+                break;
+            case SUCCESS:
+                resourceKey = "feedbackMessagePanel.message.success";
+                break;
+            case UNKNOWN:
+            default:
+                resourceKey = "feedbackMessagePanel.message.unknown";
+        }
+
+        return new StringResourceModel(resourceKey, this, null).getString();
     }
 
     private String getLabelCss(final IModel<FeedbackMessage> model) {

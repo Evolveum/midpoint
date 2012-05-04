@@ -16,6 +16,7 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.basic.Label;
@@ -53,8 +54,8 @@ public class PageDebugView extends PageAdminConfiguration {
     private ObjectViewDto loadObject() {
         StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
         if (objectOid == null || StringUtils.isEmpty(objectOid.toString())) {
-            error(getString("pageDebugView.message.oidNotDefined"));
-            return new ObjectViewDto();
+            getSession().error(getString("pageDebugView.message.oidNotDefined"));
+            throw new RestartResponseException(PageDebugList.class);
         }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT);

@@ -42,7 +42,6 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import java.util.List;
@@ -66,6 +65,13 @@ public abstract class PageBase extends WebPage {
         validateInjection(taskManager, "Task manager was not injected.");
 
         initLayout();
+    }
+
+    @Override
+    protected void onAfterRender() {
+        super.onAfterRender();
+
+        getSession().getFeedbackMessages().clear();
     }
 
     private void initLayout() {
