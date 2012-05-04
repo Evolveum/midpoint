@@ -39,7 +39,7 @@ public class ComponentLogger extends LoggerConfiguration {
 
     public ComponentLogger(SubSystemLoggerConfigurationType config) {
         Validate.notNull(config, "Subsystem logger configuration must not be null.");
-        Validate.notNull(config.getComponent(), "Subsystem component is not defined.");
+//        Validate.notNull(config.getComponent(), "Subsystem component is not defined.");
 
         component = config.getComponent();
         setLevel(config.getLevel());
@@ -48,6 +48,9 @@ public class ComponentLogger extends LoggerConfiguration {
 
     @Override
     public String getName() {
+        if (component == null) {
+            return null;
+        }
         return component.value();
     }
     

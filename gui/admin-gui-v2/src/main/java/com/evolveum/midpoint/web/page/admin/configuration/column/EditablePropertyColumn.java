@@ -21,12 +21,13 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.column;
 
-import com.evolveum.midpoint.web.component.objectform.input.TextPanel;
+import com.evolveum.midpoint.web.component.prism.input.TextPanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
@@ -53,6 +54,6 @@ public class EditablePropertyColumn<T extends Editable> extends PropertyColumn<T
     }
 
     protected Component createInputPanel(String componentId, IModel<T> model) {
-        return new TextPanel(componentId, model);
+        return new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
     }
 }

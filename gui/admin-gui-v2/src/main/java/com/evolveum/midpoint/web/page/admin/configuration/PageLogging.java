@@ -33,7 +33,6 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.prism.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.prism.input.TextPanel;
@@ -44,11 +43,12 @@ import com.evolveum.midpoint.web.page.admin.configuration.column.EditablePropert
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -216,7 +216,11 @@ public class PageLogging extends PageAdminConfiguration {
 
             @Override
             public LoggingComponentType getObject() {
-                return LoggingComponentType.valueOf(model.getObject().getName());
+                String name = model.getObject().getName();
+                if (StringUtils.isEmpty(name)) {
+                    return null;
+                }
+                return LoggingComponentType.valueOf(name);
             }
 
             @Override
@@ -237,15 +241,25 @@ public class PageLogging extends PageAdminConfiguration {
         table.setTableCssClass("autowidth");
         loggers.getBodyContainer().add(table);
 
-        AjaxLinkButton addLogger = new AjaxLinkButton("addLogger",
-                createStringResource("pageLogging.button.addLogger")) {
+        AjaxLinkButton addComponentLogger = new AjaxLinkButton("addComponentLogger",
+                createStringResource("pageLogging.button.addComponentLogger")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addLoggerPerformed(target);
+                addComponentLoggerPerformed(target);
             }
         };
-        loggers.getBodyContainer().add(addLogger);
+        loggers.getBodyContainer().add(addComponentLogger);
+
+        AjaxLinkButton addClassLogger = new AjaxLinkButton("addClassLogger",
+                createStringResource("pageLogging.button.addClassLogger")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addClassLoggerPerformed(target);
+            }
+        };
+        loggers.getBodyContainer().add(addClassLogger);
 
         AjaxLinkButton deleteLogger = new AjaxLinkButton("deleteLogger",
                 createStringResource("pageLogging.button.deleteLogger")) {
@@ -271,34 +285,71 @@ public class PageLogging extends PageAdminConfiguration {
         loggers.getBodyContainer().add(subsystemAppender);
     }
 
-    private void initAppenders(AccordionItem appenders) {
+    private List<IColumn<AppenderConfiguration>> initAppendersColumns() {
         List<IColumn<AppenderConfiguration>> columns = new ArrayList<IColumn<AppenderConfiguration>>();
 
         IColumn column = new CheckBoxHeaderColumn<AppenderConfiguration>();
         columns.add(column);
 
-        column = new LinkColumn<AppenderConfiguration>(createStringResource("pageLogging.appenders.name"),
+        //name editable column
+        column = new EditableLinkColumn<AppenderConfiguration>(createStringResource("pageLogging.appenders.name"),
                 "name") {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AppenderConfiguration> rowModel) {
                 appenderEditPerformed(target, rowModel);
             }
+
+            @Override
+            protected Component createInputPanel(String componentId,
+                    IModel<AppenderConfiguration> model) {
+                return new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+            }
         };
         columns.add(column);
 
-        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.pattern"), "pattern"));
-        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.filePath"), "filePath"));
-        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.filePattern"),
+        //pattern editable column
+        columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.pattern"), "pattern"));
+        //file path editable column
+        columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.filePath"), "filePath"));
+        //file pattern editable column
+        columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.filePattern"),
                 "filePattern"));
-        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.maxHistory"), "maxHistory"));
-        columns.add(new PropertyColumn(createStringResource("pageLogging.appenders.maxFileSize"),
-                "maxFileSize"));
-        columns.add(new CheckBoxColumn(createStringResource("pageLogging.appenders.appending"), "appending"));
+        //max history editable column
+        columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.maxHistory"), "maxHistory") {
 
+            @Override
+            protected Component createInputPanel(String componentId, IModel iModel) {
+                TextPanel panel = new TextPanel(componentId, new PropertyModel(iModel, getPropertyExpression()));
+                TextField text = (TextField) panel.getComponent();
+                text.add(new AttributeModifier("size", 5));
+                return panel;
+            }
+        });
+        //max file size editable column
+        columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.maxFileSize"),
+                "maxFileSize") {
+
+            @Override
+            protected Component createInputPanel(String componentId, IModel iModel) {
+                TextPanel panel = new TextPanel(componentId, new PropertyModel(iModel, getPropertyExpression()));
+                TextField text = (TextField) panel.getComponent();
+                text.add(new AttributeModifier("size", 5));
+                return panel;
+            }
+        });
+
+        CheckBoxColumn check = new CheckBoxColumn(createStringResource("pageLogging.appenders.appending"), "appending");
+        check.setEnabled(false);
+        columns.add(check);
+
+        return columns;
+    }
+
+    private void initAppenders(AccordionItem appenders) {
         ISortableDataProvider<AppenderConfiguration> provider = new ListDataProvider<AppenderConfiguration>(
                 new PropertyModel<List<AppenderConfiguration>>(model, "appenders"));
-        TablePanel table = new TablePanel<AppenderConfiguration>("appendersTable", provider, columns);
+        TablePanel table = new TablePanel<AppenderConfiguration>("appendersTable", provider, initAppendersColumns());
         table.setOutputMarkupId(true);
         table.setShowPaging(false);
         appenders.getBodyContainer().add(table);
@@ -483,8 +534,22 @@ public class PageLogging extends PageAdminConfiguration {
         return (TablePanel) item.getBodyContainer().get("appendersTable");
     }
 
-    private void addLoggerPerformed(AjaxRequestTarget target) {
-        //todo implement
+    private void addComponentLoggerPerformed(AjaxRequestTarget target) {
+        LoggingDto dto = model.getObject();
+        ComponentLogger logger = new ComponentLogger(new SubSystemLoggerConfigurationType());
+        logger.setEditing(true);
+        dto.getLoggers().add(logger);
+
+        target.add(getLoggersTable());
+    }
+
+    private void addClassLoggerPerformed(AjaxRequestTarget target) {
+        LoggingDto dto = model.getObject();
+        ClassLogger logger = new ClassLogger(new ClassLoggerConfigurationType());
+        logger.setEditing(true);
+        dto.getLoggers().add(logger);
+
+        target.add(getLoggersTable());
     }
 
     private void deleteAppenderPerformed(AjaxRequestTarget target) {

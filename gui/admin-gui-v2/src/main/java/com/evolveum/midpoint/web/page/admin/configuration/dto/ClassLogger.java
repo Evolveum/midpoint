@@ -35,7 +35,7 @@ public class ClassLogger extends LoggerConfiguration {
 
     public ClassLogger(ClassLoggerConfigurationType config) {
         Validate.notNull(config, "Subsystem logger configuration must not be null.");
-        Validate.notNull(config.getPackage(), "Subsystem component is not defined.");
+//        Validate.notNull(config.getPackage(), "Subsystem component is not defined.");
 
         _package = config.getPackage();
         setLevel(config.getLevel());
