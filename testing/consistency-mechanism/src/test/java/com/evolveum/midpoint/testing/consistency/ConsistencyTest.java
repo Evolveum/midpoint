@@ -86,6 +86,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
 import org.opends.server.types.ModificationType;
 import org.opends.server.util.ChangeRecordEntry;
+import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ModifyChangeRecordEntry;
@@ -151,36 +152,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	private static final String RESOURCE_OPENDJ_FILENAME = "src/test/resources/repo/resource-opendj.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
-	// private static final String RESOURCE_DERBY_FILENAME =
-	// "src/test/resources/repo/resource-derby.xml";
-	// private static final String RESOURCE_DERBY_OID =
-	// "ef2bc95b-76e0-59e2-86d6-999902d3abab";
-	//
-	// private static final String RESOURCE_BROKEN_FILENAME =
-	// "src/test/resources/repo/resource-broken.xml";
-	// private static final String RESOURCE_BROKEN_OID =
-	// "ef2bc95b-76e0-59e2-ffff-ffffffffffff";
-
 	private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector";
 	private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
 
-	// private static final String CONNECTOR_BROKEN_FILENAME =
-	// "src/test/resources/repo/connector-broken.xml";
-	// private static final String CONNECTOR_BROKEN_OID =
-	// "cccccccc-76e0-59e2-ffff-ffffffffffff";
-
 	private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/task-opendj-sync.xml";
 	private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
-
-	// private static final String TASK_USER_RECOMPUTE_FILENAME =
-	// "src/test/resources/repo/task-user-recompute.xml";
-	// private static final String TASK_USER_RECOMPUTE_OID =
-	// "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
-	//
-	// private static final String TASK_OPENDJ_RECON_FILENAME =
-	// "src/test/resources/repo/task-opendj-reconciliation.xml";
-	// private static final String TASK_OPENDJ_RECON_OID =
-	// "91919191-76e0-59e2-86d6-3d4f02d30000";
 
 	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = "src/test/resources/repo/sample-configuration-object.xml";
 	private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
@@ -195,6 +171,10 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	// private static final File USER_JACK_FILE = new File(USER_JACK_FILENAME);
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
+	private static final String USER_DENIELS_FILENAME = "src/test/resources/repo/user-deniels.xml";
+	// private static final File USER_JACK_FILE = new File(USER_JACK_FILENAME);
+	private static final String USER_DENIELS_OID = "c0c010c0-d34d-b33f-f00d-222111111111";
+
 	private static final String USER_JACK2_FILENAME = "src/test/resources/repo/user-jack2.xml";
 	private static final String USER_JACK2_OID = "c0c010c0-d34d-b33f-f00d-111111114444";
 
@@ -206,102 +186,40 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	private static final String USER_GUYBRUSH_FILENAME = "src/test/resources/repo/user-guybrush.xml";
 	private static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111222";
-	
+
 	private static final String USER_GUYBRUSH_NOT_FOUND_FILENAME = "src/test/resources/repo/user-guybrush-modify-not-found.xml";
 	private static final String USER_GUYBRUSH_NOT_FOUND_OID = "c0c010c0-d34d-b33f-f00d-111111111333";
 
+	private static final String USER_E_FILENAME = "src/test/resources/repo/user-e.xml";
+	private static final String USER_E_OID = "c0c010c0-d34d-b33f-f00d-111111111100";
+
 	private static final String ACCOUNT_GUYBRUSH_FILENAME = "src/test/resources/repo/account-guybrush.xml";
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
-	
+
 	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME = "src/test/resources/repo/account-guybrush-not-found.xml";
 	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID = "a0c010c0-d34d-b33f-f00d-111111111333";
-	// private static final File USER_GUYBRUSH_FILE = new
-	// File(USER_GUYBRUSH_FILENAME);
 
-	// private static final String USER_GUYBRUSH_USERNAME = "guybrush";
-	// private static final String USER_GUYBRUSH_LDAP_UID = "guybrush";
-	// private static final String USER_GUYBRUSH_LDAP_DN = "uid=" +
-	// USER_GUYBRUSH_LDAP_UID + ","
-	// + OPENDJ_PEOPLE_SUFFIX;
-	//
-	// private static final String USER_E_LINK_ACTION_FILENAME =
-	// "src/test/resources/repo/user-e.xml";
-	// private static final File USER_E_LINK_ACTION_FILE = new
-	// File(USER_E_LINK_ACTION_FILENAME);
-	// private static final String LDIF_E_FILENAME_LINK =
-	// "src/test/resources/request/e-create.ldif";
-
-	// private static final String ROLE_PIRATE_FILENAME =
-	// "src/test/resources/repo/role-pirate.xml";
-	// private static final String ROLE_PIRATE_OID =
-	// "12345678-d34d-b33f-f00d-987987987988";
-	//
-	// private static final String ROLE_SAILOR_FILENAME =
-	// "src/test/resources/repo/role-sailor.xml";
-	// private static final String ROLE_SAILOR_OID =
-	// "12345678-d34d-b33f-f00d-987955553535";
+	private static final String ACCOUNT_DENIELS_FILENAME = "src/test/resources/repo/account-deniels.xml";
+	private static final String ACCOUNT_DENIELS_OID = "a0c010c0-d34d-b33f-f00d-111111111555";
 
 	private static final String ROLE_CAPTAIN_FILENAME = "src/test/resources/repo/role-captain.xml";
 	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
 
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DENIELS_FILENAME = "src/test/resources/request/user-modify-add-account-deniels.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-add-account-communication-problem.xml";
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_LINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-linked.xml";
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_UNLINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-unlinked.xml";
 	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT = "src/test/resources/request/user-modify-delete-account.xml";
+	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-delete-account-communication-problem.xml";
 	private static final String REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT = "src/test/resources/request/account-guybrush-modify-attributes.xml";
+	private static final String REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM = "src/test/resources/request/account-modify-attrs-communication-problem.xml";
 
-	// private static final String
-	// REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME =
-	// "src/test/resources/request/user-modify-add-account-derby.xml";
-	// private static final String USER_JACK_DERBY_LOGIN = "jsparrow";
+	private static final String TASK_OPENDJ_RECONCILIATION_FILENAME = "src/test/resources/repo/task-opendj-reconciliation.xml";
+	private static final String TASK_OPENDJ_RECONCILIATION_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
 
-	// private static final String
-	// REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME =
-	// "src/test/resources/request/user-modify-fullname-locality.xml";
-	// private static final String REQUEST_USER_MODIFY_PASSWORD_FILENAME =
-	// "src/test/resources/request/user-modify-password.xml";
-	// private static final String
-	// REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME =
-	// "src/test/resources/request/user-modify-activation-disable.xml";
-	// private static final String
-	// REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME =
-	// "src/test/resources/request/user-modify-activation-enable.xml";
-	//
-	// private static final String REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME
-	// = "src/test/resources/request/user-modify-add-role-pirate.xml";
-	// private static final String
-	// REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME =
-	// "src/test/resources/request/user-modify-add-role-captain-1.xml";
-	// private static final String
-	// REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_2_FILENAME =
-	// "src/test/resources/request/user-modify-add-role-captain-2.xml";
-	// private static final String
-	// REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME =
-	// "src/test/resources/request/user-modify-delete-role-pirate.xml";
-	// private static final String
-	// REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME =
-	// "src/test/resources/request/user-modify-delete-role-captain-1.xml";
-	// private static final String
-	// REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME =
-	// "src/test/resources/request/user-modify-delete-role-captain-2.xml";
-
-	// private static final String REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME =
-	// "src/test/resources/request/account-modify-attrs.xml";
-	//
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
-	// private static final String LDIF_WILL_MODIFY_FILENAME =
-	// "src/test/resources/request/will-modify.ldif";
-	// private static final String LDIF_WILL_WITHOUT_LOCATION_FILENAME =
-	// "src/test/resources/request/will-without-location.ldif";
-	// private static final String WILL_NAME = "wturner";
-	//
-	// private static final String LDIF_ELAINE_FILENAME =
-	// "src/test/resources/request/elaine.ldif";
-	// private static final String ELAINE_NAME = "elaine";
-	//
-	// private static final String LDIF_GIBBS_MODIFY_FILENAME =
-	// "src/test/resources/request/gibbs-modify.ldif";
-	//
+
 	private static final QName IMPORT_OBJECTCLASS = new QName(
 			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
 			"AccountObjectClass");
@@ -310,18 +228,13 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	private static final String NS_MY = "http://whatever.com/my";
 	private static final QName MY_SHIP_STATE = new QName(NS_MY, "shipState");
-	// private static final QName MY_DEAD = new QName(NS_MY, "dead");
 
 	/**
 	 * Unmarshalled resource definition to reach the embedded OpenDJ instance.
 	 * Used for convenience - the tests method may find it handy.
 	 */
 	private static ResourceType resourceTypeOpenDjrepo;
-	// private static ResourceType resourceDerby;
 	private static String accountShadowOidOpendj;
-	// private static String accountShadowOidDerby;
-	// private static String accountShadowOidGuybrushOpendj;
-	// private static String accountGuybrushOpendjEntryUuuid = null;
 	private static String originalJacksPassword;
 
 	// private int lastSyncToken;
@@ -349,7 +262,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		LOGGER.info("BEFORE METHOD");
 		OperationResult result = new OperationResult("get administrator");
 		PrismObject<UserType> object = modelService.getObject(UserType.class,
-				SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
+				SystemObjectsType.USER_ADMINISTRATOR.value(), null, null, result);
 
 		assertNotNull("Administrator user is null", object.asObjectable());
 		SecurityContextHolder.getContext().setAuthentication(
@@ -453,14 +366,14 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		// Check if OpenDJ resource was imported correctly
 
 		PrismObject<ResourceType> openDjResource = repositoryService.getObject(ResourceType.class,
-				RESOURCE_OPENDJ_OID, null, result);
+				RESOURCE_OPENDJ_OID, result);
 		display("Imported OpenDJ resource (repository)", openDjResource);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
 		assertCache();
 
 		String ldapConnectorOid = openDjResource.asObjectable().getConnectorRef().getOid();
 		PrismObject<ConnectorType> ldapConnector = repositoryService.getObject(ConnectorType.class,
-				ldapConnectorOid, null, result);
+				ldapConnectorOid, result);
 		display("LDAP Connector: ", ldapConnector);
 
 		// Check if Derby resource was imported correctly
@@ -492,7 +405,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		// TODO: test if OpenDJ and Derby are running
 
-		repositoryService.getObject(GenericObjectType.class, SAMPLE_CONFIGURATION_OBJECT_OID, null, result);
+		repositoryService.getObject(GenericObjectType.class, SAMPLE_CONFIGURATION_OBJECT_OID, result);
 	}
 
 	/**
@@ -522,7 +435,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				+ ".test001TestConnectionOpenDJ");
 
 		PrismObject<ResourceType> resourceOpenDjRepo = repositoryService.getObject(ResourceType.class,
-				RESOURCE_OPENDJ_OID, null, opResult);
+				RESOURCE_OPENDJ_OID, opResult);
 		resourceTypeOpenDjrepo = resourceOpenDjRepo.asObjectable();
 
 		assertCache();
@@ -534,11 +447,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
 		PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(
-				ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+				ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
 		display("Initialized OpenDJ resource resource (provisioning)", openDjResourceProvisioninig);
 
 		PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class,
-				RESOURCE_OPENDJ_OID, null, opResult);
+				RESOURCE_OPENDJ_OID, opResult);
 		display("Initialized OpenDJ resource OpenDJ resource (model)", openDjResourceModel);
 
 		checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
@@ -558,7 +471,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ConsistencyTest.class.getName()
 				+ ".checkRepoOpenDjResource");
 		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class,
-				RESOURCE_OPENDJ_OID, null, result);
+				RESOURCE_OPENDJ_OID, result);
 		checkOpenDjResource(resource.asObjectable(), "repository");
 	}
 
@@ -595,7 +508,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 			assertNotNull("Resource from " + source + " has null nativeCapabilities",
 					resource.getNativeCapabilities());
 			assertFalse("Resource from " + source + " has empty nativeCapabilities", resource
-					.getNativeCapabilities().getAny().isEmpty());
+					.getNativeCapabilities().getCapabilities().getAny().isEmpty());
 		}
 		assertNotNull("Resource from " + source + " has null capabilities", resource.getCapabilities());
 		assertFalse("Resource from " + source + " has empty capabilities", resource.getCapabilities()
@@ -695,160 +608,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				"EncryptedData", encryptedDataElement.getLocalName());
 	}
 
-	/**
-	 * Test the testResource method. Expect a complete success for now.
-	 * 
-	 * @throws SchemaException
-	 * @throws ObjectNotFoundException
-	 * @throws EncryptionException
-	 * @throws SecurityViolationException
-	 * @throws PolicyViolationException
-	 * @throws ConfigurationException
-	 * @throws CommunicationException
-	 * @throws ExpressionEvaluationException
-	 * @throws ObjectAlreadyExistsException
-	 */
-	// @Test
-	// public void test002TestConnectionDerby() throws FaultMessage,
-	// JAXBException, ObjectNotFoundException,
-	// SchemaException, CommunicationException, ConfigurationException,
-	// SecurityViolationException {
-	// displayTestTile("test002TestConnectionDerby");
-	//
-	// // GIVEN
-	//
-	// checkRepoDerbyResource();
-	// assertCache();
-	//
-	// // WHEN
-	// OperationResultType result = modelWeb.testResource(RESOURCE_DERBY_OID);
-	//
-	// // THEN
-	//
-	// assertCache();
-	// displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
-	//
-	// assertSuccess("testResource has failed",
-	// result.getPartialResults().get(0));
-	//
-	// OperationResult opResult = new
-	// OperationResult(ConsistencyTest.class.getName() +
-	// ".test002TestConnectionDerby");
-	//
-	// PrismObject<ResourceType> rObject =
-	// repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
-	// opResult);
-	// resourceDerby = rObject.asObjectable();
-	// checkDerbyResource(rObject, "repository(after test)");
-	//
-	// assertCache();
-	// assertEquals(RESOURCE_DERBY_OID, resourceDerby.getOid());
-	// display("Initialized Derby resource (respository)", resourceDerby);
-	// assertNotNull("Resource schema was not generated",
-	// resourceDerby.getSchema());
-	// Element resourceDerbyXsdSchemaElement =
-	// ResourceTypeUtil.getResourceXsdSchema(resourceDerby);
-	// assertNotNull("Resource schema was not generated",
-	// resourceDerbyXsdSchemaElement);
-	//
-	// PrismObject<ResourceType> derbyResourceProvisioninig =
-	// provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID,
-	// null,
-	// opResult);
-	// display("Initialized Derby resource (provisioning)",
-	// derbyResourceProvisioninig);
-	//
-	// PrismObject<ResourceType> derbyResourceModel =
-	// provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID,
-	// null,
-	// opResult);
-	// display("Initialized Derby resource (model)", derbyResourceModel);
-	//
-	// // TODO: check
-	// // checkOpenDjResource(resourceOpenDj,"repository");
-	// // checkOpenDjResource(openDjResourceProvisioninig,"provisioning");
-	// // checkOpenDjResource(openDjResourceModel,"model");
-	// // TODO: model web
-	//
-	// }
-
-	// @Test
-	// public void test004Capabilities() throws ObjectNotFoundException,
-	// CommunicationException, SchemaException,
-	// FaultMessage {
-	// displayTestTile("test004Capabilities");
-	//
-	// // GIVEN
-	//
-	// checkRepoOpenDjResource();
-	//
-	// assertCache();
-	//
-	// Holder<OperationResultType> resultHolder = new
-	// Holder<OperationResultType>();
-	// Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-	// PropertyReferenceListType resolve = new PropertyReferenceListType();
-	//
-	// // WHEN
-	// modelWeb.getObject(ObjectTypes.RESOURCE.getObjectTypeUri(),
-	// RESOURCE_OPENDJ_OID,
-	// resolve, objectHolder, resultHolder);
-	//
-	// ResourceType resource = (ResourceType) objectHolder.value;
-	//
-	// // THEN
-	// display("Resource", resource);
-	//
-	// assertCache();
-	//
-	// CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
-	// List<Object> capabilities = nativeCapabilities.getAny();
-	// assertFalse("Empty capabilities returned", capabilities.isEmpty());
-	//
-	// for (Object capability : nativeCapabilities.getAny()) {
-	// System.out.println("Native Capability: " +
-	// ResourceTypeUtil.getCapabilityDisplayName(capability) + " : " +
-	// capability);
-	// }
-	//
-	// if (resource.getCapabilities() != null) {
-	// for (Object capability : resource.getCapabilities().getAny()) {
-	// System.out.println("Configured Capability: " +
-	// ResourceTypeUtil.getCapabilityDisplayName(capability) + " : " +
-	// capability);
-	// }
-	// }
-	//
-	// List<Object> effectiveCapabilities =
-	// ResourceTypeUtil.listEffectiveCapabilities(resource);
-	// for (Object capability : effectiveCapabilities) {
-	// System.out.println("Efective Capability: " +
-	// ResourceTypeUtil.getCapabilityDisplayName(capability) + " : " +
-	// capability);
-	// }
-	//
-	// CredentialsCapabilityType capCred =
-	// ResourceTypeUtil.getCapability(capabilities,
-	// CredentialsCapabilityType.class);
-	// assertNotNull("password capability not present", capCred.getPassword());
-	// // Connector cannot do activation, this should be null
-	// ActivationCapabilityType capAct =
-	// ResourceTypeUtil.getCapability(capabilities,
-	// ActivationCapabilityType.class);
-	// assertNull("Found activation capability while not expecting it", capAct);
-	//
-	// capCred = ResourceTypeUtil.getEffectiveCapability(resource,
-	// CredentialsCapabilityType.class);
-	// assertNotNull("password capability not found", capCred.getPassword());
-	// // Although connector does not support activation, the resource specifies
-	// a way how to simulate it.
-	// // Therefore the following should succeed
-	// capAct = ResourceTypeUtil.getEffectiveCapability(resource,
-	// ActivationCapabilityType.class);
-	// assertNotNull("activation capability not found", capAct);
-	//
-	// }
-
 	private UserType testAddUserToRepo(String displayMessage, String fileName, String userOid)
 			throws FileNotFoundException, ObjectNotFoundException, SchemaException, EncryptionException,
 			ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException,
@@ -901,8 +660,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-		PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve,
-				repoResult);
+		PrismObject<UserType> uObject = repositoryService
+				.getObject(UserType.class, USER_JACK_OID, repoResult);
 		UserType repoUser = uObject.asObjectable();
 
 		repoResult.computeStatus();
@@ -942,9 +701,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	 * that happens in repo and in LDAP.
 	 */
 	@Test
-	public void test013AddOpenDjAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
-			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test013AddOpenDjAccountToUser");
+	public void test013prepareOpenDjWithAccounts() throws Exception {
+		displayTestTile("test013prepareOpenDjWithAccounts");
 
 		// GIVEN
 		OperationResultType result = modifyUserAddAccount(REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME);
@@ -956,7 +714,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-		PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve,
+		PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID,
 				repoResult);
 		UserType repoUserType = repoUser.asObjectable();
 
@@ -975,7 +733,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		repoResult = new OperationResult("getObject");
 
 		PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class,
-				accountShadowOidOpendj, resolve, repoResult);
+				accountShadowOidOpendj, repoResult);
 		AccountShadowType repoShadowType = repoShadow.asObjectable();
 		repoResult.computeStatus();
 		assertSuccess("getObject has failed", repoResult);
@@ -1044,26 +802,43 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().isEnabled());
 		assertTrue("The account is not enabled in the shadow", modelShadow.getActivation().isEnabled());
 
+		displayTestTile("test013prepareOpenDjWithAccounts - add second account");
+
+		OperationResult secondResult = new OperationResult(
+				"test013prepareOpenDjWithAccounts - add second account");
+
+		AccountShadowType shadow = unmarshallJaxbFromFile(ACCOUNT_DENIELS_FILENAME, AccountShadowType.class);
+
+		provisioningService.addObject(shadow.asPrismObject(), null, secondResult);
+
+		addObjectFromFile(USER_DENIELS_FILENAME, secondResult);
+
+		// GIVEN
+		// result =
+		// modifyUserAddAccount(REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME);
+		displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed", result);
+
+		// Check if user object was modified in the repo
+
 	}
 
-	// @Test
+	 @Test
 	public void test014addAccountAlreadyExistLinked() throws Exception {
 		OperationResult parentResult = new OperationResult("Add account already exist linked");
 		testAddUserToRepo("test014testAssAccountAlreadyExistLinked", USER_JACK2_FILENAME, USER_JACK2_OID);
 
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_JACK2_OID,
-				new PropertyReferenceListType(), parentResult);
+		PrismObject<UserType> user = repositoryService
+				.getObject(UserType.class, USER_JACK2_OID, parentResult);
 		assertEquals(0, user.asObjectable().getAccountRef().size());
 
 		modifyUserAddAccount(REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_LINKED_OPENDJ_FILENAME);
 
-		user = repositoryService.getObject(UserType.class, USER_JACK2_OID, new PropertyReferenceListType(),
-				parentResult);
+		user = repositoryService.getObject(UserType.class, USER_JACK2_OID, parentResult);
 		assertEquals(1, user.asObjectable().getAccountRef().size());
 
 		PrismObject<AccountShadowType> newAccount = modelService.getObject(AccountShadowType.class, user
-				.asObjectable().getAccountRef().get(0).getOid(), new PropertyReferenceListType(),
-				parentResult);
+				.asObjectable().getAccountRef().get(0).getOid(), null, null, parentResult);
 		AccountShadowType createdShadow = newAccount.asObjectable();
 		display("Created account: ", createdShadow);
 
@@ -1077,7 +852,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	}
 
-	@Test
+	 @Test
 	public void test015addAccountAlreadyExistUnlinked() throws Exception {
 
 		OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
@@ -1095,21 +870,19 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		testAddUserToRepo("add user - test015 account already exist unlinked", USER_WILL_FILENAME,
 				USER_WILL_OID);
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_WILL_OID,
-				new PropertyReferenceListType(), parentResult);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_WILL_OID, parentResult);
 		assertNotNull(user);
 		assertEquals(0, user.asObjectable().getAccountRef().size());
 
 		modifyUserAddAccount(REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_UNLINKED_OPENDJ_FILENAME);
 
-		user = repositoryService.getObject(UserType.class, USER_WILL_OID, new PropertyReferenceListType(),
-				parentResult);
+		user = repositoryService.getObject(UserType.class, USER_WILL_OID, parentResult);
 		assertNotNull(user);
 		List<ObjectReferenceType> accountRefs = user.asObjectable().getAccountRef();
 		assertEquals(1, accountRefs.size());
 
 		PrismObject<AccountShadowType> account = provisioningService.getObject(AccountShadowType.class,
-				accountRefs.get(0).getOid(), new PropertyReferenceListType(), parentResult);
+				accountRefs.get(0).getOid(), parentResult);
 
 		ResourceAttributeContainer attributes = ResourceObjectShadowUtil.getAttributesContainer(account);
 
@@ -1145,80 +918,374 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		modelService.deleteObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, null, parentResult);
 
 		try {
-			repositoryService.getObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID,
-					new PropertyReferenceListType(), parentResult);
+			repositoryService.getObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
 		} catch (Exception ex) {
-			if (!(ex instanceof ObjectNotFoundException)){
-				fail("Expected ObjectNotFoundException but got "+ ex);
+			if (!(ex instanceof ObjectNotFoundException)) {
+				fail("Expected ObjectNotFoundException but got " + ex);
 			}
 		}
 
 		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
-				USER_GUYBRUSH_OID, new PropertyReferenceListType(), parentResult);
+				USER_GUYBRUSH_OID, parentResult);
 		assertNotNull(modificatedUser);
 		assertEquals("Expecting that user does not have account reference, but found "
 				+ modificatedUser.asObjectable().getAccountRef().size() + " reference", 0, modificatedUser
 				.asObjectable().getAccountRef().size());
 
+		repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, parentResult);
 	}
 
-	public void test018AmodifyObjectNotFound() throws Exception{
-		
-		OperationResult parentResult = new OperationResult("Modify account not found => reaction: Delete account");
-		
+	@SuppressWarnings("unchecked")
+	// @Test
+	public void test018AmodifyObjectNotFound() throws Exception {
+
+		OperationResult parentResult = new OperationResult(
+				"Modify account not found => reaction: Delete account");
+
 		addObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, AccountShadowType.class, parentResult);
-		addObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, UserType.class, parentResult);
-		
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_NOT_FOUND_OID, new PropertyReferenceListType(), parentResult);
+		addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
+
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
+				parentResult);
 		assertNotNull(user);
+		assertEquals("Expecting that user has one account reference, but found "
+				+ user.asObjectable().getAccountRef().size() + " reference", 1, user.asObjectable()
+				.getAccountRef().size());
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
+				PrismTestUtil.getPrismContext());
+
+		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
+				null, parentResult);
+
+		try {
+			repositoryService.getObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
+			fail("Expected ObjectNotFound but did not get one.");
+		} catch (Exception ex) {
+			if (!(ex instanceof ObjectNotFoundException)) {
+				fail("Expected ObjectNotFoundException but got " + ex);
+			}
+		}
+
+		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
+				USER_GUYBRUSH_OID, parentResult);
+		assertNotNull(modificatedUser);
 		assertEquals("Expecting that user does not have account reference, but found "
-				+ user.asObjectable().getAccountRef().size() + " reference", 0, user
+				+ modificatedUser.asObjectable().getAccountRef().size() + " reference", 0, modificatedUser
 				.asObjectable().getAccountRef().size());
 
-		ObjectModificationType objectChange = unmarshallJaxbFromFile(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT,
-				ObjectModificationType.class);
+		repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, parentResult);
+
+	}
+
+	@Test
+	public void test018BmodifyObjectNotFoundAssignedAccount() throws Exception {
+		OperationResult parentResult = new OperationResult(
+				"Modify account not found => reaction: Re-create account, apply changes.");
+
+		addObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, AccountShadowType.class, parentResult);
+		addObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, UserType.class, parentResult);
+
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
+				parentResult);
+		assertNotNull(user);
+		assertEquals("Expecting that user has one account reference, but found "
+				+ user.asObjectable().getAccountRef().size() + " reference", 1, user.asObjectable()
+				.getAccountRef().size());
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
+				PrismTestUtil.getPrismContext());
+
+		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
+				null, parentResult);
+
+		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
+				USER_GUYBRUSH_OID, parentResult);
+		assertNotNull(modificatedUser);
+		List<ObjectReferenceType> referenceList = modificatedUser.asObjectable().getAccountRef();
+		assertEquals("Expecting that user has one account reference, but found " + referenceList.size()
+				+ " reference", 1, referenceList.size());
+
+		PrismObject<AccountShadowType> modifiedAccount = provisioningService.getObject(
+				AccountShadowType.class, referenceList.get(0).getOid(), parentResult);
+		assertNotNull(modifiedAccount);
+		ResourceAttributeContainer attributeContainer = ResourceObjectShadowUtil
+				.getAttributesContainer(modifiedAccount);
+		assertEquals(
+				attributeContainer.findProperty(
+						new QName(resourceTypeOpenDjrepo.getNamespace(), "roomNumber")).getRealValue(
+						String.class), "captain's cabin");
+		assertNotNull(attributeContainer.findProperty(new QName(resourceTypeOpenDjrepo.getNamespace(),
+				"businessCategory")));
+
+	}
+
+	@Test
+	public void test019StopOpenDj() throws Exception {
+		displayTestTile("test019TestConnectionOpenDJ");
+		openDJController.stop();
+
+		assertEquals("Resource is running", false, EmbeddedUtils.isRunning());
+
+	}
+
+	@Test
+	public void test020addObjectCommunicationProblem() throws Exception {
+		displayTestTile("test020 add object - communication problem");
+		OperationResult result = new OperationResult("add object communication error.");
+		addObjectFromFile(USER_E_FILENAME, result);
+
+		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_E_OID, result);
+		assertNotNull(addedUser);
+		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getAccountRef();
+		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+				0, accountRefs.size());
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, ObjectModificationType.class);
 
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
 				PrismTestUtil.getPrismContext());
 
-		modelService.modifyObject(AccountShadowType.class, USER_GUYBRUSH_OID, delta.getModifications(), null,
+		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), null, result);
+
+		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
+				USER_E_OID, result);
+		assertNotNull(userAferModifyOperation);
+		accountRefs = userAferModifyOperation.asObjectable().getAccountRef();
+		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(), 1,
+				accountRefs.size());
+
+		String accountOid = accountRefs.get(0).getOid();
+		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
+				result).asObjectable();
+		assertNotNull(faieldAccount);
+		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
+		assertEquals("Failed operation saved with account differt from  the expected value.",
+				FailedOperationTypeType.ADD, faieldAccount.getFailedOperationType());
+		assertNotNull(faieldAccount.getResult());
+		assertNotNull(faieldAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), faieldAccount.getResourceRef().getOid());
+		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "sn", "e");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "cn", "e");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "givenName", "e");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "uid", "e");
+
+	}
+
+	@Test
+	public void test021modifyObjectCommunicationProblem() throws Exception {
+
+		displayTestTile("test021 modify object - communication problem");
+		OperationResult parentResult = new OperationResult("modify object - communication problem");
+		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, parentResult)
+				.asObjectable();
+		assertNotNull(userJack);
+		assertEquals(1, userJack.getAccountRef().size());
+		String accountRefOid = userJack.getAccountRef().get(0).getOid();
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
+				PrismTestUtil.getPrismContext());
+
+		modelService.modifyObject(AccountShadowType.class, accountRefOid, delta.getModifications(), null,
 				parentResult);
 
-//		modelService.deleteObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, null, parentResult);
+		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountRefOid,
+				parentResult).asObjectable();
+		assertNotNull(faieldAccount);
+		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
+		assertEquals("Failed operation saved with account differt from  the expected value.",
+				FailedOperationTypeType.MODIFY, faieldAccount.getFailedOperationType());
+		assertNotNull(faieldAccount.getResult());
+		assertNotNull(faieldAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), faieldAccount.getResourceRef().getOid());
+		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertNotNull(faieldAccount.getObjectChange());
 
-		try {
-			repositoryService.getObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID,
-					new PropertyReferenceListType(), parentResult);
-		} catch (Exception ex) {
-			if (!(ex instanceof ObjectNotFoundException)){
-				fail("Expected ObjectNotFoundException but got "+ ex);
+	}
+
+	@Test
+	public void test022deleteObjectCommunicationProblem() throws Exception {
+		displayTestTile("test022 delete object - communication problem");
+		OperationResult parentResult = new OperationResult("modify object - communication problem");
+		UserType userJack = repositoryService.getObject(UserType.class, USER_DENIELS_OID, parentResult)
+				.asObjectable();
+		assertNotNull(userJack);
+		assertEquals(1, userJack.getAccountRef().size());
+		String accountRefOid = userJack.getAccountRef().get(0).getOid();
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+		modelService.modifyObject(UserType.class, USER_DENIELS_OID, delta.getModifications(), null,
+				parentResult);
+
+		UserType userJackAftermodify = repositoryService.getObject(UserType.class, USER_DENIELS_OID,
+				parentResult).asObjectable();
+		assertNotNull(userJack);
+		// assertEquals(0, userJack.getAccountRef().size());
+
+		modelService.deleteObject(AccountShadowType.class, ACCOUNT_DENIELS_OID, null, parentResult);
+
+		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class,
+				ACCOUNT_DENIELS_OID, parentResult).asObjectable();
+		assertNotNull(faieldAccount);
+		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
+		assertEquals("Failed operation saved with account differt from  the expected value.",
+				FailedOperationTypeType.DELETE, faieldAccount.getFailedOperationType());
+		assertNotNull(faieldAccount.getResult());
+		assertNotNull(faieldAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), faieldAccount.getResourceRef().getOid());
+		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		// assertNotNull(faieldAccount.getObjectChange());
+	}
+
+	@Test
+	public void test023reconciliation() throws Exception {
+
+		displayTestTile("test022 reconciliation");
+
+		final OperationResult result = new OperationResult("reconciliation");
+
+		// start openDJ first
+		openDJController.start();
+		assertTrue(EmbeddedUtils.isRunning());
+
+		addObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, result);
+
+		// We need to wait for a sync interval, so the task scanner has a chance
+		// to pick up this
+		// task
+
+		waitFor("Waiting for task to finish first run", new Checker() {
+			public boolean check() throws ObjectNotFoundException, SchemaException {
+				Task task = taskManager.getTask(TASK_OPENDJ_RECONCILIATION_OID, result);
+				display("Task while waiting for task manager to pick up the task", task);
+				// wait until the task is finished
+				return task.getLastRunFinishTimestamp() != null;
+				// if (TaskExclusivityStatus.CLAIMED ==
+				// task.getExclusivityStatus()) { we cannot check exclusivity
+				// status for now
+				// // wait until the first run is finished
+				// if (task.getLastRunFinishTimestamp() == null) {
+				// return false;
+				// }
+				// return true;
+				// }
+				// return false;
 			}
+
+			@Override
+			public void timeout() {
+				// No reaction, the test will fail right after return from this
+			}
+		}, 180000);
+
+		Task task = taskManager.getTask(TASK_OPENDJ_RECONCILIATION_OID, result);
+		result.computeStatus();
+		display("getTask result", result);
+		assertSuccess("getTask has failed", result);
+		AssertJUnit.assertNotNull(task);
+		display("Task after pickup", task);
+
+		PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_OPENDJ_RECONCILIATION_OID,
+				result);
+		display("Task after pickup in the repository", o.asObjectable());
+
+		// .. it should be running
+		AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+
+		// .. and claimed
+		// AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED,
+		// task.getExclusivityStatus());
+
+		// .. and last run should not be zero
+		assertNotNull("Null last run start in recon task", task.getLastRunStartTimestamp());
+		AssertJUnit.assertFalse("Zero last run start in recon task", task.getLastRunStartTimestamp()
+				.longValue() == 0);
+		assertNotNull("Null last run finish in recon task", task.getLastRunFinishTimestamp());
+		AssertJUnit.assertFalse("Zero last run finish in recon task", task.getLastRunFinishTimestamp()
+				.longValue() == 0);
+
+		// The progress should be 0, as there were no changes yet
+		AssertJUnit.assertEquals(0, task.getProgress());
+
+		// Test for presence of a result. It should be there and it should
+		// indicate success
+		OperationResult taskResult = task.getResult();
+		AssertJUnit.assertNotNull(taskResult);
+
+		// STOP the task. We don't need it any more and we don't want to give it
+		// a chance to run more than once
+		taskManager.deleteTask(TASK_OPENDJ_RECONCILIATION_OID, result);
+
+		// check if the account was added after reconciliation
+		UserType userE = repositoryService.getObject(UserType.class, USER_E_OID, result).asObjectable();
+		assertNotNull(userE);
+		List<ObjectReferenceType> accountRefs = userE.getAccountRef();
+		assertFalse(accountRefs.isEmpty());
+		assertEquals(1, accountRefs.size());
+
+		AccountShadowType addedAccount = modelService.getObject(AccountShadowType.class,
+				accountRefs.get(0).getOid(), null, null, result).asObjectable();
+		assertNotNull(addedAccount);
+		displayJaxb("shadow from the repository: ", addedAccount, AccountShadowType.COMPLEX_TYPE);
+		assertNull("Expected that FailedOperationType is null, but isn't",
+				addedAccount.getFailedOperationType());
+		assertNull(addedAccount.getResult());
+		assertNotNull(addedAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), addedAccount.getResourceRef().getOid());
+		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		ResourceAttributeContainer attributeContainer = ResourceObjectShadowUtil
+				.getAttributesContainer(addedAccount);
+		Collection<ResourceAttribute<?>> identifiers = attributeContainer.getIdentifiers();
+		assertNotNull(identifiers);
+		assertFalse(identifiers.isEmpty());
+		assertEquals(1, identifiers.size());
+		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "sn", "e");
+		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "cn", "e");
+		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "givenName", "e");
+		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "uid", "e");
+
+		// check if the account was modified during reconciliation process
+		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, result)
+				.asObjectable();
+		assertNotNull(userJack);
+		assertEquals(1, userJack.getAccountRef().size());
+		String accountRefOid = userJack.getAccountRef().get(0).getOid();
+		AccountShadowType modifiedAccount = modelService.getObject(AccountShadowType.class, accountRefOid, null, null, result).asObjectable();
+		assertNotNull(modifiedAccount);
+		displayJaxb("shadow from the repository: ", modifiedAccount, AccountShadowType.COMPLEX_TYPE);
+		assertNull("Expected that FailedOperationType is null, but isn't",
+				modifiedAccount.getFailedOperationType());
+		assertNull(addedAccount.getResult());
+		
+		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo,  "givenName", "Jackkk");
+		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo,  "employeeNumber", "emp4321");
+		
+		//check if the account was deleted during the reconciliation process
+		try{
+			modelService.getObject(AccountShadowType.class, ACCOUNT_DENIELS_OID, null, null, result);
+			fail("Expected ObjectNotFoundException but haven't got one.");
+		} catch (Exception ex){
+			if (!(ex instanceof ObjectNotFoundException)){
+				fail("Expected ObjectNotFoundException but got " + ex);
+			}
+				
 		}
-
-		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
-				USER_GUYBRUSH_OID, new PropertyReferenceListType(), parentResult);
-		assertNotNull(modificatedUser);
-		assertEquals("Expecting that user does not have account reference, but found "
-				+ modificatedUser.asObjectable().getAccountRef().size() + " reference", 0, modificatedUser
-				.asObjectable().getAccountRef().size());
-
-
-	}
-	
-	public void test018BmodifyObjectNotFoundAssignedAccount() {
-
-	}
-
-	public void test019addObjectCommunicationProblem() {
-
-	}
-
-	public void test020modifyObjectCommunicationProblem() {
-
-	}
-
-	public void test021deleteObjectCommunicationProblem() {
-
 	}
 
 	// private void addAccountToOpenDj(String filename) throws LDIFException,
@@ -4022,7 +4089,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 			AssignmentPolicyEnforcementType assignmentPolicy) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("Asserting sync settings");
 		PrismObject<SystemConfigurationType> systemConfigurationType = repositoryService.getObject(
-				SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+				SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
 		result.computeStatus();
 		assertSuccess("Asserting sync settings failed (result)", result);
 		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfigurationType

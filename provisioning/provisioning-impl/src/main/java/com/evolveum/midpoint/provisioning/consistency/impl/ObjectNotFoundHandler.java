@@ -121,7 +121,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				AccountShadowType account = (AccountShadowType) shadow;
 				account.setActivation(ShadowCacheUtil.completeActivation(account, account.getResource(),
 						parentResult));
-				// change.setOldShadow(account.asPrismObject());
+				 change.setOldShadow(account.asPrismObject());
 				// change.setCurrentShadow(account.asPrismObject());
 
 			}
@@ -174,8 +174,17 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				}
 			}
 
-			cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), parentResult);
-			// throw new ObjectNotFoundException("Can't find object " +
+			try {
+					cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(),
+							parentResult);
+				
+			} catch (ObjectNotFoundException e) {
+				//delete the old shadow that was probably deleted from the user, or the new one was assigned
+				parentResult
+				.recordWarning("Modifications were not applied, because shadow was previously deleted. Repository state were refreshed.");
+				
+
+			}
 			// ObjectTypeUtil.toShortString(shadow));
 
 		}

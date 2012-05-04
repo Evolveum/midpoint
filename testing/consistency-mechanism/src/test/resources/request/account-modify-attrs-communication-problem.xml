@@ -28,18 +28,24 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 	<oid>will be replaced by the test code</oid>
 	<modification>
-		<t:modificationType>replace</t:modificationType>
-		<t:path>c:attributes</t:path>
-		<t:value>
-			<ri:roomNumber>captain's cabin</ri:roomNumber>
-		</t:value>
-	</modification>
-	<modification>
 		<t:modificationType>add</t:modificationType>
 		<t:path>c:attributes</t:path>
 		<t:value>
-			<ri:businessCategory>capsize</ri:businessCategory>
-			<ri:businessCategory>fighting</ri:businessCategory>
+			<ri:employeeNumber>emp4321</ri:employeeNumber>
 		</t:value>
 	</modification>
+	<modification>
+		<t:modificationType>replace</t:modificationType>
+		<t:path>c:attributes</t:path>
+		<t:value>
+			<ri:givenName>Jackkk</ri:givenName>
+		</t:value>
+	</modification>
+<!-- 	<modification> -->
+<!-- 		<t:modificationType>delete</t:modificationType> -->
+<!-- 		<t:path>c:attributes</t:path> -->
+<!-- 		<t:value> -->
+<!-- 			<ri:sn>Sparrow</ri:sn> -->
+<!-- 		</t:value> -->
+<!-- 	</modification> -->
 </objectModification>

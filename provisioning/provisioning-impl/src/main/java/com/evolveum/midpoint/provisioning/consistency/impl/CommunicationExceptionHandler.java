@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.provisioning.consistency.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeT
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 @Component
 public class CommunicationExceptionHandler extends ErrorHandler {
@@ -94,26 +97,53 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			// storing operation result to the account which failed to be
 			// modified
 			if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()) {
-				ObjectModificationType shadowModification = ObjectTypeUtil.createModificationReplaceProperty(
-						shadow.getOid(), SchemaConstants.C_RESULT, shadow.getResult());
+				List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 
-				// storing failed operation type
-				ItemDeltaType propertyModification = ObjectTypeUtil.createPropertyModificationType(
-						ModificationTypeType.REPLACE, null, SchemaConstants.C_FAILED_OPERATION_TYPE,
-						FailedOperationTypeType.MODIFY);
-				shadowModification.getModification().add(propertyModification);
+				PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
+						.getDefinition(), ResourceObjectShadowType.F_RESULT, shadow.getResult());
+				modifications.add(propertyDelta);
 
-				propertyModification = ObjectTypeUtil.createPropertyModificationType(
-						ModificationTypeType.REPLACE, null, new QName(SchemaConstants.NS_C, "objectChange"),
-						shadow.getObjectChange());
-				shadowModification.getModification().add(propertyModification);
+				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
+						ResourceObjectShadowType.F_FAILED_OPERATION_TYPE, FailedOperationTypeType.MODIFY);
+				modifications.add(propertyDelta);
 
-				propertyModification = ObjectTypeUtil.createPropertyModificationType(
-						ModificationTypeType.REPLACE, null, AccountShadowType.F_ATTEMPT_NUMBER, 0);
-				shadowModification.getModification().add(propertyModification);
+				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
+						ResourceObjectShadowType.F_OBJECT_CHANGE, shadow.getObjectChange());
+				modifications.add(propertyDelta);
 
-				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-						shadowModification, shadow.asPrismObject().getDefinition());
+				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
+						ResourceObjectShadowType.F_ATTEMPT_NUMBER, 0);
+				modifications.add(propertyDelta);
+
+				// ObjectModificationType shadowModification =
+				// ObjectTypeUtil.createModificationReplaceProperty(
+				// shadow.getOid(), SchemaConstants.C_RESULT,
+				// shadow.getResult());
+				//
+				// // storing failed operation type
+				// ItemDeltaType propertyModification =
+				// ObjectTypeUtil.createPropertyModificationType(
+				// ModificationTypeType.REPLACE, null,
+				// SchemaConstants.C_FAILED_OPERATION_TYPE,
+				// FailedOperationTypeType.MODIFY);
+				// shadowModification.getModification().add(propertyModification);
+				//
+				// propertyModification =
+				// ObjectTypeUtil.createPropertyModificationType(
+				// ModificationTypeType.REPLACE, null, new
+				// QName(SchemaConstants.NS_C, "objectChange"),
+				// shadow.getObjectChange());
+				// shadowModification.getModification().add(propertyModification);
+				//
+				// propertyModification =
+				// ObjectTypeUtil.createPropertyModificationType(
+				// ModificationTypeType.REPLACE, null,
+				// AccountShadowType.F_ATTEMPT_NUMBER, 0);
+				// shadowModification.getModification().add(propertyModification);
+				//
+				// Collection<? extends ItemDelta> modifications =
+				// DeltaConvertor.toModifications(
+				// shadowModification, shadow.asPrismObject().getDefinition());
 
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(),
 						modifications, operationResult);
@@ -122,16 +152,29 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				// case, we need to sign the account with the tombstone and
 				// delete it later
 
-				ObjectModificationType shadowModification = ObjectTypeUtil.createModificationReplaceProperty(
-						shadow.getOid(), SchemaConstants.C_RESULT, shadow.getResult());
+				List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 
-				ItemDeltaType propertyModification = ObjectTypeUtil.createPropertyModificationType(
-						ModificationTypeType.REPLACE, null, SchemaConstants.C_FAILED_OPERATION_TYPE,
-						FailedOperationTypeType.DELETE);
-				shadowModification.getModification().add(propertyModification);
+				PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
+						.getDefinition(), ResourceObjectShadowType.F_RESULT, shadow.getResult());
+				modifications.add(propertyDelta);
 
-				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-						shadowModification, shadow.asPrismObject().getDefinition());
+				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
+						ResourceObjectShadowType.F_FAILED_OPERATION_TYPE, FailedOperationTypeType.DELETE);
+				modifications.add(propertyDelta);
+
+				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
+						ResourceObjectShadowType.F_ATTEMPT_NUMBER, 0);
+				modifications.add(propertyDelta);
+//				ObjectModificationType shadowModification = ObjectTypeUtil.createModificationReplaceProperty(
+//						shadow.getOid(), SchemaConstants.C_RESULT, shadow.getResult());
+
+//				ItemDeltaType propertyModification = ObjectTypeUtil.createPropertyModificationType(
+//						ModificationTypeType.REPLACE, null, SchemaConstants.C_FAILED_OPERATION_TYPE,
+//						FailedOperationTypeType.DELETE);
+//				shadowModification.getModification().add(propertyModification);
+//
+//				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
+//						shadowModification, shadow.asPrismObject().getDefinition());
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(),
 						modifications, operationResult);
 

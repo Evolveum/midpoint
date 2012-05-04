@@ -36,5 +36,6 @@
             </protectedString>
         </password>
     </credentials>
+
     <accountRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="AccountShadowType"/>
 </user>

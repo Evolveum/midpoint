@@ -293,6 +293,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.trace("**PROVISIONING: Start to add object {}", object);
+		boolean reconciled;
+		Object isReconciled = parentResult.getParams().get("reconciled");
+		if (isReconciled == null){
+			reconciled = false;
+		} else{
+			reconciled = true;
+		}
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".addObject");
@@ -304,7 +311,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (object.canRepresent(ResourceObjectShadowType.class)) {
 			try {
 				// calling shadow cache to add object
-				oid = getShadowCache().addShadow((ResourceObjectShadowType) object.asObjectable(), scripts,
+				oid = getShadowCache().addShadow((ResourceObjectShadowType) object.asObjectable(), reconciled, scripts,
 						null, result);
 				LOGGER.trace("**PROVISIONING: Added shadow object {}", oid);
 				result.recordSuccess();
@@ -721,6 +728,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(modifications, "Modifications must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
+		boolean reconciled;
+		Object isReconciled = parentResult.getParams().get("reconciled");
+		if (isReconciled == null){
+			reconciled = false;
+		} else{
+			reconciled = true;
+		}
+		
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".modifyObject");
 		result.addParam("modifications", modifications);
@@ -743,7 +758,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 
 			// calling shadow cache to modify object
-			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, scripts,
+			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled, scripts,
 					parentResult);
 			result.recordSuccess();
 
@@ -795,6 +810,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		LOGGER.trace("**PROVISIONING: Start to delete object with oid {}", oid);
 
+		
+		
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".deleteObject");
 		result.addParam("oid", oid);

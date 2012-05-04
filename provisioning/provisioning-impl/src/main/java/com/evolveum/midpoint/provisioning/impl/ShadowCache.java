@@ -211,7 +211,7 @@ public class ShadowCache {
 
 	}
 
-	public String addShadow(ResourceObjectShadowType shadow, ScriptsType scripts, ResourceType resource,
+	public String addShadow(ResourceObjectShadowType shadow, boolean isReconciled, ScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ConfigurationException,
 			SecurityViolationException {
@@ -254,7 +254,7 @@ public class ShadowCache {
 		OperationResult shadowConverterResult = parentResult.createSubresult(ShadowConverter.class.getName()
 				+ ".addShadow");
 
-		boolean isReconciled = shadow.getFailedOperationType() != null ? true : false;
+//		boolean isReconciled = shadow.getFailedOperationType() != null ? true : false;
 
 		try {
 
@@ -364,7 +364,7 @@ public class ShadowCache {
 	}
 
 	public void modifyShadow(ObjectType objectType, ResourceType resource, String oid,
-			Collection<? extends ItemDelta> modifications, ScriptsType scripts, OperationResult parentResult)
+			Collection<? extends ItemDelta> modifications, boolean isReconciled, ScriptsType scripts, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
 			SchemaException, ConfigurationException, SecurityViolationException {
 
@@ -416,7 +416,7 @@ public class ShadowCache {
 			}
 
 			Set<PropertyModificationOperation> sideEffectChanges = null;
-			boolean isReconciled = shadow.getFailedOperationType() != null ? true : false;
+//			boolean isReconciled = shadow.getFailedOperationType() != null ? true : false;
 
 			try {
 				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid,
