@@ -47,6 +47,8 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
@@ -217,6 +219,10 @@ public class PrismAsserts {
 		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
 	}
 	
+	public static void assertNoItemDelta(ObjectDelta<?> userDelta, PropertyPath propertyPath) {
+		assert !userDelta.hasItemDelta(propertyPath) : "Delta for item "+propertyPath+" present while not expecting it";
+	}
+	
 	public static ContainerDelta<?> assertContainerAdd(ObjectDelta<?> objectDelta, QName name) {
 		return assertContainerAdd(objectDelta, new PropertyPath(name));
 	}
@@ -241,6 +247,58 @@ public class PrismAsserts {
 		assert delta.getValuesToDelete() != null : "Container delta for "+propertyPath+" has null values to delete";
 		assert !delta.getValuesToDelete().isEmpty() : "Container delta for "+propertyPath+" has empty values to delete";
 		return delta;
+	}
+	
+	// DeltaSetTriple asserts
+	
+	public static <T, V extends PrismValue> void assertTriplePlus(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
+		assertTripleSet("plus set", triple.getPlusSet(), expectedValues);
+	}
+
+	public static <T, V extends PrismValue> void assertTripleZero(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
+		assertTripleSet("zero set", triple.getZeroSet(), expectedValues);
+	}
+
+	public static <T, V extends PrismValue> void assertTripleMinus(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
+		assertTripleSet("minus set", triple.getMinusSet(), expectedValues);
+	}
+	
+	public static <T, V extends PrismValue> void assertTripleSet(String setName, Collection<V> tripleSet, T... expectedValues) {
+		assert tripleSet.size() == expectedValues.length : "Unexpected number of elements in triple "+setName+", expected "+
+			expectedValues.length + ", was " + tripleSet.size();
+		for (T expectedValue: expectedValues) {
+			boolean found = false;
+			for (V tval: tripleSet) {
+				if (tval instanceof PrismPropertyValue) {
+					PrismPropertyValue<T> pval = (PrismPropertyValue<T>)tval;
+					if (expectedValue.equals(pval.getValue())) {
+						found = true;
+						break;
+					}
+				} else {
+					throw new IllegalArgumentException("Unknown type of prism value "+tval);
+				}
+			}
+			if (!found) {
+				assert false : "Expected value '"+expectedValue+"' was not found in triple "+setName+"; values :"+tripleSet;
+			}
+		}
+	}
+	
+	public static <V extends PrismValue> void assertTripleNoPlus(PrismValueDeltaSetTriple<V> triple) {
+		assertTripleNoSet("plus set", triple.getPlusSet());
+	}
+
+	public static <V extends PrismValue> void assertTripleNoZero(PrismValueDeltaSetTriple<V> triple) {
+		assertTripleNoSet("zero set", triple.getZeroSet());
+	}
+
+	public static <V extends PrismValue> void assertTripleNoMinus(PrismValueDeltaSetTriple<V> triple) {
+		assertTripleNoSet("minus set", triple.getMinusSet());
+	}
+	
+	public static <V extends PrismValue> void assertTripleNoSet(String setName, Collection<V> set) {
+		assert set == null || set.isEmpty() : "Expected triple "+setName+" to be empty, but it was: "+set;
 	}
 
 	// Calendar asserts

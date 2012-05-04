@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -98,8 +99,41 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     public void setChangeType(ChangeType changeType) {
         this.changeType = changeType;
     }
+    
+	public static boolean isAdd(ObjectDelta<?> objectDelta) {
+		if (objectDelta == null) {
+			return false;
+		}
+		return objectDelta.isAdd();
+	}
 
-    public String getOid() {
+	public boolean isAdd() {
+		return changeType == ChangeType.ADD;
+	}
+
+	public static boolean isDelete(ObjectDelta<?> objectDelta) {
+		if (objectDelta == null) {
+			return false;
+		}
+		return objectDelta.isDelete();
+	}
+
+	public boolean isDelete() {
+		return changeType == ChangeType.DELETE;
+	}
+
+	public static boolean isModify(ObjectDelta<?> objectDelta) {
+		if (objectDelta == null) {
+			return false;
+		}
+		return objectDelta.isModify();
+	}
+
+	public boolean isModify() {
+		return changeType == ChangeType.MODIFY;
+	}
+
+	public String getOid() {
         return oid;
     }
 
@@ -133,7 +167,13 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
     
     public void addModifications(Collection<? extends ItemDelta> itemDeltas) {
-    	for (ItemDelta modDelta: itemDeltas) {
+    	for (ItemDelta<?> modDelta: itemDeltas) {
+    		addModification(modDelta);
+    	}
+    }
+    
+    public void addModifications(ItemDelta<?>... itemDeltas) {
+    	for (ItemDelta<?> modDelta: itemDeltas) {
     		addModification(modDelta);
     	}
     }
@@ -151,6 +191,18 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             return findModification(propertyPath, deltaType);
         } else {
             return null;
+        }
+    }
+
+    public boolean hasItemDelta(PropertyPath propertyPath) {
+        if (changeType == ChangeType.ADD) {
+            Item item = objectToAdd.findItem(propertyPath, Item.class);
+            return item != null;
+        } else if (changeType == ChangeType.MODIFY) {
+            ItemDelta modification = findModification(propertyPath, ItemDelta.class);
+            return modification != null;
+        } else {
+            return false;
         }
     }
     
@@ -443,6 +495,12 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return propertyDelta;
     }
     
+    public ReferenceDelta createReferenceModification(QName name, PrismReferenceDefinition referenceDefinition) {
+    	ReferenceDelta referenceDelta = new ReferenceDelta(name, referenceDefinition);
+    	addModification(referenceDelta);
+    	return referenceDelta;
+    }
+    
     /**
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
      * to justify a separate method. 
@@ -463,11 +521,48 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return objectDelta;
     }
     
+    /**
+     * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
+     * to justify a separate method. 
+     */
+    public static <O extends Objectable> ObjectDelta<O> createModificationAddReference(Class<O> type, String oid, QName propertyName,
+    		PrismContext prismContext, PrismObject<?>... referenceObjects) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY);
+    	objectDelta.setOid(oid);
+    	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+    	PrismReferenceDefinition refDef = objDef.findReferenceDefinition(propertyName);
+    	ReferenceDelta referenceDelta = objectDelta.createReferenceModification(propertyName, refDef);
+    	Collection<PrismReferenceValue> valuesToReplace = new ArrayList<PrismReferenceValue>(referenceObjects.length);
+    	for (PrismObject<?> refObject: referenceObjects) {
+    		PrismReferenceValue refVal = new PrismReferenceValue();
+    		refVal.setObject(refObject);
+    		valuesToReplace.add(refVal);
+    	}
+    	referenceDelta.setValuesToReplace(valuesToReplace);
+    	return objectDelta;
+    }
+    
     public static <T extends Objectable> ObjectDelta<T> createModifyDelta(String oid, Collection<? extends ItemDelta> modifications,
     		Class<T> objectTypeClass) {
     	ObjectDelta<T> objectDelta = new ObjectDelta<T>(objectTypeClass, ChangeType.MODIFY);
     	objectDelta.addModifications(modifications);
     	objectDelta.setOid(oid);
+    	return objectDelta;
+    }
+    
+    public static <O extends Objectable> ObjectDelta<O> createEmptyAddDelta(Class<O> type, String oid, PrismContext prismContext) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.ADD);
+    	objectDelta.setOid(oid);
+    	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+    	PrismObject<O> objectToAdd = objDef.instantiate();
+    	objectDelta.setObjectToAdd(objectToAdd);
+    	return objectDelta;
+    }
+    
+    public static <O extends Objectable> ObjectDelta<O> createAddDelta(PrismObject<O> objectToAdd) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(objectToAdd.getCompileTimeClass(), ChangeType.ADD);
+    	objectDelta.setOid(objectToAdd.getOid());
+    	objectDelta.setObjectToAdd(objectToAdd);
     	return objectDelta;
     }
     

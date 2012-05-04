@@ -24,6 +24,7 @@ package com.evolveum.midpoint.model;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -40,8 +41,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -159,6 +162,11 @@ public class SyncContext implements Dumpable, DebugDumpable {
     public void setUserSecondaryDelta(ObjectDelta<UserType> userSecondaryDelta) {
         this.userSecondaryDelta = userSecondaryDelta;
     }
+    
+	public ObjectDeltaObject<UserType> getUserOdo() throws SchemaException {
+		return new ObjectDeltaObject<UserType>(userOld, getUserDelta(), userNew);
+	}
+
 
     public UserTemplateType getUserTemplate() {
         return userTemplate;
@@ -239,6 +247,16 @@ public class SyncContext implements Dumpable, DebugDumpable {
     public ObjectDelta<UserType> getUserDelta() throws SchemaException {
         return ObjectDelta.union(userPrimaryDelta, userSecondaryDelta);
     }
+    
+	public ObjectDeltaObject<UserType> getUserObjectDeltaObject() {
+		ObjectDeltaObject<UserType> userOdo;
+		try {
+			userOdo = new ObjectDeltaObject<UserType>(userOld, getUserDelta(), userNew);
+		} catch (SchemaException e) {
+			throw new SystemException("Unexpected schema error: "+e.getMessage(),e);
+		}
+		return userOdo;
+	}
 
     public void setUserOid(String oid) {
         if (getUserPrimaryDelta() != null) {
@@ -333,7 +351,11 @@ public class SyncContext implements Dumpable, DebugDumpable {
      */
     public RefinedResourceSchema getRefinedResourceSchema(ResourceAccountType rat) throws
             SchemaException {
-        return RefinedResourceSchema.getRefinedSchema(getResource(rat), prismContext);
+    	ResourceType resourceType = getResource(rat);
+    	if (resourceType == null) {
+    		throw new IllegalStateException("No resource for "+rat);
+    	}
+        return RefinedResourceSchema.getRefinedSchema(resourceType, prismContext);
     }
 
     /**
@@ -386,7 +408,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * TODO: maybe it would be better to merge them.
      */
     public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() {
-        Collection<ObjectDelta<? extends ObjectType>> allChanges = new HashSet<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
         addChangeIfNotNull(allChanges, userPrimaryDelta);
         addChangeIfNotNull(allChanges, userSecondaryDelta);
@@ -564,6 +586,5 @@ public class SyncContext implements Dumpable, DebugDumpable {
             sb.append(INDENT_STRING);
         }
     }
-
 
 }

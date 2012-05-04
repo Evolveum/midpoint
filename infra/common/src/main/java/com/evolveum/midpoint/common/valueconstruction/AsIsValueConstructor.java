@@ -30,6 +30,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -46,8 +48,10 @@ public class AsIsValueConstructor implements ValueConstructor {
       * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
       */
     @Override
-    public <V extends PrismValue> Item<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
-			Item<V> input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
+    public <V extends PrismValue> PrismValueDeltaSetTriple<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
+			Item<V> input, ItemDelta<V> inputDelta, Map<QName, Object> variables, 
+			boolean conditionResultOld, boolean conditionResultNew,
+			String contextDescription, OperationResult result) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 
         Object constructorTypeObject = constructorElement.getValue();
@@ -56,11 +60,12 @@ public class AsIsValueConstructor implements ValueConstructor {
         }
         //AsIsValueConstructorType constructorType = (AsIsValueConstructorType)constructorTypeObject;
 
-        // Nothing to do, just use input
-        if (input == null) {
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDelta.toDeltaSetTriple(input, inputDelta, conditionResultOld, conditionResultNew);
+        
+        if (outputTriple == null) {
         	return null;
         }
-        return input.clone();
+        return outputTriple.clone();
     }
 
 }

@@ -32,4 +32,5 @@
 		<icfs:name>jack</icfs:name>
 		<icfs:uid>jack</icfs:uid>
 	</attributes>
+	<accountType>user</accountType>
 </account>

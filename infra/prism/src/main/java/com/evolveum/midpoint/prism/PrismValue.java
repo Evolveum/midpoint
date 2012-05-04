@@ -27,13 +27,15 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
  *
  */
-public abstract class PrismValue implements Visitable, Serializable {
+public abstract class PrismValue implements Visitable, Serializable, Dumpable, DebugDumpable {
 	
 	private SourceType type;
     private Objectable source;
@@ -151,6 +153,18 @@ public abstract class PrismValue implements Visitable, Serializable {
 	}
 	
 	public abstract boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue);
+	
+	public static <V extends PrismValue> boolean containsRealValue(Collection<V> collection, V value) {
+		if (collection == null) {
+			return false;
+		}
+		for (V colVal: collection) {
+			if (colVal.equalsRealValue(value)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public static <X extends PrismValue> Collection<X> cloneValues(Collection<X> values) {
 		Collection<X> clonedCollection = new ArrayList<X>(values.size());

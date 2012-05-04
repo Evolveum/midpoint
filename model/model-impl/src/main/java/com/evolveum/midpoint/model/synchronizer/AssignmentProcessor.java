@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -100,7 +101,7 @@ public class AssignmentProcessor {
             }
         }
         
-        Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new HashSet<PrismContainerValue<AssignmentType>>();
+        Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new ArrayList<PrismContainerValue<AssignmentType>>();
         if (context.getUserOld() != null) {
             PrismContainer<AssignmentType> assignmentContainer = context.getUserOld().findContainer(UserType.F_ASSIGNMENT);
             if (assignmentContainer != null) {
@@ -117,7 +118,7 @@ public class AssignmentProcessor {
 
         AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
         assignmentEvaluator.setRepository(repositoryService);
-        assignmentEvaluator.setUser(context.getUserNew());
+        assignmentEvaluator.setUserOdo(context.getUserOdo());
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);
@@ -155,10 +156,6 @@ public class AssignmentProcessor {
 
             Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, result);
             
-            if (containsRealValue(assignmentsOld,propertyValue)) {
-                // TODO: remember old state
-            }
-
             context.rememberResources(evaluatedAssignment.getResources(result));
 
             // Sort assignments to sets: unchanged (zero), added (plus), removed (minus)
@@ -233,7 +230,8 @@ public class AssignmentProcessor {
                 throw new IllegalStateException("Account " + rat + " went looney");
             }
 
-            DeltaSetTriple<AccountConstruction> accountDeltaSetTriple = new DeltaSetTriple<AccountConstruction>(zeroAccountMap.get(rat),
+            PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountDeltaSetTriple = 
+            		new PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>>(zeroAccountMap.get(rat),
                     plusAccountMap.get(rat), minusAccountMap.get(rat));
             context.getAccountSyncContext(rat).setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
 
@@ -254,15 +252,8 @@ public class AssignmentProcessor {
 	public void processAssignmentsAccountValues(AccountSyncContext accountContext, OperationResult result) throws SchemaException,
 		ObjectNotFoundException, ExpressionEvaluationException {
             
-    	DeltaSetTriple<AccountConstruction> accountDeltaSetTriple = accountContext.getAccountConstructionDeltaSetTriple();
-    	if (accountDeltaSetTriple == null) {
-    		return;
-    	}
-    	ResourceAccountType rat = accountContext.getResourceAccountType();
-    	Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
-//        LOGGER.trace("Account {}: attributeValueDeltaMap befor adding:\n{}: ", rat, SchemaDebugUtil.dumpMapMultiLine(attributeValueDeltaMap));
-
-        accountContext.addToAttributeValueDeltaSetTripleMap(attributeValueDeltaMap);        
+		// TODO: reevaluate constructions
+		
     }
 
     private void collectToAccountMap(
@@ -276,7 +267,7 @@ public class AssignmentProcessor {
             if (accountMap.containsKey(rat)) {
                 constructions = accountMap.get(rat);
             } else {
-                constructions = new HashSet<PrismPropertyValue<AccountConstruction>>();
+                constructions = new ArrayList<PrismPropertyValue<AccountConstruction>>();
                 accountMap.put(rat, constructions);
             }
             constructions.add(new PrismPropertyValue<AccountConstruction>(accountConstruction));
@@ -308,28 +299,6 @@ public class AssignmentProcessor {
             accountSyncContext.setPolicyDecision(decision);
         }
 
-    }
-
-    private Map<QName, DeltaSetTriple<ValueConstruction<?>>> computeAttributeValueDeltaMap(
-            DeltaSetTriple<AccountConstruction> accountDeltaSetTriple) {
-
-        Map<QName, DeltaSetTriple<ValueConstruction<?>>> attrMap = new HashMap<QName, DeltaSetTriple<ValueConstruction<?>>>();
-
-        for (PrismPropertyValue<AccountConstruction> propertyValue : accountDeltaSetTriple.union()) {
-            AccountConstruction ac = propertyValue.getValue();
-            for (ValueConstruction<?> attrConstr : ac.getAttributeConstructions()) {
-                Item<?> output = attrConstr.getOutput();
-                QName attrName = output.getName();
-                DeltaSetTriple<ValueConstruction<?>> valueTriple = attrMap.get(attrName);
-                if (valueTriple == null) {
-                    valueTriple = new DeltaSetTriple<ValueConstruction<?>>();
-                    attrMap.put(attrName, valueTriple);
-                }
-                valueTriple.distributeAs(new PrismPropertyValue<ValueConstruction<?>>(attrConstr), accountDeltaSetTriple, propertyValue);
-
-            }
-        }
-        return attrMap;
     }
 
 	private void checkExclusions(SyncContext context, Collection<Assignment> assignmentsA,

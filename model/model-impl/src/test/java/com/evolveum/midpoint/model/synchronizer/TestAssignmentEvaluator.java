@@ -33,6 +33,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -106,7 +107,7 @@ public class TestAssignmentEvaluator extends AbstractModelIntegrationTest {
 		assignmentEvaluator.setRepository(repositoryService);
 		
 		PrismObject<UserType> userJack = userTypeJack.asPrismObject();
-		assignmentEvaluator.setUser(userJack);
+		assignmentEvaluator.setUserOdo(new ObjectDeltaObject<UserType>(userJack, null, null));
 		
 		assignmentEvaluator.setObjectResolver(objectResolver);
 		assignmentEvaluator.setPrismContext(prismContext);

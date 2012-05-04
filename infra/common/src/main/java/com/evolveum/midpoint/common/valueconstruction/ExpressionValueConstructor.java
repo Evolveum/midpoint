@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,6 +41,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -57,8 +62,10 @@ public class ExpressionValueConstructor implements ValueConstructor {
       * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
       */
     @Override
-    public <V extends PrismValue> Item<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
-			Item<V> input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
+    public <V extends PrismValue> PrismValueDeltaSetTriple<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
+			Item<V> input, ItemDelta<V> inputDelta, Map<QName, Object> variables,
+			boolean conditionResultOld, boolean conditionResultNew,
+			String contextDescription, OperationResult result) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 
         Object constructorTypeObject = constructorElement.getValue();
@@ -67,9 +74,31 @@ public class ExpressionValueConstructor implements ValueConstructor {
         }
         ExpressionType constructorType = (ExpressionType) constructorTypeObject;
 
-        Expression expression = factory.createExpression(constructorType, contextDescription);
+        Collection<V> expressionResultsOld = null;
+        if (conditionResultOld) {
+        	expressionResultsOld = evaluateExpression(constructorType, outputDefinition, input, inputDelta, variables, true, contextDescription, result);
+        }
+        
+        Collection<V> expressionResultsNew = null;
+        if (conditionResultNew) {
+        	expressionResultsNew = evaluateExpression(constructorType, outputDefinition, input, inputDelta, variables, false, contextDescription, result);
+        }
 
-        expression.addVariableDefinitions(variables);
+        PrismValueDeltaSetTriple<V> valueDeltaTriple = PrismValueDeltaSetTriple.diff(expressionResultsOld, expressionResultsNew);
+        
+        return valueDeltaTriple;        
+    }
+
+    
+    private <V extends PrismValue> Collection<V> evaluateExpression(ExpressionType constructorType, ItemDefinition outputDefinition,
+			Item<V> input, ItemDelta<V> inputDelta, Map<QName, Object> variables, boolean old, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	Expression expression = factory.createExpression(constructorType, contextDescription);
+
+    	if (old) {
+    		expression.addVariableDefinitionsOld(variables);
+    	} else {
+    		expression.addVariableDefinitionsNew(variables);
+    	}
 
         QName typeName = outputDefinition.getTypeName();
         Class<Object> type = XsdTypeMapper.toJavaType(typeName);
@@ -78,19 +107,19 @@ public class ExpressionValueConstructor implements ValueConstructor {
         	throw new UnsupportedOperationException("Expression can only result in a property, not "+output.getClass());
         }
         
-        PrismProperty<Object> outputProperty = (PrismProperty)output; 
+        Collection<PrismValue> outputValues = new ArrayList<PrismValue>(); 
 
         if (outputDefinition.isMultiValue()) {
             List<PrismPropertyValue<Object>> resultValues = expression.evaluateList(type, result);
-            outputProperty.addAll(resultValues);
+            outputValues.addAll(resultValues);
         } else {
             PrismPropertyValue<Object> resultValue = expression.evaluateScalar(type, result);
             if (resultValue != null) {
-                outputProperty.add(resultValue);
+            	outputValues.add(resultValue);
             }
         }
-
-        return (Item<V>) outputProperty;
+        
+        return (Collection<V>) outputValues;
     }
-
+    
 }

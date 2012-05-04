@@ -143,6 +143,10 @@ public class AccountValuesProcessor {
 			return true;
 		}
 		PrismContainer<?> attributesContainer = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null) {
+			// No attributes no constraint violations
+			return true;
+		}
 		Collection<ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.union(accountDefinition.getIdentifiers(),
 				accountDefinition.getSecondaryIdentifiers());
 		LOGGER.trace("Secondary IDs {}", accountDefinition.getSecondaryIdentifiers());
@@ -182,7 +186,7 @@ public class AccountValuesProcessor {
 	 */
 	private void cleanupContext(AccountSyncContext accountContext) throws SchemaException {
 		accountContext.setAccountSecondaryDelta(null);
-		accountContext.clearAttributeValueDeltaSetTripleMap();
+		accountContext.clearIntermediateResults();
 		accountContext.recomputeAccountNew();
 	}
 

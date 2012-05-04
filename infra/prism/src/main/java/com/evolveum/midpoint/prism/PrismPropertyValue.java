@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.w3c.dom.Element;
@@ -115,6 +116,11 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			rawElement = null;
 		}
 	}
+	
+	@Override
+	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
+		applyDefinition(definition);
+	}
 
 	@Override
 	protected Element createDomElement() {
@@ -152,6 +158,24 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			}
 		}
 		return false;
+	}
+	
+	public static <T> Collection<PrismPropertyValue<T>> createCollection(Collection<T> realValueCollection) {
+		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<PrismPropertyValue<T>>(realValueCollection.size());
+		for (T realValue: realValueCollection) {
+			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(realValue);
+			pvalCol.add(pval);
+		}
+		return pvalCol;
+	}
+
+	public static <T> Collection<PrismPropertyValue<T>> createCollection(T[] realValueArray) {
+		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<PrismPropertyValue<T>>(realValueArray.length);
+		for (T realValue: realValueArray) {
+			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(realValue);
+			pvalCol.add(pval);
+		}
+		return pvalCol;
 	}
 
     @Override

@@ -446,7 +446,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 		applyDefinition(definition, true);
 	}
 	
-	void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
+	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
 		if (definition != null) {
 			checkDefinition(definition);
 		}

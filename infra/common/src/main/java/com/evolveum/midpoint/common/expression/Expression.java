@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -108,12 +109,57 @@ public class Expression {
         addVariableDefinition(name, (Object) value);
     }
 
+    /**
+     * Adds map of extra variables to the expression.
+     * If there are variables with deltas (ObjectDeltaObject) the operation fail because
+     * it cannot decide which version to use.
+     */
     public void addVariableDefinitions(Map<QName, Object> extraVariables) {
         for (Entry<QName, Object> entry : extraVariables.entrySet()) {
-            variables.put(entry.getKey(), entry.getValue());
+        	Object value = entry.getValue();
+        	if (value instanceof ObjectDeltaObject<?>) {
+        		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
+        		if (odo.getDelta() != null) {
+        			throw new IllegalArgumentException("Cannot use variables with deltas in addVariableDefinitions, use addVariableDefinitionsOld or addVariableDefinitionsNew");
+        		}
+        		value = odo.getOldObject();
+        	}
+            variables.put(entry.getKey(), value);
         }
     }
 
+    /**
+     * Adds map of extra variables to the expression.
+     * If there are variables with deltas (ObjectDeltaObject) it takes the "old" version
+     * of the object.
+     */
+    public void addVariableDefinitionsOld(Map<QName, Object> extraVariables) {
+        for (Entry<QName, Object> entry : extraVariables.entrySet()) {
+        	Object value = entry.getValue();
+        	if (value instanceof ObjectDeltaObject<?>) {
+        		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
+        		value = odo.getOldObject();
+        	}
+            variables.put(entry.getKey(), value);
+        }
+    }
+
+    /**
+     * Adds map of extra variables to the expression.
+     * If there are variables with deltas (ObjectDeltaObject) it takes the "new" version
+     * of the object.
+     */
+    public void addVariableDefinitionsNew(Map<QName, Object> extraVariables) {
+        for (Entry<QName, Object> entry : extraVariables.entrySet()) {
+        	Object value = entry.getValue();
+        	if (value instanceof ObjectDeltaObject<?>) {
+        		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
+        		value = odo.getNewObject();
+        	}
+            variables.put(entry.getKey(), value);
+        }
+    }
+    
     public void setRootNode(ObjectReferenceType objectRef) {
         addVariableDefinition(null, (Object) objectRef);
     }
@@ -128,6 +174,10 @@ public class Expression {
 
     public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, OperationResult result) throws
             ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	
+    	if (code == null) {
+    		throw new ExpressionEvaluationException("No expression code in "+shortDesc);
+    	}
 
         // Return type override
         if (returnType == ExpressionReturnTypeType.LIST) {
@@ -168,6 +218,10 @@ public class Expression {
 
     public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> type, OperationResult result) throws
             ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
+    	if (code == null) {
+    		throw new ExpressionEvaluationException("No expression code in "+shortDesc);
+    	}
 
         // Return type override
         if (returnType == ExpressionReturnTypeType.SCALAR) {

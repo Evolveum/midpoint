@@ -206,6 +206,10 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         return pcd.findPropertyDefinition(propertyPath.rest());
     }
 
+    public PrismReferenceDefinition findReferenceDefinition(QName name) {
+        return findItemDefinition(name, PrismReferenceDefinition.class);
+    }
+    
     /**
      * Finds an inner PropertyContainerDefinition by looking at the property container name.
      * <p/>

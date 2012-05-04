@@ -32,6 +32,7 @@
 		<t:value>
 			<c:assignment>
 				<c:accountConstruction>
+					<c:description>Monkey account construction</c:description>
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 					<c:attribute>
 						<c:ref>ri:secretary</c:ref>

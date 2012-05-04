@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.synchronizer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.SimpleDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class AssignmentEvaluator {
 
 	private RepositoryService repository;
-	private PrismObject<UserType> user;
+	private ObjectDeltaObject<UserType> userOdo;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private ValueConstructionFactory valueConstructionFactory;
@@ -63,15 +65,15 @@ public class AssignmentEvaluator {
 	public void setRepository(RepositoryService repository) {
 		this.repository = repository;
 	}
-
-	public PrismObject<UserType> getUser() {
-		return user;
-	}
-
-	public void setUser(PrismObject<UserType> user) {
-		this.user = user;
-	}
 	
+	public ObjectDeltaObject<UserType> getUserOdo() {
+		return userOdo;
+	}
+
+	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
+		this.userOdo = userOdo;
+	}
+
 	public ObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
@@ -158,7 +160,7 @@ public class AssignmentEvaluator {
 				source);
 		// We have to clone here as the path is constantly changing during evaluation
 		accContruction.setAssignmentPath(assignmentPath.clone());
-		accContruction.setUser(user);		
+		accContruction.setUserOdo(userOdo);
 		accContruction.setObjectResolver(objectResolver);
 		accContruction.setPrismContext(prismContext);
 		accContruction.setValueConstructionFactory(valueConstructionFactory);

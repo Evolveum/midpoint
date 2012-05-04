@@ -21,11 +21,13 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -44,17 +46,17 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
     /**
      * Collection of values that were not changed.
      */
-    private Collection<PrismPropertyValue<T>> zeroSet;
+    protected Collection<T> zeroSet;
 
     /**
      * Collection of values that were added.
      */
-    private Collection<PrismPropertyValue<T>> plusSet;
+    protected Collection<T> plusSet;
 
     /**
      * Collection of values that were deleted.
      */
-    private Collection<PrismPropertyValue<T>> minusSet;
+    protected Collection<T> minusSet;
 
     public DeltaSetTriple() {
         zeroSet = createSet();
@@ -62,7 +64,7 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
         minusSet = createSet();
     }
 
-    public DeltaSetTriple(Collection<PrismPropertyValue<T>> zeroSet, Collection<PrismPropertyValue<T>> plusSet, Collection<PrismPropertyValue<T>> minusSet) {
+    public DeltaSetTriple(Collection<T> zeroSet, Collection<T> plusSet, Collection<T> minusSet) {
         this.zeroSet = zeroSet;
         this.plusSet = plusSet;
         this.minusSet = minusSet;
@@ -71,77 +73,76 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
     /**
      * Compares two (unordered) collections and creates a triple describing the differences.
      */
-    public static <T> DeltaSetTriple<T> diff(Collection<PrismPropertyValue<T>> valuesOld, Collection<PrismPropertyValue<T>> valuesNew) {
+    public static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew) {
         DeltaSetTriple<T> triple = new DeltaSetTriple<T>();
+        diff(valuesOld, valuesNew, triple);
+        return triple;
+    }
+    
+    protected static <T> void diff(Collection<T> valuesOld, Collection<T> valuesNew, DeltaSetTriple<T> triple) {
         if (valuesOld == null && valuesNew == null) {
         	// No values, no change -> empty triple
-        	return triple;
+        	return;
         }
         if (valuesOld == null) {
         	triple.getPlusSet().addAll(valuesNew);
-        	return triple;
+        	return;
         }
         if (valuesNew == null) {
         	triple.getMinusSet().addAll(valuesOld);
-        	return triple;
+        	return;
         }
-        for (PrismPropertyValue<T> val : valuesOld) {
+        for (T val : valuesOld) {
             if (valuesNew.contains(val)) {
                 triple.getZeroSet().add(val);
             } else {
                 triple.getMinusSet().add(val);
             }
         }
-        for (PrismPropertyValue<T> val : valuesNew) {
+        for (T val : valuesNew) {
             if (!valuesOld.contains(val)) {
                 triple.getPlusSet().add(val);
             }
         }
-        return triple;
     }
 
-    private Collection<PrismPropertyValue<T>> createSet() {
-        return new HashSet<PrismPropertyValue<T>>();
+    protected Collection<T> createSet() {
+        return new ArrayList<T>();
     }
 
-    public Collection<PrismPropertyValue<T>> getZeroSet() {
+    public Collection<T> getZeroSet() {
         return zeroSet;
     }
 
-    public Collection<PrismPropertyValue<T>> getPlusSet() {
+    public Collection<T> getPlusSet() {
         return plusSet;
     }
 
-    public Collection<PrismPropertyValue<T>> getMinusSet() {
+    public Collection<T> getMinusSet() {
         return minusSet;
+    }
+    
+    public boolean hasPlusSet() {
+    	return (plusSet != null && !plusSet.isEmpty());
+    }
+
+    public boolean hasZeroSet() {
+    	return (zeroSet != null && !zeroSet.isEmpty());
+    }
+
+    public boolean hasMinusSet() {
+    	return (minusSet != null && !minusSet.isEmpty());
     }
 
     /**
      * Returns all values, regardless of the internal sets.
      */
-    public Collection<PrismPropertyValue<T>> union() {
+    public Collection<T> union() {
         return MiscUtil.union(zeroSet, plusSet, minusSet);
     }
 
-    public Collection<PrismPropertyValue<T>> getNonNegativeValues() {
+    public Collection<T> getNonNegativeValues() {
         return MiscUtil.union(zeroSet, plusSet);
-    }
-
-    /**
-     * Distributes a value in this triple similar to the placement of other value in the other triple.
-     * E.g. if the value "otherMember" is in the zero set in "otherTriple" then "myMember" will be placed
-     * in zero set in this triple.
-     */
-    public <O> void distributeAs(PrismPropertyValue<T> myMember, DeltaSetTriple<O> otherTriple, PrismPropertyValue<O> otherMember) {
-        if (otherTriple.getZeroSet() != null && PrismPropertyValue.containsRealValue((Collection)otherTriple.getZeroSet(), otherMember)) {
-            zeroSet.add(myMember);
-        }
-        if (otherTriple.getPlusSet() != null && PrismPropertyValue.containsRealValue((Collection)otherTriple.getPlusSet(), otherMember)) {
-            plusSet.add(myMember);
-        }
-        if (otherTriple.getMinusSet() != null && PrismPropertyValue.containsRealValue((Collection)otherTriple.getMinusSet(), otherMember)) {
-            minusSet.add(myMember);
-        }
     }
     
 	public void merge(DeltaSetTriple<T> triple) {
@@ -149,8 +150,8 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
 		plusSet.addAll(triple.plusSet);
 		minusSet.addAll(triple.minusSet);
 	}
-
-    @Override
+	
+	@Override
     public String toString() {
         return dump();
     }
@@ -158,15 +159,19 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
     @Override
     public String dump() {
         StringBuilder sb = new StringBuilder();
-        sb.append("DeltaSetTriple(");
+        sb.append(debugName()).append("(");
         dumpSet(sb, "zero", zeroSet);
         dumpSet(sb, "plus", plusSet);
         dumpSet(sb, "minus", minusSet);
         sb.append(")");
         return sb.toString();
     }
+    
+    protected String debugName() {
+    	return "DeltaSetTriple";
+    }
 
-    private void dumpSet(StringBuilder sb, String label, Collection<PrismPropertyValue<T>> set) {
+    private void dumpSet(StringBuilder sb, String label, Collection<T> set) {
         sb.append(label).append(": ").append(set).append("; ");
     }
 
@@ -185,26 +190,24 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-        sb.append("DeltaSetTriple(\n");
+        sb.append("DeltaSetTriple:\n");
         debugDumpSet(sb, "zero", zeroSet, indent + 1);
         sb.append("\n");
         debugDumpSet(sb, "plus", plusSet, indent + 1);
         sb.append("\n");
         debugDumpSet(sb, "minus", minusSet, indent + 1);
-        DebugUtil.indentDebugDump(sb, indent);
-        sb.append(")");
         return sb.toString();
 	}
 
-	private void debugDumpSet(StringBuilder sb, String label, Collection<PrismPropertyValue<T>> set, int indent) {
+	private void debugDumpSet(StringBuilder sb, String label, Collection<T> set, int indent) {
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(label).append(":");
 		if (set == null) {
 			sb.append(" null");
 		} else {
-			for (PrismPropertyValue<T> pval: set) {
+			for (T val: set) {
 				sb.append("\n");
-				sb.append(pval.debugDump(indent +1));
+				sb.append(DebugUtil.debugDump(val, indent +1));
 			}
 		}
 	}

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -16,35 +17,27 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2011 lazyman                       -->
-<!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-555555556666"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    <name>Pirate</name>    
-    <assignment>
-    	<accountConstruction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<attribute>
-                <ref>ri:title</ref>
-				<value>Bloody Pirate</value>
-            </attribute>
-            <attribute>
-                <ref>ri:location</ref>
-				<expression>
-					<code>
-                        c:locality
-					</code>
-				</expression>
-				<condition>
-					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-					<code>
-						user?.getLocality() != "hidden"
-					</code>
-				</condition>
-            </attribute>
-    	</accountConstruction>
-    </assignment>    
-</role>
+
+<!-- Object modification description that is changing user "jack" by adding a new account -->
+
+<account oid="22220000-2200-0000-0000-333300003333" 
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+	xmlns:piracy="http://pirates.com/xml/ns"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<name>ht</name>
+	<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
+	<objectClass>ri:AccountObjectClass</objectClass>
+	<attributes>
+		<icfs:name>uid=ht, ou=People, dc=example,dc=com</icfs:name>
+		<ri:uid>ht</ri:uid>
+		<ri:cn>Herman Toothrot</ri:cn>
+		<ri:givenName>Herman</ri:givenName>
+		<ri:sn>Toothrot</ri:sn>
+		<ri:l>Monkey Island</ri:l>
+	</attributes>
+	<accountType>user</accountType>
+</account>

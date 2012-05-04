@@ -21,18 +21,17 @@ package com.evolveum.midpoint.model.synchronizer;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -62,11 +61,11 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private AssignmentPath assignmentPath;
 	private AccountConstructionType accountConstructionType;
 	private ObjectType source;
-	private PrismObject<UserType> user;
+	private ObjectDeltaObject<UserType> userOdo;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
 	private ValueConstructionFactory valueConstructionFactory;
-	private Collection<ValueConstruction<?>> attributeConstructions;
+	private Collection<ValueConstruction<? extends PrismPropertyValue<?>>> attributeConstructions;
 	private RefinedAccountDefinition refinedAccountDefinition;
 	private PrismContext prismContext;
 	
@@ -82,11 +81,11 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	public void setSource(ObjectType source) {
 		this.source = source;
 	}
-	
-	public void setUser(PrismObject<UserType> user) {
-		this.user = user;
-	}
 		
+	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
+		this.userOdo = userOdo;
+	}
+
 	public ObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
@@ -118,8 +117,37 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		return refinedAccountDefinition.getAccountTypeName();
 	}
 	
-	public Collection<ValueConstruction<?>> getAttributeConstructions() {
+	public Object getDescription() {
+		return accountConstructionType.getDescription();
+	}
+	
+	public Collection<ValueConstruction<? extends PrismPropertyValue<?>>> getAttributeConstructions() {
+		if (attributeConstructions == null) {
+			attributeConstructions = new ArrayList<ValueConstruction<? extends PrismPropertyValue<?>>>();
+		}
 		return attributeConstructions;
+	}
+	
+	public ValueConstruction<? extends PrismPropertyValue<?>> getAttributeConstruction(QName attrName) {
+		for (ValueConstruction<? extends PrismPropertyValue<?>> myVc : getAttributeConstructions()) {
+			if (myVc.getItemName().equals(attrName)) {
+				return myVc;
+			}
+		}
+		return null;
+	}
+	
+	public void addAttributeConstruction(ValueConstruction<? extends PrismPropertyValue<?>> valueConstruction) {
+		getAttributeConstructions().add(valueConstruction);
+	}
+
+	public boolean containsAttributeConstruction(QName attributeName) {
+		for (ValueConstruction<?> myVc: getAttributeConstructions()) {
+			if (attributeName.equals(myVc.getItemName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public AssignmentPath getAssignmentPath() {
@@ -180,16 +208,16 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	}
 
 	private void evaluateAttributes(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		attributeConstructions = new HashSet<ValueConstruction<?>>();
+		attributeConstructions = new ArrayList<ValueConstruction<? extends PrismPropertyValue<?>>>();
 //		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
 //				assignments.size(), assignments});
 		for (ValueConstructionType attributeConstructionType : accountConstructionType.getAttribute()) {
-			ValueConstruction<?> attributeConstruction = evaluateAttribute(attributeConstructionType, result);
+			ValueConstruction<? extends PrismPropertyValue<?>> attributeConstruction = evaluateAttribute(attributeConstructionType, result);
 			attributeConstructions.add(attributeConstruction);
 		}
 	}
 
-	private ValueConstruction<?> evaluateAttribute(ValueConstructionType attributeConstructionType, OperationResult result) 
+	private ValueConstruction<? extends PrismPropertyValue<?>> evaluateAttribute(ValueConstructionType attributeConstructionType, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		QName attrName = attributeConstructionType.getRef();
 		if (attrName == null) {
@@ -199,16 +227,28 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (outputDefinition == null) {
 			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
-		ValueConstruction<?> attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, 
+		ValueConstruction<? extends PrismPropertyValue<?>> attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, 
 				"for attribute " + DebugUtil.prettyPrint(attrName)  + " in "+source);
-		attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
-		attributeConstruction.setRootNode(user);
+		attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+		attributeConstruction.setRootNode(userOdo);
 		if (!assignmentPath.isEmpty()) {
 			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
 			attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentType.asPrismContainerValue());
 		}
 		// TODO: other variables ?
+		
+		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
+		// (e.g. in old values in ADD situations and new values in DELETE situations).
+		if (userOdo.getOldObject() == null) {
+			attributeConstruction.setConditionMaskOld(false);
+		}
+		if (userOdo.getNewObject() == null) {
+			attributeConstruction.setConditionMaskNew(false);
+		}
+
 		attributeConstruction.evaluate(result);
+		
+		LOGGER.trace("Evaluated construction for "+attrName+": "+attributeConstruction);
 		return attributeConstruction;
 	}
 
@@ -283,11 +323,17 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			sb.append(INDENT_STRING);
 		}
 		sb.append("AccountConstruction(");
-		sb.append(refinedAccountDefinition.getResourceAccountType());
+		if (refinedAccountDefinition == null) {
+			sb.append("null");
+		} else {
+			sb.append(refinedAccountDefinition.getResourceAccountType());
+		}
 		sb.append(")");
-		for (ValueConstruction attrConstr: attributeConstructions) {
-			sb.append("\n");
-			sb.append(attrConstr.debugDump(indent+1));
+		if (attributeConstructions != null) {
+			for (ValueConstruction attrConstr: attributeConstructions) {
+				sb.append("\n");
+				sb.append(attrConstr.debugDump(indent+1));
+			}
 		}
 		return sb.toString();
 	}

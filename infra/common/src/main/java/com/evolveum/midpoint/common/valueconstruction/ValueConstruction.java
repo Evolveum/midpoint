@@ -40,6 +40,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,8 +74,11 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	private ValueConstructionType valueConstructionType;
 	private ObjectResolver objectResolver;
 	private Item<V> input;
-	private Item<V> output;
+	private ItemDelta<V> inputDelta;
+	private PrismValueDeltaSetTriple<V> outputTriple;
 	private ItemDefinition outputDefinition;
+	private boolean conditionMaskOld = true;
+	private boolean conditionMaskNew = true;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ValueConstruction.class);
 	
@@ -85,7 +90,7 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		this.expressionFactory = expressionFactory;
 		this.variables = new HashMap<QName,Object>();
 		this.input = null;
-		this.output = null;
+		this.outputTriple = null;
 		this.outputDefinition = outputDefinition;
 		this.objectResolver = null;
 	}
@@ -102,12 +107,35 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		this.input = input;
 	}
 	
-	public void setOutputDefinitionX(PrismPropertyDefinition outputDefinition) {
+	public ItemDelta<V> getInputDelta() {
+		return inputDelta;
+	}
+
+	public void setInputDelta(ItemDelta<V> inputDelta) {
+		this.inputDelta = inputDelta;
+	}
+	
+	public ItemDefinition getOutputDefinition() {
+		return outputDefinition;
+	}
+
+	public void setOutputDefinition(ItemDefinition outputDefinition) {
 		this.outputDefinition = outputDefinition;
 	}
 	
+	public QName getItemName() {
+		if (outputDefinition != null) {
+			return outputDefinition.getName();
+		}
+		return null;
+	}
+
 	public void setRootNode(ObjectReferenceType objectRef) {
 		addVariableDefinition(null,(Object)objectRef);
+	}
+	
+	public void setRootNode(ObjectDeltaObject<?> odo) {
+		addVariableDefinition(null,(Object)odo);
 	}
 	
 	public void setRootNode(ObjectType objectType) {
@@ -156,6 +184,10 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	public void addVariableDefinition(QName name, PrismValue value) {
 		addVariableDefinition(name,(Object)value);
 	}
+	
+	public void addVariableDefinition(QName name, ObjectDeltaObject<?> value) {
+		addVariableDefinition(name,(Object)value);
+	}
 
 	public void addVariableDefinitions(Map<QName, Object> extraVariables) {
 		for (Entry<QName, Object> entry : extraVariables.entrySet()) {
@@ -195,29 +227,46 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		return value;
 	}
 	
+	public boolean isConditionMaskOld() {
+		return conditionMaskOld;
+	}
+
+	public void setConditionMaskOld(boolean conditionMaskOld) {
+		this.conditionMaskOld = conditionMaskOld;
+	}
+
+	public boolean isConditionMaskNew() {
+		return conditionMaskNew;
+	}
+
+	public void setConditionMaskNew(boolean conditionMaskNew) {
+		this.conditionMaskNew = conditionMaskNew;
+	}
+
 	public void evaluate(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (outputDefinition == null) {
 			throw new IllegalArgumentException("No output definition, cannot evaluate construction "+shortDesc);
 		}
 		
-		boolean conditionResult = evaluateCondition(result);
+		boolean conditionResultOld = evaluateConditionOld(result) && conditionMaskOld;
+		boolean conditionResultNew = evaluateConditionNew(result) && conditionMaskNew;
 		
-		if (!conditionResult) {
+		if (!conditionResultOld && !conditionResultNew) {
 			// TODO: tracing
 			return;
 		}
 		// TODO: input filter
-		evaluateValueConstructors(result);
+		evaluateValueConstructors(result, conditionResultOld, conditionResultNew);
 		// TODO: output filter
 	}
 	
-	private boolean evaluateCondition(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private boolean evaluateConditionOld(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ExpressionType conditionExpressionType = valueConstructionType.getCondition();
 		if (conditionExpressionType == null) {
 			return true;
 		}
 		Expression conditionExpression = expressionFactory.createExpression(conditionExpressionType, "condition in "+shortDesc);
-		conditionExpression.addVariableDefinitions(variables);
+		conditionExpression.addVariableDefinitionsOld(variables);
 		PrismPropertyValue<Boolean> conditionValue = conditionExpression.evaluateScalar(Boolean.class, result);
 		if (conditionValue == null || conditionValue.getValue() == null) {
 			return true;
@@ -225,7 +274,22 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		return conditionValue.getValue();
 	}
 
-	private void evaluateValueConstructors(OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private boolean evaluateConditionNew(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		ExpressionType conditionExpressionType = valueConstructionType.getCondition();
+		if (conditionExpressionType == null) {
+			return true;
+		}
+		Expression conditionExpression = expressionFactory.createExpression(conditionExpressionType, "condition in "+shortDesc);
+		conditionExpression.addVariableDefinitionsNew(variables);
+		PrismPropertyValue<Boolean> conditionValue = conditionExpression.evaluateScalar(Boolean.class, result);
+		if (conditionValue == null || conditionValue.getValue() == null) {
+			return true;
+		}
+		return conditionValue.getValue();
+	}
+
+	
+	private void evaluateValueConstructors(OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		if (valueConstructionType.getValueConstructor() != null && valueConstructionType.getSequence() != null) {
 			throw new SchemaException("Both constructor and sequence was specified, ambiguous situation in "+shortDesc);
 		}
@@ -234,19 +298,20 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		}
 		
 		if (valueConstructionType.getValueConstructor() != null) {
-			output = determineConstructor(valueConstructionType.getValueConstructor())
-				.construct(valueConstructionType.getValueConstructor(), outputDefinition,
-						input, variables, shortDesc, result);
+			ValueConstructor constructor = determineConstructor(valueConstructionType.getValueConstructor());
+			outputTriple = constructor.construct(valueConstructionType.getValueConstructor(), outputDefinition,
+						input, inputDelta, variables, conditionResultOld, conditionResultNew,
+						shortDesc, result);
 		}
 		
 		if (valueConstructionType.getSequence() != null) {
 			for (JAXBElement<?> valueConstructorElement : valueConstructionType.getSequence().getValueConstructor()) {
 				
-				output = determineConstructor(valueConstructorElement)
-							.construct(valueConstructorElement, outputDefinition, 
-									input, variables, shortDesc, result);
+				ValueConstructor constructor = determineConstructor(valueConstructorElement);
+				outputTriple = constructor.construct(valueConstructorElement, outputDefinition, 
+									input, inputDelta, variables, conditionResultOld, conditionResultNew, shortDesc, result);
 				
-				if (output != null) {
+				if (outputTriple != null) {
 					// we got the value, no need to continue
 					break;
 				}
@@ -261,7 +326,19 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		return constructors.get(valueConstructorElement.getName());
 	}
 
-	public Item<V> getOutput() {
+	public PrismValueDeltaSetTriple<V> getOutputTriple() {
+		return outputTriple;
+	}
+
+	public Item<V> getOutput() throws SchemaException {
+		if (outputTriple == null) {
+			return null;
+		}
+		if (outputTriple.hasPlusSet() || outputTriple.hasMinusSet()) {
+			throw new IllegalStateException("Cannot create output from "+this+" as it is not zero-only");
+		}
+		Item<V> output = outputDefinition.instantiate();
+		output.addAll(outputTriple.getZeroSet());
 		return output;
 	}
 	
@@ -285,7 +362,7 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 				shortDesc, constructors, expressionFactory);
 		clone.input = this.input;
 		clone.objectResolver = this.objectResolver;
-		clone.output = this.output.clone();
+		clone.outputTriple = this.outputTriple.clone();
 		clone.outputDefinition = this.outputDefinition;
 		clone.variables = this.variables;
 		
@@ -297,7 +374,7 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((input == null) ? 0 : input.hashCode());
-		result = prime * result + ((output == null) ? 0 : output.hashCode());
+		result = prime * result + ((outputTriple == null) ? 0 : outputTriple.hashCode());
 		result = prime * result + ((outputDefinition == null) ? 0 : outputDefinition.hashCode());
 		result = prime * result + ((variables == null) ? 0 : variables.hashCode());
 		return result;
@@ -317,10 +394,10 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 				return false;
 		} else if (!input.equals(other.input))
 			return false;
-		if (output == null) {
-			if (other.output != null)
+		if (outputTriple == null) {
+			if (other.outputTriple != null)
 				return false;
-		} else if (!output.equals(other.output))
+		} else if (!outputTriple.equals(other.outputTriple))
 			return false;
 		if (outputDefinition == null) {
 			if (other.outputDefinition != null)
@@ -357,7 +434,7 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 
 	@Override
 	public String toString() {
-		return "VC(" + SchemaDebugUtil.prettyPrint(outputDefinition.getName()) + " = " + output + ")";
+		return "VC(" + SchemaDebugUtil.prettyPrint(outputDefinition.getName()) + " = " + outputTriple + ")";
 	}
 	
 }

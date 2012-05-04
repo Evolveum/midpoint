@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model.synchronizer;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
@@ -46,9 +47,14 @@ import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -59,6 +65,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * @author semancik
@@ -107,13 +114,68 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test001AssignAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    public void test010AddAccountToJackDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test001AssignAccountToJack");
+        displayTestTile(this, "test010AddAccountToJackDirect");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test001AssignAccountToJack");
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test010AddAccountToJackDirect");
+        
+        SyncContext context = new SyncContext(prismContext);
+        fillContextWithUser(context, USER_JACK_OID, result);
+        // We want "shadow" so the fullname will be computed by outbound expression 
+        addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILENAME);
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+        
+        // WHEN
+        userSynchronizer.synchronizeUser(context, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
+        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+
+        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        assertEquals(1, accountContexts.size());
+        AccountSyncContext accContext = accountContexts.iterator().next();
+        
+        ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getAccountPrimaryDelta();
+        assertEquals(ChangeType.ADD, accountPrimaryDelta.getChangeType());
+        PrismObject<AccountShadowType> accountToAddPrimary = accountPrimaryDelta.getObjectToAdd();
+        assertNotNull("No object in account primary add delta", accountToAddPrimary);
+        PrismProperty<Object> accountTypeProperty = accountToAddPrimary.findProperty(AccountShadowType.F_ACCOUNT_TYPE);
+        assertNotNull("No account type in account primary add delta", accountTypeProperty);
+        assertEquals("user", accountTypeProperty.getRealValue());
+        assertEquals(new QName(resourceDummyType.getNamespace(), "AccountObjectClass"),
+                accountToAddPrimary.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
+        PrismReference resourceRef = accountToAddPrimary.findReference(AccountShadowType.F_RESOURCE_REF);
+        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
+
+        PrismObject<AccountShadowType> accountNew = accContext.getAccountNew();
+        PrismContainer<?> attributes = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
+        assertNotNull("No attribute in account new", attributes);
+        PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "jack");
+        PrismAsserts.assertPropertyValue(attributes, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, "Jack Sparrow");        
+	}
+	
+	@Test
+    public void test020AssignAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test020AssignAccountToJack");
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test020AssignAccountToJack");
         
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_JACK_OID, result);
@@ -136,7 +198,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
         assertEquals(1, accountContexts.size());
         AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        assertNull("Account primary delta sneaked in", accContext.getAccountPrimaryDelta());
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
         
@@ -156,6 +218,46 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         
 	}
 
+	@Test
+    public void test050ModifyUserBarbossaLocality() throws Exception {
+        displayTestTile(this, "test050ModifyUserBarbossaLocality");
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test050ModifyUserBarbossaLocality");
+
+        SyncContext context = new SyncContext(prismContext);
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, "Tortuga");
+        context.recomputeNew();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        userSynchronizer.synchronizeUser(context, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
+        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+
+        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        assertEquals(1, accountContexts.size());
+        AccountSyncContext accContext = accountContexts.iterator().next();
+        assertNull(accContext.getAccountPrimaryDelta());
+        assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
+        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getOpenDJAttributePath("l") , "Tortuga");
+        PrismAsserts.assertPropertyDelete(accountSecondaryDelta, getOpenDJAttributePath("l") , "Caribbean");
+                
+    }
 	
 	@Test
     public void test101AssignConflictingAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
@@ -204,9 +306,93 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
         PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
+        assertNotNull("No attributes in new account", attributes);
         assertEquals("jack1", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
         assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
         
 	}
+	
+	@Test
+    public void test200ImportHermanDummy() throws Exception {
+        displayTestTile(this, "test200ImportHermanDummy");
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test200ImportHermanDummy");
+
+        SyncContext context = new SyncContext(prismContext);
+        fillContextWithEmtptyAddUserDelta(context, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILENAME, result);
+        makeImportSyncDelta(context.getAccountContexts().iterator().next());
+        context.recomputeNew();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        userSynchronizer.synchronizeUser(context, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        // TODO
+        
+        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.ADD);
+        assertNotNull("No user secondary delta", context.getUserSecondaryDelta());
+        
+        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+
+        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        assertEquals(1, accountContexts.size());
+        AccountSyncContext accContext = accountContexts.iterator().next();
+        assertNull(accContext.getAccountPrimaryDelta());
+        
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
+
+        // TODO
+        
+    }
+	
+	@Test
+    public void test201ImportHermanOpenDj() throws Exception {
+        displayTestTile(this, "test201ImportHermanOpenDj");
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test201ImportHermanOpenDj");
+
+        SyncContext context = new SyncContext(prismContext);
+        fillContextWithEmtptyAddUserDelta(context, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_OPENDJ_FILENAME, result);
+        makeImportSyncDelta(context.getAccountContexts().iterator().next());
+        context.recomputeNew();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        userSynchronizer.synchronizeUser(context, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        // TODO
+        
+        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.ADD);
+        assertNotNull("No user secondary delta", context.getUserSecondaryDelta());
+        
+        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+
+        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        assertEquals(1, accountContexts.size());
+        AccountSyncContext accContext = accountContexts.iterator().next();
+        assertNull(accContext.getAccountPrimaryDelta());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
+        // TODO
+        
+    }
 
 }

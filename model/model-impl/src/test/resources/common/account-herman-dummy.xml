@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -16,35 +17,20 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2011 lazyman                       -->
-<!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-555555556666"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    <name>Pirate</name>    
-    <assignment>
-    	<accountConstruction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<attribute>
-                <ref>ri:title</ref>
-				<value>Bloody Pirate</value>
-            </attribute>
-            <attribute>
-                <ref>ri:location</ref>
-				<expression>
-					<code>
-                        c:locality
-					</code>
-				</expression>
-				<condition>
-					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-					<code>
-						user?.getLocality() != "hidden"
-					</code>
-				</condition>
-            </attribute>
-    	</accountConstruction>
-    </assignment>    
-</role>
+
+<account oid="22220000-2200-0000-0000-444400004444"
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+	<objectClass>ri:AccountObjectClass</objectClass>
+	<attributes>
+		<icfs:name>ht</icfs:name>
+		<icfs:uid>ht</icfs:uid>
+		<ri:fullname>Herman Toothrot</ri:fullname>
+		<ri:location>Monkey Island</ri:location>
+	</attributes>
+</account>

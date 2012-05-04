@@ -30,6 +30,7 @@
     <fullName>Hector Barbossa</fullName>
     <givenName>Hector</givenName>
     <familyName>Barbossa</familyName>
+    <locality>Caribbean</locality>
     
     <credentials>
         <password>
@@ -41,6 +42,7 @@
     
     <assignment>
 		<accountConstruction>
+			<description>Brethren account construction</description>
 			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 			<attribute>
@@ -49,13 +51,18 @@
 			</attribute>
 			<attribute>
 				<ref>ri:l</ref>
-				<value>Caribbean</value>
+				<expression>
+					<code>
+						$c:user/c:locality
+					</code>
+				</expression>
 			</attribute>
 		</accountConstruction>
 	</assignment>
 
     <assignment>
 		<accountConstruction>
+			<description>Shipwreck account construction</description>
 			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 			<attribute>

@@ -31,8 +31,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -51,8 +52,10 @@ import org.testng.annotations.Test;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -97,6 +100,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_JACK_OID, result);
+        context.recomputeNew();
 
         // WHEN
         assignmentProcessor.processAssignmentsAccounts(context, result);
@@ -111,6 +115,68 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     @Test
+    public void test002ModifyUser() throws Exception {
+        displayTestTile(this, "test002ModifyUser");
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test002ModifyUser");
+
+        SyncContext context = new SyncContext(prismContext);
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, "Tortuga");
+        context.recomputeNew();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        assignmentProcessor.processAssignmentsAccounts(context, result);
+
+        // THEN
+        display("Output context", context);
+        display("outbound processor result", result);
+//		assertSuccess("Outbound processor failed (result)", result);
+
+        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
+        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+
+        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        assertEquals(1, accountContexts.size());
+        AccountSyncContext accContext = accountContexts.iterator().next();
+        assertNull(accContext.getAccountPrimaryDelta());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
+        
+        assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+        
+        assignmentProcessor.processAssignmentsAccountValues(accContext, result);
+        
+        PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple =
+        	accContext.getAccountConstructionDeltaSetTriple();
+        
+        PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
+        PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
+        assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
+        
+        AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
+                
+//        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"), "Pirate Brethren, Inc.");
+//        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+//        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        
+        assertNoZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Tortuga");
+        assertMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean");
+        
+//        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Shipwreck cove");
+        
+    }
+    
+	@Test
     public void test011AddAssignmentAddAccountDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
         displayTestTile(this, "test011AddAssignmentAddAccountDirect");
 
@@ -120,6 +186,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, TestUserSynchronizer.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ);
+        context.recomputeNew();
 
         display("Input context", context);
 
@@ -167,15 +234,16 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test012AddAssignmentAddAccountDirectWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
-        displayTestTile(this, "test012AddAssignmentAddAccountDirectWithAttrs");
+    public void test012AddAssignmentAddAccountDirectAssignmentWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
+        displayTestTile(this, "test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test012AddAssignmentAddAccountDirectWithAttrs");
+        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
 
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, TestUserSynchronizer.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        context.recomputeNew();
 
         display("Input context", context);
 
@@ -205,16 +273,23 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
-        Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
+        PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple =
+        	accContext.getAccountConstructionDeltaSetTriple();
         
-        DeltaSetTriple<ValueConstruction<?>> oTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"o"));
-        Object oValue = getSingleValueFromDeltaSetTripleWithCheck(oTriple, oTriple.getPlusSet());
-        assertEquals("Pirate Brethren, Inc.",oValue);
-
-        DeltaSetTriple<ValueConstruction<?>> lTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"l"));
-        Object lValue = getSingleValueFromDeltaSetTripleWithCheck(lTriple, lTriple.getPlusSet());
-        assertEquals("Caribbean",lValue);
-
+        PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
+        PrismAsserts.assertTripleNoZero(accountConstructionDeltaSetTriple);
+        assertSetSize("plus", accountConstructionDeltaSetTriple.getPlusSet(), 1);
+        
+        AccountConstruction plusAccountConstruction = getPlusAccountConstruction(accountConstructionDeltaSetTriple);
+                
+        assertZeroAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"), "Pirate Brethren, Inc.");
+        assertNoPlusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        assertNoMinusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        
+        assertZeroAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean");
+        assertNoPlusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertNoMinusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        
         
 // TODO: Move to a different test
 //        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
@@ -239,17 +314,18 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 //        TestUtil.assertPropertyValueSetEquals(lValues, "middle of nowhere", "Caribbean");
     }
 
-    @Test
-    public void test021AddAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
-        displayTestTile(this, "test021AddAssignmentModifyAccount");
+	@Test
+    public void test021AddAssignmentModifyAccountAssignment() throws Exception {
+        displayTestTile(this, "test021AddAssignmentModifyAccountAssignment");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test021AddAssignmentModifyAccount");
+        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test021AddAssignmentModifyAccountAssignment");
 
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModificationToContext(context, TestUserSynchronizer.REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        context.recomputeNew();
 
         display("Input context", context);
 
@@ -279,23 +355,35 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
-        Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
+        PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple =
+        	accContext.getAccountConstructionDeltaSetTriple();
         
-        DeltaSetTriple<ValueConstruction<?>> sTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"secretary"));
-        Object sValue = getSingleValueFromDeltaSetTripleWithCheck(sTriple, sTriple.getPlusSet());
-        assertEquals("Jack the Monkey",sValue);
+        PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         
-        DeltaSetTriple<ValueConstruction<?>> oTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"o"));
-        Object oValue = getSingleValueFromDeltaSetTripleWithCheck(oTriple, oTriple.getZeroSet());
-        assertEquals("Pirate Brethren, Inc.",oValue);
+        assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
+        AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
+        
+        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"), "Pirate Brethren, Inc.");
+        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        
+        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean");
+        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        
+        assertSetSize("plus", accountConstructionDeltaSetTriple.getPlusSet(), 1);
+        AccountConstruction plusAccountConstruction = getPlusAccountConstruction(accountConstructionDeltaSetTriple, "Monkey account construction");
+        
+        assertZeroAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"secretary"), "Jack the Monkey");
+        assertNoPlusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"secretary"));
+        assertNoMinusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"secretary"));
+        
+        assertZeroAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean", "World's End");
+        assertNoPlusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertNoMinusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
 
-        DeltaSetTriple<ValueConstruction<?>> lTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"l"));
-        Collection<Object> lValues = getMultiValueFromDeltaSetTriple(lTriple.getZeroSet());
-        TestUtil.assertSetEquals(lValues, "Caribbean", "Shipwreck cove");
-        lValues = getMultiValueFromDeltaSetTriple(lTriple.getPlusSet());
-        TestUtil.assertSetEquals(lValues, "Caribbean", "World's End");
-        assertTrue(lTriple.getMinusSet().isEmpty());
-
+        
+        
 //        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 //        assertNull(accountSecondaryDelta.getObjectToAdd());
 //
@@ -312,9 +400,10 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
     }
 
+		
 
-    @Test
-    public void test031DeleteAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
+	@Test
+    public void test031DeleteAssignmentModifyAccount() throws Exception {
         displayTestTile(this, "test031DeleteAssignmentModifyAccount");
 
         // GIVEN
@@ -324,7 +413,6 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModificationToContext(context, TestUserSynchronizer.REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
-        
         context.recomputeUserNew();
 
         display("Input context", context);
@@ -358,19 +446,29 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
-        Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
         
-        DeltaSetTriple<ValueConstruction<?>> oTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"o"));
-        Object oValue = getSingleValueFromDeltaSetTripleWithCheck(oTriple, oTriple.getZeroSet());
-        assertEquals("Pirate Brethren, Inc.",oValue);
-
-        DeltaSetTriple<ValueConstruction<?>> lTriple = tripleMap.get(new QName(RESOURCE_OPENDJ_NS,"l"));
-        Collection<Object> lValues = getMultiValueFromDeltaSetTriple(lTriple.getZeroSet());
-        TestUtil.assertSetEquals(lValues, "Caribbean");
-        lValues = getMultiValueFromDeltaSetTriple(lTriple.getMinusSet());
-        TestUtil.assertSetEquals(lValues, "Shipwreck cove");
-        assertTrue(lTriple.getPlusSet().isEmpty());
-
+        PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple =
+        	accContext.getAccountConstructionDeltaSetTriple();
+        
+        PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
+        
+        assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 1);
+        AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple);
+        
+        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean");
+        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        
+        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"), "Pirate Brethren, Inc.");
+        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        
+        assertSetSize("minus", accountConstructionDeltaSetTriple.getMinusSet(), 1);
+        AccountConstruction minusAccountConstruction = getMinusAccountConstruction(accountConstructionDeltaSetTriple);
+        
+        assertZeroAttributeValues(minusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Shipwreck cove");
+        assertNoPlusAttributeValues(minusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertNoMinusAttributeValues(minusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
         
 //        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 //        assertNull(accountSecondaryDelta.getObjectToAdd());
@@ -383,39 +481,117 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 //        assertNull(propertyDeltaL.getValuesToAdd());
 
     }
+	
+	private <T> void assertPlusAttributeValues(AccountConstruction accountConstruction, QName attrName, T... expectedValue) {
+        ValueConstruction<? extends PrismPropertyValue<?>> vc = accountConstruction.getAttributeConstruction(attrName);
+        assertNotNull("No value construction for attribute "+attrName+" in plus set", vc);
+        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        Collection<T> actual = getMultiValueFromDeltaSetTriple(triple, triple.getPlusSet());
+        TestUtil.assertSetEquals("Attribute "+attrName+" value in plus set", actual, expectedValue);
+	}
+	
+	private <T> void assertZeroAttributeValues(AccountConstruction accountConstruction, QName attrName, T... expectedValue) {
+        ValueConstruction<? extends PrismPropertyValue<?>> vc = accountConstruction.getAttributeConstruction(attrName);
+        assertNotNull("No value construction for attribute "+attrName+" in zero set", vc);
+        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        Collection<T> actual = getMultiValueFromDeltaSetTriple(triple, triple.getZeroSet());
+        TestUtil.assertSetEquals("Attribute "+attrName+" value in zero set", actual, expectedValue);
+	}
+	
+	private <T> void assertMinusAttributeValues(AccountConstruction accountConstruction, QName attrName, T... expectedValue) {
+        ValueConstruction<? extends PrismPropertyValue<?>> vc = accountConstruction.getAttributeConstruction(attrName);
+        assertNotNull("No value construction for attribute "+attrName+" in minus set", vc);
+        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        Collection<T> actual = getMultiValueFromDeltaSetTriple(triple, triple.getMinusSet());
+        TestUtil.assertSetEquals("Attribute "+attrName+" value in minus set", actual, expectedValue);
+	}
+		
+	private void assertNoPlusAttributeValues(AccountConstruction accountConstruction, QName attrName) {
+        ValueConstruction<? extends PrismPropertyValue<?>> vc = accountConstruction.getAttributeConstruction(attrName);
+        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        PrismAsserts.assertTripleNoPlus(triple);
+	}
 
+	private void assertNoZeroAttributeValues(AccountConstruction accountConstruction, QName attrName) {
+        ValueConstruction<? extends PrismPropertyValue<?>> vc = accountConstruction.getAttributeConstruction(attrName);
+        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        PrismAsserts.assertTripleNoZero(triple);
+	}
 
-    private Object getSingleValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction<?>> triple, 
-    		Collection<PrismPropertyValue<ValueConstruction<?>>> set) {
-    	Collection<?> values = getMultiValueFromDeltaSetTripleWithCheck(triple,set);
+	private void assertNoMinusAttributeValues(AccountConstruction accountConstruction, QName attrName) {
+        ValueConstruction<? extends PrismPropertyValue<?>> vc = accountConstruction.getAttributeConstruction(attrName);
+        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        PrismAsserts.assertTripleNoMinus(triple);
+	}
+
+    private Object getSingleValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple, 
+    		Collection<? extends PrismPropertyValue<?>> set) {
+    	Collection<?> values = getMultiValueFromDeltaSetTriple(triple,set);
     	assertEquals(1,values.size());
     	return values.iterator().next();
     }
     
-    private Collection<?> getMultiValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction<?>> triple, 
-    		Collection<PrismPropertyValue<ValueConstruction<?>>> set) {	
-    	if (triple.getZeroSet() != set) {
-    		assertTrue("Zero set not empty",triple.getZeroSet().isEmpty());
+    private <T> Collection<T> getMultiValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple, 
+    		Collection<? extends PrismPropertyValue<?>> set) {
+    	Collection<T> vals = new ArrayList<T>(set.size());
+    	for (PrismPropertyValue<?> pval: set) {
+    		vals.add((T)pval.getValue());
     	}
-    	if (triple.getMinusSet() != set) {
-    		assertTrue("Minus set not empty",triple.getMinusSet().isEmpty());
-    	}    	
-    	if (triple.getPlusSet() != set) {
-    		assertTrue("Plus set not empty",triple.getPlusSet().isEmpty());
-    	}
-    	return getMultiValueFromDeltaSetTriple(set);
+    	return vals;
     }
+    
+	private void assertSetSize(String setName, Collection<PrismPropertyValue<AccountConstruction>> set,
+			int expectedSize) {
+        assertEquals("Unexpected number of value in "+setName+" set", expectedSize, set.size());
+	}
 
-    private <V> Collection<V> getMultiValueFromDeltaSetTriple(Collection<PrismPropertyValue<ValueConstruction<?>>> set) {	
-    	Collection<V> values = new HashSet<V>();
-        for (PrismPropertyValue<ValueConstruction<?>> value: set) {
-	        ValueConstruction<?> vc = value.getValue();
-	        Collection<PrismPropertyValue<V>> propValues = (Collection<PrismPropertyValue<V>>) vc.getOutput().getValues();
-	        for (PrismPropertyValue<V> pval: propValues) {
-	        	values.add(pval.getValue());
-	        }
-        }
-        return values;
-    }
+	private AccountConstruction getZeroAccountConstruction(
+			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple) {
+		return getZeroAccountConstruction(accountConstructionDeltaSetTriple, null);
+	}
+	
+	private AccountConstruction getZeroAccountConstruction(
+		PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple,
+		String description) {
+		Collection<PrismPropertyValue<AccountConstruction>> set = accountConstructionDeltaSetTriple.getZeroSet();
+		return getAccountConstruction(accountConstructionDeltaSetTriple, description, set, "zero");
+	}
+	
+	private AccountConstruction getPlusAccountConstruction(
+			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple) {
+		return getPlusAccountConstruction(accountConstructionDeltaSetTriple, null);
+	}
+
+	private AccountConstruction getPlusAccountConstruction(
+			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple,
+			String description) {
+		Collection<PrismPropertyValue<AccountConstruction>> set = accountConstructionDeltaSetTriple.getPlusSet();
+		return getAccountConstruction(accountConstructionDeltaSetTriple, description, set, "plus");
+	}
+
+	private AccountConstruction getMinusAccountConstruction(
+			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple) {
+		return getMinusAccountConstruction(accountConstructionDeltaSetTriple, null);
+	}
+
+	private AccountConstruction getMinusAccountConstruction(
+			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple,
+			String description) {
+		Collection<PrismPropertyValue<AccountConstruction>> set = accountConstructionDeltaSetTriple.getMinusSet();
+		return getAccountConstruction(accountConstructionDeltaSetTriple, description, set, "minus");
+	}
+	
+	private AccountConstruction getAccountConstruction(PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple,
+			String description, Collection<PrismPropertyValue<AccountConstruction>> set, String setName) {
+		for (PrismPropertyValue<AccountConstruction> constructionPVal: set) {
+			AccountConstruction accountConstruction = constructionPVal.getValue();
+			if (description == null || description.equals(accountConstruction.getDescription())) {
+				assertNotNull("Null accountConstruction in "+setName+" set (description: '"+description+"')", accountConstruction);
+				return accountConstruction;
+			}
+		}
+		return null;
+	}
+
     
 }

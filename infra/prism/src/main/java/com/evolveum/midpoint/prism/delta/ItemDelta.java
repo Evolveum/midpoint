@@ -155,16 +155,34 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	public Collection<V> getValuesToAdd() {
 		return valuesToAdd;
 	}
+	
+	public void clearValuesToAdd() {
+		valuesToAdd = null;
+	}
 
 	public Collection<V> getValuesToDelete() {
 		return valuesToDelete;
+	}
+	
+	public void clearValuesToDelete() {
+		valuesToDelete = null;
 	}
 
 	public Collection<V> getValuesToReplace() {
 		return valuesToReplace;
 	}
+	
+	public void clearValuesToReplace() {
+		valuesToReplace = null;
+	}
 
 	public void addValuesToAdd(Collection<V> newValues) {
+		for (V val : newValues) {
+			addValueToAdd(val);
+		}
+	}
+	
+	public void addValuesToAdd(V[] newValues) {
 		for (V val : newValues) {
 			addValueToAdd(val);
 		}
@@ -188,6 +206,12 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 	}
 
+	public void addValuesToDelete(V[] newValues) {
+		for (V val : newValues) {
+			addValueToDelete(val);
+		}
+	}
+	
 	public void addValueToDelete(V newValue) {
 		if (valuesToReplace != null) {
 			throw new IllegalStateException("Delta " + this
@@ -201,6 +225,26 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public void setValuesToReplace(Collection<V> newValues) {
+		if (valuesToAdd != null) {
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to add, attempt to set value to replace");
+		}
+		if (valuesToDelete != null) {
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to delete, attempt to set value to replace");
+		}
+		if (valuesToReplace == null) {
+			valuesToReplace = newValueCollection();
+		} else {
+			valuesToReplace.clear();
+		}
+		for (V val : newValues) {
+			valuesToReplace.add(val);
+			val.setParent(this);
+		}
+	}
+
+	public void setValuesToReplace(V[] newValues) {
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
 					+ " already has values to add, attempt to set value to replace");
@@ -324,19 +368,21 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 * respect to provided existing values.
 	 */
 	public void distributeReplace(Collection<V> existingValues) {
+		Collection<V> origValuesToReplace = getValuesToReplace();
+		// We have to clear before we distribute, otherwise there will be replace/add or replace/delete conflict
+		clearValuesToReplace();
 		if (existingValues != null) {
 			for (V existingVal : existingValues) {
-				if (!isIn(getValuesToReplace(), existingVal)) {
+				if (!isIn(origValuesToReplace, existingVal)) {
 					addValueToDelete((V) existingVal.clone());
 				}
 			}
 		}
-		for (V replaceVal : getValuesToReplace()) {
+		for (V replaceVal : origValuesToReplace) {
 			if (!isIn(existingValues, replaceVal) && !isIn(getValuesToAdd(), replaceVal)) {
-				getValuesToAdd().add(replaceVal);
+				addValueToAdd(replaceVal);
 			}
 		}
-		getValuesToReplace().clear();
 	}
 
 	private boolean isIn(Collection<V> values, V val) {
@@ -470,6 +516,51 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			clonedSet.add(clonedVal);
 		}
 		return clonedSet;
+	}
+	
+	public static <T extends PrismValue> PrismValueDeltaSetTriple<T> toDeltaSetTriple(Item<T> item, ItemDelta<T> delta, 
+			boolean oldValuesValid, boolean newValuesValid) {
+		if (item == null && delta == null) {
+			return null;
+		}
+		if (!oldValuesValid && !newValuesValid) {
+			return null;
+		}
+		if (oldValuesValid && !newValuesValid) {
+			// There were values but they no longer are -> everything to minus set
+			PrismValueDeltaSetTriple<T> triple = new PrismValueDeltaSetTriple<T>();
+			triple.getMinusSet().addAll(item.getValues());
+			return triple;
+		}
+		if (delta == null || (!oldValuesValid && newValuesValid)) {
+			PrismValueDeltaSetTriple<T> triple = new PrismValueDeltaSetTriple<T>();
+			triple.getZeroSet().addAll(item.getValues());
+			return triple;
+		}
+		return delta.toDeltaSetTriple(item);
+	}
+	
+	public PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V> item) {
+		PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTriple<V>();
+		if (isReplace()) {
+			triple.getPlusSet().addAll(getValuesToReplace());
+			triple.getMinusSet().addAll(item.getValues());
+			return triple;
+		}
+		if (isAdd()) {
+			triple.getPlusSet().addAll(getValuesToAdd());
+		}
+		if (isDelete()) {
+			triple.getMinusSet().addAll(getValuesToDelete());
+		}
+		if (item.getValues() != null) {
+			for (V itemVal: item.getValues()) {
+				if (!PrismValue.containsRealValue(valuesToDelete, itemVal)) {
+					triple.getZeroSet().add(itemVal);
+				}
+			}
+		}
+		return triple;
 	}
 	
 	public void assertDefinitions(String sourceDescription) throws SchemaException {

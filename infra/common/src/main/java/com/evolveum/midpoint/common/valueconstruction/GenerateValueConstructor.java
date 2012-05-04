@@ -36,6 +36,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -65,8 +67,10 @@ public class GenerateValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(javax.xml.bind.JAXBElement, com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property, java.util.Map, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public <V extends PrismValue> Item<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
-			Item<V> input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
+	public <V extends PrismValue> PrismValueDeltaSetTriple<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
+			Item<V> input, ItemDelta<V> inputDelta, Map<QName, Object> variables, 
+			boolean conditionResultOld, boolean conditionResultNew,
+			String contextDescription, OperationResult result) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 		
 		Object constructorTypeObject = constructorElement.getValue();
@@ -104,7 +108,7 @@ public class GenerateValueConstructor implements ValueConstructor {
 			throw new UnsupportedOperationException("Can only generate values of property, not "+output.getClass());
 		}
 		
-		return output;
+		return ItemDelta.toDeltaSetTriple(output, null, conditionResultOld, conditionResultNew);
 		
 	}
 

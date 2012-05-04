@@ -95,6 +95,10 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
+                  <xsd:element name="title" type="xsd:string" maxOccurs="unbounded"/>
+                  <xsd:element name="ship" type="xsd:string"/>
+                  <xsd:element name="location" type="xsd:string"/>
+                  <xsd:element name="loot" type="xsd:int"/>
                </xsd:sequence>
             </xsd:complexType>
          </xsd:schema>
@@ -120,6 +124,11 @@
 						</code>
 					</expression>
 				</outbound>
+				<inbound>
+					<target>
+						$c:user/c:name
+					</target>
+				</inbound>
 			</attribute>
 			<attribute>
 				<ref>icfs:uid</ref>
@@ -139,6 +148,11 @@
 						</code>
 					</expression>
 				</outbound>
+				<inbound>
+					<target>
+						$c:user/c:fullName
+					</target>
+				</inbound>
 			</attribute>
 			<iteration>
 				<maxIterations>5</maxIterations>

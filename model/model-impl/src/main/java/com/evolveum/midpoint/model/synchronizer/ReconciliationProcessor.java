@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -53,6 +54,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -100,15 +103,18 @@ public class ReconciliationProcessor {
                 
                 LOGGER.trace("Attribute reconciliation processing ACCOUNT {}",accContext.getResourceAccountType());
 
-                Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
-                if (tripleMap.isEmpty()) {
+                Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes = accContext.getSqueezedAttributes();
+                
+//                Map<QName, PrismValueDeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
+                
+                if (squeezedAttributes.isEmpty()) {
                 	continue;
                 }
 
                 RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), prismContext);
                 RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceAccountType().getAccountType());
                 
-                reconcileAccount(accContext, tripleMap, accountDefinition);
+                reconcileAccount(accContext, squeezedAttributes, accountDefinition);
             }
         } catch (RuntimeException e) {
         	subResult.recordFatalError(e);
@@ -122,12 +128,12 @@ public class ReconciliationProcessor {
     }
 
     private void reconcileAccount(AccountSyncContext accCtx,
-            Map<QName, DeltaSetTriple<ValueConstruction<?>>> tripleMap, RefinedAccountDefinition accountDefinition) throws SchemaException {
+            Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes, RefinedAccountDefinition accountDefinition) throws SchemaException {
 
     	PrismObject<AccountShadowType> account = accCtx.getAccountNew();
 
         PrismContainer attributesContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
-        Collection<QName> attributeNames = MiscUtil.union(tripleMap.keySet(),attributesContainer.getValue().getPropertyNames());
+        Collection<QName> attributeNames = MiscUtil.union(squeezedAttributes.keySet(),attributesContainer.getValue().getPropertyNames());
 
         for (QName attrName: attributeNames) {
         	//LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
@@ -136,12 +142,12 @@ public class ReconciliationProcessor {
         		throw new SchemaException("No definition for attribute "+attrName+" in "+accCtx.getResourceAccountType());
         	}
         	
-        	DeltaSetTriple<ValueConstruction<?>> triple = tripleMap.get(attrName);
-        	Collection<PrismPropertyValue<ValueConstruction<?>>> shouldBePValues = null;
-        	if (triple == null) {
-        		shouldBePValues = new HashSet<PrismPropertyValue<ValueConstruction<?>>>();
+        	DeltaSetTriple<PropertyValueWithOrigin> pvwoTriple = squeezedAttributes.get(attrName);
+        	Collection<PropertyValueWithOrigin> shouldBePValues = null;
+        	if (pvwoTriple == null) {
+        		shouldBePValues = new ArrayList<PropertyValueWithOrigin>();
         	} else {
-        		shouldBePValues = triple.getNonNegativeValues();
+        		shouldBePValues = pvwoTriple.getNonNegativeValues();
         	}
         	
         	PrismProperty attribute = attributesContainer.findProperty(attrName);
@@ -155,8 +161,8 @@ public class ReconciliationProcessor {
         	// Too loud :-)
         	//LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
         	
-        	for (PrismPropertyValue<ValueConstruction<?>> shouldBePValue: shouldBePValues) {
-        		ValueConstruction<?> shouldBeVc = shouldBePValue.getValue();
+        	for (PropertyValueWithOrigin shouldBePvwo: shouldBePValues) {
+        		ValueConstruction<?> shouldBeVc = shouldBePvwo.getValueConstruction();
         		if (shouldBeVc == null) {
         			continue;
         		}
@@ -164,19 +170,16 @@ public class ReconciliationProcessor {
         			// "initial" value and the attribute already has a value. Skip it.
         			continue;
         		}
-        		PrismProperty<?> shoudlBeProperty = (PrismProperty<?>) shouldBeVc.getOutput();
-        		for (PrismPropertyValue<?> shouldBePPValue: shoudlBeProperty.getValues()) {
-        			Object shouldBeValue = shouldBePPValue.getValue();
-        			// Make sure this value is in the values
-        			if (!isInValues(shouldBeValue, arePValues)) {
-        				recordDelta(accCtx, attributeDefinition, ChangeType.ADD, shouldBeValue);
-        			}
+        		Object shouldBeRealValue = shouldBePvwo.getPropertyValue().getValue();
+        		if (!isInValues(shouldBeRealValue, arePValues)) {
+        			recordDelta(accCtx, attributeDefinition, ChangeType.ADD, shouldBeRealValue);
         		}
+        		
         	}
         	
         	if (!attributeDefinition.isTolerant()) {
         		for (PrismPropertyValue<Object> isPValue: arePValues) {
-        			if (!isInValueConstructionValues(isPValue.getValue(), shouldBePValues)) {
+        			if (!isInPvwoValues(isPValue.getValue(), shouldBePValues)) {
         				recordDelta(accCtx, attributeDefinition, ChangeType.DELETE, isPValue.getValue());
         			}
         		}
@@ -212,16 +215,13 @@ public class ReconciliationProcessor {
 		return false;
 	}
 	
-	private boolean isInValueConstructionValues(Object value, Collection<PrismPropertyValue<ValueConstruction<?>>> shouldBePValues) {
-		for (PrismPropertyValue<ValueConstruction<?>> shouldBePValue: shouldBePValues) {
-    		ValueConstruction<?> shouldBeVc = shouldBePValue.getValue();
-    		PrismProperty<?> shoudlBeProperty = (PrismProperty<?>) shouldBeVc.getOutput();
-    		for (PrismPropertyValue<?> shouldBePPValue: shoudlBeProperty.getValues()) {
-    			Object shouldBeValue = shouldBePPValue.getValue();
-    			if (shouldBeValue.equals(value)) {
-    				return true;
-    			}
-    		}
+	private boolean isInPvwoValues(Object value, Collection<PropertyValueWithOrigin> shouldBePvwos) {
+		for (PropertyValueWithOrigin shouldBePvwo: shouldBePvwos) {
+			PrismPropertyValue<?> shouldBePPValue = shouldBePvwo.getPropertyValue();
+			Object shouldBeValue = shouldBePPValue.getValue();
+			if (shouldBeValue.equals(value)) {
+				return true;
+			}
     	}
 		return false;
 	}

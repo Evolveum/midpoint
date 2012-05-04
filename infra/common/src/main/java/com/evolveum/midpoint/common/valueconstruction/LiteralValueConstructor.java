@@ -35,6 +35,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -53,8 +55,10 @@ public class LiteralValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
 	 */
 	@Override
-	public <V extends PrismValue> Item<V>  construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
-			Item<V> input, Map<QName, Object> variables, String contextDescription, OperationResult result) 
+	public <V extends PrismValue> PrismValueDeltaSetTriple<V>  construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
+			Item<V> input, ItemDelta<V> inputDelta, Map<QName, Object> variables, 
+			boolean conditionResultOld, boolean conditionResultNew,
+			String contextDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		if (!constructorElement.getName().equals(SchemaConstants.C_VALUE)) {
@@ -88,7 +92,7 @@ public class LiteralValueConstructor implements ValueConstructor {
 			output = (Item<V>) prismContext.getPrismDomProcessor().parseItem(valueSubelements, outputDefinition.getName(), outputDefinition);
 		}
 		
-		return output;
+		return ItemDelta.toDeltaSetTriple(output, null, conditionResultOld, conditionResultNew);
 	}
 
 }

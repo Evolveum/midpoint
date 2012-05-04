@@ -25,17 +25,21 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.synchronizer.AccountConstruction;
+import com.evolveum.midpoint.model.synchronizer.PropertyValueWithOrigin;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -101,17 +105,18 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     private ObjectDelta<AccountShadowType> accountSecondaryDelta;
     
     /**
+     * Delta set triple for accounts. Specifies which accounts should be added, removed or stay as they are.
+     * It tells almost nothing about attributes directly although the information about attributes are inside
+     * each account construction (in a form of ValueConstruction that contains attribute delta triples).
+     * 
      * Intermediary computation result. It is stored to allow re-computing of account constructions during
      * iterative computations.
      */
-    private DeltaSetTriple<AccountConstruction> accountConstructionDeltaSetTriple;
-
-    /**
-     * DeltaSetTriples for change account attributes. It is used as a "temporary" store of attributed values between
-     * evaluation steps (e.g. from assignments through outbound to consolidation). It is also a "memory" of the projected
-     * absolute state of the account (taken from zero and plus sets of the triple).
-     */
-    private Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaSetTripleMap;
+    private PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple;
+    
+    private AccountConstruction outboundAccountConstruction;
+    
+    private Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes;
 
     /**
      * Resource that hosts this account.
@@ -149,7 +154,6 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     		throw new IllegalArgumentException("No prismContext");
     	}
         this.resourceAccountType = resourceAccountType;
-        this.attributeValueDeltaSetTripleMap = new HashMap<QName, DeltaSetTriple<ValueConstruction<?>>>();
         this.isAssigned = false;
         this.prismContext = prismContext;
     }
@@ -217,6 +221,32 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     public ObjectDelta<AccountShadowType> getAccountDelta() throws SchemaException {
         return ObjectDelta.union(accountPrimaryDelta, accountSecondaryDelta);
     }
+    
+	public boolean isAdd() {
+		if (policyDecision == PolicyDecision.ADD) {
+			return true;
+		}
+		if (ObjectDelta.isAdd(accountPrimaryDelta)) {
+			return true;
+		}
+		if (ObjectDelta.isAdd(accountSecondaryDelta)) {
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isDelete() {
+		if (policyDecision == PolicyDecision.DELETE) {
+			return true;
+		}
+		if (ObjectDelta.isDelete(accountPrimaryDelta)) {
+			return true;
+		}
+		if (ObjectDelta.isDelete(accountSecondaryDelta)) {
+			return true;
+		}
+		return false;
+	}
 
     public ResourceType getResource() {
         return resource;
@@ -278,39 +308,32 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		this.iterationToken = iterationToken;
 	}
 
-	public DeltaSetTriple<AccountConstruction> getAccountConstructionDeltaSetTriple() {
+	public PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> getAccountConstructionDeltaSetTriple() {
 		return accountConstructionDeltaSetTriple;
 	}
 
 	public void setAccountConstructionDeltaSetTriple(
-			DeltaSetTriple<AccountConstruction> accountConstructionDeltaSetTriple) {
+			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple) {
 		this.accountConstructionDeltaSetTriple = accountConstructionDeltaSetTriple;
 	}
+	
+	public AccountConstruction getOutboundAccountConstruction() {
+		return outboundAccountConstruction;
+	}
 
-	public Map<QName, DeltaSetTriple<ValueConstruction<?>>> getAttributeValueDeltaSetTripleMap() {
-        return attributeValueDeltaSetTripleMap;
-    }
+	public void setOutboundAccountConstruction(AccountConstruction outboundAccountConstruction) {
+		this.outboundAccountConstruction = outboundAccountConstruction;
+	}
 
-    public void addToAttributeValueDeltaSetTripleMap(
-            Map<QName, DeltaSetTriple<ValueConstruction<?>>> attributeValueDeltaMap) {
+    public Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> getSqueezedAttributes() {
+		return squeezedAttributes;
+	}
 
-        for (Entry<QName, DeltaSetTriple<ValueConstruction<?>>> entry : attributeValueDeltaMap.entrySet()) {
-            QName attrName = entry.getKey();
-            DeltaSetTriple<ValueConstruction<?>> triple = entry.getValue();
-            if (attributeValueDeltaSetTripleMap.containsKey(attrName)) {
-                attributeValueDeltaSetTripleMap.get(attrName).merge(triple);
-            } else {
-                attributeValueDeltaSetTripleMap.put(attrName, triple);
-            }
-        }
+	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes) {
+		this.squeezedAttributes = squeezedAttributes;
+	}
 
-    }
-    
-    public void clearAttributeValueDeltaSetTripleMap() {
-        attributeValueDeltaSetTripleMap.clear();
-    }
-
-    public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
+	public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
         ResourceAccountTypeDefinitionType def = ResourceTypeUtil.getResourceAccountTypeDefinitionType(
         		resource, resourceAccountType.getAccountType());
         return def;
@@ -350,6 +373,11 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		return refinedSchema.getAccountDefinition(getResourceAccountType().getAccountType());
 	}
 
+	public void clearIntermediateResults() {
+		accountConstructionDeltaSetTriple = null;
+		outboundAccountConstruction = null;
+		squeezedAttributes = null;
+	}
     
     public void checkConsistence() {
     	if (resource == null) {
@@ -449,76 +477,30 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         	sb.append(", iteration=").append(iteration);
         }
         sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent);
-        sb.append("ACCOUNT old:");
-        if (accountOld == null) {
-            sb.append(" null");
-        } else {
-            sb.append("\n");
-            sb.append(accountOld.debugDump(indent + 1));
-        }
+        DebugUtil.debugDumpWithLabel(sb, "ACCOUNT old", accountOld, indent);
 
         sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent);
-        sb.append("ACCOUNT new:");
-        if (accountNew == null) {
-            sb.append(" null");
-        } else {
-            sb.append("\n");
-            sb.append(accountNew.debugDump(indent + 1));
-        }
+        DebugUtil.debugDumpWithLabel(sb, "ACCOUNT new", accountNew, indent);
 
         sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent);
-        sb.append("ACCOUNT primary delta:");
-        if (accountPrimaryDelta == null) {
-            sb.append(" null");
-        } else {
-            sb.append("\n");
-            sb.append(accountPrimaryDelta.debugDump(indent + 1));
-        }
+        DebugUtil.debugDumpWithLabel(sb, "ACCOUNT primary delta", accountPrimaryDelta, indent);
 
         sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent);
-        sb.append("ACCOUNT secondary delta:");
-        if (accountSecondaryDelta == null) {
-            sb.append(" null");
-        } else {
-            sb.append("\n");
-            sb.append(accountSecondaryDelta.debugDump(indent + 1));
-        }
+        DebugUtil.debugDumpWithLabel(sb, "ACCOUNT secondary delta", accountSecondaryDelta, indent);
 
         sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent);
-        sb.append("ACCOUNT sync delta:");
-        if (accountSyncDelta == null) {
-            sb.append(" null");
-        } else {
-            sb.append("\n");
-            sb.append(accountSyncDelta.debugDump(indent + 1));
-        }
+        DebugUtil.debugDumpWithLabel(sb, "ACCOUNT sync delta", accountSyncDelta, indent);
 
         if (showTriples) {
         	
         	sb.append("\n");
-	        SchemaDebugUtil.indentDebugDump(sb, indent);
-	        sb.append("ACCOUNT accountConstructionDeltaSetTriple:");
-	        if (accountConstructionDeltaSetTriple == null) {
-	            sb.append(" null");
-	        } else {
-	            sb.append("\n");
-	            sb.append(accountConstructionDeltaSetTriple.debugDump(indent + 1));
-	        }
+        	DebugUtil.debugDumpWithLabel(sb, "ACCOUNT accountConstructionDeltaSetTriple", accountConstructionDeltaSetTriple, indent);
         	
 	        sb.append("\n");
-	        SchemaDebugUtil.indentDebugDump(sb, indent);
-	        sb.append("ACCOUNT attribute DeltaSetTriple map:");
-	        if (attributeValueDeltaSetTripleMap == null) {
-	            sb.append(" null");
-	        } else {
-	            sb.append("\n");
-	            SchemaDebugUtil.debugDumpMapMultiLine(sb, attributeValueDeltaSetTripleMap, indent + 1);
-	        }
+	        DebugUtil.debugDumpWithLabel(sb, "ACCOUNT outbound account construction", outboundAccountConstruction, indent);
+	        
+	        sb.append("\n");
+	        DebugUtil.debugDumpWithLabel(sb, "ACCOUNT squeezed attributes", squeezedAttributes, indent);
         }
 
         return sb.toString();

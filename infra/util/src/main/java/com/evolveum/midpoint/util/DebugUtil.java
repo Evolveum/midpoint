@@ -56,13 +56,13 @@ public class DebugUtil implements ObjectFormatter {
 		if (object instanceof Dumpable) {
 			return ((Dumpable)object).dump();
 		}
-		if (object instanceof Collection) {
-			return debugDump((Collection)object);
-		}
 		if (object instanceof Map) {
 			StringBuilder sb = new StringBuilder();
 			debugDumpMapMultiLine(sb, (Map)object, 0);
 			return sb.toString();
+		}
+		if (object instanceof Collection) {
+			return debugDump((Collection)object);
 		}
 		return object.toString();
 	}
@@ -89,6 +89,52 @@ public class DebugUtil implements ObjectFormatter {
 		sb.append("\n");
 		sb.append(getCollectionClosingSymbol(dumpables));
 		return sb.toString();
+	}
+	
+	public static String debugDump(Object object, int indent) {
+		if (object instanceof DebugDumpable) {
+			return ((DebugDumpable)object).debugDump(indent);
+		} else if (object instanceof Collection) {
+			return debugDump((Collection<?>)object, indent);
+		} else {
+			StringBuilder sb = new StringBuilder();
+			indentDebugDump(sb, indent + 1);
+			sb.append(object.toString());
+			return sb.toString();
+		}
+	}
+	
+	public static void debugDumpWithLabel(StringBuilder sb, String label, DebugDumpable dd, int indent) {
+		indentDebugDump(sb, indent);
+		sb.append(label).append(":");
+		if (dd == null) {
+			sb.append(" null");
+		} else {
+			sb.append("\n");
+			sb.append(dd.debugDump(indent + 1));
+		}
+	}
+	
+	public static <K, V extends DebugDumpable> void debugDumpWithLabel(StringBuilder sb, String label, Map<K, V> map, int indent) {
+		indentDebugDump(sb, indent);
+		sb.append(label).append(":");
+		if (map == null) {
+			sb.append(" null");
+		} else {
+			sb.append("\n");
+			debugDumpMapMultiLine(sb, map, indent + 1);
+		}
+	}
+	
+	public static void debugDumpWithLabelToString(StringBuilder sb, String label, Object object, int indent) {
+		indentDebugDump(sb, indent);
+		sb.append(label).append(":");
+		if (object == null) {
+			sb.append(" null");
+		} else {
+			sb.append(" ");
+			sb.append(object.toString());
+		}
 	}
 
 	public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
@@ -482,6 +528,5 @@ public class DebugUtil implements ObjectFormatter {
 		ObjectFormatter f = new DebugUtil();
 		MidpointAspect.registerFormatter(f);
 	}
-
 
 }

@@ -19,8 +19,8 @@
  */
 package com.evolveum.midpoint.model.synchronizer;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -38,7 +38,7 @@ public class Assignment implements DebugDumpable, Dumpable {
 	private Collection<AccountConstruction> accountConstructions;
 
 	public Assignment() {
-		accountConstructions = new HashSet<AccountConstruction>();
+		accountConstructions = new ArrayList<AccountConstruction>();
 	}
 	
 	public Collection<AccountConstruction> getAccountConstructions() {
@@ -50,7 +50,7 @@ public class Assignment implements DebugDumpable, Dumpable {
 	}
 
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
-		Collection<ResourceType> resources = new HashSet<ResourceType>();
+		Collection<ResourceType> resources = new ArrayList<ResourceType>();
 		for (AccountConstruction acctConstr: accountConstructions) {
 			resources.add(acctConstr.getResource(result));
 		}
