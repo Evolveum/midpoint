@@ -31,16 +31,13 @@ import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.prism.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.prism.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.Editable;
-import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -339,7 +336,8 @@ public class PageLogging extends PageAdminConfiguration {
             }
         });
 
-        CheckBoxColumn check = new CheckBoxColumn(createStringResource("pageLogging.appenders.appending"), "appending");
+        CheckBoxColumn check = new EditableCheckboxColumn(createStringResource("pageLogging.appenders.appending"),
+                "appending");
         check.setEnabled(false);
         columns.add(check);
 

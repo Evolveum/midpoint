@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -37,7 +36,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selectable<T>> {
+public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selectable> {
 
     private String propertyExpression;
     private IModel<Boolean> enabled = new Model<Boolean>(true);
@@ -52,8 +51,8 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
     }
 
     @Override
-    public void populateItem(Item<ICellPopulator<Selectable<T>>> cellItem, String componentId,
-            final IModel<Selectable<T>> rowModel) {
+    public void populateItem(Item<ICellPopulator<Selectable>> cellItem, String componentId,
+            final IModel<Selectable> rowModel) {
         IModel<Boolean> selected = new PropertyModel<Boolean>(rowModel, propertyExpression);
 
         cellItem.add(new CheckBoxPanel(componentId, selected, enabled) {
@@ -74,7 +73,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
         this.enabled.setObject(enabled);
     }
 
-    public void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<Selectable<T>> rowModel) {
+    public void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<Selectable> rowModel) {
 
     }
 

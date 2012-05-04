@@ -26,11 +26,16 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
  */
 public class CheckBoxPanel extends Panel {
+
+    public CheckBoxPanel(String id, IModel<Boolean> model) {
+        this(id, model, new Model<Boolean>(true));
+    }
 
     public CheckBoxPanel(String id, IModel<Boolean> model, final IModel<Boolean> enabled) {
         super(id);
@@ -54,7 +59,7 @@ public class CheckBoxPanel extends Panel {
     }
 
     public AjaxCheckBox getPanelComponent() {
-        return (AjaxCheckBox)get("check");
+        return (AjaxCheckBox) get("check");
     }
 
     public void onUpdate(AjaxRequestTarget target) {
