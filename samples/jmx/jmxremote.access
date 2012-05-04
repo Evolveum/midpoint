@@ -1,0 +1,2 @@
+# Gives 'midpoint' user read-write access to JMX objects.
+midpoint readwrite
