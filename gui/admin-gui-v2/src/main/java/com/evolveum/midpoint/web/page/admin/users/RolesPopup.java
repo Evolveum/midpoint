@@ -36,6 +36,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -49,12 +50,12 @@ public class RolesPopup extends Panel {
 
 	
 	
-	public RolesPopup(String id, final ModalWindow window) {
+	public RolesPopup(String id, final ModalWindow window, PageBase page) {
 		super(id);
-		createRolesTable();
+		createRolesTable(page, window);
 	}
 
-	public void createRolesTable(){
+	public void createRolesTable(PageBase page, final ModalWindow window){
     	Form rolesForm = new Form("rolesForm");
     	add(rolesForm);
     	
@@ -63,7 +64,7 @@ public class RolesPopup extends Panel {
         IColumn column = new CheckBoxHeaderColumn<RoleType>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<RoleType>>(new StringResourceModel("rolesPopup.name", this, null), "name", "value.name") {
+        column = new LinkColumn<SelectableBean<RoleType>>(new StringResourceModel("rolesPopup.name", this, null), "value.name") {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
@@ -76,14 +77,26 @@ public class RolesPopup extends Panel {
         column = new PropertyColumn(new StringResourceModel("rolesPopup.description", this, null), "value.description");
         columns.add(column);
 
-        TablePanel table = new TablePanel<RoleType>("table", new ObjectDataProvider((PageBase)getPage(), RoleType.class), columns);
+        TablePanel table = new TablePanel<RoleType>("table", new ObjectDataProvider(page, RoleType.class), columns);
         table.setOutputMarkupId(true);
         rolesForm.add(table);
+        initButtons(window, rolesForm);
     }
     
     private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         //parameters.add(PageRole.PARAM_ROLE_ID, oid);
         //setResponsePage(PageRole.class, parameters);
+    }
+    
+    private void initButtons(final ModalWindow window, Form form) {
+    	AjaxLinkButton addButton = new AjaxLinkButton("add", new StringResourceModel("rolesPopup.button.add", this, null)) {
+			
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				window.close(target);
+			}
+		};
+    	form.add(addButton);
     }
 }

@@ -24,22 +24,26 @@ package com.evolveum.midpoint.web.page.admin.users;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
-public class ConfirmPopup extends PageAdmin {
+public class ConfirmPopup extends Panel {
 
-	public ConfirmPopup(final ModalWindow window) {
+	
+	
+	public ConfirmPopup(String id, final ModalWindow window) {
+		super(id);
 		init(window);
 	}
-	
+
 	public void init(final ModalWindow window) {
-		add(new Label("confirmText", createStringResource("confirmPopup.confirmDeleteAccounts")));
+		add(new Label("confirmText", new StringResourceModel("confirmPopup.confirmDeleteAccounts", this, null)));
 		
 		
 		AjaxLinkButton yesButton = new AjaxLinkButton("yes",
-                createStringResource("confirmPopup.yes")) {
+				new StringResourceModel("confirmPopup.yes", this, null)) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -50,11 +54,10 @@ public class ConfirmPopup extends PageAdmin {
         add(yesButton);
         
         AjaxLinkButton noButton = new AjaxLinkButton("no",
-                createStringResource("confirmPopup.no")) {
+        		new StringResourceModel("confirmPopup.no", this, null)) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-            	//TODO execute operation
                 window.close(target);
             }
         };

@@ -401,7 +401,7 @@ public class PageUser extends PageAdminUsers {
         add(rolesWindow = new ModalWindow("rolePopup"));
         
         //rolesWindow.setContent(createRolesTable(rolesWindow.getContentId()));
-        rolesWindow.setContent(new RolesPopup(rolesWindow.getContentId(), rolesWindow));
+        rolesWindow.setContent(new RolesPopup(rolesWindow.getContentId(), rolesWindow, PageUser.this));
         rolesWindow.setResizable(false);
         rolesWindow.setTitle("Select Role");
         rolesWindow.setCookieName("Roles popup window");
@@ -441,7 +441,8 @@ public class PageUser extends PageAdminUsers {
         add(confirmPopup = new ModalWindow("confirmPopup"));
 
         confirmPopup.setCookieName("confirm popup window");
-
+        
+        confirmPopup.setContent(new ConfirmPopup(confirmPopup.getContentId() ,confirmPopup));
         confirmPopup.setResizable(false);
         confirmPopup.setInitialWidth(30);
         confirmPopup.setInitialHeight(15);
@@ -449,15 +450,6 @@ public class PageUser extends PageAdminUsers {
         confirmPopup.setHeightUnit("em");
 
         confirmPopup.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-
-        confirmPopup.setPageCreator(new ModalWindow.PageCreator()
-        {
-            public Page createPage()
-            {
-                return new ConfirmPopup(confirmPopup);
-            }
-        });
-
         confirmPopup.setCloseButtonCallback(new ModalWindow.CloseButtonCallback()
         {
             public boolean onCloseButtonClicked(AjaxRequestTarget target)
