@@ -23,7 +23,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-	<div wicket:id="accountsPopup" />
+	<div wicket:id="resourcePopup" />
 	<div wicket:id="rolePopup" />
 	<div wicket:id="confirmPopup" />
     <form wicket:id="mainForm">
@@ -68,6 +68,11 @@
 	            <a wicket:id="addRole" />
 	            <a wicket:id="deleteRole" />
             </div>
+            <div class="operatingFormBlock">
+	            <span class="operatingFormText"><wicket:message key="pageUser.button.label.resources"/></span>
+	            <a wicket:id="addResource" />
+                <a wicket:id="deleteResource" />
+			</div>
         </div>
     </form>
 </wicket:extend>

@@ -82,14 +82,11 @@ public class PageUser extends PageAdminUsers {
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
     private IModel<List<ObjectWrapper>> accountsModel;
-    private ModalWindow accountsPopupWindow;
+    private ModalWindow resourcesPopupWindow;
     private ModalWindow rolesPopupWindow;
     private ModalWindow confirmPopupWindow;
 
     public PageUser() {
-        accountsPopupWindow = createAccountsWindow();
-        rolesPopupWindow = createRolesWindow();
-        confirmPopupWindow = createConfirmWindow();
         userModel = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
@@ -181,6 +178,9 @@ public class PageUser extends PageAdminUsers {
         initAssignments(assignments);
 
         initButtons(mainForm);
+        resourcesPopupWindow = createResourcesWindow();
+        rolesPopupWindow = createRolesWindow();
+        confirmPopupWindow = createConfirmWindow();
     }
 
     private void initAccounts(AccordionItem accounts) {
@@ -227,7 +227,7 @@ public class PageUser extends PageAdminUsers {
         return list;
     }
 
-    private IModel<List> createAssignmentsList() {
+    static IModel<List> createAssignmentsList() {
         return new LoadableModel<List>(false) {
 
             @Override
@@ -299,6 +299,7 @@ public class PageUser extends PageAdminUsers {
 
         initAccountButtons(mainForm);
         initRoleButtons(mainForm);
+        initResourceButtons(mainForm);
     }
 
     private void initRoleButtons(Form mainForm) {
@@ -308,6 +309,7 @@ public class PageUser extends PageAdminUsers {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 rolesPopupWindow.show(target);
+                //target.appendJavaScript("scrollToTop();");
             }
         };
         mainForm.add(addRole);
@@ -329,7 +331,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                accountsPopupWindow.show(target);
+                //accountsPopupWindow.show(target);
             }
         };
         mainForm.add(addAccount);
@@ -364,20 +366,43 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(deleteAccount);
     }
+    
+    private void initResourceButtons(Form mainForm) {
+        AjaxLinkButton addResource = new AjaxLinkButton("addResource",
+                createStringResource("pageUser.button.add")) {
 
-    private ModalWindow createAccountsWindow() {
-        final ModalWindow popupWindow;
-        add(popupWindow = new ModalWindow("accountsPopup"));
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                resourcesPopupWindow.show(target);
+                //target.appendJavaScript("scrollToTop();");
+            }
+        };
+        mainForm.add(addResource);
 
-        popupWindow.setContent(new EmptyPanel(popupWindow.getContentId()));
-        popupWindow.setResizable(false);
-        popupWindow.setTitle("Select Account");
-        popupWindow.setCookieName("Account popup window");
+        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource",
+                createStringResource("pageUser.button.delete")) {
 
-        popupWindow.setInitialWidth(1100);
-        popupWindow.setWidthUnit("px");
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+            	deleteResourcePerformed(target);
+            }
+        };
+        mainForm.add(deleteResource);
+    }
 
-        popupWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+    private ModalWindow createResourcesWindow() {
+        final ModalWindow resourcesWindow;
+        add(resourcesWindow = new ModalWindow("resourcePopup"));
+
+        resourcesWindow.setContent(new ResourcesPopup(PageUser.this.getPageReference(), resourcesWindow.getContentId(),resourcesWindow, PageUser.this));
+        resourcesWindow.setResizable(false);
+        resourcesWindow.setTitle("Select resource");
+        resourcesWindow.setCookieName("Resources popup window");
+
+        resourcesWindow.setInitialWidth(1100);
+        resourcesWindow.setWidthUnit("px");
+
+        resourcesWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
 
             @Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
@@ -385,37 +410,28 @@ public class PageUser extends PageAdminUsers {
             }
         });
 
-        popupWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+        resourcesWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
 
             @Override
             public void onClose(AjaxRequestTarget target) {
-                popupWindow.close(target);
+                resourcesWindow.close(target);
             }
         });
 
-        return popupWindow;
+        return resourcesWindow;
     }
 
     private ModalWindow createRolesWindow() {
         final ModalWindow rolesWindow;
         add(rolesWindow = new ModalWindow("rolePopup"));
         
-        //rolesWindow.setContent(createRolesTable(rolesWindow.getContentId()));
-        rolesWindow.setContent(new RolesPopup(rolesWindow.getContentId(), rolesWindow, PageUser.this));
+        rolesWindow.setContent(new RolesPopup(PageUser.this.getPageReference(), rolesWindow.getContentId(), rolesWindow, PageUser.this));
         rolesWindow.setResizable(false);
         rolesWindow.setTitle("Select Role");
         rolesWindow.setCookieName("Roles popup window");
 
         rolesWindow.setInitialWidth(1100);
         rolesWindow.setWidthUnit("px");
-        
-//        rolesWindow.setPageCreator(new ModalWindow.PageCreator() {
-//			
-//			@Override
-//			public Page createPage() {
-//				return RolesPopup(rolesWindow.getContentId(), rolesWindow);
-//			}
-//		});
 
         rolesWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
 
@@ -552,6 +568,10 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void deleteAccountPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+    
+    private void deleteResourcePerformed(AjaxRequestTarget target) {
         //todo implement
     }
 }

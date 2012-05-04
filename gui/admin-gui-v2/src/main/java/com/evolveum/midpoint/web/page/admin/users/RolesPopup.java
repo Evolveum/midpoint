@@ -50,15 +50,15 @@ public class RolesPopup extends Panel {
 
 	
 	
-	public RolesPopup(String id, final ModalWindow window, PageBase page) {
+	public RolesPopup(final PageReference responsePage ,String id, final ModalWindow window, PageBase page) {
 		super(id);
 		createRolesTable(page, window);
+		//((PageUser)responsePage.getPage()).createAssignmentsList()
 	}
 
 	public void createRolesTable(PageBase page, final ModalWindow window){
     	Form rolesForm = new Form("rolesForm");
     	add(rolesForm);
-    	
         List<IColumn<RoleType>> columns = new ArrayList<IColumn<RoleType>>();
 
         IColumn column = new CheckBoxHeaderColumn<RoleType>();
