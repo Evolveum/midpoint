@@ -96,13 +96,15 @@ public class PageImportFile extends PageAdminConfiguration {
         FileUploadField file = (FileUploadField) get("mainForm:fileInput");
         final FileUpload uploadedFile = file.getFileUpload();
         if (uploadedFile == null) {
-            error("Uploaded file is null.");
+            error(getString("pageImportFile.message.nullFile"));
             target.add(getFeedbackPanel());
+
+            return;
         }
 
         try {
             // Create new file
-            MidPointApplication application=getMidpointApplication();
+            MidPointApplication application = getMidpointApplication();
             WebApplicationConfiguration config = application.getWebApplicationConfiguration();
             File folder = new File(config.getImportFolder());
             if (!folder.exists() || !folder.isDirectory()) {

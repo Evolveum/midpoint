@@ -134,7 +134,7 @@ public class ValueFormPanel extends Panel {
         PrismProperty property = model.getObject().getProperty().getProperty();
         QName valueType = property.getDefinition().getTypeName();
 
-        InputPanel panel = null;
+        InputPanel panel;
         if (new QName(W3C_XML_SCHEMA_NS_URI, "dateTime").equals(valueType)) {
             panel = new DatePanel(id, new PropertyModel<Date>(model, "value.value"));
         } else {

@@ -27,7 +27,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -93,8 +92,9 @@ public class PageImportXml extends PageAdminConfiguration {
     private void savePerformed(AjaxRequestTarget target) {
         String xml = xmlEditorModel.getObject();
         if (StringUtils.isEmpty(xml)) {
-            error("Can't save empty xml."); //todo i18n
+            error(getString("pageImportXml.message.emptyXml"));
             target.add(getFeedbackPanel());
+
             return;
         }
 

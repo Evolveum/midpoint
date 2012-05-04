@@ -95,7 +95,7 @@ public class PageLogging extends PageAdminConfiguration {
 
             result.recordSuccess();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't load logging configuration.", ex); //todo i18n
+            result.recordFatalError("Couldn't load logging configuration.", ex);
         }
 
         if (!result.isSuccess()) {
@@ -638,7 +638,7 @@ public class PageLogging extends PageAdminConfiguration {
             result.recordSuccess();
         } catch (Exception ex) {
             result.recomputeStatus();
-            result.recordFatalError("Couldn't save logging configuration.", ex); //todo i18n
+            result.recordFatalError("Couldn't save logging configuration.", ex);
         }
 
         showResult(result);

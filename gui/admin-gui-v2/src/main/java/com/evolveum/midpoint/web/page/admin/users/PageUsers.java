@@ -24,7 +24,6 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -58,7 +57,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,14 +82,14 @@ public class PageUsers extends PageAdminUsers {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        OptionPanel option = new OptionPanel("option", createStringResource("pageUserList.optionsTitle"));
+        OptionPanel option = new OptionPanel("option", createStringResource("pageUsers.optionsTitle"));
         mainForm.add(option);
 
-        OptionItem item = new OptionItem("search", createStringResource("pageUserList.search"));
+        OptionItem item = new OptionItem("search", createStringResource("pageUsers.search"));
         option.getBodyContainer().add(item);
         initSearch(item);
 
-        item = new OptionItem("action", createStringResource("pageUserList.action"));
+        item = new OptionItem("action", createStringResource("pageUsers.action"));
         option.getBodyContainer().add(item);
         initAction(item);
 
@@ -166,11 +164,11 @@ public class PageUsers extends PageAdminUsers {
         item.add(familyNameCheck);
 
         AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
-                createStringResource("pageUserList.searchButton")) {
+                createStringResource("pageUsers.searchButton")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                //To change body of implemented methods use File | Settings | File Templates.
+                target.add(getFeedbackPanel());
             }
 
             @Override
@@ -227,6 +225,7 @@ public class PageUsers extends PageAdminUsers {
 
     private void searchPerformed(AjaxRequestTarget target) {
         QueryType query = createQuery();
+        target.add(getFeedbackPanel());
 
         TablePanel panel = getTable();
         DataTable table = panel.getDataTable();
@@ -258,14 +257,12 @@ public class PageUsers extends PageAdminUsers {
                 elements.add(QueryUtil.createEqualFilter(document, null, UserType.F_GIVEN_NAME, dto.getSearchText()));
             }
 
-
             if (!elements.isEmpty()) {
                 query = new QueryType();
                 query.setFilter(QueryUtil.createOrFilter(document, elements.toArray(new Element[elements.size()])));
             }
         } catch (Exception ex) {
-            //todo error handling
-            ex.printStackTrace();
+            error(getString("pageUsers.message.queryError") + ex.getMessage());
         }
 
         return query;
