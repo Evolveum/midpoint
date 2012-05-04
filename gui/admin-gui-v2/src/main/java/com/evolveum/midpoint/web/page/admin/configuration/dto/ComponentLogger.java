@@ -64,6 +64,7 @@ public class ComponentLogger extends LoggerConfiguration {
 		SubSystemLoggerConfigurationType type = new SubSystemLoggerConfigurationType();
 		type.setComponent(component);
 		type.setLevel(getLevel());
+        type.getAppender().addAll(getAppenders());
 		return type;
 	}
 }

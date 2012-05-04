@@ -484,8 +484,7 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void addLoggerPerformed(AjaxRequestTarget target) {
-        Iterator<LoggerConfiguration> iterator = model.getObject().getLoggers().iterator();
-        //getAppendersTable().add(new TextPanel<T>(id, model));
+        //todo implement
     }
 
     private void deleteAppenderPerformed(AjaxRequestTarget target) {
@@ -521,7 +520,9 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void appenderEditPerformed(AjaxRequestTarget target, IModel<AppenderConfiguration> model) {
-        //todo implement
+        AppenderConfiguration config = model.getObject();
+        config.setEditing(true);
+        target.add(getAppendersTable());
     }
 
     private void savePerformed(AjaxRequestTarget target) {
@@ -532,7 +533,8 @@ public class PageLogging extends PageAdminConfiguration {
             LoggingDto dto = model.getObject();
 
             PrismObject<SystemConfigurationType> newObject = dto.getOldConfiguration().clone();
-            newObject.asObjectable().setLogging(createConfiguration());
+            LoggingConfigurationType config = createConfiguration();
+            newObject.asObjectable().setLogging(config);
 
             ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(dto.getOldConfiguration(), newObject);
             getModelService().modifyObject(SystemConfigurationType.class, oid,

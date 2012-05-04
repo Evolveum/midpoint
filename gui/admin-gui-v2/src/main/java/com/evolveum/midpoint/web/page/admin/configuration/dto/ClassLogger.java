@@ -56,6 +56,7 @@ public class ClassLogger extends LoggerConfiguration {
 		ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
 		type.setPackage(_package);
 		type.setLevel(getLevel());
+        type.getAppender().addAll(getAppenders());
 		return type;
 	}
 }
