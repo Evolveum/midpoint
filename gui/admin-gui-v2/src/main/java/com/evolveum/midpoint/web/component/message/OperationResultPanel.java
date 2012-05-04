@@ -47,15 +47,13 @@ public class OperationResultPanel extends Panel {
     }
 
     private void initLayout(final IModel<OpResult> model) {
-//        WebMarkupContainer messageLi = new WebMarkupContainer("messageLi");
-//        add(messageLi);
-        Label operation = new Label("operation", new PropertyModel<Object>(model, "operation"));
+        Label operation = new Label("operation", new PropertyModel<Object>(model, "operation"));//todo localize
         operation.setOutputMarkupId(true);
         WebMarkupContainer arrow = new WebMarkupContainer("arrow");
         arrow.setMarkupId(operation.getMarkupId() + "_arrow");
         add(arrow);
 
-        add(operation);//todo localize
+        add(operation);
 
         WebMarkupContainer operationContent = new WebMarkupContainer("operationContent");
         operationContent.setMarkupId(operation.getMarkupId() + "_content");
@@ -74,6 +72,21 @@ public class OperationResultPanel extends Panel {
         };
         operationContent.add(params);
 
+        initExceptionLayout(operationContent, model);
+
+        ListView<OpResult> subresults = new ListView<OpResult>("subresults",
+                createSubresultsModel(model)) {
+
+            @Override
+            protected void populateItem(ListItem<OpResult> item) {
+                item.add(new AttributeAppender("class", createMessageLiClass(model), " "));
+                item.add(new OperationResultPanel("subresult", item.getModel()));
+            }
+        };
+        add(subresults);
+    }
+
+    private void initExceptionLayout(WebMarkupContainer operationContent, final IModel<OpResult> model) {
         WebMarkupContainer exception = new WebMarkupContainer("exception") {
 
             @Override
@@ -95,17 +108,6 @@ public class OperationResultPanel extends Panel {
         exception.add(errorStackContent);
 
         errorStackContent.add(new Label("exceptionStack", new PropertyModel<String>(model, "exceptionsStackTrace")));
-
-        ListView<OpResult> subresults = new ListView<OpResult>("subresults",
-                createSubresultsModel(model)) {
-
-            @Override
-            protected void populateItem(ListItem<OpResult> item) {
-            	item.add(new AttributeAppender("class", createMessageLiClass(model), " "));
-                item.add(new OperationResultPanel("subresult", item.getModel()));
-            }
-        };
-        add(subresults);
     }
 
     static IModel<String> createMessageLiClass(final IModel<OpResult> model) {

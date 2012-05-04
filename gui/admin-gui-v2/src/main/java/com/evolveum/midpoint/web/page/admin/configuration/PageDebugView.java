@@ -3,7 +3,6 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,6 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class PageDebugView extends PageAdminConfiguration {
 
+    private static final String DOT_CLASS = PageDebugView.class.getName() + ".";
+    private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+    private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
+
     @Autowired
     private Task task;
 
@@ -50,31 +53,35 @@ public class PageDebugView extends PageAdminConfiguration {
     private ObjectViewDto loadObject() {
         StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
         if (objectOid == null || StringUtils.isEmpty(objectOid.toString())) {
-            error("some errorrrororor");//todo change
+            error(getString("pageDebugView.message.oidNotDefined"));
             return new ObjectViewDto();
         }
 
+        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT);
         ObjectViewDto dto = null;
         try {
             MidPointApplication application = PageDebugView.this.getMidpointApplication();
             ModelService model = application.getModel();
 
-            OperationResult result = new OperationResult("aaaaaaaaaaaaaaaa");
-            // TODO: task
+            Task task = getTaskManager().createTaskInstance(OPERATION_LOAD_OBJECT);
             PrismObject<ObjectType> object = model.getObject(ObjectType.class, objectOid.toString(),
-                    null, null, result);
+                    null, task, result);
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
 
-
             dto = new ObjectViewDto(object.getOid(), DtoUtils.getName(object), object, xml);
+
+            result.recordSuccess();
         } catch (Exception ex) {
-            ex.printStackTrace();
-            //todo implement and fix result
+            result.recordFatalError("Couldn't load object.", ex);
         }
 
         if (dto == null) {
             dto = new ObjectViewDto();
+        }
+
+        if (!result.isSuccess()) {
+            showResult(result);
         }
 
         return dto;
@@ -136,11 +143,12 @@ public class PageDebugView extends PageAdminConfiguration {
     public void savePerformed(AjaxRequestTarget target) {
         ObjectViewDto dto = model.getObject();
         if (StringUtils.isEmpty(dto.getXml())) {
-            error("some errorrrororor");//todo change
+            error(getString("pageDebugView.message.cantSaveEmpty"));
+            target.add(getFeedbackPanel());
             return;
         }
 
-        OperationResult result = new OperationResult("Save debug view");
+        OperationResult result = new OperationResult(OPERATION_SAVE_OBJECT);
         try {
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
 
@@ -149,10 +157,16 @@ public class PageDebugView extends PageAdminConfiguration {
             ObjectDelta<ObjectType> delta = oldObject.diff(newObject);
 
             getModelService().modifyObject(ObjectType.class, delta.getOid(), delta.getModifications(), task, result);
-
-            setResponsePage(PageDebugList.class);
+            result.recordSuccess();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            result.recordFatalError("Couldn't save object.", ex);
+        }
+
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else {
+            setResponsePage(PageDebugList.class);
         }
     }
 }

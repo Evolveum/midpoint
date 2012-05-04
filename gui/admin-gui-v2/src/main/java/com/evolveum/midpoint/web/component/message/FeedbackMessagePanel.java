@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -69,11 +68,9 @@ public class FeedbackMessagePanel extends Panel {
         label.setOutputMarkupId(true);
         add(label);
 
-        WebMarkupContainer content;
+        WebMarkupContainer content = new WebMarkupContainer("content");
         if (message.getObject().getMessage() instanceof OpResult) {
-            content = new WebMarkupContainer("content");
-            ListView<OpResult> subresults = new ListView<OpResult>("subresults",
-                    createSubresultsModel(message)) {
+            ListView<OpResult> subresults = new ListView<OpResult>("subresults", createSubresultsModel(message)) {
 
                 @Override
                 protected void populateItem(ListItem<OpResult> item) {
@@ -91,20 +88,8 @@ public class FeedbackMessagePanel extends Panel {
                 }
             }, " "));
         } else {
-            content = new EmptyPanel("content");
+            content.setVisible(false);
         }
-        content.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                FeedbackMessage msg = message.getObject();
-                if (msg.getMessage() instanceof OpResult) {
-                    return true;
-                }
-
-                return false;
-            }
-        });
         content.setMarkupId(label.getMarkupId() + "_content");
         add(content);
 
@@ -121,6 +106,10 @@ public class FeedbackMessagePanel extends Panel {
         };
         content.add(params);
 
+        initExceptionLayout(content, message);
+    }
+
+    private void initExceptionLayout(WebMarkupContainer content, final IModel<FeedbackMessage> message) {
         WebMarkupContainer exception = new WebMarkupContainer("exception") {
 
             @Override
@@ -222,11 +211,10 @@ public class FeedbackMessagePanel extends Panel {
                 return new StringResourceModel(resourceKey, this, null).getString();
             }
 
-            return result.getMessage();
+            return result.getMessage(); //todo localize
         }
 
         return message.getMessage().toString();
-
     }
 
     private String getLabelCss(final IModel<FeedbackMessage> model) {
