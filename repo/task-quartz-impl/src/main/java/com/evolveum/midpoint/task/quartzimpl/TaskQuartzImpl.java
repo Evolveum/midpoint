@@ -30,6 +30,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -53,16 +54,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UriStack;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * Implementation of a Task.
@@ -198,96 +189,23 @@ public class TaskQuartzImpl implements Task {
 				if (!pendingModifications.isEmpty()) {
 
 					repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
-					synchronizeWithQuartzIfNeeded(pendingModifications);
+					synchronizeWithQuartzIfNeeded(pendingModifications, parentResult);
 					pendingModifications.clear();
 				}
 			}
 		}
 	}
 
-    public void synchronizeWithQuartz() {
+    public void synchronizeWithQuartz(OperationResult parentResult) {
         try {
-            taskManager.synchronizeTaskWithQuartz(this);
+            taskManager.synchronizeTaskWithQuartz(this, parentResult);
         } catch (SchedulerException e) {
-            throw new SystemException("Cannot create or update quartz job and/or trigger for task " + this, e);
+            String message = "Cannot create or update quartz job and/or trigger for task " + this;
+            parentResult.recordPartialError(message, e);
+            LoggingUtils.logException(LOGGER, message, e);
         }
     }
 	
-//	public void addOrReplaceQuartzTask() {
-//
-//        LOGGER.trace("addOrReplaceQuartzTask for {}", this);
-//
-//		JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(this);
-//		JobDetail job = TaskQuartzImplUtil.createJobDetailForTask(this);
-//		TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(this);
-//		Trigger trigger;
-//		try {
-//			trigger = TaskQuartzImplUtil.createTriggerForTask(this);
-//		} catch (ParseException e1) {
-//			LoggingUtils.logException(LOGGER, "Cannot add/replace a task {} because of a cron expression parsing exception", e1, this);
-//			throw new SystemException("Cannot add/replace a task because of a cron expression parsing exception", e1);
-//		}
-//
-//		Scheduler quartzScheduler = taskManager.getQuartzScheduler();
-//
-//		try {
-//
-//			/*
-//			 * TODO: this has to be rethought again -- how to map execution states (and their changes) to quartz task/triggers
-//			 *
-//			 * Currently, task in any state maps to a quartz job
-//			 * However, trigger is created only if task is RUNNABLE.
-//			 *
-//			 * But, for a task suspended through API, its trigger is not deleted, but paused.
-//			 * So a suspended task can have no trigger (if the task was created as suspended), or paused one (if it was suspended after creation).
-//			 */
-//
-//			// if the job does not exist, create it (and schedule trigger at the same time, if there is any)
-//			if (!quartzScheduler.checkExists(jobKey)) {
-//
-//                LOGGER.trace(" - Quartz job does not exist for {}", this);
-//
-//				if (trigger != null) {
-//					LOGGER.trace(" - Adding quartz job and trigger for task " + this);
-//					quartzScheduler.scheduleJob(job, trigger);
-//				} else {
-//					LOGGER.trace(" - Adding quartz job (without a trigger) for task " + this);
-//					quartzScheduler.addJob(job, false);
-//				}
-//
-//			} else {  // job exists
-//
-//                LOGGER.trace(" - Quartz job exists for {}", this);
-//
-//				if (quartzScheduler.checkExists(triggerKey)) {
-//
-//                    LOGGER.trace(" - Quartz trigger exists for {}", this);
-//
-//					if (trigger == null) {
-//						LOGGER.trace(" - Removing existing quartz trigger for task " + this);
-//						quartzScheduler.unscheduleJob(triggerKey);
-//					} else {
-//						LOGGER.trace(" - Replacing quartz trigger for task " + this);
-//						quartzScheduler.rescheduleJob(triggerKey, trigger);
-//					}
-//
-//				} else {
-//
-//                    LOGGER.trace(" - Quartz trigger does not exist for {}", this);
-//
-//					if (trigger != null) {
-//						LOGGER.trace(" - Adding quartz trigger for task " + this);
-//						quartzScheduler.scheduleJob(trigger);
-//					}
-//				}
-//			}
-//
-//
-//		} catch (SchedulerException e) {
-//			throw new SystemException("Cannot create or update quartz job and/or trigger for task " + this, e);
-//		}
-//	}
-
 	private static Set<QName> quartzRelatedProperties = new HashSet<QName>();
 	static {
 		quartzRelatedProperties.add(TaskType.F_BINDING);
@@ -295,10 +213,10 @@ public class TaskQuartzImpl implements Task {
 		quartzRelatedProperties.add(TaskType.F_SCHEDULE);
 	}
 	
-	private void synchronizeWithQuartzIfNeeded(Collection<PropertyDelta<?>> deltas) {
+	private void synchronizeWithQuartzIfNeeded(Collection<PropertyDelta<?>> deltas, OperationResult parentResult) {
 		for (PropertyDelta<?> delta : deltas) {
 			if (delta.getParentPath().isEmpty() && quartzRelatedProperties.contains(delta.getName())) {
-				synchronizeWithQuartz();
+				synchronizeWithQuartz(parentResult);
 				return;
 			}
 		}
@@ -309,7 +227,7 @@ public class TaskQuartzImpl implements Task {
 			Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>(1);
 			deltas.add(delta);
 			repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
-			synchronizeWithQuartzIfNeeded(deltas);
+			synchronizeWithQuartzIfNeeded(deltas, parentResult);
 		}
 	}
 
@@ -362,6 +280,8 @@ public class TaskQuartzImpl implements Task {
 
 	/*
 	 * Result
+	 *
+	 * setters set also result status type!
 	 */
 	
 	@Override
@@ -372,15 +292,18 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public void setResult(OperationResult result) {
 		processModificationBatched(setResultAndPrepareDelta(result));
+        setResultStatusType(result != null ? result.getStatus().createStatusType() : null);
 	}
 
 	@Override
 	public void setResultImmediate(OperationResult result, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		processModificationNow(setResultAndPrepareDelta(result), parentResult);
+        setResultStatusTypeImmediate(result != null ? result.getStatus().createStatusType() : null, parentResult);
 	}
 	
 	public void setResultTransient(OperationResult result) {
 		this.result = result;
+        setResultStatusTypeTransient(result != null ? result.getStatus().createStatusType() : null);
 	}
 	
 	private PropertyDelta<?> setResultAndPrepareDelta(OperationResult result) {
@@ -394,10 +317,42 @@ public class TaskQuartzImpl implements Task {
 			return null;
 		}
 	}
-	
-	/*
-	 * Handler URI
-	 */
+
+    /*
+     *  Result status
+     */
+
+    @Override
+    public OperationResultStatusType getResultStatus() {
+        return taskPrism.asObjectable().getResultStatus();
+    }
+
+    public void setResultStatusType(OperationResultStatusType value) {
+        processModificationBatched(setResultStatusTypeAndPrepareDelta(value));
+    }
+
+    public void setResultStatusTypeImmediate(OperationResultStatusType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        processModificationNow(setResultStatusTypeAndPrepareDelta(value), parentResult);
+    }
+
+    public void setResultStatusTypeTransient(OperationResultStatusType value) {
+        taskPrism.asObjectable().setResultStatus(value);
+    }
+
+    private PropertyDelta<?> setResultStatusTypeAndPrepareDelta(OperationResultStatusType value) {
+        setResultStatusTypeTransient(value);
+        if (isPersistent()) {
+            PropertyDelta<?> d = PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
+                    TaskType.F_RESULT_STATUS, value);
+            return d;
+        } else {
+            return null;
+        }
+    }
+
+    /*
+      * Handler URI
+      */
 	
 	
 	@Override
@@ -983,7 +938,7 @@ public class TaskQuartzImpl implements Task {
 	public void setExtensionPropertyTransient(PrismProperty<?> property) throws SchemaException {
 		setExtensionPropertyAndPrepareDelta(property);
 	}
-	
+
 	private PropertyDelta<?> setExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
 		
         PropertyDelta delta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
@@ -997,8 +952,36 @@ public class TaskQuartzImpl implements Task {
 	}
 
 
-	
-	/*
+    /*
+     * Node
+     */
+
+    @Override
+    public String getNode() {
+        return taskPrism.asObjectable().getNode();
+    }
+
+    public void setNode(String value) {
+        processModificationBatched(setNodeAndPrepareDelta(value));
+    }
+
+    public void setNodeImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        processModificationNow(setNodeAndPrepareDelta(value), parentResult);
+    }
+
+    public void setNodeTransient(String value) {
+        taskPrism.asObjectable().setNode(value);
+    }
+
+    private PropertyDelta<?> setNodeAndPrepareDelta(String value) {
+        setNodeTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_NODE, value) : null;
+    }
+
+
+
+    /*
 	 * Last run start timestamp
 	 */
 	@Override
@@ -1066,8 +1049,8 @@ public class TaskQuartzImpl implements Task {
 	 */
 
 	@Override
-	public Long getNextRunStartTime() {
-		return taskManager.getNextRunStartTime(getOid());
+	public Long getNextRunStartTime(OperationResult parentResult) {
+		return taskManager.getNextRunStartTime(getOid(), parentResult);
 	}
 	
 	@Override
@@ -1088,25 +1071,53 @@ public class TaskQuartzImpl implements Task {
 		return sb.toString();
 	}
 
-	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    /*
+     *  Handler and category
+     */
 
-		setLastRunStartTimestamp(System.currentTimeMillis());
-		savePendingModifications(parentResult);
-	}
+    public TaskHandler getHandler() {
+        String handlerUri = taskPrism.asObjectable().getHandlerUri();
+        return handlerUri != null ? taskManager.getHandler(handlerUri) : null;
+    }
 
-	public void recordRunFinish(TaskRunResult runResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    public void setCategory(String value) {
+        processModificationBatched(setCategoryAndPrepareDelta(value));
+    }
 
-		setProgress(runResult.getProgress()); 
-		setLastRunFinishTimestamp(System.currentTimeMillis());
-		setResult(runResult.getOperationResult());
-		
-		savePendingModifications(parentResult);
-		
-		// TODO: Also save the OpResult (?)
-	}
-	
-	
-	@Override
+    public void setCategoryImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        processModificationNow(setCategoryAndPrepareDelta(value), result);
+    }
+
+    public void setCategoryTransient(String value) {
+        try {
+            taskPrism.setPropertyRealValue(TaskType.F_CATEGORY, value);
+        } catch (SchemaException e) {
+            // This should not happen
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
+    }
+
+    private PropertyDelta<?> setCategoryAndPrepareDelta(String value) {
+        setCategoryTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_CATEGORY, value) : null;
+    }
+
+    @Override
+    public String getCategory() {
+        return taskPrism.asObjectable().getCategory();
+    }
+
+    public String getCategoryFromHandler() {
+        TaskHandler h = getHandler();
+        if (h != null) {
+            return h.getCategoryName(this);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
 	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(Task.class.getName()+".refresh");
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
@@ -1202,20 +1213,6 @@ public class TaskQuartzImpl implements Task {
 		return taskManager.getPrismContext();
 	}
 
-    public TaskHandler getHandler() {
-        String handlerUri = taskPrism.asObjectable().getHandlerUri();
-        return handlerUri != null ? taskManager.getHandler(handlerUri) : null;
-    }
-
-    @Override
-    public String getCategory() {
-        TaskHandler h = getHandler();
-        if (h != null) {
-            return h.getCategoryName(this);
-        } else {
-            return null;
-        }
-    }
 
     @Override
     public Node currentlyExecutesAt() {
@@ -1226,8 +1223,4 @@ public class TaskQuartzImpl implements Task {
         currentlyExecutesAt = node;
     }
 
-    @Override
-    public String getNode() {
-        return taskPrism.asObjectable().getNode();
-    }
 }

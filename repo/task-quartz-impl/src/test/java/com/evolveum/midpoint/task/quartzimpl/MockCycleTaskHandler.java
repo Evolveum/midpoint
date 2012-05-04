@@ -20,9 +20,9 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -39,9 +39,9 @@ public class MockCycleTaskHandler implements TaskHandler {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockCycleTaskHandler.class);
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.TaskHandler#run(com.evolveum.midpoint.task.api.Task)
-	 */
+    /* (non-Javadoc)
+      * @see com.evolveum.midpoint.task.api.TaskHandler#run(com.evolveum.midpoint.task.api.Task)
+      */
 	@Override
 	public TaskRunResult run(Task task) {
 		
@@ -83,7 +83,7 @@ public class MockCycleTaskHandler implements TaskHandler {
 
     @Override
     public String getCategoryName(Task task) {
-        return "Mock";
+        return TaskCategory.MOCK;
     }
 
     @Override

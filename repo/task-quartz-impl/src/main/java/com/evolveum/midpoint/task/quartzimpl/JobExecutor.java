@@ -314,8 +314,14 @@ mainCycle:
 	private void recordCycleRunStart(OperationResult result) {
 		LOGGER.debug("Task cycle run STARTING "+task);
         try {
-        	task.recordRunStart(result);
-		} catch (Exception e) {	// TODO: implement correctly after clarification
+            task.setLastRunStartTimestamp(System.currentTimeMillis());
+            if (task.getCategory() == null) {
+                task.setCategory(task.getCategoryFromHandler());
+            }
+            task.setNode(taskManagerImpl.getNodeId());
+            task.savePendingModifications(result);
+
+        } catch (Exception e) {	// TODO: implement correctly after clarification
 			LoggingUtils.logException(LOGGER, "Cannot record run start for task {}", e, task);
 		}
 	}
@@ -326,7 +332,12 @@ mainCycle:
 	private boolean recordCycleRunFinish(TaskRunResult runResult, OperationResult result) {
 		LOGGER.debug("Task cycle run FINISHED " + task);
 		try {
-			task.recordRunFinish(runResult, result);
+            task.setProgress(runResult.getProgress());
+            task.setLastRunFinishTimestamp(System.currentTimeMillis());
+            task.setResult(runResult.getOperationResult());
+            task.setNode(null);
+            task.savePendingModifications(result);
+
 			return true;
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Cannot record run finish for task {}", ex, task);

@@ -22,17 +22,13 @@ package com.evolveum.midpoint.model.sync;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.task.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -57,8 +53,8 @@ import java.util.List;
 public class LiveSyncTaskHandler implements TaskHandler {
 	
 	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/sync/handler-1";
-	
-	@Autowired(required=true)
+
+    @Autowired(required=true)
 	private TaskManager taskManager;
 	
 	@Autowired(required=true)
@@ -165,7 +161,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
     @Override
     public String getCategoryName(Task task) {
-        return "Live synchronization";
+        return TaskCategory.LIVE_SYNCHRONIZATION;
     }
 
     @Override

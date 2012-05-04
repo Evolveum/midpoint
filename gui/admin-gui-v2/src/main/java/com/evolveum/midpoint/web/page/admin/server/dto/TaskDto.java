@@ -37,7 +37,8 @@ public class TaskDto extends Selectable {
     private String oid;
     private String name;
     private String category;
-    private TaskExecutionStatus execution;
+    private TaskExecutionStatus rawExecutionStatus;
+    private TaskDtoExecutionStatus execution;
     private String executingAt;
     private OperationResultStatus status;
 
@@ -60,26 +61,15 @@ public class TaskDto extends Selectable {
         oid = task.getOid();
         name = task.getName();
         category = task.getCategory();
-//        objectRef = ;
-        execution = task.getExecutionStatus();       //todo is this alright?
+        rawExecutionStatus = task.getExecutionStatus();
+        execution = TaskDtoExecutionStatus.fromTaskExecutionStatus(rawExecutionStatus, task.currentlyExecutesAt() != null);
 //        scheduledToStartAgain=task.;
         lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
         lastRunStartTimestampLong = task.getLastRunStartTimestamp();
-        nextRunStartTimeLong = task.getNextRunStartTime();
+        nextRunStartTimeLong = task.getNextRunStartTime(new OperationResult("dummy"));
 
-        if (clusterStatusInfo == null) {         // when listing nodes currently executing at this node
-            this.executingAt = taskManager.getNodeId();
-//            this.execution = TaskItemExecutionStatus.RUNNING;
-        } else {
-            Node node = clusterStatusInfo.findNodeInfoForTask(this.getOid());
-            if (node != null) {
-                this.executingAt = node.getNodeType().asObjectable().getNodeIdentifier();
-//                this.executionStatus = TaskItemExecutionStatus.RUNNING;
-            } else {
-                this.executingAt = null;
-//                this.executionStatus = TaskItemExecutionStatus.fromTask(task.getExecutionStatus());
-            }
-        }
+        Node n = task.currentlyExecutesAt();
+        this.executingAt = n != null ? n.getNodeIdentifier() : null;
 
         this.objectRef = task.getObjectRef();
 
@@ -106,11 +96,12 @@ public class TaskDto extends Selectable {
         return null;
     }
 
-    public TaskExecutionStatus getExecution() {
+    public TaskDtoExecutionStatus getExecution() {
         return execution;
     }
 
     public String getExecutingAt() {
+        //return executingAt != null ? executingAt.getNodeIdentifier() : null;
         return executingAt;
     }
 
@@ -138,13 +129,11 @@ public class TaskDto extends Selectable {
         long current = System.currentTimeMillis();
         if (!TaskRecurrence.RECURRING.equals(recurrence)) {
             return null;
-        } else if (getExecution() != TaskExecutionStatus.RUNNABLE) {
+        } else if (getExecution() != TaskDtoExecutionStatus.RUNNABLE) {
             return null;
         } else if (TaskBinding.TIGHT.equals(binding)) {
             return -1L;
         }
-//    	else if (taskRunNotFinished()) {
-//    		return "to be computed";
         else if (nextRunStartTimeLong != null && nextRunStartTimeLong > 0) {
             if (nextRunStartTimeLong > current + 1000) {
                 return nextRunStartTimeLong - System.currentTimeMillis();

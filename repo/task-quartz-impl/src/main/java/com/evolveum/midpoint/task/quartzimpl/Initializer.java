@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.NodeErrorStatus;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -79,11 +80,16 @@ public class Initializer {
 
         // register node
         taskManager.getNodeRegistrar().createNodeObject(result);     // may throw initialization exception
+        taskManager.getClusterManager().checkClusterConfiguration(result);      // does not throw exceptions, sets the ERROR state if necessary, however
+        taskManager.getClusterManager().startClusterManagerThread();
 
         NoOpTaskHandler.instantiateAndRegister(taskManager);
         JobExecutor.setTaskManagerQuartzImpl(taskManager);       // unfortunately, there seems to be no clean way of letting jobs know the taskManager
 
         taskManager.getLocalExecutionManager().initializeScheduler();
+        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatus.OK) {
+            taskManager.getLocalExecutionManager().shutdownSchedulerChecked();
+        }
 
         TaskSynchronizer taskSynchronizer = new TaskSynchronizer(taskManager);
 

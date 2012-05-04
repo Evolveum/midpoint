@@ -49,15 +49,20 @@
 			</div>
 			
 			<div class="operatingFormBlock">
-	            <span class="operatingFormText"><wicket:message key="pageTasks.button.label.scheduler"/></span>
-	            <a wicket:id="stopScheduler"/>
-	            <a wicket:id="startScheduler"/>
-	            <a wicket:id="pauseScheduler"/>
-			</div>
-			<div class="operatingFormBlock">
 	            <span class="operatingFormText"><wicket:message key="pageTasks.button.label.node"/></span>
-	            <a wicket:id="deleteNode"/>
+                <a wicket:id="stopScheduler"/>
+                <a wicket:id="stopSchedulerAndTasks"/>
+                <a wicket:id="startScheduler"/>
+                <a wicket:id="deleteNode"/>
             </div>
+
+            <div class="operatingFormBlock">
+                <span class="operatingFormText"><wicket:message key="pageTasks.button.label.diagnostics"/></span>
+                <a wicket:id="deactivateServiceThreads"/>
+                <a wicket:id="reactivateServiceThreads"/>
+                <a wicket:id="synchronizeTasks"/>
+            </div>
+
         </div>
     </form>
 </wicket:extend>

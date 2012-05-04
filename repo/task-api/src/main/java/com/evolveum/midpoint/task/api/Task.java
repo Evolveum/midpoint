@@ -32,12 +32,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UriStack;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
 /**
  * Task instance - a logical unit of work that is either done synchronously, asynchronously, it is deferred, scheduled, etc.
@@ -309,7 +304,7 @@ public interface Task extends Dumpable {
 	 * Returns the time when the task should start again. (For non-recurrent tasks it is ignored. For recurrent tasks,
 	 * null value means 'start immediately', if missed schedule tolerance does not prevent it.)  
 	 */
-	public Long getNextRunStartTime();
+	public Long getNextRunStartTime(OperationResult parentResult);
 
 	/**
 	 * Returns human-readable name of the task.
@@ -446,6 +441,14 @@ public interface Task extends Dumpable {
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException;
 
+    /**
+     * Categories are treated in a special way. They can be set directly. But if not set directly, they
+     * are set on first task execution - determined based on task handler URI.
+     *
+     * List of categories is in the
+     * @see
+     * @return
+     */
     String getCategory();
 
     void makeRecurrentSimple(int interval);
@@ -453,4 +456,7 @@ public interface Task extends Dumpable {
     void makeRecurrentCron(String cronLikeSpecification);
 
     String getNode();
+
+    OperationResultStatusType getResultStatus();
+
 }

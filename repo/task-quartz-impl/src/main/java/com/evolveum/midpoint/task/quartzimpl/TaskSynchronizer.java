@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -79,7 +80,9 @@ public class TaskSynchronizer {
      * (For RAM Job Store, running this method at startup effectively means that tasks from midPoint repo are imported into Quartz job store.)
      *
      */
-    boolean synchronizeJobStores(OperationResult result) {
+    boolean synchronizeJobStores(OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".synchronizeJobStores");
 
         Scheduler scheduler = taskManager.getQuartzScheduler();
 
@@ -105,7 +108,7 @@ public class TaskSynchronizer {
             TaskQuartzImpl task = null;
             try {
                 task = (TaskQuartzImpl) taskManager.getTask(taskPrism.getOid(), result);    // in order for the task to be "fresh"
-                synchronizeTask(task);
+                synchronizeTask(task, result);
                 processed++;
             } catch (SchemaException e) {
                 LoggingUtils.logException(LOGGER, "Task Manager cannot synchronize task {} due to schema exception.", e, taskPrism.getOid());
@@ -122,7 +125,9 @@ public class TaskSynchronizer {
         try {
             jobs = new HashSet<JobKey>(scheduler.getJobKeys(jobGroupEquals(JobKey.DEFAULT_GROUP)));
         } catch (SchedulerException e) {
-            LoggingUtils.logException(LOGGER, "Cannot list jobs from Quartz scheduler, skipping second part of synchronization procedure.", e);
+            String message = "Cannot list jobs from Quartz scheduler, skipping second part of synchronization procedure.";
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordPartialError(message, e);
         }
 
         if (jobs != null) {
@@ -134,17 +139,25 @@ public class TaskSynchronizer {
                         scheduler.deleteJob(job);
                         removed++;
                     } catch (SchedulerException e) {
-                        LoggingUtils.logException(LOGGER, "Cannot remove job " + job.getName() + " from Quartz job store", e);
+                        String message = "Cannot remove job " + job.getName() + " from Quartz job store";
+                        LoggingUtils.logException(LOGGER, message, e);
+                        result.createSubresult("deleteQuartzJob").recordPartialError(message, e);
                         errors++;
                     }
                 }
             }
         }
 
-        LOGGER.info("Synchronization of midpoint and Quartz task store finished. "
+        String resultMessage = "Synchronization of midpoint and Quartz task store finished. "
                 + processed + " task(s) existing in midPoint repository successfully processed. "
                 + removed + " task(s) removed from Quartz job store. Processing of "
-                + errors + " task(s) failed.");
+                + errors + " task(s) failed.";
+
+        LOGGER.info(resultMessage);
+        result.createSubresult("result").recordStatus(OperationResultStatus.SUCCESS, resultMessage);
+        if (result.isUnknown()) {
+            result.recordStatus(OperationResultStatus.SUCCESS, resultMessage);
+        }
 
         return true;
     }
@@ -152,68 +165,81 @@ public class TaskSynchronizer {
     /**
      * Task should be refreshed when entering this method.
      */
-    public void synchronizeTask(TaskQuartzImpl task) throws SchedulerException {
+    public void synchronizeTask(TaskQuartzImpl task, OperationResult parentResult) throws SchedulerException {
 
-        LOGGER.trace("Synchronizing task {}", task);
+        OperationResult result = parentResult.createSubresult(TaskSynchronizer.class.getName() + ".synchronizeTask");
+        result.addParam("task", task);
 
-        Scheduler scheduler = taskManager.getQuartzScheduler();
-        String oid = task.getOid();
+        try {
 
-        JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
-        TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
+            LOGGER.trace("Synchronizing task {}", task);
 
-        if (!scheduler.checkExists(jobKey)) {
-            LOGGER.trace(" - Quartz job does not exist for a task, adding it. Task = {}", task);
-            scheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
-        }
+            Scheduler scheduler = taskManager.getQuartzScheduler();
+            String oid = task.getOid();
 
-        // WAITING and CLOSED tasks should have no triggers
+            JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
+            TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
 
-        boolean triggerExists = scheduler.checkExists(triggerKey);
-        if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
-            if (triggerExists) {
-                LOGGER.trace(" - removing Quartz trigger for WAITING/CLOSED task {}", task);
-                scheduler.unscheduleJob(TriggerKey.triggerKey(oid));
-            }
-        } else if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
-            // For SUSPENDED tasks, we do nothing.
-            // 1) If a trigger is mistakenly alive, we simply let it be. JobExecutor will take care of it.
-            // 2) If a trigger has wrong parameters, this will be corrected on task resume.
-
-        } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-
-            Trigger triggerToBe;
-            try {
-                triggerToBe = TaskQuartzImplUtil.createTriggerForTask(task);
-            } catch (ParseException e) {
-                LoggingUtils.logException(LOGGER, "Cannot create a trigger for a task {} because of a cron expression parsing exception", e, this);
-                throw new SystemException("Cannot a trigger for a task because of a cron expression parsing exception", e);
+            if (!scheduler.checkExists(jobKey)) {
+                LOGGER.trace(" - Quartz job does not exist for a task, adding it. Task = {}", task);
+                scheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
             }
 
-            // if the trigger should exist and it does not...
-            if (!triggerExists) {
-                LOGGER.trace(" - creating trigger for a RUNNABLE task {}", task);
-                scheduler.scheduleJob(triggerToBe);
-            } else {
+            // WAITING and CLOSED tasks should have no triggers
 
-                // we have to compare trigger parameters with the task's ones
-                Trigger triggerAsIs = scheduler.getTrigger(triggerKey);
+            boolean triggerExists = scheduler.checkExists(triggerKey);
+            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+                if (triggerExists) {
+                    LOGGER.trace(" - removing Quartz trigger for WAITING/CLOSED task {}", task);
+                    scheduler.unscheduleJob(TriggerKey.triggerKey(oid));
+                }
+            } else if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+                // For SUSPENDED tasks, we do nothing.
+                // 1) If a trigger is mistakenly alive, we simply let it be. JobExecutor will take care of it.
+                // 2) If a trigger has wrong parameters, this will be corrected on task resume.
 
-                if (TaskQuartzImplUtil.triggerDataMapsDiffer(triggerAsIs, triggerToBe)) {
-                    LOGGER.trace(" - existing trigger has an incompatible parameters, recreating it; task = {}", task);
-                    scheduler.rescheduleJob(triggerKey, triggerToBe);
-                } else {
-                    LOGGER.trace(" - existing trigger is OK, leaving it as is; task = {}", task);
-                    Trigger.TriggerState state = scheduler.getTriggerState(triggerKey);
-                    if (state == Trigger.TriggerState.PAUSED) {
-                        LOGGER.trace(" - however, the trigger is paused, resuming it; task = {}", task);
-                        scheduler.resumeTrigger(triggerKey);
-                    }
+            } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+
+                Trigger triggerToBe;
+                try {
+                    triggerToBe = TaskQuartzImplUtil.createTriggerForTask(task);
+                } catch (ParseException e) {
+                    String message = "Cannot create a trigger for a task " + this + " because of a cron expression parsing exception";
+                    LoggingUtils.logException(LOGGER, message, e);
+                    result.recordFatalError(message, e);
+                    // TODO: implement error handling correctly
+                    throw new SystemException("Cannot a trigger for a task because of a cron expression parsing exception", e);
                 }
 
-            }
+                // if the trigger should exist and it does not...
+                if (!triggerExists) {
+                    LOGGER.trace(" - creating trigger for a RUNNABLE task {}", task);
+                    scheduler.scheduleJob(triggerToBe);
+                } else {
 
+                    // we have to compare trigger parameters with the task's ones
+                    Trigger triggerAsIs = scheduler.getTrigger(triggerKey);
+
+                    if (TaskQuartzImplUtil.triggerDataMapsDiffer(triggerAsIs, triggerToBe)) {
+                        LOGGER.trace(" - existing trigger has an incompatible parameters, recreating it; task = {}", task);
+                        scheduler.rescheduleJob(triggerKey, triggerToBe);
+                    } else {
+                        LOGGER.trace(" - existing trigger is OK, leaving it as is; task = {}", task);
+                        Trigger.TriggerState state = scheduler.getTriggerState(triggerKey);
+                        if (state == Trigger.TriggerState.PAUSED) {
+                            LOGGER.trace(" - however, the trigger is paused, resuming it; task = {}", task);
+                            scheduler.resumeTrigger(triggerKey);
+                        }
+                    }
+                }
+            }
+        } catch (SchedulerException e) {
+            String message = "Cannot synchronize repository/Quartz Job Store information for task " + task;
+            LoggingUtils.logException(LOGGER, message, e);
+            throw e;        // TODO: ok?
         }
+
+        result.recordSuccessIfUnknown();
     }
 
     private RepositoryService getRepositoryService() {

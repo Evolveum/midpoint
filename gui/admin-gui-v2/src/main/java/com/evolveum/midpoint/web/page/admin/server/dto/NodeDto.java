@@ -23,10 +23,13 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Node;
+import com.evolveum.midpoint.task.api.NodeErrorStatus;
+import com.evolveum.midpoint.task.api.NodeExecutionStatus;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -39,15 +42,17 @@ public class NodeDto extends Selectable {
     private String oid;
     private String name;
     private String nodeIdentifier;
-    private String hostname;
+    private String managementPort;
     private Long lastCheckInTime;
     private boolean clustered;
-    private boolean running;
+
+    private NodeExecutionStatus executionStatus;
+    private NodeErrorStatus errorStatus;
+
     private String statusMessage;
 
     public NodeDto(Node node) {
         Validate.notNull(node, "Node must not be null.");
-        //todo status message
 
         PrismObject<NodeType> prismNode = node.getNodeType();
         oid = prismNode.getOid();
@@ -59,17 +64,25 @@ public class NodeDto extends Selectable {
         }
 
         nodeIdentifier = node.getNodeIdentifier();
-        running = node.isRunning();
         clustered = node.isClustered();
-        hostname = node.getHostname() + ":" + node.getJmxPort();
+        managementPort = node.getHostname() + ":" + node.getJmxPort();
+
+        executionStatus = node.getNodeExecutionStatus();
+        errorStatus = node.getNodeErrorStatus();
+
+        if (StringUtils.isNotEmpty(node.getConnectionError())) {
+            statusMessage = node.getConnectionError();
+        } else if (errorStatus != null && errorStatus != NodeErrorStatus.OK) {
+            statusMessage = errorStatus.toString();         // TODO: explain and localize this
+        } else if (executionStatus == NodeExecutionStatus.ERROR) {      // error status not specified
+            statusMessage = "Unspecified error (or the node is just starting or shutting down)";
+        } else {
+            statusMessage = "";
+        }
     }
 
     public boolean isClustered() {
         return clustered;
-    }
-
-    public String getHostname() {
-        return hostname;
     }
 
     public Long getLastCheckInTime() {
@@ -88,11 +101,19 @@ public class NodeDto extends Selectable {
         return oid;
     }
 
-    public boolean isRunning() {
-        return running;
-    }
-
     public String getStatusMessage() {
         return statusMessage;
+    }
+
+    public NodeErrorStatus getErrorStatus() {
+        return errorStatus;
+    }
+
+    public NodeExecutionStatus getExecutionStatus() {
+        return executionStatus;
+    }
+
+    public String getManagementPort() {
+        return managementPort;
     }
 }

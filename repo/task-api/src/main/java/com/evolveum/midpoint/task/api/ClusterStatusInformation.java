@@ -43,6 +43,11 @@ public class ClusterStatusInformation {
         public void setOid(String oid) {
             this.oid = oid;
         }
+
+        @Override
+        public String toString() {
+            return oid;
+        }
     }
 
     private Map<Node,List<TaskInfo>> tasks = new HashMap<Node,List<TaskInfo>>();
@@ -59,11 +64,22 @@ public class ClusterStatusInformation {
         return tasks;
     }
 
+    public Set<TaskInfo> getTasksOnNodes(Collection<String> nodeIdList) {
+        Set<TaskInfo> retval = new HashSet<TaskInfo>();
+        for (String nodeId : nodeIdList) {
+            retval.addAll(getTasksOnNode(nodeId));
+        }
+        return retval;
+    }
+
+
     public List<TaskInfo> getTasksOnNode(Node node) {
         return tasks.get(node);
     }
 
-
+    public List<TaskInfo> getTasksOnNode(String nodeId) {
+        return getTasksOnNode(findNodeById(nodeId));
+    }
 
     // assumes the task is executing at one node only
     public Node findNodeInfoForTask(String oid) {
@@ -98,5 +114,13 @@ public class ClusterStatusInformation {
         return null;
     }
 
-
+    public String dump() {
+        StringBuffer retval = new StringBuffer();
+        for (Map.Entry<Node,List<TaskInfo>> nodeListEntry : tasks.entrySet()) {
+            retval.append(nodeListEntry.getKey().toString());
+            retval.append(": ");
+            retval.append(nodeListEntry.getValue().toString());
+        }
+        return retval.toString();
+    }
 }

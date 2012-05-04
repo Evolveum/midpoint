@@ -21,6 +21,7 @@ package com.evolveum.midpoint.task.quartzimpl;/*
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Node;
 import com.evolveum.midpoint.task.api.NodeExecutionStatus;
@@ -33,10 +34,7 @@ import org.apache.commons.lang.Validate;
 import org.quartz.Scheduler;
 import org.quartz.core.jmx.QuartzSchedulerMBean;
 
-import javax.management.JMX;
-import javax.management.MBeanServerConnection;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
@@ -69,15 +67,25 @@ public class RemoteNodesManager {
     /**
      * Used exclusively for collecting running task information.
      *
-     * @see GlobalExecutionManager#getClusterStatusInformation(boolean)
+     * @see GlobalExecutionManager#getClusterStatusInformation(boolean, com.evolveum.midpoint.schema.result.OperationResult)
      * @param info A structure to which information should be added
      * @param node Node which to query
      */
-    void addNodeStatusFromRemoteNode(ClusterStatusInformation info, PrismObject<NodeType> node) {
+    void addNodeStatusFromRemoteNode(ClusterStatusInformation info, PrismObject<NodeType> node, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(RemoteNodesManager.class.getName() + ".addNodeStatusFromRemoteNode");
+        result.addParam("node", node);
 
         String nodeName = node.asObjectable().getNodeIdentifier();
         String address = node.asObjectable().getHostname() + ":" + node.asObjectable().getJmxPort();
         Node nodeInfo = new Node(node);
+
+        if (!taskManager.getNodeRegistrar().isUp(node.asObjectable())) {
+            nodeInfo.setNodeExecutionStatus(NodeExecutionStatus.DOWN);
+            info.addNodeInfo(nodeInfo);
+            result.recordStatus(OperationResultStatus.SUCCESS, "Node is down");
+            return;
+        }
 
         JMXConnector connector = null;
 
@@ -89,33 +97,61 @@ public class RemoteNodesManager {
                 mbsc = connector.getMBeanServerConnection();
             } catch (IOException e) {
                 LoggingUtils.logException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeName, address);
+                nodeInfo.setNodeExecutionStatus(NodeExecutionStatus.COMMUNICATION_ERROR);
                 nodeInfo.setConnectionError("Cannot connect to the remote node: " + e.getMessage());
                 info.addNodeInfo(nodeInfo);
+                result.recordWarning("Cannot connect to the remote node " + nodeName + " at " + address, e);
                 return;
             }
 
             try {
+
                 QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
 
-                boolean running = mbeanProxy.isStarted() && !mbeanProxy.isShutdown() && !mbeanProxy.isStandbyMode();
-                LOGGER.trace(" - scheduler running = " + running);
-                nodeInfo.setNodeExecutionStatus(running ? NodeExecutionStatus.RUNNING : NodeExecutionStatus.PAUSED);
-
-                List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<ClusterStatusInformation.TaskInfo>();
-                TabularData jobs = mbeanProxy.getCurrentlyExecutingJobs();
-                for (CompositeData job : (Collection<CompositeData>) jobs.values()) {
-                    String oid = (String) job.get("jobName");
-                    LOGGER.trace(" - task oid = " + oid);
-                    taskInfoList.add(new ClusterStatusInformation.TaskInfo(oid));
+                boolean running = false, down = true;
+                if (mbeanProxy != null) {
+                    try {
+                        running = mbeanProxy.isStarted() && !mbeanProxy.isShutdown() && !mbeanProxy.isStandbyMode();
+                        down = mbeanProxy.isShutdown();
+                    } catch (Exception e) {     // was: InstanceNotFoundException but it does not seem to work
+                        String message = "Cannot get information from scheduler " + nodeName + " because it does not exist or is shut down.";
+                        LoggingUtils.logException(LOGGER, message, e);
+                        result.recordWarning(message);
+                    }
+                } else {
+                    result.recordWarning("Cannot get information from node " + nodeName + " at " + address + " because the JMX object for scheduler cannot be found on that node.");
                 }
 
-                info.addNodeAndTaskInfo(nodeInfo, taskInfoList);
+                LOGGER.trace(" - scheduler found = " + (mbeanProxy != null) + ", running = " + running + ", shutdown = " + down);
 
+                if (down) {
+                    nodeInfo.setNodeExecutionStatus(NodeExecutionStatus.ERROR);         // this is a mark of error situation (we expect that during ordinary shutdown the node quickly goes down so there is little probability of getting this status on that occasion)
+                } else if (running) {
+                    nodeInfo.setNodeExecutionStatus(NodeExecutionStatus.RUNNING);
+                } else {
+                    nodeInfo.setNodeExecutionStatus(NodeExecutionStatus.PAUSED);
+                }
+
+                List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<ClusterStatusInformation.TaskInfo>();
+                if (mbeanProxy != null) {
+                    TabularData jobs = mbeanProxy.getCurrentlyExecutingJobs();
+                    for (CompositeData job : (Collection<CompositeData>) jobs.values()) {
+                        String oid = (String) job.get("jobName");
+                        LOGGER.trace(" - task oid = " + oid);
+                        taskInfoList.add(new ClusterStatusInformation.TaskInfo(oid));
+                    }
+                }
+
+                if (result.isUnknown()) {
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Node " + nodeName + ": status = " + nodeInfo.getNodeExecutionStatus() + ", # of running tasks: " + taskInfoList.size());
+                }
+                info.addNodeAndTaskInfo(nodeInfo, taskInfoList);
             }
             catch (Exception e) {
                 LoggingUtils.logException(LOGGER, "Cannot get information from the remote node {} at {}", e, nodeName, address);
                 nodeInfo.setNodeExecutionStatus(NodeExecutionStatus.COMMUNICATION_ERROR);
                 nodeInfo.setConnectionError("Cannot get information from the remote node: " + e.getMessage());
+                result.recordWarning("Cannot get information from the remote node " + nodeName + " at " + address, e);
                 info.addNodeInfo(nodeInfo);
                 return;
             }
@@ -129,6 +165,8 @@ public class RemoteNodesManager {
             } catch (IOException e) {
                 LoggingUtils.logException(LOGGER, "Cannot close JMX connection to {}", e, address);
             }
+
+            result.recordSuccessIfUnknown();
         }
     }
 
@@ -141,7 +179,10 @@ public class RemoteNodesManager {
         }
     }
 
-    public void stopRemoteScheduler(String nodeIdentifier, OperationResult result) {
+    public void stopRemoteScheduler(String nodeIdentifier, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(RemoteNodesManager.class.getName() + ".stopRemoteScheduler");
+        result.addParam("nodeIdentifier", nodeIdentifier);
 
         NodeType node = getNode(nodeIdentifier, result);
         if (node == null) {
@@ -161,13 +202,17 @@ public class RemoteNodesManager {
                 mbsc = connector.getMBeanServerConnection();
             } catch (IOException e) {
                 LoggingUtils.logException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeName, address);
-                result.recordFatalError("Cannot connect to the remote node: " + e.getMessage());
+                result.recordFatalError("Cannot connect to the remote node " + nodeName + " at " + address + ": " + e.getMessage(), e);
                 return;
             }
 
             try {
                 QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
-                mbeanProxy.standby();
+                if (mbeanProxy != null) {
+                    mbeanProxy.standby();
+                } else {
+                    result.recordWarning("Cannot stop the scheduler on node " + nodeName + " at " + address + " because the JMX object for scheduler cannot be found on that node.");
+                }
                 return;
             }
             catch (Exception e) {
@@ -209,13 +254,18 @@ public class RemoteNodesManager {
                 mbsc = connector.getMBeanServerConnection();
             } catch (IOException e) {
                 LoggingUtils.logException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeName, address);
-                result.recordFatalError("Cannot connect to the remote node: " + e.getMessage());
+                result.recordFatalError("Cannot connect to the remote node " + nodeName + " at " + address + ": " + e.getMessage(), e);
                 return;
             }
 
             try {
                 QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
-                mbeanProxy.standby();
+                if (mbeanProxy != null) {
+                    mbeanProxy.start();
+                    result.recordSuccessIfUnknown();
+                } else {
+                    result.recordFatalError("Cannot start remote scheduler " + nodeName + " at " + address + " because it cannot be found on that node.");
+                }
                 return;
             }
             catch (Exception e) {
@@ -238,14 +288,23 @@ public class RemoteNodesManager {
     }
 
     private QuartzSchedulerMBean getMBeanProxy(String nodeName, MBeanServerConnection mbsc) throws MalformedObjectNameException {
-        ObjectName mbeanName = new ObjectName("quartz:type=QuartzScheduler,name=midPointScheduler,instance=" + nodeName);
+        String mbeanNameAsString = "quartz:type=QuartzScheduler,name=midPointScheduler,instance=" + nodeName;
+        ObjectName mbeanName = new ObjectName(mbeanNameAsString);
 
-        return JMX.newMBeanProxy(mbsc, mbeanName, QuartzSchedulerMBean.class, true);
+        try {
+            if (mbsc.isRegistered(mbeanName)) {
+                return JMX.newMBeanProxy(mbsc, mbeanName, QuartzSchedulerMBean.class, true);
+            } else {
+                LOGGER.trace("MBean " + mbeanNameAsString + " is not registered at " + nodeName);
+                return null;
+            }
+        } catch (IOException e) {
+            LoggingUtils.logException(LOGGER, "Cannot communicate with remote node via JMX", e);
+            return null;
+        }
     }
 
     private JMXConnector connectViaJmx(String address) throws IOException {
-
-        Validate.isTrue(getConfiguration().isClustered(), "This method is applicable in clustered mode only.");
 
         JMXServiceURL url =
                 new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + address + "/jmxrmi");
@@ -265,7 +324,12 @@ public class RemoteNodesManager {
         return taskManager.getGlobalExecutionManager();
     }
 
-    void stopRemoteTask(String oid, Node nodeInfo) {
+    void stopRemoteTask(String oid, Node nodeInfo, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(RemoteNodesManager.class.getName() + ".stopRemoteTask");
+        result.addParam("oid", oid);
+        result.addParam("nodeInfo", nodeInfo);
+
         LOGGER.debug("Interrupting task " + oid + " running at " + getClusterManager().dumpNodeInfo(nodeInfo));
 
 //        if (taskManager.isCurrentNode(nodeInfo.getNodeType())) {
@@ -292,12 +356,18 @@ public class RemoteNodesManager {
                 mbsc = connector.getMBeanServerConnection();
             } catch (IOException e) {
                 LoggingUtils.logException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeName, address);
+                result.recordFatalError("Cannot connect to the remote node " + nodeName + " at " + address + ": " + e.getMessage(), e);
                 return;
             }
 
             try {
                 QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
-                mbeanProxy.interruptJob(oid, Scheduler.DEFAULT_GROUP);
+                if (mbeanProxy != null) {
+                    mbeanProxy.interruptJob(oid, Scheduler.DEFAULT_GROUP);
+                    result.recordSuccessIfUnknown();
+                } else {
+                    result.recordFatalError("Cannot interrupt job at " + nodeName + " at " + address + " because the JMX object for scheduler cannot be found on that node.");
+                }
                 LOGGER.debug("Successfully signalled shutdown to task " + oid + " running at " + getClusterManager().dumpNodeInfo(nodeInfo));
             }
             catch (Exception e) {

@@ -83,7 +83,7 @@ public class TaskListController extends SortableListController<TaskItem> {
     protected String listObjects() {
         List<PrismObject<TaskType>> taskTypeList = repositoryManager.listObjects(TaskType.class, getOffset(),
                 getRowsCount());
-        clusterStatusInformation = taskManager.getRunningTasksClusterwide();
+        clusterStatusInformation = taskManager.getRunningTasksClusterwide(new OperationResult("dummy"));
 
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
@@ -120,7 +120,7 @@ public class TaskListController extends SortableListController<TaskItem> {
 
         OperationResult result = createOperationResult("listRunningTasksClusterwide");
 
-        clusterStatusInformation = taskManager.getRunningTasksClusterwide();
+        clusterStatusInformation = taskManager.getRunningTasksClusterwide(new OperationResult("dummy"));
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
         for (ClusterStatusInformation.TaskInfo taskInfo : clusterStatusInformation.getTasks()) {
@@ -186,7 +186,7 @@ public class TaskListController extends SortableListController<TaskItem> {
         	
         	try {
         		Task task = taskManager.getTask(oid, result);
-        		wasRunning = taskManager.isTaskThreadActive(oid);
+        		wasRunning = taskManager.isTaskThreadActiveLocally(oid);
         		if (wasRunning)
         			isRunning = !taskManager.suspendTask(task, 1000L, result);
         	}
@@ -291,7 +291,7 @@ public class TaskListController extends SortableListController<TaskItem> {
     }
 
     public String deactivate() {
-        if (taskManager.deactivateServiceThreads(1000L)) {
+        if (taskManager.deactivateServiceThreads(1000L, new OperationResult("dummy"))) {
             FacesUtils.addSuccessMessage("All task manager threads have been deactivated. Tasks are left in RUNNABLE state, but they will not be executed on this node until service threads are reactivated.");
         } else {
             FacesUtils.addWarnMessage("Task manager threads were requested to stop. Either some of them are still alive, or there was some problem. Please see the log.");

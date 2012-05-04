@@ -60,6 +60,9 @@ public class TaskManagerConfiguration {
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
     private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
     private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
+    private static final String QUARTZ_NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY = "quartzNodeRegistrationCycleTime";
+    private static final String NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY = "nodeRegistrationCycleTime";
+    private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
@@ -72,6 +75,9 @@ public class TaskManagerConfiguration {
     private static final int JMX_PORT_DEFAULT = 20001;
     private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
     private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
+    private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
+    private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
+    private static final int NODE_TIMEOUT_DEFAULT = 30;
 
     private boolean stopOnInitializationFailure;
     private int threads;
@@ -80,7 +86,8 @@ public class TaskManagerConfiguration {
     private String nodeId;
     private int jmxPort;
     private int jmxConnectTimeout;
-
+    private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
+    private int nodeRegistrationCycleTime, nodeTimeout;
     private UseThreadInterrupt useThreadInterrupt;
 
     // quartz jdbc job store specific information
@@ -116,7 +123,7 @@ public class TaskManagerConfiguration {
         jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
         nodeId = System.getProperty(MIDPOINT_NODE_ID_PROPERTY);
-        if (StringUtils.isEmpty(nodeId))
+        if (StringUtils.isEmpty(nodeId) && !clustered)
             nodeId = NODE_ID_DEFAULT;
 
         String portString = System.getProperty(JMX_PORT_PROPERTY);
@@ -145,8 +152,9 @@ public class TaskManagerConfiguration {
             throw new TaskManagerConfigurationException("Illegal value for " + USE_THREAD_INTERRUPT_CONFIG_ENTRY + ": " + useTI, e);
         }
 
-
-
+        quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
+        nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
+        nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
     }
 
     private static final Map<String,String> schemas = new HashMap<String,String>();
@@ -204,9 +212,12 @@ public class TaskManagerConfiguration {
             mustBeTrue(jdbcJobStore, "Clustered task manager requires JDBC Quartz job store.");
         }
 
-        notEmpty(nodeId, "Node identifier must be known.");     // only a safeguard, because it gets a default value if not set
-        mustBeFalse(clustered && jmxPort == 0, "JMX port number must be known.");    // the same
+        notEmpty(nodeId, "Node identifier must be set when run in clustered mode.");
+        mustBeFalse(clustered && jmxPort == 0, "JMX port number must be known when run in clustered mode.");
 
+        mustBeTrue(quartzNodeRegistrationCycleTime > 1 && quartzNodeRegistrationCycleTime <= 600, "Quartz node registration cycle time must be between 1 and 600 seconds");
+        mustBeTrue(nodeRegistrationCycleTime > 1 && nodeRegistrationCycleTime <= 600, "Node registration cycle time must be between 1 and 600 seconds");
+        mustBeTrue(nodeTimeout > 5 && nodeTimeout <= 3600, "Node timeout must be between 5 and 3600 seconds");
     }
 
     void validateJdbcJobStoreInformation() throws TaskManagerConfigurationException {
@@ -305,5 +316,17 @@ public class TaskManagerConfiguration {
 
     public boolean isDatabaseIsEmbedded() {
         return databaseIsEmbedded;
+    }
+
+    public int getNodeTimeout() {
+        return nodeTimeout;
+    }
+
+    public int getNodeRegistrationCycleTime() {
+        return nodeRegistrationCycleTime;
+    }
+
+    public int getQuartzNodeRegistrationCycleTime() {
+        return quartzNodeRegistrationCycleTime;
     }
 }

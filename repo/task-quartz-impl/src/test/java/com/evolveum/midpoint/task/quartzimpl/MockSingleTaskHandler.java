@@ -22,6 +22,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -96,7 +97,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 
     @Override
     public String getCategoryName(Task task) {
-        return "Mock";
+        return TaskCategory.MOCK;
     }
 
     @Override

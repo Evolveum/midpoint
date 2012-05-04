@@ -86,7 +86,7 @@ public class TaskItem extends SelectableBean {
         this.owner = task.getOwner() != null ? task.getOwner().asObjectable() : null;
         this.lastRunStartTimestampLong = task.getLastRunStartTimestamp();
         this.lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
-        this.nextRunStartTimeLong = task.getNextRunStartTime();
+        this.nextRunStartTimeLong = task.getNextRunStartTime(new OperationResult("dummy"));
         //this.exclusivityStatus = TaskItemExclusivityStatus.fromTask(task.getExclusivityStatus());
         this.binding = TaskItemBinding.fromTask(task.getBinding());
         

@@ -202,7 +202,7 @@ public class ObjectImporter {
 
             repository.addObject(object, result);
             if (object.canRepresent(TaskType.class))
-            	taskManager.onTaskCreate(object.getOid());
+            	taskManager.onTaskCreate(object.getOid(), result);
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {
@@ -211,13 +211,13 @@ public class ObjectImporter {
                 String deletedOid = deleteObject(object, repository, result);
                 if (deletedOid != null) {
                     if (object.canRepresent(TaskType.class))
-                    	taskManager.onTaskDelete(deletedOid);
+                    	taskManager.onTaskDelete(deletedOid, result);
                     if (BooleanUtils.isTrue(options.isKeepOid())) {
                         object.setOid(deletedOid);
                     }
                     repository.addObject(object, result);
                     if (object.canRepresent(TaskType.class))
-                    	taskManager.onTaskCreate(object.getOid());
+                    	taskManager.onTaskCreate(object.getOid(), result);
                     result.recordSuccess();
                 } else {
                     // cannot delete, throw original exception

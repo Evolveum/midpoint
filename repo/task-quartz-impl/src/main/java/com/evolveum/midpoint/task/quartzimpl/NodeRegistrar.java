@@ -29,7 +29,9 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.NodeErrorStatus;
+import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -142,6 +144,7 @@ public class NodeRegistrar {
 
         String id = node.getNodeIdentifier() + ":" + node.getJmxPort() + ":" + Math.round(Math.random() * 10000000000000.0);
         LOGGER.trace("internal node identifier generated: " + id);
+        node.setInternalNodeIdentifier(id);
     }
 
     private XMLGregorianCalendar getCurrentTime() {
@@ -225,13 +228,17 @@ public class NodeRegistrar {
             getRepositoryService().modifyObject(NodeType.class, nodePrism.getOid(), modifications, result);
             LOGGER.trace("Node registration successfully updated.");
         } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}), because it does not exist in repository. Stopping the scheduler.", e,
+            LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}), because it does not exist in repository. It is probably caused by cluster misconfiguration (other node rewriting the Node object?) Stopping the scheduler.", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
-            registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatus.OK) {
+                registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            }
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}) due to schema exception. Stopping the scheduler.", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
-            registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatus.OK) {
+                registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            }
         }
     }
 
@@ -285,6 +292,50 @@ public class NodeRegistrar {
         }
     }
 
+    /**
+     * There may be either exactly one non-clustered node (and no other nodes), or clustered nodes only.
+     * @param result
+     */
+    public void checkNonClusteredNodes(OperationResult result) {
+
+        LOGGER.trace("Checking non-clustered nodes.");
+
+        List<String> clustered = new ArrayList<String>();
+        List<String> nonClustered = new ArrayList<String>();
+
+        List<PrismObject<NodeType>> allNodes = taskManager.getAllNodes(result);
+        for (PrismObject<NodeType> nodePrism : allNodes) {
+            NodeType n = nodePrism.asObjectable();
+            if (isUp(n)) {
+                if (n.isClustered()) {
+                    clustered.add(n.getNodeIdentifier());
+                } else {
+                    nonClustered.add(n.getNodeIdentifier());
+                }
+            }
+        }
+
+        LOGGER.trace("Clustered nodes: " + clustered);
+        LOGGER.trace("Non-clustered nodes: " + nonClustered);
+
+        int all = clustered.size() + nonClustered.size();
+
+        if (!taskManager.getConfiguration().isClustered() && all > 1) {
+            LOGGER.error("This node is a non-clustered one, mixed with other nodes. In this system, there are " +
+                    nonClustered.size() + " non-clustered nodes (" + nonClustered + ") and " +
+                    clustered.size() + " clustered ones (" + clustered + "). Stopping this node.");
+            registerNodeError(NodeErrorStatus.NON_CLUSTERED_NODE_WITH_OTHERS);
+        }
+
+    }
+
+    boolean isUp(NodeType n) {
+        return n.getLastCheckInTime() != null &&
+                (System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis())
+                        <= (taskManager.getConfiguration().getNodeTimeout() * 1000L);
+    }
+
+
     private boolean doesNodeExist(OperationResult result, String myName) {
         try {
             List<PrismObject<NodeType>> nodes = findNodesWithGivenName(result, myName);
@@ -310,8 +361,9 @@ public class NodeRegistrar {
     private void registerNodeError(NodeErrorStatus status) {
         taskManager.setNodeErrorStatus(status);
         if (taskManager.getServiceThreadsActivationState()) {
-            taskManager.deactivateServiceThreads(0L);
+            taskManager.getLocalExecutionManager().stopSchedulerAndTasksLocally(0L, new OperationResult("nodeError"));
         }
+        taskManager.getLocalExecutionManager().shutdownSchedulerChecked();
         LOGGER.warn("Scheduler stopped, please check your cluster configuration as soon as possible; kind of error = " + status);
     }
 
@@ -349,5 +401,32 @@ public class NodeRegistrar {
         return taskManager.getPrismContext();
     }
 
+    public void deleteNode(String nodeIdentifier, OperationResult parentResult) {
 
+        OperationResult result = parentResult.createSubresult(NodeRegistrar.class.getName() + ".deleteNode");
+        result.addParam("nodeIdentified", nodeIdentifier);
+
+        boolean deleted = false;
+
+        List<PrismObject<NodeType>> nodes = taskManager.getAllNodes(result);
+        for (PrismObject<NodeType> nodePrism : nodes) {
+            if (nodeIdentifier.equals(nodePrism.asObjectable().getNodeIdentifier())) {
+                deleted = true;
+                if (isUp(nodePrism.asObjectable())) {
+                    result.recordFatalError("Node " + nodeIdentifier + " cannot be deleted, because it is currently up.");
+                } else {
+                    try {
+                        taskManager.getRepositoryService().deleteObject(NodeType.class, nodePrism.getOid(), result);
+                        result.recordSuccess();
+                    } catch (ObjectNotFoundException e) {
+                        // should not occur
+                        result.recordFatalError("Node " + nodeIdentifier + " cannot be deleted, because it does not exist in repository.");
+                    }
+                }
+            }
+        }
+        if (!deleted) {
+            result.recordFatalError("Node " + nodeIdentifier + " cannot be deleted, because it does not exist in repository.");
+        }
+    }
 }

@@ -104,4 +104,9 @@ public class Node {
     public void setNodeExecutionStatus(NodeExecutionStatus nodeExecutionStatus) {
         this.nodeExecutionStatus = nodeExecutionStatus;
     }
+
+    @Override
+    public String toString() {
+        return "Node[id=" + getNodeIdentifier() + ", executionStatus=" + getNodeExecutionStatus() + ", errorStatus=" + getNodeErrorStatus() + ", mgmtPort=" + getHostname() + ":" + getJmxPort() + "]";
+    }
 }

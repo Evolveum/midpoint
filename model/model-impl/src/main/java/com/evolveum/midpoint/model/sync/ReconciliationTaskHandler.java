@@ -40,10 +40,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -212,7 +209,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
-//		result.addParam("reconciled", false);
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, result)
 				.asObjectable();
@@ -241,14 +237,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private void performRepoReconciliation(Task task, OperationResult result) throws SchemaException,
 			ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
-		result.addParam("reconciled", true);
 		// find accounts
-		// QueryType query =
-		// QueryUtil.createQuery(QueryUtil.createEqualFilter(DOMUtil.getDocument(),
-		// null,
-		// AccountShadowType.F_FAILED_OPERATION_TYPE, "!=null"));
-		List<PrismObject<AccountShadowType>> shadows = repositoryService.listObjects(AccountShadowType.class,
-				new PagingType(), result);
+//		QueryType query = QueryUtil.createQuery(QueryUtil.createEqualFilter(DOMUtil.getDocument(), null,
+//				AccountShadowType.F_FAILED_OPERATION_TYPE, "!=null"));
+		List<PrismObject<AccountShadowType>> shadows = repositoryService.listObjects(
+				AccountShadowType.class, new PagingType(), result);
 
 		for (PrismObject<AccountShadowType> shadow : shadows) {
 
@@ -256,7 +249,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			// MAX_ITERATIONS){
 			// normalizeShadow(shadow, result);
 			// }
-			if (shadow.asObjectable().getFailedOperationType() == null) {
+			if (shadow.asObjectable().getFailedOperationType() == null){
 				continue;
 			}
 
@@ -266,11 +259,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				Collection<? extends ItemDelta> modifications = PropertyDelta
 						.createModificationReplacePropertyCollection(AccountShadowType.F_ATTEMPT_NUMBER,
 								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
-				// TODO: better error handling
-				
-					repositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
-							result);
-				
+				repositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
+						result);
 			}
 		}
 
@@ -288,13 +278,16 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.ADD)) {
 			addObject(shadow.asPrismObject(), parentResult);
 
-		} else if (shadow.getFailedOperationType().equals(FailedOperationTypeType.MODIFY)) {
+		}
+		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.MODIFY)) {
 			ObjectDeltaType shadowDelta = shadow.getObjectChange();
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
 					shadowDelta.getModification(), shadow.asPrismObject().getDefinition());
 
 			modifyObject(shadow.getOid(), modifications, parentResult);
-		} else if (shadow.getFailedOperationType().equals(FailedOperationTypeType.DELETE)) {
+		}
+
+		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.DELETE)) {
 			deleteObject(shadow.getOid(), parentResult);
 		}
 	}
@@ -391,13 +384,13 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		// Do nothing. Everything is fresh already.
 	}
 
-	@Override
-	public String getCategoryName(Task task) {
-		return "Reconciliation";
-	}
+    @Override
+    public String getCategoryName(Task task) {
+        return TaskCategory.RECONCILIATION;
+    }
 
-	@Override
-	public List<String> getCategoryNames() {
-		return null;
-	}
+    @Override
+    public List<String> getCategoryNames() {
+        return null;
+    }
 }

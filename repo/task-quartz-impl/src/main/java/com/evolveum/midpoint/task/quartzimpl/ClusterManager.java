@@ -47,7 +47,6 @@ public class ClusterManager {
 
     private TaskManagerQuartzImpl taskManager;
 
-    private static final long CLUSTER_MANAGER_LOOP_DELAY = 7500L;
     private ClusterManagerThread clusterManagerThread;
 
     public ClusterManager(TaskManagerQuartzImpl taskManager) {
@@ -55,21 +54,18 @@ public class ClusterManager {
     }
 
     /**
-     * Verifies the cluster consistency (currently checks whether there is no other node with the same ID, and whether clustered/non-clustered nodes are OK).
+     * Verifies cluster consistency (currently checks whether there is no other node with the same ID, and whether clustered/non-clustered nodes are OK).
 
      * @param result
      * @return
      */
     void checkClusterConfiguration(OperationResult result) {
 
+//        LOGGER.trace("taskManager = " + taskManager);
+//        LOGGER.trace("taskManager.getNodeRegistrar() = " + taskManager.getNodeRegistrar());
+
         taskManager.getNodeRegistrar().verifyNodeObject(result);     // if error, sets the error state and stops the scheduler
-        checkNonClusteredNodes(result);
-    }
-
-
-
-    private void checkNonClusteredNodes(OperationResult result) {
-        //To change body of created methods use File | Settings | File Templates.
+        taskManager.getNodeRegistrar().checkNonClusteredNodes(result); // the same
     }
 
     public boolean isClusterManagerThreadActive() {
@@ -87,6 +83,7 @@ public class ClusterManager {
 
             OperationResult result = new OperationResult(ClusterManagerThread.class + ".run");
 
+            long delay = taskManager.getConfiguration().getNodeRegistrationCycleTime() * 1000L;
             while (canRun) {
 
                 try {
@@ -98,9 +95,9 @@ public class ClusterManager {
                     LoggingUtils.logException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
                 }
 
-                LOGGER.trace("ClusterManager thread sleeping for " + CLUSTER_MANAGER_LOOP_DELAY + " msec");
+                LOGGER.trace("ClusterManager thread sleeping for " + delay + " msec");
                 try {
-                    Thread.sleep(CLUSTER_MANAGER_LOOP_DELAY);
+                    Thread.sleep(delay);
                 } catch (InterruptedException e) {
                     LOGGER.trace("ClusterManager thread interrupted.");
                 }
@@ -116,17 +113,31 @@ public class ClusterManager {
 
     }
 
-    void stopClusterManagerThread(long waitTime) {
-        clusterManagerThread.signalShutdown();
-        try {
-            clusterManagerThread.join(waitTime);
-        } catch (InterruptedException e) {
-            LoggingUtils.logException(LOGGER, "Waiting for ClusterManagerThread shutdown was interrupted", e);
+    void stopClusterManagerThread(long waitTime, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(ClusterManager.class.getName() + ".stopClusterManagerThread");
+        result.addParam("waitTime", waitTime);
+
+        if (clusterManagerThread != null) {
+            clusterManagerThread.signalShutdown();
+            try {
+                clusterManagerThread.join(waitTime);
+            } catch (InterruptedException e) {
+                LoggingUtils.logException(LOGGER, "Waiting for ClusterManagerThread shutdown was interrupted", e);
+            }
+            if (clusterManagerThread.isAlive()) {
+                parentResult.recordWarning("ClusterManagerThread shutdown requested but after " + waitTime + " ms it is still running.");
+            } else {
+                parentResult.recordSuccess();
+            }
+        } else {
+            result.recordSuccess();
         }
     }
 
     void startClusterManagerThread() {
         clusterManagerThread = new ClusterManagerThread();
+        clusterManagerThread.setName("ClusterManagerThread");
         clusterManagerThread.start();
     }
 

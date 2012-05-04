@@ -23,7 +23,10 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -81,6 +84,40 @@ public class GlobalExecutionManager {
         }
     }
 
+    public boolean stopSchedulersAndTasks(List<String> nodeList, long timeToWait, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".stopSchedulersAndTasks");
+        result.addParam("nodeList", nodeList);
+        result.addParam("timeToWait", timeToWait);
+
+        LOGGER.info("Stopping schedulers and tasks on nodes: {}, waiting {} ms for task(s) shutdown.", nodeList, timeToWait);
+
+        for (String nodeIdentifier : nodeList) {
+            stopScheduler(nodeIdentifier, result);
+        }
+        ClusterStatusInformation csi = getClusterStatusInformation(true, result);
+        Set<ClusterStatusInformation.TaskInfo> taskInfoList = csi.getTasksOnNodes(nodeList);
+
+        LOGGER.debug("{} task(s) found on nodes that are going down, stopping them.", taskInfoList.size());
+
+        Set<Task> tasks = new HashSet<Task>();
+        for (ClusterStatusInformation.TaskInfo taskInfo : taskInfoList) {
+            try {
+                tasks.add(taskManager.getTask(taskInfo.getOid(), result));
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Task {} that was about to be stopped does not exist. Ignoring it.", e, taskInfo.getOid());
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Task {} that was about to be stopped cannot be read due to schema problem. Ignoring it.", e, taskInfo.getOid());
+            }
+        }
+
+        boolean stopped = stopTasksAndWait(tasks, timeToWait, true, result);
+        LOGGER.trace("All tasks stopped = " + stopped);
+        result.recordSuccessIfUnknown();
+        return stopped;
+    }
+
+
     public void startScheduler(String nodeIdentifier, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".startScheduler");
         result.addParam("nodeIdentifier", nodeIdentifier);
@@ -96,38 +133,45 @@ public class GlobalExecutionManager {
      * ==================== NODE-LEVEL METHODS (QUERIES) ====================
      */
 
-    ClusterStatusInformation getClusterStatusInformation(boolean clusterwide) {
+    ClusterStatusInformation getClusterStatusInformation(boolean clusterwide, OperationResult parentResult) {
 
-        OperationResult result = createOperationResult("getClusterStatusInformation");
+        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".getClusterStatusInformation");
+        result.addParam("clusterwide", clusterwide);
 
         ClusterStatusInformation retval = new ClusterStatusInformation();
 
         if (clusterwide) {
             for (PrismObject<NodeType> node : taskManager.getAllNodes(result)) {
                 try {
-                    addNodeAndTaskInformation(retval, node);
+                    addNodeAndTaskInformation(retval, node, result);
                 } catch (TaskManagerException e) {
                     LoggingUtils.logException(LOGGER, "Cannot get node/task information from node {}", e, node.getName());
                 }
             }
         } else {
             try {
-                addNodeAndTaskInformation(retval, taskManager.getNodePrism());
+                addNodeAndTaskInformation(retval, taskManager.getNodePrism(), result);
             } catch (TaskManagerException e) {
                 LoggingUtils.logException(LOGGER, "Cannot get node/task information from local node", e);
             }
         }
+        LOGGER.debug("cluster state information = " + retval.dump());
+
+        result.recomputeStatus();
         return retval;
     }
 
-    private void addNodeAndTaskInformation(ClusterStatusInformation info, PrismObject<NodeType> node) throws TaskManagerException {
+    private void addNodeAndTaskInformation(ClusterStatusInformation info, PrismObject<NodeType> node, OperationResult parentResult) throws TaskManagerException {
+
+        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".addNodeAndTaskInformation");
+        result.addParam("node", node);
 
         if (isCurrentNode(node)) {
 
             LOGGER.trace("Getting node and task info from the current node ({})", node.asObjectable().getNodeIdentifier());
 
             List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<ClusterStatusInformation.TaskInfo>();
-            Set<Task> tasks = taskManager.getLocalExecutionManager().getLocallyRunningTasks();
+            Set<Task> tasks = taskManager.getLocalExecutionManager().getLocallyRunningTasks(result);
             for (Task task : tasks) {
                 taskInfoList.add(new ClusterStatusInformation.TaskInfo(task.getOid()));
             }
@@ -140,8 +184,10 @@ public class GlobalExecutionManager {
         } else {    // if remote
 
             LOGGER.debug("Getting running task info from remote node ({}, {})", node.asObjectable().getNodeIdentifier(), node.asObjectable().getHostname());
-            getRemoteNodesManager().addNodeStatusFromRemoteNode(info, node);
+            getRemoteNodesManager().addNodeStatusFromRemoteNode(info, node, result);
         }
+
+        result.recordSuccessIfUnknown();
     }
 
 
@@ -160,34 +206,53 @@ public class GlobalExecutionManager {
      * @return true if all the tasks finished within time allotted, false otherwise.
      * @throws TaskManagerException if the task list can be obtained
      */
-    boolean stopAllTasksOnThisNodeAndWait(long timeToWait) throws TaskManagerException {
+    boolean stopAllTasksOnThisNodeAndWait(long timeToWait, OperationResult parentResult) throws TaskManagerException {
+        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".stopAllTasksOnThisNodeAndWait");
+        result.addParam("timeToWait", timeToWait);
+
         LOGGER.info("Stopping all tasks on local node");
-        Set<Task> tasks = getLocalExecutionManager().getLocallyRunningTasks();
-        return stopTasksAndWait(tasks, timeToWait, false);
+        Set<Task> tasks = getLocalExecutionManager().getLocallyRunningTasks(result);
+        boolean retval = stopTasksAndWait(tasks, timeToWait, false, result);
+        result.recordSuccessIfUnknown();
+        return retval;
     }
 
     // does not throw exceptions: it tries hard to stop the tasks, if something breaks, it just return 'false'
-    boolean stopTasksAndWait(Collection<Task> tasks, long waitTime, boolean clusterwide) {
+    boolean stopTasksAndWait(Collection<Task> tasks, long waitTime, boolean clusterwide, OperationResult parentResult) {
 
-        if (tasks.isEmpty())
+        OperationResult result = createOperationResult(GlobalExecutionManager.class.getName() + ".stopTasksAndWait");
+        result.addParam("tasks", tasks);
+        result.addParam("waitTime", waitTime);
+        result.addParam("clusterwide", clusterwide);
+
+        if (tasks.isEmpty()) {
+            result.recordSuccess();
             return true;
+        }
 
         LOGGER.trace("Stopping tasks " + tasks + " (waiting " + waitTime + " msec); clusterwide = " + clusterwide);
 
         for (Task task : tasks)
-            stopTask(task, clusterwide);
+            stopTask(task, clusterwide, result);
 
-        return waitForTaskCompletion(tasks, waitTime, clusterwide);
+        boolean stopped = waitForTaskCompletion(tasks, waitTime, clusterwide, result);
+        result.recordSuccessIfUnknown();
+        return stopped;
     }
 
-    boolean stopTaskAndWait(Task task, long waitTime, boolean clusterwide) {
-        ArrayList<Task> list = new ArrayList<Task>(1);
-        list.add(task);
-        return stopTasksAndWait(list, waitTime, clusterwide);
-    }
+//    boolean stopTaskAndWait(Task task, long waitTime, boolean clusterwide) {
+//        ArrayList<Task> list = new ArrayList<Task>(1);
+//        list.add(task);
+//        return stopTasksAndWait(list, waitTime, clusterwide);
+//    }
 
     // returns true if tasks are down
-    private boolean waitForTaskCompletion(Collection<Task> tasks, long maxWaitTime, boolean clusterwide) {
+    private boolean waitForTaskCompletion(Collection<Task> tasks, long maxWaitTime, boolean clusterwide, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".waitForTaskCompletion");
+        result.addParam("tasks", tasks);
+        result.addParam("maxWaitTime", maxWaitTime);
+        result.addParam("clusterwide", clusterwide);
 
         boolean interruptExecuted = false;
 
@@ -204,7 +269,7 @@ public class GlobalExecutionManager {
         for(;;) {
 
             boolean isAnythingExecuting = false;
-            ClusterStatusInformation rtinfo = getClusterStatusInformation(clusterwide);
+            ClusterStatusInformation rtinfo = getClusterStatusInformation(clusterwide, result);
             for (String oid : oids) {
                 if (rtinfo.findNodeInfoForTask(oid) != null) {
                     isAnythingExecuting = true;
@@ -213,12 +278,16 @@ public class GlobalExecutionManager {
             }
 
             if (!isAnythingExecuting) {
-                LOGGER.trace("The task(s), for which we have been waiting for, have finished.");
+                String message = "The task(s), for which we have been waiting for, have finished.";
+                LOGGER.trace(message);
+                result.recordStatus(OperationResultStatus.SUCCESS, message);
                 return true;
             }
 
             if (maxWaitTime > 0 && System.currentTimeMillis() - started >= maxWaitTime) {
-                LOGGER.trace("Wait time has elapsed without (some of) tasks being stopped. Finishing waiting for task(s) completion.");
+                String message = "Wait time has elapsed without (some of) tasks being stopped. Finishing waiting for task(s) completion.";
+                LOGGER.trace(message);
+                result.recordWarning(message);
                 return false;
             }
 
@@ -245,31 +314,40 @@ public class GlobalExecutionManager {
     }
 
 
-    private void stopTask(Task task, boolean clusterwide) {
+    private void stopTask(Task task, boolean clusterwide, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".stopTask");
+        result.addParam("task", task);
+        result.addParam("clusterwide", clusterwide);
 
         LOGGER.info("Stopping task " + task + "; clusterwide = " + clusterwide);
         String oid = task.getOid();
 
         // if the task runs locally or !clusterwide
         if (getLocalExecutionManager().isTaskThreadActiveLocally(oid) || !clusterwide) {
-            getLocalExecutionManager().stopLocalTask(oid);
+            getLocalExecutionManager().stopLocalTask(oid, result);
         } else {
-            stopRemoteTask(task);
+            stopRemoteTask(task, result);
         }
     }
 
-    private void stopRemoteTask(Task task) {
+    private void stopRemoteTask(Task task, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".stopRemoteTask");
+        result.addParam("task", task);
 
         LOGGER.trace("Interrupting remote task {} - first finding where it currently runs", task);
 
-        ClusterStatusInformation info = getClusterStatusInformation(true);
+        ClusterStatusInformation info = getClusterStatusInformation(true, result);
         Node node = info.findNodeInfoForTask(task.getOid());
 
         if (node == null) {
             LOGGER.info("Asked to interrupt task {} but did not find it running at any node.", task);
         } else {
-            getRemoteNodesManager().stopRemoteTask(task.getOid(), node);
+            getRemoteNodesManager().stopRemoteTask(task.getOid(), node, result);
         }
+
+        result.recordSuccessIfUnknown();
 
     }
 
@@ -302,10 +380,10 @@ public class GlobalExecutionManager {
     * ==================== THREAD QUERY METHODS ====================
     */
 
-    boolean isTaskThreadActiveClusterwide(String oid) {
-        ClusterStatusInformation info = getClusterStatusInformation(true);
-        return info.findNodeInfoForTask(oid) != null;
-    }
+//    boolean isTaskThreadActiveClusterwide(String oid) {
+//        ClusterStatusInformation info = getClusterStatusInformation(true);
+//        return info.findNodeInfoForTask(oid) != null;
+//    }
 
 
     /*

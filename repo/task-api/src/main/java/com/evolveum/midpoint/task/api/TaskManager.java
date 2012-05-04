@@ -357,7 +357,7 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-    public List<Node> searchNodes(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
+    List<Node> searchNodes(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
     int countNodes(QueryType query, OperationResult result) throws SchemaException;
 	
@@ -365,13 +365,13 @@ public interface TaskManager {
 	 * Register a handler for a specified handler URI.
 	 * 
 	 */
-	public void registerHandler(String uri, TaskHandler handler);
+	void registerHandler(String uri, TaskHandler handler);
 	
 	/**
 	 * Make sure all processes are stopped properly.
 	 * Will block until all processes are shut down.
 	 */
-	public void shutdown();
+	void shutdown();
 	
 	/**
 	 * Returns tasks that currently run on this node.
@@ -383,6 +383,7 @@ public interface TaskManager {
 	 * 
 	 * @return tasks that currently run on this node.
 	 */
+    @Deprecated
 	public Set<Task> getRunningTasks() throws TaskManagerException;
 
 	/**
@@ -400,12 +401,12 @@ public interface TaskManager {
      *  timeToWait is only for orientation = it may be so that the implementation would wait 2 or 3 times this value
      *  (if it waits separately for several threads completion)
 	 */
-	public boolean deactivateServiceThreads(long timeToWait);
+	boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult);
 	
 	/**
 	 * Re-activate the service threads after they have been deactivated.
 	 */
-	public void reactivateServiceThreads(OperationResult parentResult);
+	void reactivateServiceThreads(OperationResult parentResult);
 		
 	/**
 	 * Returns true if the service threads are running.
@@ -414,7 +415,7 @@ public interface TaskManager {
 	 * 
 	 * @return true if the service threads are running.
 	 */
-	public boolean getServiceThreadsActivationState();
+	boolean getServiceThreadsActivationState();
 
     /**
      * Stops the scheduler on a given node. This means that at that node no tasks will be started.
@@ -423,7 +424,7 @@ public interface TaskManager {
      *
      * (TODO: perhaps signal an exception here? also for the other methods)
      */
-    public void stopScheduler(String nodeIdentifier, OperationResult parentResult);
+    void stopScheduler(String nodeIdentifier, OperationResult parentResult);
 
     /**
      * Starts the scheduler on a given node. A prerequisite is that the node is running and its
@@ -432,7 +433,7 @@ public interface TaskManager {
      * @param nodeIdentifier Node on which the scheduler should be started. Null means current node.
      * @return true if the operation succeeded; false otherwise.
      */
-    public void startScheduler(String nodeIdentifier, OperationResult parentResult);
+    void startScheduler(String nodeIdentifier, OperationResult parentResult);
 
     /**
      * Stops the scheduler on a given node. This means that at that node no tasks will be started.
@@ -442,7 +443,7 @@ public interface TaskManager {
      * @param timeToWait TODO
      * @return true if the operation succeeded *and* all tasks are stopped; false otherwise.
      */
-    public boolean stopSchedulerAndTasks(String nodeIdentifier, long timeToWait);
+//    public boolean stopSchedulerAndTasks(String nodeIdentifier, long timeToWait);
 
 	/**
 	 * Helper function, used to determine when this task
@@ -456,7 +457,7 @@ public interface TaskManager {
 	 * @param oid
 	 * @return
 	 */
-	public boolean isTaskThreadActive(String oid);
+	boolean isTaskThreadActiveLocally(String oid);
 
 	/**
 	 * This is a signal to task manager that a new task was created in the repository.
@@ -464,7 +465,7 @@ public interface TaskManager {
 	 * 
 	 * @param oid
 	 */
-	public void onTaskCreate(String oid);
+	void onTaskCreate(String oid, OperationResult parentResult);
 
 	/**
 	 * This is a signal to task manager that a task was removed from the repository.
@@ -472,25 +473,25 @@ public interface TaskManager {
 	 * 
 	 * @param oid
 	 */
-	public void onTaskDelete(String oid);
+	void onTaskDelete(String oid, OperationResult parentResult);
 
     // TODO
-    public Long getNextRunStartTime(String oid);
+    Long getNextRunStartTime(String oid, OperationResult result);
 
-    public ClusterStatusInformation getRunningTasksClusterwide();
+    ClusterStatusInformation getRunningTasksClusterwide(OperationResult result);
 
     String getNodeId();
 
     boolean isCurrentNode(PrismObject<NodeType> node);
 
-    public List<String> getAllTaskCategories();
+    List<String> getAllTaskCategories();
 
     /**
      * Post initialization, e.g. starts the actual scheduling of tasks on this node.
      */
     void postInit(OperationResult result);
 
-    boolean isTaskThreadActiveClusterwide(String oid);
+//    boolean isTaskThreadActiveClusterwide(String oid);
 
     // we do not throw exceptions here -- we do our best to suspend the tasks
     boolean suspendTasks(Collection<Task> tasks, long waitTime, OperationResult parentResult);
@@ -502,7 +503,11 @@ public interface TaskManager {
      * @param allowedAge
      * @return
      */
-    ClusterStatusInformation getRunningTasksClusterwide(long allowedAge);
+    ClusterStatusInformation getRunningTasksClusterwide(long allowedAge, OperationResult parentResult);
 
+    boolean stopSchedulersAndTasks(List<String> nodeList, long waitTime, OperationResult parentResult);
 
+    void synchronizeTasks(OperationResult parentResult);
+
+    void deleteNode(String nodeIdentifier, OperationResult result);
 }

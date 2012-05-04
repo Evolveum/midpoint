@@ -25,13 +25,14 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Node;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -48,6 +49,8 @@ import java.util.List;
  * @author lazyman
  */
 public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
+
+    private static final transient Trace LOGGER = TraceManager.getTrace(NodeDtoProvider.class);
 
     private static final String OPERATION_LIST_NODES = "taskDtoProvider.listNodes";
     private static final String OPERATION_COUNT_NODES = "taskDtoProvider.countNodes";
@@ -86,7 +89,7 @@ public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
             PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
 
             TaskManager manager = getTaskManager();
-            ClusterStatusInformation info = manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE);
+            ClusterStatusInformation info = manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE, result);
             List<Node> nodes = manager.searchNodes(query, paging, info, result);
 
             for (Node node : nodes) {
@@ -94,7 +97,8 @@ public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
             }
             result.recordSuccess();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list tasks.", ex);
+            LoggingUtils.logException(LOGGER, "Unhandled exception when listing nodes", ex);
+            result.recordFatalError("Couldn't list nodes.", ex);
         }
 
         return getAvailableData().iterator();
