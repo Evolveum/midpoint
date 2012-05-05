@@ -80,8 +80,10 @@ public class Initializer {
 
         // register node
         taskManager.getNodeRegistrar().createNodeObject(result);     // may throw initialization exception
-        taskManager.getClusterManager().checkClusterConfiguration(result);      // does not throw exceptions, sets the ERROR state if necessary, however
-        taskManager.getClusterManager().startClusterManagerThread();
+        if (!taskManager.getConfiguration().isReusableQuartzScheduler()) {  // in test mode do not start cluster manager thread nor verify cluster config
+            taskManager.getClusterManager().checkClusterConfiguration(result);      // does not throw exceptions, sets the ERROR state if necessary, however
+            taskManager.getClusterManager().startClusterManagerThread();
+        }
 
         NoOpTaskHandler.instantiateAndRegister(taskManager);
         JobExecutor.setTaskManagerQuartzImpl(taskManager);       // unfortunately, there seems to be no clean way of letting jobs know the taskManager
