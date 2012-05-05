@@ -21,17 +21,19 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -83,20 +85,25 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
         PrismContainerDefinition definition = null;
         PrismObject parent = getObject().getObject();
-        if (AccountShadowType.class.equals(parent.getCompileTimeClass())) {
-            try {
-                PrismReference resourceRef = parent.findReference(AccountShadowType.F_RESOURCE_REF);
-                PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
-                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-                        parent.getPrismContext());
+        Class clazz = parent.getCompileTimeClass();
+        if (ResourceObjectShadowType.class.equals(clazz)) {
+            QName name = container.getDefinition().getName();
+            if (ResourceObjectShadowType.F_ATTRIBUTES.equals(name)) {
+                try {
+                    PrismReference resourceRef = parent.findReference(AccountShadowType.F_RESOURCE_REF);
+                    PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
+                    RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+                            parent.getPrismContext());
 
-                PrismProperty<QName> objectClassProp = parent.findProperty(AccountShadowType.F_OBJECT_CLASS);
-                QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
+                    PrismProperty<QName> objectClassProp = parent.findProperty(AccountShadowType.F_OBJECT_CLASS);
+                    QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
 
-                definition = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
-            } catch (Exception ex) {
-                //todo handle error
-                ex.printStackTrace();
+                    definition = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
+                } catch (Exception ex) {
+                    throw new SystemException(ex.getMessage(), ex);
+                }
+            } else {
+                definition = container.getDefinition();
             }
         } else {
             definition = container.getDefinition();
@@ -104,6 +111,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
         Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
         for (PrismPropertyDefinition def : propertyDefinitions) {
+            if (skipProperty(def)) {
+                continue;
+            }
             PrismProperty property = container.findProperty(def.getName());
             if (property == null) {
                 properties.add(new PropertyWrapper(this, def.instantiate(), ValueStatus.ADDED));
@@ -160,6 +170,29 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     boolean hasChanged() {
         for (PropertyWrapper property : getProperties()) {
             if (property.hasChanged()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * This methods check if we want to show property in form (e.g. failedLogins, fetchResult,
+     * lastFailedLoginTimestamp must be invisible)
+     *
+     * @return
+     * @deprecated will be implemented through annotations in schema
+     */
+    @Deprecated
+    private boolean skipProperty(PrismPropertyDefinition def) {
+        final List<QName> names = new ArrayList<QName>();
+        names.add(PasswordType.F_FAILED_LOGINS);
+        names.add(PasswordType.F_LAST_FAILED_LOGIN_TIMESTAMP);
+        names.add(ObjectType.F_FETCH_RESULT);
+
+        for (QName name : names) {
+            if (name.equals(def.getName())) {
                 return true;
             }
         }

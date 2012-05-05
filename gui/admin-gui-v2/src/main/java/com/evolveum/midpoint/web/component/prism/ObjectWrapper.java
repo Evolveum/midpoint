@@ -26,9 +26,11 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -124,14 +126,37 @@ public class ObjectWrapper implements Serializable {
         return containers;
     }
 
+    private List<ContainerWrapper> createCustomContainerWrapper(PrismObject object, QName name) {
+        PrismContainer container = object.findContainer(name);
+        ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
+        if (container == null) {
+            try {
+                container = object.findOrCreateContainer(name);
+            } catch (SchemaException ex) {
+                throw new SystemException(ex.getMessage(), ex);
+            }
+        }
+
+        List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
+        list.add(new ContainerWrapper(this, container, status, new PropertyPath()));
+        list.addAll(createContainerWrapper(container, new PropertyPath()));
+
+        return list;
+    }
+
     private List<ContainerWrapper> createContainers() {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
-        if (AccountShadowType.class.equals(object.getCompileTimeClass())) {
-            ContainerWrapper container = new ContainerWrapper(this, object.findContainer(AccountShadowType.F_ATTRIBUTES),
-                    getStatus(), null);
+        Class clazz = object.getCompileTimeClass();
+        if (ResourceObjectShadowType.class.isAssignableFrom(clazz)) {
+            ContainerWrapper container = new ContainerWrapper(this, object.findContainer(
+                    ResourceObjectShadowType.F_ATTRIBUTES), getStatus(), null);
             containers.add(container);
-            //todo credentials, activation fix for accounts as well as for user (or other objects)
+
+            containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_ACTIVATION));
+            if (AccountShadowType.class.isAssignableFrom(clazz)) {
+                containers.addAll(createCustomContainerWrapper(object, AccountShadowType.F_CREDENTIALS));
+            }
         } else {
             ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null);
             containers.add(container);
