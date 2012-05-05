@@ -51,9 +51,9 @@ import java.util.List;
 public class NodeDtoProvider extends SortableDataProvider<NodeDto> {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(NodeDtoProvider.class);
-
-    private static final String OPERATION_LIST_NODES = "taskDtoProvider.listNodes";
-    private static final String OPERATION_COUNT_NODES = "taskDtoProvider.countNodes";
+    private static final String DOT_CLASS = NodeDtoProvider.class.getName() + ".";
+    private static final String OPERATION_LIST_NODES = DOT_CLASS + "listNodes";
+    private static final String OPERATION_COUNT_NODES = DOT_CLASS + "countNodes";
     private PageBase page;
     private QueryType query;
     private List<NodeDto> availableData;
