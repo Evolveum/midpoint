@@ -37,8 +37,9 @@ import java.util.List;
 
 public class PageDebugList extends PageAdminConfiguration {
 
-    private static final String OPERATION_DELETE_OBJECT = "PageDebugList.deleteObject";
-    private static final String OPERATION_DELETE_OBJECTS = "PageDebugList.deleteObjects";
+    private static final String DOT_CLASS = PageDebugList.class.getName() + ".";
+    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
+    private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
 
     public PageDebugList() {
         initLayout();

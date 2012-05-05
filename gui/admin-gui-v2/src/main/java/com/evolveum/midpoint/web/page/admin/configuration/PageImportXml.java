@@ -42,7 +42,8 @@ import java.io.ByteArrayInputStream;
  */
 public class PageImportXml extends PageAdminConfiguration {
 
-    private static final String OPERATION_IMPORT_XML = "pageImportXml.importXml";
+    private static final String DOT_CLASS = PageImportXml.class.getName() + ".";
+    private static final String OPERATION_IMPORT_XML = DOT_CLASS + "importXml";
     private LoadableModel<ImportOptionsType> model;
     private IModel<String> xmlEditorModel;
 

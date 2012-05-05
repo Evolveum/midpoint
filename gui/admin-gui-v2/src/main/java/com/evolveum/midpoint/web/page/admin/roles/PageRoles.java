@@ -48,7 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
  */
 public class PageRoles extends PageAdminRoles {
 
-    private static final String OPERATION_DELETE_ROLES = "pageRoles.deleteRoles";
+    private static final String DOT_CLASS = PageRoles.class.getName() + ".";
+    private static final String OPERATION_DELETE_ROLES = DOT_CLASS + "deleteRoles";
 
     public PageRoles() {
         initLayout();

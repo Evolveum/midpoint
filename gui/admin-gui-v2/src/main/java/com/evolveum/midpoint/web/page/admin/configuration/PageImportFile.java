@@ -41,7 +41,8 @@ import org.apache.wicket.util.file.File;
  */
 public class PageImportFile extends PageAdminConfiguration {
 
-    private static final String OPERATION_IMPORT_FILE = "pageImportFile.importFile";
+    private static final String DOT_CLASS = PageImportFile.class.getName() + ".";
+    private static final String OPERATION_IMPORT_FILE = DOT_CLASS + "importFile";
 
     private LoadableModel<ImportOptionsType> model;
 

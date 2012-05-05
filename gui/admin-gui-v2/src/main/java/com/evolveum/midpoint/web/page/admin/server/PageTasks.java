@@ -63,7 +63,7 @@ import java.util.List;
  */
 public class PageTasks extends PageAdminTasks {
 
-    private static final String DOT_CLASS = PageTasks.class.getSimpleName() + ".";
+    private static final String DOT_CLASS = PageTasks.class.getName() + ".";
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
     private static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
