@@ -19,39 +19,27 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.component.prism.input;
+package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.PasswordTextField;
-import org.apache.wicket.markup.html.form.validation.EqualPasswordInputValidator;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author lazyman
  */
-public class PasswordPanel extends InputPanel {
+public class DropDownChoicePanel<T> extends InputPanel {
 
-    public PasswordPanel(String id, IModel<String> model) {
+    public DropDownChoicePanel(String id, IModel<T> model, IModel<T> choices) {
         super(id);
 
-        initLayout(model);
-    }
-
-    private void initLayout(IModel<String> model) {
-        PasswordTextField password1 = new PasswordTextField("password1", model);
-        add(password1);
-
-        PasswordTextField password2 = new PasswordTextField("password2");
-        add(password2);
-
-        Form form = findParent(Form.class);
-//        form.add(new EqualPasswordInputValidator(password1, password2)); todo what with this?
+        DropDownChoice drop = new DropDownChoice("input", model, choices);
+        add(drop);
     }
 
     @Override
     public FormComponent getComponent() {
-        return (FormComponent) get("password1");
+        return (FormComponent) get("input");
     }
 }

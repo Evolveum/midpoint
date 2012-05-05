@@ -19,25 +19,23 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.component.prism.input;
+package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 
-public class TextPanel<T> extends InputPanel {
+/**
+ * @author lazyman
+ */
+public class CheckPanel extends InputPanel {
 
-    public TextPanel(String id, IModel<T> model) {
-        this(id, model, String.class);
-    }
-
-    public TextPanel(String id, IModel<T> model, Class clazz) {
+    public CheckPanel(String id, IModel<Boolean> model) {
         super(id);
 
-        final TextField<T> text = new TextField<T>("input", model);
-        text.setType(clazz);
-        add(text);
+        CheckBox check = new CheckBox("input", model);
+        add(check);
     }
 
     @Override

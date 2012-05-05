@@ -66,6 +66,7 @@ public class PageTasks extends PageAdminTasks {
     private static final String DOT_CLASS = PageTasks.class.getName() + ".";
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
+    private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     private static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
     private static final String OPERATION_SCHEDULE_TASK = DOT_CLASS + "scheduleTasks";
     private static final String OPERATION_DELETE_NODES = DOT_CLASS + "deleteNodes";
@@ -558,7 +559,7 @@ public class PageTasks extends PageAdminTasks {
         TaskManager taskManager = getTaskManager();
         List<TaskDto> taskDtoList = getSelectedTasks();
         for (TaskDto taskDto : taskDtoList) {
-            OperationResult result = mainResult.createSubresult(DOT_CLASS + ".resumeTask");
+            OperationResult result = mainResult.createSubresult(OPERATION_RESUME_TASK);
             try {
                 Task task = taskManager.getTask(taskDto.getOid(), result);
                 taskManager.resumeTask(task, result);

@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -65,7 +66,7 @@ import java.util.List;
  */
 public class PageUsers extends PageAdminUsers {
 
-    private IModel<UsersDto> model;
+    private LoadableModel<UsersDto> model;
 
     public PageUsers() {
         model = new LoadableModel<UsersDto>(false) {
@@ -163,8 +164,18 @@ public class PageUsers extends PageAdminUsers {
         CheckBox familyNameCheck = new CheckBox("familyNameCheck", new PropertyModel<Boolean>(model, "familyName"));
         item.add(familyNameCheck);
 
+        AjaxLinkButton clearButton = new AjaxLinkButton("clearButton",
+                createStringResource("pageUsers.button.clearButton")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearButtonPerformed(target);
+            }
+        };
+        item.add(clearButton);
+
         AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
-                createStringResource("pageUsers.searchButton")) {
+                createStringResource("pageUsers.button.searchButton")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
@@ -266,6 +277,13 @@ public class PageUsers extends PageAdminUsers {
         }
 
         return query;
+    }
+
+    private void clearButtonPerformed(AjaxRequestTarget target) {
+        model.reset();
+
+        target.add(getTable());
+        //todo implement
     }
 
     private void actionPerformed(AjaxRequestTarget target) {
