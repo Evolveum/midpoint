@@ -24,7 +24,9 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -66,6 +69,7 @@ import java.util.List;
  */
 public class PageUsers extends PageAdminUsers {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
     private LoadableModel<UsersDto> model;
 
     public PageUsers() {
@@ -164,11 +168,16 @@ public class PageUsers extends PageAdminUsers {
         CheckBox familyNameCheck = new CheckBox("familyNameCheck", new PropertyModel<Boolean>(model, "familyName"));
         item.add(familyNameCheck);
 
-        AjaxLinkButton clearButton = new AjaxLinkButton("clearButton",
+        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
                 createStringResource("pageUsers.button.clearButton")) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 clearButtonPerformed(target);
             }
         };
@@ -251,6 +260,9 @@ public class PageUsers extends PageAdminUsers {
     private QueryType createQuery() {
         UsersDto dto = model.getObject();
         QueryType query = null;
+        if (StringUtils.isEmpty(dto.getSearchText())) {
+            return null;
+        }
 
         try {
             Document document = DOMUtil.getDocument();
@@ -273,7 +285,8 @@ public class PageUsers extends PageAdminUsers {
                 query.setFilter(QueryUtil.createOrFilter(document, elements.toArray(new Element[elements.size()])));
             }
         } catch (Exception ex) {
-            error(getString("pageUsers.message.queryError") + ex.getMessage());
+            error(getString("pageUsers.message.queryError") + " " + ex.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
         }
 
         return query;
@@ -281,9 +294,7 @@ public class PageUsers extends PageAdminUsers {
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
         model.reset();
-
-        target.add(getTable());
-        //todo implement
+        searchPerformed(target);
     }
 
     private void actionPerformed(AjaxRequestTarget target) {
