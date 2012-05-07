@@ -271,7 +271,7 @@ h4 {
 	padding: 4px 10px;
 	font-size: 13px;
 	border-bottom: 1px solid #f2f2f2;
-	line-height: 20px;
+	height: 30px;
 	vertical-align: center;
 }
 
@@ -727,4 +727,17 @@ div.objectForm .tableForm tbody .objectFormValue .objectFormHelpContainer {
 
 .tableCheckbox {
     width: 20px;
+}
+
+.popupWindow {
+	padding: 0 10px;
+}
+
+.popupWindow .popupContent {
+	overflow-y: auto;
+	height: 360px;
+}
+
+.popupWindow .popupButtons {
+	text-align: center;
 }

@@ -22,13 +22,13 @@
 function initTable(){
 	$("thead input[type='checkbox']").click(function(){
 		if($(this).is(":checked")){
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("background","#d8f4d8");
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("border-color","#FFFFFF");
+			$(this).parents(table).find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
+			$(this).parents(table).find("tbody").find("td").css("background","#d8f4d8");
+			$(this).parents(table).find("tbody").find("td").css("border-color","#FFFFFF");
 		} else {
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("background","#FFFFFF");
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("td").css("border-color","#F2F2F2");
-			$(this).parent().parent().parent().parent().parent().parent().parent().find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
+			$(this).parents(table).find("tbody").find("td").css("background","#FFFFFF");
+			$(this).parents(table).find("tbody").find("td").css("border-color","#F2F2F2");
+			$(this).parents(table).find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
 		}
 	});
 	

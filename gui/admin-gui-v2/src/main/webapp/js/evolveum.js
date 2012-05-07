@@ -196,3 +196,10 @@ function unselectText(){
 		sel.removeAllRanges() ;
 	}
 }
+
+function scrollToTop() {
+	$('body,html').animate({
+		scrollTop: 0
+	}, 800);
+	return false;
+}
