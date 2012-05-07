@@ -340,13 +340,16 @@ public class PageUsers extends PageAdminUsers {
             return true;
         }
 
-        warn("pageUsers.message.nothingSelected");
+        warn(getString("pageUsers.message.nothingSelected"  ));
         target.add(getFeedbackPanel());
         return false;
     }
 
-    //todo ask first before delete...
     private void deletePerformed(AjaxRequestTarget target) {
+
+    }
+
+    private void deleteConfirmedPerformed(AjaxRequestTarget target) {
         List<SelectableBean<UserType>> users = getSelectedUsers();
         if (!isAnythingSelected(users, target)) {
             return;
@@ -355,7 +358,9 @@ public class PageUsers extends PageAdminUsers {
         for (SelectableBean<UserType> bean : users) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_USER);
             try {
-                //todo implement
+                Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_USER);
+                UserType user = bean.getValue();
+                getModelService().deleteObject(UserType.class, user.getOid(), task, subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
@@ -406,7 +411,7 @@ public class PageUsers extends PageAdminUsers {
                 subResult.recordSuccess();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
-                subResult.recordFatalError("Couldn't disable user.", ex);
+                subResult.recordFatalError("Couldn't disable user.", ex);      //todo i18n
             }
         }
         result.recomputeStatus();
