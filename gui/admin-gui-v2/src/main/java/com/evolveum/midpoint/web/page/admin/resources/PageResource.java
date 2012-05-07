@@ -52,16 +52,16 @@ public class PageResource extends PageAdminResources {
         PrismObject<ResourceType> resource = null;
         
         try {
-            Collection<PropertyPath> resolve = MiscUtil.createCollection(
-                    new PropertyPath(ResourceType.F_ACCOUNT),
-                    new PropertyPath(ResourceType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
-            );
+//            Collection<PropertyPath> resolve = MiscUtil.createCollection(
+//                    new PropertyPath(ResourceType.F_ACCOUNT),
+//                    new PropertyPath(ResourceType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
+//            );
 
             TaskManager taskManager = getTaskManager();
             Task task = taskManager.createTaskInstance(OPERATION_LOAD_RESOURCE);
 
             StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
-            resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), resolve, task, result);
+            //resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), resolve, task, result);
 
             result.recordSuccess();
         } catch (Exception ex) {
