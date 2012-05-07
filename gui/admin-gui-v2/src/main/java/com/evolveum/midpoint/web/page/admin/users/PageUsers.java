@@ -395,7 +395,7 @@ public class PageUsers extends PageAdminUsers {
                 PrismObject<UserType> object = user.asPrismObject();
                 PropertyPath path = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
                 PrismProperty property = object.findOrCreateProperty(path);
-                PropertyDelta delta = new PropertyDelta(property.getDefinition());
+                PropertyDelta delta = new PropertyDelta(path, property.getDefinition());
                 delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling, SourceType.USER_ACTION, null)));
 
                 Collection<PropertyDelta> deltas = new ArrayList<PropertyDelta>();
