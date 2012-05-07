@@ -317,6 +317,15 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     	// TODO: How to determine value class?????
     	return PrismConstants.DEFAULT_VALUE_CLASS;
     }
+	
+	public boolean isRaw() {
+		for (PrismPropertyValue<V> val: getValues()) {
+			if (val.isRaw()) {
+				return true;
+			}
+		}
+		return false;
+	}
     	
     @Override
 	public PropertyDelta<V> createDelta(PropertyPath path) {

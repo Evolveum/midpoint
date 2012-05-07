@@ -269,6 +269,14 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		}
 		return false;
 	}
+	
+	public static PrismReferenceValue createFromTarget(PrismObject<?> refTarget) {
+		PrismReferenceValue refVal = new PrismReferenceValue(refTarget.getOid());
+		if (refTarget.getDefinition() != null) {
+			refVal.setTargetType(refTarget.getDefinition().getTypeName());
+		}
+		return refVal;
+	}
 
 	@Override
 	public String toString() {

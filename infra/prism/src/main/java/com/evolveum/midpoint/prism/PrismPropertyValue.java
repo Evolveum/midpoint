@@ -109,6 +109,10 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		this.rawElement = rawElement;
 	}
 	
+	public boolean isRaw() {
+		return rawElement != null;
+	}
+	
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		if (definition != null && rawElement !=null) {
@@ -376,4 +380,5 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	        builder.append(DebugUtil.prettyPrint(getRawElement()));
         }
 	}
+
 }

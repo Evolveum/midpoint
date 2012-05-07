@@ -276,7 +276,18 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     		// Delete delta is never empty
     		return false;
     	}
-        return (objectToAdd == null && (modifications == null || modifications.isEmpty()));
+    	if (getChangeType() == ChangeType.ADD) {
+    		return objectToAdd == null || objectToAdd.isEmpty();
+    	}
+        if (modifications == null || modifications.isEmpty()) {
+        	return true;
+        }
+        for (ItemDelta<?> mod: modifications) {
+        	if (!mod.isEmpty()) {
+        		return false;
+        	}
+        }
+        return true;
     }
     
     public void applyDefinition(PrismObjectDefinition<T> definition) throws SchemaException {
