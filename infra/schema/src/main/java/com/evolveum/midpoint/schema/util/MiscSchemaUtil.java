@@ -73,6 +73,8 @@ public class MiscSchemaUtil {
 		options.setValidateDynamicSchema(true);
 		options.setEncryptProtectedValues(true);
 		options.setFetchResourceSchema(false);
+		options.setSummarizeErrors(true);
+		options.setSummarizeSucceses(true);
 		return options;
 	}
 
