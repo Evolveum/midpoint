@@ -41,12 +41,20 @@ public class SynchronizerUtil {
 	
 	public static void traceContext(String phase, SyncContext context, boolean showTriples) {
     	if (LOGGER.isDebugEnabled()) {
-    		StringBuilder sb = new StringBuilder("After ");
+    		StringBuilder sb = new StringBuilder("Synchronization context changes after ");
     		sb.append(phase);
     		sb.append(":");
+    		boolean empty = true;
     		for (ObjectDelta objectDelta: context.getAllChanges()) {
+    			if (objectDelta.isEmpty()) {
+    				continue;
+    			}
     			sb.append("\n");
     			sb.append(objectDelta.toString());
+    			empty = false;
+    		}
+    		if (empty) {
+    			sb.append(" no change");
     		}
     		LOGGER.debug(sb.toString());
     	}

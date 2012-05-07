@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -104,7 +105,7 @@ public class InboundProcessor {
             		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no sync delta", rat);
             		continue;
             	}
-                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
+//                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
 
                 RefinedAccountDefinition accountDefinition = context.getRefinedAccountDefinition(rat);
                 if (accountDefinition == null) {
@@ -144,19 +145,20 @@ public class InboundProcessor {
         ObjectDelta<AccountShadowType> syncDelta = accContext.getAccountSyncDelta();
         PrismObject<AccountShadowType> oldAccount = accContext.getAccountOld();
         for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
-            LOGGER.trace("Processing inbound for {}", name);
             PropertyDelta<?> propertyDelta = null;
             if (syncDelta != null) {
                 propertyDelta = syncDelta.findPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                 if (propertyDelta == null) {
-                    LOGGER.trace("Account sync delta exists, but doesn't have change for processed property, skipping.");
+                    LOGGER.trace("Skipping inbound for {} in {}: Account sync delta exists, but doesn't have change for processed property.",
+                    		name, accContext.getResourceAccountType());
                     continue;
                 }
             }
 
             RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
             List<ValueAssignmentType> inbounds = attrDef.getInboundAssignmentTypes();
-            LOGGER.trace("Number of inbounds: {}", new Object[]{(inbounds != null ? inbounds.size() : 0)});
+            LOGGER.trace("Processing inbound for {} in {}; ({} expressions)", new Object[]{
+            		DebugUtil.prettyPrint(name), accContext.getResourceAccountType(), (inbounds != null ? inbounds.size() : 0)});
 
             for (ValueAssignmentType inbound : inbounds) {
                 if (checkInitialSkip(inbound, context.getUserNew())) {
@@ -169,17 +171,20 @@ public class InboundProcessor {
                     LOGGER.debug("Processing inbound from account sync delta.");
                     delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
                 } else if (oldAccount != null) {
+                	if (!accContext.isFullAccount()) {
+                		throw new SystemException("Attept to execute inbound expression on account shadow (not full account)");
+                	}
                     LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
                     PrismProperty<?> oldAccountProperty = oldAccount.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, name));
                     delta = createUserPropertyDelta(inbound, oldAccountProperty, context.getUserNew());
                 }
 
                 if (delta != null && !delta.isEmpty()) {
-                    LOGGER.trace("Created delta \n{}", new Object[]{delta.debugDump(3)});
+                    LOGGER.trace("Created delta (from inbound expression) \n{}", new Object[]{delta.debugDump(3)});
                     userDelta.swallow(delta);
                     context.recomputeUserNew();
                 } else {
-                    LOGGER.trace("Created delta was null or empty.");
+                    LOGGER.trace("Created delta (from inbound expression) was null or empty.");
                 }
             }
         }
@@ -207,6 +212,10 @@ public class InboundProcessor {
     private <T> PropertyDelta<T> createUserPropertyDelta(ValueAssignmentType inbound, PrismProperty<T> oldAccountProperty,
             PrismObject<UserType> newUser) {
         List<ValueFilterType> filters = inbound.getValueFilter();
+        
+        if (oldAccountProperty != null && oldAccountProperty.isRaw()) {
+        	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
+        }
 
         PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
         PrismProperty<T> targetUserProperty = null;

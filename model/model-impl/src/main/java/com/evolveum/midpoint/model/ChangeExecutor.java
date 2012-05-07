@@ -93,7 +93,6 @@ public class ChangeExecutor {
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectDelta<UserType> userDelta = syncContext.getUserDelta();
         if (userDelta != null) {
-            LOGGER.trace("Executing USER change " + userDelta);
             executeChange(userDelta, result);
 
             // userDelta is composite, mixed from primary and secondary. The OID set into
@@ -115,7 +114,6 @@ public class ChangeExecutor {
                 continue;
             }
 
-            LOGGER.trace("Executing ACCOUNT change " + accDelta);
             executeChange(accDelta, result);
             // To make sure that the OID is set (e.g. after ADD operation)
             accCtx.setOid(accDelta.getOid());
@@ -123,7 +121,7 @@ public class ChangeExecutor {
         }
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after change execution:\n{}", syncContext.dump());
+            LOGGER.trace("Context after change execution:\n{}", syncContext.dump(false));
         }
     }
 

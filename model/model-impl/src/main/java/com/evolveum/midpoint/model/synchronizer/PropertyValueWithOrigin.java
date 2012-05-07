@@ -76,7 +76,7 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabelToString(sb, "valueConstruction", valueConstruction, indent +1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabelToString(sb, "valueConstruction", accountConstruction, indent +1);
+		DebugUtil.debugDumpWithLabelToString(sb, "accountConstruction", accountConstruction, indent +1);
 		return sb.toString();
 	}
 

@@ -18,35 +18,19 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-    <name>jack</name>
-    <extension>
-        <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
-    </extension>
-    <fullName>Jack Sparrow</fullName>
-    <givenName>Jack</givenName>
-    <familyName>Sparrow</familyName>
-    <additionalNames>Jackie</additionalNames>
-    <honorificPrefix>Cpt.</honorificPrefix>
-    
-    <honorificSuffix>PhD.</honorificSuffix>
-    <emailAddress>jack.sparrow@evolveum.com</emailAddress>
-    <telephoneNumber>555-1234</telephoneNumber>
-    <employeeNumber>emp1234</employeeNumber>
-    <employeeType>CAPTAIN</employeeType>
-    <organizationalUnit>Leaders</organizationalUnit>
-    <locality>Caribbean</locality>
 
-    <credentials>
-        <password>
-        	<protectedString>
-	            <clearValue>deadmentellnotales</clearValue>
-            </protectedString>
-        </password>
-    </credentials>
-</user>
+<account oid="22226666-2200-6666-6666-444400004444"
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+	<name>guybrush</name>
+	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+	<objectClass>ri:AccountObjectClass</objectClass>
+	<attributes>
+		<icfs:name>guybrush</icfs:name>
+		<icfs:uid>guybrush</icfs:uid>
+	</attributes>
+	<accountType>user</accountType>
+</account>

@@ -105,6 +105,11 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     private ObjectDelta<AccountShadowType> accountSecondaryDelta;
     
     /**
+     * Set to true if the account loaded into accountOld is the full account with all the attributes (as opposed to repository shadow).
+     */
+    private boolean fullAccount = false;
+    
+    /**
      * Delta set triple for accounts. Specifies which accounts should be added, removed or stay as they are.
      * It tells almost nothing about attributes directly although the information about attributes are inside
      * each account construction (in a form of ValueConstruction that contains attribute delta triples).
@@ -307,6 +312,14 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	public void setIterationToken(String iterationToken) {
 		this.iterationToken = iterationToken;
 	}
+	
+	public boolean isFullAccount() {
+		return fullAccount;
+	}
+
+	public void setFullAccount(boolean fullAccount) {
+		this.fullAccount = fullAccount;
+	}
 
 	public PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> getAccountConstructionDeltaSetTriple() {
 		return accountConstructionDeltaSetTriple;
@@ -470,6 +483,11 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         StringBuilder sb = new StringBuilder();
         SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("OID: ").append(oid);
+        if (fullAccount) {
+        	sb.append(", full");
+        } else {
+        	sb.append(", shadow");
+        }
         sb.append(", assigned=").append(isAssigned);
         sb.append(", recon=").append(doReconciliation);
         sb.append(", decision=").append(policyDecision);

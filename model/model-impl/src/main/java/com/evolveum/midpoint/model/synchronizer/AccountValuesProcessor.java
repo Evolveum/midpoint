@@ -27,6 +27,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,6 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,7 +137,7 @@ public class AccountValuesProcessor {
 		return Integer.toString(iteration);
 	}
 
-	private boolean satisfiesConstraints(AccountSyncContext accountContext, OperationResult result) throws SchemaException {
+	private boolean satisfiesConstraints(AccountSyncContext accountContext, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		
 		RefinedAccountDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
 		PrismObject<AccountShadowType> accountNew = accountContext.getAccountNew();
@@ -159,10 +162,22 @@ public class AccountValuesProcessor {
 			boolean unique = checkAttributeUniqueness(attr, accountDefinition, accountContext.getResource(), 
 					accountContext.getOid(), result);
 			if (!unique) {
+				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr,  accountContext.getResourceAccountType());
+				if (isInDelta(attr, accountContext.getAccountPrimaryDelta())) {
+					throw new ObjectAlreadyExistsException("Attribute "+attr+" conflicts with existing object (and it is present in primary "+
+							"account delta therefore no iteration is performed)");
+				}
 				return false;
 			}
 		}
 		return true;
+	}
+
+	private boolean isInDelta(PrismProperty<?> attr, ObjectDelta<AccountShadowType> delta) {
+		if (delta == null) {
+			return false;
+		}
+		return delta.hasItemDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, attr.getName()));
 	}
 
 	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedAccountDefinition accountDefinition,

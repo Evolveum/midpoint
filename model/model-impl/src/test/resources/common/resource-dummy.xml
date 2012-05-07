@@ -154,6 +154,20 @@
 					</target>
 				</inbound>
 			</attribute>
+			<attribute>
+				<ref>ri:location</ref>
+				<displayName>Location</displayName>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
+				<outbound>
+					<expression>
+						<code>
+							$c:user/c:locality
+						</code>
+					</expression>
+				</outbound>
+			</attribute>
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>

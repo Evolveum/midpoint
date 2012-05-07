@@ -55,6 +55,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -187,19 +188,24 @@ public class UserSynchronizer {
         OperationResult subResult = result.createSubresult(UserSynchronizer.class.getName() + ".checkAccountContextReconciliation");
         try {
             for (AccountSyncContext accContext : context.getAccountContexts()) {
-                if (!accContext.isDoReconciliation() || accContext.getAccountOld() != null) {
+                if (!accContext.isDoReconciliation()) {
+                	// no need to load
                     continue;
                 }
+                
+                if (accContext.getAccountOld() != null && accContext.isFullAccount()) {
+                	// already loaded
+                	continue;
+                }
+                
+                if (accContext.getOid() == null) {
+                	throw new SystemException("Request to reconcile account with null OID and without a full representation in account sync context"); 
+                }
 
-                AccountShadowType account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
-                        subResult).asObjectable();
-                ResourceType resource = Utils.getResource(account, provisioningService, result);
-                PrismObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
-                        resource, prismContext).getObjectDefinition(account);
-
-                PrismObject<AccountShadowType> object = definition.instantiate(SchemaConstants.I_ACCOUNT);
-                object.setOid(account.getOid());
-                accContext.setAccountOld(object);
+                PrismObject<AccountShadowType> account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
+                        subResult);
+                accContext.setAccountOld(account);
+                accContext.setFullAccount(true);
             }
         } finally {
             subResult.computeStatus();
@@ -342,6 +348,7 @@ public class UserSynchronizer {
 					// This is a new account that is to be added. So it should go to account primary delta
 					ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
 					accountSyncContext.setAccountPrimaryDelta(accountPrimaryDelta);
+					accountSyncContext.setFullAccount(true);
 				} else {
 					// We have OID. This is either linking of exising account or add of new account
 					// therefore check for account existence to decide
@@ -352,7 +359,7 @@ public class UserSynchronizer {
 						accountSyncContext.setAccountOld(account);
 					} catch (ObjectNotFoundException e) {
 						if (refVal.getObject() == null) {
-							// account does not exist, no compisite account in ref -> this is really an error
+							// account does not exist, no composite account in ref -> this is really an error
 							throw e;
 						} else {
 							// New account (with OID)
@@ -361,6 +368,7 @@ public class UserSynchronizer {
 							accountSyncContext = getOrCreateAccountContext(context, account, result);
 							ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
 							accountSyncContext.setAccountPrimaryDelta(accountPrimaryDelta);
+							accountSyncContext.setFullAccount(true);
 						}
 					}				
 				}

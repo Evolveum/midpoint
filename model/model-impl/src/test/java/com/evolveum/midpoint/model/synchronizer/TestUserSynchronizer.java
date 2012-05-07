@@ -39,6 +39,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.AccountSyncContext;
@@ -97,8 +98,8 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
             "/user-barbossa-modify-delete-assignment-account-opendj-attr.xml";
 	
 	@Autowired(required = true)
-	UserSynchronizer userSynchronizer;
-
+	private UserSynchronizer userSynchronizer;
+	
 	public TestUserSynchronizer() throws JAXBException {
 		super();
 	}
@@ -392,6 +393,47 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
         // TODO
+        
+    }
+	
+	@Test
+    public void test300ReconcileGuybrushDummy() throws Exception {
+        displayTestTile(this, "test300ReconcileGuybrushDummy");
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test300ReconcileGuybrushDummy");
+        
+        // Change the guybrush account on dummy resource directly. This creates inconsistency.
+        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        dummyAccount.replaceAttributeValue("location", "Phatt Island");
+        
+        SyncContext context = new SyncContext(prismContext);
+        fillContextWithUser(context, USER_GUYBRUSH_OID, result);
+        context.setDoReconciliationForAllAccounts(true);
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        userSynchronizer.synchronizeUser(context, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertNull("User primary delta sneaked in", context.getUserPrimaryDelta());
+        assertNull("User secondary delta sneaked in", context.getUserSecondaryDelta());
+        
+        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+
+        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        assertEquals(1, accountContexts.size());
+        AccountSyncContext accContext = accountContexts.iterator().next();
+        assertNull(accContext.getAccountPrimaryDelta());
+        
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getDummyAttributePath("location"), "Melee Island");
         
     }
 

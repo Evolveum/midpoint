@@ -150,6 +150,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String USER_BARBOSSA_FILENAME = COMMON_DIR_NAME + "/user-barbossa.xml";
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
 
+	protected static final String USER_GUYBRUSH_FILENAME = COMMON_DIR_NAME + "/user-guybrush.xml";
+	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
 	
@@ -161,6 +164,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	public static final String ACCOUNT_HERMAN_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-herman-opendj.xml";
 	public static final String ACCOUNT_HERMAN_OPENDJ_OID = "22220000-2200-0000-0000-333300003333";
+	
+	public static final String ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-guybrush-dummy.xml";
+	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
+	public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";
 	
 	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
 	
@@ -184,6 +191,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
+	protected UserType userTypeGuybrush;
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 	protected ResourceType resourceDummyType;
@@ -218,6 +226,12 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		hermanDummyAccount.addAttributeValues("location", "Monkey Island");
 		dummyResource.addAccount(hermanDummyAccount);
 		
+		DummyAccount guybrushDummyAccount = new DummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+		guybrushDummyAccount.setEnabled(true);
+		guybrushDummyAccount.addAttributeValues("fullname", "Guybrush Threepwood");
+		guybrushDummyAccount.addAttributeValues("location", "Melee Island");
+		dummyResource.addAccount(guybrushDummyAccount);
+		
 		postInitDummyResouce();
 		
 		try {
@@ -239,12 +253,14 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		resourceDummy = addObjectFromFile(RESOURCE_DUMMY_FILENAME, ResourceType.class, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
 
+		// Accounts
+		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, initResult);
+		
 		// Users
 		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
 		userTypeBarbossa = addObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
-		
-		// Accounts
-		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, initResult);
+		userTypeGuybrush = addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, initResult).asObjectable();
 		
 		// Roles
 		addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
@@ -355,28 +371,30 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	    	return;
 	    }
 	    ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
-	    assertEquals(userOld.getOid(), userPrimaryDelta.getOid());
-	    assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());
-	    assertNull(userPrimaryDelta.getObjectToAdd());
-	    for (ItemDelta itemMod : userPrimaryDelta.getModifications()) {
-	        if (itemMod.getValuesToDelete() != null) {
-	            Item property = userOld.findItem(itemMod.getPath());
-	            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in user", property);
-	            for (Object valueToDelete : itemMod.getValuesToDelete()) {
-	                if (!property.containsRealValue((PrismValue) valueToDelete)) {
-	                    display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
-	                    display("Deleted value", valueToDelete);
-	                    display("HASHCODE: " + valueToDelete.hashCode());
-	                    for (Object value : property.getValues()) {
-	                        display("Existing value", value);
-	                        display("EQUALS: " + valueToDelete.equals(value));
-	                        display("HASHCODE: " + value.hashCode());
-	                    }
-	                    AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
-	                }
-	            }
-	        }
-	
+	    if (userPrimaryDelta != null) {
+		    assertEquals("No OID in userOld", userOld.getOid(), userPrimaryDelta.getOid());
+		    assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());
+		    assertNull(userPrimaryDelta.getObjectToAdd());
+		    for (ItemDelta itemMod : userPrimaryDelta.getModifications()) {
+		        if (itemMod.getValuesToDelete() != null) {
+		            Item property = userOld.findItem(itemMod.getPath());
+		            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in user", property);
+		            for (Object valueToDelete : itemMod.getValuesToDelete()) {
+		                if (!property.containsRealValue((PrismValue) valueToDelete)) {
+		                    display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
+		                    display("Deleted value", valueToDelete);
+		                    display("HASHCODE: " + valueToDelete.hashCode());
+		                    for (Object value : property.getValues()) {
+		                        display("Existing value", value);
+		                        display("EQUALS: " + valueToDelete.equals(value));
+		                        display("HASHCODE: " + value.hashCode());
+		                    }
+		                    AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
+		                }
+		            }
+		        }
+		
+		    }
 	    }
 	}
 	
@@ -596,5 +614,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 				new QName(RESOURCE_OPENDJ_NAMESPACE, attrName));
 		
 	}
-	
+
+	protected PropertyPath getDummyAttributePath(String attrName) {
+		return new PropertyPath(
+				ResourceObjectShadowType.F_ATTRIBUTES,
+				new QName(RESOURCE_DUMMY_NAMESPACE, attrName));
+		
+	}
 }

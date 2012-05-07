@@ -105,14 +105,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                 "Object delta and current shadow are null. At least one must be provided.");
         Validate.notNull(change.getResource(), "Resource in change must not be null.");
         Validate.notNull(parentResult, "Parent operation result must not be null.");
-        LOGGER.debug("SYNC NEW CHANGE NOTIFICATION");
+        LOGGER.debug("SYNCHRONIZATION: received change notifiation {}", change);
         
         OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
         try {
             ResourceType resource = change.getResource().asObjectable();
 
             if (!isSynchronizationEnabled(resource.getSynchronization())) {
-                String message = "Synchronization is not enabled for " + ObjectTypeUtil.toShortString(resource) + " ignoring change from channel " + change.getSourceChannel();
+                String message = "SYNCHRONIZATION is not enabled for " + ObjectTypeUtil.toShortString(resource) + " ignoring change from channel " + change.getSourceChannel();
                 LOGGER.debug(message);
                 subResult.recordStatus(OperationResultStatus.SUCCESS, message);
                 return;
@@ -120,8 +120,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             LOGGER.trace("Synchronization is enabled.");
 
             SynchronizationSituation situation = checkSituation(change, subResult);
-            LOGGER.debug("SITUATION: {} {}",
-                    situation.getSituation().value(), ObjectTypeUtil.toShortString(situation.getUser()));
+            LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}",
+                    situation.getSituation().value(), situation.getUser());
 
             notifyChange(change, situation, resource, task, subResult);
             subResult.computeStatus();
@@ -235,7 +235,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         ObjectDelta syncDelta = change.getObjectDelta();
         if (resourceShadow == null && syncDelta != null
                 && ChangeType.ADD.equals(syncDelta.getChangeType())) {
-            LOGGER.debug("Trying to compute current shadow from change delta add.");
+            LOGGER.trace("Trying to compute current shadow from change delta add.");
             PrismObject<? extends ResourceObjectShadowType> shadow =
                     syncDelta.computeChangedObject(syncDelta.getObjectToAdd());
             resourceShadow = shadow;
@@ -249,7 +249,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         SynchronizationType synchronization = resource.getSynchronization();
 
         SynchronizationSituationType state = null;
-        LOGGER.debug("CORRELATION: Looking for list of users based on correlation rule.");
+        LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of users based on correlation rule.");
         List<PrismObject<UserType>> users = findUsersByCorrelationRule(resourceShadow.asObjectable(), synchronization.getCorrelation(), result);
         if (users == null) {
             users = new ArrayList<PrismObject<UserType>>();
@@ -257,13 +257,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
         if (users.size() > 1) {
             if (synchronization.getConfirmation() == null) {
-                LOGGER.debug("CONFIRMATION: no confirmation defined.");
+                LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
             } else {
-                LOGGER.debug("CONFIRMATION: Checking users from correlation with confirmation rule.");
+                LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking users from correlation with confirmation rule.");
                 users = findUserByConfirmationRule(users, resourceShadow.asObjectable(), synchronization.getConfirmation(), result);
             }
-        } else {
-            LOGGER.debug("CORRELATION: found {} users.", users.size());
         }
 
         UserType user = null;
@@ -345,7 +343,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             LOGGER.trace("Updating user started.");
             String userOid = situation.getUser() == null ? null : situation.getUser().getOid();
             for (Action action : actions) {
-                LOGGER.debug("ACTION: Executing: {}.", new Object[]{action.getClass()});
+                LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[]{action.getClass()});
 
                 userOid = action.executeChanges(userOid, change, situation.getSituation(), auditRecord, task, parentResult);
             }
@@ -442,8 +440,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         try {
             query = new QueryType();
             query.setFilter(filter);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("CORRELATION: expression for OID {} results in filter\n{}", new Object[]{
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for OID {} results in filter\n{}", new Object[]{
                         currentShadow.getOid(), SchemaDebugUtil.prettyPrint(query)});
             }
             PagingType paging = new PagingType();
@@ -460,7 +458,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     "Couldn't search users in repository, based on filter (See logs).", ex);
         }
 
-        LOGGER.debug("CORRELATION: expression for OID {} returned {} users: {}",
+        LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for OID {} returned {} users: {}",
                 new Object[]{currentShadow.getOid(), users.size(), DebugUtil.prettyPrint(users, 3)});
         return users;
     }
@@ -483,7 +481,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             }
         }
 
-        LOGGER.debug("CONFIRMATION: expression for OID {} matched {} users.", new Object[]{
+        LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: expression for OID {} matched {} users.", new Object[]{
                 currentShadow.getOid(), list.size()});
         return list;
     }
@@ -543,7 +541,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                         return null;
                     }
                     // TODO: log more context
-                    LOGGER.debug("Search filter expression in the rule for OID {} evaluated to {}.",
+                    LOGGER.trace("Search filter expression in the rule for OID {} evaluated to {}.",
                             new Object[]{currentShadow.getOid(), expressionResult});
                     attribute.setTextContent(expressionResult);
                     value.appendChild(attribute);

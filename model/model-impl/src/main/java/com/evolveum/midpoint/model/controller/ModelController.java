@@ -686,17 +686,18 @@ public class ModelController implements ModelService {
 					modificationsCloned.add(deltaNew);
 
 				}
+				
+				userSynchronizer.synchronizeUser(syncContext, result);
+
+				// Deltas after sync will be different
+				auditRecord.clearDeltas();
+				auditRecord.addDeltas(syncContext.getAllChanges());
 
 				try {
-				
-					userSynchronizer.synchronizeUser(syncContext, result);
-
-					// Deltas after sync will be different
-					auditRecord.clearDeltas();
-					auditRecord.addDeltas(syncContext.getAllChanges());
 					changeExecutor.executeChanges(syncContext, result);
 					result.computeStatus();
 				} catch (ObjectAlreadyExistsException e) {
+					LOGGER.debug("Restarting user synchronizer as a reaction to ObjectAlreadyExistsException", e);
 					syncContext = userTypeModifyToContextAssertRecon(oid, modificationsCloned, result);
 					result = parentResult.createSubresult(MODIFY_OBJECT);
 					result.addParam("syncContext", syncContext);
