@@ -21,6 +21,22 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.ResourceReference;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -32,23 +48,16 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.request.resource.ResourceReference;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman
  */
 public class PageResources extends PageAdminResources {
+	private static final String DOT_CLASS = PageTasks.class.getName() + ".";
+	private static final String TEST_RESOURCE = DOT_CLASS + "testResource";
 
     public PageResources() {
         initLayout();
@@ -128,7 +137,7 @@ public class PageResources extends PageAdminResources {
             }
         };
         columns.add(column);
-
+        
         //todo sync import progress
 //        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
 //        columns.add(column);
@@ -170,7 +179,9 @@ public class PageResources extends PageAdminResources {
     }
 
     private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
-        //todo implement
+    	PageParameters parameters = new PageParameters();
+        parameters.add(PageResource.PARAM_RESOURCE_ID, oid);
+        setResponsePage(PageResource.class, parameters);
     }
 
     private void deleteResourcePerformed(AjaxRequestTarget target) {
@@ -178,6 +189,15 @@ public class PageResources extends PageAdminResources {
     }
 
     private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
-        //todo implement
+    	OperationResult result = new OperationResult(TEST_RESOURCE);
+        //TaskManager taskManager = getTaskManager();
+        
+    	ResourceDto dto = rowModel.getObject();
+    	if (StringUtils.isEmpty(dto.getOid())) {
+    		result.recordFatalError("Resource oid not defined in request");
+		}
+    	
+    	
+    	
     }
 }
