@@ -22,7 +22,11 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,6 +43,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersAction;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -60,9 +65,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -70,6 +73,13 @@ import java.util.List;
 public class PageUsers extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
+    private static final String DOT_CLASS = PageUsers.class.getName() + ".";
+    private static final String OPERATION_DELETE_USERS = DOT_CLASS + "deleteUsers";
+    private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
+    private static final String OPERATION_DISABLE_USERS = DOT_CLASS + "disableUsers";
+    private static final String OPERATION_DISABLE_USER = DOT_CLASS + "disableUser";
+    private static final String OPERATION_ENABLE_USERS = DOT_CLASS + "enableUsers";
+    private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
     private LoadableModel<UsersDto> model;
 
     public PageUsers() {
@@ -213,7 +223,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void initAction(OptionItem item) {
-        final IModel<ObjectTypes> choice = new Model<ObjectTypes>();
+        final IModel<UsersAction> choice = new Model<UsersAction>();
         ListChoice listChoice = new ListChoice("choice", choice, createChoiceModel(),
                 new EnumChoiceRenderer(PageUsers.this), 5) {
 
@@ -226,7 +236,21 @@ public class PageUsers extends PageAdminUsers {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                actionPerformed(target);
+                UsersAction action = choice.getObject();
+                if (action == null) {
+                    return;
+                }
+                switch (action) {
+                    case DELETE:
+                        deletePerformed(target);
+                        break;
+                    case ENABLE:
+                        enablePerformed(target);
+                        break;
+                    case DISABLE:
+                        disablePerformed(target);
+                        break;
+                }
             }
         });
         item.getBodyContainer().add(listChoice);
@@ -297,7 +321,98 @@ public class PageUsers extends PageAdminUsers {
         searchPerformed(target);
     }
 
-    private void actionPerformed(AjaxRequestTarget target) {
-        //todo implement
+    private List<SelectableBean<UserType>> getSelectedUsers() {
+        DataTable table = getTable().getDataTable();
+        ObjectDataProvider<UserType> provider = (ObjectDataProvider) table.getDataProvider();
+
+        List<SelectableBean<UserType>> selected = new ArrayList<SelectableBean<UserType>>();
+        for (SelectableBean<UserType> row : provider.getAvailableData()) {
+            if (row.isSelected()) {
+                selected.add(row);
+            }
+        }
+
+        return selected;
+    }
+
+    private boolean isAnythingSelected(List<SelectableBean<UserType>> users, AjaxRequestTarget target) {
+        if (!users.isEmpty()) {
+            return true;
+        }
+
+        warn("pageUsers.message.nothingSelected");
+        target.add(getFeedbackPanel());
+        return false;
+    }
+
+    //todo ask first before delete...
+    private void deletePerformed(AjaxRequestTarget target) {
+        List<SelectableBean<UserType>> users = getSelectedUsers();
+        if (!isAnythingSelected(users, target)) {
+            return;
+        }
+        OperationResult result = new OperationResult(OPERATION_DELETE_USERS);
+        for (SelectableBean<UserType> bean : users) {
+            OperationResult subResult = result.createSubresult(OPERATION_DELETE_USER);
+            try {
+                //todo implement
+                subResult.recordSuccess();
+            } catch (Exception ex) {
+                subResult.recomputeStatus();
+                subResult.recordFatalError("Couldn't delete user.", ex);
+            }
+        }
+        result.recomputeStatus();
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+        target.add(getTable());
+    }
+
+    private void enablePerformed(AjaxRequestTarget target) {
+        updateActivationPerformed(target, true);
+    }
+
+    private void disablePerformed(AjaxRequestTarget target) {
+        updateActivationPerformed(target, false);
+    }
+
+    private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling) {
+        List<SelectableBean<UserType>> users = getSelectedUsers();
+        if (!isAnythingSelected(users, target)) {
+            return;
+        }
+        OperationResult result = enabling ? new OperationResult(OPERATION_ENABLE_USERS) :
+                new OperationResult(OPERATION_DISABLE_USERS);
+        for (SelectableBean<UserType> bean : users) {
+            String operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
+            OperationResult subResult = result.createSubresult(operation);
+            try {
+                Task task = getTaskManager().createTaskInstance(operation);
+                UserType user = bean.getValue();
+                getPrismContext().adopt(user);
+
+                PrismObject<UserType> object = user.asPrismObject();
+                PropertyPath path = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+                PrismProperty property = object.findOrCreateProperty(path);
+                PropertyDelta delta = new PropertyDelta(property.getDefinition());
+                delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling, SourceType.USER_ACTION, null)));
+
+                Collection<PropertyDelta> deltas = new ArrayList<PropertyDelta>();
+                deltas.add(delta);
+
+                getModelService().modifyObject(UserType.class, user.getOid(), deltas, task, subResult);
+
+                subResult.recordSuccess();
+            } catch (Exception ex) {
+                subResult.recomputeStatus();
+                subResult.recordFatalError("Couldn't disable user.", ex);
+            }
+        }
+        result.recomputeStatus();
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+        target.add(getTable());
     }
 }

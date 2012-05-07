@@ -184,7 +184,7 @@ public class UserSynchronizer {
     private void checkAccountContextReconciliation(SyncContext context, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
-        OperationResult subResult = result.createSubresult(UserSynchronizer.class + ".checkAccountContextReconciliation");
+        OperationResult subResult = result.createSubresult(UserSynchronizer.class.getName() + ".checkAccountContextReconciliation");
         try {
             for (AccountSyncContext accContext : context.getAccountContexts()) {
                 if (!accContext.isDoReconciliation() || accContext.getAccountOld() != null) {
