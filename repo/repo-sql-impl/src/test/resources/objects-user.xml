@@ -19,9 +19,11 @@
   ~
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-    <name>guybrush</name>
-    <fullName>Guybrush Threepwood</fullName>
-    <givenName>Guybrush</givenName>
-    <familyName>Threepwood</familyName>
-</user>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+    <user>
+        <name>barbossa</name>
+        <fullName>Hector Barbossa</fullName>
+        <givenName>Hector</givenName>
+        <familyName>Barbossa</familyName>
+    </user>
+</objects>

@@ -92,7 +92,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
     @Test(expectedExceptions = ObjectAlreadyExistsException.class)
     public void addSameName() throws Exception {
-        final File user = new File("./src/test/resources/user.xml");
+        final File user = new File("./src/test/resources/objects-user.xml");
         addGetCompare(user);
         addGetCompare(user);
     }
