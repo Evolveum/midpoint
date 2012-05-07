@@ -82,7 +82,6 @@ function init() {
 		} else {
 			$(this).find("td").css("background", "#FFFFFF");
 			$(this).find("td").css("border-color","#F2F2F2");
-			
 		}
 	});
 	

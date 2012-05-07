@@ -20,7 +20,7 @@
  */
 
 function initMessages() {
-	jQuery(".messagesTop").find(".messages-topPanel").each(function(index){
+	$(".messagesTop").find(".messages-topPanel").each(function(index){
 		var arrow;
 		var className = $(this).attr('class');
 		if(className.indexOf("messages-topError") >= 0){

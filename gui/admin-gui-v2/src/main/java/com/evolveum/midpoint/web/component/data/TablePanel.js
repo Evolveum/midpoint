@@ -22,15 +22,35 @@
 function initTable(){
 	$("thead input[type='checkbox']").click(function(){
 		if($(this).is(":checked")){
-			$(this).parents(table).find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
-			$(this).parents(table).find("tbody").find("td").css("background","#d8f4d8");
-			$(this).parents(table).find("tbody").find("td").css("border-color","#FFFFFF");
+			$(this).parents("table").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
+			$(this).parents("table").find("tbody").find("td").css("background","#d8f4d8");
+			$(this).parents("table").find("tbody").find("td").css("border-color","#FFFFFF");
 		} else {
-			$(this).parents(table).find("tbody").find("td").css("background","#FFFFFF");
-			$(this).parents(table).find("tbody").find("td").css("border-color","#F2F2F2");
-			$(this).parents(table).find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
+			$(this).parents("table").find("tbody").find("td").css("background","#FFFFFF");
+			$(this).parents("table").find("tbody").find("td").css("border-color","#F2F2F2");
+			$(this).parents("table").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
 		}
 	});
+	
+	function checkAllChecked(parent) {
+		var isAllChecked = false;
+		parent.find("tbody tr").find(".tableCheckbox").find("input[type='checkbox']").each(function(index){
+			if($(this).is(":checked")){
+				isAllChecked = true;
+			} else {
+				isAllChecked = false;
+				return false;
+			}
+		});
+		if(isAllChecked) {
+			parent.find("thead").find("input[type='checkbox']").attr("checked", true);
+		} else {
+			parent.find("thead").find("input[type='checkbox']").attr("checked", false);
+		}
+	}
+	
+	
+	
 	
 	$(".sortedTable table tbody tr").mouseenter(function(){
 		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
@@ -46,6 +66,8 @@ function initTable(){
 			$(this).find("td").css("background", "#FFFFFF");
 			$(this).find("td").css("border-color","#F2F2F2");
 		}
+	}).find(".tableCheckbox").find("input[type='checkbox']").click(function(){
+		checkAllChecked($(this).parents("table"));
 	});
 
 }
