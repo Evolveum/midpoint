@@ -105,8 +105,7 @@ ul.messagesTop .messages-topError .arrow-up {
 }
 
 ul.messagesTop .messages-error-details-section {
-	padding: 2px 0px;
-	padding-left: 25px;
+	padding: 2px 0 1px 25px;
 	font-size: 12px;
 	background-image: url(messages-error-icon.png);
 	background-repeat: no-repeat;
@@ -221,9 +220,8 @@ ul.messagesTop .messages-topWarn .arrow-up {
 	background-position: 0px 0px;
 }
 
-ul.messagesTop .messages-warn-details-section, ul.messagesTop .messages-warn .messages-warn-details-section {
-	padding: 2px 0px;
-	padding-left: 25px;
+ul.messagesTop .messages-warn-details-section {
+	padding: 2px 0 1px 25px;
 	font-size: 12px;
 	background-image: url(messages-warn-icon.png);
 	background-repeat: no-repeat;
@@ -306,8 +304,7 @@ ul.messagesTop .messages-topSucc .arrow-up {
 }
 
 ul.messagesTop .messages-succ-details-section {
-	padding: 2px 0px;
-	padding-left: 25px;
+	padding: 2px 0 1px 25px;
 	font-size: 12px;
 	background-image: url(messages-succ-icon.png);
 	background-repeat: no-repeat;
@@ -390,9 +387,8 @@ ul.messagesTop .messages-topInfo .arrow-up {
 	background-position: 0px 0px;
 }
 
-ul.messagesTop .messages-info-details-section, ul.messagesTop .messages-info .messages-info-details-section {
-	padding: 2px 0px;
-	padding-left: 25px;
+ul.messagesTop .messages-info-details-section {
+	padding: 2px 0 1px 25px;
 	font-size: 12px;
 	background-image: url(messages-info-icon.png);
 	background-repeat: no-repeat;

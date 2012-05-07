@@ -20,6 +20,12 @@
  */
 
 function initMessages() {
+	$("a").click(function(){
+		$(".messagesTop").fadeOut(200,function(){
+			$(".messagesTop").remove();
+		});
+	});
+	
 	$(".messagesTop").find(".messages-topPanel").each(function(index){
 		var arrow;
 		var className = $(this).attr('class');
