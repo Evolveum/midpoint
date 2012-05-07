@@ -138,8 +138,8 @@ public abstract class PageBase extends WebPage {
         return modelService;
     }
 
-    protected StringResourceModel createStringResource(String resourceKey) {
-        return new StringResourceModel(resourceKey, this, null);
+    protected StringResourceModel createStringResource(String resourceKey, Object... objects) {
+        return new StringResourceModel(resourceKey, this, null, null, objects);
     }
 
     protected StringResourceModel createStringResource(Enum e) {

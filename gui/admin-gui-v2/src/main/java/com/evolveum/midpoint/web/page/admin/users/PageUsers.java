@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,6 +30,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -50,6 +50,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -58,6 +59,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -80,6 +82,7 @@ public class PageUsers extends PageAdminUsers {
     private static final String OPERATION_DISABLE_USER = DOT_CLASS + "disableUser";
     private static final String OPERATION_ENABLE_USERS = DOT_CLASS + "enableUsers";
     private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
+    private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
     private LoadableModel<UsersDto> model;
 
     public PageUsers() {
@@ -111,6 +114,32 @@ public class PageUsers extends PageAdminUsers {
         OptionContent content = new OptionContent("optionContent");
         mainForm.add(content);
         initTable(content);
+
+        add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE, createStringResource("pageUsers.dialog.title.confirmDelete"),
+                createDeleteConfirmString()) {
+
+            @Override
+            public void noPerformed(AjaxRequestTarget target) {
+                close(target);
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteConfirmedPerformed(target);
+            }
+        });
+    }
+
+    private IModel<String> createDeleteConfirmString() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("pageUsers.message.deleteUserConfirm",
+                        getSelectedUsers().size()).getString();
+            }
+        };
     }
 
     private List<IColumn<UserType>> initColumns() {
@@ -224,7 +253,7 @@ public class PageUsers extends PageAdminUsers {
 
     private void initAction(OptionItem item) {
         final IModel<UsersAction> choice = new Model<UsersAction>();
-        ListChoice listChoice = new ListChoice("choice", choice, createChoiceModel(),
+        final ListChoice listChoice = new ListChoice("choice", choice, createChoiceModel(),
                 new EnumChoiceRenderer(PageUsers.this), 5) {
 
             @Override
@@ -232,10 +261,13 @@ public class PageUsers extends PageAdminUsers {
                 return "";
             }
         };
+        listChoice.setOutputMarkupId(true);
         listChoice.add(new OnChangeAjaxBehavior() {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                target.add(listChoice);
+
                 UsersAction action = choice.getObject();
                 if (action == null) {
                     return;
@@ -251,6 +283,7 @@ public class PageUsers extends PageAdminUsers {
                         disablePerformed(target);
                         break;
                 }
+                choice.setObject(null);
             }
         });
         item.getBodyContainer().add(listChoice);
@@ -340,13 +373,18 @@ public class PageUsers extends PageAdminUsers {
             return true;
         }
 
-        warn(getString("pageUsers.message.nothingSelected"  ));
+        warn(getString("pageUsers.message.nothingSelected"));
         target.add(getFeedbackPanel());
         return false;
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
+        if (!isAnythingSelected(getSelectedUsers(), target)) {
+            return;
+        }
 
+        ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
+        dialog.show(target);
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target) {
@@ -411,7 +449,7 @@ public class PageUsers extends PageAdminUsers {
                 subResult.recordSuccess();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
-                subResult.recordFatalError("Couldn't disable user.", ex);      //todo i18n
+                subResult.recordFatalError("Couldn't disable user.", ex);
             }
         }
         result.recomputeStatus();
