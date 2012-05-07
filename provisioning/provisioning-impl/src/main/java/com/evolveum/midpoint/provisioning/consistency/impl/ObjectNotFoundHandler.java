@@ -126,7 +126,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 
 			}
 
-			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
+			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 
 			// notify model, that the expected account doesn't exist on the
 			// resource..(the change form resource is therefore deleted) and let

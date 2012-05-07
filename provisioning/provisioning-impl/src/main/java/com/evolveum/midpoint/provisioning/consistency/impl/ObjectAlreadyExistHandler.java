@@ -75,7 +75,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		
 //		change.setObjectDelta(null);
 		change.setResource(shadow.getResource().asPrismObject());
-		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
+		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 
 		QueryType query = createQueryByIcfName(shadow);
 		final List<PrismObject<AccountShadowType>> foundAccount = getExistingAccount(query, parentResult);
