@@ -29,8 +29,27 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 public class AttributeDefinition extends Definition implements DebugDumpable {
+
     private boolean indexed;
     private boolean reference;
+    private boolean enumerated;
+    private Class<?> classType;
+
+    public Class<?> getClassType() {
+        return classType;
+    }
+
+    void setClassType(Class<?> classType) {
+        this.classType = classType;
+    }
+
+    public boolean isEnumerated() {
+        return enumerated;
+    }
+
+    void setEnumerated(boolean enumerated) {
+        this.enumerated = enumerated;
+    }
 
     public boolean isReference() {
         return reference;

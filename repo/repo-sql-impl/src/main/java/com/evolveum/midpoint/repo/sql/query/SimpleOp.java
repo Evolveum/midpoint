@@ -96,9 +96,24 @@ public class SimpleOp extends Op {
         Criterion criterion = null;
         if (!conditionItem.isReference) {
             try {
-                QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
-                Object testedValue = RAnyConverter.getRealRepoValue(getInterpreter().findDefinition(path, condQName),
-                        condition);
+                Object testedValue = null;
+                if (!conditionItem.isEnum) {
+                    QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
+                    testedValue = RAnyConverter.getRealRepoValue(getInterpreter().findDefinition(path, condQName),
+                            condition);
+                } else {
+                    Class<?> type = conditionItem.enumType;
+                    if (type == null || !type.isEnum()) {
+                        throw new IllegalStateException("Type '" + type + "' was marked as enum but it is not enum.");
+                    }
+                    for (Object obj : type.getEnumConstants()) {
+                        Enum e = (Enum) obj;
+                        if (e.name().equals(condition.getTextContent())) {
+                            testedValue = e;
+                            break;
+                        }
+                    }
+                }
                 LOGGER.trace("Value updated to type '{}'",
                         new Object[]{(testedValue == null ? null : testedValue.getClass().getName())});
 
@@ -244,6 +259,9 @@ public class SimpleOp extends Op {
             } else {
                 item.item = attrDef.getRealName();
             }
+
+            item.isEnum = attrDef.isEnumerated();
+            item.enumType = attrDef.getClassType();
         }
 
         return item;
@@ -334,6 +352,8 @@ public class SimpleOp extends Op {
         String alias;
         boolean isAny;
         boolean isReference;
+        boolean isEnum;
+        Class<?> enumType;
 
         String getQueryableItem() {
             StringBuilder builder = new StringBuilder();

@@ -38,4 +38,6 @@ public @interface QueryAttribute {
     String name() default "";
 
     String namespace() default "";
+
+    boolean enumerated() default false;
 }

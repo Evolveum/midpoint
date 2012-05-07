@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -41,9 +42,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 public class RTask extends RObject {
 
     private String taskIdentifier;
+    @QueryAttribute(enumerated = true)
     private TaskExecutionStatusType executionStatus;
     private TaskExclusivityStatusType exclusivityStatus;
     private String node;
+    @QueryAttribute
     private String category;
     private XMLGregorianCalendar claimExpirationTimestamp;
     private String handlerUri;

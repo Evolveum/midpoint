@@ -75,34 +75,6 @@ public class QueryRegistry {
      */
     private void init() throws QueryException {
         LOGGER.debug("Initializing query definition registry.");
-//        EntityDefinition account = new EntityDefinition();
-//        account.setName(SchemaConstants.C_ACCOUNT);
-//        account.setType(AccountShadowType.COMPLEX_TYPE);
-//        definitions.put(SchemaConstants.C_ACCOUNT, account);
-//
-//        AttributeDefinition accountType = new AttributeDefinition();
-//        accountType.setName(AccountShadowType.F_ACCOUNT_TYPE);
-//        accountType.setType(DOMUtil.XSD_STRING);
-//        account.putDefinition(AccountShadowType.F_ACCOUNT_TYPE, accountType);
-//
-//        EntityDefinition extension = new EntityDefinition();
-//        extension.setAny(true);
-//        extension.setName(ObjectType.F_EXTENSION);
-//        extension.setType(ExtensionType.COMPLEX_TYPE);
-//        account.putDefinition(ObjectType.F_EXTENSION, extension);
-//
-//        EntityDefinition attributes = new EntityDefinition();
-//        attributes.setAny(true);
-//        attributes.setName(ResourceObjectShadowType.F_ATTRIBUTES);
-//        attributes.setType(ResourceObjectShadowType.COMPLEX_TYPE);
-//        account.putDefinition(ResourceObjectShadowType.F_ATTRIBUTES, attributes);
-//
-//        AttributeDefinition resourceRef = new AttributeDefinition();
-//        resourceRef.setReference(true);
-//        resourceRef.setName(ResourceObjectShadowType.F_RESOURCE_REF);
-//        resourceRef.setType(ObjectReferenceType.COMPLEX_TYPE);
-//        account.putDefinition(resourceRef.getName(), resourceRef);
-
         Collection<RContainerType> types = ClassMapper.getKnownTypes();
         for (RContainerType type : types) {
             Class clazz = type.getClazz();
@@ -151,6 +123,10 @@ public class QueryRegistry {
             AttributeDefinition attrDef = new AttributeDefinition();
             attrDef.setName(new QName(namespace, name));
             attrDef.setIndexed(hasAnnotation(field, Index.class));
+            attrDef.setEnumerated(queryAttribute.enumerated());
+            if (queryAttribute.enumerated()) {
+                attrDef.setClassType(field.getType());
+            }
             if (RObjectReference.class.isAssignableFrom(field.getType())) {
                 attrDef.setReference(true);
             }
