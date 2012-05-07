@@ -21,13 +21,18 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.NodeExecutionStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -35,11 +40,12 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -53,6 +59,9 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +72,7 @@ import java.util.List;
  */
 public class PageTasks extends PageAdminTasks {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageTasks.class);
     private static final String DOT_CLASS = PageTasks.class.getName() + ".";
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
@@ -85,15 +95,16 @@ public class PageTasks extends PageAdminTasks {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        DropDownChoice listSelect = new DropDownChoice("state", new Model(TaskListType.ALL),
-                new AbstractReadOnlyModel<List<TaskListType>>() {
+        DropDownChoice listSelect = new DropDownChoice("state", new Model(),
+                new AbstractReadOnlyModel<List<TaskDtoExecutionStatus>>() {
 
                     @Override
-                    public List<TaskListType> getObject() {
+                    public List<TaskDtoExecutionStatus> getObject() {
                         return createTypeList();
                     }
                 },
                 new EnumChoiceRenderer(PageTasks.this));
+        listSelect.setMarkupId("stateSelect");
         mainForm.add(listSelect);
 
         DropDownChoice categorySelect = new DropDownChoice("category", new Model(),
@@ -104,7 +115,11 @@ public class PageTasks extends PageAdminTasks {
                         return createCategoryList();
                     }
                 });
+        categorySelect.setMarkupId("categorySelect");
         mainForm.add(categorySelect);
+
+        listSelect.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel()));
+        categorySelect.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel()));
 
         List<IColumn<TaskDto>> taskColumns = initTaskColumns();
         TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>("taskTable", new TaskDtoProvider(PageTasks.this),
@@ -124,6 +139,17 @@ public class PageTasks extends PageAdminTasks {
         initDiagnosticButtons(mainForm);
     }
 
+    private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour(final IModel<TaskDtoExecutionStatus> status,
+            final IModel<String> category) {
+        return new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                searchFilterPerformed(target, status, category);
+            }
+        };
+    }
+
     private List<IColumn<NodeDto>> initNodeColumns() {
         List<IColumn<NodeDto>> columns = new ArrayList<IColumn<NodeDto>>();
 
@@ -140,7 +166,8 @@ public class PageTasks extends PageAdminTasks {
         };
         columns.add(column);
 
-        columns.add(new EnumPropertyColumn<NodeDto>(createStringResource("pageTasks.node.executionStatus"), "executionStatus") {
+        columns.add(new EnumPropertyColumn<NodeDto>(createStringResource("pageTasks.node.executionStatus"),
+                "executionStatus") {
 
             @Override
             protected String translate(Enum en) {
@@ -152,7 +179,8 @@ public class PageTasks extends PageAdminTasks {
 //        check.setEnabled(false);
 //        columns.add(check);
 
-//        columns.add(new PropertyColumn(createStringResource("pageTasks.node.nodeIdentifier"), "nodeIdentifier"));         // currently, name == identifier, so this is redundant
+        // currently, name == identifier, so this is redundant
+//        columns.add(new PropertyColumn(createStringResource("pageTasks.node.nodeIdentifier"), "nodeIdentifier"));
 
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.managementPort"), "managementPort"));
         columns.add(new AbstractColumn<NodeDto>(createStringResource("pageTasks.node.lastCheckInTime")) {
@@ -281,39 +309,41 @@ public class PageTasks extends PageAdminTasks {
 
     private String createScheduledToRunAgain(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
-        //todo i18n
         Long time = task.getScheduledToStartAgain();
         if (time == null) {
             return "-";
         } else if (time == 0) {
-            return "now";
+            return getString("pageTasks.now");
         } else if (time == -1) {
-            return "runs continually";
+            return getString("pageTasks.runsContinually");
         }
 
-        return "in " + DurationFormatUtils.formatDurationWords(time, true, true);
+        //todo i18n
+        return new StringResourceModel("pageTasks.in", this, null, null,
+                DurationFormatUtils.formatDurationWords(time, true, true)).getString();
     }
 
     private String createCurrentRuntime(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
-        //todo i18n
         Long time = task.getCurrentRuntime();
         if (time == null) {
             return "-";
         }
 
+        //todo i18n
         return DurationFormatUtils.formatDurationWords(time, true, true);
     }
 
     private String createLastCheckInTime(IModel<NodeDto> nodeModel) {
         NodeDto node = nodeModel.getObject();
-        //todo i18n
         Long time = node.getLastCheckInTime();
         if (time == null || time == 0) {
             return "-";
         }
 
-        return DurationFormatUtils.formatDurationWords(System.currentTimeMillis() - time, true, true) + " ago";
+        //todo i18n
+        return DurationFormatUtils.formatDurationWords(System.currentTimeMillis() - time, true, true)
+                + " ago";
     }
 
     private void initTaskButtons(Form mainForm) {
@@ -489,10 +519,10 @@ public class PageTasks extends PageAdminTasks {
         return categories;
     }
 
-    private List<TaskListType> createTypeList() {
-        List<TaskListType> list = new ArrayList<TaskListType>();
+    private List<TaskDtoExecutionStatus> createTypeList() {
+        List<TaskDtoExecutionStatus> list = new ArrayList<TaskDtoExecutionStatus>();
         //todo probably reimplement
-        Collections.addAll(list, TaskListType.values());
+        Collections.addAll(list, TaskDtoExecutionStatus.values());
 
         return list;
     }
@@ -572,8 +602,7 @@ public class PageTasks extends PageAdminTasks {
                 // see above
             } catch (SchemaException e) {
                 // see above
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 result.recordPartialError("Couldn't resume task due to an unexpected exception.", e);
             }
         }
@@ -872,7 +901,6 @@ public class PageTasks extends PageAdminTasks {
         target.add(getNodeTable());
     }
 
-
     private void deleteNodesPerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_DELETE_NODES);
 
@@ -902,4 +930,36 @@ public class PageTasks extends PageAdminTasks {
         target.add(getNodeTable());
     }
 
+    private void searchFilterPerformed(AjaxRequestTarget target, IModel<TaskDtoExecutionStatus> status,
+            IModel<String> category) {
+        QueryType query = null;
+        try {
+            Document document = DOMUtil.getDocument();
+            List<Element> elements = new ArrayList<Element>();
+            if (status.getObject() != null) {
+                elements.add(QueryUtil.createEqualFilter(document, null, TaskType.F_EXECUTION_STATUS,
+                        status.getObject().name()));
+            }
+            if (category.getObject() != null) {
+                elements.add(QueryUtil.createEqualFilter(document, null, TaskType.F_CATEGORY, category.getObject()));
+            }
+            if (!elements.isEmpty()) {
+                query = new QueryType();
+                query.setFilter(QueryUtil.createAndFilter(document, elements.toArray(new Element[elements.size()])));
+            }
+        } catch (Exception ex) {
+            error(getString("pageTasks.message.couldntCreateQuery") + " " + ex.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create task filter", ex);
+        }
+
+
+        TablePanel panel = getTaskTable();
+        DataTable table = panel.getDataTable();
+        TaskDtoProvider provider = (TaskDtoProvider) table.getDataProvider();
+        provider.setQuery(query);
+        table.setCurrentPage(0);
+
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+    }
 }
