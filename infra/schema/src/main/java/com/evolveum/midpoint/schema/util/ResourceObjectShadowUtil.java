@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -189,6 +190,25 @@ public class ResourceObjectShadowUtil {
 			shadowType.setActivation(activation);
 		}
 		return activation;
+	}
+
+    /**
+     * This is not supposed to be used in production code! It is just for the tests.
+     */
+	public static void applyResourceSchema(PrismObject<? extends ResourceObjectShadowType> shadow,
+			ResourceSchema resourceSchema) throws SchemaException {
+		ResourceObjectShadowType shadowType = shadow.asObjectable();
+		QName objectClass = shadowType.getObjectClass();
+    	ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(objectClass);
+    	applyObjectClass(shadow, objectClassDefinition);
+	}
+	
+	private static void applyObjectClass(PrismObject<? extends ResourceObjectShadowType> shadow, 
+			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+		PrismContainer<?> attributesContainer = shadow.findContainer(AccountShadowType.F_ATTRIBUTES);
+		ResourceAttributeContainerDefinition racDef = new ResourceAttributeContainerDefinition(AccountShadowType.F_ATTRIBUTES,
+				objectClassDefinition, objectClassDefinition.getPrismContext());
+		attributesContainer.applyDefinition(racDef, true);
 	}
 	
 }

@@ -104,7 +104,7 @@ public class ListAccountShadowOwnerTest extends AbstractTestNGSpringContextTests
     	OperationResult result = new OperationResult("testLinkUnlink");
     	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user.xml"));
     	String userOid = repositoryService.addObject(user, result);
-    	PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(TEST_DIR, "account.xml"));
+    	PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(TEST_DIR, "account-shadow.xml"));
     	String accountOid = repositoryService.addObject(account, result);
     	// precondition
     	PrismObject<UserType> accountOwnerOid = repositoryService.listAccountShadowOwner(accountOid, result);

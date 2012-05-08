@@ -22,18 +22,24 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
@@ -57,7 +63,10 @@ import java.util.List;
         "../../../../../application-context-configuration-sql-test.xml"})
 public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
+	private static final File TEST_DIR = new File("src/test/resources/");
+	
     private static final Trace LOGGER = TraceManager.getTrace(AddGetObjectTest.class);
+	
     @Autowired(required = true)
     RepositoryService repositoryService;
     @Autowired(required = true)
@@ -180,5 +189,32 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         LOGGER.info("delta\n{}", new Object[]{delta.debugDump(3)});
         AssertJUnit.assertTrue(delta.isEmpty());
     }
+    
+    /**
+     * Attempt to store full account in the repo and then get it out again.
+     * The potential problem is that there are attributes that do not have a fixed (static) definition.
+     */
+    @Test
+    public void addGetFullAccount() throws Exception {
+        LOGGER.info("===[ addGetFullAccount ]===");
+        File file = new File("./src/test/resources/account-full.xml");
+        PrismObject<AccountShadowType> fileAccount = prismContext.parseObject(new File(TEST_DIR, "account-full.xml"));
+        
+        // apply appropriate schema
+        PrismObject<ResourceType> resource = prismContext.parseObject(new File(TEST_DIR, "resource-opendj.xml"));
+        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        ResourceObjectShadowUtil.applyResourceSchema(fileAccount, resourceSchema);
+
+        OperationResult result = new OperationResult("ADD");
+        String oid = repositoryService.addObject(fileAccount, result);
+
+        PrismObject<AccountShadowType> repoAccount = repositoryService.getObject(AccountShadowType.class, oid, result);
+
+        ObjectDelta<AccountShadowType> delta = fileAccount.diff(repoAccount);
+        AssertJUnit.assertNotNull(delta);
+        LOGGER.info("delta\n{}", new Object[]{delta.debugDump(3)});
+        AssertJUnit.assertTrue(delta.isEmpty());
+    }
+    
 
 }

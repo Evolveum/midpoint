@@ -81,6 +81,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -327,18 +328,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
      */
     protected void applyResourceSchema(AccountShadowType accountType, ResourceType resourceType) throws SchemaException {
     	ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
-    	QName objectClass = accountType.getObjectClass();
-    	ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(objectClass);
-    	applyObjectClass(accountType, objectClassDefinition);
+    	ResourceObjectShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
     }
-
-	private void applyObjectClass(AccountShadowType accountType, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-		PrismObject<AccountShadowType> account = accountType.asPrismObject();
-		PrismContainer attributesContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
-		ResourceAttributeContainerDefinition racDef = new ResourceAttributeContainerDefinition(AccountShadowType.F_ATTRIBUTES,
-				objectClassDefinition, prismContext);
-		attributesContainer.applyDefinition(racDef, true);
-	}
 
 	protected ObjectDelta<UserType> addModificationToContext(SyncContext context, String filename) throws JAXBException,
 			SchemaException, FileNotFoundException {
