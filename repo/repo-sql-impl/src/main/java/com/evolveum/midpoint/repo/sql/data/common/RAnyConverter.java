@@ -209,6 +209,7 @@ public class RAnyConverter {
         try {
             Item<?> item;
             if (value.isDynamic()) {
+                //value has dynamic definition, we'll create definition based on value type
                 ItemDefinition def;
                 switch (value.getValueType()) {
                     case PROPERTY:
@@ -233,18 +234,47 @@ public class RAnyConverter {
 
                 any.add(item);
             } else {
-                item = any.findOrCreateItem(value.getName(), value.getValueType().getItemClass());
+                try {
+                    item = any.findOrCreateItem(value.getName(), value.getValueType().getItemClass());
+                } catch (SchemaException ex) {
+                    //item was not found, and can't be created (e.g. definition is not available)
+                    //for example attributes, therefore we create item without definition and add there raw value
+                    item = createDefinitionlessItem(value);
+                    any.add(item);
+                }
             }
             if (item == null) {
                 throw new DtoTranslationException("Couldn't create item for value '" + value.getName() + "'.");
             }
 
             addValueToItem(value, item);
-        } catch (DtoTranslationException ex) {
-            throw ex;
         } catch (Exception ex) {
+            if (ex instanceof DtoTranslationException) {
+                throw (DtoTranslationException) ex;
+            }
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
+    }
+
+    private Item createDefinitionlessItem(RValue value) throws DtoTranslationException {
+        Item item;
+        switch (value.getValueType()) {
+            case PROPERTY:
+                item = new PrismProperty(value.getName());
+                break;
+            case CONTAINER:
+                item = new PrismContainer(value.getName());
+                break;
+            case OBJECT:
+                item = new PrismObject(value.getName(), null);
+                break;
+            case REFERENCE:
+                item = new PrismReference(value.getName());
+                break;
+            default:
+                throw new DtoTranslationException("Unknown value type: " + value.getValueType());
+        }
+        return item;
     }
 
     private Element createElement(QName name) {
@@ -257,7 +287,7 @@ public class RAnyConverter {
 
     private void addClobValueToItem(RClobValue value, Item item) throws SchemaException {
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        Element root =  DOMUtil.parseDocument(value.getValue()).getDocumentElement();
+        Element root = DOMUtil.parseDocument(value.getValue()).getDocumentElement();
 
         Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), value.getName(), item.getDefinition());
 
@@ -270,7 +300,7 @@ public class RAnyConverter {
             return;
         }
 
-        Object realValue = createRealValue(value, item.getDefinition());
+        Object realValue = createRealValue(value);
         if (realValue == null) {
             throw new SchemaException("Real value must not be null. Some error occurred when adding value "
                     + value + " to item " + item);
@@ -300,11 +330,10 @@ public class RAnyConverter {
      * provided definition.
      *
      * @param rValue
-     * @param definition
      * @return
      * @throws SchemaException
      */
-    private Object createRealValue(RValue rValue, ItemDefinition definition) throws SchemaException {
+    private Object createRealValue(RValue rValue) throws SchemaException {
         Object value = rValue.getValue();
         if (rValue instanceof RDateValue) {
             if (value instanceof Date) {
