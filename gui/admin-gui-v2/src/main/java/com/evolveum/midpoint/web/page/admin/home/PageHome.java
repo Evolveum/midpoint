@@ -40,52 +40,6 @@ public class PageHome extends PageAdmin {
     }
 
     private void initLayout() {
-        Form form = new Form("mainForm");
-        add(form);
 
-//        MainFeedback feedback = new MainFeedback("feedback");
-//        form.add(feedback);
-
-        AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("test")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                testPerformed(target);
-            }
-        };
-        form.add(test);
-    }
-
-    private void testPerformed(AjaxRequestTarget target) {
-        PageHome.this.error("some error message.");
-        PageHome.this.info("info message.");
-        PageHome.this.warn("warn message.");
-        PageHome.this.success("success message.");
-
-        Task task = null;
-        OperationResult result = new OperationResult("get non existing object");
-        try {
-            getMidpointApplication().getModel().getObject(UserType.class, "f00", null, task, result);
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get object.", ex);
-        } finally {
-//            result.recomputeStatus();
-
-            PageHome.this.showResult(result);
-        }
-
-        result = new OperationResult("get existing object");
-        try {
-            getMidpointApplication().getModel().getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value()
-                    , null, task, result);
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get object.", ex);
-        } finally {
-            result.recomputeStatus();
-
-            PageHome.this.showResult(result);
-        }
-
-        target.add(getFeedbackPanel());
     }
 }

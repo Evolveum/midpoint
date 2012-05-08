@@ -52,6 +52,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.util.time.Duration;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -209,7 +210,9 @@ public class PrismValuePanel extends Panel {
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
-            formComponent.add(new AjaxFormValidatingBehavior(form, "onBlur"));
+            AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onKeyUp");
+            validator.setThrottleDelay(Duration.ONE_SECOND);
+            formComponent.add(validator);
 //            final FormComponent comp = formComponent;
 //            formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
 //
