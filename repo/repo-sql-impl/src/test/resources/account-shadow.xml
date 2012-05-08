@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
 <!--
   ~ Copyright (c) 2012 Evolveum
   ~
@@ -25,7 +26,7 @@
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-        <name>hbarbossa</name>
+        <name>hbarbossa1</name>
         <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
         <objectClass>ri:AccountObjectClass</objectClass>
         <attributes>

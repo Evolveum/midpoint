@@ -98,7 +98,7 @@ public class ListAccountShadowOwnerTest extends AbstractTestNGSpringContextTests
         AssertJUnit.assertNull(user);
     }
     
-    @Test//(enabled = false)
+    @Test
     public void testLinkUnlink() throws Exception {
     	// GIVEN
     	OperationResult result = new OperationResult("testLinkUnlink");
