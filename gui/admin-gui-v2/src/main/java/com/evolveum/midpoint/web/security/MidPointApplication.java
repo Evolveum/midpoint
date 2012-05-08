@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -77,6 +78,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient TaskManager taskManager;
     @Autowired
     transient MidpointConfiguration configuration;
+    @Autowired(required = true)
+    transient Protector protector;
     private WebApplicationConfiguration webApplicationConfiguration;
 
     @Override
@@ -185,6 +188,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public PrismContext getPrismContext() {
         return prismContext;
+    }
+
+    public Protector getProtector() {
+        return protector;
     }
 
     @Override

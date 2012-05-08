@@ -21,9 +21,14 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -37,14 +42,14 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -78,7 +83,6 @@ public class PageUser extends PageAdminUsers {
     private IModel<List<ObjectWrapper>> accountsModel;
     private ModalWindow resourcesPopupWindow;
     private ModalWindow rolesPopupWindow;
-    private ModalWindow confirmPopupWindow;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -177,7 +181,9 @@ public class PageUser extends PageAdminUsers {
         initButtons(mainForm);
         resourcesPopupWindow = createResourcesWindow();
         rolesPopupWindow = createRolesWindow();
-        confirmPopupWindow = createConfirmWindow();
+
+        ConfirmationDialog dialog = new ConfirmationDialog("confirmPopup");
+        add(dialog);
     }
 
     private void initAccounts(AccordionItem accounts) {
@@ -296,7 +302,6 @@ public class PageUser extends PageAdminUsers {
 
         initAccountButtons(mainForm);
         initRoleButtons(mainForm);
-        initResourceButtons(mainForm);
     }
 
     private void initRoleButtons(Form mainForm) {
@@ -328,7 +333,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //accountsPopupWindow.show(target);
+                addAccountPerformed(target);
             }
         };
         mainForm.add(addAccount);
@@ -362,29 +367,6 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(deleteAccount);
-    }
-
-    private void initResourceButtons(Form mainForm) {
-        AjaxLinkButton addResource = new AjaxLinkButton("addResource",
-                createStringResource("pageUser.button.add")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                resourcesPopupWindow.show(target);
-                //target.appendJavaScript("scrollToTop();");
-            }
-        };
-        mainForm.add(addResource);
-
-        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource",
-                createStringResource("pageUser.button.delete")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteResourcePerformed(target);
-            }
-        };
-        mainForm.add(deleteResource);
     }
 
     private ModalWindow createResourcesWindow() {
@@ -449,30 +431,6 @@ public class PageUser extends PageAdminUsers {
         return rolesWindow;
     }
 
-    public ModalWindow createConfirmWindow() {
-        final ModalWindow confirmPopup;
-        add(confirmPopup = new ModalWindow("confirmPopup"));
-
-        confirmPopup.setCookieName("confirm popup window");
-
-        confirmPopup.setContent(new ConfirmPopup(confirmPopup.getContentId(), confirmPopup));
-        confirmPopup.setResizable(false);
-        confirmPopup.setInitialWidth(30);
-        confirmPopup.setInitialHeight(15);
-        confirmPopup.setWidthUnit("em");
-        confirmPopup.setHeightUnit("em");
-
-        confirmPopup.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        confirmPopup.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-                target.appendJavaScript("alert('You can\\'t close this modal window using close button."
-                        + " Use the link inside the window instead.');");
-                return false;
-            }
-        });
-        return confirmPopup;
-    }
-
     private boolean isEditingUser() {
         StringValue userOid = getPageParameters().get(PageUser.PARAM_USER_ID);
         return userOid != null && StringUtils.isNotEmpty(userOid.toString());
@@ -489,6 +447,8 @@ public class PageUser extends PageAdminUsers {
         OperationResult result = new OperationResult(OPERATION_SAVE_USER);
         try {
             Task task = getTaskManager().createTaskInstance(OPERATION_SAVE_USER);
+//            encryptCredentials(userWrapper.getObject(), true); //todo encryption
+
             ObjectDelta delta = userWrapper.getObjectDelta();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta: {}", new Object[]{delta.debugDump(3)});
@@ -515,9 +475,38 @@ public class PageUser extends PageAdminUsers {
         showResult(result);
         target.add(getFeedbackPanel());
 
-        PrismObjectPanel userForm = (PrismObjectPanel)get("mainForm:userForm");
+        PrismObjectPanel userForm = (PrismObjectPanel) get("mainForm:userForm");
         userForm.ajaxUpdateFeedback(target);
         //todo implement
+    }
+
+    private void encryptCredentials(PrismObject object, boolean encrypt) {
+        MidPointApplication application = getMidpointApplication();
+        Protector protector = application.getProtector();
+
+        PrismContainer password = object.findContainer(new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
+                CredentialsType.F_PASSWORD));
+        if (password == null) {
+            return;
+        }
+        PrismProperty protectedStringProperty = password.findProperty(PasswordType.F_PROTECTED_STRING);
+        if (protectedStringProperty == null ||
+                protectedStringProperty.getRealValue(ProtectedStringType.class) == null) {
+            return;
+        }
+
+        ProtectedStringType string = (ProtectedStringType) protectedStringProperty.
+                getRealValue(ProtectedStringType.class);
+
+        try {
+            if (encrypt) {
+                protector.encrypt(string);
+            } else {
+                protector.decrypt(string);
+            }
+        } catch (EncryptionException ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't encrypt protected string", ex);
+        }
     }
 
     private List<ObjectWrapper> getSelectedAccounts() {
@@ -553,6 +542,11 @@ public class PageUser extends PageAdminUsers {
 //    private void refreshPerformed(AjaxRequestTarget target) {
 //        //todo implement
 //    }
+
+    private void addAccountPerformed(AjaxRequestTarget target) {
+        resourcesPopupWindow.show(target);
+        //todo implement
+    }
 
     private void deleteAssignmentsPerformed(AjaxRequestTarget target) {
         //todo implement

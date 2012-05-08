@@ -27,6 +27,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 /**
@@ -34,9 +35,15 @@ import org.apache.wicket.model.StringResourceModel;
  */
 public class ConfirmationDialog extends ModalWindow {
 
+    public ConfirmationDialog(String id) {
+        this(id, null, null);
+    }
+
     public ConfirmationDialog(String id, IModel<String> title, IModel<String> message) {
         super(id);
-        setTitle(title);
+        if (title != null) {
+            setTitle(title);
+        }
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(ConfirmationDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
         setResizable(false);
@@ -62,7 +69,16 @@ public class ConfirmationDialog extends ModalWindow {
 
         WebMarkupContainer content = new WebMarkupContainer(getContentId());
         setContent(content);
+
+        if (message == null) {
+            message = new Model();
+        }
         initLayout(content, message);
+    }
+
+    public void setMessage(IModel<String> message) {
+        Label label = (Label) getContent().get("confirmText");
+        label.setDefaultModel(message);
     }
 
     private void initLayout(WebMarkupContainer content, IModel<String> message) {
