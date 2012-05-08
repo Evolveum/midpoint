@@ -23,9 +23,11 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -35,6 +37,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
+import org.apache.wicket.util.time.Duration;
 
 import java.util.List;
 
@@ -45,11 +48,11 @@ public class PrismObjectPanel extends Panel {
 
     private boolean showHeader = true;
 
-    public PrismObjectPanel(String id, IModel<ObjectWrapper> model, ResourceReference image) {
+    public PrismObjectPanel(String id, IModel<ObjectWrapper> model, ResourceReference image, Form form) {
         super(id);
         setOutputMarkupId(true);
 
-        initLayout(model, image);
+        initLayout(model, image, form);
     }
 
     @Override
@@ -59,7 +62,7 @@ public class PrismObjectPanel extends Panel {
         response.renderCSSReference(new PackageResourceReference(PrismObjectPanel.class, "PrismObjectPanel.css"));
     }
 
-    private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image) {
+    private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
         add(headerPanel);
         headerPanel.add(new VisibleEnableBehaviour() {
@@ -93,7 +96,7 @@ public class PrismObjectPanel extends Panel {
 
             @Override
             protected void populateItem(ListItem<ContainerWrapper> item) {
-                item.add(new PrismContainerPanel("container", item.getModel()));
+                item.add(new PrismContainerPanel("container", item.getModel(), form));
             }
         };
         body.add(containers);
@@ -161,5 +164,9 @@ public class PrismObjectPanel extends Panel {
 
     public void setShowHeader(boolean showHeader) {
         this.showHeader = showHeader;
+    }
+
+    public void ajaxUpdateFeedback(AjaxRequestTarget target) {
+        //todo implemenet????
     }
 }

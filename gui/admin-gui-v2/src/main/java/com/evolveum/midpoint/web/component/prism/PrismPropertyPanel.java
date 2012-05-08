@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -38,7 +39,7 @@ import java.util.List;
  */
 public class PrismPropertyPanel extends Panel {
 
-    public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model) {
+    public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model, Form form) {
         super(id);
 
         setOutputMarkupId(true);
@@ -53,10 +54,10 @@ public class PrismPropertyPanel extends Panel {
             }
         });
 
-        initLayout(model);
+        initLayout(model, form);
     }
 
-    private void initLayout(IModel<PropertyWrapper> model) {
+    private void initLayout(IModel<PropertyWrapper> model, final Form form) {
         add(new Label("label", new PropertyModel(model, "displayName")));
 
         ListView<ValueWrapper> values = new ListView<ValueWrapper>("values",
@@ -64,7 +65,7 @@ public class PrismPropertyPanel extends Panel {
 
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
-                item.add(new PrismValuePanel("value", item.getModel()));
+                item.add(new PrismValuePanel("value", item.getModel(), form));
                 item.add(new VisibleEnableBehaviour() {
 
                     @Override

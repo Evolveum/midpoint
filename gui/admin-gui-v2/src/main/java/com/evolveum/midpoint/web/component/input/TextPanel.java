@@ -35,13 +35,13 @@ public class TextPanel<T> extends InputPanel {
     public TextPanel(String id, IModel<T> model, Class clazz) {
         super(id);
 
-        final TextField<T> text = new TextField<T>("input", model);
+        TextField<T> text = new TextField<T>("input", model);
         text.setType(clazz);
         add(text);
     }
 
     @Override
-    public FormComponent getComponent() {
+    public FormComponent getBaseFormComponent() {
         return (FormComponent) get("input");
     }
 }

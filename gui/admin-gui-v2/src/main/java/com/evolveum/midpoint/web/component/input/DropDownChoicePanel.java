@@ -39,7 +39,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
     }
 
     @Override
-    public FormComponent getComponent() {
+    public FormComponent getBaseFormComponent() {
         return (FormComponent) get("input");
     }
 }

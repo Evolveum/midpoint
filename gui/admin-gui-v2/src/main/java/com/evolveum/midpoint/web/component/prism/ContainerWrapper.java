@@ -177,6 +177,21 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return false;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(getDisplayNameFromItem(container));
+        builder.append(", ");
+        builder.append(status);
+        builder.append("\n");
+        for (PropertyWrapper wrapper : getProperties()) {
+            builder.append("\t");
+            builder.append(wrapper.toString());
+            builder.append("\n");
+        }
+        return builder.toString();
+    }
+
     /**
      * This methods check if we want to show property in form (e.g. failedLogins, fetchResult,
      * lastFailedLoginTimestamp must be invisible)

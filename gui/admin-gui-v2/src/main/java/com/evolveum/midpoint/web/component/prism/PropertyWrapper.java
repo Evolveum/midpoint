@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
@@ -80,7 +81,12 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         }
 
         if (values.isEmpty()) {
-            values.add(new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED));
+            if (ProtectedStringType.COMPLEX_TYPE.equals(property.getDefinition().getTypeName())) {
+                values.add(new ValueWrapper(this, new PrismPropertyValue(new ProtectedStringType()),
+                        new PrismPropertyValue(new ProtectedStringType()), ValueStatus.ADDED));
+            } else {
+                values.add(new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED));
+            }
         }
 
         return values;
@@ -94,5 +100,20 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         }
 
         return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(getDisplayName());
+        builder.append(", ");
+        builder.append(status);
+        builder.append("\n");
+        for (ValueWrapper wrapper : getValues()) {
+            builder.append("\t");
+            builder.append(wrapper.toString());
+            builder.append("\n");
+        }
+        return builder.toString();
     }
 }

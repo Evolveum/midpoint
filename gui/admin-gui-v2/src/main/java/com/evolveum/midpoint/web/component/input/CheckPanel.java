@@ -39,7 +39,7 @@ public class CheckPanel extends InputPanel {
     }
 
     @Override
-    public FormComponent getComponent() {
+    public FormComponent getBaseFormComponent() {
         return (FormComponent) get("input");
     }
 }

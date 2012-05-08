@@ -198,7 +198,7 @@ public class PageLogging extends PageAdminConfiguration {
                 ListMultipleChoicePanel panel = new ListMultipleChoicePanel<String>(componentId,
                         new PropertyModel<List<String>>(model, getPropertyExpression()), createAppendersListModel());
 
-                ListMultipleChoice choice = (ListMultipleChoice) panel.getComponent();
+                ListMultipleChoice choice = (ListMultipleChoice) panel.getBaseFormComponent();
                 choice.setMaxRows(3);
 
 
@@ -318,7 +318,7 @@ public class PageLogging extends PageAdminConfiguration {
             @Override
             protected Component createInputPanel(String componentId, IModel iModel) {
                 TextPanel panel = new TextPanel(componentId, new PropertyModel(iModel, getPropertyExpression()));
-                TextField text = (TextField) panel.getComponent();
+                TextField text = (TextField) panel.getBaseFormComponent();
                 text.add(new AttributeModifier("size", 5));
                 return panel;
             }
@@ -330,7 +330,7 @@ public class PageLogging extends PageAdminConfiguration {
             @Override
             protected Component createInputPanel(String componentId, IModel iModel) {
                 TextPanel panel = new TextPanel(componentId, new PropertyModel(iModel, getPropertyExpression()));
-                TextField text = (TextField) panel.getComponent();
+                TextField text = (TextField) panel.getBaseFormComponent();
                 text.add(new AttributeModifier("size", 5));
                 return panel;
             }

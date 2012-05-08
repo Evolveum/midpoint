@@ -24,6 +24,9 @@ package com.evolveum.midpoint.web.component.prism;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author lazyman
  */
@@ -33,5 +36,9 @@ public abstract class InputPanel extends Panel {
         super(id);
     }
 
-    public abstract FormComponent getComponent();
+    public List<FormComponent> getFormComponents() {
+        return Arrays.asList(getBaseFormComponent());
+    }
+
+    public abstract FormComponent getBaseFormComponent();
 }

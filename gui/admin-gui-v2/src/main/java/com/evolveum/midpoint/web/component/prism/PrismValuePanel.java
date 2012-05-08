@@ -28,16 +28,20 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
+import com.evolveum.midpoint.web.component.input.PasswordPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.image.Image;
@@ -60,17 +64,17 @@ public class PrismValuePanel extends Panel {
 
     private IModel<ValueWrapper> model;
 
-    public PrismValuePanel(String id, IModel<ValueWrapper> model) {
+    public PrismValuePanel(String id, IModel<ValueWrapper> model, Form form) {
         super(id);
         Validate.notNull(model, "Property value model must not be null.");
         this.model = model;
 
         add(new AttributeAppender("class", new Model<String>("objectFormValue"), " "));
 
-        initLayout();
+        initLayout(form);
     }
 
-    private void initLayout() {
+    private void initLayout(Form form) {
         //feedback
         FeedbackPanel feedback = new FeedbackPanel("feedback");
         feedback.setOutputMarkupId(true);
@@ -87,10 +91,10 @@ public class PrismValuePanel extends Panel {
 //        add(labelHelpContent);
 
         //input
-        InputPanel input = createInputComponent("input", feedback);
+        InputPanel input = createInputComponent("input", feedback, form);
         add(input);
 
-        feedback.setFilter(new ComponentFeedbackMessageFilter(input.getComponent()));
+        feedback.setFilter(new ComponentFeedbackMessageFilter(input.getBaseFormComponent()));
 
         //buttons
         AjaxLink addButton = new AjaxLink("addButton") {
@@ -197,42 +201,46 @@ public class PrismValuePanel extends Panel {
         return true;
     }
 
-    private InputPanel createInputComponent(String id, final FeedbackPanel feedback) {
-        //todo create input components
-        InputPanel component = createTypedInputComponent(id);
+    private InputPanel createInputComponent(String id, final FeedbackPanel feedback, Form form) {
+        InputPanel component = createTypedInputComponent(id, form);
 
-        final FormComponent formComponent = component.getComponent();
-        if (formComponent instanceof TextField) {
-            formComponent.add(new AttributeModifier("size", "42"));
+        final List<FormComponent> formComponents = component.getFormComponents();
+        for (FormComponent formComponent : formComponents) {
+            if (formComponent instanceof TextField) {
+                formComponent.add(new AttributeModifier("size", "42"));
+            }
+            formComponent.add(new AjaxFormValidatingBehavior(form, "onBlur"));
+//            final FormComponent comp = formComponent;
+//            formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+//
+//                @Override
+//                protected void onUpdate(AjaxRequestTarget target) {
+//                    target.add(comp);
+//                    target.add(feedback);
+//                }
+//
+//                @Override
+//                protected void onError(AjaxRequestTarget target, RuntimeException e) {
+//                    target.add(comp);
+//                    target.add(feedback);
+//
+//                    super.onError(target, e);
+//                }
+//            });
         }
-        formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
 
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                target.add(formComponent);
-                target.add(feedback);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, RuntimeException e) {
-                target.add(formComponent);
-                target.add(feedback);
-
-                super.onError(target, e);
-            }
-        });
         return component;
     }
 
-    private InputPanel createTypedInputComponent(String id) {
+    private InputPanel createTypedInputComponent(String id, Form form) {
         PrismProperty property = model.getObject().getProperty().getProperty();
         QName valueType = property.getDefinition().getTypeName();
 
         InputPanel panel;
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {
             panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, "value.value"));
-//        } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
-//            panel = new PasswordPanel(id, new PropertyModel<String>(model, "value.value"));
+        } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
+            panel = new PasswordPanel(id, new PropertyModel<String>(model, "value.value.clearValue"), form);
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
             panel = new CheckPanel(id, new PropertyModel<Boolean>(model, "value.value"));
         } else {

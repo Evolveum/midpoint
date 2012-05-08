@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -72,7 +73,11 @@ public class PropertyWrapper extends PropertyItem implements Comparable<Property
         }
 
         if (values.isEmpty()) {
-            values.add(new PropertyValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED));
+            Object realValue = null;
+            if (ProtectedStringType.COMPLEX_TYPE.equals(property.getDefinition().getValueType())) {
+                realValue = new ProtectedStringType();
+            }
+            values.add(new PropertyValueWrapper(this, new PrismPropertyValue(realValue), ValueStatus.ADDED));
         }
 
         return values;

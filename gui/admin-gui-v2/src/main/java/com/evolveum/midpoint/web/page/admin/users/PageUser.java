@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
@@ -68,8 +69,9 @@ import java.util.List;
 public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_USER_ID = "userId";
-    private static final String OPERATION_LOAD_USER = "pageUser.loadUser";
-    private static final String OPERATION_SAVE_USER = "pageUser.saveUser";
+    private static final String DOT_CLASS = PageUser.class.getName() + ".";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
+    private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
@@ -150,7 +152,7 @@ public class PageUser extends PageAdminUsers {
         add(mainForm);
 
         PrismObjectPanel userForm = new PrismObjectPanel("userForm", userModel,
-                new PackageResourceReference(PageUser.class, "User.png")) {
+                new PackageResourceReference(PageUser.class, "User.png"), mainForm) {
 
             @Override
             protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
@@ -185,7 +187,7 @@ public class PageUser extends PageAdminUsers {
             @Override
             protected void populateItem(final ListItem<ObjectWrapper> item) {
                 PrismObjectPanel account = new PrismObjectPanel("account", item.getModel(),
-                        new PackageResourceReference(PageUser.class, "Hdd.png")) {
+                        new PackageResourceReference(PageUser.class, "Hdd.png"), (Form) PageUser.this.get("mainForm")) {
 
 //                	@Override
 //        			protected Panel createOperationPanel(String id) {
@@ -501,16 +503,20 @@ public class PageUser extends PageAdminUsers {
                     break;
                 case DELETE:
                 default:
-                    error("Unsupported user delta change '" + delta.getChangeType() + "'."); //todo localize
+                    error(createStringResource("pageUser.message.unsupportedDeltaChange",
+                            delta.getChangeType()).getString());
             }
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save user.", ex);
-            ex.printStackTrace();
+            LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
         }
 
         showResult(result);
         target.add(getFeedbackPanel());
+
+        PrismObjectPanel userForm = (PrismObjectPanel)get("mainForm:userForm");
+        userForm.ajaxUpdateFeedback(target);
         //todo implement
     }
 

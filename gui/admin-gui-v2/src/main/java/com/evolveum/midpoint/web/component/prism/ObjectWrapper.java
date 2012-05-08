@@ -306,6 +306,21 @@ public class ObjectWrapper implements Serializable {
         return delta;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(ContainerWrapper.getDisplayNameFromItem(object));
+        builder.append(", ");
+        builder.append(status);
+        builder.append("\n");
+        for (ContainerWrapper wrapper : getContainers()) {
+            builder.append("\t");
+            builder.append(wrapper.toString());
+            builder.append("\n");
+        }
+        return builder.toString();
+    }
+
     private static class PathSizeComparator implements Comparator<ContainerWrapper> {
 
         @Override

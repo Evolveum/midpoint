@@ -41,13 +41,19 @@ public class ValueWrapper<T> implements Serializable {
     }
 
     public ValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value, ValueStatus status) {
+        this(property, value, new PrismPropertyValue<T>(value.getValue(), value.getType(), value.getSource()), status);
+    }
+
+    public ValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value, PrismPropertyValue<T> oldValue,
+            ValueStatus status) {
         Validate.notNull(property, "Property wrapper must not be null.");
         Validate.notNull(value, "Property value must not be null.");
+        Validate.notNull(value, "Old property value must not be null.");
 
         this.property = property;
         this.value = value;
+        this.oldValue = oldValue;
         this.status = status;
-        this.oldValue = new PrismPropertyValue<T>(value.getValue(), value.getType(), value.getSource());
     }
 
     public PropertyWrapper getProperty() {
@@ -78,7 +84,7 @@ public class ValueWrapper<T> implements Serializable {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("value: ");
-        builder.append(value.getValue());
+        builder.append(value);
         builder.append(", old value: ");
         builder.append(oldValue);
         builder.append(", status: ");
