@@ -21,28 +21,21 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.ResourceReference;
 
 /**
  * @author lazyman
  */
-public class IconColumn<T> extends AbstractColumn<T> {
+public class ImagePanel extends Panel {
 
-    public IconColumn(IModel<String> displayModel) {
-        super(displayModel);
-    }
+    public ImagePanel(String id, IModel<ResourceReference> model) {
+        super(id);
+        Validate.notNull(model, "Resource reference model must not be null.");
 
-    @Override
-    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
-        cellItem.add(new ImagePanel(componentId, createIconModel(rowModel)));
-    }
-
-    protected IModel<ResourceReference> createIconModel(final IModel<T> rowModel) {
-        throw new UnsupportedOperationException("Not implemented, please implement in your column.");
+        add(new Image("image", model));
     }
 }

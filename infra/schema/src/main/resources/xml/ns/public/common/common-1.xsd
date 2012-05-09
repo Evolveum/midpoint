@@ -613,7 +613,7 @@
             <xsd:element name="clearValue" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Clear text value of the protedted data. It is useful for imports and tests.
+                        Clear text value of the protected data. It is useful for imports and tests.
                         This element should never appear in repository or any other long-term storage.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1561,9 +1561,9 @@
                                 user. E.g. IDM system may send notifications
                                 to the e-mail address. It is NOT supposed to be
                                 full-featured e-mail address data structure
-                                e.g. for the purpose of comlex address-book application.
+                                e.g. for the purpose of complex address-book application.
 
-                                This is mult-valued property. In case more than
+                                This is multi-valued property. In case more than
                                 one e-mail address is specified, the same message
                                 should be sent to all the addresses.
                             </xsd:documentation>
@@ -1588,7 +1588,7 @@
                                 Unique, business-oriented identifier of the employee.
                                 Typically used as correlation identifier and for
                                 auditing purposes. Should be immutable, but the
-                                specefic properties and usage are deployment-specific.
+                                specific properties and usage are deployment-specific.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1621,7 +1621,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Primary locality of the user, the place where
-                                the user usually works, the contry, city or
+                                the user usually works, the country, city or
                                 building that he belongs to. The specific meaning
                                 and form of this property is deployment-specific.
                             </xsd:documentation>
@@ -1784,18 +1784,18 @@
             <xsd:documentation>
                 Generic assignments of one object to another object.
                 This will usually be assignment of a role to a user, assignment of an
-                organizational unit, team or whatever. It may also be used to assing
+                organizational unit, team or whatever. It may also be used to assign
                 role to another role, creating a role hierarchy.
 
                 Assignment is an abstract concept. It can be anything that
                 gives the "receptor" object additional access rights, privileges,
                 capabilities or similar ability or right. But it may also constraint
-                the object with policy, e.g. to impelemt separation of duties. Roles,
+                the object with policy, e.g. to implement separation of duties. Roles,
                 organizations and privileges in IDM system are examples of assignments.
 
-                The assignemtn may target either existing IDM object (such as a role)
+                The assignment may target either existing IDM object (such as a role)
                 or abstract resource account that may or may not exist. In case of resource
-                objects it is constrained to accounts, as accoutns are the only resource objects
+                objects it is constrained to accounts, as accounts are the only resource objects
                 that can be assigned to a user. Other resource objects (entitlements) can
                 be assigned to accounts, but not to users.
 

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -67,12 +69,13 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.ResourceReference;
+import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -358,7 +361,26 @@ public class PageUser extends PageAdminUsers {
     private void initAssignments(AccordionItem assignments) {
         List<IColumn> columns = new ArrayList<IColumn>();
         columns.add(new CheckBoxHeaderColumn());
-        columns.add(new PropertyColumn(createStringResource("pageUser.assignment.type"), "type", "type"));
+        columns.add(new IconColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.type")) {
+
+            @Override
+            protected IModel<ResourceReference> createIconModel(final IModel<UserAssignmentDto> rowModel) {
+                return new AbstractReadOnlyModel() {
+
+                    @Override
+                    public Object getObject() {
+                        UserAssignmentDto dto = rowModel.getObject();
+                        switch (dto.getType()) {
+                            case ROLE:
+                                return new SharedResourceReference(ImgResources.class, "user_suit.png");
+                            case OTHER:
+                            default:
+                                return new SharedResourceReference(ImgResources.class, "drive.png");
+                        }
+                    }
+                };
+            }
+        });
         columns.add(new PropertyColumn(createStringResource("pageUser.assignment.name"), "name", "name"));
         columns.add(new PropertyColumn(createStringResource("pageUser.assignment.active"), "activation", "activation"));
 
@@ -780,11 +802,10 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
-        Iterator<UserAccountDto> iterator = selected.iterator();
-        while (iterator.hasNext()) {
-            UserAccountDto account = iterator.next();
+        List<UserAccountDto> accounts = accountsModel.getObject();
+        for (UserAccountDto account : selected) {
             if (UserDtoStatus.ADDED.equals(account.getStatus())) {
-                iterator.remove();
+                accounts.remove(account);
             } else {
                 account.setStatus(UserDtoStatus.DELETED);
             }
@@ -793,11 +814,10 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<UserAssignmentDto> selected) {
-        Iterator<UserAssignmentDto> iterator = selected.iterator();
-        while (iterator.hasNext()) {
-            UserAssignmentDto assignment = iterator.next();
+        List<UserAssignmentDto> assignments = assignmentsModel.getObject();
+        for (UserAssignmentDto assignment : selected) {
             if (UserDtoStatus.ADDED.equals(assignment.getStatus())) {
-                iterator.remove();
+                assignments.remove(assignment);
             } else {
                 assignment.setStatus(UserDtoStatus.DELETED);
             }
