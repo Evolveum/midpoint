@@ -138,6 +138,10 @@ public abstract class PageBase extends WebPage {
         return modelService;
     }
 
+    public String getString(String resourceKey, Object... objects) {
+        return createStringResource(resourceKey, objects).getString();
+    }
+
     protected StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return new StringResourceModel(resourceKey, this, null, null, objects);
     }

@@ -119,11 +119,6 @@ public class PageUsers extends PageAdminUsers {
                 createDeleteConfirmString()) {
 
             @Override
-            public void noPerformed(AjaxRequestTarget target) {
-                close(target);
-            }
-
-            @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
                 deleteConfirmedPerformed(target);

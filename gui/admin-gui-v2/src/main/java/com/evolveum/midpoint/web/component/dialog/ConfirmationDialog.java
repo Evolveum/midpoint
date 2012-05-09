@@ -110,6 +110,6 @@ public class ConfirmationDialog extends ModalWindow {
     }
 
     public void noPerformed(AjaxRequestTarget target) {
-
+        close(target);
     }
 }

@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.AccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
@@ -63,6 +64,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -83,11 +85,11 @@ public class PageUser extends PageAdminUsers {
     private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
     private static final String MODAL_ID_ROLE = "rolePopup";
+    private static final String MODAL_ID_CONFIRM_DELETE_ACCOUNT = "confirmDeleteAccountPopup";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
     private IModel<List<AccountDto>> accountsModel;
-    private ModalWindow rolesPopupWindow;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -176,6 +178,7 @@ public class PageUser extends PageAdminUsers {
         mainForm.add(accordion);
 
         AccordionItem accounts = new AccordionItem("accounts", createStringResource("pageUser.accounts"));
+        accounts.setOutputMarkupId(true);
         accordion.getBodyContainer().add(accounts);
         initAccounts(accounts);
 
@@ -188,7 +191,22 @@ public class PageUser extends PageAdminUsers {
         initResourceModal();
         initRoleModal();
 
-        ConfirmationDialog dialog = new ConfirmationDialog("confirmPopup");
+        ConfirmationDialog dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_ACCOUNT,
+                createStringResource("pageUser.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("pageUser.message.deleteAccountConfirm",
+                        getSelectedAccounts().size()).getString();
+            }
+        }) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteAccountConfirmedPerformed(target, getSelectedAccounts());
+            }
+        };
         add(dialog);
     }
 
@@ -198,6 +216,14 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void populateItem(final ListItem<AccountDto> item) {
+                item.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isVisible() {
+                        return !AccountDto.AccountDtoStatus.DELETED.equals(item.getModelObject().getStatus());
+                    }
+                });
+
                 PrismObjectPanel account = new PrismObjectPanel("account",
                         new PropertyModel<ObjectWrapper>(item.getModel(), "object"),
                         new PackageResourceReference(PageUser.class, "Hdd.png"), (Form) PageUser.this.get("mainForm")) {
@@ -212,6 +238,11 @@ public class PageUser extends PageAdminUsers {
         };
 
         accounts.getBodyContainer().add(accountList);
+    }
+
+    private AccordionItem getAccountsAccordionItem() {
+        Accordion accordion = (Accordion) get("mainForm:accordion");
+        return (AccordionItem) accordion.getBodyContainer().get("accounts");
     }
 
     private List<AccountDto> loadAccountWrappers() {
@@ -317,8 +348,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                rolesPopupWindow.show(target);
-                //target.appendJavaScript("scrollToTop();");
+                showModalWindow(MODAL_ID_ROLE, target);
             }
         };
         mainForm.add(addRole);
@@ -340,7 +370,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addAccountPerformed(target);
+                showModalWindow(MODAL_ID_RESOURCE, target);
             }
         };
         mainForm.add(addAccount);
@@ -540,11 +570,6 @@ public class PageUser extends PageAdminUsers {
 //    private void refreshPerformed(AjaxRequestTarget target) {
 //    }
 
-    private void addAccountPerformed(AjaxRequestTarget target) {
-        ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);
-        window.show(target);
-    }
-
     private void addSelectedAccountPerformed(AjaxRequestTarget target, List<UserResourceDto> newResources) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);
         window.close(target);
@@ -556,8 +581,14 @@ public class PageUser extends PageAdminUsers {
         }
 
         for (UserResourceDto resource : newResources) {
-            System.out.println("new " + resource);
+            try {
+
+            } catch (Exception ex) {
+                error(getString("pageUser.message.couldntCreateAccount", resource.getName()));
+            }
         }
+
+        target.add(getFeedbackPanel());
         //todo implement
     }
 
@@ -587,7 +618,26 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void deleteAccountPerformed(AjaxRequestTarget target) {
-        //todo implement
+        List<AccountDto> selected = getSelectedAccounts();
+        if (selected.isEmpty()) {
+            warn(getString("pageUser.message.noAccountSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        showModalWindow(MODAL_ID_CONFIRM_DELETE_ACCOUNT, target);
+    }
+
+    private void showModalWindow(String id, AjaxRequestTarget target) {
+        ModalWindow window = (ModalWindow) get(id);
+        window.show(target);
+    }
+
+    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<AccountDto> selected) {
+        for (AccountDto account : selected) {
+            account.setStatus(AccountDto.AccountDtoStatus.DELETED);
+        }
+        target.add(getAccountsAccordionItem());
     }
 
     private void deleteResourcePerformed(AjaxRequestTarget target) {
