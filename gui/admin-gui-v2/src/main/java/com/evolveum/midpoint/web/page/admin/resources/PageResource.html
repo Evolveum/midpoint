@@ -30,26 +30,26 @@
 					<h2>
 						<wicket:message key="pageResource.resource" />
 					</h2>
-					<table>
+					<table style="padding: 0px;">
 						<tr>
 							<td><wicket:message key="pageResource.oid" />: </td>
-							<td><div wicket:id="resourceOid" /></td>
+							<td style="padding-left: 20px;"><div wicket:id="resourceOid" /></td>
 						</tr>
 						<tr>
 							<td><wicket:message key="pageResource.name" />: </td>
-							<td><div wicket:id="resourceName" /></td>
+							<td style="padding-left: 20px;"><div wicket:id="resourceName" /></td>
 						</tr>
 						<tr>
 							<td><wicket:message key="pageResource.type" />: </td>
-							<td><div wicket:id="resourceType" /></td>
+							<td style="padding-left: 20px;"><div wicket:id="resourceType" /></td>
 						</tr>
 						<tr>
 							<td><wicket:message key="pageResource.version" />: </td>
-							<td><div wicket:id="resourceVersion" /></td>
+							<td style="padding-left: 20px;"><div wicket:id="resourceVersion" /></td>
 						</tr>
 						<tr>
 							<td><wicket:message key="pageResource.progress" />: </td>
-							<td><div wicket:id="resourceProgress" /></td>
+							<td style="padding-left: 20px;"><div wicket:id="resourceProgress" /></td>
 						</tr>
 					</table>
 				</td>
@@ -57,40 +57,38 @@
 					<h2>
 						<wicket:message key="pageResource.connectorDetails" />
 					</h2>
-					<wicket:remove>
-					<!-- <table>
+					<table style="padding: 0px;">
 						<tr>
 							<td><wicket:message key="pageResource.overallStatus" /></td>
-							<td><img wicket:id="overallStatus" /></td>
+							<td style="padding-left: 20px;"><img wicket:id="overallStatus" /></td>
 						</tr>
 						<tr>
 							<td><wicket:message key="pageResource.confValidation" /></td>
-							<td><img wicket:id="confValidation" /></td>
+							<td style="padding-left: 20px;"><img wicket:id="confValidation" /></td>
 						</tr>
 						<tr>
 							<td><wicket:message key="pageResource.conInitialization" /></td>
-							<td><img wicket:id="conInitialization" /></td>
+							<td style="padding-left: 20px;"><img wicket:id="conInitialization" /></td>
 						</tr>
 						<tr>
 							<td><wicket:message key="pageResource.conConnection" /></td>
-							<td><img wicket:id="conConnection" /></td>
+							<td style="padding-left: 20px;"><img wicket:id="conConnection" /></td>
 						</tr>
 						<tr>
 							<td><wicket:message key="pageResource.conSanity" /></td>
-							<td><img wicket:id="conSanity" /></td>
+							<td style="padding-left: 20px;"><img wicket:id="conSanity" /></td>
 						</tr>
 						<tr>
 							<td><wicket:message key="pageResource.conSchema" /></td>
-							<td><img wicket:id="conSchema" /></td>
+							<td style="padding-left: 20px;"><img wicket:id="conSchema" /></td>
 						</tr>
-					</table> -->
-					</wicket:remove>
+					</table>
 				</td>
 			</tr>
 		</table>
 
 		<p>
-			<a wicket:id="seeDebug" />
+			<a wicket:id="seeDebug"><wicket:message key="pageResource.seeDebug" /></a>
 		</p>
 
 		<h2>Capabilities</h2>

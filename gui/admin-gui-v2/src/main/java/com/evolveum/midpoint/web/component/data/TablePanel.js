@@ -22,13 +22,13 @@
 function initTable(){
 	$("thead input[type='checkbox']").click(function(){
 		if($(this).is(":checked")){
-			$(this).parents("table").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
-			$(this).parents("table").find("tbody").find("td").css("background","#d8f4d8");
-			$(this).parents("table").find("tbody").find("td").css("border-color","#FFFFFF");
+			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
+			$(this).parents(".sortedTable").find("tbody").find("td").css("background","#d8f4d8");
+			$(this).parents(".sortedTable").find("tbody").find("td").css("border-color","#FFFFFF");
 		} else {
-			$(this).parents("table").find("tbody").find("td").css("background","#FFFFFF");
-			$(this).parents("table").find("tbody").find("td").css("border-color","#F2F2F2");
-			$(this).parents("table").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
+			$(this).parents(".sortedTable").find("tbody").find("td").css("background","#FFFFFF");
+			$(this).parents(".sortedTable").find("tbody").find("td").css("border-color","#F2F2F2");
+			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
 		}
 	});
 	
@@ -67,7 +67,7 @@ function initTable(){
 			$(this).find("td").css("border-color","#F2F2F2");
 		}
 	}).find(".tableCheckbox").find("input[type='checkbox']").click(function(){
-		checkAllChecked($(this).parents("table"));
+		checkAllChecked($(this).parents(".sortedTable"));
 	});
 
 }
