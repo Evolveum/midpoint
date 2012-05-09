@@ -50,7 +50,6 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -70,6 +69,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -613,6 +613,7 @@ public class PageUser extends PageAdminUsers {
             try {
                 AccountShadowType shadow = new AccountShadowType();
                 shadow.setResource(resource);
+                shadow.setObjectClass(getDefaultAccountType(resource));
 
                 getPrismContext().adopt(shadow);
 
@@ -626,6 +627,22 @@ public class PageUser extends PageAdminUsers {
 
         target.add(getFeedbackPanel());
         target.add(getAccountsAccordionItem());
+    }
+
+    private QName getDefaultAccountType(ResourceType resource) {
+        SchemaHandlingType handling = resource.getSchemaHandling();
+        if (handling == null) {
+            return null;
+        }
+
+        List<ResourceAccountTypeDefinitionType> accounts = handling.getAccountType();
+        for (ResourceAccountTypeDefinitionType account : accounts) {
+            if (account.isDefault()) {
+                return account.getObjectClass();
+            }
+        }
+
+        return null;
     }
 
     private void addSelectedRolePerformed(AjaxRequestTarget target, List<UserRoleDto> newRoles) {

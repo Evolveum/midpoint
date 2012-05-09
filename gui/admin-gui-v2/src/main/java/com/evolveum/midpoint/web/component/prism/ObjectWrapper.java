@@ -157,7 +157,9 @@ public class ObjectWrapper implements Serializable {
             if (ResourceObjectShadowType.class.isAssignableFrom(clazz)) {
                 PrismContainer attributes = object.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
                 ContainerStatus status = attributes != null ? getStatus() : ContainerStatus.ADDING;
-                attributes = object.findOrCreateContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+                if (attributes == null) {
+                    attributes = object.findOrCreateContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+                }
 
                 ContainerWrapper container = new ContainerWrapper(this, attributes, status,
                         new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES));

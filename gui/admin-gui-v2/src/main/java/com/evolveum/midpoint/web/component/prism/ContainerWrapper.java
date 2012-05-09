@@ -24,6 +24,8 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -40,6 +42,7 @@ import java.util.Set;
  */
 public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, Serializable {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
     private ObjectWrapper object;
     private T container;
     private ContainerStatus status;
@@ -86,7 +89,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         PrismContainerDefinition definition = null;
         PrismObject parent = getObject().getObject();
         Class clazz = parent.getCompileTimeClass();
-        if (ResourceObjectShadowType.class.equals(clazz)) {
+        if (ResourceObjectShadowType.class.isAssignableFrom(clazz)) {
             QName name = container.getDefinition().getName();
             if (ResourceObjectShadowType.F_ATTRIBUTES.equals(name)) {
                 try {
@@ -107,6 +110,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
             }
         } else {
             definition = container.getDefinition();
+        }
+
+        if (definition == null) {
+            LOGGER.error("Couldn't get property list from null definition {}", new Object[]{container.getName()});
+            return properties;
         }
 
         Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
