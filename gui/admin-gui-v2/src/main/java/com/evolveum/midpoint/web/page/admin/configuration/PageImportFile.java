@@ -125,7 +125,7 @@ public class PageImportFile extends PageAdminConfiguration {
             //todo ENCODING to UTF-8 !!!!!
             getModelService().importObjectsFromStream(newFile.inputStream(), model.getObject(), task, result);
 
-            result.recordSuccess();
+            result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't import file.", ex);
         }

@@ -31,14 +31,10 @@ import java.io.Serializable;
  */
 public class UserAccountDto implements Serializable {
 
-    public static enum AccountDtoStatus {
-        ADDED, DELETED, NOT_MODIFIED;
-    }
-
     private ObjectWrapper object;
-    private AccountDtoStatus status;
+    private UserDtoStatus status;
 
-    public UserAccountDto(ObjectWrapper object, AccountDtoStatus status) {
+    public UserAccountDto(ObjectWrapper object, UserDtoStatus status) {
         setObject(object);
         setStatus(status);
     }
@@ -52,11 +48,11 @@ public class UserAccountDto implements Serializable {
         this.object = object;
     }
 
-    public AccountDtoStatus getStatus() {
+    public UserDtoStatus getStatus() {
         return status;
     }
 
-    public void setStatus(AccountDtoStatus status) {
+    public void setStatus(UserDtoStatus status) {
         Validate.notNull(status, "Status must not be null.");
         this.status = status;
     }

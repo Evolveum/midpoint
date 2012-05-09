@@ -32,7 +32,6 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,8 +47,11 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -70,6 +72,7 @@ import org.apache.wicket.util.string.StringValue;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -80,6 +83,8 @@ public class PageUser extends PageAdminUsers {
     public static final String PARAM_USER_ID = "userId";
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
+    private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
+    private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
 
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
@@ -90,7 +95,7 @@ public class PageUser extends PageAdminUsers {
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
     private IModel<List<UserAccountDto>> accountsModel;
-    private IModel<List<UserRoleDto>> assignmentsModel;
+    private IModel<List<UserAssignmentDto>> assignmentsModel;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -107,19 +112,14 @@ public class PageUser extends PageAdminUsers {
                 return loadAccountWrappers();
             }
         };
-        assignmentsModel = new LoadableModel<List<UserRoleDto>>(false) {
+        assignmentsModel = new LoadableModel<List<UserAssignmentDto>>(false) {
 
             @Override
-            protected List<UserRoleDto> load() {
+            protected List<UserAssignmentDto> load() {
                 return loadAssignments();
             }
         };
         initLayout();
-    }
-
-    private List<UserRoleDto> loadAssignments() {
-        //todo implement
-        return new ArrayList<UserRoleDto>();
     }
 
     private ObjectWrapper loadUserWrapper() {
@@ -131,7 +131,7 @@ public class PageUser extends PageAdminUsers {
                 getMidpointApplication().getPrismContext().adopt(userType);
                 user = userType.asPrismObject();
             } else {
-                Collection<PropertyPath> resolve = MiscUtil.createCollection(
+                Collection<PropertyPath> resolve = com.evolveum.midpoint.util.MiscUtil.createCollection(
                         new PropertyPath(UserType.F_ACCOUNT),
                         new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
                 );
@@ -255,7 +255,7 @@ public class PageUser extends PageAdminUsers {
 
                     @Override
                     public boolean isVisible() {
-                        return !UserAccountDto.AccountDtoStatus.DELETED.equals(item.getModelObject().getStatus());
+                        return !UserDtoStatus.DELETED.equals(item.getModelObject().getStatus());
                     }
                 });
 
@@ -302,20 +302,57 @@ public class PageUser extends PageAdminUsers {
                     account.asPrismObject(), ContainerStatus.MODIFYING);
             wrapper.setSelectable(true);
             wrapper.setMinimalized(true);
-            list.add(new UserAccountDto(wrapper, UserAccountDto.AccountDtoStatus.NOT_MODIFIED));
+            list.add(new UserAccountDto(wrapper, UserDtoStatus.NOT_MODIFIED));
         }
 
         return list;
     }
 
-    static IModel<List> createAssignmentsList() {
-        return new LoadableModel<List>(false) {
+    private List<UserAssignmentDto> loadAssignments() {
+        List<UserAssignmentDto> list = new ArrayList<UserAssignmentDto>();
 
-            @Override
-            protected List load() {
-                return new ArrayList();
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
+
+        ObjectWrapper user = userModel.getObject();
+        PrismObject<UserType> prismUser = user.getObject();
+        List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
+        for (AssignmentType assignment : assignments) {
+            String name = null;
+            UserAssignmentDto.Type type = UserAssignmentDto.Type.OTHER;
+            if (assignment.getTarget() != null) {
+                ObjectType target = assignment.getTarget();
+                name = target.getName();
+                if (target instanceof RoleType) {
+                    type = UserAssignmentDto.Type.ROLE;
+                }
+            } else if (assignment.getTargetRef() != null) {
+                ObjectReferenceType ref = assignment.getTargetRef();
+                OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
+                subResult.addParam("targetRef", ref.getOid());
+                PrismObject target = null;
+                try {
+                    Task task = getTaskManager().createTaskInstance(OPERATION_LOAD_ASSIGNMENT);
+                    target = getModelService().getObject(ObjectType.class, ref.getOid(), null, task, subResult);
+                    subResult.recordSuccess();
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
+                    subResult.recordFatalError("Couldn't get assignment target ref.", ex);
+                }
+
+                if (target != null) {
+                    name = MiscUtil.getName(target);
+                }
+
+                if (target != null && RoleType.class.isAssignableFrom(target.getCompileTimeClass())) {
+                    type = UserAssignmentDto.Type.ROLE;
+                }
             }
-        };
+
+            list.add(new UserAssignmentDto(name, assignment.getTargetRef(), assignment.getActivation(), type,
+                    UserDtoStatus.NOT_MODIFIED));
+        }
+
+        return list;
     }
 
     private void initAssignments(AccordionItem assignments) {
@@ -323,9 +360,9 @@ public class PageUser extends PageAdminUsers {
         columns.add(new CheckBoxHeaderColumn());
         columns.add(new PropertyColumn(createStringResource("pageUser.assignment.type"), "type", "type"));
         columns.add(new PropertyColumn(createStringResource("pageUser.assignment.name"), "name", "name"));
-        columns.add(new PropertyColumn(createStringResource("pageUser.assignment.active"), "active", "active"));
+        columns.add(new PropertyColumn(createStringResource("pageUser.assignment.active"), "activation", "activation"));
 
-        ISortableDataProvider provider = new ListDataProvider(createAssignmentsList());
+        ISortableDataProvider provider = new ListDataProvider(assignmentsModel);
         TablePanel assignmentTable = new TablePanel("assignmentTable", provider, columns);
         assignmentTable.setShowPaging(false);
 
@@ -591,11 +628,11 @@ public class PageUser extends PageAdminUsers {
         return selected;
     }
 
-    private List<UserRoleDto> getSelectedAssignments() {
-        List<UserRoleDto> selected = new ArrayList<UserRoleDto>();
+    private List<UserAssignmentDto> getSelectedAssignments() {
+        List<UserAssignmentDto> selected = new ArrayList<UserAssignmentDto>();
 
-        List<UserRoleDto> all = new ArrayList<UserRoleDto>();//todo get from model
-        for (UserRoleDto wrapper : all) {
+        List<UserAssignmentDto> all = assignmentsModel.getObject();
+        for (UserAssignmentDto wrapper : all) {
             if (wrapper.isSelected()) {
                 selected.add(wrapper);
             }
@@ -630,7 +667,7 @@ public class PageUser extends PageAdminUsers {
 
                 ObjectWrapper wrapper = new ObjectWrapper(resource.getName(), null, shadow.asPrismObject(),
                         ContainerStatus.ADDING);
-                accountsModel.getObject().add(new UserAccountDto(wrapper, UserAccountDto.AccountDtoStatus.ADDED));
+                accountsModel.getObject().add(new UserAccountDto(wrapper, UserDtoStatus.ADDED));
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntCreateAccount", resource.getName()));
             }
@@ -666,10 +703,15 @@ public class PageUser extends PageAdminUsers {
             return;
         }
 
+        List<UserAssignmentDto> assignments = assignmentsModel.getObject();
         for (UserRoleDto role : newRoles) {
             try {
-                //todo implement
+                ObjectReferenceType targetRef = new ObjectReferenceType();
+                targetRef.setOid(role.getOid());
+                targetRef.setType(RoleType.COMPLEX_TYPE);
 
+                assignments.add(new UserAssignmentDto(role.getName(), targetRef, null, UserAssignmentDto.Type.ROLE,
+                        UserDtoStatus.ADDED));
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntAddRole", role.getName()));
             }
@@ -680,7 +722,7 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void deleteAssignmentsPerformed(AjaxRequestTarget target) {
-        List<UserRoleDto> selected = getSelectedAssignments();
+        List<UserAssignmentDto> selected = getSelectedAssignments();
         if (selected.isEmpty()) {
             warn(getString("pageUser.message.noAssignmentSelected"));
             target.add(getFeedbackPanel());
@@ -713,6 +755,8 @@ public class PageUser extends PageAdminUsers {
             }
             ValueWrapper value = enabledProperty.getValues().get(0);
             value.getValue().setValue(enabled);
+
+            wrapper.setSelected(false);
         }
 
         target.add(getAccountsAccordionItem());
@@ -736,13 +780,28 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
-        for (UserAccountDto account : selected) {
-            account.setStatus(UserAccountDto.AccountDtoStatus.DELETED);
+        Iterator<UserAccountDto> iterator = selected.iterator();
+        while (iterator.hasNext()) {
+            UserAccountDto account = iterator.next();
+            if (UserDtoStatus.ADDED.equals(account.getStatus())) {
+                iterator.remove();
+            } else {
+                account.setStatus(UserDtoStatus.DELETED);
+            }
         }
         target.add(getAccountsAccordionItem());
     }
 
-    private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<UserRoleDto> selected) {
-        //todo implement
+    private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<UserAssignmentDto> selected) {
+        Iterator<UserAssignmentDto> iterator = selected.iterator();
+        while (iterator.hasNext()) {
+            UserAssignmentDto assignment = iterator.next();
+            if (UserDtoStatus.ADDED.equals(assignment.getStatus())) {
+                iterator.remove();
+            } else {
+                assignment.setStatus(UserDtoStatus.DELETED);
+            }
+        }
+        target.add(getAssignmentAccordionItem());
     }
 }

@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
@@ -95,5 +98,18 @@ public final class MiscUtil {
                 return list;
             }
         };
+    }
+
+    public static String getName(PrismObject object) {
+        if (object == null) {
+            return null;
+        }
+
+        PrismProperty property = object.findProperty(ObjectType.F_NAME);
+        if (property == null || property.isEmpty()) {
+            return null;
+        }
+
+        return (String) property.getRealValue(String.class);
     }
 }

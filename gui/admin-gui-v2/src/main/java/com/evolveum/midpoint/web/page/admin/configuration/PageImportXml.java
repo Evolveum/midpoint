@@ -105,7 +105,7 @@ public class PageImportXml extends PageAdminConfiguration {
             getModelService().importObjectsFromStream(new ByteArrayInputStream(xml.getBytes()), model.getObject(),
                     task, result); //todo encoding
 
-            result.recordSuccess();
+            result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't import object.", ex);
         }
