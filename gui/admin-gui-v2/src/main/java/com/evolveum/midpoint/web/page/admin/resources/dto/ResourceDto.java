@@ -21,10 +21,11 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import org.apache.commons.lang.Validate;
 
 /**
  * @author lazyman
@@ -36,6 +37,9 @@ public class ResourceDto extends Selectable {
     private String bundle;
     private String version;
     private ResourceStatus status;
+    private String progress;
+    private String type;
+    private ResourceState state;
 
     public ResourceDto() {
     }
@@ -47,6 +51,7 @@ public class ResourceDto extends Selectable {
         name = resource.getName();
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
+        type = connector != null ? connector.getConnectorType() : null;
     }
 
     public String getBundle() {
@@ -68,4 +73,19 @@ public class ResourceDto extends Selectable {
     public String getVersion() {
         return version;
     }
+    
+    public String getProgress() {
+    	return progress;
+    }
+    
+    public String getType() {
+    	return type;
+    }
+    
+    public ResourceState getState() {
+		if (state == null) {
+			state = new ResourceState();
+		}
+		return state;
+	}
 }
