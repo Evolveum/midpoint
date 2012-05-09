@@ -22,11 +22,15 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserResourceDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -46,27 +50,20 @@ public class ResourcesPopup extends Panel {
     }
 
     private void initLayout(PageBase page) {
-        Form mainForm = new Form("resourceForm");
-        add(mainForm);
-
         TablePanel resources = new TablePanel<ResourceDto>("table",
                 new ResourceDtoProvider(page), initResourceColumns());
         resources.setOutputMarkupId(true);
-        mainForm.add(resources);
+        add(resources);
 
-        initButtons(mainForm);
-    }
-
-    private void initButtons(Form form) {
         AjaxLinkButton addButton = new AjaxLinkButton("add",
                 new StringResourceModel("resourcePopup.button.add", this, null)) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addPerformed(target);
+                addPerformed(target, getSelectedResources());
             }
         };
-        form.add(addButton);
+        add(addButton);
     }
 
     private List<IColumn<ResourceDto>> initResourceColumns() {
@@ -82,7 +79,23 @@ public class ResourcesPopup extends Panel {
         return columns;
     }
 
-    protected void addPerformed(AjaxRequestTarget target) {
+    private List<UserResourceDto> getSelectedResources() {
+        List<UserResourceDto> list = new ArrayList<UserResourceDto>();
+
+        TablePanel table = (TablePanel)get("table");
+        ResourceDtoProvider provider = (ResourceDtoProvider)table.getDataTable().getDataProvider();
+        for (ResourceDto bean : provider.getAvailableData()) {
+            if (!bean.isSelected()) {
+                continue;
+            }
+
+            list.add(new UserResourceDto(bean.getOid(), bean.getName()));
+        }
+
+        return list;
+    }
+
+    protected void addPerformed(AjaxRequestTarget target, List<UserResourceDto> newResources) {
 
     }
 }

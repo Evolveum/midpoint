@@ -25,7 +25,9 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -69,13 +71,30 @@ public class RolesPopup extends Panel {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addPerformed(target);
+                addPerformed(target, getSelectedRoles());
             }
         };
         form.add(addButton);
     }
 
-    protected void addPerformed(AjaxRequestTarget target) {
+    private List<UserRoleDto> getSelectedRoles() {
+        List<UserRoleDto> roles = new ArrayList<UserRoleDto>();
+
+        TablePanel table = (TablePanel)get("rolesForm:table");
+        ObjectDataProvider<RoleType> provider = (ObjectDataProvider)table.getDataTable().getDataProvider();
+        for (SelectableBean<RoleType> bean : provider.getAvailableData()) {
+            if (!bean.isSelected()) {
+                continue;
+            }
+
+            RoleType role = bean.getValue();
+            roles.add(new UserRoleDto(role.getOid(), role.getName(), role.getDescription()));
+        }
+
+        return roles;
+    }
+
+    protected void addPerformed(AjaxRequestTarget target, List<UserRoleDto> selectedRoles) {
 
     }
 }

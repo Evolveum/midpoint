@@ -49,6 +49,8 @@ import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.AccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserResourceDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
@@ -409,8 +411,8 @@ public class PageUser extends PageAdminUsers {
         window.setContent(new ResourcesPopup(window.getContentId(), this) {
 
             @Override
-            protected void addPerformed(AjaxRequestTarget target) {
-                addSelectedAccountPerformed(target);
+            protected void addPerformed(AjaxRequestTarget target, List<UserResourceDto> newResources) {
+                addSelectedAccountPerformed(target, newResources);
             }
         });
         add(window);
@@ -421,8 +423,8 @@ public class PageUser extends PageAdminUsers {
         window.setContent(new RolesPopup(window.getContentId(), this) {
 
             @Override
-            protected void addPerformed(AjaxRequestTarget target) {
-                addSelectedRolePerformed(target);
+            protected void addPerformed(AjaxRequestTarget target, List<UserRoleDto> roles) {
+                addSelectedRolePerformed(target, roles);
             }
         });
         add(window);
@@ -543,15 +545,32 @@ public class PageUser extends PageAdminUsers {
         window.show(target);
     }
 
-    private void addSelectedAccountPerformed(AjaxRequestTarget target) {
+    private void addSelectedAccountPerformed(AjaxRequestTarget target, List<UserResourceDto> newResources) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);
         window.close(target);
+
+        if (newResources.isEmpty()) {
+            warn(getString("pageUser.message.noResourceSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        for (UserResourceDto resource : newResources) {
+            System.out.println("new " + resource);
+        }
         //todo implement
     }
 
-    private void addSelectedRolePerformed(AjaxRequestTarget target) {
+    private void addSelectedRolePerformed(AjaxRequestTarget target, List<UserRoleDto> newRoles) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_ROLE);
         window.close(target);
+
+        if (newRoles.isEmpty()) {
+            warn(getString("pageUser.message.noRoleSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
         //todo implement
     }
 
