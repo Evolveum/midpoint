@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.users.dto.AccountDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
@@ -61,6 +62,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
@@ -77,11 +79,12 @@ public class PageUser extends PageAdminUsers {
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
+    private static final String MODAL_ID_RESOURCE = "resourcePopup";
+    private static final String MODAL_ID_ROLE = "rolePopup";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
-    private IModel<List<ObjectWrapper>> accountsModel;
-    private ModalWindow resourcesPopupWindow;
+    private IModel<List<AccountDto>> accountsModel;
     private ModalWindow rolesPopupWindow;
 
     public PageUser() {
@@ -92,10 +95,10 @@ public class PageUser extends PageAdminUsers {
                 return loadUserWrapper();
             }
         };
-        accountsModel = new LoadableModel<List<ObjectWrapper>>(false) {
+        accountsModel = new LoadableModel<List<AccountDto>>(false) {
 
             @Override
-            protected List<ObjectWrapper> load() {
+            protected List<AccountDto> load() {
                 return loadAccountWrappers();
             }
         };
@@ -179,20 +182,22 @@ public class PageUser extends PageAdminUsers {
         initAssignments(assignments);
 
         initButtons(mainForm);
-        resourcesPopupWindow = createResourcesWindow();
-        rolesPopupWindow = createRolesWindow();
+
+        initResourceModal();
+        initRoleModal();
 
         ConfirmationDialog dialog = new ConfirmationDialog("confirmPopup");
         add(dialog);
     }
 
     private void initAccounts(AccordionItem accounts) {
-        ListView<ObjectWrapper> accountList = new ListView<ObjectWrapper>("accountList",
+        ListView<AccountDto> accountList = new ListView<AccountDto>("accountList",
                 accountsModel) {
 
             @Override
-            protected void populateItem(final ListItem<ObjectWrapper> item) {
-                PrismObjectPanel account = new PrismObjectPanel("account", item.getModel(),
+            protected void populateItem(final ListItem<AccountDto> item) {
+                PrismObjectPanel account = new PrismObjectPanel("account",
+                        new PropertyModel<ObjectWrapper>(item.getModel(), "object"),
                         new PackageResourceReference(PageUser.class, "Hdd.png"), (Form) PageUser.this.get("mainForm")) {
 
 //                	@Override
@@ -207,8 +212,8 @@ public class PageUser extends PageAdminUsers {
         accounts.getBodyContainer().add(accountList);
     }
 
-    private List<ObjectWrapper> loadAccountWrappers() {
-        List<ObjectWrapper> list = new ArrayList<ObjectWrapper>();
+    private List<AccountDto> loadAccountWrappers() {
+        List<AccountDto> list = new ArrayList<AccountDto>();
 
         ObjectWrapper user = userModel.getObject();
         PrismObject<UserType> prismUser = user.getObject();
@@ -224,7 +229,7 @@ public class PageUser extends PageAdminUsers {
                     account.asPrismObject(), ContainerStatus.MODIFYING);
             wrapper.setSelectable(true);
             wrapper.setMinimalized(true);
-            list.add(wrapper);
+            list.add(new AccountDto(wrapper, AccountDto.AccountDtoStatus.NOT_MODIFIED));
         }
 
         return list;
@@ -369,19 +374,18 @@ public class PageUser extends PageAdminUsers {
         mainForm.add(deleteAccount);
     }
 
-    private ModalWindow createResourcesWindow() {
-        final ModalWindow resourcesWindow;
-        add(resourcesWindow = new ModalWindow("resourcePopup"));
+    private ModalWindow createModalWindow(String id, IModel<String> title) {
+        final ModalWindow modal = new ModalWindow(id);
+        add(modal);
 
-        resourcesWindow.setContent(new ResourcesPopup(PageUser.this.getPageReference(), resourcesWindow.getContentId(), resourcesWindow, PageUser.this));
-        resourcesWindow.setResizable(false);
-        resourcesWindow.setTitle("Select resource");
-        resourcesWindow.setCookieName("Resources popup window");
+        modal.setResizable(false);
+        modal.setTitle(title);
+        modal.setCookieName(PageUser.class.getSimpleName() + ((int) (Math.random() * 100)));
 
-        resourcesWindow.setInitialWidth(1100);
-        resourcesWindow.setWidthUnit("px");
+        modal.setInitialWidth(1100);
+        modal.setWidthUnit("px");
 
-        resourcesWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+        modal.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
 
             @Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
@@ -389,46 +393,39 @@ public class PageUser extends PageAdminUsers {
             }
         });
 
-        resourcesWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+        modal.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
 
             @Override
             public void onClose(AjaxRequestTarget target) {
-                resourcesWindow.close(target);
+                modal.close(target);
             }
         });
 
-        return resourcesWindow;
+        return modal;
     }
 
-    private ModalWindow createRolesWindow() {
-        final ModalWindow rolesWindow;
-        add(rolesWindow = new ModalWindow("rolePopup"));
-
-        rolesWindow.setContent(new RolesPopup(PageUser.this.getPageReference(), rolesWindow.getContentId(), rolesWindow, PageUser.this));
-        rolesWindow.setResizable(false);
-        rolesWindow.setTitle("Select Role");
-        rolesWindow.setCookieName("Roles popup window");
-
-        rolesWindow.setInitialWidth(1100);
-        rolesWindow.setWidthUnit("px");
-
-        rolesWindow.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+    private void initResourceModal() {
+        ModalWindow window = createModalWindow(MODAL_ID_RESOURCE, createStringResource("pageUser.title.selectResource"));
+        window.setContent(new ResourcesPopup(window.getContentId(), this) {
 
             @Override
-            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-                return true;
+            protected void addPerformed(AjaxRequestTarget target) {
+                addSelectedAccountPerformed(target);
             }
         });
+        add(window);
+    }
 
-        rolesWindow.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+    private void initRoleModal() {
+        ModalWindow window = createModalWindow(MODAL_ID_ROLE, createStringResource("pageUser.title.selectRole"));
+        window.setContent(new RolesPopup(window.getContentId(), this) {
 
             @Override
-            public void onClose(AjaxRequestTarget target) {
-                rolesWindow.close(target);
+            protected void addPerformed(AjaxRequestTarget target) {
+                addSelectedRolePerformed(target);
             }
         });
-
-        return rolesWindow;
+        add(window);
     }
 
     private boolean isEditingUser() {
@@ -509,13 +506,13 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
-    private List<ObjectWrapper> getSelectedAccounts() {
-        List<ObjectWrapper> selected = new ArrayList<ObjectWrapper>();
+    private List<AccountDto> getSelectedAccounts() {
+        List<AccountDto> selected = new ArrayList<AccountDto>();
 
-        List<ObjectWrapper> all = accountsModel.getObject();
-        for (ObjectWrapper wrapper : all) {
-            if (wrapper.isSelected()) {
-                selected.add(wrapper);
+        List<AccountDto> all = accountsModel.getObject();
+        for (AccountDto account : all) {
+            if (account.getObject().isSelected()) {
+                selected.add(account);
             }
         }
 
@@ -536,15 +533,25 @@ public class PageUser extends PageAdminUsers {
     }
 
 //    private void recalculatePerformed(AjaxRequestTarget target) {
-//        //todo implement
 //    }
 //
 //    private void refreshPerformed(AjaxRequestTarget target) {
-//        //todo implement
 //    }
 
     private void addAccountPerformed(AjaxRequestTarget target) {
-        resourcesPopupWindow.show(target);
+        ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);
+        window.show(target);
+    }
+
+    private void addSelectedAccountPerformed(AjaxRequestTarget target) {
+        ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);
+        window.close(target);
+        //todo implement
+    }
+
+    private void addSelectedRolePerformed(AjaxRequestTarget target) {
+        ModalWindow window = (ModalWindow) get(MODAL_ID_ROLE);
+        window.close(target);
         //todo implement
     }
 

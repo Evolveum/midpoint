@@ -212,6 +212,20 @@ public class ObjectWrapper implements Serializable {
         return new PropertyPath(segments);
     }
 
+    public void normalize() throws SchemaException {
+        if (ContainerStatus.ADDING.equals(getStatus())) {
+            normalizeAdding();
+        } else {
+
+        }
+
+        System.out.println(object.debugDump(3));
+    }
+
+    private void normalizeAdding() throws SchemaException {
+
+    }
+
     public ObjectDelta getObjectDelta() throws SchemaException {
         if (ContainerStatus.ADDING.equals(getStatus())) {
             return createAddingObjectDelta();
@@ -219,9 +233,13 @@ public class ObjectWrapper implements Serializable {
 
         ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY);
         delta.setOid(object.getOid());
+
+        List<ContainerWrapper> containers = getContainers();
+        //sort containers by path size
+        Collections.sort(containers, new PathSizeComparator());
+
         for (ContainerWrapper containerWrapper : getContainers()) {
             if (!containerWrapper.hasChanged()) {
-                //todo handle container changes
                 continue;
             }
 
@@ -262,8 +280,6 @@ public class ObjectWrapper implements Serializable {
     }
 
     private ObjectDelta createAddingObjectDelta() throws SchemaException {
-        ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.ADD);
-
         List<ContainerWrapper> containers = getContainers();
         //sort containers by path size
         Collections.sort(containers, new PathSizeComparator());
@@ -301,6 +317,8 @@ public class ObjectWrapper implements Serializable {
                 }
             }
         }
+
+        ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.ADD);
         delta.setObjectToAdd(object);
 
         return delta;
