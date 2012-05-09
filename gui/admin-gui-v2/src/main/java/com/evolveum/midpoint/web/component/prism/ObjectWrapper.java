@@ -130,6 +130,20 @@ public class ObjectWrapper implements Serializable {
         return containers;
     }
 
+    public ContainerWrapper findContainerWrapper(PropertyPath path) {
+        for (ContainerWrapper wrapper : getContainers()) {
+            if (path != null && path.equals(wrapper.getPath())) {
+                return wrapper;
+            } else {
+                if (wrapper.getPath() == null) {
+                    return wrapper;
+                }
+            }
+        }
+
+        return null;
+    }
+
     private List<ContainerWrapper> createCustomContainerWrapper(PrismObject object, QName name) {
         PrismContainer container = object.findContainer(name);
         ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
@@ -143,7 +157,7 @@ public class ObjectWrapper implements Serializable {
         }
 
         List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
-        list.add(new ContainerWrapper(this, container, status, new PropertyPath()));
+        list.add(new ContainerWrapper(this, container, status, new PropertyPath(name)));
         list.addAll(createContainerWrapper(container, new PropertyPath()));
 
         return list;

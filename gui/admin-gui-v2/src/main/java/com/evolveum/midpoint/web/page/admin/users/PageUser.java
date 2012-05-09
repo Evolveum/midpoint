@@ -43,9 +43,7 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -92,6 +90,7 @@ public class PageUser extends PageAdminUsers {
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
     private IModel<List<UserAccountDto>> accountsModel;
+    private IModel<List<UserRoleDto>> assignmentsModel;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -108,7 +107,19 @@ public class PageUser extends PageAdminUsers {
                 return loadAccountWrappers();
             }
         };
+        assignmentsModel = new LoadableModel<List<UserRoleDto>>(false) {
+
+            @Override
+            protected List<UserRoleDto> load() {
+                return loadAssignments();
+            }
+        };
         initLayout();
+    }
+
+    private List<UserRoleDto> loadAssignments() {
+        //todo implement
+        return new ArrayList<UserRoleDto>();
     }
 
     private ObjectWrapper loadUserWrapper() {
@@ -686,7 +697,26 @@ public class PageUser extends PageAdminUsers {
             return;
         }
 
-        //todo implement
+        for (UserAccountDto account : accounts) {
+            ObjectWrapper wrapper = account.getObject();
+            ContainerWrapper activation = wrapper.findContainerWrapper(
+                    new PropertyPath(ResourceObjectShadowType.F_ACTIVATION));
+            if (activation == null) {
+                warn(getString("pageUser.message.noActivationFound", wrapper.getDisplayName()));
+                continue;
+            }
+
+            PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ENABLED);
+            if (enabledProperty.getValues().size() != 1) {
+                warn(getString("pageUser.message.noEnabledPropertyFound", wrapper.getDisplayName()));
+                continue;
+            }
+            ValueWrapper value = enabledProperty.getValues().get(0);
+            value.getValue().setValue(enabled);
+        }
+
+        target.add(getAccountsAccordionItem());
+        target.add(getFeedbackPanel());
     }
 
     private void deleteAccountPerformed(AjaxRequestTarget target) {

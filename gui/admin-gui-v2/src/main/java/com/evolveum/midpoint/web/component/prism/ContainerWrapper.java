@@ -83,6 +83,16 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return properties;
     }
 
+    public PropertyWrapper findPropertyWrapper(QName name) {
+        Validate.notNull(name, "QName must not be null.");
+        for (PropertyWrapper wrapper : getProperties()) {
+            if (name.equals(wrapper.getProperty().getName())) {
+                return wrapper;
+            }
+        }
+        return null;
+    }
+
     private List<PropertyWrapper> createProperties() {
         List<PropertyWrapper> properties = new ArrayList<PropertyWrapper>();
 
