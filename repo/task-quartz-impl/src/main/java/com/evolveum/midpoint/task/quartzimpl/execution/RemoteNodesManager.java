@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.task.quartzimpl;/*
+package com.evolveum.midpoint.task.quartzimpl.execution;/*
  * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -25,12 +25,14 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Node;
 import com.evolveum.midpoint.task.api.NodeExecutionStatus;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
-import org.apache.commons.lang.Validate;
 import org.quartz.Scheduler;
 import org.quartz.core.jmx.QuartzSchedulerMBean;
 
@@ -67,7 +69,7 @@ public class RemoteNodesManager {
     /**
      * Used exclusively for collecting running task information.
      *
-     * @see GlobalExecutionManager#getClusterStatusInformation(boolean, com.evolveum.midpoint.schema.result.OperationResult)
+     * @see ExecutionManager#getClusterStatusInformation(boolean, com.evolveum.midpoint.schema.result.OperationResult)
      * @param info A structure to which information should be added
      * @param node Node which to query
      */
@@ -80,7 +82,7 @@ public class RemoteNodesManager {
         String address = node.asObjectable().getHostname() + ":" + node.asObjectable().getJmxPort();
         Node nodeInfo = new Node(node);
 
-        if (!taskManager.getNodeRegistrar().isUp(node.asObjectable())) {
+        if (!taskManager.getClusterManager().isUp(node.asObjectable())) {
             nodeInfo.setNodeExecutionStatus(NodeExecutionStatus.DOWN);
             info.addNodeInfo(nodeInfo);
             result.recordStatus(OperationResultStatus.SUCCESS, "Node is down");
@@ -172,7 +174,7 @@ public class RemoteNodesManager {
 
     private NodeType getNode(String nodeIdentifier, OperationResult result) {
         try {
-            return taskManager.getNodeById(nodeIdentifier, result).asObjectable();
+            return taskManager.getClusterManager().getNodeById(nodeIdentifier, result).asObjectable();
         } catch (ObjectNotFoundException e) {
             result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");
             return null;
@@ -234,7 +236,7 @@ public class RemoteNodesManager {
 
     }
 
-    public void startRemoteScheduler(String nodeIdentifier, OperationResult result) {
+    void startRemoteScheduler(String nodeIdentifier, OperationResult result) {
 
         NodeType node = getNode(nodeIdentifier, result);
         if (node == null) {
@@ -310,7 +312,7 @@ public class RemoteNodesManager {
                 new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + address + "/jmxrmi");
 
         Map<String,Object> env = new HashMap<String,Object>();
-        String[] creds = {"midpoint", "secret"};
+        String[] creds = {taskManager.getConfiguration().getJmxUsername(), taskManager.getConfiguration().getJmxPassword()};
         env.put(JMXConnector.CREDENTIALS, creds);
         return JmxClient.connectWithTimeout(url, env,
                 taskManager.getConfiguration().getJmxConnectTimeout(), TimeUnit.SECONDS);
@@ -320,13 +322,14 @@ public class RemoteNodesManager {
         return taskManager.getConfiguration();
     }
 
-    private GlobalExecutionManager getGlobalExecutionManager() {
-        return taskManager.getGlobalExecutionManager();
+    private ExecutionManager getGlobalExecutionManager() {
+        return taskManager.getExecutionManager();
     }
 
-    void stopRemoteTask(String oid, Node nodeInfo, OperationResult parentResult) {
+    // the task should be really running
+    void stopRemoteTaskRun(String oid, Node nodeInfo, OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(RemoteNodesManager.class.getName() + ".stopRemoteTask");
+        OperationResult result = parentResult.createSubresult(RemoteNodesManager.class.getName() + ".stopRemoteTaskRun");
         result.addParam("oid", oid);
         result.addParam("nodeInfo", nodeInfo);
 

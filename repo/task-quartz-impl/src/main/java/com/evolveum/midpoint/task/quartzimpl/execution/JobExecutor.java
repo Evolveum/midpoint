@@ -1,14 +1,14 @@
-package com.evolveum.midpoint.task.quartzimpl;
+package com.evolveum.midpoint.task.quartzimpl.execution;
 
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.UseThreadInterrupt;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
 import org.quartz.*;
 
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,17 +48,18 @@ public class JobExecutor implements InterruptableJob {
 		
 		OperationResult executionResult = createOperationResult("execute");
 
+        if (taskManagerImpl == null) {
+            LOGGER.error("TaskManager not correctly set for JobExecutor, exiting the execution routine.");
+            return;
+        }
+
 		// get the task instance
 		String oid = context.getJobDetail().getKey().getName();
         try {
 			task = (TaskQuartzImpl) taskManagerImpl.getTask(oid, executionResult);
 		} catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, unscheduling Quartz job and exiting the execution routine.", e, oid);
-            try {
-                taskManagerImpl.getGlobalExecutionManager().removeTaskFromQuartz(oid);
-            } catch (Exception e2) {
-                LoggingUtils.logException(LOGGER, "Task with OID {} cannot be removed from Quartz.", e2, oid);
-            }
+            LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
+            taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
             return;
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} cannot be retrieved because of schema exception. Please correct the problem or resynchronize midPoint repository with Quartz job store using 'xxxxxxx' function. Now exiting the execution routine.", e, oid);
@@ -69,11 +70,19 @@ public class JobExecutor implements InterruptableJob {
 		}
 
         if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-            LOGGER.warn("Task is not in RUNNABLE state (its state is {}), exiting its execution and unscheduling its Quartz job. Task = {}", task.getExecutionStatus(), task);
+            LOGGER.warn("Task is not in RUNNABLE state (its state is {}), exiting its execution and removing its Quartz trigger. Task = {}", task.getExecutionStatus(), task);
             try {
                 context.getScheduler().unscheduleJob(context.getTrigger().getKey());
             } catch (SchedulerException e) {
                 LoggingUtils.logException(LOGGER, "Cannot unschedule job for a non-RUNNABLE task {}", e, task);
+            }
+            return;
+        }
+
+        // if this is a restart, check whether the task is resilient
+        if (context.isRecovering()) {
+            if (!processTaskRecovery(executionResult)) {
+                return;
             }
         }
 		
@@ -93,7 +102,7 @@ public class JobExecutor implements InterruptableJob {
 			}
 		
 			if (task.isCycle()) {
-				if (((TaskQuartzImpl) task).getHandlersCount() > 1) {
+				if (task.getHandlersCount() > 1) {
 					LOGGER.error("Recurrent tasks cannot have more than one task handler; task = {} - closing it.", task);
                     closeFlawedTask(task, executionResult);
 					throw new JobExecutionException("Recurrent tasks cannot have more than one task handler; task = " + task);
@@ -108,16 +117,90 @@ public class JobExecutor implements InterruptableJob {
 		
 		} finally {
 			executingThread = null;
+
+            if (!task.canRun()) {
+                processTaskStop(executionResult);
+            }
+
 			logRunFinish();
 		}
 
 	}
 
+    // returns true if the execution of the task should continue
+    private boolean processTaskRecovery(OperationResult executionResult) {
+        if (task.getThreadStopAction() == ThreadStopActionType.CLOSE) {
+            LOGGER.info("Closing recovered non-resilient task {}", task);
+            closeTask(task, executionResult);
+            return false;
+        } else if (task.getThreadStopAction() == ThreadStopActionType.SUSPEND) {
+            LOGGER.info("Suspending recovered non-resilient task {}", task);
+            taskManagerImpl.suspendTask(task, 0L, true, executionResult);
+            return false;
+        } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
+            LOGGER.info("Recovering resilient task {}", task);
+            return true;
+        } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
+            if (task.getRecurrenceStatus() == TaskRecurrence.RECURRING && task.isLooselyBound()) {
+                LOGGER.info("Recovering resilient task with RESCHEDULE thread stop action - exiting the execution, the task will be rescheduled; task = {}", task);
+                return false;
+            } else {
+                LOGGER.info("Recovering resilient task {}", task);
+                return true;
+            }
+        } else {
+            throw new SystemException("Unknown value of ThreadStopAction: " + task.getThreadStopAction() + " for task " + task);
+        }
+    }
+
+    // called when task is externally stopped (can occur on node shutdown, node scheduler stop, node threads deactivation, or task suspension)
+    // we have to act (i.e. reschedule resilient tasks or close/suspend non-resilient tasks) in all cases, except task suspension
+    // we recognize it by looking at task status: RUNNABLE means that the task is stopped as part of node shutdown
+    private void processTaskStop(OperationResult executionResult) {
+
+        try {
+            task.refresh(executionResult);
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "ThreadStopAction cannot be applied, because the task no longer exists: " + task, e);
+            return;
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "ThreadStopAction cannot be applied, because of schema exception. Task = " + task, e);
+            return;
+        }
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+            LOGGER.trace("processTaskStop: task execution status is not RUNNABLE (it is " + task.getExecutionStatus() + "), so ThreadStopAction does not apply; task = " + task);
+            return;
+        }
+
+        if (task.getThreadStopAction() == ThreadStopActionType.CLOSE) {
+            LOGGER.info("Closing non-resilient task on node shutdown; task = {}", task);
+            closeTask(task, executionResult);
+        } else if (task.getThreadStopAction() == ThreadStopActionType.SUSPEND) {
+            LOGGER.info("Suspending non-resilient task on node shutdown; task = {}", task);
+            taskManagerImpl.suspendTask(task, 0L, true, executionResult);
+        } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
+            LOGGER.info("Node going down: Rescheduling resilient task to run immediately; task = {}", task);
+            taskManagerImpl.scheduleTaskNow(task, executionResult);
+        } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
+            if (task.getRecurrenceStatus() == TaskRecurrence.RECURRING && task.isLooselyBound()) {
+                ; // nothing to do, task will be automatically started by Quartz on next trigger fire time
+            } else {
+                taskManagerImpl.scheduleTaskNow(task, executionResult);     // for tightly-bound tasks we do not know next schedule time, so we run them immediately
+            }
+        } else {
+            throw new SystemException("Unknown value of ThreadStopAction: " + task.getThreadStopAction() + " for task " + task);
+        }
+    }
+
     private void closeFlawedTask(TaskQuartzImpl task, OperationResult result) {
         LOGGER.info("Closing flawed task {}", task);
+        closeTask(task, result);
+    }
+
+    private void closeTask(TaskQuartzImpl task, OperationResult result) {
         try {
-            task.close();
-            task.savePendingModifications(result);
+            taskManagerImpl.closeTask(task, result);
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Cannot close task {}, because it does not exist in repository.", e, task);
         } catch (SchemaException e) {
@@ -176,6 +259,11 @@ public class JobExecutor implements InterruptableJob {
 
 mainCycle:
 			while (task.canRun()) {
+
+                if (!task.stillCanStart()) {
+                    LOGGER.trace("CycleRunner loop: task latest start time ({}) has elapsed, exiting the execution cycle. Task = {}", task.getSchedule().getLatestStartTime(), task);
+                    break;
+                }
 				
 				LOGGER.trace("CycleRunner loop: start");
 
@@ -304,11 +392,11 @@ mainCycle:
 	}
 	
 	private void logRunStart() {
-		LOGGER.info("Task run STARTING "+task);
+		LOGGER.info("Task thread run STARTING "+task);
 	}
 	
 	private void logRunFinish() {
-		LOGGER.info("Task run FINISHED " + task);
+		LOGGER.info("Task thread run FINISHED " + task);
 	}
     
 	private void recordCycleRunStart(OperationResult result) {

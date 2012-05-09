@@ -18,7 +18,7 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  *
  */
-package com.evolveum.midpoint.task.quartzimpl;
+package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,6 +26,10 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -34,8 +38,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import org.quartz.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.util.HashSet;
@@ -84,7 +86,7 @@ public class TaskSynchronizer {
 
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".synchronizeJobStores");
 
-        Scheduler scheduler = taskManager.getQuartzScheduler();
+        Scheduler scheduler = taskManager.getExecutionManager().getQuartzScheduler();
 
         LOGGER.info("Synchronizing Quartz job store with midPoint repository.");
 
@@ -109,12 +111,15 @@ public class TaskSynchronizer {
             try {
                 task = (TaskQuartzImpl) taskManager.getTask(taskPrism.getOid(), result);    // in order for the task to be "fresh"
                 synchronizeTask(task, result);
-                processed++;
             } catch (SchemaException e) {
                 LoggingUtils.logException(LOGGER, "Task Manager cannot synchronize task {} due to schema exception.", e, taskPrism.getOid());
-                errors++;
-            } catch (Exception e) {		// FIXME: correct exception handling
+            } catch (ObjectNotFoundException e) {
                 LoggingUtils.logException(LOGGER, "Task Manager cannot synchronize task {}", e, task);
+            }
+
+            if (result.getLastSubresultStatus() == OperationResultStatus.SUCCESS) {
+                processed++;
+            } else {
                 errors++;
             }
         }
@@ -154,7 +159,6 @@ public class TaskSynchronizer {
                 + errors + " task(s) failed.";
 
         LOGGER.info(resultMessage);
-        result.createSubresult("result").recordStatus(OperationResultStatus.SUCCESS, resultMessage);
         if (result.isUnknown()) {
             result.recordStatus(OperationResultStatus.SUCCESS, resultMessage);
         }
@@ -165,7 +169,7 @@ public class TaskSynchronizer {
     /**
      * Task should be refreshed when entering this method.
      */
-    public void synchronizeTask(TaskQuartzImpl task, OperationResult parentResult) throws SchedulerException {
+    public void synchronizeTask(TaskQuartzImpl task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(TaskSynchronizer.class.getName() + ".synchronizeTask");
         result.addParam("task", task);
@@ -174,7 +178,7 @@ public class TaskSynchronizer {
 
             LOGGER.trace("Synchronizing task {}", task);
 
-            Scheduler scheduler = taskManager.getQuartzScheduler();
+            Scheduler scheduler = taskManager.getExecutionManager().getQuartzScheduler();
             String oid = task.getOid();
 
             JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
@@ -236,10 +240,12 @@ public class TaskSynchronizer {
         } catch (SchedulerException e) {
             String message = "Cannot synchronize repository/Quartz Job Store information for task " + task;
             LoggingUtils.logException(LOGGER, message, e);
-            throw e;        // TODO: ok?
+            result.recordFatalError(message, e);
         }
 
-        result.recordSuccessIfUnknown();
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
     }
 
     private RepositoryService getRepositoryService() {

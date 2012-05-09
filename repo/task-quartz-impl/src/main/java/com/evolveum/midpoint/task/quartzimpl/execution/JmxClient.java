@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.task.quartzimpl;
+package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;

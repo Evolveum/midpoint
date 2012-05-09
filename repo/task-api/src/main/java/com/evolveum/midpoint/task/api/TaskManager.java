@@ -422,7 +422,6 @@ public interface TaskManager {
      *
      * @param nodeIdentifier Node on which the scheduler should be stopped. Null means current node.
      *
-     * (TODO: perhaps signal an exception here? also for the other methods)
      */
     void stopScheduler(String nodeIdentifier, OperationResult parentResult);
 
@@ -451,13 +450,6 @@ public interface TaskManager {
 	 */
 //	public Long determineNextRunStartTime(TaskType taskType);
 
-	/**
-	 * Indicates whether execution thread for this task is active (i.e. whether it exists).
-	 * 
-	 * @param oid
-	 * @return
-	 */
-	boolean isTaskThreadActiveLocally(String oid);
 
 	/**
 	 * This is a signal to task manager that a new task was created in the repository.
@@ -494,7 +486,11 @@ public interface TaskManager {
 //    boolean isTaskThreadActiveClusterwide(String oid);
 
     // we do not throw exceptions here -- we do our best to suspend the tasks
+    // if waitTime < 0 we do not try to wait
     boolean suspendTasks(Collection<Task> tasks, long waitTime, OperationResult parentResult);
+
+    // if doNotStop we do not try to stop the tasks
+    boolean suspendTasks(Collection<Task> tasks, long waitTime, boolean doNotStop, OperationResult parentResult);
 
     /**
      * Returns running tasks; fetches new information only if after last query elapsed at least
@@ -510,4 +506,6 @@ public interface TaskManager {
     void synchronizeTasks(OperationResult parentResult);
 
     void deleteNode(String nodeIdentifier, OperationResult result);
+
+    void scheduleTaskNow(Task task, OperationResult parentResult);
 }

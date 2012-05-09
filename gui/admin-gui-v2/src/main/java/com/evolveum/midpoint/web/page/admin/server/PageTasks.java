@@ -65,6 +65,7 @@ import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -78,7 +79,7 @@ public class PageTasks extends PageAdminTasks {
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
     private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     private static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
-    private static final String OPERATION_SCHEDULE_TASK = DOT_CLASS + "scheduleTasks";
+    private static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
     private static final String OPERATION_DELETE_NODES = DOT_CLASS + "deleteNodes";
     private static final String OPERATION_START_SCHEDULERS = DOT_CLASS + "startSchedulers";
     private static final String OPERATION_STOP_SCHEDULERS_AND_TASKS = DOT_CLASS + "stopSchedulersAndTasks";
@@ -698,7 +699,43 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target) {
-        //todo implement
+        OperationResult result = new OperationResult(OPERATION_SCHEDULE_TASKS);
+
+        TaskManager taskManager = getTaskManager();
+        List<TaskDto> taskDtoList = getSelectedTasks();
+        for (TaskDto taskDto : taskDtoList) {
+            try {
+                Task task = taskManager.getTask(taskDto.getOid(), result);
+                taskManager.scheduleTaskNow(task, result);
+            }
+            // some situations (e.g. resume task that is not suspended) are recorded in OperationResult only (i.e. no exception)
+            // ordinary exceptions (ObjectNotFoundException, SchemaException) are already recorded in the result (and an exception is thrown)
+            // unexpected exceptions are not recorded in OperationResult, only the exception is thrown
+            catch (ObjectNotFoundException e) {
+                // see above
+            } catch (SchemaException e) {
+                // see above
+            }
+            catch (Exception e) {
+                // only the last error is recorded but we don't care much (low probability of this case)
+                result.recordPartialError("Couldn't schedule task due to an unexpected exception.", e);
+            }
+        }
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
+
+        if (result.isSuccess()) {
+            result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully scheduled.");
+        }
+
+        showResult(result);
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+        target.add(getNodeTable());
+
     }
 
     private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target) {
@@ -891,6 +928,9 @@ public class PageTasks extends PageAdminTasks {
 
         if (result.isUnknown()) {
             result.recomputeStatus();
+            if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
+                result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
+            }
         }
 
         showResult(result);

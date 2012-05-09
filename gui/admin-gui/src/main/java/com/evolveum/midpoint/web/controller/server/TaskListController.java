@@ -181,13 +181,13 @@ public class TaskListController extends SortableListController<TaskItem> {
         	String oid = selectedTask.getOid();
         	
         	boolean getInfoProblem = false;
-        	boolean wasRunning = false;
+//        	boolean wasRunning = false;
         	boolean isRunning = false;
         	
         	try {
         		Task task = taskManager.getTask(oid, result);
-        		wasRunning = taskManager.isTaskThreadActiveLocally(oid);
-        		if (wasRunning)
+//        		wasRunning = taskManager.isTaskThreadActiveLocally(oid);
+//        		if (wasRunning)
         			isRunning = !taskManager.suspendTask(task, 1000L, result);
         	}
         	catch (Exception ex) {		// we don't care which kind of exception occurred while getting information about the task
@@ -202,10 +202,8 @@ public class TaskListController extends SortableListController<TaskItem> {
             	FacesUtils.addWarnMessage("The task was successfully removed from the repository. " +
             			"However, it was not possible to get its state; it might " +
             			"be still running. Please check using the 'List currently executing tasks' function.");
-            else if (!wasRunning)		// was not running
+            else if (!isRunning)
             	FacesUtils.addSuccessMessage("Task has been successfully deleted.");
-            else if (!isRunning)		// was running, but now it is stopped
-            	FacesUtils.addSuccessMessage("Task has been successfully shut down and deleted.");
             else
             	FacesUtils.addWarnMessage("The task was successfully removed from the repository. " +
             			"However, although requested to shut down, it has not stopped yet. " + 

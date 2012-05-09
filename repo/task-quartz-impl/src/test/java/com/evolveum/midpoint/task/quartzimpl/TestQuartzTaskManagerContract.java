@@ -32,6 +32,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.SearchResultEntry;
 import org.quartz.JobKey;
@@ -59,7 +60,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -540,10 +540,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         // We have to wait sufficiently long in order for the task to be processed at least twice
-        
-        System.out.println("Waiting for task manager to pick up the task");
+
+        LOGGER.info("Waiting for task manager to pick up the task");
         Thread.sleep(12000);
-        System.out.println("... done");
+        LOGGER.info("... done");
 
         // Check task status
 
@@ -589,10 +589,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     	addObjectFromFile(taskFilename(test));
     	
         TaskQuartzImpl task = (TaskQuartzImpl) taskManager.getTask(taskOid(test), result);
-        
-        System.out.println("Waiting for task manager to pick up the task");
+
+        LOGGER.info("Waiting for task manager to pick up the task");
         Thread.sleep(6000);
-        System.out.println("... done");
+        LOGGER.info("... done");
 
         // Check task status
 
@@ -634,9 +634,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         PrismProperty delay = taskTemp.getExtension(NoOpTaskHandler.DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
-        System.out.println("Waiting for task manager to pick up the task");
+        LOGGER.info("Waiting for task manager to pick up the task");
         Thread.sleep(10000);
-        System.out.println("... done");
+        LOGGER.info("... done");
 
         // Check task status (task is running 5 iterations where each takes 2000 ms)
 
@@ -690,9 +690,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         taskManager.resumeTask(task, result);
 
         // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
-        System.out.println("Waiting for task manager to pick up the task");
+        LOGGER.info("Waiting for task manager to pick up the task");
         Thread.sleep(10000);
-        System.out.println("... done");
+        LOGGER.info("... done");
 
         task.refresh(result);
         
@@ -740,10 +740,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         Task task = taskManager.getTask(taskOid(test), result);
         System.out.println("After setup: " + task.dump());
-        
-        System.out.println("Waiting for task manager to pick up the task");
+
+        LOGGER.info("Waiting for task manager to pick up the task");
         Thread.sleep(10000);		// task itself takes 15 seconds to finish
-        System.out.println("... done");
+        LOGGER.info("... done");
 
         task.refresh(result);
         
@@ -803,7 +803,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // is the task in Quartz?
 
         JobKey key = TaskQuartzImplUtil.createJobKeyForTaskOid(oid);
-        AssertJUnit.assertTrue("Job in Quartz does not exist", taskManager.getGlobalExecutionManager().getQuartzScheduler().checkExists(key));
+        AssertJUnit.assertTrue("Job in Quartz does not exist", taskManager.getExecutionManager().getQuartzScheduler().checkExists(key));
 
         // Remove task from repo
 
@@ -818,7 +818,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // does the task in Quartz still exist?
 
-        AssertJUnit.assertFalse("Job in Quartz still exists", taskManager.getGlobalExecutionManager().getQuartzScheduler().checkExists(key));
+        AssertJUnit.assertFalse("Job in Quartz still exists", taskManager.getExecutionManager().getQuartzScheduler().checkExists(key));
 
     }
 

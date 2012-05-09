@@ -18,13 +18,16 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  *
  */
-package com.evolveum.midpoint.task.quartzimpl;
+package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Node;
+import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -32,12 +35,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * Responsible for keeping the cluster consistent.
- * (Clusterwide task management operations are in GlobalExecutionManager.)
+ * (Clusterwide task management operations are in ExecutionManager.)
  *
  * @author Pavol Mederly
  */
@@ -46,11 +50,13 @@ public class ClusterManager {
     private static final transient Trace LOGGER = TraceManager.getTrace(ClusterManager.class);
 
     private TaskManagerQuartzImpl taskManager;
+    private NodeRegistrar nodeRegistrar;
 
     private ClusterManagerThread clusterManagerThread;
 
     public ClusterManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
+        this.nodeRegistrar = new NodeRegistrar(taskManager, this);
     }
 
     /**
@@ -59,17 +65,50 @@ public class ClusterManager {
      * @param result
      * @return
      */
-    void checkClusterConfiguration(OperationResult result) {
+    public void checkClusterConfiguration(OperationResult result) {
 
 //        LOGGER.trace("taskManager = " + taskManager);
 //        LOGGER.trace("taskManager.getNodeRegistrar() = " + taskManager.getNodeRegistrar());
 
-        taskManager.getNodeRegistrar().verifyNodeObject(result);     // if error, sets the error state and stops the scheduler
-        taskManager.getNodeRegistrar().checkNonClusteredNodes(result); // the same
+        nodeRegistrar.verifyNodeObject(result);     // if error, sets the error state and stops the scheduler
+        nodeRegistrar.checkNonClusteredNodes(result); // the same
     }
 
     public boolean isClusterManagerThreadActive() {
         return clusterManagerThread != null && clusterManagerThread.isAlive();
+    }
+
+    public void recordNodeShutdown(OperationResult result) {
+        nodeRegistrar.recordNodeShutdown(result);
+    }
+
+    public String getNodeId() {
+        return nodeRegistrar.getNodeId();
+    }
+
+    public boolean isCurrentNode(PrismObject<NodeType> node) {
+        return nodeRegistrar.isCurrentNode(node);
+    }
+
+    public boolean isCurrentNode(String node) {
+        return nodeRegistrar.isCurrentNode(node);
+    }
+
+
+    public void deleteNode(String nodeIdentifier, OperationResult result) {
+        nodeRegistrar.deleteNode(nodeIdentifier, result);
+    }
+
+    public void createNodeObject(OperationResult result) throws TaskManagerInitializationException {
+        nodeRegistrar.createNodeObject(result);
+    }
+
+    public PrismObject<NodeType> getNodePrism() {
+        return nodeRegistrar.getNodePrism();
+    }
+
+    public boolean isUp(NodeType nodeType) {
+        return nodeRegistrar.isUp(nodeType);
     }
 
 
@@ -89,7 +128,7 @@ public class ClusterManager {
                 try {
 
                     checkClusterConfiguration(result);                          // if error, the scheduler will be stopped
-                    taskManager.getNodeRegistrar().updateNodeObject(result);    // however, we want to update repo even in that case
+                    nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
 
                 } catch(Throwable t) {
                     LoggingUtils.logException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
@@ -113,7 +152,7 @@ public class ClusterManager {
 
     }
 
-    void stopClusterManagerThread(long waitTime, OperationResult parentResult) {
+    public void stopClusterManagerThread(long waitTime, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ClusterManager.class.getName() + ".stopClusterManagerThread");
         result.addParam("waitTime", waitTime);
@@ -126,16 +165,16 @@ public class ClusterManager {
                 LoggingUtils.logException(LOGGER, "Waiting for ClusterManagerThread shutdown was interrupted", e);
             }
             if (clusterManagerThread.isAlive()) {
-                parentResult.recordWarning("ClusterManagerThread shutdown requested but after " + waitTime + " ms it is still running.");
+                result.recordWarning("ClusterManagerThread shutdown requested but after " + waitTime + " ms it is still running.");
             } else {
-                parentResult.recordSuccess();
+                result.recordSuccess();
             }
         } else {
             result.recordSuccess();
         }
     }
 
-    void startClusterManagerThread() {
+    public void startClusterManagerThread() {
         clusterManagerThread = new ClusterManagerThread();
         clusterManagerThread.setName("ClusterManagerThread");
         clusterManagerThread.start();
@@ -148,7 +187,7 @@ public class ClusterManager {
     }
 
 
-    String dumpNodeInfo(Node nodeInfo) {
+    public String dumpNodeInfo(Node nodeInfo) {
         NodeType node = nodeInfo.getNodeType().asObjectable();
         return node.getNodeIdentifier() + " (" + node.getHostname() + ")";
     }
@@ -157,6 +196,31 @@ public class ClusterManager {
         return new OperationResult(ClusterManager.class.getName() + "." + methodName);
     }
 
+
+    public List<PrismObject<NodeType>> getAllNodes(OperationResult result) {
+        try {
+            return getRepositoryService().searchObjects(NodeType.class, QueryUtil.createAllObjectsQuery(), new PagingType(), result);
+        } catch (SchemaException e) {       // should not occur
+            throw new SystemException("Cannot get the list of nodes from the repository", e);
+        }
+    }
+
+    public PrismObject<NodeType> getNodeById(String nodeIdentifier, OperationResult result) throws ObjectNotFoundException {
+        try {
+            QueryType q = QueryUtil.createNameQuery(nodeIdentifier);        // TODO change to query-by-node-id
+            List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, new PagingType(), result);
+            if (nodes.isEmpty()) {
+//                result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");
+                throw new ObjectNotFoundException("A node with identifier " + nodeIdentifier + " does not exist.");
+            } else if (nodes.size() > 1) {
+                throw new SystemException("Multiple nodes with the same identifier '" + nodeIdentifier + "' in the repository.");
+            } else {
+                return nodes.get(0);
+            }
+        } catch (SchemaException e) {       // should not occur
+            throw new SystemException("Cannot get the list of nodes from the repository", e);
+        }
+    }
 
 
 

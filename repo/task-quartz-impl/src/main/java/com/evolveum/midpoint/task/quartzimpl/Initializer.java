@@ -27,6 +27,9 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.NodeErrorStatus;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
+import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
+import com.evolveum.midpoint.task.quartzimpl.execution.TaskSynchronizer;
+import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -79,8 +82,8 @@ public class Initializer {
         }
 
         // register node
-        taskManager.getNodeRegistrar().createNodeObject(result);     // may throw initialization exception
-        if (!taskManager.getConfiguration().isReusableQuartzScheduler()) {  // in test mode do not start cluster manager thread nor verify cluster config
+        taskManager.getClusterManager().createNodeObject(result);     // may throw initialization exception
+        if (!taskManager.getConfiguration().isTestMode()) {  // in test mode do not start cluster manager thread nor verify cluster config
             taskManager.getClusterManager().checkClusterConfiguration(result);      // does not throw exceptions, sets the ERROR state if necessary, however
             taskManager.getClusterManager().startClusterManagerThread();
         }
@@ -88,15 +91,13 @@ public class Initializer {
         NoOpTaskHandler.instantiateAndRegister(taskManager);
         JobExecutor.setTaskManagerQuartzImpl(taskManager);       // unfortunately, there seems to be no clean way of letting jobs know the taskManager
 
-        taskManager.getLocalExecutionManager().initializeScheduler();
+        taskManager.getExecutionManager().initializeLocalScheduler();
         if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatus.OK) {
-            taskManager.getLocalExecutionManager().shutdownSchedulerChecked();
+            taskManager.getExecutionManager().shutdownLocalSchedulerChecked();
         }
 
-        TaskSynchronizer taskSynchronizer = new TaskSynchronizer(taskManager);
-
         // populate the scheduler with jobs (if RAM-based), or synchronize with midPoint repo
-        if (taskSynchronizer.synchronizeJobStores(result) == false) {
+        if (taskManager.getExecutionManager().synchronizeJobStores(result) == false) {
             if (!configuration.isJdbcJobStore()) {
                 LOGGER.error("Some or all tasks could not be imported from midPoint repository to Quartz job store. They will therefore not be executed.");
             } else {

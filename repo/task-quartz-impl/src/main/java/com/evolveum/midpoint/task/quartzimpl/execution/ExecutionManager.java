@@ -19,22 +19,21 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.task.quartzimpl;
+package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.*;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.TriggerKey;
+import org.quartz.*;
 
 import java.util.*;
 
@@ -43,9 +42,11 @@ import java.util.*;
  *
  * @author Pavol Mederly
  */
-public class GlobalExecutionManager {
+public class ExecutionManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(GlobalExecutionManager.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(ExecutionManager.class);
+
+    private static final String DOT_CLASS = ExecutionManager.class.getName() + ".";
 
     // the following values would be (some day) part of TaskManagerConfiguration
     private static final long WAIT_FOR_COMPLETION_INITIAL = 100;			// initial waiting time (for task or tasks to be finished); it is doubled at each step
@@ -53,10 +54,17 @@ public class GlobalExecutionManager {
     private static final long INTERRUPT_TASK_THREAD_AFTER = 5000;           // how long to wait before interrupting task thread (if UseThreadInterrupt = 'whenNecessary')
 
     private TaskManagerQuartzImpl taskManager;
+    private LocalNodeManager localNodeManager;
+    private RemoteNodesManager remoteNodesManager;
+    private TaskSynchronizer taskSynchronizer;
+
     private Scheduler quartzScheduler;
 
-    public GlobalExecutionManager(TaskManagerQuartzImpl taskManager) {
+    public ExecutionManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
+        this.localNodeManager = new LocalNodeManager(taskManager);
+        this.remoteNodesManager = new RemoteNodesManager(taskManager);
+        this.taskSynchronizer = new TaskSynchronizer(taskManager);
     }
 
     /*
@@ -67,20 +75,9 @@ public class GlobalExecutionManager {
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".stopScheduler");
         result.addParam("nodeIdentifier", nodeIdentifier);
         if (isCurrentNode(nodeIdentifier)) {
-            getLocalExecutionManager().stopSchedulerLocally(result);
+            localNodeManager.stopScheduler(result);
         } else {
-            getRemoteNodesManager().stopRemoteScheduler(nodeIdentifier, result);
-        }
-        result.recordSuccessIfUnknown();
-    }
-
-
-    public boolean stopSchedulerAndTasks(String nodeIdentifier, long timeToWait) {
-        if (isCurrentNode(nodeIdentifier)) {
-            return getLocalExecutionManager().stopSchedulerAndTasksLocally(timeToWait, new OperationResult("dummy"));      // TODO operation result
-        } else {
-            // TODO: use Cluster Manager
-            throw new UnsupportedOperationException();
+            remoteNodesManager.stopRemoteScheduler(nodeIdentifier, result);
         }
     }
 
@@ -111,7 +108,7 @@ public class GlobalExecutionManager {
             }
         }
 
-        boolean stopped = stopTasksAndWait(tasks, timeToWait, true, result);
+        boolean stopped = stopTasksRunAndWait(tasks, csi, timeToWait, true, result);
         LOGGER.trace("All tasks stopped = " + stopped);
         result.recordSuccessIfUnknown();
         return stopped;
@@ -122,26 +119,25 @@ public class GlobalExecutionManager {
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".startScheduler");
         result.addParam("nodeIdentifier", nodeIdentifier);
         if (isCurrentNode(nodeIdentifier)) {
-            getLocalExecutionManager().startSchedulerLocally(result);
+            localNodeManager.startScheduler(result);
         } else {
-            getRemoteNodesManager().startRemoteScheduler(nodeIdentifier, result);
+            remoteNodesManager.startRemoteScheduler(nodeIdentifier, result);
         }
-        result.recordSuccessIfUnknown();
     }
 
     /*
      * ==================== NODE-LEVEL METHODS (QUERIES) ====================
      */
 
-    ClusterStatusInformation getClusterStatusInformation(boolean clusterwide, OperationResult parentResult) {
+    public ClusterStatusInformation getClusterStatusInformation(boolean clusterwide, OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".getClusterStatusInformation");
+        OperationResult result = parentResult.createSubresult(ExecutionManager.class.getName() + ".getClusterStatusInformation");
         result.addParam("clusterwide", clusterwide);
 
         ClusterStatusInformation retval = new ClusterStatusInformation();
 
         if (clusterwide) {
-            for (PrismObject<NodeType> node : taskManager.getAllNodes(result)) {
+            for (PrismObject<NodeType> node : taskManager.getClusterManager().getAllNodes(result)) {
                 try {
                     addNodeAndTaskInformation(retval, node, result);
                 } catch (TaskManagerException e) {
@@ -150,7 +146,7 @@ public class GlobalExecutionManager {
             }
         } else {
             try {
-                addNodeAndTaskInformation(retval, taskManager.getNodePrism(), result);
+                addNodeAndTaskInformation(retval, taskManager.getClusterManager().getNodePrism(), result);
             } catch (TaskManagerException e) {
                 LoggingUtils.logException(LOGGER, "Cannot get node/task information from local node", e);
             }
@@ -163,7 +159,7 @@ public class GlobalExecutionManager {
 
     private void addNodeAndTaskInformation(ClusterStatusInformation info, PrismObject<NodeType> node, OperationResult parentResult) throws TaskManagerException {
 
-        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".addNodeAndTaskInformation");
+        OperationResult result = parentResult.createSubresult(ExecutionManager.class.getName() + ".addNodeAndTaskInformation");
         result.addParam("node", node);
 
         if (isCurrentNode(node)) {
@@ -171,12 +167,12 @@ public class GlobalExecutionManager {
             LOGGER.trace("Getting node and task info from the current node ({})", node.asObjectable().getNodeIdentifier());
 
             List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<ClusterStatusInformation.TaskInfo>();
-            Set<Task> tasks = taskManager.getLocalExecutionManager().getLocallyRunningTasks(result);
+            Set<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
             for (Task task : tasks) {
                 taskInfoList.add(new ClusterStatusInformation.TaskInfo(task.getOid()));
             }
             Node nodeInfo = new Node(node);
-            nodeInfo.setNodeExecutionStatus(taskManager.getLocalNodeExecutionStatus());
+            nodeInfo.setNodeExecutionStatus(localNodeManager.getLocalNodeExecutionStatus());
             nodeInfo.setNodeErrorStatus(taskManager.getLocalNodeErrorStatus());
 
             info.addNodeAndTaskInfo(nodeInfo, taskInfoList);
@@ -184,7 +180,7 @@ public class GlobalExecutionManager {
         } else {    // if remote
 
             LOGGER.debug("Getting running task info from remote node ({}, {})", node.asObjectable().getNodeIdentifier(), node.asObjectable().getHostname());
-            getRemoteNodesManager().addNodeStatusFromRemoteNode(info, node, result);
+            remoteNodesManager.addNodeStatusFromRemoteNode(info, node, result);
         }
 
         result.recordSuccessIfUnknown();
@@ -204,24 +200,37 @@ public class GlobalExecutionManager {
      *
      * @param timeToWait How long to wait (milliseconds); 0 means forever.
      * @return true if all the tasks finished within time allotted, false otherwise.
-     * @throws TaskManagerException if the task list can be obtained
      */
-    boolean stopAllTasksOnThisNodeAndWait(long timeToWait, OperationResult parentResult) throws TaskManagerException {
-        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".stopAllTasksOnThisNodeAndWait");
+    public boolean stopAllTasksOnThisNodeAndWait(long timeToWait, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "stopAllTasksOnThisNodeAndWait");
         result.addParam("timeToWait", timeToWait);
 
         LOGGER.info("Stopping all tasks on local node");
-        Set<Task> tasks = getLocalExecutionManager().getLocallyRunningTasks(result);
-        boolean retval = stopTasksAndWait(tasks, timeToWait, false, result);
-        result.recordSuccessIfUnknown();
+        Set<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
+        boolean retval = stopTasksRunAndWait(tasks, null, timeToWait, false, result);
+        result.computeStatus();
         return retval;
     }
 
-    // does not throw exceptions: it tries hard to stop the tasks, if something breaks, it just return 'false'
-    boolean stopTasksAndWait(Collection<Task> tasks, long waitTime, boolean clusterwide, OperationResult parentResult) {
+    /**
+     * Stops given set of tasks and waits for their completion.
+     *
+     * @param tasks
+     * @param csi Cluster status information. Must be relatively current, i.e. got AFTER a moment preventing new tasks
+     *            to be scheduled (e.g. when suspending tasks, CSI has to be taken after tasks have been unscheduled;
+     *            when stopping schedulers, CSI has to be taken after schedulers were stopped). May be null; in that case
+     *            the method will query nodes themselves.
+     * @param waitTime How long to wait for task stop. -1 means no wait will be performed.
+     * @param clusterwide If false, only tasks running on local node will be stopped.
+     * @param parentResult
+     * @return
+     *
+     * Note: does not throw exceptions: it tries hard to stop the tasks, if something breaks, it just return 'false'
+     */
+    public boolean stopTasksRunAndWait(Collection<Task> tasks, ClusterStatusInformation csi, long waitTime, boolean clusterwide, OperationResult parentResult) {
 
-        OperationResult result = createOperationResult(GlobalExecutionManager.class.getName() + ".stopTasksAndWait");
-        result.addParam("tasks", tasks);
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "stopTasksRunAndWait");
+        result.addParam("tasks", TaskQuartzImplUtil.tasksToOperationResult(tasks));
         result.addParam("waitTime", waitTime);
         result.addParam("clusterwide", clusterwide);
 
@@ -232,10 +241,17 @@ public class GlobalExecutionManager {
 
         LOGGER.trace("Stopping tasks " + tasks + " (waiting " + waitTime + " msec); clusterwide = " + clusterwide);
 
-        for (Task task : tasks)
-            stopTask(task, clusterwide, result);
+        if (clusterwide && csi == null) {
+            csi = getClusterStatusInformation(true, result);
+        }
 
-        boolean stopped = waitForTaskCompletion(tasks, waitTime, clusterwide, result);
+        for (Task task : tasks)
+            stopTaskRun(task, csi, clusterwide, result);
+
+        boolean stopped = false;
+        if (waitTime >= 0) {
+            stopped = waitForTaskRunCompletion(tasks, waitTime, clusterwide, result);
+        }
         result.recordSuccessIfUnknown();
         return stopped;
     }
@@ -243,13 +259,13 @@ public class GlobalExecutionManager {
 //    boolean stopTaskAndWait(Task task, long waitTime, boolean clusterwide) {
 //        ArrayList<Task> list = new ArrayList<Task>(1);
 //        list.add(task);
-//        return stopTasksAndWait(list, waitTime, clusterwide);
+//        return stopTasksRunAndWait(list, waitTime, clusterwide);
 //    }
 
     // returns true if tasks are down
-    private boolean waitForTaskCompletion(Collection<Task> tasks, long maxWaitTime, boolean clusterwide, OperationResult parentResult) {
+    private boolean waitForTaskRunCompletion(Collection<Task> tasks, long maxWaitTime, boolean clusterwide, OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".waitForTaskCompletion");
+        OperationResult result = parentResult.createSubresult(ExecutionManager.class.getName() + ".waitForTaskRunCompletion");
         result.addParam("tasks", tasks);
         result.addParam("maxWaitTime", maxWaitTime);
         result.addParam("clusterwide", clusterwide);
@@ -296,7 +312,7 @@ public class GlobalExecutionManager {
 
                 LOGGER.info("Some tasks have not completed yet, sending their threads the 'interrupt' signal (if running locally).");
                 for (String oid : oids) {
-                    getLocalExecutionManager().interruptLocalTaskThread(oid);
+                    localNodeManager.interruptLocalTaskThread(oid);
                 }
                 interruptExecuted = true;
             }
@@ -314,64 +330,71 @@ public class GlobalExecutionManager {
     }
 
 
-    private void stopTask(Task task, boolean clusterwide, OperationResult parentResult) {
+    // if clusterwide, csi must not be null
+    // on entry we do not know if the task is really running
+    private void stopTaskRun(Task task, ClusterStatusInformation csi, boolean clusterwide, OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".stopTask");
-        result.addParam("task", task);
-        result.addParam("clusterwide", clusterwide);
-
-        LOGGER.info("Stopping task " + task + "; clusterwide = " + clusterwide);
         String oid = task.getOid();
 
-        // if the task runs locally or !clusterwide
-        if (getLocalExecutionManager().isTaskThreadActiveLocally(oid) || !clusterwide) {
-            getLocalExecutionManager().stopLocalTask(oid, result);
+        LOGGER.trace("stopTaskRun: task = {}, csi = {}, clusterwide = {}", new Object[] { task, csi, clusterwide });
+
+        if (!clusterwide) {
+            stopLocalTaskIfRunning(oid, parentResult);
         } else {
-            stopRemoteTask(task, result);
+            Node node = csi.findNodeInfoForTask(task.getOid());
+            if (node != null) {
+                if (taskManager.getClusterManager().isCurrentNode(node.getNodeIdentifier())) {
+                    stopLocalTaskIfRunning(oid, parentResult);
+                } else {
+                    remoteNodesManager.stopRemoteTaskRun(task.getOid(), node, parentResult);
+                }
+            }
         }
     }
 
-    private void stopRemoteTask(Task task, OperationResult parentResult) {
-
-        OperationResult result = parentResult.createSubresult(GlobalExecutionManager.class.getName() + ".stopRemoteTask");
-        result.addParam("task", task);
-
-        LOGGER.trace("Interrupting remote task {} - first finding where it currently runs", task);
-
-        ClusterStatusInformation info = getClusterStatusInformation(true, result);
-        Node node = info.findNodeInfoForTask(task.getOid());
-
-        if (node == null) {
-            LOGGER.info("Asked to interrupt task {} but did not find it running at any node.", task);
-        } else {
-            getRemoteNodesManager().stopRemoteTask(task.getOid(), node, result);
+    private void stopLocalTaskIfRunning(String oid, OperationResult parentResult) {
+        if (localNodeManager.isTaskThreadActiveLocally(oid)) {
+            localNodeManager.stopLocalTaskRun(oid, parentResult);
         }
-
-        result.recordSuccessIfUnknown();
-
     }
-
 
 
     /*
      * ---------- TASK SCHEDULING METHODS ----------
      */
 
-    void unscheduleTask(Task task) throws TaskManagerException {
-        TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
+    public void unscheduleTask(Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "unscheduleTask");
+        //TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
+        JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
         try {
-            quartzScheduler.unscheduleJob(triggerKey);
+            for (Trigger trigger : quartzScheduler.getTriggersOfJob(jobKey)) {
+                quartzScheduler.unscheduleJob(trigger.getKey());
+            }
+            result.recordSuccess();
         } catch (SchedulerException e) {
-            throw new TaskManagerException("Cannot unschedule task " + task, e);
+            LoggingUtils.logException(LOGGER, "Cannot unschedule task {}", e, task);
+            result.recordFatalError("Cannot unschedule task " + task, e);
         }
     }
 
-    public void removeTaskFromQuartz(String oid) throws TaskManagerException {
+    /**
+     * Removes task from quartz. On error, creates a subresult in parent OperationResult. (On success, does nothing to keep ORs from becoming huge.)
+     *
+     * @param oid
+     * @param parentResult
+     * @return true if the job was successfully removed.
+     */
+    public boolean removeTaskFromQuartz(String oid, OperationResult parentResult) {
         JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTaskOid(oid);
         try {
             quartzScheduler.deleteJob(jobKey);
+            return true;
         } catch (SchedulerException e) {
-            throw new TaskManagerException("Cannot delete task " + oid + " from Quartz job store", e);
+            String message = "Cannot delete task " + oid + " from Quartz job store";
+            LoggingUtils.logException(LOGGER, message, e);
+            parentResult.createSubresult(DOT_CLASS + "removeTaskFromQuartz").recordFatalError(message, e);
+            return false;
         }
     }
 
@@ -391,44 +414,110 @@ public class GlobalExecutionManager {
      */
 
     private OperationResult createOperationResult(String methodName) {
-        return new OperationResult(GlobalExecutionManager.class.getName() + "." + methodName);
+        return new OperationResult(ExecutionManager.class.getName() + "." + methodName);
     }
 
     private ClusterManager getClusterManager() {
         return taskManager.getClusterManager();
     }
 
-    private LocalExecutionManager getLocalExecutionManager() {
-        return taskManager.getLocalExecutionManager();
-    }
-
-    private RemoteNodesManager getRemoteNodesManager() {
-        return taskManager.getRemoteNodesManager();
-    }
-
     public void setQuartzScheduler(Scheduler quartzScheduler) {
         this.quartzScheduler = quartzScheduler;
     }
 
-    Scheduler getQuartzScheduler() {
+    public Scheduler getQuartzScheduler() {
         return quartzScheduler;
     }
 
-    private NodeRegistrar getNodeRegistrar() {
-        return taskManager.getNodeRegistrar();
-    }
-
     private boolean isCurrentNode(String nodeIdentifier) {
-        return getNodeRegistrar().isCurrentNode(nodeIdentifier);
+        return taskManager.getClusterManager().isCurrentNode(nodeIdentifier);
     }
 
     private boolean isCurrentNode(PrismObject<NodeType> node) {
-        return getNodeRegistrar().isCurrentNode(node);
+        return taskManager.isCurrentNode(node);
     }
 
     private TaskManagerConfiguration getConfiguration() {
         return taskManager.getConfiguration();
     }
 
+    public void shutdownLocalScheduler() throws TaskManagerException {
+        localNodeManager.shutdownScheduler();
+    }
+
+    /**
+     *  Robust version of 'shutdownScheduler', ignores exceptions, shuts down the scheduler only if not shutdown already.
+     *  Used for emergency situations, e.g. node error.
+     */
+    public void shutdownLocalSchedulerChecked() {
+
+        try {
+            localNodeManager.shutdownScheduler();
+        } catch (TaskManagerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot shutdown scheduler.", e);
+        }
+    }
+
+
+    public boolean stopSchedulerAndTasksLocally(long timeToWait, OperationResult result) {
+        return localNodeManager.stopSchedulerAndTasks(timeToWait, result);
+    }
+
+    public void synchronizeTask(TaskQuartzImpl task, OperationResult result) {
+        taskSynchronizer.synchronizeTask(task, result);
+    }
+
+    public Long getNextRunStartTime(String oid, OperationResult result) {
+
+        Trigger t;
+        try {
+            t = quartzScheduler.getTrigger(TaskQuartzImplUtil.createTriggerKeyForTaskOid(oid));
+            result.recordSuccess();
+        } catch (SchedulerException e) {
+            String message = "Cannot determine next run start time for task with OID " + oid;
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordFatalError(message, e);
+            return null;
+        }
+        if (t == null) {
+            return null;
+        }
+        Date next = t.getNextFireTime();
+        return next == null ? null : next.getTime();
+    }
+
+    public boolean synchronizeJobStores(OperationResult result) {
+        return taskSynchronizer.synchronizeJobStores(result);
+    }
+
+    public Set<Task> getLocallyRunningTasks() {
+        return localNodeManager.getLocallyRunningTasks(createOperationResult("getRunningTasks"));
+
+    }
+
+    public void initializeLocalScheduler() throws TaskManagerInitializationException {
+        localNodeManager.initializeScheduler();
+    }
+
+    public void scheduleTaskNow(Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleTaskNow");
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+            String message = "Task " + task + " cannot be scheduled, because it is not in RUNNABLE state.";
+            result.recordFatalError(message);
+            LOGGER.error(message);
+            return;
+        }
+
+        Trigger now = TaskQuartzImplUtil.createTriggerNowForTask(task);
+        try {
+            quartzScheduler.scheduleJob(now);
+            result.recordSuccess();
+        } catch (SchedulerException e) {
+            String message = "Task " + task + " cannot be scheduled: " + e.getMessage();
+            result.recordFatalError(message, e);
+            LOGGER.error(message);
+        }
+    }
 }
 

@@ -459,4 +459,13 @@ public interface Task extends Dumpable {
 
     OperationResultStatusType getResultStatus();
 
+    ThreadStopActionType getThreadStopAction();
+
+    /**
+     * Resilient tasks are those that survive node shutdown.
+     * I.e. their ThreadStopAction is either 'restart' or 'reschedule'.
+     * @return
+     */
+
+    boolean isResilient();
 }

@@ -214,6 +214,25 @@ public class OperationResult implements Serializable, Dumpable {
 		return subresults;
 	}
 
+    /**
+     * @return last subresult, or null if there are no subresults.
+     */
+    public OperationResult getLastSubresult() {
+        if (subresults == null || subresults.isEmpty()) {
+            return null;
+        } else {
+            return subresults.get(subresults.size()-1);
+        }
+    }
+
+    /**
+     * @return last subresult status, or null if there are no subresults.
+     */
+    public OperationResultStatus getLastSubresultStatus() {
+        OperationResult last = getLastSubresult();
+        return last != null ? last.getStatus() : null;
+    }
+
 	public void addSubresult(OperationResult subresult) {
 		getSubresults().add(subresult);
 	}

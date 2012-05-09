@@ -197,13 +197,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
     public void synchronizeWithQuartz(OperationResult parentResult) {
-        try {
-            taskManager.synchronizeTaskWithQuartz(this, parentResult);
-        } catch (SchedulerException e) {
-            String message = "Cannot create or update quartz job and/or trigger for task " + this;
-            parentResult.recordPartialError(message, e);
-            LoggingUtils.logException(LOGGER, message, e);
-        }
+        taskManager.synchronizeTaskWithQuartz(this, parentResult);
     }
 	
 	private static Set<QName> quartzRelatedProperties = new HashSet<QName>();
@@ -465,7 +459,7 @@ public class TaskQuartzImpl implements Task {
 			setHandlerUri(popFromOtherHandlersUriStack());
 		} else {
 			setHandlerUri(null);
-			close();			// if there are no more handlers, let us close this task
+			taskManager.closeTaskWithoutSavingState(this, parentResult);			// if there are no more handlers, let us close this task
 		}
 		savePendingModifications(parentResult);
 		
@@ -591,27 +585,10 @@ public class TaskQuartzImpl implements Task {
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_EXECUTION_STATUS, value.toTaskType()) : null;
 	}
-	
 
-	public void close() {
-		
-		setExecutionStatus(TaskExecutionStatus.CLOSED);
-		
-		// remove the trigger, if it exists
-		Scheduler scheduler = taskManager.getQuartzScheduler();
-		TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(this);
-		
-		try {
-			if (scheduler.checkExists(triggerKey))
-				scheduler.unscheduleJob(triggerKey);
-		} catch(SchedulerException e) {
-			LoggingUtils.logException(LOGGER, "Cannot remove trigger for task {}", e, this);
-		}
-	}
-
-	/*
-	 * Recurrence status
-	 */
+    /*
+      * Recurrence status
+      */
 
 	public TaskRecurrence getRecurrenceStatus() {
 		TaskRecurrenceType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_RECURRENCE, TaskRecurrenceType.class);
@@ -704,10 +681,25 @@ public class TaskQuartzImpl implements Task {
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_SCHEDULE, value) : null;
 	}
-	
-	/*
-	 * Binding
-	 */
+
+    /*
+     * ThreadStopAction
+     */
+
+    @Override
+    public ThreadStopActionType getThreadStopAction() {
+        return taskPrism.asObjectable().getThreadStopAction();
+    }
+
+    @Override
+    public boolean isResilient() {
+        ThreadStopActionType tsa = getThreadStopAction();
+        return tsa == null || tsa == ThreadStopActionType.RESCHEDULE || tsa == ThreadStopActionType.RESTART;
+    }
+
+/*
+      * Binding
+      */
 
 	@Override
 	public TaskBinding getBinding() {
@@ -1170,6 +1162,16 @@ public class TaskQuartzImpl implements Task {
 	public boolean canRun() {
 		return canRun;
 	}
+
+    // checks latest start time (useful for recurring tightly coupled tasks
+    public boolean stillCanStart() {
+        if (getSchedule() != null && getSchedule().getLatestStartTime() != null) {
+            long lst = getSchedule().getLatestStartTime().toGregorianCalendar().getTimeInMillis();
+            return lst <= System.currentTimeMillis();
+        } else {
+            return true;
+        }
+    }
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

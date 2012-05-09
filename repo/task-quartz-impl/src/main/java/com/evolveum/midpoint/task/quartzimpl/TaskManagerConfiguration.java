@@ -63,6 +63,8 @@ public class TaskManagerConfiguration {
     private static final String QUARTZ_NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY = "quartzNodeRegistrationCycleTime";
     private static final String NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY = "nodeRegistrationCycleTime";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
+    private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
+    private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
@@ -78,6 +80,8 @@ public class TaskManagerConfiguration {
     private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_TIMEOUT_DEFAULT = 30;
+    private static final String JMX_USERNAME_DEFAULT = "midpoint";
+    private static final String JMX_PASSWORD_DEFAULT = "secret";
 
     private boolean stopOnInitializationFailure;
     private int threads;
@@ -89,6 +93,10 @@ public class TaskManagerConfiguration {
     private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
     private int nodeRegistrationCycleTime, nodeTimeout;
     private UseThreadInterrupt useThreadInterrupt;
+
+    // JMX credentials for connecting to remote nodes
+    private String jmxUsername;
+    private String jmxPassword;
 
     // quartz jdbc job store specific information
     private String sqlSchemaFile;
@@ -102,16 +110,18 @@ public class TaskManagerConfiguration {
     private boolean databaseIsEmbedded;
 
     /*
-      * Whether to allow reusing quartz scheduler after task manager shutdown.
+      * Are we in the test mode?
       *
-      * Concretely, if it is set to 'true', quartz scheduler will not be shut down, only paused.
+      * It affects e.g. whether to allow reusing quartz scheduler after task manager shutdown.
+      *
+      * Concretely, if in test mode, quartz scheduler will not be shut down, only paused.
       * This allows for restarting it (scheduler cannot be started, if it was shut down:
       * http://quartz-scheduler.org/api/2.1.0/org/quartz/Scheduler.html#shutdown())
       *
-      * By default, if run within TestNG (determined by seeing SUREFIRE_PRESENCE_PROPERTY set), we allow the reuse.
-      * If run within Tomcat, we do not, because pausing the scheduler does NOT stop the execution threads.
+      * If not run in test mode (i.e. within Tomcat), we do not, because pausing
+      * the scheduler does NOT stop the execution threads.
       */
-    private boolean reusableQuartzScheduler = false;
+    private boolean midPointTestMode = false;
 
     void setBasicInformation(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
         Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
@@ -141,8 +151,8 @@ public class TaskManagerConfiguration {
 
         Properties sp = System.getProperties();
         if (sp.containsKey(SUREFIRE_PRESENCE_PROPERTY)) {
-            LOGGER.info("Determined to run in a test environment, setting reusableQuartzScheduler to 'true'.");
-            reusableQuartzScheduler = true;
+            LOGGER.info("Determined to run in a test environment, setting midPointTestMode to 'true'.");
+            midPointTestMode = true;
         }
 
         String useTI = c.getString(USE_THREAD_INTERRUPT_CONFIG_ENTRY, USE_THREAD_INTERRUPT_DEFAULT);
@@ -155,6 +165,9 @@ public class TaskManagerConfiguration {
         quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
+
+        jmxUsername = c.getString(JMX_USERNAME_CONFIG_ENTRY, JMX_USERNAME_DEFAULT);
+        jmxPassword = c.getString(JMX_PASSWORD_CONFIG_ENTRY, JMX_PASSWORD_DEFAULT);
     }
 
     private static final Map<String,String> schemas = new HashMap<String,String>();
@@ -298,8 +311,8 @@ public class TaskManagerConfiguration {
         return jdbcPassword;
     }
 
-    public boolean isReusableQuartzScheduler() {
-        return reusableQuartzScheduler;
+    public boolean isTestMode() {
+        return midPointTestMode;
     }
 
     public UseThreadInterrupt getUseThreadInterrupt() {
@@ -328,5 +341,13 @@ public class TaskManagerConfiguration {
 
     public int getQuartzNodeRegistrationCycleTime() {
         return quartzNodeRegistrationCycleTime;
+    }
+
+    public String getJmxUsername() {
+        return jmxUsername;
+    }
+
+    public String getJmxPassword() {
+        return jmxPassword;
     }
 }

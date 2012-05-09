@@ -196,7 +196,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             rollbackTransaction(session);
             throw ex;
         } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session);
+            rollbackTransaction(session, ex, result);
             throw ex;
         } catch (Exception ex) {
             handleGeneralException(ex, session, result);

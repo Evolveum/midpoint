@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.task.quartzimpl;
+package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 /**
  * Copyright (c) 2011 Evolveum
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -54,7 +55,7 @@ public class NoOpTaskHandler implements TaskHandler {
 	
 	private NoOpTaskHandler() {}
 	
-	static void instantiateAndRegister(TaskManager taskManager) {
+	public static void instantiateAndRegister(TaskManager taskManager) {
 		if (instance == null)
 			instance = new NoOpTaskHandler();
 		taskManager.registerHandler(HANDLER_URI, instance);

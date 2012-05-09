@@ -19,10 +19,13 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.task.quartzimpl;
+package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -45,13 +48,13 @@ import java.util.*;
  *
  * @author Pavol Mederly
  */
-public class LocalExecutionManager {
+public class LocalNodeManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(LocalExecutionManager.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(LocalNodeManager.class);
 
     private TaskManagerQuartzImpl taskManager;
 
-    public LocalExecutionManager(TaskManagerQuartzImpl taskManager) {
+    public LocalNodeManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
     }
 
@@ -100,7 +103,7 @@ public class LocalExecutionManager {
         // the Quartz scheduler "forgots" to fire a trigger immediately after creation,
         // and the default delay of 10s is too much for most of the tests.
         int schedulerLoopTime;
-        if (configuration.isReusableQuartzScheduler()) {
+        if (configuration.isTestMode()) {
             if (configuration.isJdbcJobStore()) {
                 schedulerLoopTime = 5000;
             } else {
@@ -114,7 +117,7 @@ public class LocalExecutionManager {
 
         quartzProperties.put("org.quartz.scheduler.jmx.export", "true");
 
-        if (configuration.isReusableQuartzScheduler()) {
+        if (configuration.isTestMode()) {
             LOGGER.info("ReusableQuartzScheduler is set: the task manager threads will NOT be stopped on shutdown. Also, scheduler threads will run as daemon ones.");
             quartzProperties.put("org.quartz.scheduler.makeSchedulerThreadDaemon", "true");
             quartzProperties.put("org.quartz.threadPool.makeThreadsDaemons", "true");
@@ -183,23 +186,15 @@ public class LocalExecutionManager {
         return sb.toString();
     }
 
-    void startScheduler() throws TaskManagerException {
-
-        try {
-            LOGGER.info("Starting the Quartz scheduler");
-            getQuartzScheduler().start();
-        } catch (SchedulerException e) {
-            throw new TaskManagerException("Cannot start the Quartz scheduler", e);
-        }
-    }
-
-    void pauseScheduler() throws TaskManagerException {
+    void pauseScheduler(OperationResult result) {
 
         LOGGER.info("Putting Quartz scheduler into standby mode");
         try {
             getQuartzScheduler().standby();
+            result.recordSuccess();
         } catch (SchedulerException e1) {
-            throw new TaskManagerException("Cannot put Quartz scheduler into standby mode", e1);
+            LoggingUtils.logException(LOGGER, "Couldn't put local Quartz scheduler into standby mode", e1);
+            result.recordFatalError("Couldn't put local Quartz scheduler into standby mode", e1);
         }
     }
 
@@ -207,28 +202,15 @@ public class LocalExecutionManager {
 
         LOGGER.info("Shutting down Quartz scheduler");
         try {
-            getQuartzScheduler().shutdown(true);
+            if (getQuartzScheduler() != null && !getQuartzScheduler().isShutdown()) {
+                getQuartzScheduler().shutdown(true);
+            }
             LOGGER.info("Quartz scheduler was shut down");
         } catch (SchedulerException e) {
             throw new TaskManagerException("Cannot shutdown Quartz scheduler", e);
         }
     }
 
-    /**
-     *  Robust version of 'shutdownScheduler', ignores exceptions, shuts down the scheduler only if not shutdown already.
-     *  Used for emergency situations, e.g. node error.
-     */
-    void shutdownSchedulerChecked() {
-
-        try {
-            if (getQuartzScheduler() != null && !getQuartzScheduler().isShutdown()) {
-                LOGGER.info("Shutting down Quartz scheduler");
-                getQuartzScheduler().shutdown(true);
-            }
-        } catch (SchedulerException e) {
-            LoggingUtils.logException(LOGGER, "Cannot shutdown scheduler.", e);
-        }
-    }
 
 
     private Scheduler getQuartzScheduler() {
@@ -240,41 +222,23 @@ public class LocalExecutionManager {
      *  They do not throw exceptions.
      */
 
-    boolean stopSchedulerAndTasksLocally(long timeToWait, OperationResult parentResult) {
+    boolean stopSchedulerAndTasks(long timeToWait, OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(LocalExecutionManager.class.getName() + ".stopSchedulerAndTasksLocally");
+        OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".stopSchedulerAndTasks");
         result.addParam("timeToWait", timeToWait);
 
-        try {
-            pauseScheduler();
-        } catch (TaskManagerException e) {
-            LoggingUtils.logException(LOGGER, "An exception occurred while stopping the scheduler, continuing with stopping tasks", e);
-            result.createSubresult("pauseScheduler").recordWarning("An exception occurred while stopping the scheduler, continuing with stopping tasks", e);
-        }
-        try {
-            boolean tasksStopped = getGlobalExecutionManager().stopAllTasksOnThisNodeAndWait(timeToWait, result);
-            LOGGER.info("Scheduler stopped; " + (tasksStopped ? "all task threads have been stopped as well." : "some task threads may still run."));
-            result.recordSuccessIfUnknown();
-            return tasksStopped;
-        } catch(TaskManagerException e) {
-            LoggingUtils.logException(LOGGER, "It is not possible to stop locally running tasks", e);
-            result.recordPartialError("It is not possible to stop locally running tasks", e);
-            return false;
-        }
+        pauseScheduler(result);
+        boolean tasksStopped = getGlobalExecutionManager().stopAllTasksOnThisNodeAndWait(timeToWait, result);
+        LOGGER.info("Scheduler stopped; " + (tasksStopped ? "all task threads have been stopped as well." : "some task threads may still run."));
+        result.recordSuccessIfUnknown();
+        return tasksStopped;
     }
 
-    void stopSchedulerLocally(OperationResult result) {
-        try {
-            pauseScheduler();
-        } catch (TaskManagerException e) {
-            LoggingUtils.logException(LOGGER, "An exception occurred while trying to pause the scheduler", e);
-            result.recordFatalError("Cannot pause local scheduler", e);
-        }
+    void stopScheduler(OperationResult result) {
+        pauseScheduler(result);
     }
 
-    void startSchedulerLocally(OperationResult parentResult) {
-
-        OperationResult result = parentResult.createSubresult(LocalExecutionManager.class.getName() + ".startSchedulerLocally");
+    void startScheduler(OperationResult result) {
 
         if (taskManager.isInErrorState()) {
             String message = "Cannot start the scheduler, because Task Manager is in error state (" + taskManager.getLocalNodeErrorStatus() + ")";
@@ -284,10 +248,11 @@ public class LocalExecutionManager {
         }
 
         try {
-            startScheduler();
+            LOGGER.info("Starting the Quartz scheduler");
+            getQuartzScheduler().start();
             LOGGER.debug("Quartz scheduler started.");
             result.recordSuccess();
-        } catch (TaskManagerException e) {
+        } catch (SchedulerException e) {
             LoggingUtils.logException(LOGGER, "Cannot (re)start Quartz scheduler.", e);
             result.recordFatalError("Cannot (re)start Quartz scheduler.", e);
         }
@@ -325,9 +290,16 @@ public class LocalExecutionManager {
     * hard = call Thread.interrupt
     */
 
-    void stopLocalTask(String oid, OperationResult result) {
+    // local task should be running
+    void stopLocalTaskRun(String oid, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".stopLocalTaskRun");
+        result.addParam("task", oid);
+
+        LOGGER.info("Stopping local task " + oid + " run");
+
         try {
             getQuartzScheduler().interrupt(TaskQuartzImplUtil.createJobKeyForTaskOid(oid));
+            result.recordSuccess();
         } catch (UnableToInterruptJobException e) {
             String message = "Unable to interrupt the task " + oid;
             LoggingUtils.logException(LOGGER, message, e);			// however, we continue (e.g. to suspend the task)
@@ -385,9 +357,9 @@ public class LocalExecutionManager {
      *
      * @return
      */
-    Set<Task> getLocallyRunningTasks(OperationResult parentResult) throws TaskManagerException {
+    Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(LocalExecutionManager.class.getName() + ".getLocallyRunningTasks");
+        OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasks");
 
         Set<Task> retval = new HashSet<Task>();
 
@@ -397,7 +369,8 @@ public class LocalExecutionManager {
         } catch (SchedulerException e1) {
             String message = "Cannot get the list of currently executing jobs on local node.";
             result.recordFatalError(message, e1);
-            throw new TaskManagerException(message, e1);
+            LoggingUtils.logException(LOGGER, message, e1);
+            return retval;
         }
 
         for (JobExecutionContext jec : jecs) {
@@ -411,7 +384,7 @@ public class LocalExecutionManager {
             }
         }
 
-        result.recordSuccessIfUnknown();
+        result.computeStatus();
 
         return retval;
     }
@@ -421,11 +394,11 @@ public class LocalExecutionManager {
      */
 
     private OperationResult createOperationResult(String methodName) {
-        return new OperationResult(LocalExecutionManager.class.getName() + "." + methodName);
+        return new OperationResult(LocalNodeManager.class.getName() + "." + methodName);
     }
 
-    public GlobalExecutionManager getGlobalExecutionManager() {
-        return taskManager.getGlobalExecutionManager();
+    public ExecutionManager getGlobalExecutionManager() {
+        return taskManager.getExecutionManager();
     }
 
 }

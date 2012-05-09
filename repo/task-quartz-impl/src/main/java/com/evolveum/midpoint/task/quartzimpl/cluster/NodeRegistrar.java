@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.task.quartzimpl;
+package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -29,9 +29,9 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.NodeErrorStatus;
-import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.apache.commons.lang.Validate;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -62,10 +63,16 @@ public class NodeRegistrar {
     private static final transient Trace LOGGER = TraceManager.getTrace(NodeRegistrar.class);
 
     private TaskManagerQuartzImpl taskManager;
+    private ClusterManager clusterManager;
+
     private PrismObject<NodeType> nodePrism;
 
-    public NodeRegistrar(TaskManagerQuartzImpl taskManager) {
+    public NodeRegistrar(TaskManagerQuartzImpl taskManager, ClusterManager clusterManager) {
+        Validate.notNull(taskManager);
+        Validate.notNull(clusterManager);
+
         this.taskManager = taskManager;
+        this.clusterManager = clusterManager;
     }
 
     /**
@@ -303,7 +310,7 @@ public class NodeRegistrar {
         List<String> clustered = new ArrayList<String>();
         List<String> nonClustered = new ArrayList<String>();
 
-        List<PrismObject<NodeType>> allNodes = taskManager.getAllNodes(result);
+        List<PrismObject<NodeType>> allNodes = clusterManager.getAllNodes(result);
         for (PrismObject<NodeType> nodePrism : allNodes) {
             NodeType n = nodePrism.asObjectable();
             if (isUp(n)) {
@@ -361,9 +368,9 @@ public class NodeRegistrar {
     private void registerNodeError(NodeErrorStatus status) {
         taskManager.setNodeErrorStatus(status);
         if (taskManager.getServiceThreadsActivationState()) {
-            taskManager.getLocalExecutionManager().stopSchedulerAndTasksLocally(0L, new OperationResult("nodeError"));
+            taskManager.getExecutionManager().stopSchedulerAndTasksLocally(0L, new OperationResult("nodeError"));
         }
-        taskManager.getLocalExecutionManager().shutdownSchedulerChecked();
+        taskManager.getExecutionManager().shutdownLocalSchedulerChecked();
         LOGGER.warn("Scheduler stopped, please check your cluster configuration as soon as possible; kind of error = " + status);
     }
 
@@ -408,7 +415,7 @@ public class NodeRegistrar {
 
         boolean deleted = false;
 
-        List<PrismObject<NodeType>> nodes = taskManager.getAllNodes(result);
+        List<PrismObject<NodeType>> nodes = clusterManager.getAllNodes(result);
         for (PrismObject<NodeType> nodePrism : nodes) {
             if (nodeIdentifier.equals(nodePrism.asObjectable().getNodeIdentifier())) {
                 deleted = true;
