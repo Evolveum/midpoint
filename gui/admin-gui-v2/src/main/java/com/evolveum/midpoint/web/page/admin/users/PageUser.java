@@ -49,7 +49,7 @@ import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.dto.AccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -83,13 +83,15 @@ public class PageUser extends PageAdminUsers {
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
+
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
     private static final String MODAL_ID_ROLE = "rolePopup";
     private static final String MODAL_ID_CONFIRM_DELETE_ACCOUNT = "confirmDeleteAccountPopup";
+    private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
-    private IModel<List<AccountDto>> accountsModel;
+    private IModel<List<UserAccountDto>> accountsModel;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -99,10 +101,10 @@ public class PageUser extends PageAdminUsers {
                 return loadUserWrapper();
             }
         };
-        accountsModel = new LoadableModel<List<AccountDto>>(false) {
+        accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
 
             @Override
-            protected List<AccountDto> load() {
+            protected List<UserAccountDto> load() {
                 return loadAccountWrappers();
             }
         };
@@ -183,6 +185,7 @@ public class PageUser extends PageAdminUsers {
         initAccounts(accounts);
 
         AccordionItem assignments = new AccordionItem("assignments", createStringResource("pageUser.assignments"));
+        assignments.setOutputMarkupId(true);
         accordion.getBodyContainer().add(assignments);
         initAssignments(assignments);
 
@@ -190,7 +193,10 @@ public class PageUser extends PageAdminUsers {
 
         initResourceModal();
         initRoleModal();
+        initConfirmationDialogs();
+    }
 
+    private void initConfirmationDialogs() {
         ConfirmationDialog dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_ACCOUNT,
                 createStringResource("pageUser.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
 
@@ -208,19 +214,37 @@ public class PageUser extends PageAdminUsers {
             }
         };
         add(dialog);
+
+        dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT,
+                createStringResource("pageUser.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("pageUser.message.deleteAssignmentConfirm",
+                        getSelectedAssignments().size()).getString();
+            }
+        }) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
+            }
+        };
+        add(dialog);
     }
 
     private void initAccounts(AccordionItem accounts) {
-        ListView<AccountDto> accountList = new ListView<AccountDto>("accountList",
+        ListView<UserAccountDto> accountList = new ListView<UserAccountDto>("accountList",
                 accountsModel) {
 
             @Override
-            protected void populateItem(final ListItem<AccountDto> item) {
+            protected void populateItem(final ListItem<UserAccountDto> item) {
                 item.add(new VisibleEnableBehaviour() {
 
                     @Override
                     public boolean isVisible() {
-                        return !AccountDto.AccountDtoStatus.DELETED.equals(item.getModelObject().getStatus());
+                        return !UserAccountDto.AccountDtoStatus.DELETED.equals(item.getModelObject().getStatus());
                     }
                 });
 
@@ -240,13 +264,18 @@ public class PageUser extends PageAdminUsers {
         accounts.getBodyContainer().add(accountList);
     }
 
+    private AccordionItem getAssignmentAccordionItem() {
+        Accordion accordion = (Accordion) get("mainForm:accordion");
+        return (AccordionItem) accordion.getBodyContainer().get("assignments");
+    }
+
     private AccordionItem getAccountsAccordionItem() {
         Accordion accordion = (Accordion) get("mainForm:accordion");
         return (AccordionItem) accordion.getBodyContainer().get("accounts");
     }
 
-    private List<AccountDto> loadAccountWrappers() {
-        List<AccountDto> list = new ArrayList<AccountDto>();
+    private List<UserAccountDto> loadAccountWrappers() {
+        List<UserAccountDto> list = new ArrayList<UserAccountDto>();
 
         ObjectWrapper user = userModel.getObject();
         PrismObject<UserType> prismUser = user.getObject();
@@ -262,7 +291,7 @@ public class PageUser extends PageAdminUsers {
                     account.asPrismObject(), ContainerStatus.MODIFYING);
             wrapper.setSelectable(true);
             wrapper.setMinimalized(true);
-            list.add(new AccountDto(wrapper, AccountDto.AccountDtoStatus.NOT_MODIFIED));
+            list.add(new UserAccountDto(wrapper, UserAccountDto.AccountDtoStatus.NOT_MODIFIED));
         }
 
         return list;
@@ -380,7 +409,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                enableAccountPerformed(target);
+                updateAccountActivation(target, getSelectedAccounts(), true);
             }
         };
         mainForm.add(enableAccount);
@@ -390,7 +419,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                disableAccountPerformed(target);
+                updateAccountActivation(target, getSelectedAccounts(), false);
             }
         };
         mainForm.add(disableAccount);
@@ -441,7 +470,7 @@ public class PageUser extends PageAdminUsers {
         window.setContent(new ResourcesPopup(window.getContentId(), this) {
 
             @Override
-            protected void addPerformed(AjaxRequestTarget target, List<UserResourceDto> newResources) {
+            protected void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
                 addSelectedAccountPerformed(target, newResources);
             }
         });
@@ -538,11 +567,11 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
-    private List<AccountDto> getSelectedAccounts() {
-        List<AccountDto> selected = new ArrayList<AccountDto>();
+    private List<UserAccountDto> getSelectedAccounts() {
+        List<UserAccountDto> selected = new ArrayList<UserAccountDto>();
 
-        List<AccountDto> all = accountsModel.getObject();
-        for (AccountDto account : all) {
+        List<UserAccountDto> all = accountsModel.getObject();
+        for (UserAccountDto account : all) {
             if (account.getObject().isSelected()) {
                 selected.add(account);
             }
@@ -551,11 +580,11 @@ public class PageUser extends PageAdminUsers {
         return selected;
     }
 
-    private List<ObjectWrapper> getSelectedAssignments() {
-        List<ObjectWrapper> selected = new ArrayList<ObjectWrapper>();
+    private List<UserRoleDto> getSelectedAssignments() {
+        List<UserRoleDto> selected = new ArrayList<UserRoleDto>();
 
-        List<ObjectWrapper> all = new ArrayList<ObjectWrapper>();//todo get from model
-        for (ObjectWrapper wrapper : all) {
+        List<UserRoleDto> all = new ArrayList<UserRoleDto>();//todo get from model
+        for (UserRoleDto wrapper : all) {
             if (wrapper.isSelected()) {
                 selected.add(wrapper);
             }
@@ -570,7 +599,7 @@ public class PageUser extends PageAdminUsers {
 //    private void refreshPerformed(AjaxRequestTarget target) {
 //    }
 
-    private void addSelectedAccountPerformed(AjaxRequestTarget target, List<UserResourceDto> newResources) {
+    private void addSelectedAccountPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);
         window.close(target);
 
@@ -580,16 +609,23 @@ public class PageUser extends PageAdminUsers {
             return;
         }
 
-        for (UserResourceDto resource : newResources) {
+        for (ResourceType resource : newResources) {
             try {
+                AccountShadowType shadow = new AccountShadowType();
+                shadow.setResource(resource);
 
+                getPrismContext().adopt(shadow);
+
+                ObjectWrapper wrapper = new ObjectWrapper(resource.getName(), null, shadow.asPrismObject(),
+                        ContainerStatus.ADDING);
+                accountsModel.getObject().add(new UserAccountDto(wrapper, UserAccountDto.AccountDtoStatus.ADDED));
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntCreateAccount", resource.getName()));
             }
         }
 
         target.add(getFeedbackPanel());
-        //todo implement
+        target.add(getAccountsAccordionItem());
     }
 
     private void addSelectedRolePerformed(AjaxRequestTarget target, List<UserRoleDto> newRoles) {
@@ -602,23 +638,42 @@ public class PageUser extends PageAdminUsers {
             return;
         }
 
-        //todo implement
+        for (UserRoleDto role : newRoles) {
+            try {
+                //todo implement
+
+            } catch (Exception ex) {
+                error(getString("pageUser.message.couldntAddRole", role.getName()));
+            }
+        }
+
+        target.add(getFeedbackPanel());
+        target.add(getAssignmentAccordionItem());
     }
 
     private void deleteAssignmentsPerformed(AjaxRequestTarget target) {
-        //todo implement
+        List<UserRoleDto> selected = getSelectedAssignments();
+        if (selected.isEmpty()) {
+            warn(getString("pageUser.message.noAssignmentSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        showModalWindow(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT, target);
     }
 
-    private void enableAccountPerformed(AjaxRequestTarget target) {
-        //todo implement
-    }
+    private void updateAccountActivation(AjaxRequestTarget target, List<UserAccountDto> accounts, boolean enabled) {
+        if (accounts.isEmpty()) {
+            warn(getString("pageUser.message.noAccountSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
 
-    private void disableAccountPerformed(AjaxRequestTarget target) {
         //todo implement
     }
 
     private void deleteAccountPerformed(AjaxRequestTarget target) {
-        List<AccountDto> selected = getSelectedAccounts();
+        List<UserAccountDto> selected = getSelectedAccounts();
         if (selected.isEmpty()) {
             warn(getString("pageUser.message.noAccountSelected"));
             target.add(getFeedbackPanel());
@@ -633,14 +688,14 @@ public class PageUser extends PageAdminUsers {
         window.show(target);
     }
 
-    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<AccountDto> selected) {
-        for (AccountDto account : selected) {
-            account.setStatus(AccountDto.AccountDtoStatus.DELETED);
+    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
+        for (UserAccountDto account : selected) {
+            account.setStatus(UserAccountDto.AccountDtoStatus.DELETED);
         }
         target.add(getAccountsAccordionItem());
     }
 
-    private void deleteResourcePerformed(AjaxRequestTarget target) {
+    private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<UserRoleDto> selected) {
         //todo implement
     }
 }

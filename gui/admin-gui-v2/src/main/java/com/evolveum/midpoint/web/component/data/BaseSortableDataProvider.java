@@ -22,12 +22,16 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -85,5 +89,17 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
     public void setQuery(QueryType query) {
         this.query = query;
+    }
+
+    protected PagingType createPaging(int first, int count) {
+        SortParam sortParam = getSort();
+        OrderDirectionType order;
+        if (sortParam.isAscending()) {
+            order = OrderDirectionType.ASCENDING;
+        } else {
+            order = OrderDirectionType.DESCENDING;
+        }
+
+        return PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
     }
 }

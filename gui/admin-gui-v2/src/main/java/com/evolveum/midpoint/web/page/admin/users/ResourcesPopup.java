@@ -24,10 +24,11 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserResourceDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -47,7 +48,7 @@ public class ResourcesPopup extends Panel {
 
     private void initLayout(PageBase page) {
         TablePanel resources = new TablePanel<ResourceDto>("table",
-                new ResourceDtoProvider(page), initResourceColumns());
+                new SimpleUserResourceProvider(page), initResourceColumns());
         resources.setOutputMarkupId(true);
         add(resources);
 
@@ -68,30 +69,30 @@ public class ResourcesPopup extends Panel {
         IColumn column = new CheckBoxHeaderColumn<ResourceDto>();
         columns.add(column);
 
-        columns.add(new PropertyColumn(new StringResourceModel("resourcePopup.name", this, null), "name"));
-        columns.add(new PropertyColumn(new StringResourceModel("resourcePopup.bundle", this, null), "bundle"));
-        columns.add(new PropertyColumn(new StringResourceModel("resourcePopup.version", this, null), "version"));
+        columns.add(new PropertyColumn(new StringResourceModel("resourcePopup.name", this, null), "value.name"));
+//        columns.add(new PropertyColumn(new StringResourceModel("resourcePopup.bundle", this, null), "bundle"));
+//        columns.add(new PropertyColumn(new StringResourceModel("resourcePopup.version", this, null), "version"));
 
         return columns;
     }
 
-    private List<UserResourceDto> getSelectedResources() {
-        List<UserResourceDto> list = new ArrayList<UserResourceDto>();
+    private List<ResourceType> getSelectedResources() {
+        List<ResourceType> list = new ArrayList<ResourceType>();
 
         TablePanel table = (TablePanel) get("table");
-        ResourceDtoProvider provider = (ResourceDtoProvider) table.getDataTable().getDataProvider();
-        for (ResourceDto bean : provider.getAvailableData()) {
+        SimpleUserResourceProvider provider = (SimpleUserResourceProvider) table.getDataTable().getDataProvider();
+        for (SelectableBean<ResourceType> bean : provider.getAvailableData()) {
             if (!bean.isSelected()) {
                 continue;
             }
 
-            list.add(new UserResourceDto(bean.getOid(), bean.getName()));
+            list.add(bean.getValue());
         }
 
         return list;
     }
 
-    protected void addPerformed(AjaxRequestTarget target, List<UserResourceDto> newResources) {
+    protected void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
 
     }
 }

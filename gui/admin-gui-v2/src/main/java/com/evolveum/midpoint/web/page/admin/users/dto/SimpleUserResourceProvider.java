@@ -21,15 +21,23 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author lazyman
  */
-public class SimpleUserResourceProvider extends BaseSortableDataProvider<UserResourceDto> {
+public class SimpleUserResourceProvider extends BaseSortableDataProvider<SelectableBean<ResourceType>> {
 
     private static final String DOT_CLASS = SimpleUserResourceProvider.class.getName() + ".";
     private static final String OPERATION_LIST_RESOURCES = DOT_CLASS + "listResources";
@@ -40,12 +48,51 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<UserRes
     }
 
     @Override
-    public Iterator<? extends UserResourceDto> iterator(int first, int count) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public Iterator<SelectableBean<ResourceType>> iterator(int first, int count) {
+        getAvailableData().clear();
+
+        OperationResult result = new OperationResult(OPERATION_LIST_RESOURCES);
+        try {
+            PagingType paging = createPaging(first, count);
+            TaskManager manager = getTaskManager();
+            Task task = manager.createTaskInstance(OPERATION_LIST_RESOURCES);
+
+            List<PrismObject<ResourceType>> list = getModel().searchObjects(ResourceType.class,
+                    getQuery(), paging, task, result);
+            for (PrismObject<ResourceType> object : list) {
+                getAvailableData().add(new SelectableBean<ResourceType>(object.asObjectable()));
+            }
+
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't list objects.", ex);
+        }
+
+        if (!result.isSuccess()) {
+            getPage().showResult(result);
+        }
+
+        return getAvailableData().iterator();
     }
 
     @Override
     public int size() {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        int count = 0;
+        OperationResult result = new OperationResult(OPERATION_COUNT_RESOURCES);
+        try {
+            TaskManager manager = getTaskManager();
+            Task task = manager.createTaskInstance(OPERATION_COUNT_RESOURCES);
+            count = getModel().countObjects(ResourceType.class, getQuery(), task, result);
+
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't list objects.", ex);
+        }
+
+        if (!result.isSuccess()) {
+            getPage().showResult(result);
+        }
+
+        return count;
     }
 }

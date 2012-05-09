@@ -29,7 +29,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class AccountDto implements Serializable {
+public class UserAccountDto implements Serializable {
 
     public static enum AccountDtoStatus {
         ADDED, DELETED, NOT_MODIFIED;
@@ -38,7 +38,7 @@ public class AccountDto implements Serializable {
     private ObjectWrapper object;
     private AccountDtoStatus status;
 
-    public AccountDto(ObjectWrapper object, AccountDtoStatus status) {
+    public UserAccountDto(ObjectWrapper object, AccountDtoStatus status) {
         setObject(object);
         setStatus(status);
     }

@@ -27,6 +27,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -42,6 +45,7 @@ import java.util.*;
  */
 public class ObjectWrapper implements Serializable {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
     private PrismObject object;
     private ContainerStatus status;
     private String displayName;
@@ -133,6 +137,7 @@ public class ObjectWrapper implements Serializable {
             try {
                 container = object.findOrCreateContainer(name);
             } catch (SchemaException ex) {
+                LoggingUtils.logException(LOGGER, "Error occurred during container wrapping", ex);
                 throw new SystemException(ex.getMessage(), ex);
             }
         }
@@ -147,21 +152,30 @@ public class ObjectWrapper implements Serializable {
     private List<ContainerWrapper> createContainers() {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
-        Class clazz = object.getCompileTimeClass();
-        if (ResourceObjectShadowType.class.isAssignableFrom(clazz)) {
-            ContainerWrapper container = new ContainerWrapper(this, object.findContainer(
-                    ResourceObjectShadowType.F_ATTRIBUTES), getStatus(), null);
-            containers.add(container);
+        try {
+            Class clazz = object.getCompileTimeClass();
+            if (ResourceObjectShadowType.class.isAssignableFrom(clazz)) {
+                PrismContainer attributes = object.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+                ContainerStatus status = attributes != null ? getStatus() : ContainerStatus.ADDING;
+                attributes = object.findOrCreateContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 
-            containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_ACTIVATION));
-            if (AccountShadowType.class.isAssignableFrom(clazz)) {
-                containers.addAll(createCustomContainerWrapper(object, AccountShadowType.F_CREDENTIALS));
+                ContainerWrapper container = new ContainerWrapper(this, attributes, status,
+                        new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES));
+                containers.add(container);
+
+                containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_ACTIVATION));
+                if (AccountShadowType.class.isAssignableFrom(clazz)) {
+                    containers.addAll(createCustomContainerWrapper(object, AccountShadowType.F_CREDENTIALS));
+                }
+            } else {
+                ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null);
+                containers.add(container);
+
+                containers.addAll(createContainerWrapper(object, null));
             }
-        } else {
-            ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null);
-            containers.add(container);
-
-            containers.addAll(createContainerWrapper(object, null));
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Error occurred during container wrapping", ex);
+            throw new SystemException(ex.getMessage(), ex);
         }
 
         return containers;

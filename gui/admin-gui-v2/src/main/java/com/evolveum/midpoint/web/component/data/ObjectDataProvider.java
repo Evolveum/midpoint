@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -30,11 +29,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 
 import java.util.Iterator;
 import java.util.List;
@@ -62,15 +59,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
-            SortParam sortParam = getSort();
-            OrderDirectionType order;
-            if (sortParam.isAscending()) {
-                order = OrderDirectionType.ASCENDING;
-            } else {
-                order = OrderDirectionType.DESCENDING;
-            }
-
-            PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
+            PagingType paging = createPaging(first, count);
             TaskManager manager = getTaskManager();
             Task task = manager.createTaskInstance(OPERATION_SEARCH_OBJECTS);
 
