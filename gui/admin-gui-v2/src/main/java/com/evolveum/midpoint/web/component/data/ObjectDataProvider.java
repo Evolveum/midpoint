@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,54 +30,30 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  * @author lazyman
  */
-public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvider<SelectableBean<T>> {
+public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataProvider<SelectableBean<T>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
     private static final String OPERATION_SEARCH_OBJECTS = "objectDataProvider.searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = "objectDataProvider.countObjects";
-    //parent page
-    private PageBase page;
 
     private Class<T> type;
-    private QueryType query;
-    //actual model
-    private List<SelectableBean<T>> availableData;
 
     public ObjectDataProvider(PageBase page, Class<T> type) {
-        this.page = page;
+        super(page);
+
         this.type = type;
-        setSort("name", SortOrder.ASCENDING);
-    }
-
-    private TaskManager getTaskManager() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getTaskManager();
-    }
-
-    private ModelService getModel() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getModel();
     }
 
     @Override
@@ -99,7 +74,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
             TaskManager manager = getTaskManager();
             Task task = manager.createTaskInstance(OPERATION_SEARCH_OBJECTS);
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, query, paging, task, result);
+            List<PrismObject<T>> list = getModel().searchObjects(type, getQuery(), paging, task, result);
             for (PrismObject<T> object : list) {
                 getAvailableData().add(new SelectableBean<T>(object.asObjectable()));
             }
@@ -110,17 +85,10 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
         }
 
         if (!result.isSuccess()) {
-            page.showResult(result);
+            getPage().showResult(result);
         }
 
         return getAvailableData().iterator();
-    }
-
-    public List<SelectableBean<T>> getAvailableData() {
-        if (availableData == null) {
-            availableData = new ArrayList<SelectableBean<T>>();
-        }
-        return availableData;
     }
 
     @Override
@@ -130,7 +98,7 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
         try {
             TaskManager manager = getTaskManager();
             Task task = manager.createTaskInstance(OPERATION_COUNT_OBJECTS);
-            count = getModel().countObjects(type, query, task, result);
+            count = getModel().countObjects(type, getQuery(), task, result);
 
             result.recordSuccess();
         } catch (Exception ex) {
@@ -138,23 +106,14 @@ public class ObjectDataProvider<T extends ObjectType> extends SortableDataProvid
         }
 
         if (!result.isSuccess()) {
-            page.showResult(result);
+            getPage().showResult(result);
         }
 
         return count;
     }
 
-    @Override
-    public IModel<SelectableBean<T>> model(SelectableBean<T> object) {
-        return new Model<SelectableBean<T>>(object);
-    }
-
     public void setType(Class<T> type) {
         Validate.notNull(type);
         this.type = type;
-    }
-
-    public void setQuery(QueryType query) {
-        this.query = query;
     }
 }

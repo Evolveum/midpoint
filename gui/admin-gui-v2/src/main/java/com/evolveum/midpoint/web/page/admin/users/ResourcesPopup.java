@@ -22,19 +22,15 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserResourceDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -82,8 +78,8 @@ public class ResourcesPopup extends Panel {
     private List<UserResourceDto> getSelectedResources() {
         List<UserResourceDto> list = new ArrayList<UserResourceDto>();
 
-        TablePanel table = (TablePanel)get("table");
-        ResourceDtoProvider provider = (ResourceDtoProvider)table.getDataTable().getDataProvider();
+        TablePanel table = (TablePanel) get("table");
+        ResourceDtoProvider provider = (ResourceDtoProvider) table.getDataTable().getDataProvider();
         for (ResourceDto bean : provider.getAvailableData()) {
             if (!bean.isSelected()) {
                 continue;

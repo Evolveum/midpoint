@@ -21,63 +21,37 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  * @author lazyman
  */
-public class ResourceDtoProvider extends SortableDataProvider<ResourceDto> {
+public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
 
     private static final String DOT_CLASS = ResourceDtoProvider.class.getName() + ".";
     private static final String OPERATION_LIST_RESOURCES = DOT_CLASS + "listResources";
     private static final String OPERATION_COUNT_RESOURCES = DOT_CLASS + "countResources";
-    private PageBase page;
-    private QueryType query;
-    private List<ResourceDto> availableData;
-
 
     public ResourceDtoProvider(PageBase page) {
-        Validate.notNull(page, "Page must not be null.");
-        this.page = page;
-
-        setSort("name", SortOrder.ASCENDING);
-    }
-
-    private ModelService getModel() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getModel();
-    }
-
-    private TaskManager getTaskManager() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getTaskManager();
+        super(page);
     }
 
     @Override
@@ -109,7 +83,11 @@ public class ResourceDtoProvider extends SortableDataProvider<ResourceDto> {
             }
             result.recordSuccess();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list resources.", ex); //todo i18n
+            result.recordFatalError("Couldn't list resources.", ex);
+        }
+
+        if (!result.isSuccess()) {
+            getPage().showResult(result);
         }
 
         return getAvailableData().iterator();
@@ -127,21 +105,6 @@ public class ResourceDtoProvider extends SortableDataProvider<ResourceDto> {
         return getModel().getObject(ConnectorType.class, oid, null, task, result);
     }
 
-    public List<ResourceDto> getAvailableData() {
-        if (availableData == null) {
-            availableData = new ArrayList<ResourceDto>();
-        }
-        return availableData;
-    }
-
-    public QueryType getQuery() {
-        return query;
-    }
-
-    public void setQuery(QueryType query) {
-        this.query = query;
-    }
-
     @Override
     public int size() {
         OperationResult result = new OperationResult(OPERATION_COUNT_RESOURCES);
@@ -157,14 +120,9 @@ public class ResourceDtoProvider extends SortableDataProvider<ResourceDto> {
         }
 
         if (!result.isSuccess()) {
-            page.showResult(result);
+            getPage().showResult(result);
         }
 
         return count;
-    }
-
-    @Override
-    public IModel<ResourceDto> model(ResourceDto object) {
-        return new Model<ResourceDto>(object);
     }
 }

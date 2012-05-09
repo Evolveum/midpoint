@@ -29,47 +29,29 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  * @author lazyman
  */
-public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
+public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskDtoProvider.class);
     private static final String DOT_CLASS = TaskDtoProvider.class.getName() + ".";
     private static final String OPERATION_LIST_TASKS = "listTasks";
     private static final String OPERATION_COUNT_TASKS = "countTasks";
-    private PageBase page;
-    private QueryType query;
-    private List<TaskDto> availableData;
 
     private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
 
     public TaskDtoProvider(PageBase page) {
-        Validate.notNull(page, "Page must not be null.");
-        this.page = page;
-
-        setSort("name", SortOrder.ASCENDING);
-    }
-
-    private TaskManager getTaskManager() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getTaskManager();
+        super(page);
     }
 
     @Override
@@ -90,7 +72,7 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
 
             TaskManager manager = getTaskManager();
             ClusterStatusInformation info = manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE, result);
-            List<Task> tasks = manager.searchTasks(query, paging, info, result);
+            List<Task> tasks = manager.searchTasks(getQuery(), paging, info, result);
 
             for (Task task : tasks) {
                 getAvailableData().add(new TaskDto(task, info, manager));
@@ -104,35 +86,15 @@ public class TaskDtoProvider extends SortableDataProvider<TaskDto> {
         return getAvailableData().iterator();
     }
 
-    public List<TaskDto> getAvailableData() {
-        if (availableData == null) {
-            availableData = new ArrayList<TaskDto>();
-        }
-        return availableData;
-    }
-
-    public QueryType getQuery() {
-        return query;
-    }
-
-    public void setQuery(QueryType query) {
-        this.query = query;
-    }
-
     @Override
     public int size() {
         //todo how to handle this???
         try {
-            return getTaskManager().countTasks(query, new OperationResult("size"));
+            return getTaskManager().countTasks(getQuery(), new OperationResult("size"));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
         return 0;
-    }
-
-    @Override
-    public IModel<TaskDto> model(TaskDto object) {
-        return new Model<TaskDto>(object);
     }
 }
