@@ -1293,7 +1293,9 @@ public class ModelController implements ModelService {
 		// Initialize provisioning
 		provisioning.postInit(result);
 
-		result.computeStatus();
+        if (result.isUnknown()) {
+		    result.computeStatus();
+        }
 
 		RepositoryCache.exit();
 	}

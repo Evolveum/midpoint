@@ -109,7 +109,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			result.computeStatus();
 			IntegrationTestTools.display("initSystem result", result);
 			// TODO: check result
-			IntegrationTestTools.assertSuccess("initSystem failed (result)", result, 1);
+			IntegrationTestTools.assertSuccessOrWarning("initSystem failed (result)", result, 1);
 			setSystemInitialized();
 		}
 	}
