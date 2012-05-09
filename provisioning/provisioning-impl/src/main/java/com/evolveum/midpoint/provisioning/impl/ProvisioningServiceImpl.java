@@ -69,6 +69,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -554,58 +555,65 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult parentResult) {
 
-		Validate.notNull(objectType, "Object type to list must not be null.");
-		Validate.notNull(parentResult, "Operation result must not be null.");
+		try {
+			return searchObjects(objectType, null, paging, parentResult);
+		} catch (Exception e) {
+			throw new SystemException(e.getMessage(),e);
+		}
 
-		LOGGER.trace("**PROVISIONING: Start listing objects of type {}", objectType);
-		// Result type for this operation
+	}
+
+	@Override
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
+			PagingType paging, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+		
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
-				+ ".listObjects");
-		result.addParam("objectType", objectType);
+				+ ".searchObjects");
+		result.addParam("objectType", type);
 		result.addParam("paging", paging);
+		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		if (!ResourceObjectShadowType.class.isAssignableFrom(type)) {
+			List<PrismObject<T>> objects = searchRepoObjects(type, query, paging, result);
+			result.computeStatus();
+			result.recordSuccessIfUnknown();
+			return objects;
+		}
+
+		final List<PrismObject<T>> objListType = new ArrayList<PrismObject<T>>();
+
+		final ResultHandler<T> handler = new ResultHandler<T>() {
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+				return objListType.add(object);
+			}
+		};
+
+		searchObjectsIterative(type, query, paging, handler, result);
+		// TODO: better error handling
+		result.computeStatus();
+		return objListType;
+	}
+	
+	
+	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, QueryType query, PagingType paging,
+			OperationResult result) throws SchemaException {
 
 		List<PrismObject<T>> objListType = null;
 
-		// TODO: should listing connectors trigger rediscovery?
+		// TODO: should searching connectors trigger rediscovery?
 
-		// if (ConnectorType.class.isAssignableFrom(objectType)) {
-		// Set<ConnectorType> connectors = getShadowCache()
-		// .getConnectorFactory().listConnectors();
-		// if (connectors == null) {
-		// result.recordFatalError("Can't list connectors.");
-		// throw new IllegalStateException("Can't list connectors.");
-		// }
-		// if (connectors.isEmpty()) {
-		// LOGGER.debug("There are no connectors known to the system.");
-		// }
-		// objListType = new ObjectListType();
-		// for (ConnectorType connector : connectors) {
-		// objListType.getObject().add(connector);
-		// }
-		// result.recordSuccess();
-		// return objListType;
-		// }
+		objListType = getCacheRepositoryService().searchObjects(type, query, paging, result);
 
-		if (ResourceObjectShadowType.class.isAssignableFrom(objectType)) {
-			// Listing of shadows is not supported because this operation does
-			// not specify resource
-			// to search. Maybe we need another operation for this.
-
-			result.recordFatalError("Listing of shadows is not supported");
-			throw new NotImplementedException("Listing of shadows is not supported");
-
-		} else {
-			// TODO: delegate to repository
-			objListType = getCacheRepositoryService().listObjects(objectType, paging, parentResult);
-
-		}
-
-		if (ResourceType.class.equals(objectType)) {
+		if (ResourceType.class.equals(type)) {
 			List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
 			for (PrismObject<T> obj : objListType) {
 				OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
-						+ ".listObjects.object");
+						+ ".searchObjects.object");
 				PrismObject<ResourceType> resource = (PrismObject<ResourceType>) obj;
 				ResourceType completeResource;
 
@@ -669,54 +677,48 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					result.recordPartialError(e);
 				}
 			}
-			result.computeStatus();
-			result.recordSuccessIfUnknown();
 			return newObjListType;
 		}
 
-		result.recordSuccess();
 		return objListType;
 
 	}
 
-	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
-			PagingType paging, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, ConfigurationException, SecurityViolationException {
+	
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult) 
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".countObjects");
+		result.addParam("objectType", type);
+		result.addParam("query", query);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		if (!ResourceObjectShadowType.class.isAssignableFrom(type)) {
+			int count = getCacheRepositoryService().countObjects(type, query, parentResult);
+			result.computeStatus();
+			result.recordSuccessIfUnknown();
+			return count;
+		}
 
-        //TODO reimplement !!!!!!!!!!!
-        if (query == null) {
-            return listObjects(type, paging, parentResult);
-        }
-
-		final List<PrismObject<T>> objListType = new ArrayList<PrismObject<T>>();
+		final Holder<Integer> countHolder = new Holder<Integer>(0);
 
 		final ResultHandler<T> handler = new ResultHandler<T>() {
-
+			
 			@SuppressWarnings("unchecked")
 			@Override
 			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-				return objListType.add(object);
+				int count = countHolder.getValue();
+				count++;
+				countHolder.setValue(count);
+				return true;
 			}
 		};
 
-		searchObjectsIterative(type, query, paging, handler, parentResult);
-		return objListType;
-	}
-
-	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, ConfigurationException {
-		// TODO: Implement     !!!!!
-
-        OperationResult result = parentResult.createSubresult("REIMPLEMENT !!!!!!!!!!!!!!!");
-        int count = 0;
-        try {
-            count = cacheRepositoryService.countObjects(type, query, result);
-        }   catch (Exception ex) {
-            throw new SystemException(ex.getMessage(), ex);
-        }
-        return count;
+		searchObjectsIterative(type, query, null, handler, result);
+		// TODO: better error handling
+		result.computeStatus();
+		return countHolder.getValue();		
 	}
 
 	@Override
@@ -967,7 +969,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			PagingType paging, final ResultHandler<T> handler, final OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		Validate.notNull(query, "Search query must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
@@ -979,46 +980,54 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-		Element filter = query.getFilter();
-		NodeList list = filter.getChildNodes();
+		
+		Element filter = null;
+		if (query != null) {
+			filter = query.getFilter();
+		}
+		NodeList list = null;
+		if (filter != null) {
+			list = filter.getChildNodes();
+		}
 		String resourceOid = null;
 		QName objectClass = null;
 		List<NodeList> attributeFilter = new ArrayList<NodeList>();
 
-		if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_AND, filter)) {
-			for (int i = 0; i < list.getLength(); i++) {
-				if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_TYPE, list.item(i))) {
-					String filterType = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
-					if (filterType == null || "".equals(filterType)) {
-						result.recordFatalError("Object type is not defined.");
-						throw new IllegalArgumentException("Object type is not defined.");
-					}
-
-				} else if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_EQUAL, list.item(i))) {
-					NodeList equealList = list.item(i).getChildNodes();
-
-					for (int j = 0; j < equealList.getLength(); j++) {
-						if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_VALUE, equealList.item(j))) {
-							Node value = equealList.item(j).getFirstChild();
-							if (QNameUtil.compareQName(SchemaConstants.I_RESOURCE_REF, value)) {
-								resourceOid = value.getAttributes().getNamedItem("oid").getNodeValue();
-								LOGGER.trace("**PROVISIONING: Search objects on resource with oid {}",
-										resourceOid);
-
-							} else if (QNameUtil.compareQName(SchemaConstants.I_OBJECT_CLASS, value)) {
-								objectClass = DOMUtil.getQNameValue((Element) value);
-								LOGGER.trace("**PROVISIONING: Object class to search: {}", objectClass);
-								if (objectClass == null) {
-									result.recordFatalError("Object class was not defined.");
-									throw new IllegalArgumentException("Object class was not defined.");
+		if (list != null) {
+			if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_AND, filter)) {
+				for (int i = 0; i < list.getLength(); i++) {
+					if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_TYPE, list.item(i))) {
+						String filterType = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
+						if (filterType == null || "".equals(filterType)) {
+							result.recordFatalError("Object type is not defined.");
+							throw new IllegalArgumentException("Object type is not defined.");
+						}
+	
+					} else if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_EQUAL, list.item(i))) {
+						NodeList equealList = list.item(i).getChildNodes();
+	
+						for (int j = 0; j < equealList.getLength(); j++) {
+							if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_VALUE, equealList.item(j))) {
+								Node value = equealList.item(j).getFirstChild();
+								if (QNameUtil.compareQName(SchemaConstants.I_RESOURCE_REF, value)) {
+									resourceOid = value.getAttributes().getNamedItem("oid").getNodeValue();
+									LOGGER.trace("**PROVISIONING: Search objects on resource with oid {}",
+											resourceOid);
+	
+								} else if (QNameUtil.compareQName(SchemaConstants.I_OBJECT_CLASS, value)) {
+									objectClass = DOMUtil.getQNameValue((Element) value);
+									LOGGER.trace("**PROVISIONING: Object class to search: {}", objectClass);
+									if (objectClass == null) {
+										result.recordFatalError("Object class was not defined.");
+										throw new IllegalArgumentException("Object class was not defined.");
+									}
 								}
+							} else if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_PATH, equealList.item(j))){
+	
+								attributeFilter.add(equealList);
+								continue;
+	
 							}
-						} else if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_PATH, equealList.item(j))){
-
-							attributeFilter.add(equealList);
-							continue;
-
 						}
 					}
 				}

@@ -613,8 +613,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 			ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 
-		displayTestTile("test010AddUser");
-		// GIVEN
 		checkRepoOpenDjResource();
 		assertCache();
 
@@ -825,6 +823,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	 @Test
 	public void test014addAccountAlreadyExistLinked() throws Exception {
+		 displayTestTile("test014addAccountAlreadyExistLinked");
 		OperationResult parentResult = new OperationResult("Add account already exist linked");
 		testAddUserToRepo("test014testAssAccountAlreadyExistLinked", USER_JACK2_FILENAME, USER_JACK2_OID);
 
@@ -854,6 +853,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	 @Test
 	public void test015addAccountAlreadyExistUnlinked() throws Exception {
+		 displayTestTile("test015addAccountAlreadyExistUnlinked");
 
 		OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
 		Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_FILENAME);
@@ -901,6 +901,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	@Test
 	public void test017deleteObjectNotFound() throws Exception {
+		displayTestTile("test017deleteObjectNotFound");
 		OperationResult parentResult = new OperationResult("Delete object not found");
 
 		addObjectFromFile(ACCOUNT_GUYBRUSH_FILENAME, AccountShadowType.class, parentResult);

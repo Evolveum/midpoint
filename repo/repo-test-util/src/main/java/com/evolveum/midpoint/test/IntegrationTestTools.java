@@ -396,6 +396,21 @@ public class IntegrationTestTools {
 		return query;
 	}
 	
+	public static QueryType createAllShadowsQuery(ResourceType resourceType, QName objectClass) throws SchemaException {
+		QueryType query = new QueryType();
+		Document doc = DOMUtil.getDocument();
+		query.setFilter(QueryUtil.createAndFilter(doc,
+				QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resourceType.getOid()),
+				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, objectClass)
+				));
+		return query;
+	}
+
+	public static QueryType createAllShadowsQuery(ResourceType resourceType, String objectClassLocalName) throws SchemaException {
+		return createAllShadowsQuery(resourceType, new QName(resourceType.getNamespace(), objectClassLocalName));
+	}
+
+	
 	public static void checkShadow(AccountShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
 			ObjectChecker<AccountShadowType> checker, PrismContext prismContext, OperationResult parentResult) {
 		LOGGER.trace("Checking shadow:\n{}",shadowType.asPrismObject().dump());

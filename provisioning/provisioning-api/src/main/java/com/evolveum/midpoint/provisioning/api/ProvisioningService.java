@@ -267,7 +267,7 @@ public interface ProvisioningService {
 	
 	
 	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	/**
 	 * Search for objects iteratively. Searches through all object types. Calls a

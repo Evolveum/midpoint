@@ -911,39 +911,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void testListObjects() throws Exception {
-		displayTestTile("testListObjects");
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".addObjectTest");
-
-		try {
-
-			try {
-				List<PrismObject<AccountShadowType>> objListType = provisioningService.listObjects(AccountShadowType.class,
-						new PagingType(), result);
-				Assert.fail("Expected excetpion, but haven't got one");
-			} catch (Exception ex) {
-				assertEquals("NotImplementedException", ex.getClass().getSimpleName());
-			}
-
-		} finally {
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-			} catch (Exception ex) {
-			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-			} catch (Exception ex) {
-			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_MODIFY_OID, result);
-			} catch (Exception ex) {
-			}
-		}
-
-	}
-
-	@Test
 	public void test200SearchObjectsIterative() throws Exception {
 		displayTestTile("test200SearchObjectsIterative");
 

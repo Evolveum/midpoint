@@ -691,11 +691,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test013SearchAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
-		displayTestTile("test013SearchAllShadows");
+	public void test013SearchAllShadowsInRepository() throws Exception {
+		displayTestTile("test013SearchAllShadowsInRepository");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test013SearchAllShadows");
+				+ ".test013SearchAllShadowsInRepository");
 		QueryType query = IntegrationTestTools.createAllShadowsQuery(resourceType);
 		display("All shadows query", query);
 		
@@ -704,6 +704,65 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		assertFalse("No shadows found", allShadows.isEmpty());
 	}
+	
+	@Test
+	public void test014SearchAllShadows() throws Exception {
+		displayTestTile("test014SearchAllShadows");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test014SearchAllShadows");
+		QueryType query = IntegrationTestTools.createAllShadowsQuery(resourceType, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+		display("All shadows query", query);
+		
+		List<PrismObject<AccountShadowType>> allShadows = provisioningService.searchObjects(AccountShadowType.class, query, null , result);
+		display("Found "+allShadows.size()+" shadows");
+		
+		assertFalse("No shadows found", allShadows.isEmpty());
+		assertEquals("Wrong number of results", 3, allShadows.size());
+	}
+	
+	@Test
+	public void test015countAllShadows() throws Exception {
+		displayTestTile("test015countAllShadows");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test015countAllShadows");
+		QueryType query = IntegrationTestTools.createAllShadowsQuery(resourceType, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+		display("All shadows query", query);
+		
+		int count = provisioningService.countObjects(AccountShadowType.class, query, result);
+		display("Found "+count+" shadows");
+		
+		assertEquals("Wrong number of results", 3, count);
+	}
+	
+	@Test
+	public void test016SearchNullQueryResource() throws Exception {
+		displayTestTile("test016SearchNullQueryResource");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test016SearchNullQueryResource");
+		
+		List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class, null, null , result);
+		display("Found "+allResources.size()+" resources");
+		
+		assertFalse("No resources found", allResources.isEmpty());
+		assertEquals("Wrong number of results", 1, allResources.size());
+	}
+	
+	@Test
+	public void test017CountNullQueryResource() throws Exception {
+		displayTestTile("test017CountNullQueryResource");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test017CountNullQueryResource");
+		
+		int count = provisioningService.countObjects(ResourceType.class, null, result);
+		display("Counted "+count+" resources");
+		
+		assertEquals("Wrong count", 1, count);
+	}
+
 		
 	private void checkShadow(AccountShadowType shadow, OperationResult parentResult) {
 		ObjectChecker<AccountShadowType> checker = createShadowChecker();
