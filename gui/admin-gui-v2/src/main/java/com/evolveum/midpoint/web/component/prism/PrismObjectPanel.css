@@ -134,6 +134,7 @@ div.objectForm .tableForm .tableFormBody .objectFormPanel {
 div.objectForm .tableForm .tableFormBody .objectFormLabel, div.objectForm .tableForm .tableFormBody .objectFormValue {
 	position: relative;
 	min-height: 40px;
+	display: inline-block;
 }
 
 div.objectForm .tableForm .tableFormBody .feedbackPanel {
