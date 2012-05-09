@@ -59,12 +59,16 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -382,7 +386,50 @@ public class PageUser extends PageAdminUsers {
             }
         });
         columns.add(new PropertyColumn(createStringResource("pageUser.assignment.name"), "name", "name"));
-        columns.add(new PropertyColumn(createStringResource("pageUser.assignment.active"), "activation", "activation"));
+        columns.add(new AbstractColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.active")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<UserAssignmentDto>> cellItem, String componentId,
+                    final IModel<UserAssignmentDto> rowModel) {
+                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        UserAssignmentDto dto = rowModel.getObject();
+                        ActivationType activation = dto.getActivation();
+                        if (activation == null) {
+                            return "-";
+                        }
+
+                        Boolean enabled = activation.isEnabled();
+                        String strEnabled;
+                        if (enabled != null) {
+                            if (enabled) {
+                                strEnabled = PageUser.this.getString("pageUser.assignment.activation.active");
+                            } else {
+                                strEnabled = PageUser.this.getString("pageUser.assignment.activation.inactive");
+                            }
+                        } else {
+                            strEnabled = PageUser.this.getString("pageUser.assignment.activation.undefined");
+                        }
+
+                        if (activation.getValidFrom() != null && activation.getValidTo() != null) {
+                            return PageUser.this.getString("pageUser.assignment.activation.enabledFromTo",
+                                    strEnabled, MiscUtil.asDate(activation.getValidFrom()),
+                                    MiscUtil.asDate(activation.getValidTo()));
+                        } else if (activation.getValidFrom() != null) {
+                            return PageUser.this.getString("pageUser.assignment.activation.enabledFrom",
+                                    strEnabled, MiscUtil.asDate(activation.getValidFrom()));
+                        } else if (activation.getValidTo() != null) {
+                            return PageUser.this.getString("pageUser.assignment.activation.enabledTo",
+                                    strEnabled, MiscUtil.asDate(activation.getValidTo()));
+                        }
+
+                        return "-";
+                    }
+                }));
+            }
+        });
 
         ISortableDataProvider provider = new ListDataProvider(assignmentsModel);
         TablePanel assignmentTable = new TablePanel("assignmentTable", provider, columns);
