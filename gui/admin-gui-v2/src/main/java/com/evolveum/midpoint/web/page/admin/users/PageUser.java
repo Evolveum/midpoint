@@ -687,6 +687,7 @@ public class PageUser extends PageAdminUsers {
                 case ADDING:
                     PrismObject<UserType> user = delta.getObjectToAdd();
                     prepareUserForAdd(user);
+                    getPrismContext().adopt(user, UserType.class);
 
                     getModelService().addObject(user, task, result);
                     break;
