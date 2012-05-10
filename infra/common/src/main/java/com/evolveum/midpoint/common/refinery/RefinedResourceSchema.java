@@ -28,8 +28,11 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -121,7 +124,10 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		}
 		return null;
 	}
-
+	
+	private ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName) {
+		return originalResourceSchema.findObjectClassDefinition(objectClassQName);
+	}
 	
 	/**
 	 * If already refined, return the version created before
@@ -272,40 +278,43 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		
 	}
 	
-//	@Override
-//	public <T extends ObjectType> PrismObject<T> parseObjectType(T objectType) throws SchemaException {
-//		if (objectType instanceof AccountShadowType) {
-//			AccountShadowType accountShadowType = (AccountShadowType)objectType;
-//			String accountType = accountShadowType.getAccountType();
-//			RefinedAccountDefinition accountDefinition = null;
-//			if (accountType == null) {
-//				accountDefinition = getDefaultAccountDefinition();
-//				if (accountDefinition == null) {
-//					throw new IllegalArgumentException("Definition for default account type was not found in "+this+", the type was specified in "+ObjectTypeUtil.toShortString(accountShadowType));
-//				}
-//			} else {
-//				accountDefinition = getAccountDefinition(accountType);
-//				if (accountDefinition == null) {
-//					throw new IllegalArgumentException("Definition for account type "+accountType+" was not found in "+this+", the type was specified in "+ObjectTypeUtil.toShortString(accountShadowType));
-//				}
-//			}
-//			return (PrismObject<T>) accountDefinition.getObjectDefinition().parseObjectType(accountShadowType);
-//		} else {
-//			throw new IllegalArgumentException("Refined resource schema can only parse instances of AccountShadowType");
-//		}
-//	}
-
-	@Override
-	public String toString() {
-		return "RSchema(ns=" + namespace + ")";
-	}
-
 	/**
 	 * Make sure that the specified shadow has definitions pointing to this refined schema.
 	 */
-	public <T extends ResourceObjectShadowType> PrismObject<T> refine(PrismObject<T> shadow) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+	public <T extends ResourceObjectShadowType> PrismObject<T> refine(PrismObject<T> shadow) throws SchemaException {
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null) {
+			// No attributes, nothing to do
+			return shadow;
+		}
+		T shadowType = shadow.asObjectable();
+		QName objectClassQName = shadowType.getObjectClass();
+		PrismContainerDefinition<?> definition = attributesContainer.getDefinition();
+		if (definition != null && definition.getTypeName().equals(objectClassQName)) {
+			// Correct definition applied, nothing to do
+			return shadow;
+		}
+		if (shadowType instanceof AccountShadowType) {
+			// Determine definition by account type
+			String accountType = ((AccountShadowType)shadowType).getAccountType();
+			definition = getAccountDefinition(accountType);
+			if (definition == null) {
+				throw new SchemaException("No definition for account type "+accountType);
+			}
+		} else {
+			ObjectClassComplexTypeDefinition ocDef = findObjectClassDefinition(objectClassQName);
+			definition = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES, ocDef, ocDef.getPrismContext());
+			if (definition == null) {
+				throw new SchemaException("No definition for object class "+objectClassQName);
+			}
+		}
+		attributesContainer.applyDefinition(definition);
+		return shadow;
+	}
+	
+	@Override
+	public String toString() {
+		return "RSchema(ns=" + namespace + ")";
 	}
 
 }

@@ -225,6 +225,16 @@ public class SyncContext implements Dumpable, DebugDumpable {
         }
         accountContextMap.put(rat, accountSyncContext);
     }
+    
+	public AccountSyncContext findAccountSyncContextByOid(String oid) {
+		for (AccountSyncContext accCtx: getAccountContexts()) {
+			if (oid.equals(accCtx.getOid())) {
+				return accCtx;
+			}
+		}
+		return null;
+	}
+
 
     public void setAccountPrimaryDelta(ResourceAccountType rat, ObjectDelta<AccountShadowType> accountDelta) {
         if (!accountContextMap.containsKey(rat)) {

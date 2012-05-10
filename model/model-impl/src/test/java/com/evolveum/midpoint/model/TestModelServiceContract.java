@@ -98,6 +98,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	
+	public static final File TEST_DIR = new File("src/test/resources/contract");
+
+	private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
+	private static final String USER_BLACKBEARD_OID = "c0c010c0-d34d-b33f-f00d-161161116666";
+	
 	private static String accountOid;
 	
 	public TestModelServiceContract() throws JAXBException {
@@ -236,6 +241,85 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertDummyShadowModel(accountShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
         
         assertNotNull("Resource in account was not resolved", accountShadowType.getResource());
+	}
+	
+	@Test
+    public void test120AddUserBlackbeardWithAccount() throws Exception {
+        displayTestTile(this, "test120AddUserBlackbeardWithAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120AddUserBlackbeardWithAccount");
+        OperationResult result = task.getResult();
+
+        // IMPORTANT! SWITCHING ON ASSIGNMENT ENFORCEMENT HERE!
+        AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+        syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
+        applySyncSettings(syncSettings);
+        
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
+                
+		// WHEN
+		modelService.addObject(user , task, result);
+		
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
+        UserType userMorganType = userMorgan.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "blackbeard");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "blackbeard", "Edward Teach");
+        
+        // Check account in dummy resource
+        assertDummyAccount("blackbeard", "Edward Teach", true);
+	}
+
+	
+	@Test
+    public void test210AddUserMorganWithAssignment() throws Exception {
+        displayTestTile(this, "test210AddUserMorganWithAssignment");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test210AddUserMorganWithAssignment");
+        OperationResult result = task.getResult();
+
+        // IMPORTANT! SWITCHING ON ASSIGNMENT ENFORCEMENT HERE!
+        AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+        syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
+        applySyncSettings(syncSettings);
+        
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
+                
+		// WHEN
+		modelService.addObject(user , task, result);
+		
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
+        UserType userMorganType = userMorgan.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "morgan");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan");
+        
+        // Check account in dummy resource
+        assertDummyAccount("morgan", "Sir Henry Morgan", true);
 	}
 
 }

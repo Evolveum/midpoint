@@ -59,6 +59,8 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -355,7 +357,51 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		context.addPrimaryUserDelta(userDelta);
 		return userDelta;
 	}
+	
+	protected <T> ObjectDelta<AccountShadowType> addModificationToContextReplaceAccountAttribute(SyncContext context, String accountOid, 
+			String attributeLocalName, T... propertyValues) throws SchemaException {
+		AccountSyncContext accCtx = context.findAccountSyncContextByOid(accountOid);
+		ResourceType resourceType = accCtx.getResource();
+		QName attrQName = new QName(resourceType.getNamespace(), attributeLocalName);
+		PropertyPath attrPath = new PropertyPath(AccountShadowType.F_ATTRIBUTES, attrQName);
+		RefinedAccountDefinition refinedAccountDefinition = accCtx.getRefinedAccountDefinition();
+		RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
+		ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createEmptyModifyDelta(AccountShadowType.class, accountOid, prismContext);
+		PropertyDelta<T> attrDelta = new PropertyDelta<T>(attrPath, attrDef);
+		attrDelta.setValuesToReplace(PrismPropertyValue.createCollection(propertyValues));
+		accountDelta.addModification(attrDelta);
+		accCtx.addAccountPrimaryDelta(accountDelta);
+	    return accountDelta;
+	}
+	
+	protected void assertNoUserPrimaryDelta(SyncContext context) {
+		ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
+		if (userPrimaryDelta == null) {
+			return;
+		}
+		assertTrue("User primary delta is not empty", userPrimaryDelta.isEmpty());
+	}
 
+	protected void assertUserPrimaryDelta(SyncContext context) {
+		ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
+		assertNotNull("User primary delta is null", userPrimaryDelta);
+		assertFalse("User primary delta is empty", userPrimaryDelta.isEmpty());
+	}
+	
+	protected void assertNoUserSecondaryDelta(SyncContext context) {
+		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
+		if (userSecondaryDelta == null) {
+			return;
+		}
+		assertTrue("User secondary delta is not empty", userSecondaryDelta.isEmpty());
+	}
+
+	protected void assertUserSecondaryDelta(SyncContext context) {
+		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
+		assertNotNull("User secondary delta is null", userSecondaryDelta);
+		assertFalse("User secondary delta is empty", userSecondaryDelta.isEmpty());
+	}
+	
 	protected void assertUserModificationSanity(SyncContext context) throws JAXBException {
 	    PrismObject<UserType> userOld = context.getUserOld();
 	    if (userOld == null) {

@@ -27,9 +27,10 @@ import javax.xml.namespace.QName;
  */
 public class ExpressionConstants {
 
-	public static final QName VAR_USER = new QName(SchemaConstants.NS_C,"user");
-	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C,"assignment");
-	public static final QName VAR_ITERATION = new QName(SchemaConstants.NS_C,"iteration");
-	public static final QName VAR_ITERATION_TOKEN = new QName(SchemaConstants.NS_C,"iterationToken");
+	public static final QName VAR_INPUT = new QName(SchemaConstants.NS_C, "input");
+	public static final QName VAR_USER = new QName(SchemaConstants.NS_C, "user");
+	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
+	public static final QName VAR_ITERATION = new QName(SchemaConstants.NS_C, "iteration");
+	public static final QName VAR_ITERATION_TOKEN = new QName(SchemaConstants.NS_C, "iterationToken");
 	
 }

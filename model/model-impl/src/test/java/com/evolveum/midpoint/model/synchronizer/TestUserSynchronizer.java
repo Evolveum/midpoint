@@ -396,6 +396,38 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         
     }
 	
+	// <source> does not work yet
+	@Test(enabled=false)
+    public void test250BarbossaInbound() throws Exception {
+        displayTestTile(this, "test250BarbossaInbound");
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test250BarbossaInbound");
+
+        SyncContext context = new SyncContext(prismContext);
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, "ship", "Black Pearl");
+        context.recomputeNew();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        userSynchronizer.synchronizeUser(context, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertNoUserPrimaryDelta(context);
+        assertUserSecondaryDelta(context);
+        ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
+        assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
+        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , "Crew of Black Pearl");
+                
+    }
+	
 	@Test
     public void test300ReconcileGuybrushDummy() throws Exception {
         displayTestTile(this, "test300ReconcileGuybrushDummy");

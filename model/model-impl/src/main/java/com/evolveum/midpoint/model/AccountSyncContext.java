@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 import javax.xml.namespace.QName;
 
@@ -205,6 +206,14 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 
     public void setAccountPrimaryDelta(ObjectDelta<AccountShadowType> accountPrimaryDelta) {
         this.accountPrimaryDelta = accountPrimaryDelta;
+    }
+    
+    public void addAccountPrimaryDelta(ObjectDelta<AccountShadowType> accountDelta) throws SchemaException {
+        if (accountPrimaryDelta == null) {
+        	accountPrimaryDelta = accountDelta;
+        } else {
+        	accountPrimaryDelta.merge(accountDelta);
+        }
     }
 
     public ObjectDelta<AccountShadowType> getAccountSecondaryDelta() {

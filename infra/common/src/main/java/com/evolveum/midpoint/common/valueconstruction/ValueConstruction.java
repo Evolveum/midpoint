@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -201,6 +202,10 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 			return;
 		}
 		variables.put(name, value);
+	}
+	
+	public boolean hasVariableDefinition(QName varName) {
+		return variables.containsKey(varName);
 	}
 	
 	public boolean isInitial() {

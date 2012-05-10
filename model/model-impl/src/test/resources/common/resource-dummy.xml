@@ -168,6 +168,23 @@
 					</expression>
 				</outbound>
 			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
+				<inbound>
+					<source>
+						<expression>
+							<code>concat('The crew of ',$c:input)</code>
+						</expression>
+					</source>
+					<target>
+						$c:user/c:organizationalUnit
+					</target>
+				</inbound>
+			</attribute>
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>

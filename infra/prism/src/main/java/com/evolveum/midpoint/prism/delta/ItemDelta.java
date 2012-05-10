@@ -540,11 +540,17 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		return delta.toDeltaSetTriple(item);
 	}
 	
+	public PrismValueDeltaSetTriple<V> toDeltaSetTriple() {
+		return toDeltaSetTriple(null);
+	}
+	
 	public PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V> item) {
 		PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTriple<V>();
 		if (isReplace()) {
 			triple.getPlusSet().addAll(getValuesToReplace());
-			triple.getMinusSet().addAll(item.getValues());
+			if (item != null) {
+				triple.getMinusSet().addAll(item.getValues());
+			}
 			return triple;
 		}
 		if (isAdd()) {
@@ -553,7 +559,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (isDelete()) {
 			triple.getMinusSet().addAll(getValuesToDelete());
 		}
-		if (item.getValues() != null) {
+		if (item != null && item.getValues() != null) {
 			for (V itemVal: item.getValues()) {
 				if (!PrismValue.containsRealValue(valuesToDelete, itemVal)) {
 					triple.getZeroSet().add(itemVal);

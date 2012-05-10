@@ -459,22 +459,21 @@ public class ModelController implements ModelService {
 		UserType userType = user.asObjectable();
 		SyncContext syncContext = new SyncContext(prismContext);
 
-		// Convert all <account> instances to syncContext or <accountRef>s
-		if (userType.getAccount() != null) {
-			for (AccountShadowType accountType : userType.getAccount()) {
-				String accountOid = accountType.getOid();
-				if (accountOid != null) {
-					// link to existing account expressed as <account> instead
-					// of <accountRef>
-					ObjectReferenceType accountRef = ObjectTypeUtil.createObjectRef(accountType);
-					userType.getAccountRef().add(accountRef);
-				} else {
-					// new account (no OID)
-					addAccountToContext(syncContext, accountType, ChangeType.ADD, result);
-				}
-				userType.getAccount().remove(accountType);
-			}
-		}
+//		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+//		// Convert all <account> instances to syncContext or <accountRef>s
+//		if (accountRef != null) {
+//			List<PrismReferenceValue> accountRefValues = accountRef.getValues();
+//			Iterator<PrismReferenceValue> iterator = accountRefValues.iterator();
+//			while(iterator.hasNext()) {			
+//			while(iterator.hasNext()) {
+//				PrismReferenceValue accountRefVal = iterator.next();
+//				PrismObject account = accountRefVal.getObject();
+//				if (account != null && account.getOid() == null) {
+//					// new account (no OID)
+//					addAccountToContext(syncContext, accountRefVal, ChangeType.ADD, result);
+//				}
+//			}
+//		}
 
 		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
 		userDelta.setObjectToAdd(user);

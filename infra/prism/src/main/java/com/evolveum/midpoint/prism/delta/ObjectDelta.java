@@ -506,6 +506,12 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return propertyDelta;
     }
     
+    public <X> PropertyDelta<X> createPropertyModification(PropertyPath path, PrismPropertyDefinition propertyDefinition) {
+    	PropertyDelta<X> propertyDelta = new PropertyDelta<X>(path, propertyDefinition);
+    	addModification(propertyDelta);
+    	return propertyDelta;
+    }
+    
     public ReferenceDelta createReferenceModification(QName name, PrismReferenceDefinition referenceDefinition) {
     	ReferenceDelta referenceDelta = new ReferenceDelta(name, referenceDefinition);
     	addModification(referenceDelta);
@@ -518,11 +524,21 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      */
     public static <O extends Objectable, X> ObjectDelta<O> createModificationReplaceProperty(Class<O> type, String oid, QName propertyName,
     		PrismContext prismContext, X... propertyValues) {
+    	PropertyPath propertyPath = new PropertyPath(propertyName);
+    	return createModificationReplaceProperty(type, oid, propertyPath, prismContext, propertyValues);
+    }
+    
+    /**
+     * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
+     * to justify a separate method. 
+     */
+    public static <O extends Objectable, X> ObjectDelta<O> createModificationReplaceProperty(Class<O> type, String oid, 
+    		PropertyPath propertyPath, PrismContext prismContext, X... propertyValues) {
     	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY);
     	objectDelta.setOid(oid);
     	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-    	PrismPropertyDefinition propDef = objDef.findPropertyDefinition(propertyName);
-    	PropertyDelta<X> propertyDelta = objectDelta.createPropertyModification(propertyName, propDef);
+    	PrismPropertyDefinition propDef = objDef.findPropertyDefinition(propertyPath);
+    	PropertyDelta<X> propertyDelta = objectDelta.createPropertyModification(propertyPath, propDef);
     	Collection<PrismPropertyValue<X>> valuesToReplace = new ArrayList<PrismPropertyValue<X>>(propertyValues.length);
     	for (X val: propertyValues) {
     		PrismPropertyValue<X> pval = new PrismPropertyValue<X>(val);
@@ -562,11 +578,25 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
     
     public static <O extends Objectable> ObjectDelta<O> createEmptyAddDelta(Class<O> type, String oid, PrismContext prismContext) {
-    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.ADD);
-    	objectDelta.setOid(oid);
+    	ObjectDelta<O> objectDelta = createEmptyDelta(type, oid, prismContext, ChangeType.ADD);
     	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
     	PrismObject<O> objectToAdd = objDef.instantiate();
     	objectDelta.setObjectToAdd(objectToAdd);
+    	return objectDelta;
+    }
+
+    public static <O extends Objectable> ObjectDelta<O> createEmptyModifyDelta(Class<O> type, String oid, PrismContext prismContext) {
+    	return createEmptyDelta(type, oid, prismContext, ChangeType.MODIFY);
+    }
+
+    public static <O extends Objectable> ObjectDelta<O> createEmptyDeleteDelta(Class<O> type, String oid, PrismContext prismContext) {
+    	return createEmptyDelta(type, oid, prismContext, ChangeType.DELETE);
+    }
+
+    public static <O extends Objectable> ObjectDelta<O> createEmptyDelta(Class<O> type, String oid, PrismContext prismContext, 
+    		ChangeType changeType) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, changeType);
+    	objectDelta.setOid(oid);
     	return objectDelta;
     }
     

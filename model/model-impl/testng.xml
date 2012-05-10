@@ -109,6 +109,7 @@
             <class name="com.evolveum.midpoint.model.synchronizer.TestAssignmentProcessor"/>
             <class name="com.evolveum.midpoint.model.synchronizer.TestAssignmentEvaluator"/>
             <class name="com.evolveum.midpoint.model.synchronizer.TestSynchronizerAddUser"/>
+            <class name="com.evolveum.midpoint.model.synchronizer.TestUserSynchronizer"/>
         </classes>
     </test>
     <test name="Model Web service" preserve-order="true" parallel="false" verbose="10">

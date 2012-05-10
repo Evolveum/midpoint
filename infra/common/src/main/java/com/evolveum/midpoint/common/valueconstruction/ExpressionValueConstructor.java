@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -99,6 +100,11 @@ public class ExpressionValueConstructor implements ValueConstructor {
     	} else {
     		expression.addVariableDefinitionsNew(variables);
     	}
+    	
+//		if (!expression.hasVariableDefinition(ExpressionConstants.VAR_INPUT)) {
+//			expression.addVariableDefinition(ExpressionConstants.VAR_INPUT, input);
+//		}
+
 
         QName typeName = outputDefinition.getTypeName();
         Class<Object> type = XsdTypeMapper.toJavaType(typeName);
