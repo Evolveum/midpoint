@@ -77,10 +77,13 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             for (Task task : tasks) {
                 getAvailableData().add(new TaskDto(task, info, manager));
             }
-            result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Unhandled exception when listing tasks", ex);
             result.recordFatalError("Couldn't list tasks.", ex);
+        } finally {
+            if (result.hasUnknownStatus()) {
+                result.recomputeStatus();
+            }
         }
 
         return getAvailableData().iterator();

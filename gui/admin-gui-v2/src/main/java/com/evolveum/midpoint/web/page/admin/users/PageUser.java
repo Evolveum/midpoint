@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -93,6 +94,7 @@ public class PageUser extends PageAdminUsers {
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
+    private static final String OPERAION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
 
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
     private static final String MODAL_ID_ROLE = "rolePopup";
@@ -262,7 +264,7 @@ public class PageUser extends PageAdminUsers {
 
                     @Override
                     public boolean isVisible() {
-                        return !UserDtoStatus.DELETED.equals(item.getModelObject().getStatus());
+                        return !UserDtoStatus.DELETE.equals(item.getModelObject().getStatus());
                     }
                 });
 
@@ -309,7 +311,7 @@ public class PageUser extends PageAdminUsers {
                     account.asPrismObject(), ContainerStatus.MODIFYING);
             wrapper.setSelectable(true);
             wrapper.setMinimalized(true);
-            list.add(new UserAccountDto(wrapper, UserDtoStatus.NOT_MODIFIED));
+            list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
         }
 
         return list;
@@ -356,7 +358,7 @@ public class PageUser extends PageAdminUsers {
             }
 
             list.add(new UserAssignmentDto(name, assignment.getTargetRef(), assignment.getActivation(), type,
-                    UserDtoStatus.NOT_MODIFIED));
+                    UserDtoStatus.MODIFY));
         }
 
         return list;
@@ -444,7 +446,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                savePerformed(target, form);
+                savePerformed(target);
             }
 
             @Override
@@ -615,44 +617,103 @@ public class PageUser extends PageAdminUsers {
         setResponsePage(PageUsers.class);
     }
 
-    private void savePerformed(AjaxRequestTarget target, Form form) {
+    private void modifyAccounts(OperationResult result) {
+        List<UserAccountDto> accounts = accountsModel.getObject();
+        OperationResult subResult = null;
+        for (UserAccountDto account : accounts) {
+            try {
+                ObjectWrapper accountWrapper = account.getObject();
+                ObjectDelta delta = accountWrapper.getObjectDelta();
+                if (!UserDtoStatus.MODIFY.equals(account.getStatus())
+                        || delta.isEmpty()) {
+                    continue;
+                }
+                subResult = result.createSubresult(OPERAION_MODIFY_ACCOUNT);
+
+                Task task = getTaskManager().createTaskInstance(OPERAION_MODIFY_ACCOUNT);
+                getModelService().modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(),
+                        task, subResult);
+                subResult.recomputeStatus();
+            } catch (Exception ex) {
+                if (subResult != null) {
+                    subResult.recomputeStatus();
+                    subResult.recordFatalError("Modify account failed.", ex);
+                }
+                LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
+            }
+        }
+    }
+
+    private void prepareUserForAdd(PrismObject<UserType> user) throws SchemaException {
+        UserType userType = user.asObjectable();
+        //handle added accounts
+        List<UserAccountDto> accounts = accountsModel.getObject();
+        for (UserAccountDto accDto : accounts) {
+            if (!UserDtoStatus.ADD.equals(accDto.getStatus())) {
+                warn("Illegal account state."); //todo 18n
+                continue;
+            }
+
+            ObjectWrapper accountWrapper = accDto.getObject();
+            ObjectDelta delta = accountWrapper.getObjectDelta();
+            PrismObject<AccountShadowType> account = delta.getObjectToAdd();
+            userType.getAccount().add(account.asObjectable());
+        }
+
+        //handle added assignments
+        List<UserAssignmentDto> assignments = assignmentsModel.getObject();
+        for (UserAssignmentDto assDto : assignments) {
+            if (!UserDtoStatus.ADD.equals(assDto.getStatus())) {
+                warn("Illegal assignment state."); //todo i18n
+                continue;
+            }
+
+            userType.getAssignment().add(assDto.createAssignment());
+        }
+    }
+
+    private void savePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Saving user changes.");
-        ObjectWrapper userWrapper = userModel.getObject();
 
         OperationResult result = new OperationResult(OPERATION_SAVE_USER);
+        modifyAccounts(result);
+
+        ObjectWrapper userWrapper = userModel.getObject();
         try {
-            Task task = getTaskManager().createTaskInstance(OPERATION_SAVE_USER);
-//            encryptCredentials(userWrapper.getObject(), true); //todo encryption
-
             ObjectDelta delta = userWrapper.getObjectDelta();
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("User delta: {}", new Object[]{delta.debugDump(3)});
+            Task task = getTaskManager().createTaskInstance(OPERATION_SAVE_USER);
+
+            switch (userWrapper.getStatus()) {
+                case ADDING:
+                    PrismObject<UserType> user = delta.getObjectToAdd();
+                    prepareUserForAdd(user);
+
+                    getModelService().addObject(user, task, result);
+                    break;
+                case MODIFYING:
+                    //todo implement
+//                    getModelService().modifyObject(UserType.class, oid, deltas, task, result);
+                    break;
+                //todo delete state is where? wtf??
+                default:
+                    error("Unsupported state '" + userWrapper.getStatus() + "'.");//todo i18n
             }
 
-            switch (delta.getChangeType()) {
-                case MODIFY:
-                    getModelService().modifyObject(UserType.class, delta.getOid(), delta.getModifications(), task, result);
-                    break;
-                case ADD:
-                    getModelService().addObject(delta.getObjectToAdd(), task, result);
-                    break;
-                case DELETE:
-                default:
-                    error(createStringResource("pageUser.message.unsupportedDeltaChange",
-                            delta.getChangeType()).getString());
-            }
-            result.recordSuccess();
+            result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
         }
 
-        showResult(result);
-        target.add(getFeedbackPanel());
+        // encryptCredentials(userWrapper.getObject(), true); //todo encryption
 
-        PrismObjectPanel userForm = (PrismObjectPanel) get("mainForm:userForm");
-        userForm.ajaxUpdateFeedback(target);
-        //todo implement
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else {
+            showResultInSession(result);
+            setResponsePage(PageUsers.class);
+        }
     }
 
     private void encryptCredentials(PrismObject object, boolean encrypt) {
@@ -736,7 +797,7 @@ public class PageUser extends PageAdminUsers {
 
                 ObjectWrapper wrapper = new ObjectWrapper(resource.getName(), null, shadow.asPrismObject(),
                         ContainerStatus.ADDING);
-                accountsModel.getObject().add(new UserAccountDto(wrapper, UserDtoStatus.ADDED));
+                accountsModel.getObject().add(new UserAccountDto(wrapper, UserDtoStatus.ADD));
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntCreateAccount", resource.getName()));
             }
@@ -780,7 +841,7 @@ public class PageUser extends PageAdminUsers {
                 targetRef.setType(RoleType.COMPLEX_TYPE);
 
                 assignments.add(new UserAssignmentDto(role.getName(), targetRef, null, UserAssignmentDto.Type.ROLE,
-                        UserDtoStatus.ADDED));
+                        UserDtoStatus.ADD));
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntAddRole", role.getName()));
             }
@@ -851,10 +912,10 @@ public class PageUser extends PageAdminUsers {
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
         List<UserAccountDto> accounts = accountsModel.getObject();
         for (UserAccountDto account : selected) {
-            if (UserDtoStatus.ADDED.equals(account.getStatus())) {
+            if (UserDtoStatus.ADD.equals(account.getStatus())) {
                 accounts.remove(account);
             } else {
-                account.setStatus(UserDtoStatus.DELETED);
+                account.setStatus(UserDtoStatus.DELETE);
             }
         }
         target.add(getAccountsAccordionItem());
@@ -863,10 +924,10 @@ public class PageUser extends PageAdminUsers {
     private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<UserAssignmentDto> selected) {
         List<UserAssignmentDto> assignments = assignmentsModel.getObject();
         for (UserAssignmentDto assignment : selected) {
-            if (UserDtoStatus.ADDED.equals(assignment.getStatus())) {
+            if (UserDtoStatus.ADD.equals(assignment.getStatus())) {
                 assignments.remove(assignment);
             } else {
-                assignment.setStatus(UserDtoStatus.DELETED);
+                assignment.setStatus(UserDtoStatus.DELETE);
             }
         }
         target.add(getAssignmentAccordionItem());

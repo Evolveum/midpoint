@@ -26,5 +26,5 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
  */
 public enum UserDtoStatus {
 
-    ADDED, DELETED, NOT_MODIFIED;
+    ADD, DELETE, MODIFY;
 }

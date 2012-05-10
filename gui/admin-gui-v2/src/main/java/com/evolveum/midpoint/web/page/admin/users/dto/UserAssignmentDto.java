@@ -21,8 +21,10 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import com.evolveum.midpoint.common.valueconstruction.AsIsValueConstructor;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 
 /**
@@ -71,5 +73,13 @@ public class UserAssignmentDto extends Selectable {
 
     public Type getType() {
         return type;
+    }
+
+    public AssignmentType createAssignment() {
+        AssignmentType assignment = new AssignmentType();
+        assignment.setTargetRef(targetRef);
+        assignment.setActivation(activation);
+
+        return assignment;
     }
 }
