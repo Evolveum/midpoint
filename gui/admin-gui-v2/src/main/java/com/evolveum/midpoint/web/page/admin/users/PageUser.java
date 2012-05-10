@@ -650,13 +650,15 @@ public class PageUser extends PageAdminUsers {
         List<UserAccountDto> accounts = accountsModel.getObject();
         for (UserAccountDto accDto : accounts) {
             if (!UserDtoStatus.ADD.equals(accDto.getStatus())) {
-                warn("Illegal account state."); //todo 18n
+                warn(getString("pageUser.message.illegalAccountState", accDto.getStatus()));
                 continue;
             }
 
             ObjectWrapper accountWrapper = accDto.getObject();
             ObjectDelta delta = accountWrapper.getObjectDelta();
             PrismObject<AccountShadowType> account = delta.getObjectToAdd();
+//            getPrismContext().adopt(account, AccountShadowType.class);
+
             userType.getAccount().add(account.asObjectable());
         }
 
@@ -664,11 +666,51 @@ public class PageUser extends PageAdminUsers {
         List<UserAssignmentDto> assignments = assignmentsModel.getObject();
         for (UserAssignmentDto assDto : assignments) {
             if (!UserDtoStatus.ADD.equals(assDto.getStatus())) {
-                warn("Illegal assignment state."); //todo i18n
+                warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
                 continue;
             }
 
             userType.getAssignment().add(assDto.createAssignment());
+        }
+    }
+
+    private void prepareUserDeltaForModify(ObjectDelta<UserType> userDelta) {
+        //handle accounts
+        List<UserAccountDto> accounts = accountsModel.getObject();
+        for (UserAccountDto accDto : accounts) {
+            switch (accDto.getStatus()) {
+                case ADD:
+
+                    break;
+                case DELETE:
+
+                    break;
+                case MODIFY:
+                    //nothing to do, account modifications were applied before
+                    continue;
+                case UNLINK:
+                    //todo implement later
+                    break;
+                default:
+                    warn(getString("pageUser.message.illegalAccountState", accDto.getStatus()));
+            }
+        }
+
+        //handle assignments
+        List<UserAssignmentDto> assignments = assignmentsModel.getObject();
+        for (UserAssignmentDto assDto : assignments) {
+            switch (assDto.getStatus()) {
+                case ADD:
+
+                    break;
+                case DELETE:
+
+                    break;
+                case MODIFY:
+                    //todo implement later
+                default:
+                    warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
+            }
         }
     }
 
@@ -692,10 +734,12 @@ public class PageUser extends PageAdminUsers {
                     getModelService().addObject(user, task, result);
                     break;
                 case MODIFYING:
-                    //todo implement
-//                    getModelService().modifyObject(UserType.class, oid, deltas, task, result);
+                    prepareUserDeltaForModify(delta);
+                    getModelService().modifyObject(UserType.class, delta.getOid(),
+                            delta.getModifications(), task, result);
                     break;
-                //todo delete state is where? wtf??
+                //todo delete state is where? wtf?? in next release add there delete state as well as
+                // support for add/delete containers (e.g. delete credetials)
                 default:
                     error("Unsupported state '" + userWrapper.getStatus() + "'.");//todo i18n
             }

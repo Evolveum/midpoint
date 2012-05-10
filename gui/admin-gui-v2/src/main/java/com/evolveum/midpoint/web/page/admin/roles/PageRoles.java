@@ -21,35 +21,42 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
 public class PageRoles extends PageAdminRoles {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageRoles.class);
     private static final String DOT_CLASS = PageRoles.class.getName() + ".";
     private static final String OPERATION_DELETE_ROLES = DOT_CLASS + "deleteRoles";
+
+    private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
     public PageRoles() {
         initLayout();
@@ -89,37 +96,77 @@ public class PageRoles extends PageAdminRoles {
             }
         };
         mainForm.add(delete);
+
+        add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE, createStringResource("pageRoles.dialog.title.confirmDelete"),
+                createDeleteConfirmString()) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteConfirmedPerformed(target);
+            }
+        });
     }
 
-    private void deletePerformed(AjaxRequestTarget target) {
-        TablePanel panel = (TablePanel) get("mainForm:table");
-        DataTable table = panel.getDataTable();
+    private IModel<String> createDeleteConfirmString() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("pageRoles.message.deleteRoleConfirm",
+                        getSelectedRoles().size()).getString();
+            }
+        };
+    }
+
+    private TablePanel getRoleTable() {
+        return (TablePanel) get("mainForm:table");
+    }
+
+    private List<RoleType> getSelectedRoles() {
+        DataTable table = getRoleTable().getDataTable();
         ObjectDataProvider<RoleType> provider = (ObjectDataProvider<RoleType>) table.getDataProvider();
 
         List<SelectableBean<RoleType>> rows = provider.getAvailableData();
-        List<SelectableBean<RoleType>> toBeDeleted = new ArrayList<SelectableBean<RoleType>>();
-        for (SelectableBean row : rows) {
+        List<RoleType> selected = new ArrayList<RoleType>();
+        for (SelectableBean<RoleType> row : rows) {
             if (row.isSelected()) {
-                toBeDeleted.add(row);
+                selected.add(row.getValue());
             }
         }
 
+        return selected;
+    }
+
+    private void deletePerformed(AjaxRequestTarget target) {
+        List<RoleType> selected = getSelectedRoles();
+        if (selected.isEmpty()) {
+            warn(getString("pageRoles.message.nothingSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
+        dialog.show(target);
+    }
+
+    private void deleteConfirmedPerformed(AjaxRequestTarget target) {
+        List<RoleType> selected = getSelectedRoles();
+
         OperationResult result = new OperationResult(OPERATION_DELETE_ROLES);
-        for (SelectableBean<RoleType> row : toBeDeleted) {
+        for (RoleType role : selected) {
             try {
                 Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_ROLES);
-                RoleType role = row.getValue();
                 getModelService().deleteObject(RoleType.class, role.getOid(), task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete role.", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't delete role", ex);
             }
         }
         result.recomputeStatus("Error occurred during role deleting.");
         showResult(result);
 
-        //todo fix message, add confirmation dialog
-        target.appendJavaScript("alert('deleted " + toBeDeleted.size() + " objects.');");
-        target.add(panel);
+        target.add(getRoleTable());
     }
 
     private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {

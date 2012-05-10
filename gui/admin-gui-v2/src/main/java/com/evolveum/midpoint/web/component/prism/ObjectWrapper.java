@@ -348,10 +348,42 @@ public class ObjectWrapper implements Serializable {
             }
         }
 
+        //cleanup empty containers
+        cleanupEmptyContainers(object);
+
         ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.ADD);
         delta.setObjectToAdd(object);
 
         return delta;
+    }
+
+    private void cleanupEmptyContainers(PrismContainer container) {
+        List<PrismContainerValue> values = container.getValues();
+
+        List<PrismContainerValue> valuesToBeRemoved = new ArrayList<PrismContainerValue>();
+        for (PrismContainerValue value : values) {
+            List<? extends Item> items = value.getItems();
+            if (items != null) {
+                Iterator<? extends Item> iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    Item item = iterator.next();
+
+                    if (item instanceof PrismContainer) {
+                        cleanupEmptyContainers((PrismContainer) item);
+
+                        if (item.isEmpty()) {
+                            iterator.remove();
+                        }
+                    }
+                }
+            }
+
+            if (items == null || value.isEmpty()) {
+                valuesToBeRemoved.add(value);
+            }
+        }
+
+        container.removeAll(valuesToBeRemoved);
     }
 
     @Override
