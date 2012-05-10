@@ -45,8 +45,8 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskDtoProvider.class);
     private static final String DOT_CLASS = TaskDtoProvider.class.getName() + ".";
-    private static final String OPERATION_LIST_TASKS = "listTasks";
-    private static final String OPERATION_COUNT_TASKS = "countTasks";
+    private static final String OPERATION_LIST_TASKS = DOT_CLASS + "listTasks";
+    private static final String OPERATION_COUNT_TASKS = DOT_CLASS + "countTasks";
 
     private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
 
@@ -91,13 +91,19 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 
     @Override
     public int size() {
-        //todo how to handle this???
+        int count = 0;
+        OperationResult result = new OperationResult(OPERATION_COUNT_TASKS);
         try {
-            return getTaskManager().countTasks(getQuery(), new OperationResult("size"));
+            count = getTaskManager().countTasks(getQuery(), result);
+            result.recomputeStatus();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            result.recordFatalError("Couldn't count tasks.", ex);
         }
 
-        return 0;
+        if (!result.isSuccess()) {
+            getPage().showResult(result);
+        }
+
+        return count;
     }
 }

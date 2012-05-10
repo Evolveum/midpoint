@@ -33,8 +33,6 @@ public class UsersDto implements Serializable {
     private boolean fullName;
     private boolean givenName;
     private boolean familyName;
-    //todo selected action
-
 
     public boolean isFullName() {
         return fullName;

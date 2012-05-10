@@ -88,13 +88,20 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
 
     @Override
     public int size() {
-        //todo fix error handling
+        int count = 0;
+        OperationResult result = new OperationResult(OPERATION_COUNT_NODES);
         try {
-            return getTaskManager().countNodes(getQuery(), new OperationResult(OPERATION_COUNT_NODES));
+            count = getTaskManager().countNodes(getQuery(), result);
+
+            result.recomputeStatus();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            result.recordFatalError("Couldn't count nodes.", ex);
         }
 
-        return 0;
+        if (!result.isSuccess()) {
+            getPage().showResult(result);
+        }
+
+        return count;
     }
 }

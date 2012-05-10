@@ -91,7 +91,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
 
             result.recordSuccess();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list objects.", ex);
+            result.recordFatalError("Couldn't count objects.", ex);
         }
 
         if (!result.isSuccess()) {
