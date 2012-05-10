@@ -39,7 +39,6 @@ public class ResourceDto extends Selectable {
     private String name;
     private String bundle;
     private String version;
-    private ResourceStatus status;
     private String progress;
     private String type;
     private ResourceState state;
@@ -82,10 +81,6 @@ public class ResourceDto extends Selectable {
         return oid;
     }
 
-    public ResourceStatus getStatus() {
-        return status;
-    }
-
     public String getVersion() {
         return version;
     }
@@ -107,6 +102,13 @@ public class ResourceDto extends Selectable {
 			state = new ResourceState();
 		}
 		return state;
+	}
+    
+    public ResourceStatus getOverallStatus() {
+		if (state == null) {
+			return ResourceStatus.NOT_TESTED;
+		}
+		return state.getOverall();
 	}
     
     public List<ResourceObjectTypeDto> getObjectTypes() {

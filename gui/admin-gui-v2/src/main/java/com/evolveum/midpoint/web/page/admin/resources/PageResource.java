@@ -53,6 +53,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.message.OpResult;
@@ -153,6 +154,7 @@ public class PageResource extends PageAdminResources {
 			}
 		};
 		mainForm.add(link);
+		initButtons(mainForm);
 	}
 
 	private void initResourceColumns(Form mainForm) {
@@ -267,5 +269,43 @@ public class PageResource extends PageAdminResources {
 				return resource.getCapabilities();
 			}
 		};
+	}
+	
+	private void initButtons(Form mainForm){
+		AjaxLinkButton back = new AjaxLinkButton("back", createStringResource("pageResource.button.back")) {
+			
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				setResponsePage(PageResources.class);
+			}
+		};
+		mainForm.add(back);
+		
+		AjaxLinkButton save = new AjaxLinkButton("save", createStringResource("pageResource.button.save")) {
+			
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				savePerform(target);
+			}
+		};
+		mainForm.add(save);
+		
+		AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("pageResource.button.test")) {
+			
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				testConnectionPerformed(target);
+				//add(PageResource.this);
+			}
+		};
+		mainForm.add(test);
+	}
+	
+	private void savePerform(AjaxRequestTarget target){
+		//TODO: implement
+	}
+	
+	private void testConnectionPerformed(AjaxRequestTarget target){
+		//TODO: implement
 	}
 }

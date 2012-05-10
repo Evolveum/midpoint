@@ -27,7 +27,7 @@
 		<form wicket:id="mainForm">
 			<table width="100%" style="padding: 0px;">
 				<tr>
-					<td width="50%">
+					<td width="50%" style="vertical-align: top;">
 						<h2>
 							<wicket:message key="pageResource.resource" />
 						</h2>
@@ -59,7 +59,7 @@
 							</tr>
 						</table>
 				</td>
-				<td width="50%">
+				<td width="50%" style="vertical-align: top;">
 					<h2>
 						<wicket:message key="pageResource.connectorDetails" />
 					</h2>
@@ -113,9 +113,9 @@
 			<div wicket:id="objectTypesTable" />
 			
 			<div class="operatingFormButtons">
-				<a href="#" class="button">Back</a>
-				<a href="#" class="button">Delete</a>
-				<a href="#" class="button">Test connection</a>
+				<a wicket:id="back" />
+				<a wicket:id="save" />
+				<a wicket:id="test" />
 			</div>
 		</form>
 	</wicket:extend>

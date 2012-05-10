@@ -37,6 +37,7 @@ import org.apache.wicket.request.resource.ResourceReference;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -45,11 +46,11 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 
 /**
@@ -122,7 +123,7 @@ public class PageResources extends PageAdminResources {
                     @Override
                     public ResourceReference getObject() {
                         ResourceDto dto = rowModel.getObject();
-                        ResourceStatus status = dto.getStatus();
+                        ResourceStatus status = dto.getOverallStatus();
                         if (status == null) {
                             status = ResourceStatus.NOT_TESTED;
                         }
@@ -189,12 +190,26 @@ public class PageResources extends PageAdminResources {
     }
 
     private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
-    	OperationResult result = new OperationResult(TEST_RESOURCE);
-        //TaskManager taskManager = getTaskManager();
+        OperationResult result = new OperationResult(TEST_RESOURCE);
         
     	ResourceDto dto = rowModel.getObject();
     	if (StringUtils.isEmpty(dto.getOid())) {
     		result.recordFatalError("Resource oid not defined in request");
 		}
+    	
+    	try {
+    		OperationResult testResult = getModelService().testResource(dto.getOid(), null);
+    		ResourceController.updateResourceState(dto.getState(), testResult);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Fail to test resource connection", ex);
+		}
+    	
+    	TablePanel table = (TablePanel)get("mainForm:table");
+    	target.add(table);
+    	
+    	showResult(result);
+		target.add(getFeedbackPanel());
+		
     }
+    
 }
