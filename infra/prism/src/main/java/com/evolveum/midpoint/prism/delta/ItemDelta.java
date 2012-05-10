@@ -529,12 +529,16 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (oldValuesValid && !newValuesValid) {
 			// There were values but they no longer are -> everything to minus set
 			PrismValueDeltaSetTriple<T> triple = new PrismValueDeltaSetTriple<T>();
-			triple.getMinusSet().addAll(item.getValues());
+			if (item != null) {
+				triple.addAllToMinusSet(item.getValues());
+			}
 			return triple;
 		}
 		if (delta == null || (!oldValuesValid && newValuesValid)) {
 			PrismValueDeltaSetTriple<T> triple = new PrismValueDeltaSetTriple<T>();
-			triple.getZeroSet().addAll(item.getValues());
+			if (item != null) {
+				triple.addAllToZeroSet(item.getValues());
+			}
 			return triple;
 		}
 		return delta.toDeltaSetTriple(item);

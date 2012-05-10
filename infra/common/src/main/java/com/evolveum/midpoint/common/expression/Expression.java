@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.expression;
 
 import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -108,6 +109,10 @@ public class Expression {
     public void addVariableDefinition(QName name, String value) {
         addVariableDefinition(name, (Object) value);
     }
+    
+    public void addVariableDefinition(QName name, PrismValue value) {
+        addVariableDefinition(name, (Object) value);
+    }
 
     /**
      * Adds map of extra variables to the expression.
@@ -170,6 +175,10 @@ public class Expression {
             return;
         }
         variables.put(name, value);
+    }
+    
+    public boolean hasVariableDefinition(QName name) {
+    	return variables.containsKey(name);
     }
 
     public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, OperationResult result) throws

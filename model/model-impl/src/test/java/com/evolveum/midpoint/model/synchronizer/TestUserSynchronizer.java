@@ -396,18 +396,17 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         
     }
 	
-	// <source> does not work yet
-	@Test(enabled=false)
-    public void test250BarbossaInbound() throws Exception {
-        displayTestTile(this, "test250BarbossaInbound");
+	@Test
+    public void test250GuybrushInbound() throws Exception {
+        displayTestTile(this, "test250GuybrushInbound");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test250BarbossaInbound");
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test250GuybrushInbound");
 
         SyncContext context = new SyncContext(prismContext);
-        fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, "ship", "Black Pearl");
+        fillContextWithUser(context, USER_GUYBRUSH_OID, result);
+        fillContextWithAccount(context, ACCOUNT_SHADOW_GUYBRUSH_OID, result);
+        addSyncModificationToContextReplaceAccountAttribute(context, ACCOUNT_SHADOW_GUYBRUSH_OID, "ship", "Black Pearl");
         context.recomputeNew();
 
         display("Input context", context);
@@ -424,7 +423,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserSecondaryDelta(context);
         ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , "Crew of Black Pearl");
+        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , "The crew of Black Pearl");
                 
     }
 	

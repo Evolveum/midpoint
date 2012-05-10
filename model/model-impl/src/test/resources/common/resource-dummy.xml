@@ -177,6 +177,7 @@
 				<inbound>
 					<source>
 						<expression>
+							<returnType>scalar</returnType>
 							<code>concat('The crew of ',$c:input)</code>
 						</expression>
 					</source>

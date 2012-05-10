@@ -74,37 +74,86 @@ public class ExpressionValueConstructor implements ValueConstructor {
             throw new IllegalArgumentException("Expression value constructor cannot handle elements of type " + constructorTypeObject.getClass().getName());
         }
         ExpressionType constructorType = (ExpressionType) constructorTypeObject;
-
-        Collection<V> expressionResultsOld = null;
+        
+        PrismValueDeltaSetTriple<V> inputTriple = ItemDelta.toDeltaSetTriple(input, inputDelta, conditionResultOld, conditionResultNew);
+        PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
+    
+        Collection<V> inputZeroValues = null;
+        if (inputTriple != null) {
+	        if (inputTriple.hasPlusSet()) {
+	        	Collection<V> inputValues = inputTriple.getPlusSet();
+	        	Collection<V> outputValues = evaluateExpression(constructorType, outputDefinition, inputValues, variables, false, 
+	        			contextDescription, result);
+	        	outputTriple.addAllToPlusSet(outputValues);
+	        }
+	        
+	        if (inputTriple.hasMinusSet()) {
+	        	Collection<V> inputValues = inputTriple.getMinusSet();
+	        	Collection<V> outputValues = evaluateExpression(constructorType, outputDefinition, inputValues, variables, true, 
+	        			contextDescription, result);
+	        	outputTriple.addAllToMinusSet(outputValues);
+	        }
+	
+	        if (inputTriple.hasZeroSet()) {
+	        	inputZeroValues = inputTriple.getZeroSet();
+	    	}
+        }
+    
+        Collection<V> outputZeroValuesOld = null;
         if (conditionResultOld) {
-        	expressionResultsOld = evaluateExpression(constructorType, outputDefinition, input, inputDelta, variables, true, contextDescription, result);
+        	outputZeroValuesOld = evaluateExpressionAtLeastOnce(constructorType, outputDefinition, inputZeroValues, variables, true, contextDescription, result);
         }
         
-        Collection<V> expressionResultsNew = null;
+        Collection<V> outputZeroValuesNew = null;
         if (conditionResultNew) {
-        	expressionResultsNew = evaluateExpression(constructorType, outputDefinition, input, inputDelta, variables, false, contextDescription, result);
+        	outputZeroValuesNew = evaluateExpressionAtLeastOnce(constructorType, outputDefinition, inputZeroValues, variables, false, contextDescription, result);
         }
 
-        PrismValueDeltaSetTriple<V> valueDeltaTriple = PrismValueDeltaSetTriple.diff(expressionResultsOld, expressionResultsNew);
+        PrismValueDeltaSetTriple<V> outputZeroDeltaTriple = PrismValueDeltaSetTriple.diff(outputZeroValuesOld, outputZeroValuesNew);
+        outputTriple.merge(outputZeroDeltaTriple);
         
-        return valueDeltaTriple;        
+        return outputTriple;        
     }
 
-    
     private <V extends PrismValue> Collection<V> evaluateExpression(ExpressionType constructorType, ItemDefinition outputDefinition,
-			Item<V> input, ItemDelta<V> inputDelta, Map<QName, Object> variables, boolean old, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			Collection<V> inputValues, Map<QName, Object> variables, boolean oldVars, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	Collection<V> outputValues = new ArrayList<V>();
+    	if (inputValues == null) {
+    		return outputValues;
+    	}
+    	for (V inputValue: inputValues) {
+    		Collection<V> expressionOutputs = evaluateExpressionForValue(constructorType, outputDefinition, inputValue, variables, oldVars, contextDescription, result);
+    		outputValues.addAll(expressionOutputs);
+    	}
+    	return outputValues;
+    }
+    
+    private <V extends PrismValue> Collection<V> evaluateExpressionAtLeastOnce(ExpressionType constructorType, ItemDefinition outputDefinition,
+			Collection<V> inputValues, Map<QName, Object> variables, boolean oldVars, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	Collection<V> outputValues = new ArrayList<V>();
+    	if (inputValues == null) {
+    		return evaluateExpressionForValue(constructorType, outputDefinition, null, variables, oldVars, contextDescription, result);
+    	}
+    	for (V inputValue: inputValues) {
+    		Collection<V> expressionOutputs = evaluateExpressionForValue(constructorType, outputDefinition, inputValue, variables, oldVars, contextDescription, result);
+    		outputValues.addAll(expressionOutputs);
+    	}
+    	return outputValues;
+    }
+    
+    private <V extends PrismValue> Collection<V> evaluateExpressionForValue(ExpressionType constructorType, ItemDefinition outputDefinition,
+			V inputValue, Map<QName, Object> variables, boolean oldVars, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	Expression expression = factory.createExpression(constructorType, contextDescription);
 
-    	if (old) {
+    	if (oldVars) {
     		expression.addVariableDefinitionsOld(variables);
     	} else {
     		expression.addVariableDefinitionsNew(variables);
     	}
     	
-//		if (!expression.hasVariableDefinition(ExpressionConstants.VAR_INPUT)) {
-//			expression.addVariableDefinition(ExpressionConstants.VAR_INPUT, input);
-//		}
-
+		if (!expression.hasVariableDefinition(ExpressionConstants.VAR_INPUT)) {
+			expression.addVariableDefinition(ExpressionConstants.VAR_INPUT, inputValue);
+		}
 
         QName typeName = outputDefinition.getTypeName();
         Class<Object> type = XsdTypeMapper.toJavaType(typeName);

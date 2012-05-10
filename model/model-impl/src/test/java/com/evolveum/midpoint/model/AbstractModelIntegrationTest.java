@@ -360,18 +360,33 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected <T> ObjectDelta<AccountShadowType> addModificationToContextReplaceAccountAttribute(SyncContext context, String accountOid, 
 			String attributeLocalName, T... propertyValues) throws SchemaException {
-		AccountSyncContext accCtx = context.findAccountSyncContextByOid(accountOid);
+		AccountSyncContext accCtx = context.findAccountSyncContextByOid(accountOid);		
+		ObjectDelta<AccountShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName, propertyValues);
+		accCtx.addAccountPrimaryDelta(accountDelta);
+	    return accountDelta;
+	}
+	
+	protected <T> ObjectDelta<AccountShadowType> addSyncModificationToContextReplaceAccountAttribute(SyncContext context, String accountOid, 
+			String attributeLocalName, T... propertyValues) throws SchemaException {
+		AccountSyncContext accCtx = context.findAccountSyncContextByOid(accountOid);		
+		ObjectDelta<AccountShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName, propertyValues);
+		accCtx.addAccountSyncDelta(accountDelta);
+	    return accountDelta;
+	}
+
+	protected <T> ObjectDelta<AccountShadowType> createAccountDelta(AccountSyncContext accCtx, String accountOid, 
+			String attributeLocalName, T... propertyValues) throws SchemaException {
 		ResourceType resourceType = accCtx.getResource();
 		QName attrQName = new QName(resourceType.getNamespace(), attributeLocalName);
 		PropertyPath attrPath = new PropertyPath(AccountShadowType.F_ATTRIBUTES, attrQName);
 		RefinedAccountDefinition refinedAccountDefinition = accCtx.getRefinedAccountDefinition();
 		RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
+		assertNotNull("No definition of attribute "+attrQName+" in account def "+refinedAccountDefinition, attrDef);
 		ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createEmptyModifyDelta(AccountShadowType.class, accountOid, prismContext);
 		PropertyDelta<T> attrDelta = new PropertyDelta<T>(attrPath, attrDef);
 		attrDelta.setValuesToReplace(PrismPropertyValue.createCollection(propertyValues));
 		accountDelta.addModification(attrDelta);
-		accCtx.addAccountPrimaryDelta(accountDelta);
-	    return accountDelta;
+		return accountDelta;
 	}
 	
 	protected void assertNoUserPrimaryDelta(SyncContext context) {

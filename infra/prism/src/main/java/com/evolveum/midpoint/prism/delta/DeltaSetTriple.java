@@ -133,6 +133,48 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
     public boolean hasMinusSet() {
     	return (minusSet != null && !minusSet.isEmpty());
     }
+    
+    public void addToPlusSet(T item) {
+    	if (plusSet == null) {
+    		plusSet = createSet();
+    	}
+    	plusSet.add(item);
+    }
+
+    public void addToMinusSet(T item) {
+    	if (minusSet == null) {
+    		minusSet = createSet();
+    	}
+    	minusSet.add(item);
+    }
+
+    public void addToZeroSet(T item) {
+    	if (zeroSet == null) {
+    		zeroSet = createSet();
+    	}
+    	zeroSet.add(item);
+    }
+
+    public void addAllToPlusSet(Collection<T> items) {
+    	if (plusSet == null) {
+    		plusSet = createSet();
+    	}
+    	plusSet.addAll(items);
+    }
+
+    public void addAllToMinusSet(Collection<T> items) {
+    	if (minusSet == null) {
+    		minusSet = createSet();
+    	}
+    	minusSet.addAll(items);
+    }
+
+    public void addAllToZeroSet(Collection<T> items) {
+    	if (zeroSet == null) {
+    		zeroSet = createSet();
+    	}
+    	zeroSet.addAll(items);
+    }
 
     /**
      * Returns all values, regardless of the internal sets.

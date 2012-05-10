@@ -459,22 +459,6 @@ public class ModelController implements ModelService {
 		UserType userType = user.asObjectable();
 		SyncContext syncContext = new SyncContext(prismContext);
 
-//		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
-//		// Convert all <account> instances to syncContext or <accountRef>s
-//		if (accountRef != null) {
-//			List<PrismReferenceValue> accountRefValues = accountRef.getValues();
-//			Iterator<PrismReferenceValue> iterator = accountRefValues.iterator();
-//			while(iterator.hasNext()) {			
-//			while(iterator.hasNext()) {
-//				PrismReferenceValue accountRefVal = iterator.next();
-//				PrismObject account = accountRefVal.getObject();
-//				if (account != null && account.getOid() == null) {
-//					// new account (no OID)
-//					addAccountToContext(syncContext, accountRefVal, ChangeType.ADD, result);
-//				}
-//			}
-//		}
-
 		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
 		userDelta.setObjectToAdd(user);
 

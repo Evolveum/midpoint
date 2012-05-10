@@ -215,6 +215,22 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         	accountPrimaryDelta.merge(accountDelta);
         }
     }
+    
+    public void addAccountSecondaryDelta(ObjectDelta<AccountShadowType> accountDelta) throws SchemaException {
+        if (accountSecondaryDelta == null) {
+        	accountSecondaryDelta = accountDelta;
+        } else {
+        	accountSecondaryDelta.merge(accountDelta);
+        }
+    }
+    
+    public void addAccountSyncDelta(ObjectDelta<AccountShadowType> accountDelta) throws SchemaException {
+        if (accountSyncDelta == null) {
+        	accountSyncDelta = accountDelta;
+        } else {
+        	accountSyncDelta.merge(accountDelta);
+        }
+    }
 
     public ObjectDelta<AccountShadowType> getAccountSecondaryDelta() {
         return accountSecondaryDelta;
