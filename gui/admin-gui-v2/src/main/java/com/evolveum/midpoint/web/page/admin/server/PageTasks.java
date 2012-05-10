@@ -39,8 +39,10 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -528,6 +530,26 @@ public class PageTasks extends PageAdminTasks {
         return list;
     }
 
+    private boolean isSomeTaskSelected(List<TaskDto> tasks, AjaxRequestTarget target) {
+        if (!tasks.isEmpty()) {
+            return true;
+        }
+
+        warn(getString("pageTasks.message.noTaskSelected"));
+        target.add(getFeedbackPanel());
+        return false;
+    }
+
+    private boolean isSomeNodeSelected(List<NodeDto> nodes, AjaxRequestTarget target) {
+        if (!nodes.isEmpty()) {
+            return true;
+        }
+
+        warn(getString("pageTasks.message.noNodeSelected"));
+        target.add(getFeedbackPanel());
+        return false;
+    }
+
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
         //useful methods :)
 
@@ -538,13 +560,14 @@ public class PageTasks extends PageAdminTasks {
         //todo implement
     }
 
-    //TODO: treat empty selections (display warning message?)
-
     private void suspendTasksPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
-
-        TaskManager taskManager = getTaskManager();
         List<TaskDto> taskTypeList = getSelectedTasks();
+        if (!isSomeTaskSelected(taskTypeList, target)) {
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
+        TaskManager taskManager = getTaskManager();
         List<Task> taskList = new ArrayList<Task>();
         try {
             for (TaskDto taskDto : taskTypeList) {
@@ -585,10 +608,13 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void resumeTasksPerformed(AjaxRequestTarget target) {
-        OperationResult mainResult = new OperationResult(OPERATION_RESUME_TASKS);
-
-        TaskManager taskManager = getTaskManager();
         List<TaskDto> taskDtoList = getSelectedTasks();
+        if (!isSomeTaskSelected(taskDtoList, target)) {
+            return;
+        }
+
+        OperationResult mainResult = new OperationResult(OPERATION_RESUME_TASKS);
+        TaskManager taskManager = getTaskManager();
         for (TaskDto taskDto : taskDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_RESUME_TASK);
             try {
@@ -647,11 +673,13 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void deleteTasksPerformed(AjaxRequestTarget target) {
+        List<TaskDto> taskTypeList = getSelectedTasks();
+        if (!isSomeTaskSelected(taskTypeList, target)) {
+            return;
+        }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_TASKS);
-
         TaskManager taskManager = getTaskManager();
-        List<TaskDto> taskTypeList = getSelectedTasks();
         List<Task> taskList = new ArrayList<Task>();
         try {
             for (TaskDto taskDto : taskTypeList) {
@@ -699,10 +727,13 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_SCHEDULE_TASKS);
-
-        TaskManager taskManager = getTaskManager();
         List<TaskDto> taskDtoList = getSelectedTasks();
+        if (!isSomeTaskSelected(taskDtoList,  target)) {
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_SCHEDULE_TASKS);
+        TaskManager taskManager = getTaskManager();
         for (TaskDto taskDto : taskDtoList) {
             try {
                 Task task = taskManager.getTask(taskDto.getOid(), result);
@@ -739,11 +770,14 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target) {
+        List<NodeDto> nodeDtoList = getSelectedNodes();
+        if (!isSomeNodeSelected(nodeDtoList, target)) {
+            return;
+        }
+
         OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS_AND_TASKS);
 
         TaskManager taskManager = getTaskManager();
-        List<NodeDto> nodeDtoList = getSelectedNodes();
-
         List<String> nodeList = new ArrayList<String>();
         for (NodeDto nodeDto : nodeDtoList) {
             nodeList.add(nodeDto.getNodeIdentifier());
@@ -779,11 +813,13 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void startSchedulersPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_START_SCHEDULERS);
-
-        TaskManager taskManager = getTaskManager();
         List<NodeDto> nodeDtoList = getSelectedNodes();
+        if (!isSomeNodeSelected(nodeDtoList, target)) {
+            return;
+        }
 
+        OperationResult result = new OperationResult(OPERATION_START_SCHEDULERS);
+        TaskManager taskManager = getTaskManager();
         for (NodeDto nodeDto : nodeDtoList) {
             try {
                 if (nodeDto.getExecutionStatus() == NodeExecutionStatus.ERROR) {
@@ -813,11 +849,13 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void stopSchedulersPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS);
-
-        TaskManager taskManager = getTaskManager();
         List<NodeDto> nodeDtoList = getSelectedNodes();
+        if (!isSomeNodeSelected(nodeDtoList, target)) {
+            return;
+        }
 
+        OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS);
+        TaskManager taskManager = getTaskManager();
         for (NodeDto nodeDto : nodeDtoList) {
             try {
                 taskManager.stopScheduler(nodeDto.getNodeIdentifier(), result);
@@ -942,10 +980,12 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void deleteNodesPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_DELETE_NODES);
-
         List<NodeDto> nodeDtoList = getSelectedNodes();
+        if (!isSomeNodeSelected(nodeDtoList, target)) {
+            return;
+        }
 
+        OperationResult result = new OperationResult(OPERATION_DELETE_NODES);
         for (NodeDto nodeDto : nodeDtoList) {
             try {
                 getMidpointApplication().getTaskManager().deleteNode(nodeDto.getNodeIdentifier(), result);

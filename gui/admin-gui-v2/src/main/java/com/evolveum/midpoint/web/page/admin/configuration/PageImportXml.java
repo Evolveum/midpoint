@@ -24,17 +24,21 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 /**
  * @author lazyman
@@ -42,6 +46,7 @@ import java.io.ByteArrayInputStream;
  */
 public class PageImportXml extends PageAdminConfiguration {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageImportXml.class);
     private static final String DOT_CLASS = PageImportXml.class.getName() + ".";
     private static final String OPERATION_IMPORT_XML = DOT_CLASS + "importXml";
     private LoadableModel<ImportOptionsType> model;
@@ -100,14 +105,21 @@ public class PageImportXml extends PageAdminConfiguration {
         }
 
         OperationResult result = new OperationResult(OPERATION_IMPORT_XML);
+        InputStream stream = null;
         try {
             Task task = getTaskManager().createTaskInstance(OPERATION_IMPORT_XML);
-            getModelService().importObjectsFromStream(new ByteArrayInputStream(xml.getBytes()), model.getObject(),
-                    task, result); //todo encoding
+
+            stream = IOUtils.toInputStream(xml, "utf-8");
+            getModelService().importObjectsFromStream(stream, model.getObject(), task, result);
 
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't import object.", ex);
+            LoggingUtils.logException(LOGGER, "Error occured during xml import", ex);
+        } finally {
+            if (stream != null) {
+                IOUtils.closeQuietly(stream);
+            }
         }
 
         if (result.isSuccess()) {

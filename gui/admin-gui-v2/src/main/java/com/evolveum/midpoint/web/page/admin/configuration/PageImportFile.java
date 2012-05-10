@@ -24,16 +24,26 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
+import org.apache.commons.io.IOUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.util.file.File;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
 
 /**
  * @author lazyman
@@ -41,6 +51,7 @@ import org.apache.wicket.util.file.File;
  */
 public class PageImportFile extends PageAdminConfiguration {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageImportFile.class);
     private static final String DOT_CLASS = PageImportFile.class.getName() + ".";
     private static final String OPERATION_IMPORT_FILE = DOT_CLASS + "importFile";
 
@@ -103,6 +114,7 @@ public class PageImportFile extends PageAdminConfiguration {
             return;
         }
 
+        InputStream stream = null;
         try {
             // Create new file
             MidPointApplication application = getMidpointApplication();
@@ -123,11 +135,20 @@ public class PageImportFile extends PageAdminConfiguration {
             uploadedFile.writeTo(newFile);
 
             //todo ENCODING to UTF-8 !!!!!
+//            FileReader reader = new FileReader(newFile);
+//            new FileInputStream();
+            InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), "utf-8");
+            CharsetEncoder enc = Charset.forName("utf-8").newEncoder();
             getModelService().importObjectsFromStream(newFile.inputStream(), model.getObject(), task, result);
 
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't import file.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't import file", ex);
+        } finally {
+            if (stream != null) {
+                IOUtils.closeQuietly(stream);
+            }
         }
 
         showResult(result);

@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.web.component.message;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.commons.lang.StringUtils;
@@ -42,6 +44,7 @@ import java.util.List;
  */
 public class OperationResultPanel extends Panel {
 
+    private static final Trace LOGGER = TraceManager.getTrace(OperationResultPanel.class);
     static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
     public OperationResultPanel(String id, final IModel<OpResult> model) {
@@ -130,6 +133,7 @@ public class OperationResultPanel extends Panel {
             protected String load() {
                 OpResult result = model.getObject();
                 if (result == null || result.getStatus() == null) {
+                    LOGGER.warn("Operation result on panel is null or has null status (will be rendered as warning).");
                     return "messages-warn-details-section";
                 }
                 switch (result.getStatus()) {

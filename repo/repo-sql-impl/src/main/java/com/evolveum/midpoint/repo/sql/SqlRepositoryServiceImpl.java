@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -878,7 +879,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session.close();
         }
 
-        result.computeStatus();
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
     }
 
     private void handleGeneralException(Exception ex, Session session, OperationResult result) {

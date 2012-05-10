@@ -23,11 +23,11 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -674,13 +674,29 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
-    private void prepareUserDeltaForModify(ObjectDelta<UserType> userDelta) {
+    private PrismReferenceDefinition findAccountRefDefinition() {
+        SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
+        return (PrismReferenceDefinition) objectDef.findItemDefinition(UserType.F_ACCOUNT_REF,
+                PrismReferenceDefinition.class);
+    }
+
+    private void prepareUserDeltaForModify(ObjectDelta<UserType> userDelta) throws SchemaException {
         //handle accounts
         List<UserAccountDto> accounts = accountsModel.getObject();
         for (UserAccountDto accDto : accounts) {
             switch (accDto.getStatus()) {
                 case ADD:
+                    ObjectWrapper accountWrapper = accDto.getObject();
+                    ObjectDelta delta = accountWrapper.getObjectDelta();
+                    PrismObject<AccountShadowType> account = delta.getObjectToAdd();
 
+                    ReferenceDelta refDelta = new ReferenceDelta(findAccountRefDefinition());
+                    PrismReferenceValue refValue = new PrismReferenceValue(null, SourceType.USER_ACTION, null);
+                    refValue.setObject(account);
+                    refDelta.addValueToAdd(refValue);
+
+                    userDelta.addModification(refDelta);
                     break;
                 case DELETE:
 
