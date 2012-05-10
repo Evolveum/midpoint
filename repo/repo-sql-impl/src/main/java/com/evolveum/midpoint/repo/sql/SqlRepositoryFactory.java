@@ -36,9 +36,7 @@ import org.h2.tools.Server;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +46,7 @@ import java.util.List;
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
+    private static final String USER_HOME_VARIABLE = "user.home";
     private static final String MIDPOINT_HOME_VARIABLE = "midpoint.home";
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
@@ -134,11 +133,23 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
 
         if (StringUtils.isEmpty(config.getBaseDir())) {
-            if (StringUtils.isEmpty(System.getProperty(MIDPOINT_HOME_VARIABLE))) {
-                LOGGER.warn("Base dir path in configuration, nor {} variable is defined, setting base dir to '{}'",
-                        new Object[]{MIDPOINT_HOME_VARIABLE, "."});
+            LOGGER.warn("Base dir path in configuration was not defined.");
+            if (StringUtils.isNotEmpty(System.getProperty(MIDPOINT_HOME_VARIABLE))) {
+                config.setBaseDir(System.getProperty(MIDPOINT_HOME_VARIABLE));
+
+                LOGGER.info("Using {} with value {} as base dir for configuration.",
+                        new Object[]{MIDPOINT_HOME_VARIABLE, config.getBaseDir()});
+            } else if (StringUtils.isNotEmpty(System.getProperty(USER_HOME_VARIABLE))) {
+                config.setBaseDir(System.getProperty(USER_HOME_VARIABLE));
+
+                LOGGER.info("Using {} with value {} as base dir for configuration.",
+                        new Object[]{USER_HOME_VARIABLE, config.getBaseDir()});
+            } else {
+                config.setBaseDir(".");
+
+                LOGGER.info("Using '.' as base dir for configuration ({}, or {} was not defined).",
+                        new Object[]{MIDPOINT_HOME_VARIABLE, USER_HOME_VARIABLE});
             }
-            config.setBaseDir(".");
         }
 
         File baseDir = new File(config.getBaseDir());

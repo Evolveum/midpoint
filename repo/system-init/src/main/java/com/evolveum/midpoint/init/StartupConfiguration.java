@@ -35,6 +35,7 @@ import java.util.Iterator;
 public class StartupConfiguration implements MidpointConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
+    private static final String USER_HOME = "user.home";
     private static final String MIDPOINT_HOME = "midpoint.home";
 
     private CompositeConfiguration config = null;
@@ -73,10 +74,10 @@ public class StartupConfiguration implements MidpointConfiguration {
     public void setConfigFilename(String configFilename) {
         this.configFilename = configFilename;
     }
-    
+
     @Override
     public String getMidpointHome() {
-    	return System.getProperty(MIDPOINT_HOME);
+        return System.getProperty(MIDPOINT_HOME);
     }
 
     @Override
@@ -126,6 +127,15 @@ public class StartupConfiguration implements MidpointConfiguration {
             System.out.println(MIDPOINT_HOME + " is not set ! Using default configuration, for more information");
             System.out.println("                 see http://wiki.evolveum.com/display/midPoint/");
             System.out.println("*******************************************************************************");
+
+            String userHome = System.getProperty(USER_HOME);
+            if (!userHome.endsWith("/")) {
+                userHome += "/";
+            }
+            userHome += "midpoint";
+            System.setProperty(MIDPOINT_HOME, userHome);
+            LOGGER.warn("Setting {} to '{}'.", new Object[]{MIDPOINT_HOME, userHome});
+            System.out.println("Setting " + MIDPOINT_HOME + " to '" + userHome + "'.");
         }
 
         loadConfiguration();
