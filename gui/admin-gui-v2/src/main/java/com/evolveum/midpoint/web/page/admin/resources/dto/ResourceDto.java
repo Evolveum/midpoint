@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -40,10 +43,12 @@ public class ResourceDto extends Selectable {
     private String progress;
     private String type;
     private ResourceState state;
+    private List<ResourceObjectTypeDto> objectTypes;
+    private List<String> capabilities;
 
     public ResourceDto() {
     }
-
+    
     public ResourceDto(ResourceType resource, ConnectorType connector) {
         Validate.notNull(resource);
 
@@ -52,6 +57,17 @@ public class ResourceDto extends Selectable {
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;
+    }
+
+    public ResourceDto(ResourceType resource, ConnectorType connector, List<String> capabilities) {
+        Validate.notNull(resource);
+
+        oid = resource.getOid();
+        name = resource.getName();
+        bundle = connector != null ? connector.getConnectorBundle() : null;
+        version = connector != null ? connector.getConnectorVersion() : null;
+        type = connector != null ? connector.getConnectorType() : null;
+        this.capabilities = capabilities;
     }
 
     public String getBundle() {
@@ -82,10 +98,21 @@ public class ResourceDto extends Selectable {
     	return type;
     }
     
+    public List<String> getCapabilities() {
+    	return capabilities;
+    }
+    
     public ResourceState getState() {
 		if (state == null) {
 			state = new ResourceState();
 		}
 		return state;
+	}
+    
+    public List<ResourceObjectTypeDto> getObjectTypes() {
+		if (objectTypes == null) {
+			objectTypes = new ArrayList<ResourceObjectTypeDto>();
+		}
+		return objectTypes;
 	}
 }

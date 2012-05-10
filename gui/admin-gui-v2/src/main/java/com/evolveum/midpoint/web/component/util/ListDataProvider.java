@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.util;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -40,7 +41,7 @@ public class ListDataProvider<T extends Serializable> extends SortableDataProvid
 
     public ListDataProvider(IModel<List<T>> model) {
         Validate.notNull(model);
-        this.model = model;
+        this.model = model;        
     }
 
     @Override

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -78,7 +79,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
 
                 PrismObject<ConnectorType> connector = resolveConnector(resourceType, task, result);
                 ConnectorType connectorType = connector != null ? connector.asObjectable() : null;
-
+                
                 getAvailableData().add(new ResourceDto(resourceType, connectorType));
             }
             result.recordSuccess();

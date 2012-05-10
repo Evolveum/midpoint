@@ -27,8 +27,16 @@ import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -45,16 +53,24 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.message.OpResult;
+import com.evolveum.midpoint.web.component.message.OperationResultPanel;
+import com.evolveum.midpoint.web.component.message.Param;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 public class PageResource extends PageAdminResources {
 
 	public static final String PARAM_RESOURCE_ID = "userId";
 	private static final String OPERATION_LOAD_RESOURCE = "pageResource.loadResource";
-	private ResourceType resourceObj;
 
 	private IModel<ResourceDto> model;
 
@@ -92,8 +108,8 @@ public class PageResource extends PageAdminResources {
 		if (!result.isSuccess()) {
 			showResult(result);
 		}
-		resourceObj = resource.asObjectable();
-		return new ResourceDto(resourceObj, resource.asObjectable().getConnector());
+		return new ResourceDto(resource.asObjectable(), resource.asObjectable().getConnector(),
+				initCapabilities(resource.asObjectable()));
 	}
 
 	@Override
@@ -109,8 +125,22 @@ public class PageResource extends PageAdminResources {
 	}
 
 	private void initLayout() {
-		initResourceColumns();
-		initConnectorDetails();
+		Form mainForm = new Form("mainForm");
+		add(mainForm);
+
+		SortableDataProvider<ResourceObjectTypeDto> provider = new ListDataProvider<ResourceObjectTypeDto>(
+				new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
+		provider.setSort("displayName", SortOrder.ASCENDING);
+		TablePanel objectTypes = new TablePanel<ResourceObjectTypeDto>("objectTypesTable", provider,
+				initObjectTypesColumns());
+		objectTypes.setShowPaging(true);
+		objectTypes.setItemsPerPage(50);
+		objectTypes.setOutputMarkupId(true);
+		mainForm.add(objectTypes);
+
+		initResourceColumns(mainForm);
+		initConnectorDetails(mainForm);
+		createCapabilitiesList(mainForm);
 
 		AjaxLink<String> link = new AjaxLink<String>("seeDebug",
 				createStringResource("pageResource.seeDebug")) {
@@ -122,19 +152,19 @@ public class PageResource extends PageAdminResources {
 				setResponsePage(PageDebugView.class, parameters);
 			}
 		};
-		add(link);
+		mainForm.add(link);
 	}
 
-	private void initResourceColumns() {
-		add(new Label("resourceOid", new PropertyModel<Object>(model, "oid")));
-		add(new Label("resourceName", new PropertyModel<Object>(model, "name")));
-		add(new Label("resourceType", new PropertyModel<Object>(model, "type")));
-		add(new Label("resourceVersion", new PropertyModel<Object>(model, "version")));
-		add(new Label("resourceProgress", new PropertyModel<Object>(model, "progress")));
+	private void initResourceColumns(Form mainForm) {
+		mainForm.add(new Label("resourceOid", new PropertyModel<Object>(model, "oid")));
+		mainForm.add(new Label("resourceName", new PropertyModel<Object>(model, "name")));
+		mainForm.add(new Label("resourceType", new PropertyModel<Object>(model, "type")));
+		mainForm.add(new Label("resourceVersion", new PropertyModel<Object>(model, "version")));
+		mainForm.add(new Label("resourceProgress", new PropertyModel<Object>(model, "progress")));
 	}
 
-	private void initConnectorDetails() {
-		add(new Image("overallStatus", new AbstractReadOnlyModel() {
+	private void initConnectorDetails(Form mainForm) {
+		mainForm.add(new Image("overallStatus", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
@@ -142,7 +172,7 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		add(new Image("confValidation", new AbstractReadOnlyModel() {
+		mainForm.add(new Image("confValidation", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
@@ -150,7 +180,7 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		add(new Image("conInitialization", new AbstractReadOnlyModel() {
+		mainForm.add(new Image("conInitialization", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 
@@ -159,7 +189,7 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		add(new Image("conConnection", new AbstractReadOnlyModel() {
+		mainForm.add(new Image("conConnection", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
@@ -167,7 +197,7 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		add(new Image("conSanity", new AbstractReadOnlyModel() {
+		mainForm.add(new Image("conSanity", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
@@ -175,7 +205,7 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		add(new Image("conSchema", new AbstractReadOnlyModel() {
+		mainForm.add(new Image("conSchema", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
@@ -184,11 +214,11 @@ public class PageResource extends PageAdminResources {
 		}));
 	}
 
-	private List<String> initCapabilities() {
+	private List<String> initCapabilities(ResourceType resource) {
 		OperationResult result = new OperationResult("Load resource capabilities");
 		List<String> capabilitiesName = new ArrayList<String>();
 		try {
-			List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resourceObj);
+			List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resource);
 
 			if (capabilitiesList != null && !capabilitiesList.isEmpty()) {
 				for (int i = 0; i < capabilitiesList.size(); i++) {
@@ -197,9 +227,45 @@ public class PageResource extends PageAdminResources {
 			}
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't load resource capabilities for resource'"
-					+ model.getObject().getName() + ".", ex);
+					+ new PropertyModel<Object>(model, "name") + ".", ex);
 
 		}
 		return capabilitiesName;
+	}
+
+	private List<IColumn<ResourceObjectTypeDto>> initObjectTypesColumns() {
+		List<IColumn<ResourceObjectTypeDto>> columns = new ArrayList<IColumn<ResourceObjectTypeDto>>();
+
+		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.displayName"),
+				"displayName", "displayName"));
+		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.nativeObjectClass"),
+				"nativeObjectClass"));
+		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.help"), "help"));
+		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.type"), "type"));
+
+		return columns;
+	}
+
+	private void createCapabilitiesList(Form mainForm) {
+		ListView<String> listCapabilities = new ListView<String>("listCapabilities", createCapabilitiesModel(model)) {
+
+			@Override
+			protected void populateItem(ListItem<String> item) {
+				 item.add(new Label("capabilities", item.getModel()));
+
+			}
+		};
+		mainForm.add(listCapabilities);
+	}
+
+	private IModel<List<String>> createCapabilitiesModel(final IModel<ResourceDto> model) {
+		return new LoadableModel<List<String>>(false) {
+
+			@Override
+			protected List<String> load() {
+				ResourceDto resource = model.getObject();
+				return resource.getCapabilities();
+			}
+		};
 	}
 }

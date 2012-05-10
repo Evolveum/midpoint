@@ -196,8 +196,5 @@ public class PageResources extends PageAdminResources {
     	if (StringUtils.isEmpty(dto.getOid())) {
     		result.recordFatalError("Resource oid not defined in request");
 		}
-    	
-    	
-    	
     }
 }
