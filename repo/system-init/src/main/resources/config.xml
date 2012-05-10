@@ -21,32 +21,13 @@
 <!--                                                         -->
 <configuration>
     <midpoint>
-        <!--<repository>-->
-        <!--<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>-->
-        <!--<embedded>true</embedded>-->
-        <!--<asServer>false</asServer>-->
-        <!--<baseDir>${midpoint.home}</baseDir>-->
-        <!--</repository>-->
+        <webApplication>
+            <importFolder>${midpoint.home}/import</importFolder>
+        </webApplication>
         <repository>
-            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory
-            </repositoryServiceFactoryClass>
-            <runServer>true</runServer>
-            <serverPath>${midpoint.home}</serverPath>
-            <!-- embedded is applicable only if runServer > true -->
-            <embedded>true</embedded>
-            <shutdown>true</shutdown>
-            <dropDatabase>false</dropDatabase>
-            <debug>true</debug>
-            <!-- initialDataPath - path containing xmls that should be loaded into DB -->
-            <!--  initialDataPath>${midpoint.home}/backup.xml</initialDataPath-->
-            <!-- database name -->
-            <databaseName>midPoint</databaseName>
-            <!-- client connection properties -->
-            <host>localhost</host>
-            <port>1984</port>
-            <eventPort>1985</eventPort>
-            <username>admin</username>
-            <password>admin</password>
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+            <baseDir>${midpoint.home}</baseDir>
+            <asServer>true</asServer>
         </repository>
         <icf>
             <scanClasspath>true</scanClasspath>
