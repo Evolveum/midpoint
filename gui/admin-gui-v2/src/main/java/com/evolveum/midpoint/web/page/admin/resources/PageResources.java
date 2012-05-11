@@ -24,9 +24,9 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -51,7 +51,7 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceSyncStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 
 /**
@@ -60,6 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 public class PageResources extends PageAdminResources {
 	private static final String DOT_CLASS = PageResources.class.getName() + ".";
 	private static final String TEST_RESOURCE = DOT_CLASS + "testResource";
+	private static final String SYNC_STATUS = DOT_CLASS + "syncStatus";
 
     public PageResources() {
         initLayout();
@@ -141,6 +142,32 @@ public class PageResources extends PageAdminResources {
         };
         columns.add(column);
         
+        column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.sync")) {
+
+            @Override
+            protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
+                return new AbstractReadOnlyModel<ResourceReference>() {
+
+                    @Override
+                    public ResourceReference getObject() {
+                        ResourceDto dto = rowModel.getObject();
+                        ResourceSyncStatus status = dto.getSyncStatus();
+                        if (status == null) {
+                            status = ResourceSyncStatus.DISABLE;
+                        }
+                        return new PackageResourceReference(PageResources.class, status.getIcon());
+                    }
+                };
+            }
+
+            @Override
+            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
+                showSyncStatus(target, rowModel);
+                target.add(link);                
+            }
+        };
+        columns.add(column);
+        
         //todo sync import progress
 //        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
 //        columns.add(column);
@@ -215,4 +242,13 @@ public class PageResources extends PageAdminResources {
     		target.add(getFeedbackPanel());
     	}
     }
+    
+    private void showSyncStatus(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
+    	OperationResult result = new OperationResult(SYNC_STATUS);
+    	ResourceDto dto = rowModel.getObject();
+		if (dto == null) {
+			result.recordFatalError("Fail to synchronize resource");
+		}
+		//resourceSync.setResource(resourceItem);
+	}
 }

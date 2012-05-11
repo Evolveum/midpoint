@@ -44,6 +44,7 @@ public class ResourceDto extends Selectable {
     private ResourceState state;
     private List<ResourceObjectTypeDto> objectTypes;
     private List<String> capabilities;
+    private ResourceSync sync;
 
     public ResourceDto() {
     }
@@ -116,5 +117,12 @@ public class ResourceDto extends Selectable {
 			objectTypes = new ArrayList<ResourceObjectTypeDto>();
 		}
 		return objectTypes;
+	}
+    
+    public ResourceSyncStatus getSyncStatus() {
+		if (sync == null || !sync.isEnabled()) {
+			return ResourceSyncStatus.DISABLE;
+		}
+		return ResourceSyncStatus.ENABLE;
 	}
 }
