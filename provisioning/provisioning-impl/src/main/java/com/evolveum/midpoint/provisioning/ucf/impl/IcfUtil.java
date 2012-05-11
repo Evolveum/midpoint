@@ -201,7 +201,7 @@ class IcfUtil {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Communication error", ex));
-			parentResult.recordFatalError("Commnucation error: "+ex.getMessage(), newEx);
+			parentResult.recordFatalError("Communication error: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof SchemaViolationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
