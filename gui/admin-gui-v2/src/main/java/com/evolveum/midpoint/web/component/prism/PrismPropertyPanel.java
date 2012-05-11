@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -58,7 +59,7 @@ public class PrismPropertyPanel extends Panel {
     }
 
     private void initLayout(IModel<PropertyWrapper> model, final Form form) {
-        add(new Label("label", new PropertyModel(model, "displayName")));
+        add(new Label("label", createDisplayName(model)));
 
         ListView<ValueWrapper> values = new ListView<ValueWrapper>("values",
                 new PropertyModel<List<ValueWrapper>>(model, "values")) {
@@ -76,6 +77,18 @@ public class PrismPropertyPanel extends Panel {
             }
         };
         add(values);
+    }
+
+    private IModel<String> createDisplayName(final IModel<PropertyWrapper> model) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                PropertyWrapper wrapper = model.getObject();
+                String displayName = wrapper.getDisplayName();
+                return getString(displayName, null, displayName);
+            }
+        };
     }
 
     private boolean isVisibleValue(IModel<ValueWrapper> model) {

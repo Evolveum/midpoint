@@ -27,4 +27,6 @@ package com.evolveum.midpoint.web.component.prism;
 public interface ItemWrapper {
 
     String getDisplayName();
+
+    void setDisplayName(String name);
 }

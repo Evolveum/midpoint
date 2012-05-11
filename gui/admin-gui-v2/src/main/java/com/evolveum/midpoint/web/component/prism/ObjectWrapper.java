@@ -158,7 +158,7 @@ public class ObjectWrapper implements Serializable {
 
         List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
         list.add(new ContainerWrapper(this, container, status, new PropertyPath(name)));
-        list.addAll(createContainerWrapper(container, new PropertyPath()));
+        list.addAll(createContainerWrapper(container, new PropertyPath(name)));
 
         return list;
     }

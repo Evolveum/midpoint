@@ -43,6 +43,7 @@ import java.util.Set;
 public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
+    private String displayName;
     private ObjectWrapper object;
     private T container;
     private ContainerStatus status;
@@ -162,7 +163,15 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
     @Override
     public String getDisplayName() {
+        if (StringUtils.isNotEmpty(displayName)) {
+            return displayName;
+        }
         return getDisplayNameFromItem(container);
+    }
+
+    @Override
+    public void setDisplayName(String name) {
+        this.displayName = name;
     }
 
     public boolean isMain() {

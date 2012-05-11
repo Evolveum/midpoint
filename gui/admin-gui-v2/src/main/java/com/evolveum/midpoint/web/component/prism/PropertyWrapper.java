@@ -23,7 +23,12 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
@@ -39,6 +44,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     private PrismProperty property;
     private ValueStatus status;
     private List<ValueWrapper> values;
+    private String displayName;
 
     public PropertyWrapper(ContainerWrapper container, PrismProperty property, ValueStatus status) {
         Validate.notNull(property, "Property must not be null.");
@@ -47,6 +53,13 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         this.container = container;
         this.property = property;
         this.status = status;
+
+        PropertyPath passwordPath = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
+                CredentialsType.F_PASSWORD);
+        if (passwordPath.equals(container.getPath())
+                && PasswordType.F_PROTECTED_STRING.equals(property.getName())) {
+            displayName = "prismPropertyPanel.name.credentials.password";
+        }
     }
 
     ContainerWrapper getContainer() {
@@ -55,7 +68,15 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
 
     @Override
     public String getDisplayName() {
+        if (StringUtils.isNotEmpty(displayName)) {
+            return displayName;
+        }
         return ContainerWrapper.getDisplayNameFromItem(property);
+    }
+
+    @Override
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public ValueStatus getStatus() {

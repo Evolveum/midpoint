@@ -32,7 +32,9 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -42,8 +44,6 @@ import org.apache.wicket.util.file.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
 
 /**
  * @author lazyman
@@ -115,6 +115,7 @@ public class PageImportFile extends PageAdminConfiguration {
         }
 
         InputStream stream = null;
+        File newFile = null;
         try {
             // Create new file
             MidPointApplication application = getMidpointApplication();
@@ -124,7 +125,7 @@ public class PageImportFile extends PageAdminConfiguration {
                 folder.mkdir();
             }
 
-            File newFile = new File(folder, uploadedFile.getClientFileName());
+            newFile = new File(folder, uploadedFile.getClientFileName());
             // Check new file, delete if it already exists
             if (newFile.exists()) {
                 newFile.delete();
@@ -134,12 +135,9 @@ public class PageImportFile extends PageAdminConfiguration {
             newFile.createNewFile();
             uploadedFile.writeTo(newFile);
 
-            //todo ENCODING to UTF-8 !!!!!
-//            FileReader reader = new FileReader(newFile);
-//            new FileInputStream();
             InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), "utf-8");
-            CharsetEncoder enc = Charset.forName("utf-8").newEncoder();
-            getModelService().importObjectsFromStream(newFile.inputStream(), model.getObject(), task, result);
+            stream = new ReaderInputStream(reader, reader.getEncoding());
+            getModelService().importObjectsFromStream(stream, model.getObject(), task, result);
 
             result.recomputeStatus();
         } catch (Exception ex) {
@@ -148,6 +146,9 @@ public class PageImportFile extends PageAdminConfiguration {
         } finally {
             if (stream != null) {
                 IOUtils.closeQuietly(stream);
+            }
+            if (newFile != null) {
+                FileUtils.deleteQuietly(newFile);
             }
         }
 
