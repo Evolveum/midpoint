@@ -1134,9 +1134,49 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test021modifyObjectCommunicationProblem() throws Exception {
+	public void test021addModifyObjectCommunicationProblem() throws Exception {
+		displayTestTile("test021 add modify object - communication problem");
+		OperationResult result = new OperationResult("add object communication error.");
 
-		displayTestTile("test021 modify object - communication problem");
+
+		PrismObject<UserType> userE = repositoryService.getObject(UserType.class, USER_E_OID, result);
+		assertNotNull(userE);
+		List<ObjectReferenceType> accountRefs = userE.asObjectable().getAccountRef();
+		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+				1, accountRefs.size());
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
+				PrismTestUtil.getPrismContext());
+
+		modelService.modifyObject(AccountShadowType.class, accountRefs.get(0).getOid(), delta.getModifications(), null, result);
+
+	
+		String accountOid = accountRefs.get(0).getOid();
+		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
+				result).asObjectable();
+		assertNotNull(faieldAccount);
+		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
+		assertEquals("Failed operation saved with account differt from  the expected value.",
+				FailedOperationTypeType.ADD_AND_MODIFY, faieldAccount.getFailedOperationType());
+		assertNotNull(faieldAccount.getResult());
+		assertNotNull(faieldAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), faieldAccount.getResourceRef().getOid());
+		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "sn", "e");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "cn", "e");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "givenName", "e");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "uid", "e");
+
+	}
+
+	
+	@Test
+	public void test022modifyObjectCommunicationProblem() throws Exception {
+
+		displayTestTile("test022 modify object - communication problem");
 		OperationResult parentResult = new OperationResult("modify object - communication problem");
 		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, parentResult)
 				.asObjectable();
@@ -1168,8 +1208,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test022deleteObjectCommunicationProblem() throws Exception {
-		displayTestTile("test022 delete object - communication problem");
+	public void test023deleteObjectCommunicationProblem() throws Exception {
+		displayTestTile("test023 delete object - communication problem");
 		OperationResult parentResult = new OperationResult("modify object - communication problem");
 		UserType userJack = repositoryService.getObject(UserType.class, USER_DENIELS_OID, parentResult)
 				.asObjectable();
@@ -1207,9 +1247,9 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test023reconciliation() throws Exception {
+	public void test024reconciliation() throws Exception {
 
-		displayTestTile("test022 reconciliation");
+		displayTestTile("test024 reconciliation");
 
 		final OperationResult result = new OperationResult("reconciliation");
 
