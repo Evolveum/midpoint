@@ -29,20 +29,25 @@
 	<modification>
 		<t:modificationType>add</t:modificationType>
 		<t:value>
-			<c:account xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"> 
-				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
-				<!-- No name here. We expect that it will be generated -->
-				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-				<c:objectClass>ri:AccountObjectClass</c:objectClass>
-				<c:attributes>
-					<icfs:name>uid=e,ou=People,dc=example,dc=com</icfs:name>
-					<ri:uid>e</ri:uid>
-					<ri:cn>e</ri:cn>
-					<ri:givenName>e</ri:givenName>
-					<ri:sn>e</ri:sn>
-				</c:attributes>
-			</c:account>
+<!-- 			<c:account xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" -->
+<!-- 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">  -->
+<!-- 				No OID for account. The OID will be generated once the account shadow is added to the repository. -->
+<!-- 				No name here. We expect that it will be generated -->
+<!-- 				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/> -->
+<!-- 				<c:objectClass>ri:AccountObjectClass</c:objectClass> -->
+<!-- 				<c:attributes> -->
+<!-- 					<icfs:name>uid=e,ou=People,dc=example,dc=com</icfs:name> -->
+<!-- 					<ri:uid>e</ri:uid> -->
+<!-- 					<ri:cn>e</ri:cn> -->
+<!-- 					<ri:givenName>e</ri:givenName> -->
+<!-- 					<ri:sn>e</ri:sn> -->
+<!-- 				</c:attributes> -->
+<!-- 			</c:account> -->
+<c:assignment>
+				<c:accountConstruction>
+					<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+				</c:accountConstruction>
+			</c:assignment>
 		</t:value>
 	</modification>
 </objectModification>
