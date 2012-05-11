@@ -46,6 +46,7 @@ import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -397,11 +398,11 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
     }
 	
 	@Test
-    public void test250GuybrushInbound() throws Exception {
-        displayTestTile(this, "test250GuybrushInbound");
+    public void test250GuybrushInboundFromDelta() throws Exception {
+        displayTestTile(this, "test250GuybrushInboundFromDelta");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test250GuybrushInbound");
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test250GuybrushInboundFromDelta");
 
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
@@ -426,6 +427,40 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , "The crew of Black Pearl");
                 
     }
+
+	@Test
+    public void test251GuybrushInboundFromAbsolute() throws Exception {
+        displayTestTile(this, "test251GuybrushInboundFromAbsolute");
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test251GuybrushInboundFromAbsolute");
+
+        SyncContext context = new SyncContext(prismContext);
+        fillContextWithUser(context, USER_GUYBRUSH_OID, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_GUYBRUSH_DUMMY_FILENAME, result);
+        AccountSyncContext guybrushAccountContext = context.findAccountSyncContextByOid(ACCOUNT_SHADOW_GUYBRUSH_OID);
+        guybrushAccountContext.setFullAccount(true);
+        guybrushAccountContext.setDoReconciliation(true);
+        context.recomputeNew();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        userSynchronizer.synchronizeUser(context, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertNoUserPrimaryDelta(context);
+        assertUserSecondaryDelta(context);
+        ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
+        assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
+        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , "The crew of The Sea Monkey");
+                
+    }
+
 	
 	@Test
     public void test300ReconcileGuybrushDummy() throws Exception {

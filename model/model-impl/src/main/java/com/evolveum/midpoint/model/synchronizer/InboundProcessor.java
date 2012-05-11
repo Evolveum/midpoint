@@ -175,14 +175,15 @@ public class InboundProcessor {
                 PropertyDelta<?> userPropertyDelta = null;
                 if (syncDelta != null) {
                     LOGGER.debug("Processing inbound from account sync delta.");
-                    userPropertyDelta = evaluateInboundExpression(inboundJaxbType, accountAttributeDelta, context.getUserNew(), result);
+                    userPropertyDelta = evaluateInboundExpressionFromDelta(inboundJaxbType, accountAttributeDelta, context.getUserNew(), result);
                 } else if (oldAccount != null) {
                 	if (!accContext.isFullAccount()) {
                 		throw new SystemException("Attept to execute inbound expression on account shadow (not full account)");
                 	}
                     LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
                     PrismProperty<?> oldAccountProperty = oldAccount.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, name));
-                    userPropertyDelta = createUserPropertyDelta(inboundJaxbType, oldAccountProperty, context.getUserNew());
+                    userPropertyDelta = evaluateInboundExpressionFromAbsolute(inboundJaxbType, oldAccountProperty, context.getUserNew(),
+                    		result);
                 }
 
                 if (userPropertyDelta != null && !userPropertyDelta.isEmpty()) {
@@ -215,36 +216,53 @@ public class InboundProcessor {
         return false;
     }
 
-    private <T> PropertyDelta<T> createUserPropertyDelta(ValueAssignmentType inbound, PrismProperty<T> oldAccountProperty,
-            PrismObject<UserType> newUser) {
+    private <T> PropertyDelta<T> evaluateInboundExpressionFromAbsolute(ValueAssignmentType inbound, PrismProperty<T> oldAccountProperty,
+            PrismObject<UserType> newUser, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<ValueFilterType> filters = inbound.getValueFilter();
         
         if (oldAccountProperty != null && oldAccountProperty.isRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
         }
-
+        
+        
         PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
         PrismProperty<T> targetUserProperty = null;
         if (newUser != null) {
         	targetUserProperty = newUser.findProperty(targetUserPropertyPath);
         }
-
+        PrismPropertyDefinition targetPropertyDef = newUser.getDefinition().findPropertyDefinition(targetUserPropertyPath);
+        
+        PrismProperty<T> sourceProperty = oldAccountProperty;
+        // Try to process source
+        ValueConstructionType sourceValueConstructionType = inbound.getSource();
+        if (sourceValueConstructionType != null && oldAccountProperty != null) {
+        	ValueConstruction<PrismPropertyValue<T>> valueConstruction = valueConstructionFactory.createValueConstruction(sourceValueConstructionType, targetPropertyDef, 
+        			"inbound expression for "+oldAccountProperty.getName());
+        	valueConstruction.setInput(oldAccountProperty);
+        	valueConstruction.setInputDelta(null);
+        	valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
+        	// Add variables
+        	valueConstruction.evaluate(result);
+        	PrismValueDeltaSetTriple<PrismPropertyValue<T>> triple = valueConstruction.getOutputTriple();
+        	sourceProperty = (PrismProperty<T>) valueConstruction.getOutput();
+        }
+        
         PropertyDelta<T> delta = null;
         if (targetUserProperty != null) {
             LOGGER.trace("Simple property comparing user property {} to old account property {} ",
-                    new Object[]{targetUserProperty, oldAccountProperty});
+                    new Object[]{targetUserProperty, sourceProperty});
             //simple property comparing if user property exists
-            delta = targetUserProperty.diff(oldAccountProperty, targetUserPropertyPath);
+            delta = targetUserProperty.diff(sourceProperty, targetUserPropertyPath);
             if (delta != null) {
 	            delta.setName(targetUserPropertyPath.last().getName());
 	            delta.setParentPath(targetUserPropertyPath.allExceptLast());
             }
         } else {
-            if (oldAccountProperty != null) {
+            if (sourceProperty != null) {
                 LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
                 //if user property doesn't exist we have to add it (as delta), because inbound say so
                 delta = PropertyDelta.createDelta(targetUserPropertyPath, newUser.getDefinition());
-                delta.addValuesToAdd(oldAccountProperty.getClonedValues());
+                delta.addValuesToAdd(sourceProperty.getClonedValues());
             }
             //we don't have to create delta, because everything is alright
             LOGGER.trace("We don't have to create delta, everything is alright.");
@@ -253,7 +271,7 @@ public class InboundProcessor {
         return delta;
     }
 
-    private <T> PropertyDelta<T> evaluateInboundExpression(ValueAssignmentType inbound, PropertyDelta<T> accountAttributeDelta,
+    private <T> PropertyDelta<T> evaluateInboundExpressionFromDelta(ValueAssignmentType inbound, PropertyDelta<T> accountAttributeDelta,
             PrismObject<UserType> newUser, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
