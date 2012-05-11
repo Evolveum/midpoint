@@ -79,7 +79,6 @@ public class PageAdminResources extends PageAdmin {
     
     private boolean isImportResource() {
         StringValue resourceOid = getPageParameters().get(PageResourceImport.PARAM_RESOURCE_IMPORT_ID);
-        System.out.println(resourceOid +" >>>>>>> "+resourceOid.toString());
         return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
     }
 }

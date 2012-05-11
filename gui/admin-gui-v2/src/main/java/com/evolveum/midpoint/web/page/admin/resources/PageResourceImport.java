@@ -77,7 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 public class PageResourceImport extends PageAdminResources {
 
-	public static final String PARAM_RESOURCE_IMPORT_ID = "resourceId";
+	public static final String PARAM_RESOURCE_IMPORT_ID = "resourceImportId";
 	private static final String DOT_CLASS = PageResourceImport.class.getName() + ".";
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 	private ResourceImportController resImport;
@@ -144,14 +144,14 @@ public class PageResourceImport extends PageAdminResources {
 	}
 	
 	private void initColumns(Form mainForm){
-		mainForm.add(new CheckBox("running", new PropertyModel<Boolean>(this, "resImport.running")));
-		mainForm.add(new Label("launchTime", new PropertyModel<String>(this, "resImport.launchTime")));
-		mainForm.add(new Label("finishTime", new PropertyModel<String>(this, "resImport.finishTime")));
-		mainForm.add(new Label("progress", new PropertyModel<String>(this, "resImport.progress")));
-		mainForm.add(new Label("lastStatus", new PropertyModel<String>(this, "resImport.lastStatus")));
-		mainForm.add(new Label("numberOfErrors", new PropertyModel<String>(this, "resImport.numberOfErrors")));
-		mainForm.add(new Label("message", new PropertyModel<String>(this, "resImport.lastError.message")));
-		mainForm.add(new Label("details", new PropertyModel<String>(this, "resImport.lastError.details")));
+		mainForm.add(new CheckBox("running", new PropertyModel<Boolean>(resImport, "running")));
+		mainForm.add(new Label("launchTime", new PropertyModel<String>(resImport, "launchTime")));
+		mainForm.add(new Label("finishTime", new PropertyModel<String>(resImport, "finishTime")));
+		mainForm.add(new Label("progress", new PropertyModel<String>(resImport, "progress")));
+		mainForm.add(new Label("lastStatus", new PropertyModel<String>(resImport, "lastStatus")));
+		mainForm.add(new Label("numberOfErrors", new PropertyModel<String>(resImport, "numberOfErrors")));
+		mainForm.add(new Label("message", new PropertyModel<String>(resImport, "lastError.message")));
+		mainForm.add(new Label("details", new PropertyModel<String>(resImport, "lastError.details")));
 		//mainForm.add(new Label("timeStamp", new PropertyModel<String>(this, "resImport.lastError.details")));
 	}
 	
