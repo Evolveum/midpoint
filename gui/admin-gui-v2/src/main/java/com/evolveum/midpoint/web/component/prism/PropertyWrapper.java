@@ -25,9 +25,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -102,15 +100,31 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         }
 
         if (values.isEmpty()) {
+            PrismPropertyValue value;
             if (ProtectedStringType.COMPLEX_TYPE.equals(property.getDefinition().getTypeName())) {
-                values.add(new ValueWrapper(this, new PrismPropertyValue(new ProtectedStringType()),
-                        new PrismPropertyValue(new ProtectedStringType()), ValueStatus.ADDED));
+                value = new PrismPropertyValue(new ProtectedStringType());
+            } else if (isActivationEnabled()) {
+                value = new PrismPropertyValue(true);
             } else {
-                values.add(new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED));
+                value = new PrismPropertyValue(null);
             }
+
+            values.add(new ValueWrapper(this, value, ValueStatus.ADDED));
         }
 
         return values;
+    }
+
+    private boolean isActivationEnabled() {
+        if (!new PropertyPath(UserType.F_ACTIVATION).equals(container.getPath())) {
+            return false;
+        }
+
+        if (!ActivationType.F_ENABLED.equals(property.getName())) {
+            return false;
+        }
+
+        return true;
     }
 
     boolean hasChanged() {
