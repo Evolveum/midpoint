@@ -50,6 +50,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceImport;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceImportStatus;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceSyncStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
@@ -142,7 +144,7 @@ public class PageResources extends PageAdminResources {
         };
         columns.add(column);
         
-        column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.sync")) {
+        /*column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.sync")) {
 
             @Override
             protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
@@ -163,6 +165,33 @@ public class PageResources extends PageAdminResources {
             @Override
             protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
                 showSyncStatus(target, rowModel);
+                target.add(link);                
+            }
+        };
+        columns.add(column);*/
+        
+        column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.import")) {
+
+            @Override
+            protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
+                return new AbstractReadOnlyModel<ResourceReference>() {
+
+                    @Override
+                    public ResourceReference getObject() {
+                        ResourceDto dto = rowModel.getObject();
+                        ResourceImportStatus status = dto.getResImport();
+                        if (status == null) {
+                            status = ResourceImportStatus.DISABLE;
+                        }
+                        return new PackageResourceReference(PageResources.class, status.getIcon());
+                    }
+                };
+            }
+
+            @Override
+            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
+            	ResourceDto resource = rowModel.getObject();
+            	resourceImportPerformed(target, resource.getOid());
                 target.add(link);                
             }
         };
@@ -212,6 +241,12 @@ public class PageResources extends PageAdminResources {
     	PageParameters parameters = new PageParameters();
         parameters.add(PageResource.PARAM_RESOURCE_ID, oid);
         setResponsePage(PageResource.class, parameters);
+    }
+    
+    private void resourceImportPerformed(AjaxRequestTarget target, String oid) {
+    	PageParameters parameters = new PageParameters();
+        parameters.add(PageResourceImport.PARAM_RESOURCE_IMPORT_ID, oid);
+        setResponsePage(PageResourceImport.class, parameters);
     }
 
     private void deleteResourcePerformed(AjaxRequestTarget target) {

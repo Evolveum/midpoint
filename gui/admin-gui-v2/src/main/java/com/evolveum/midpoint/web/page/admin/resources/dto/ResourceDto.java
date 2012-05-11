@@ -45,6 +45,7 @@ public class ResourceDto extends Selectable {
     private List<ResourceObjectTypeDto> objectTypes;
     private List<String> capabilities;
     private ResourceSync sync;
+    private ResourceImport resImport;
 
     public ResourceDto() {
     }
@@ -124,5 +125,12 @@ public class ResourceDto extends Selectable {
 			return ResourceSyncStatus.DISABLE;
 		}
 		return ResourceSyncStatus.ENABLE;
+	}
+    
+    public ResourceImportStatus getResImport() {
+		if (resImport == null || !resImport.isEnabled()) {
+			return ResourceImportStatus.DISABLE;
+		}
+		return ResourceImportStatus.ENABLE;
 	}
 }

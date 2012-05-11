@@ -58,10 +58,28 @@ public class PageAdminResources extends PageAdmin {
                 return false;
             }
         }));
+        items.add(new BottomMenuItem("pageAdminResources.importResource", PageResourceImport.class, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isImportResource();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
+        }));
         return items;
     }
     private boolean isEditingResource() {
         StringValue resourceOid = getPageParameters().get(PageResource.PARAM_RESOURCE_ID);
+        return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
+    }
+    
+    private boolean isImportResource() {
+        StringValue resourceOid = getPageParameters().get(PageResourceImport.PARAM_RESOURCE_IMPORT_ID);
+        System.out.println(resourceOid +" >>>>>>> "+resourceOid.toString());
         return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
     }
 }

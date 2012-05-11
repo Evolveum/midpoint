@@ -75,7 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 public class PageResource extends PageAdminResources {
 
-	public static final String PARAM_RESOURCE_ID = "userId";
+	public static final String PARAM_RESOURCE_ID = "resourceId";
 	private static final String OPERATION_LOAD_RESOURCE = "pageResource.loadResource";
 	private static final String DOT_CLASS = PageResource.class.getName() + ".";
 	private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
