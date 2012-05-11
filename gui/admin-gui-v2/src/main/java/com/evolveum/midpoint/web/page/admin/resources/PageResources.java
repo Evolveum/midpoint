@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -57,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
  * @author lazyman
  */
 public class PageResources extends PageAdminResources {
-	private static final String DOT_CLASS = PageTasks.class.getName() + ".";
+	private static final String DOT_CLASS = PageResources.class.getName() + ".";
 	private static final String TEST_RESOURCE = DOT_CLASS + "testResource";
 
     public PageResources() {
@@ -133,8 +134,9 @@ public class PageResources extends PageAdminResources {
             }
 
             @Override
-            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
+            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
                 testResourcePerformed(target, rowModel);
+                target.add(link);                
             }
         };
         columns.add(column);
@@ -162,7 +164,7 @@ public class PageResources extends PageAdminResources {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ConnectorHostType>> rowModel) {
                 ConnectorHostType host = rowModel.getObject().getValue();
-                resourceDetailsPerformed(target, host.getOid());
+                //resourceDetailsPerformed(target, host.getOid());
             }
         };
         columns.add(column);
@@ -190,26 +192,27 @@ public class PageResources extends PageAdminResources {
     }
 
     private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
-        OperationResult result = new OperationResult(TEST_RESOURCE);
-        
+        TaskManager taskManager = getTaskManager();
+        OperationResult result = null;
     	ResourceDto dto = rowModel.getObject();
     	if (StringUtils.isEmpty(dto.getOid())) {
     		result.recordFatalError("Resource oid not defined in request");
 		}
     	
     	try {
-    		OperationResult testResult = getModelService().testResource(dto.getOid(), null);
-    		ResourceController.updateResourceState(dto.getState(), testResult);
+    		result = getModelService().testResource(dto.getOid(), taskManager.createTaskInstance(TEST_RESOURCE));
+    		ResourceController.updateResourceState(dto.getState(), result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Fail to test resource connection", ex);
 		}
     	
-    	TablePanel table = (TablePanel)get("mainForm:table");
-    	target.add(table);
+    	if(result == null) {
+    		result = new OperationResult(TEST_RESOURCE);
+    	}
     	
-    	showResult(result);
-		target.add(getFeedbackPanel());
-		
+    	if(!result.isSuccess()){
+    		showResult(result);
+    		target.add(getFeedbackPanel());
+    	}
     }
-    
 }

@@ -34,9 +34,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 public class ResourceController {
 	public static void updateResourceState(ResourceState state, OperationResult result) {
 		Validate.notNull(result, "Operation result must not be null.");
-		if(result.isError()){
-			result.recordFatalError("Fail to update resource state");
-		}
 		
 		List<OperationResult> subResults = result.getSubresults();
 		state.setConConnection(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_CONNECTION,
@@ -61,7 +58,7 @@ public class ResourceController {
 					break;
 				}
 			} catch (IllegalArgumentException ex) {
-				result.recordFatalError("Result operation name " + result.getOperation() + " returned from test connection is not type of " + ConnectorTestOperation.class + ".", ex);
+				//result.recordFatalError("Result operation name " + result.getOperation() + " returned from test connection is not type of " + ConnectorTestOperation.class + ".", ex);
 			}
 		}
 

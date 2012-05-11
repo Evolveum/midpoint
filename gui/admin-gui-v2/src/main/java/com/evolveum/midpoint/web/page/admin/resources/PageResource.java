@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -32,6 +33,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.image.Image;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -62,9 +65,11 @@ import com.evolveum.midpoint.web.component.message.Param;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
@@ -72,6 +77,8 @@ public class PageResource extends PageAdminResources {
 
 	public static final String PARAM_RESOURCE_ID = "userId";
 	private static final String OPERATION_LOAD_RESOURCE = "pageResource.loadResource";
+	private static final String DOT_CLASS = PageResource.class.getName() + ".";
+	private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
 
 	private IModel<ResourceDto> model;
 
@@ -166,7 +173,10 @@ public class PageResource extends PageAdminResources {
 	}
 
 	private void initConnectorDetails(Form mainForm) {
-		mainForm.add(new Image("overallStatus", new AbstractReadOnlyModel() {
+		WebMarkupContainer container = new WebMarkupContainer("connectors");
+		container.setOutputMarkupId(true);
+		
+		container.add(new Image("overallStatus", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
@@ -174,7 +184,7 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		mainForm.add(new Image("confValidation", new AbstractReadOnlyModel() {
+		container.add(new Image("confValidation", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
@@ -182,7 +192,7 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		mainForm.add(new Image("conInitialization", new AbstractReadOnlyModel() {
+		container.add(new Image("conInitialization", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 
@@ -191,7 +201,7 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		mainForm.add(new Image("conConnection", new AbstractReadOnlyModel() {
+		container.add(new Image("conConnection", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
@@ -199,7 +209,7 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		mainForm.add(new Image("conSanity", new AbstractReadOnlyModel() {
+		container.add(new Image("conSanity", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
@@ -207,13 +217,14 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		mainForm.add(new Image("conSchema", new AbstractReadOnlyModel() {
+		container.add(new Image("conSchema", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
 						.getConSchema().getIcon());
 			}
 		}));
+		mainForm.add(container);
 	}
 
 	private List<String> initCapabilities(ResourceType resource) {
@@ -281,14 +292,14 @@ public class PageResource extends PageAdminResources {
 		};
 		mainForm.add(back);
 		
-		AjaxLinkButton save = new AjaxLinkButton("save", createStringResource("pageResource.button.save")) {
+		/*AjaxLinkButton save = new AjaxLinkButton("save", createStringResource("pageResource.button.save")) {
 			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				savePerform(target);
 			}
 		};
-		mainForm.add(save);
+		mainForm.add(save);*/
 		
 		AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("pageResource.button.test")) {
 			
@@ -306,6 +317,30 @@ public class PageResource extends PageAdminResources {
 	}
 	
 	private void testConnectionPerformed(AjaxRequestTarget target){
-		//TODO: implement
+		TaskManager taskManager = getTaskManager();
+        OperationResult result = null;
+    	ResourceDto dto = model.getObject();
+    	if (StringUtils.isEmpty(dto.getOid())) {
+    		result.recordFatalError("Resource oid not defined in request");
+		}
+    	
+    	try {
+    		result = getModelService().testResource(dto.getOid(), taskManager.createTaskInstance(TEST_CONNECTION));
+    		ResourceController.updateResourceState(dto.getState(), result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Fail to test resource connection", ex);
+		}
+    	
+    	if(result == null) {
+    		result = new OperationResult(TEST_CONNECTION);
+    	}
+    	
+    	WebMarkupContainer connectors = (WebMarkupContainer)get("mainForm:connectors");
+    	target.add(connectors);
+    	
+    	if(!result.isSuccess()){
+    		showResult(result);
+    		target.add(getFeedbackPanel());
+    	}
 	}
 }

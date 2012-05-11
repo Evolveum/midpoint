@@ -63,36 +63,38 @@
 					<h2>
 						<wicket:message key="pageResource.connectorDetails" />
 					</h2>
-					<table style="padding: 0px;">
-						<tr>
-							<td><wicket:message key="pageResource.overallStatus" /></td>
-							<td style="padding-left: 20px;"><img
-								wicket:id="overallStatus" /></td>
-						</tr>
-						<tr>
-							<td><wicket:message key="pageResource.confValidation" /></td>
-							<td style="padding-left: 20px;"><img
-								wicket:id="confValidation" /></td>
-						</tr>
-						<tr>
-							<td><wicket:message key="pageResource.conInitialization" /></td>
-							<td style="padding-left: 20px;"><img
-								wicket:id="conInitialization" /></td>
-						</tr>
-						<tr>
-							<td><wicket:message key="pageResource.conConnection" /></td>
-							<td style="padding-left: 20px;"><img
-								wicket:id="conConnection" /></td>
-						</tr>
-						<tr>
-							<td><wicket:message key="pageResource.conSanity" /></td>
-							<td style="padding-left: 20px;"><img wicket:id="conSanity" /></td>
-						</tr>
-						<tr>
-							<td><wicket:message key="pageResource.conSchema" /></td>
-							<td style="padding-left: 20px;"><img wicket:id="conSchema" /></td>
-						</tr>
-					</table>
+					<div wicket:id="connectors">
+						<table style="padding: 0px;">
+							<tr>
+								<td><wicket:message key="pageResource.overallStatus" /></td>
+								<td style="padding-left: 20px;"><img
+									wicket:id="overallStatus" /></td>
+							</tr>
+							<tr>
+								<td><wicket:message key="pageResource.confValidation" /></td>
+								<td style="padding-left: 20px;"><img
+									wicket:id="confValidation" /></td>
+							</tr>
+							<tr>
+								<td><wicket:message key="pageResource.conInitialization" /></td>
+								<td style="padding-left: 20px;"><img
+									wicket:id="conInitialization" /></td>
+							</tr>
+							<tr>
+								<td><wicket:message key="pageResource.conConnection" /></td>
+								<td style="padding-left: 20px;"><img
+									wicket:id="conConnection" /></td>
+							</tr>
+							<tr>
+								<td><wicket:message key="pageResource.conSanity" /></td>
+								<td style="padding-left: 20px;"><img wicket:id="conSanity" /></td>
+							</tr>
+							<tr>
+								<td><wicket:message key="pageResource.conSchema" /></td>
+								<td style="padding-left: 20px;"><img wicket:id="conSchema" /></td>
+							</tr>
+						</table>
+					</div>
 				</td>
 				</tr>
 			</table>
@@ -114,7 +116,6 @@
 			
 			<div class="operatingFormButtons">
 				<a wicket:id="back" />
-				<a wicket:id="save" />
 				<a wicket:id="test" />
 			</div>
 		</form>

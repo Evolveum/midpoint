@@ -48,7 +48,12 @@ public class LinkIconPanel extends Panel {
             }
         };
         link.add(new Image("image", model));
+        link.setOutputMarkupId(true);
         add(link);
+    }
+    
+    protected AjaxLink getLink() {
+    	return (AjaxLink)get("link");
     }
 
     protected void onClickPerformed(AjaxRequestTarget target) {
