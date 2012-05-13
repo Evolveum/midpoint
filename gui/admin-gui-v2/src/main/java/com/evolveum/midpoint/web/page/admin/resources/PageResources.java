@@ -27,6 +27,8 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -37,8 +39,12 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -46,6 +52,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
@@ -54,15 +61,21 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceImport;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceImportStatus;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceSyncStatus;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
 /**
  * @author lazyman
  */
 public class PageResources extends PageAdminResources {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
 	private static final String DOT_CLASS = PageResources.class.getName() + ".";
 	private static final String TEST_RESOURCE = DOT_CLASS + "testResource";
 	private static final String SYNC_STATUS = DOT_CLASS + "syncStatus";
+	private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
 
     public PageResources() {
         initLayout();
@@ -84,6 +97,16 @@ public class PageResources extends PageAdminResources {
         mainForm.add(connectorHosts);
 
         initButtons(mainForm);
+        
+        add(new ConfirmationDialog("confirmDeletePopup", createStringResource("pageResources.dialog.title.confirmDelete"),
+                createDeleteConfirmString()) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteConfirmedPerformed(target);
+            }
+        });
     }
 
     private void initButtons(Form mainForm) {
@@ -250,7 +273,64 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourcePerformed(AjaxRequestTarget target) {
-        //todo implement
+    	List<ResourceType> selected = getSelectedResources();
+        if (selected.isEmpty()) {
+            warn(getString("pageResources.message.nothingSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        ModalWindow dialog = (ModalWindow) get("confirmDeletePopup");
+        dialog.show(target);
+    }
+    
+    private List<ResourceType> getSelectedResources() {
+        DataTable table = getResourceTable().getDataTable();
+        ObjectDataProvider<ResourceType> provider = (ObjectDataProvider<ResourceType>) table.getDataProvider();
+
+        List<SelectableBean<ResourceType>> rows = provider.getAvailableData();
+        List<ResourceType> selected = new ArrayList<ResourceType>();
+        for (SelectableBean<ResourceType> row : rows) {
+            if (row.isSelected()) {
+                selected.add(row.getValue());
+            }
+        }
+
+        return selected;
+    }
+    
+    private TablePanel getResourceTable() {
+        return (TablePanel) get("mainForm:table");
+    }
+    
+    private IModel<String> createDeleteConfirmString() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("pageResources.message.deleteResourceConfirm",
+                		getSelectedResources().size()).getString();
+            }
+        };
+    }
+    
+    private void deleteConfirmedPerformed(AjaxRequestTarget target) {
+        List<ResourceType> selected = getSelectedResources();
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
+        for (ResourceType resource : selected) {
+            try {
+                Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_RESOURCES);
+                getModelService().deleteObject(ResourceType.class, resource.getOid(), task, result);
+            } catch (Exception ex) {
+                result.recordPartialError("Couldn't delete resource.", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't delete resource", ex);
+            }
+        }
+        result.recomputeStatus("Error occurred during resource deleting.");
+        showResult(result);
+
+        target.add(getResourceTable());
     }
 
     private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
