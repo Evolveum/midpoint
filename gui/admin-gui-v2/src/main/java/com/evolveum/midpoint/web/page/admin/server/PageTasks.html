@@ -24,20 +24,31 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-        <div>
-            <wicket:message key="pageTasks.state"/>
-            &nbsp;
-            <select wicket:id="state"/>
-            <wicket:message key="pageTasks.category"/>
-            &nbsp;
-            <select wicket:id="category"/>
+        <div wicket:id="option">
+            <div wicket:id="diagnostics">
+                <br />
+                <a wicket:id="deactivateServiceThreads"/>
+                <a wicket:id="reactivateServiceThreads"/>
+                <a wicket:id="synchronizeTasks"/>
+            </div>
         </div>
-        <div wicket:id="taskTable"/>
 
-        <h2>
-            <wicket:message key="pageTasks.nodes"/>
-        </h2>
-        <div wicket:id="nodeTable"/>
+        <div wicket:id="optionContent">
+            <div>
+                <wicket:message key="pageTasks.state"/>
+                &nbsp;
+                <select wicket:id="state"/>
+                <wicket:message key="pageTasks.category"/>
+                &nbsp;
+                <select wicket:id="category"/>
+            </div>
+            <div wicket:id="taskTable"/>
+
+            <h2>
+                <wicket:message key="pageTasks.nodes"/>
+            </h2>
+            <div wicket:id="nodeTable"/>
+        </div>
 
         <div class="operatingFormButtons">
         	<div class="operatingFormBlock">
@@ -55,14 +66,6 @@
                 <a wicket:id="startScheduler"/>
                 <a wicket:id="deleteNode"/>
             </div>
-
-            <div class="operatingFormBlock">
-                <span class="operatingFormText"><wicket:message key="pageTasks.button.label.diagnostics"/></span>
-                <a wicket:id="deactivateServiceThreads"/>
-                <a wicket:id="reactivateServiceThreads"/>
-                <a wicket:id="synchronizeTasks"/>
-            </div>
-
         </div>
     </form>
 </wicket:extend>

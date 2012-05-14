@@ -39,6 +39,9 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.option.OptionContent;
+import com.evolveum.midpoint.web.component.option.OptionItem;
+import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -98,6 +101,15 @@ public class PageTasks extends PageAdminTasks {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
+        OptionPanel option = new OptionPanel("option", createStringResource("pageTasks.optionsTitle"));
+        mainForm.add(option);
+
+        OptionItem diagnostics = new OptionItem("diagnostics", createStringResource("pageTasks.diagnostics"));
+        option.getBodyContainer().add(diagnostics);
+
+        OptionContent content = new OptionContent("optionContent");
+        mainForm.add(content);
+
         DropDownChoice listSelect = new DropDownChoice("state", new Model(),
                 new AbstractReadOnlyModel<List<TaskDtoExecutionStatus>>() {
 
@@ -108,7 +120,7 @@ public class PageTasks extends PageAdminTasks {
                 },
                 new EnumChoiceRenderer(PageTasks.this));
         listSelect.setMarkupId("stateSelect");
-        mainForm.add(listSelect);
+        content.getBodyContainer().add(listSelect);
 
         DropDownChoice categorySelect = new DropDownChoice("category", new Model(),
                 new AbstractReadOnlyModel<List<String>>() {
@@ -119,7 +131,7 @@ public class PageTasks extends PageAdminTasks {
                     }
                 });
         categorySelect.setMarkupId("categorySelect");
-        mainForm.add(categorySelect);
+        content.getBodyContainer().add(categorySelect);
 
         listSelect.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel()));
         categorySelect.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel()));
@@ -128,18 +140,17 @@ public class PageTasks extends PageAdminTasks {
         TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>("taskTable", new TaskDtoProvider(PageTasks.this),
                 taskColumns);
         taskTable.setOutputMarkupId(true);
-        mainForm.add(taskTable);
+        content.getBodyContainer().add(taskTable);
 
         List<IColumn<NodeDto>> nodeColumns = initNodeColumns();
         TablePanel nodeTable = new TablePanel<NodeDto>("nodeTable", new NodeDtoProvider(PageTasks.this), nodeColumns);
         nodeTable.setOutputMarkupId(true);
         nodeTable.setShowPaging(false);
-        mainForm.add(nodeTable);
+        content.getBodyContainer().add(nodeTable);
 
         initTaskButtons(mainForm);
-        initSchedulerButtons(mainForm);
         initNodeButtons(mainForm);
-        initDiagnosticButtons(mainForm);
+        initDiagnosticButtons(diagnostics);
     }
 
     private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour(final IModel<TaskDtoExecutionStatus> status,
@@ -433,13 +444,7 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(delete);
     }
 
-    // obsolete, can be removed
-    private void initSchedulerButtons(Form mainForm) {
-
-
-    }
-
-    private void initDiagnosticButtons(Form mainForm) {
+    private void initDiagnosticButtons(OptionItem item) {
         AjaxLinkButton deactivate = new AjaxLinkButton("deactivateServiceThreads",
                 createStringResource("pageTasks.button.deactivateServiceThreads")) {
 
@@ -448,7 +453,7 @@ public class PageTasks extends PageAdminTasks {
                 deactivateServiceThreadsPerformed(target);
             }
         };
-        mainForm.add(deactivate);
+        item.add(deactivate);
 
         AjaxLinkButton reactivate = new AjaxLinkButton("reactivateServiceThreads",
                 createStringResource("pageTasks.button.reactivateServiceThreads")) {
@@ -458,7 +463,7 @@ public class PageTasks extends PageAdminTasks {
                 reactivateServiceThreadsPerformed(target);
             }
         };
-        mainForm.add(reactivate);
+        item.add(reactivate);
 
         AjaxLinkButton synchronize = new AjaxLinkButton("synchronizeTasks",
                 createStringResource("pageTasks.button.synchronizeTasks")) {
@@ -468,8 +473,7 @@ public class PageTasks extends PageAdminTasks {
                 synchronizeTasksPerformed(target);
             }
         };
-        mainForm.add(synchronize);
-
+        item.add(synchronize);
     }
 
     private TablePanel getTaskTable() {
