@@ -24,7 +24,6 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -139,6 +138,7 @@ public class PageUser extends PageAdminUsers {
                 UserType userType = new UserType();
                 getMidpointApplication().getPrismContext().adopt(userType);
                 user = userType.asPrismObject();
+                System.out.println("EMPTY:\n" + user.debugDump(3));
             } else {
                 Collection<PropertyPath> resolve = com.evolveum.midpoint.util.MiscUtil.createCollection(
                         new PropertyPath(UserType.F_ACCOUNT),
@@ -157,7 +157,7 @@ public class PageUser extends PageAdminUsers {
         }
 
         if (!result.isSuccess()) {
-            showResult(result);
+            showResultInSession(result);
         }
 
         if (user == null) {
@@ -165,10 +165,6 @@ public class PageUser extends PageAdminUsers {
                 getSession().error(getString("pageUser.message.cantEditUser"));
             } else {
                 getSession().error(getString("pageUser.message.cantNewUser"));
-            }
-
-            if (!result.isSuccess()) {
-                showResultInSession(result);
             }
             throw new RestartResponseException(PageUsers.class);
         }
@@ -730,6 +726,19 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
+    private void savePerformed1(AjaxRequestTarget target) {
+        try {
+            ObjectWrapper userWrapper = userModel.getObject();
+            System.out.println("************************************");
+            System.out.println(userWrapper.getObjectDelta().debugDump(3));
+            System.out.println("************************************");
+            userWrapper.normalize();
+        } catch (Exception ex) {
+            System.out.println("SAVE ERROR: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
     private void savePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Saving user changes.");
 
@@ -757,7 +766,7 @@ public class PageUser extends PageAdminUsers {
                 //todo delete state is where? wtf?? in next release add there delete state as well as
                 // support for add/delete containers (e.g. delete credetials)
                 default:
-                    error("Unsupported state '" + userWrapper.getStatus() + "'.");//todo i18n
+                    error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
             }
 
             result.recomputeStatus();

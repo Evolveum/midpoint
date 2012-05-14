@@ -241,11 +241,12 @@ public class ObjectWrapper implements Serializable {
     }
 
     public void normalize() throws SchemaException {
-        System.out.println("BEFORE:\n" + object.debugDump(3));
         ObjectDelta delta = getObjectDelta();
-        delta.applyTo(object);
-
-        System.out.println("AFTER:\n" + object.debugDump(3));
+        if (ChangeType.ADD.equals(delta.getChangeType())) {
+            object = delta.getObjectToAdd();
+        } else {
+            delta.applyTo(object);
+        }
     }
 
     public ObjectDelta getObjectDelta() throws SchemaException {
@@ -270,17 +271,18 @@ public class ObjectWrapper implements Serializable {
                     continue;
                 }
 
-                PropertyDelta pDelta = new PropertyDelta(propertyWrapper.getItem().getDefinition());
-                delta.addModification(pDelta);
+                PrismPropertyDefinition propertyDef = propertyWrapper.getItem().getDefinition();
+
+                PropertyDelta pDelta = new PropertyDelta(propertyDef);
                 for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
                     if (!valueWrapper.hasValueChanged() && ValueStatus.NOT_CHANGED.equals(valueWrapper.getStatus())) {
                         continue;
                     }
 
                     PrismPropertyValue val = valueWrapper.getValue();
+                    val.setType(SourceType.USER_ACTION);
                     switch (valueWrapper.getStatus()) {
                         case ADDED:
-                            val.setType(SourceType.USER_ACTION);
                             pDelta.addValueToAdd(val);
                             break;
                         case DELETED:
@@ -288,17 +290,21 @@ public class ObjectWrapper implements Serializable {
                             break;
                         case NOT_CHANGED:
                             //this is modify...
-                            val.setType(SourceType.USER_ACTION);
-
-                            pDelta.addValueToAdd(val);
-                            pDelta.addValueToDelete(valueWrapper.getOldValue());
+                            if (propertyDef.isSingleValue()) {
+                                pDelta.setValuesToReplace(Arrays.asList(val));
+                            } else {
+                                pDelta.addValueToAdd(val);
+                                pDelta.addValueToDelete(valueWrapper.getOldValue());
+                            }
                             break;
                     }
+                }
+                if (!pDelta.isEmpty()) {
+                    delta.addModification(pDelta);
                 }
             }
         }
 
-        System.out.println("DELTA:\n" + delta.debugDump(3));
         return delta;
     }
 
@@ -315,15 +321,13 @@ public class ObjectWrapper implements Serializable {
             }
 
             PrismContainer container = containerWrapper.getItem();
-            if (containerWrapper.getPath() != null) {
-                PropertyPath path = containerWrapper.getPath();
-                if (path.size() == 1) {
-                    object.add(container);
-                } else {
-                    PropertyPath parentPath = path.allExceptLast();
-                    PrismContainer parent = object.findOrCreateContainer(parentPath);
-                    parent.add(container);
-                }
+            PropertyPath path = containerWrapper.getPath();
+            if (containerWrapper.getPath() != null && path.size() > 1) {
+                PropertyPath parentPath = path.allExceptLast();
+                PrismContainer parent = object.findOrCreateContainer(parentPath);
+                parent.add(container);
+            } else {
+                container = object;
             }
 
             for (PropertyWrapper propertyWrapper : (List<PropertyWrapper>) containerWrapper.getProperties()) {
