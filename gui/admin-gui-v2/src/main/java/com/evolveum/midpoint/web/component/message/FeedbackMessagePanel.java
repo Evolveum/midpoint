@@ -28,6 +28,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -133,7 +134,7 @@ public class FeedbackMessagePanel extends Panel {
             }
         };
         content.add(exception);
-        exception.add(new Label("exceptionMessage", new PropertyModel<String>(message, "message.exceptionMessage")));
+        exception.add(new MultiLineLabel("exceptionMessage", new PropertyModel<String>(message, "message.exceptionMessage")));
 
         WebMarkupContainer errorStack = new WebMarkupContainer("errorStack");
         errorStack.setOutputMarkupId(true);
@@ -143,7 +144,7 @@ public class FeedbackMessagePanel extends Panel {
         errorStackContent.setMarkupId(errorStack.getMarkupId() + "_content");
         exception.add(errorStackContent);
 
-        errorStackContent.add(new Label("exceptionStack",
+        errorStackContent.add(new MultiLineLabel("exceptionStack",
                 new PropertyModel<String>(message, "message.exceptionsStackTrace")));
     }
 
