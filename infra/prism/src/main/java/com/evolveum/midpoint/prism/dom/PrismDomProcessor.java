@@ -653,7 +653,10 @@ public class PrismDomProcessor {
 	
 	/**
 	 * The input is an object that represents the reference, most likely a JAXB object.
-	 * Pull out the information by reflection. 
+	 * Pull out the information by reflection.
+	 * Black magic warning: JAXB compiler may create the reference in (at least) two different ways depending on
+	 * how much schema is available during compilation. This manisfests itself mostly for the "filter" property.
+	 * So we try both ways before raising an error.
 	 */
 	private PrismReferenceValue parseReferenceValueFromObject(Object referenceObject) throws SchemaException {
 		String oid = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_OID, String.class);
@@ -664,14 +667,22 @@ public class PrismDomProcessor {
 		refVal.setDescription(description);
 		Object filterType = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_FILTER, Object.class);
 		if (filterType != null) {
-			List filterElementList = MiscUtil.getJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY, List.class);
-			if (filterElementList != null ) {
-				Object firstElement = filterElementList.get(0);
-				if (firstElement instanceof Element) {
-					refVal.setFilter((Element)firstElement);
-				} else {
-					throw new SchemaException("Unknown type of filter element "+firstElement.getClass());
+			if (MiscUtil.hasJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY)) {
+				List filterElementList = MiscUtil.getJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY, List.class);
+				if (filterElementList != null ) {
+					Object firstElement = filterElementList.get(0);
+					if (firstElement instanceof Element) {
+						refVal.setFilter((Element)firstElement);
+					} else {
+						throw new SchemaException("Unknown type of filter element "+firstElement.getClass());
+					}
 				}
+			} else if (MiscUtil.hasJavaProperty(filterType, JAVA_PROPERTY_FILTER)) {
+				Element filterElement = MiscUtil.getJavaProperty(filterType, JAVA_PROPERTY_FILTER, Element.class);
+				refVal.setFilter(filterElement);
+			} else {
+				throw new SchemaException("JAXB bean of type "+referenceObject.getClass().getName()+" representing prism reference"+
+						" does not contain '"+JAVA_JAXB_PROPERTY_ANY+"' property nor '"+JAVA_PROPERTY_FILTER+"' property");
 			}
 		}
 		return refVal;

@@ -22,10 +22,10 @@ package com.evolveum.midpoint.prism.util;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -193,6 +193,10 @@ public class PrismTestUtil {
 			throw new IllegalStateException("No prism JAXB processor in Prism test util");
 		}
 		return prismJaxbProcessor;
+	}
+
+	public static <T extends Objectable> PrismObjectDefinition<T> getObjectDefinition(Class<T> compileTimeClass) {
+		return getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
 	}
 
 }

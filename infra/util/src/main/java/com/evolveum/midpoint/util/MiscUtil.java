@@ -123,7 +123,7 @@ public class MiscUtil {
 	 * Try to get java property from the object by reflection
 	 */
 	public static <T> T getJavaProperty(Object object, String propertyName, Class<T> propetyClass) {
-		String getterName = "get" + StringUtils.capitalize(propertyName);
+		String getterName = getterName(propertyName);
 		Method method;
 		try {
 			method = object.getClass().getMethod(getterName);
@@ -151,6 +151,25 @@ public class MiscUtil {
 			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+" in "+object+" ("+object.getClass()+"): "
 					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
 		}
+	}
+	
+	public static boolean hasJavaProperty(Object object, String propertyName) {
+		return findGetter(object, propertyName) != null;
+	}
+	
+	public static Method findGetter(Object object, String propertyName) {
+		String getterName = getterName(propertyName);
+		for (Method method: object.getClass().getMethods()) {
+			if (method.getName().equals(getterName) &&
+					method.getParameterTypes().length == 0) {
+				return method;
+			}
+		}
+		return null;
+	}
+
+	private static String getterName(String propertyName) {
+		return "get" + StringUtils.capitalize(propertyName);
 	}
 
 	public static <T> Collection<T> createCollection(T... items) {

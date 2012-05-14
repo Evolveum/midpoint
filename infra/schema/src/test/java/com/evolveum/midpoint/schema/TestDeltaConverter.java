@@ -21,32 +21,41 @@
 
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -56,6 +65,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -178,5 +188,33 @@ public class TestDeltaConverter {
     	user.assertDefinitions("user after test");
 
     	// TODO
+    }
+    
+    @Test
+    public void testAccountRefDelta() throws Exception {
+    	System.out.println("===[ testAccountRefDelta ]====");
+    	
+    	// GIVEN
+    	ObjectModificationType objectChange = new ObjectModificationType();
+        objectChange.setOid("12345");
+        ItemDeltaType modificationDeleteAccountRef = new ItemDeltaType();
+        modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
+        ItemDeltaType.Value modificationValue = new ItemDeltaType.Value();
+        ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
+        accountRefToDelete.setOid("54321");
+        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(SchemaConstants.I_ACCOUNT_REF, ObjectReferenceType.class, accountRefToDelete);
+        modificationValue.getAny().add(accountRefToDeleteElement);
+        modificationDeleteAccountRef.setValue(modificationValue);
+        objectChange.getModification().add(modificationDeleteAccountRef);
+        
+        PrismObjectDefinition<UserType> objDef = PrismTestUtil.getObjectDefinition(UserType.class);
+        
+		// WHEN
+        Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(objectChange, objDef);
+        
+        // THEN
+        assertNotNull("Null modifications", modifications);
+        assertFalse("Empty modifications", modifications.isEmpty());
+        // TODO: more asserts
     }
 }
