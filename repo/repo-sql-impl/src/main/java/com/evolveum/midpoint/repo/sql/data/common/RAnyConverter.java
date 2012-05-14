@@ -210,25 +210,7 @@ public class RAnyConverter {
             Item<?> item;
             if (value.isDynamic()) {
                 //value has dynamic definition, we'll create definition based on value type
-                ItemDefinition def;
-                switch (value.getValueType()) {
-                    case PROPERTY:
-                        def = new PrismPropertyDefinition(value.getName(), value.getName(),
-                                value.getType(), prismContext);
-                        break;
-                    case CONTAINER:
-                        //todo implement
-                        throw new UnsupportedOperationException("Not implemented yet.");
-                    case OBJECT:
-                        //todo implement
-                        throw new UnsupportedOperationException("Not implemented yet.");
-                    case REFERENCE:
-                        def = new PrismReferenceDefinition(value.getName(), value.getName(),
-                                value.getType(), prismContext);
-                        break;
-                    default:
-                        throw new UnsupportedOperationException("Unknown value type " + value.getValueType());
-                }
+                ItemDefinition def = createDefinitionForItem(value);
                 def.setDynamic(true);
                 item = def.instantiate();
 
@@ -239,7 +221,13 @@ public class RAnyConverter {
                 } catch (SchemaException ex) {
                     //item was not found, and can't be created (e.g. definition is not available)
                     //for example attributes, therefore we create item without definition and add there raw value
-                    item = createDefinitionlessItem(value);
+                    // item = createDefinitionlessItem(value);
+
+                    //if we can't get item by default, we have to create item definition from qname name and type
+                    //and then instantiate item from it.
+                    ItemDefinition def = createDefinitionForItem(value);
+                    item = def.instantiate();
+
                     any.add(item);
                 }
             }
@@ -256,6 +244,31 @@ public class RAnyConverter {
         }
     }
 
+    private ItemDefinition createDefinitionForItem(RValue value) {
+        ItemDefinition def;
+        switch (value.getValueType()) {
+            case PROPERTY:
+                def = new PrismPropertyDefinition(value.getName(), value.getName(),
+                        value.getType(), prismContext);
+                break;
+            case CONTAINER:
+                //todo implement
+                throw new UnsupportedOperationException("Not implemented yet.");
+            case OBJECT:
+                //todo implement
+                throw new UnsupportedOperationException("Not implemented yet.");
+            case REFERENCE:
+                def = new PrismReferenceDefinition(value.getName(), value.getName(),
+                        value.getType(), prismContext);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown value type " + value.getValueType());
+        }
+
+        return def;
+    }
+
+    //couldn't be used, because without definition we can't save object in modify operation
     private Item createDefinitionlessItem(RValue value) throws DtoTranslationException {
         Item item;
         switch (value.getValueType()) {
