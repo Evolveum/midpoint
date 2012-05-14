@@ -23,7 +23,7 @@
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-    xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
     elementFormDefault="qualified">
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"

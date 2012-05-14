@@ -23,7 +23,7 @@
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/model/import/extension-2"
             xmlns:tns="http://midpoint.evolveum.com/model/import/extension-2"
-            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 

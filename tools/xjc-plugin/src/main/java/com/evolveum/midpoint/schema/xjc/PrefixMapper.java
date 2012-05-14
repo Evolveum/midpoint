@@ -40,7 +40,7 @@ public enum PrefixMapper {
 
     R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd", "CAPABILITIES"),
 
-    A("http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd", "ANNOTATION"),
+    A("http://prism.evolveum.com/xml/ns/public/annotation-2", "ANNOTATION"),
 
     S("http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd", "SITUATION"),
 

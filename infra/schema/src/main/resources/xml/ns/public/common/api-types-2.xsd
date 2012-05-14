@@ -25,7 +25,7 @@
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -58,8 +58,8 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
-                schemaLocation="annotation-1.xsd">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                schemaLocation="../prism/annotation-2.xsd">
         <xsd:annotation>
             <xsd:documentation>
                 Common midPoint annotations used in various XSD schemas.

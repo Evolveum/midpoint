@@ -762,10 +762,17 @@ class DomToSchemaProcessor {
 			propDef.setUpdate(containsAccessFlag("update", accessList));
 		}
 		
-		// attributeDisplayName
+		// displayName
 		Element attributeDisplayName = SchemaProcessorUtil.getAnnotationElement(annotation, A_DISPLAY_NAME);
 		if (attributeDisplayName != null) {
 			propDef.setDisplayName(attributeDisplayName.getTextContent());
+		}
+
+		// displayOrder
+		Element displayOrderElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_DISPLAY_ORDER);
+		if (displayOrderElement != null) {
+			Integer displayOrder = DOMUtil.getIntegerValue(displayOrderElement);
+			propDef.setDisplayOrder(displayOrder);
 		}
 		
 		// help

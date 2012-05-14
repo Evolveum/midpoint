@@ -163,6 +163,9 @@ public class TestPrismContext {
 
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_NAME_QNAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinitionDisplayName(userDefinition, USER_NAME_QNAME, "Name");
+		PrismAsserts.assertPropertyDefinitionDisplayOrder(userDefinition, USER_NAME_QNAME, 0);
+		PrismAsserts.assertPropertyDefinitionHelp(userDefinition, USER_NAME_QNAME, "Short unique name of the object");
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_FULLNAME_QNAME, DOMUtil.XSD_STRING, 1, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_GIVENNAME_QNAME, DOMUtil.XSD_STRING, 1, 1);

@@ -135,8 +135,14 @@ public class TestSchemaSanity {
 
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
 		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_NAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinitionDisplayName(userDefinition, ObjectType.F_NAME, "Name");
+		PrismAsserts.assertPropertyDefinitionDisplayOrder(userDefinition, ObjectType.F_NAME, 0);
 		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinitionDisplayName(userDefinition, ObjectType.F_DESCRIPTION, "Description");
+		PrismAsserts.assertPropertyDefinitionDisplayOrder(userDefinition, ObjectType.F_DESCRIPTION, 10);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FULL_NAME, DOMUtil.XSD_STRING, 1, 1);
+		PrismAsserts.assertPropertyDefinitionDisplayName(userDefinition, UserType.F_FULL_NAME, "Full Name");
+		PrismAsserts.assertPropertyDefinitionDisplayOrder(userDefinition, UserType.F_FULL_NAME, 100);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_GIVEN_NAME, DOMUtil.XSD_STRING, 1, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, DOMUtil.XSD_STRING, 1, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAMES, DOMUtil.XSD_STRING, 0, -1);

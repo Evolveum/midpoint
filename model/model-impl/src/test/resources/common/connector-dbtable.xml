@@ -40,12 +40,12 @@
 	            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
 	            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	            xmlns:qn342="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
-	            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+	            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 	            elementFormDefault="qualified"
 	            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
 	        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"/>
 	        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
-	        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"/>
+	        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
 	        <xsd:complexType name="ConfigurationType">
 	          <xsd:sequence>
 	            <xsd:element minOccurs="0" ref="qn342:connectorPoolConfiguration">

@@ -28,7 +28,7 @@
             targetNamespace="http://midpoint.evolveum.com/xml/ns/test/extension"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/extension"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
     <xsd:element name="stringType" type="xsd:string"/>

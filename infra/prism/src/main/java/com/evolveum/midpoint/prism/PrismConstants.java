@@ -39,11 +39,10 @@ public class PrismConstants {
 	public static final String ELEMENT_DESCRIPTION_LOCAL_NAME = "description";
 	public static final String ELEMENT_FILTER_LOCAL_NAME = "filter";
 	
-	public static final String NS_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/common/";
-	public static final String NS_ANNOTATION = NS_PREFIX + "annotation-1.xsd";
+	public static final String NS_PREFIX = "http://prism.evolveum.com/xml/ns/public/";
+	public static final String NS_ANNOTATION = NS_PREFIX + "annotation-2";
 	public static final String PREFIX_NS_ANNOTATION = "a";
-//	public static final String NS_TYPES = NS_PREFIX + "types-2";
-	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
+	public static final String NS_TYPES = NS_PREFIX + "types-2";
 	public static final String PREFIX_NS_TYPES = "t";
 
 	// Annotations
@@ -54,6 +53,7 @@ public class PrismConstants {
 	
 	public static final QName A_TYPE = new QName(NS_ANNOTATION, "type");
 	public static final QName A_DISPLAY_NAME = new QName(NS_ANNOTATION, "displayName");
+	public static final QName A_DISPLAY_ORDER = new QName(NS_ANNOTATION, "displayOrder");
 	public static final QName A_HELP = new QName(NS_ANNOTATION, "help");	
 	public static final QName A_ACCESS = new QName(NS_ANNOTATION, "access");
 	public static final String A_ACCESS_CREATE = "create";

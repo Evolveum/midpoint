@@ -3,11 +3,11 @@
 	xmlns="http://www.w3.org/2001/XMLSchema" 
 	targetNamespace="http://whatever.com/my"
 	xmlns:tns="http://whatever.com/my"
-	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	elementFormDefault="qualified">
 	
-	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" />
+	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
 	
 	<complexType name="UserExtensionType">
 		<annotation>

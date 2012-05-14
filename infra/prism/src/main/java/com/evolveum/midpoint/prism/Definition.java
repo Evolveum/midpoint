@@ -65,6 +65,7 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	protected QName typeName;
 	protected boolean ignored;
 	protected String displayName;
+	protected Integer displayOrder;
 	protected String help;
 	protected transient PrismContext prismContext;
 
@@ -144,6 +145,21 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	
 	public void setDisplayName(String displayName) {		
 		this.displayName = displayName;
+	}
+	
+	/**
+	 * Specifies an order in which the item should be displayed relative to other items
+	 * at the same level. The items will be displayed by sorting them by the
+	 * values of displayOrder annotation (ascending). Items that do not have
+	 * any displayOrder annotation will be displayed last. The ordering of
+	 * values with the same displayOrder is undefined and it may be arbitrary.
+	 */
+	public Integer getDisplayOrder() {
+		return displayOrder;
+	}
+
+	public void setDisplayOrder(Integer displayOrder) {
+		this.displayOrder = displayOrder;
 	}
 
 	/**

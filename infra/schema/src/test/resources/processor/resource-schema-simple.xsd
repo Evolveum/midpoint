@@ -4,7 +4,7 @@
 			targetNamespace="http://schema.foo.com/bar"
 			xmlns:tns="http://schema.foo.com/bar"
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-			xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
             elementFormDefault="qualified">
             

@@ -762,6 +762,17 @@ public class DOMUtil {
 		}
 		return resolveQName(element, attrContent);
 	}
+	
+	public static Integer getIntegerValue(Element element) {
+		if (element == null) {
+			return null;
+		}
+		String textContent = element.getTextContent();
+		if (StringUtils.isBlank(textContent)) {
+			return null;
+		}
+		return Integer.valueOf(textContent);
+	}
 
 	public static void copyContent(Element source, Element destination) {
 		NamedNodeMap attributes = source.getAttributes();
@@ -985,4 +996,5 @@ public class DOMUtil {
     public static boolean isElementName(Element element, QName name) {
         return name.equals(getQNameWithoutPrefix(element));
     }
+
 }

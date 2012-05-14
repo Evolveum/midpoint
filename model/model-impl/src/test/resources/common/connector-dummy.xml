@@ -37,11 +37,11 @@
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:qn915="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-                     xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
             <xsd:complexType name="ConfigurationPropertiesType">
                <xsd:sequence>
                   <xsd:element minOccurs="0" name="instanceId" type="xsd:string">

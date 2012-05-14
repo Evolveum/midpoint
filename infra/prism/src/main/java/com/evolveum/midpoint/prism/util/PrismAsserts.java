@@ -145,15 +145,33 @@ public class PrismAsserts {
 		assertDefinition(definition, item.getName(), type, minOccurs, maxOccurs);
 	}
 		
-	public static void assertPropertyDefinition(PrismContainer container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
-		PrismProperty findProperty = container.findProperty(propertyName);
+	public static void assertPropertyDefinition(PrismContainer<?> container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
+		PrismProperty<?> findProperty = container.findProperty(propertyName);
 		PrismPropertyDefinition definition = findProperty.getDefinition();
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
 	
-	public static void assertPropertyDefinition(PrismContainerDefinition containerDef, QName propertyName, QName type, int minOccurs, int maxOccurs) {
+	public static void assertPropertyDefinition(PrismContainerDefinition<?> containerDef, QName propertyName, QName type, int minOccurs, int maxOccurs) {
 		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
+	}
+	
+	public static void assertPropertyDefinitionDisplayName(PrismContainerDefinition<?> containerDef, QName propertyName, String expectedDisplayName) {
+		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
+		assert expectedDisplayName.equals(definition.getDisplayName()) : "Wrong display name for property "+propertyName+", expected " +
+			expectedDisplayName + ", was " + definition.getDisplayName();
+	}
+
+	public static void assertPropertyDefinitionDisplayOrder(PrismContainerDefinition<?> containerDef, QName propertyName, Integer expectedDisplayOrder) {
+		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
+		assert expectedDisplayOrder == definition.getDisplayOrder() : "Wrong display order for property "+propertyName+", expected " +
+		expectedDisplayOrder + ", was " + definition.getDisplayOrder();
+	}
+	
+	public static void assertPropertyDefinitionHelp(PrismContainerDefinition<?> containerDef, QName propertyName, String expectedHelp) {
+		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
+		assert expectedHelp.equals(definition.getHelp()) : "Wrong help for property "+propertyName+", expected " +
+			expectedHelp + ", was " + definition.getHelp();
 	}
 	
 	public static void assertDefinition(ItemDefinition definition, QName itemName, QName type, int minOccurs, int maxOccurs) {

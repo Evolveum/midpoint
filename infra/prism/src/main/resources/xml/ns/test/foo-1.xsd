@@ -24,7 +24,7 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -90,7 +90,15 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element ref="tns:name" minOccurs="0"/>
+            <xsd:element ref="tns:name" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:displayName>Name</a:displayName>
+            			<a:displayOrder>0</a:displayOrder>
+            			<a:help>Short unique name of the object</a:help>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
@@ -104,7 +112,15 @@
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                 	<!-- Single-valued properties -->
-                    <xsd:element name="fullName" type="xsd:string"/>
+                    <xsd:element name="fullName" type="xsd:string">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:displayName>Full Name</a:displayName>
+                    			<a:displayOrder>10</a:displayOrder>
+		            			<a:help>User full name</a:help>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="givenName" type="xsd:string"/>
                     <xsd:element name="familyName" type="xsd:string"/>
                     <!-- Multi-valued property -->
