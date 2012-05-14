@@ -45,6 +45,16 @@ public class PropertyWrapperComparator implements Comparator<PropertyWrapper> {
         ItemDefinition def1 = definition.findPropertyDefinition(p1.getProperty().getName());
         ItemDefinition def2 = definition.findPropertyDefinition(p2.getProperty().getName());
 
+        Integer index1 = def1.getDisplayOrder();
+        Integer index2 = def2.getDisplayOrder();
+        if (index1 != null && index2 != null) {
+            return index1 - index2;
+        } else if (index1 != null && index2 == null) {
+            return -1;
+        } else if (index1 == null && index2 != null) {
+            return 1;
+        }
+
         return String.CASE_INSENSITIVE_ORDER.compare(getDisplayName(def1), getDisplayName(def2));
     }
 

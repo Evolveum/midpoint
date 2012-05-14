@@ -1603,6 +1603,9 @@
                                 one e-mail address is specified, the same message
                                 should be sent to all the addresses.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Email Address</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1615,6 +1618,9 @@
                                 one telephone number is specified, all telephone
                                 numbers are considered equivalent.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Telephone Number</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1626,6 +1632,9 @@
                                 auditing purposes. Should be immutable, but the
                                 specific properties and usage are deployment-specific.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Employee Number</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1636,6 +1645,9 @@
                                 external or partner. The specific values are
                                 deployment-specific.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Employee Type</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1650,6 +1662,9 @@
                                 membership of a user to several
                                 organizational units.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Organizational Unit</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1661,6 +1676,9 @@
                                 building that he belongs to. The specific meaning
                                 and form of this property is deployment-specific.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Locality</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1777,6 +1795,9 @@
                         This is a temporary solution until we implement
                         fully-featured authorization mechanism.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Admin Gui Access</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1933,6 +1954,9 @@
                         is no activation type at all then the values is assumed to be true, i.e. that the
                         described concept is active (enabled).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Enabled</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="validFrom" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
@@ -1941,6 +1965,9 @@
                         A date from which is should the object be considered active.
                         Not applied if the "enabled" flag is set to any value.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Valid From</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="validTo" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
@@ -1949,6 +1976,9 @@
                         A date to which is should the object be considered active.
                         Not applied if the "enabled" flag is set to any value.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Valid To</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
