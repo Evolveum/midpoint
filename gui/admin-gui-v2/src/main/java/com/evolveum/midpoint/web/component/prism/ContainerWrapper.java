@@ -239,6 +239,10 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         names.add(PasswordType.F_LAST_FAILED_LOGIN_TIMESTAMP);
         names.add(ObjectType.F_FETCH_RESULT);
 
+        if (AccountShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
+            names.add(CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS);
+        }
+
         for (QName name : names) {
             if (name.equals(def.getName())) {
                 return true;
