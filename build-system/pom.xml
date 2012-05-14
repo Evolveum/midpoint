@@ -486,11 +486,6 @@
                 <artifactId>xml-resolver</artifactId>
                 <version>${xml.resolver.version}</version>
             </dependency>
-            <dependency>
-                <groupId>xmlunit</groupId>
-                <artifactId>xmlunit</artifactId>
-                <version>1.3</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
     <organization>

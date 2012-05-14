@@ -117,10 +117,6 @@
 			<groupId>xml-resolver</groupId>
 			<artifactId>xml-resolver</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>xmlunit</groupId>
-			<artifactId>xmlunit</artifactId>
-		</dependency>
         <!-- Test -->
 		<dependency>
 			<groupId>org.testng</groupId>
