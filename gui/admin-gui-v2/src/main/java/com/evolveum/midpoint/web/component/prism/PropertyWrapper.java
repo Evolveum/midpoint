@@ -103,19 +103,20 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             PrismPropertyValue value;
             if (ProtectedStringType.COMPLEX_TYPE.equals(property.getDefinition().getTypeName())) {
                 value = new PrismPropertyValue(new ProtectedStringType());
-            } else if (isActivationEnabled()) {
+                values.add(new ValueWrapper(this, value, ValueStatus.ADDED));
+            } else if (isThisPropertyActivationEnabled()) {
                 value = new PrismPropertyValue(true);
+                values.add(new ValueWrapper(this, value, new PrismPropertyValue(null), ValueStatus.ADDED));
             } else {
                 value = new PrismPropertyValue(null);
+                values.add(new ValueWrapper(this, value, ValueStatus.ADDED));
             }
-
-            values.add(new ValueWrapper(this, value, ValueStatus.ADDED));
         }
 
         return values;
     }
 
-    private boolean isActivationEnabled() {
+    private boolean isThisPropertyActivationEnabled() {
         if (!new PropertyPath(UserType.F_ACTIVATION).equals(container.getPath())) {
             return false;
         }
