@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -113,7 +114,7 @@ public class OperationResultPanel extends Panel {
             }
         };
         operationContent.add(exception);
-        exception.add(new Label("exceptionMessage", new PropertyModel<String>(model, "exceptionMessage")));
+        exception.add(new MultiLineLabel("exceptionMessage", new PropertyModel<String>(model, "exceptionMessage")));
 
         WebMarkupContainer errorStack = new WebMarkupContainer("errorStack");
         errorStack.setOutputMarkupId(true);
@@ -123,7 +124,7 @@ public class OperationResultPanel extends Panel {
         errorStackContent.setMarkupId(errorStack.getMarkupId() + "_content");
         exception.add(errorStackContent);
 
-        errorStackContent.add(new Label("exceptionStack", new PropertyModel<String>(model, "exceptionsStackTrace")));
+        errorStackContent.add(new MultiLineLabel("exceptionStack", new PropertyModel<String>(model, "exceptionsStackTrace")));
     }
 
     static IModel<String> createMessageLiClass(final IModel<OpResult> model) {

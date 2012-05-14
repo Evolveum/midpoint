@@ -42,10 +42,8 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -70,7 +68,6 @@ import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -477,11 +474,13 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private TablePanel getTaskTable() {
-        return (TablePanel) get("mainForm:taskTable");
+        OptionContent content = (OptionContent) get("mainForm:optionContent");
+        return (TablePanel) content.getBodyContainer().get("taskTable");
     }
 
     private TablePanel getNodeTable() {
-        return (TablePanel) get("mainForm:nodeTable");
+        OptionContent content = (OptionContent) get("mainForm:optionContent");
+        return (TablePanel) content.getBodyContainer().get("nodeTable");
     }
 
     private List<TaskDto> getSelectedTasks() {
@@ -732,7 +731,7 @@ public class PageTasks extends PageAdminTasks {
 
     private void scheduleTasksPerformed(AjaxRequestTarget target) {
         List<TaskDto> taskDtoList = getSelectedTasks();
-        if (!isSomeTaskSelected(taskDtoList,  target)) {
+        if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }
 
@@ -750,8 +749,7 @@ public class PageTasks extends PageAdminTasks {
                 // see above
             } catch (SchemaException e) {
                 // see above
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // only the last error is recorded but we don't care much (low probability of this case)
                 result.recordPartialError("Couldn't schedule task due to an unexpected exception.", e);
             }

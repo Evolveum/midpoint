@@ -134,6 +134,7 @@ public class RObjectReference implements Serializable {
         return type;
     }
 
+    @Type(type = "org.hibernate.type.TextType")
     public String getFilter() {
         return filter;
     }
@@ -227,7 +228,7 @@ public class RObjectReference implements Serializable {
         repo.setTargetId(0L);
         repo.setTargetOid(jaxb.getOid());
 
-        if (jaxb.getFilter() != null) {
+        if (jaxb.getFilter() != null && jaxb.getFilter().getFilter() != null) {
             ObjectReferenceType.Filter filter = jaxb.getFilter();
             repo.setFilter(DOMUtil.printDom(filter.getFilter()).toString());
         }
