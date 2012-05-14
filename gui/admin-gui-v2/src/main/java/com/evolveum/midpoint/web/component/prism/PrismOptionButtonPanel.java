@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -84,18 +85,22 @@ public class PrismOptionButtonPanel extends Panel {
                     return new PackageResourceReference(PrismObjectPanel.class,
                             "ShowEmptyFalse.png");
                 }
-
                 return new PackageResourceReference(PrismObjectPanel.class,
                         "ShowEmptyTrue.png");
             }
         });
-        //todo wtf?
-//        showEmptyImg.add(new AttributeAppender("title", ""));
-//        if(model.getObject().isShowEmpty()){
-//        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.hideEmpty")));
-//        } else {
-//        	showEmptyImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.showEmpty")));
-//        }
+
+        showEmptyImg.add(new AttributeAppender("title", new AbstractReadOnlyModel() {
+
+			@Override
+			public Object getObject() {
+				ObjectWrapper wrapper = model.getObject();
+                if (wrapper.isShowEmpty()) {
+                    return getString("prismOptionButtonPanel.hideEmpty");
+                }
+                return getString("prismOptionButtonPanel.showEmpty");
+			}
+		}, ""));
 
         showEmpty.add(showEmptyImg);
 
@@ -122,13 +127,19 @@ public class PrismOptionButtonPanel extends Panel {
                         "Minimize.png");
             }
         });
-        //todo wtf?
-//        minimizeImg.add(new AttributeAppender("title", ""));
-//        if(model.getObject().isMinimalized()){
-//        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.maximize")));
-//        } else {
-//        	minimizeImg.add(new AttributeModifier("title", getString("prismOptionButtonPanel.minimize")));
-//        }
+        minimizeImg.add(new AttributeAppender("title", new AbstractReadOnlyModel() {
+
+			@Override
+			public Object getObject() {
+				ObjectWrapper wrapper = model.getObject();
+                if (wrapper.isMinimalized()) {
+                    return getString("prismOptionButtonPanel.maximize");
+                }
+
+                return getString("prismOptionButtonPanel.minimize");
+			}
+		}, ""));
+        
         minimize.add(minimizeImg);
     }
 
