@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.Item;
+
 /**
  * @author lazyman
  */
@@ -29,4 +31,6 @@ public interface ItemWrapper {
     String getDisplayName();
 
     void setDisplayName(String name);
+
+    Item getItem();
 }

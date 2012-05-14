@@ -173,7 +173,7 @@ public class PrismValuePanel extends Panel {
     private boolean isRemoveButtonVisible() {
         ValueWrapper valueWrapper = model.getObject();
         PropertyWrapper propertyWrapper = valueWrapper.getProperty();
-        PrismPropertyDefinition definition = propertyWrapper.getProperty().getDefinition();
+        PrismPropertyDefinition definition = propertyWrapper.getItem().getDefinition();
         int min = definition.getMinOccurs();
 
         int count = countNonDeletedValues(propertyWrapper);
@@ -187,7 +187,7 @@ public class PrismValuePanel extends Panel {
     private boolean isAddButtonVisible() {
         ValueWrapper valueWrapper = model.getObject();
         PropertyWrapper propertyWrapper = valueWrapper.getProperty();
-        PrismProperty property = propertyWrapper.getProperty();
+        PrismProperty property = propertyWrapper.getItem();
 
         PrismPropertyDefinition definition = property.getDefinition();
         int max = definition.getMaxOccurs();
@@ -236,7 +236,7 @@ public class PrismValuePanel extends Panel {
     }
 
     private InputPanel createTypedInputComponent(String id, Form form) {
-        PrismProperty property = model.getObject().getProperty().getProperty();
+        PrismProperty property = model.getObject().getProperty().getItem();
         QName valueType = property.getDefinition().getTypeName();
 
         InputPanel panel;

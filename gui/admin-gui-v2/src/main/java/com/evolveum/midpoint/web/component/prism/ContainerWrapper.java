@@ -48,6 +48,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     private T container;
     private ContainerStatus status;
 
+    private boolean main;
     private PropertyPath path;
     private List<PropertyWrapper> properties;
 
@@ -59,6 +60,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         this.container = container;
         this.status = status;
         this.path = path;
+        main = path == null;
     }
 
     ObjectWrapper getObject() {
@@ -73,7 +75,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return path;
     }
 
-    T getContainer() {
+    public T getItem() {
         return container;
     }
 
@@ -87,7 +89,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     public PropertyWrapper findPropertyWrapper(QName name) {
         Validate.notNull(name, "QName must not be null.");
         for (PropertyWrapper wrapper : getProperties()) {
-            if (name.equals(wrapper.getProperty().getName())) {
+            if (name.equals(wrapper.getItem().getName())) {
                 return wrapper;
             }
         }
@@ -141,7 +143,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
             }
         }
 
-        Collections.sort(properties, new PropertyWrapperComparator(definition));
+        Collections.sort(properties, new ItemWrapperComparator());
 
         return properties;
     }
@@ -175,7 +177,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
 
     public boolean isMain() {
-        return path == null;
+        return main;
+    }
+
+    public void setMain(boolean main) {
+        this.main = main;
     }
 
     static String getDisplayNameFromItem(Item item) {

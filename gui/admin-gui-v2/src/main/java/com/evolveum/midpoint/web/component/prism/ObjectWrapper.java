@@ -30,9 +30,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import org.apache.commons.lang.Validate;
 
@@ -73,12 +73,7 @@ public class ObjectWrapper implements Serializable {
 
     public String getDisplayName() {
         if (displayName == null) {
-            PrismProperty<String> name = object.findProperty(ObjectType.F_NAME);
-            if (name == null) {
-                return null;
-            }
-
-            return name.getRealValue();
+            return MiscUtil.getName(object);
         }
         return displayName;
     }
@@ -177,6 +172,7 @@ public class ObjectWrapper implements Serializable {
 
                 ContainerWrapper container = new ContainerWrapper(this, attributes, status,
                         new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES));
+                container.setMain(true);
                 containers.add(container);
 
                 containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_ACTIVATION));
@@ -193,6 +189,8 @@ public class ObjectWrapper implements Serializable {
             LoggingUtils.logException(LOGGER, "Error occurred during container wrapping", ex);
             throw new SystemException(ex.getMessage(), ex);
         }
+
+        Collections.sort(containers, new ItemWrapperComparator());
 
         return containers;
     }
@@ -243,17 +241,11 @@ public class ObjectWrapper implements Serializable {
     }
 
     public void normalize() throws SchemaException {
-        if (ContainerStatus.ADDING.equals(getStatus())) {
-            normalizeAdding();
-        } else {
+        System.out.println("BEFORE:\n" + object.debugDump(3));
+        ObjectDelta delta = getObjectDelta();
+        delta.applyTo(object);
 
-        }
-
-        System.out.println(object.debugDump(3));
-    }
-
-    private void normalizeAdding() throws SchemaException {
-
+        System.out.println("AFTER:\n" + object.debugDump(3));
     }
 
     public ObjectDelta getObjectDelta() throws SchemaException {
@@ -278,7 +270,7 @@ public class ObjectWrapper implements Serializable {
                     continue;
                 }
 
-                PropertyDelta pDelta = new PropertyDelta(propertyWrapper.getProperty().getDefinition());
+                PropertyDelta pDelta = new PropertyDelta(propertyWrapper.getItem().getDefinition());
                 delta.addModification(pDelta);
                 for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
                     if (!valueWrapper.hasValueChanged() && ValueStatus.NOT_CHANGED.equals(valueWrapper.getStatus())) {
@@ -306,10 +298,13 @@ public class ObjectWrapper implements Serializable {
             }
         }
 
+        System.out.println("DELTA:\n" + delta.debugDump(3));
         return delta;
     }
 
     private ObjectDelta createAddingObjectDelta() throws SchemaException {
+        PrismObject object = new PrismObject(this.object.getName(), this.object.getCompileTimeClass());
+
         List<ContainerWrapper> containers = getContainers();
         //sort containers by path size
         Collections.sort(containers, new PathSizeComparator());
@@ -319,11 +314,11 @@ public class ObjectWrapper implements Serializable {
                 continue;
             }
 
-            PrismContainer container = containerWrapper.getContainer();
+            PrismContainer container = containerWrapper.getItem();
             if (containerWrapper.getPath() != null) {
                 PropertyPath path = containerWrapper.getPath();
                 if (path.size() == 1) {
-                    object.addReplaceExisting(container);
+                    object.add(container);
                 } else {
                     PropertyPath parentPath = path.allExceptLast();
                     PrismContainer parent = object.findOrCreateContainer(parentPath);
@@ -336,7 +331,7 @@ public class ObjectWrapper implements Serializable {
                     continue;
                 }
 
-                PrismProperty property = propertyWrapper.getProperty();
+                PrismProperty property = propertyWrapper.getItem();
                 container.add(property);
                 for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
                     if (!valueWrapper.hasValueChanged() || ValueStatus.DELETED.equals(valueWrapper.getStatus())) {

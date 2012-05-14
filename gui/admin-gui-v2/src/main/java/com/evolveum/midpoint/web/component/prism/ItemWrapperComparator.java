@@ -22,28 +22,26 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 
 import java.util.Comparator;
 
 /**
  * @author lazyman
  */
-public class PropertyWrapperComparator implements Comparator<PropertyWrapper> {
-
-    private PrismContainerDefinition definition;
-
-    public PropertyWrapperComparator(PrismContainerDefinition definition) {
-        Validate.notNull(definition, "Prism container definition must not be null.");
-        this.definition = definition;
-    }
+public class ItemWrapperComparator implements Comparator<ItemWrapper> {
 
     @Override
-    public int compare(PropertyWrapper p1, PropertyWrapper p2) {
-        ItemDefinition def1 = definition.findPropertyDefinition(p1.getProperty().getName());
-        ItemDefinition def2 = definition.findPropertyDefinition(p2.getProperty().getName());
+    public int compare(ItemWrapper p1, ItemWrapper p2) {
+        ItemDefinition def1 = p1.getItem().getDefinition();
+        ItemDefinition def2 = p2.getItem().getDefinition();
+
+        if (isMainContainer(p1)) {
+            return -1;
+        }
+        if (isMainContainer(p2)) {
+            return 1;
+        }
 
         Integer index1 = def1.getDisplayOrder();
         Integer index2 = def2.getDisplayOrder();
@@ -66,5 +64,14 @@ public class PropertyWrapperComparator implements Comparator<PropertyWrapper> {
         }
 
         return def.getNameOrDefaultName().getLocalPart();
+    }
+
+    private boolean isMainContainer(ItemWrapper wrapper) {
+        if (!(wrapper instanceof ContainerWrapper)) {
+            return false;
+        }
+
+        ContainerWrapper container = (ContainerWrapper) wrapper;
+        return container.isMain();
     }
 }

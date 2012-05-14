@@ -88,7 +88,8 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         return values;
     }
 
-    PrismProperty getProperty() {
+    @Override
+    public PrismProperty getItem() {
         return property;
     }
 

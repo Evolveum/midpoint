@@ -47,7 +47,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void initLayout() {
         //listed type
-        final IModel<ObjectTypes> choice = new Model<ObjectTypes>();
+        final IModel<ObjectTypes> choice = new Model<ObjectTypes>(ObjectTypes.USER);
 
         List<IColumn<? extends ObjectType>> columns = new ArrayList<IColumn<? extends ObjectType>>();
 
@@ -208,7 +208,7 @@ public class PageDebugList extends PageAdminConfiguration {
         RepositoryService repository = application.getRepository();
         ObjectTypes type = choice.getObject();
 
-        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
+        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
         for (ObjectType object : getSelectedObjects()) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             try {
