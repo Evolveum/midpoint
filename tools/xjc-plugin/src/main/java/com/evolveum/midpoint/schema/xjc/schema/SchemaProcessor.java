@@ -215,15 +215,15 @@ public class SchemaProcessor implements Processor {
         //update for type methods
         updateObjectReferenceType(definedClass, getReference);
         updateObjectReferenceDescription(definedClass, getReference);
-        // TODO: filter: MID-650
+        updateObjectReferenceFilter(definedClass, getReference);
 
         //add xml element annotation to description getter, these methods will be fixed later
-        JFieldVar filter = definedClass.fields().get("filter");
-        copyAnnotations(findMethod(definedClass, "getFilter"), filter);
-        List<JAnnotationUse> existingAnnotations = getAnnotations(filter, false);
-        if (existingAnnotations != null) {
-        	existingAnnotations.clear();
-        }
+//        JFieldVar filter = definedClass.fields().get("filter");
+//        copyAnnotations(findMethod(definedClass, "getFilter"), filter);
+//        List<JAnnotationUse> existingAnnotations = getAnnotations(filter, false);
+//        if (existingAnnotations != null) {
+//        	existingAnnotations.clear();
+//        }
     }
 
     private void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference) {
@@ -266,6 +266,25 @@ public class SchemaProcessor implements Processor {
         body = setDescription.body();
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), setDescription.name());
         invocation.arg(setDescription.listParams()[0]);
+    }
+    
+    private void updateObjectReferenceFilter(JDefinedClass definedClass, JMethod getReference) {
+        JFieldVar filterField = definedClass.fields().get("filter");
+        JMethod getFilter = recreateMethod(findMethod(definedClass, "getFilter"), definedClass);
+        copyAnnotations(getFilter, filterField);
+        definedClass.removeField(filterField);
+        JBlock body = getFilter.body();
+        JType innerFilterType = getFilter.type();
+        JVar filterClassVar = body.decl(innerFilterType, "filter", JExpr._new(innerFilterType));
+        JInvocation getFilterElementInvocation = JExpr.invoke(JExpr.invoke(getReference), getFilter.name());
+        JInvocation setFilterInvocation = body.invoke(filterClassVar, "setFilter");
+        setFilterInvocation.arg(getFilterElementInvocation);
+        body._return(filterClassVar);
+
+        JMethod setFilter = recreateMethod(findMethod(definedClass, "setFilter"), definedClass);
+        body = setFilter.body();
+        JInvocation invocation = body.invoke(JExpr.invoke(getReference), setFilter.name());
+        invocation.arg(JExpr.invoke(setFilter.listParams()[0],"getFilter"));
     }
 
     private JMethod findMethod(JDefinedClass definedClass, String methodName) {

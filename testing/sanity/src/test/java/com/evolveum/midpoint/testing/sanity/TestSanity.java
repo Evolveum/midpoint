@@ -71,6 +71,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsC
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+
+import org.apache.commons.lang.StringUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
@@ -489,6 +491,12 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     private void checkOpenDjResource(ResourceType resource, String source) throws SchemaException {
         assertNotNull("Resource from " + source + " is null", resource);
+        ObjectReferenceType connectorRefType = resource.getConnectorRef();
+        assertNotNull("Resource from " + source + " has null connectorRef", connectorRefType);
+        assertFalse("Resource from " + source + " has no OID in connectorRef", StringUtils.isBlank(connectorRefType.getOid()));
+        assertNotNull("Resource from " + source + " has null description in connectorRef", connectorRefType.getDescription());
+        assertNotNull("Resource from " + source + " has null filter in connectorRef", connectorRefType.getFilter());
+        assertNotNull("Resource from " + source + " has null filter element in connectorRef", connectorRefType.getFilter().getFilter());
         assertNotNull("Resource from " + source + " has null configuration", resource.getConfiguration());
         assertNotNull("Resource from " + source + " has null schema", resource.getSchema());
         checkOpenDjSchema(resource, source);

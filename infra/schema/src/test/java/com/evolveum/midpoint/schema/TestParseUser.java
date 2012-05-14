@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.testng.annotations.BeforeSuite;
@@ -261,8 +262,17 @@ public class TestParseUser {
 		PrismReferenceValue accountRef3Val = accountRef.findValueByOid(USER_ACCOUNT_REF_3_OID);
 		assertEquals("Wrong ref3 oid (prism)",  USER_ACCOUNT_REF_3_OID, accountRef3Val.getOid());
 		assertEquals("Wrong ref3 type (prism)", AccountShadowType.COMPLEX_TYPE, accountRef3Val.getTargetType());
+		assertEquals("Wrong ref3 description (prism)", "This is third accountRef", accountRef3Val.getDescription());
+		Element accountRef3ValFilterElement = accountRef3Val.getFilter();
+		assertFilter("ref3", accountRef3ValFilterElement);
 	}
 	
+	private void assertFilter(String message, Element filterElement) {
+		assertNotNull("No "+message+" filter", filterElement);
+		assertEquals("Wrong "+message+" filter namespace", PrismConstants.NS_QUERY, filterElement.getNamespaceURI());
+		assertEquals("Wrong "+message+" filter localName", "equal", filterElement.getLocalName());
+	}
+
 	private void assertUserJaxb(UserType userType) {
 		assertEquals("Wrong name", "jack", userType.getName());
 		assertEquals("Wrong fullName", "Jack Sparrow", userType.getFullName());
@@ -288,6 +298,9 @@ public class TestParseUser {
 		ObjectReferenceType ref3 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_3_OID, accountRefs);
 		assertEquals("Wrong ref3 oid (jaxb)", USER_ACCOUNT_REF_3_OID, ref3.getOid());
 		assertEquals("Wrong ref3 type (jaxb)", AccountShadowType.COMPLEX_TYPE, ref3.getType());
+		Filter ref3Filter = ref3.getFilter();
+		assertNotNull("No ref3 filter (jaxb,class)", ref3Filter);
+		assertFilter("ref filter (jaxb)", ref3Filter.getFilter());
 	}
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,

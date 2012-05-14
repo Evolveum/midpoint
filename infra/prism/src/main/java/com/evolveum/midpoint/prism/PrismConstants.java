@@ -44,6 +44,8 @@ public class PrismConstants {
 	public static final String PREFIX_NS_ANNOTATION = "a";
 	public static final String NS_TYPES = NS_PREFIX + "types-2";
 	public static final String PREFIX_NS_TYPES = "t";
+	public static final String NS_QUERY = NS_PREFIX + "query-2";
+	public static final String PREFIX_NS_QUERY = "q";
 
 	// Annotations
 

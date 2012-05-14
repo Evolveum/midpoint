@@ -25,7 +25,8 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
         xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" 
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" 
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"  
         xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
         xmlns:foo="http://www.example.com/foo"
@@ -99,6 +100,16 @@
     </account>
     
     <!-- Account as reference -->
-    <accountRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="AccountShadowType"/>
+    <accountRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="AccountShadowType">
+    	<description>This is third accountRef</description>
+    	<filter>
+    		<!-- Following filter is a logical nonsense. It is there just to test parsing of filters. -->
+            <q:equal>
+                <q:value>
+                    <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+                </q:value>
+            </q:equal>
+    	</filter>
+    </accountRef>
     
 </object>

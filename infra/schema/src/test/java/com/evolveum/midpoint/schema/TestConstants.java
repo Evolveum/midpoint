@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 public class TestConstants {
 	
 	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
+	public static final String NS_FOO = "http://www.example.com/foo";
 
 	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
 	public static final QName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "singleStringType");

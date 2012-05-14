@@ -41,6 +41,7 @@
     <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
           OID during import. -->
     <connectorRef type="ConnectorType">
+    	<description>Dummy description, just for the test</description>
 		<filter>
             <q:equal>
                 <q:value>

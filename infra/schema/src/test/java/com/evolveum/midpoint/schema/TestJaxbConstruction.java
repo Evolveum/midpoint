@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.*;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -109,13 +111,22 @@ public class TestJaxbConstruction {
 		// accountRef/account
 		ObjectReferenceType accountRefType = new ObjectReferenceType();
 		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
+		Element filterElement = DOMUtil.getDocument().createElementNS(NS_EXTENSION, "fooFilter");
+		ObjectReferenceType.Filter filter = new ObjectReferenceType.Filter();
+		filter.setFilter(filterElement);
+		accountRefType.setFilter(filter);
 		userType.getAccountRef().add(accountRefType);
 		
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID);
 		user.checkConsistence();
 		user.assertDefinitions();
 
-        assertEquals("1/ Wrong accountRef values", 1, user.findReference(UserType.F_ACCOUNT_REF).getValues().size());
+		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+        assertEquals("1/ Wrong accountRef values", 1, accountRef.getValues().size());
+        PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
+        Element prismFilterElement = accountRefVal0.getFilter();
+        assertNotNull("Filter have not passed", prismFilterElement);
+        assertEquals("Difference filter", filterElement, prismFilterElement);
 
         AccountShadowType accountShadowType = new AccountShadowType();
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
@@ -133,7 +144,6 @@ public class TestJaxbConstruction {
 		user.checkConsistence();
 		user.assertDefinitions();
 		
-		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
 		assertEquals("4/ Wrong accountRef values", 2, accountRef.getValues().size());
 		PrismAsserts.assertReferenceValues(accountRef, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 		
