@@ -54,7 +54,7 @@
 		<definition>
 			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -62,7 +62,7 @@
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"/>
             <xsd:complexType name="AccountObjectClass">
                <xsd:annotation>
                   <xsd:appinfo>

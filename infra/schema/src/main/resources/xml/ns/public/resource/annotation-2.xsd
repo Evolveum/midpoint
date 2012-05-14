@@ -21,8 +21,8 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 

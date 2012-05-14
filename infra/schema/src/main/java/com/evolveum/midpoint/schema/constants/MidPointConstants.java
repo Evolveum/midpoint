@@ -29,7 +29,7 @@ public class MidPointConstants {
 
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public";
 	
-	public static final String NS_RA = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/annotation-1";
+	public static final String NS_RA = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/annotation-2";
 	public static final String PREFIX_NS_RA = "ra";
 	public static final QName RA_ACCOUNT = new QName(NS_RA, "account");
 	public static final QName RA_RESOURCE_OBJECT = new QName(NS_RA, "resourceObject");
