@@ -22,11 +22,16 @@
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
@@ -50,25 +55,35 @@ public class ResourceDto extends Selectable {
     public ResourceDto() {
     }
     
-    public ResourceDto(ResourceType resource, ConnectorType connector) {
+    public ResourceDto(PrismObject<ResourceType> resource, ConnectorType connector) {
         Validate.notNull(resource);
 
         oid = resource.getOid();
-        name = resource.getName();
+        name = MiscUtil.getName(resource);
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;
     }
 
-    public ResourceDto(ResourceType resource, ConnectorType connector, List<String> capabilities) {
+    public ResourceDto(PrismObject<ResourceType> resource, ConnectorType connector, List<String> capabilities) {
         Validate.notNull(resource);
 
         oid = resource.getOid();
-        name = resource.getName();
+        name = MiscUtil.getName(resource);
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;
         this.capabilities = capabilities;
+        
+        Collection<ItemDefinition> definitions = resource.getDefinition().findContainerDefinition(resource.getName()).getDefinitions();
+		for (ItemDefinition definition : definitions) {
+			if (!(definition instanceof ResourceAttributeContainerDefinition)) {
+				continue;
+			}
+
+			ResourceAttributeContainerDefinition objectDefinition = (ResourceAttributeContainerDefinition) definition;
+			objectTypes.add(new ResourceObjectTypeDto(objectDefinition));
+		}
     }
 
     public String getBundle() {

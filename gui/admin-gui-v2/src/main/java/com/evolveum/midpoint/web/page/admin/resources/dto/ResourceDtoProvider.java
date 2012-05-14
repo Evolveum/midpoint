@@ -80,7 +80,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
                 PrismObject<ConnectorType> connector = resolveConnector(resourceType, task, result);
                 ConnectorType connectorType = connector != null ? connector.asObjectable() : null;
                 
-                getAvailableData().add(new ResourceDto(resourceType, connectorType));
+                getAvailableData().add(new ResourceDto(resource, connectorType));
             }
             result.recordSuccess();
         } catch (Exception ex) {

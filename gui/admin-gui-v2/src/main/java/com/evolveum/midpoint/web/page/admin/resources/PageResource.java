@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -116,7 +117,16 @@ public class PageResource extends PageAdminResources {
 		if (!result.isSuccess()) {
 			showResult(result);
 		}
-		return new ResourceDto(resource.asObjectable(), resource.asObjectable().getConnector(),
+		
+		if (resource == null) {
+            getSession().error(getString("pageResource.message.cantResourceDetails"));
+
+            if (!result.isSuccess()) {
+                showResultInSession(result);
+            }
+            throw new RestartResponseException(PageResources.class);
+        }
+		return new ResourceDto(resource, resource.asObjectable().getConnector(),
 				initCapabilities(resource.asObjectable()));
 	}
 
