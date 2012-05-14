@@ -29,6 +29,7 @@ import org.apache.wicket.authroles.authentication.AuthenticatedWebSession;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.request.Request;
+import org.apache.wicket.resource.loader.ComponentStringResourceLoader;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -73,7 +74,9 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             authenticated = authentication.isAuthenticated();
         } catch (AuthenticationException ex) {
-            error(ex.getMessage());
+        	ComponentStringResourceLoader comp = new ComponentStringResourceLoader();
+            error(comp.loadStringResource(MidPointAuthWebSession.class, ex.getMessage(), getLocale(), "", ""));
+           
             LOGGER.debug("Couldn't authenticate user.", ex);
             authenticated = false;
         }
