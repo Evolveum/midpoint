@@ -858,6 +858,8 @@ public class PageUser extends PageAdminUsers {
 
                 ObjectWrapper wrapper = new ObjectWrapper(resource.getName(), null, shadow.asPrismObject(),
                         ContainerStatus.ADDING);
+                wrapper.setShowEmpty(true);
+                wrapper.setMinimalized(false);
                 accountsModel.getObject().add(new UserAccountDto(wrapper, UserDtoStatus.ADD));
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntCreateAccount", resource.getName()));
