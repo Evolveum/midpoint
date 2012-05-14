@@ -103,8 +103,8 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         if (values.isEmpty()) {
             PrismPropertyValue value;
             if (ProtectedStringType.COMPLEX_TYPE.equals(property.getDefinition().getTypeName())) {
-                value = new PrismPropertyValue(new ProtectedStringType());
-                values.add(new ValueWrapper(this, value, ValueStatus.ADDED));
+                values.add(new ValueWrapper(this, new PrismPropertyValue(new ProtectedStringType()),
+                        new PrismPropertyValue(new ProtectedStringType()), ValueStatus.ADDED));
             } else if (isThisPropertyActivationEnabled()) {
                 value = new PrismPropertyValue(true);
                 values.add(new ValueWrapper(this, value, new PrismPropertyValue(null), ValueStatus.ADDED));

@@ -539,6 +539,16 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(disableAccount);
 
+        AjaxLinkButton unlinkAccount = new AjaxLinkButton("unlinkAccount",
+                createStringResource("pageUser.button.unlink")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                unlinkAccountPerformed(target, getSelectedAccounts());
+            }
+        };
+        mainForm.add(unlinkAccount);
+
         AjaxLinkButton deleteAccount = new AjaxLinkButton("deleteAccount",
                 createStringResource("pageUser.button.delete")) {
 
@@ -653,7 +663,7 @@ public class PageUser extends PageAdminUsers {
             ObjectWrapper accountWrapper = accDto.getObject();
             ObjectDelta delta = accountWrapper.getObjectDelta();
             PrismObject<AccountShadowType> account = delta.getObjectToAdd();
-//            getPrismContext().adopt(account, AccountShadowType.class);
+            encryptCredentials(account, true);
 
             userType.getAccount().add(account.asObjectable());
         }
@@ -683,19 +693,22 @@ public class PageUser extends PageAdminUsers {
         for (UserAccountDto accDto : accounts) {
             switch (accDto.getStatus()) {
                 case ADD:
+                case DELETE:
                     ObjectWrapper accountWrapper = accDto.getObject();
                     ObjectDelta delta = accountWrapper.getObjectDelta();
                     PrismObject<AccountShadowType> account = delta.getObjectToAdd();
+                    encryptCredentials(account, true);
 
                     ReferenceDelta refDelta = new ReferenceDelta(findAccountRefDefinition());
+                    userDelta.addModification(refDelta);
+
                     PrismReferenceValue refValue = new PrismReferenceValue(null, SourceType.USER_ACTION, null);
                     refValue.setObject(account);
-                    refDelta.addValueToAdd(refValue);
-
-                    userDelta.addModification(refDelta);
-                    break;
-                case DELETE:
-
+                    if (UserDtoStatus.ADD.equals(accDto.getStatus())) {
+                        refDelta.addValueToAdd(refValue);
+                    } else {
+                        refDelta.addValueToDelete(refValue);
+                    }
                     break;
                 case MODIFY:
                     //nothing to do, account modifications were applied before
@@ -726,19 +739,6 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
-    private void savePerformed1(AjaxRequestTarget target) {
-        try {
-            ObjectWrapper userWrapper = userModel.getObject();
-            System.out.println("************************************");
-            System.out.println(userWrapper.getObjectDelta().debugDump(3));
-            System.out.println("************************************");
-            userWrapper.normalize();
-        } catch (Exception ex) {
-            System.out.println("SAVE ERROR: " + ex.getMessage());
-            ex.printStackTrace();
-        }
-    }
-
     private void savePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Saving user changes.");
 
@@ -753,18 +753,20 @@ public class PageUser extends PageAdminUsers {
             switch (userWrapper.getStatus()) {
                 case ADDING:
                     PrismObject<UserType> user = delta.getObjectToAdd();
+                    encryptCredentials(user, true);
                     prepareUserForAdd(user);
                     getPrismContext().adopt(user, UserType.class);
 
                     getModelService().addObject(user, task, result);
                     break;
                 case MODIFYING:
+                    encryptCredentials(delta, true);
                     prepareUserDeltaForModify(delta);
                     getModelService().modifyObject(UserType.class, delta.getOid(),
                             delta.getModifications(), task, result);
                     break;
                 //todo delete state is where? wtf?? in next release add there delete state as well as
-                // support for add/delete containers (e.g. delete credetials)
+                // support for add/delete containers (e.g. delete credentials)
                 default:
                     error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
             }
@@ -786,10 +788,14 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
-    private void encryptCredentials(PrismObject object, boolean encrypt) {
-        MidPointApplication application = getMidpointApplication();
-        Protector protector = application.getProtector();
+    private void encryptCredentials(ObjectDelta delta, boolean encrypt) {
 
+
+        ProtectedStringType string = null;
+        encryptProtectedString(string, encrypt);
+    }
+
+    private void encryptCredentials(PrismObject object, boolean encrypt) {
         PrismContainer password = object.findContainer(new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD));
         if (password == null) {
@@ -804,6 +810,15 @@ public class PageUser extends PageAdminUsers {
         ProtectedStringType string = (ProtectedStringType) protectedStringProperty.
                 getRealValue(ProtectedStringType.class);
 
+        encryptProtectedString(string, encrypt);
+    }
+
+    private void encryptProtectedString(ProtectedStringType string, boolean encrypt) {
+        if (string == null) {
+            return;
+        }
+        MidPointApplication application = getMidpointApplication();
+        Protector protector = application.getProtector();
         try {
             if (encrypt) {
                 protector.encrypt(string);
@@ -935,9 +950,7 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void updateAccountActivation(AjaxRequestTarget target, List<UserAccountDto> accounts, boolean enabled) {
-        if (accounts.isEmpty()) {
-            warn(getString("pageUser.message.noAccountSelected"));
-            target.add(getFeedbackPanel());
+        if (!isAnyAccountSelected(target)) {
             return;
         }
 
@@ -965,11 +978,19 @@ public class PageUser extends PageAdminUsers {
         target.add(getFeedbackPanel());
     }
 
-    private void deleteAccountPerformed(AjaxRequestTarget target) {
+    private boolean isAnyAccountSelected(AjaxRequestTarget target) {
         List<UserAccountDto> selected = getSelectedAccounts();
         if (selected.isEmpty()) {
             warn(getString("pageUser.message.noAccountSelected"));
             target.add(getFeedbackPanel());
+            return false;
+        }
+
+        return true;
+    }
+
+    private void deleteAccountPerformed(AjaxRequestTarget target) {
+        if (!isAnyAccountSelected(target)) {
             return;
         }
 
@@ -1003,5 +1024,13 @@ public class PageUser extends PageAdminUsers {
             }
         }
         target.add(getAssignmentAccordionItem());
+    }
+
+    private void unlinkAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
+        if (!isAnyAccountSelected(target)) {
+            return;
+        }
+
+        //todo implement
     }
 }

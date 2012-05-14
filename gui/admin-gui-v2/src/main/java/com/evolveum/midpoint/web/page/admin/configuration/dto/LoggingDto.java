@@ -71,8 +71,6 @@ public class LoggingDto implements Serializable {
         rootLevel = config.getRootLoggerLevel();
         rootAppender = config.getRootLoggerAppender();
 
-        //todo find midpoint root package logger!!!
-
         for (SubSystemLoggerConfigurationType logger : config.getSubSystemLogger()) {
             loggers.add(new ComponentLogger(logger));
         }

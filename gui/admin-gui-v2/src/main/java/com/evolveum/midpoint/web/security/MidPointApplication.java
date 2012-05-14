@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
@@ -148,8 +149,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             File folder = new File(absPath);
             mountFiles(path, clazz, folder);
         } catch (Exception ex) {
-            //todo error handling
-            ex.printStackTrace();
+            LoggingUtils.logException(LOGGER, "Couldn't mount files", ex);
         }
     }
 

@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -37,7 +36,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
-import org.apache.wicket.util.time.Duration;
 
 import java.util.List;
 
@@ -164,9 +162,5 @@ public class PrismObjectPanel extends Panel {
 
     public void setShowHeader(boolean showHeader) {
         this.showHeader = showHeader;
-    }
-
-    public void ajaxUpdateFeedback(AjaxRequestTarget target) {
-        //todo implemenet????
     }
 }

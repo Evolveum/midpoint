@@ -322,10 +322,14 @@ public class ObjectWrapper implements Serializable {
 
             PrismContainer container = containerWrapper.getItem();
             PropertyPath path = containerWrapper.getPath();
-            if (containerWrapper.getPath() != null && path.size() > 1) {
-                PropertyPath parentPath = path.allExceptLast();
-                PrismContainer parent = object.findOrCreateContainer(parentPath);
-                parent.add(container);
+            if (containerWrapper.getPath() != null) {
+                if (path.size() > 1) {
+                    PropertyPath parentPath = path.allExceptLast();
+                    PrismContainer parent = object.findOrCreateContainer(parentPath);
+                    parent.add(container);
+                } else {
+                    object.add(container);
+                }
             } else {
                 container = object;
             }
