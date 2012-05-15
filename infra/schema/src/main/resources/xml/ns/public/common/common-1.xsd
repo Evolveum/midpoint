@@ -4512,7 +4512,7 @@
                     <xsd:element name="defaultUserTemplate" type="tns:UserTemplateType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                User template that will be used "universtally" in all situations regarding user internal
+                                User template that will be used "universally" in all situations regarding user internal
                                 consistency.
 
                                 TODO: better documentation
@@ -4525,7 +4525,7 @@
                     <xsd:element name="defaultUserTemplateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Reference to the default user template that will be used "universtally" in all
+                                Reference to the default user template that will be used "universally" in all
                                 situations regarding
                                 user internal consistency.
 

@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -105,7 +106,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Autowired(required=true)
 	private RepositoryService repositoryService;
 
-	@Autowired(required=true)
+    @Autowired(required=false)              // used only for checking configuration in cluster management thread
+    private ModelService modelService;      // we won't use it during testing
+
+    @Autowired(required=true)
 	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	
 	@Autowired(required=true)
@@ -170,6 +174,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public void postInit(OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_IMPL_CLASS + ".postInit");
+
+        if (!configuration.isTestMode()) {
+            clusterManager.startClusterManagerThread();
+        }
 
         executionManager.startScheduler(getNodeId(), result);
         if (result.getLastSubresultStatus() != OperationResultStatus.SUCCESS) {
@@ -915,4 +923,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         executionManager.removeTaskFromQuartz(task.getOid(), parentResult);
     }
 
+    public ModelService getModelService() {
+        return modelService;
+    }
 }

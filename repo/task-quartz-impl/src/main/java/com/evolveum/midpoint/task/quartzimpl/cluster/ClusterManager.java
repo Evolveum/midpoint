@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,7 +37,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -50,6 +54,7 @@ public class ClusterManager {
     private static final transient Trace LOGGER = TraceManager.getTrace(ClusterManager.class);
 
     private TaskManagerQuartzImpl taskManager;
+
     private NodeRegistrar nodeRegistrar;
 
     private ClusterManagerThread clusterManagerThread;
@@ -126,6 +131,7 @@ public class ClusterManager {
             while (canRun) {
 
                 try {
+                    taskManager.getModelService().checkSystemConfigurationChanged(result);
 
                     checkClusterConfiguration(result);                          // if error, the scheduler will be stopped
                     nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case

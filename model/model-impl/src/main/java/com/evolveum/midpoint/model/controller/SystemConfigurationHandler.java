@@ -43,20 +43,73 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationT
 public class SystemConfigurationHandler {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationHandler.class);
+
+    private String versionCurrentlyApplied = null;
 	
 	public void postInit(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult parentResult) {
+        versionCurrentlyApplied = systemConfiguration.getVersion();
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 		LoggingConfigurationType loggingConfigType = systemConfigurationType.getLogging();
 		if (loggingConfigType != null) {
 			LoggingConfigurationManager.configure(loggingConfigType, parentResult);
 		}
 	}
-	
+
+    /**
+     * Used when new configuration is detected during system operation. (E.g. when changed by another node in cluster.)
+     *
+     * @param systemConfiguration
+     * @param parentResult
+     */
+    public void onNewValueDetected(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult parentResult) {
+        postInit(systemConfiguration, parentResult);
+    }
+
+    /**
+     * When new configuration is added.
+     *
+     * @param systemConfiguration
+     * @param result
+     */
+    public void postConfigurationAdd(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult result) {
+        postInit(systemConfiguration, result);
+    }
+
+    /**
+     * When the configuration is modified.
+     *
+     * @param systemConfiguration
+     * @param result
+     */
+    public void postConfigurationModify(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult result) {
+        postInit(systemConfiguration, result);
+    }
+
+    /**
+     * When the configuration is deleted.
+     *
+     * @param result
+     */
+    public void postConfigurationDelete(OperationResult result) {
+        // do nothing
+    }
+
+    /**
+     * This method is no longer sufficient, as we need to store version as generated from repository.
+     * (So we must get it from freshly-read repo object.)
+     *
+     * @param objectDelta
+     * @param task
+     * @param parentResult
+     * @throws SchemaException
+     */
+    @Deprecated
 	public void postChange(ObjectDelta<SystemConfigurationType> objectDelta, Task task, OperationResult parentResult) throws SchemaException {
 		LOGGER.trace("Configuration postChange with delta:\n{}", objectDelta.dump());
 		// TODO
 		
 		if (objectDelta.getChangeType() == ChangeType.ADD) {
+            versionCurrentlyApplied = objectDelta.getObjectToAdd().getVersion();
 			SystemConfigurationType systemConfigurationType = objectDelta.getObjectToAdd().asObjectable();
 			LoggingConfigurationType loggingConfigType = systemConfigurationType.getLogging();
 			if (loggingConfigType != null) {
@@ -64,6 +117,7 @@ public class SystemConfigurationHandler {
 			}
 		
 		} else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
+            versionCurrentlyApplied = null;         // actually we do not know which version will be applied, so to be sure we reapply it on next occassion
 			PropertyDelta<LoggingConfigurationType> loggingDelta = objectDelta.findPropertyDelta(SystemConfigurationType.F_LOGGING);
 			if (loggingDelta != null) {
 				PrismProperty<LoggingConfigurationType> loggingProperty = loggingDelta.instantiateEmptyProperty();
@@ -74,7 +128,11 @@ public class SystemConfigurationHandler {
 		} else {
 			// Deleting system config or other strange change? What will we do? panic?
 			// Let's do nothing
-		}		
+		}
 	}
+
+    public String getVersionCurrentlyApplied() {
+        return versionCurrentlyApplied;
+    }
 
 }

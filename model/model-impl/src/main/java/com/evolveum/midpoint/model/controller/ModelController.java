@@ -25,14 +25,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,7 +40,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
@@ -57,7 +54,6 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -74,8 +70,6 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -94,7 +88,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -325,10 +318,15 @@ public class ModelController implements ModelService {
 				executePostChange(objectDelta, task, result);
 
 				// Non-systemic solition. TODO: cleanup
-				if (objectType instanceof SystemConfigurationType) {
-					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
-							task, result);
-				}
+//				if (objectType instanceof SystemConfigurationType) {
+//					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
+//							task, result);
+//				}
+
+                // Sorry, even more brutal solution (because of version numbers), TODO: cleanup
+                if (objectType instanceof SystemConfigurationType) {
+                    systemConfigurationHandler.postConfigurationAdd(getSystemConfiguration(result), result);
+                }
 
 			}
 
@@ -375,7 +373,17 @@ public class ModelController implements ModelService {
 		return oid;
 	}
 
-	/**
+    private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("System configuration version read from repo: " + config.getVersion());
+        }
+        return config;
+    }
+
+    /**
 	 * Executes preChangePrimary on all registered hooks. Parameters (delta,
 	 * task, result) are simply passed to these hooks.
 	 * 
@@ -730,12 +738,17 @@ public class ModelController implements ModelService {
 				// parentResult);
 				// }
 
-				// Non-systemic solition. TODO: cleanup
-				if (SystemConfigurationType.class.isAssignableFrom(type)) {
-					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
-							task, result);
-				}
-			}
+//				// Non-systemic solition. TODO: cleanup
+//				if (SystemConfigurationType.class.isAssignableFrom(type)) {
+//					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
+//							task, result);
+//				}
+
+                if (SystemConfigurationType.class.isAssignableFrom(type)) {
+                    systemConfigurationHandler.postConfigurationModify(getSystemConfiguration(result), result);
+                }
+
+            }
 
 		} catch (ExpressionEvaluationException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
@@ -926,12 +939,16 @@ public class ModelController implements ModelService {
 				auditRecord.addDeltas(changes);
 
 				// Non-systemic solition. TODO: cleanup
-				if (SystemConfigurationType.class.isAssignableFrom(clazz)) {
-					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
-							task, result);
-				}
+//				if (SystemConfigurationType.class.isAssignableFrom(clazz)) {
+//					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
+//							task, result);
+//				}
 
-				result.computeStatus();
+                if (SystemConfigurationType.class.isAssignableFrom(clazz)) {
+                    systemConfigurationHandler.postConfigurationDelete(result);
+                }
+
+                result.computeStatus();
 			} catch (ObjectAlreadyExistsException e) {
 				// TODO Better handling
 				throw new SystemException(e.getMessage(), e);
@@ -1258,8 +1275,7 @@ public class ModelController implements ModelService {
 
 		PrismObject<SystemConfigurationType> systemConfiguration;
 		try {
-			systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class,
-					SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+			systemConfiguration = getSystemConfiguration(result);
 			systemConfigurationHandler.postInit(systemConfiguration, result);
 		} catch (ObjectNotFoundException e) {
 			String message = "No system configuration found, skipping application of initial system settings";
@@ -1282,5 +1298,41 @@ public class ModelController implements ModelService {
 
 		RepositoryCache.exit();
 	}
+
+    @Override
+    public void checkSystemConfigurationChanged(OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(CHECK_SYSTEM_CONFIGURATION_CHANGED);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
+
+        PrismObject<SystemConfigurationType> systemConfiguration;
+        try {
+            systemConfiguration = getSystemConfiguration(result);
+
+            String versionInRepo = systemConfiguration.getVersion();
+            String versionApplied = systemConfigurationHandler.getVersionCurrentlyApplied();
+
+            // we do not try to determine which one is "newer" - we simply use the one from repo
+            // (it is important that when modifying it, we ALWAYS write it into repo first, then apply locally)
+            if (!versionInRepo.equals(versionApplied)) {
+                LOGGER.info("System configuration change check: detected difference between version in repo ({}) and currently applied version ({}) - configuration from repo will be applied now.", versionInRepo, versionApplied);
+                systemConfigurationHandler.onNewValueDetected(systemConfiguration, result);
+            } else {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("System configuration change check: version in repo = version currently applied = {}", versionApplied);
+                }
+            }
+
+        } catch (ObjectNotFoundException e) {
+            String message = "No system configuration found, skipping application of system settings";
+            LOGGER.error(message + ": " + e.getMessage(), e);
+            result.recordWarning(message, e);
+        } catch (SchemaException e) {
+            String message = "Schema error in system configuration, skipping application of system settings";
+            LOGGER.error(message + ": " + e.getMessage(), e);
+            result.recordWarning(message, e);
+        }
+
+    }
 
 }
