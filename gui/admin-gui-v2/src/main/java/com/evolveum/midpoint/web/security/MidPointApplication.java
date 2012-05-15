@@ -112,7 +112,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         //pretty url pages
         MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();
         mount(new MountedMapper("/login", PageLogin.class, encoder));
-        mount(new MountedMapper("/home", PageHome.class, encoder));
+        mount(new MountedMapper("/admin", PageHome.class, encoder));
+        mount(new MountedMapper("/admin/home", PageHome.class, encoder));
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
         mount(new MountedMapper("/admin/tasks", PageTasks.class, encoder));
         mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));
