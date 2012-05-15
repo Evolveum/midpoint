@@ -146,8 +146,7 @@ public class PageUser extends PageAdminUsers {
                         new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
                 );
 
-                TaskManager taskManager = getTaskManager();
-                Task task = taskManager.createTaskInstance(OPERATION_LOAD_USER);
+                Task task = createSimpleTask(OPERATION_LOAD_USER);
 
                 StringValue userOid = getPageParameters().get(PARAM_USER_ID);
                 user = getModelService().getObject(UserType.class, userOid.toString(), resolve, task, result);
@@ -337,7 +336,7 @@ public class PageUser extends PageAdminUsers {
                 subResult.addParam("targetRef", ref.getOid());
                 PrismObject target = null;
                 try {
-                    Task task = getTaskManager().createTaskInstance(OPERATION_LOAD_ASSIGNMENT);
+                    Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
                     target = getModelService().getObject(ObjectType.class, ref.getOid(), null, task, subResult);
                     subResult.recordSuccess();
                 } catch (Exception ex) {
@@ -638,7 +637,7 @@ public class PageUser extends PageAdminUsers {
                     continue;
                 }
                 subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
-                Task task = getTaskManager().createTaskInstance(OPERATION_MODIFY_ACCOUNT);
+                Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
 
                 encryptCredentials(delta, true);
                 getModelService().modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(),
@@ -755,7 +754,7 @@ public class PageUser extends PageAdminUsers {
         ObjectWrapper userWrapper = userModel.getObject();
         try {
             ObjectDelta delta = userWrapper.getObjectDelta();
-            Task task = getTaskManager().createTaskInstance(OPERATION_SAVE_USER);
+            Task task = createSimpleTask(OPERATION_SAVE_USER);
 
             switch (userWrapper.getStatus()) {
                 case ADDING:

@@ -391,7 +391,7 @@ public class PageUsers extends PageAdminUsers {
         for (SelectableBean<UserType> bean : users) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_USER);
             try {
-                Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_USER);
+                Task task = createSimpleTask(OPERATION_DELETE_USER);
                 UserType user = bean.getValue();
                 getModelService().deleteObject(UserType.class, user.getOid(), task, subResult);
                 subResult.recordSuccess();
@@ -426,7 +426,7 @@ public class PageUsers extends PageAdminUsers {
             String operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
             OperationResult subResult = result.createSubresult(operation);
             try {
-                Task task = getTaskManager().createTaskInstance(operation);
+                Task task = createSimpleTask(operation);
                 UserType user = bean.getValue();
                 getPrismContext().adopt(user);
 

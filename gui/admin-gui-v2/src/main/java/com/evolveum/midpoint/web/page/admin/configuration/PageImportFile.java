@@ -131,7 +131,7 @@ public class PageImportFile extends PageAdminConfiguration {
                 newFile.delete();
             }
             // Save file
-            Task task = getTaskManager().createTaskInstance(OPERATION_IMPORT_FILE);
+            Task task = createSimpleTask(OPERATION_IMPORT_FILE);
             newFile.createNewFile();
             uploadedFile.writeTo(newFile);
 

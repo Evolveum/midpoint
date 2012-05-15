@@ -107,8 +107,7 @@ public class PageResourceImport extends PageAdminResources {
 			Collection<PropertyPath> resolve = MiscUtil.createCollection(new PropertyPath(
 					ResourceType.F_CONNECTOR));
 
-			TaskManager taskManager = getTaskManager();
-			Task task = taskManager.createTaskInstance(OPERATION_LOAD_RESOURCE);
+			Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
 
 			StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_IMPORT_ID);
 			resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), resolve, task,

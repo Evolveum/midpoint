@@ -88,7 +88,7 @@ public class PageLogging extends PageAdminConfiguration {
 
         OperationResult result = new OperationResult(OPERATION_LOAD_LOGGING_CONFIGURATION);
         try {
-            Task task = getTaskManager().createTaskInstance(OPERATION_LOAD_LOGGING_CONFIGURATION);
+            Task task = createSimpleTask(OPERATION_LOAD_LOGGING_CONFIGURATION);
 
             PrismObject<SystemConfigurationType> config = getModelService().getObject(
                     SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
@@ -620,7 +620,7 @@ public class PageLogging extends PageAdminConfiguration {
         OperationResult result = new OperationResult(OPERATION_UPDATE_LOGGING_CONFIGURATION);
         String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
         try {
-            Task task = getTaskManager().createTaskInstance(OPERATION_UPDATE_LOGGING_CONFIGURATION);
+            Task task = createSimpleTask(OPERATION_UPDATE_LOGGING_CONFIGURATION);
             LoggingDto dto = model.getObject();
 
             PrismObject<SystemConfigurationType> newObject = dto.getOldConfiguration().clone();

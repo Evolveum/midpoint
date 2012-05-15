@@ -22,10 +22,14 @@
 package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenu;
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
@@ -44,6 +48,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
@@ -52,6 +57,7 @@ import java.util.List;
  */
 public abstract class PageBase extends WebPage {
 
+    private static final Trace LOGGER  = TraceManager.getTrace(PageBase.class);
     @SpringBean(name = "modelController")
     private ModelService modelService;
     @SpringBean(name = "cacheRepositoryService")
@@ -156,6 +162,23 @@ public abstract class PageBase extends WebPage {
     protected StringResourceModel createStringResource(Enum e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
         return createStringResource(resourceKey);
+    }
+
+    protected Task createSimpleTask(String operation) {
+        TaskManager manager = getTaskManager();
+        Task task = manager.createTaskInstance(operation);
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal != null || !(principal instanceof PrincipalUser)) {
+            LOGGER.warn("Principal user in security context holder is {} but not type of {}",
+                    new Object[]{principal, PrincipalUser.class.getName()});
+            return task;
+        }
+
+        PrincipalUser user = (PrincipalUser) principal;
+        task.setOwner(user.getUser().asPrismObject());
+
+        return task;
     }
 
     public void showResult(OpResult opResult) {

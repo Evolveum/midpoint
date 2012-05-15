@@ -156,7 +156,7 @@ public class PageRoles extends PageAdminRoles {
         OperationResult result = new OperationResult(OPERATION_DELETE_ROLES);
         for (RoleType role : selected) {
             try {
-                Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_ROLES);
+                Task task = createSimpleTask(OPERATION_DELETE_ROLES);
                 getModelService().deleteObject(RoleType.class, role.getOid(), task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete role.", ex);

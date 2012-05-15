@@ -107,7 +107,7 @@ public class PageImportXml extends PageAdminConfiguration {
         OperationResult result = new OperationResult(OPERATION_IMPORT_XML);
         InputStream stream = null;
         try {
-            Task task = getTaskManager().createTaskInstance(OPERATION_IMPORT_XML);
+            Task task = createSimpleTask(OPERATION_IMPORT_XML);
 
             stream = IOUtils.toInputStream(xml, "utf-8");
             getModelService().importObjectsFromStream(stream, model.getObject(), task, result);

@@ -319,7 +319,7 @@ public class PageResources extends PageAdminResources {
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
         for (ResourceDto resource : selected) {
             try {
-                Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_RESOURCES);
+                Task task = createSimpleTask(OPERATION_DELETE_RESOURCES);
                 getModelService().deleteObject(ResourceType.class, resource.getOid(), task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete resource.", ex);
@@ -333,7 +333,6 @@ public class PageResources extends PageAdminResources {
     }
 
     private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
-        TaskManager taskManager = getTaskManager();
         OperationResult result = null;
     	ResourceDto dto = rowModel.getObject();
     	if (StringUtils.isEmpty(dto.getOid())) {
@@ -341,7 +340,7 @@ public class PageResources extends PageAdminResources {
 		}
     	
     	try {
-    		result = getModelService().testResource(dto.getOid(), taskManager.createTaskInstance(TEST_RESOURCE));
+    		result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_RESOURCE));
     		ResourceController.updateResourceState(dto.getState(), result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Fail to test resource connection", ex);

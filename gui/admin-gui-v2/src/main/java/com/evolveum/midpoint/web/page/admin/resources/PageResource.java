@@ -104,8 +104,7 @@ public class PageResource extends PageAdminResources {
 			Collection<PropertyPath> resolve = MiscUtil.createCollection(new PropertyPath(
 					ResourceType.F_CONNECTOR));
 
-			TaskManager taskManager = getTaskManager();
-			Task task = taskManager.createTaskInstance(OPERATION_LOAD_RESOURCE);
+			Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
 
 			StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
 			resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), resolve, task,
@@ -329,7 +328,6 @@ public class PageResource extends PageAdminResources {
 	}
 	
 	private void testConnectionPerformed(AjaxRequestTarget target){
-		TaskManager taskManager = getTaskManager();
         OperationResult result = null;
     	ResourceDto dto = model.getObject();
     	if (StringUtils.isEmpty(dto.getOid())) {
@@ -337,7 +335,7 @@ public class PageResource extends PageAdminResources {
 		}
     	
     	try {
-    		result = getModelService().testResource(dto.getOid(), taskManager.createTaskInstance(TEST_CONNECTION));
+    		result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_CONNECTION));
     		ResourceController.updateResourceState(dto.getState(), result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Fail to test resource connection", ex);
