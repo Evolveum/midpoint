@@ -2850,7 +2850,7 @@ public class TestSanity extends AbstractIntegrationTest {
             public void timeout() {
                 // No reaction, the test will fail right after return from this
             }
-        }, 20000);
+        }, 40000);
         
         // wait a second until the task will be definitely saved
         Thread.sleep(1000);
