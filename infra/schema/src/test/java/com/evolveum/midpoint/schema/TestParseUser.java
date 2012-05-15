@@ -314,4 +314,32 @@ public class TestParseUser {
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 
+    @Test
+    public void testPrismConsistency() throws Exception {
+
+        System.out.println("===[ testPrismConsistency ]===");
+
+        // GIVEN
+        PrismContext ctx = PrismTestUtil.getPrismContext();
+        PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByCompileTimeClass(UserType.class);
+
+        // WHEN
+        PrismObject<UserType> user = userDefinition.instantiate();
+        user.setOid("12345");
+
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.dump());
+
+        System.out.println("Checking consistency, 1st time.");
+        user.checkConsistence();
+        UserType userType = user.getValue().getValue();
+
+        System.out.println("Checking consistency, 2nd time - after getValue().getValue().");
+        user.checkConsistence();
+
+        System.out.println("OK.");
+    }
+
+
 }
