@@ -99,7 +99,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue().findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
 		Element nameFilter = QueryUtil.createEqualFilter(doc, holder, nameProperty.getName(), (String) nameProperty.getValue().getValue());
 		Element resourceFilter = QueryUtil.createEqualRefFilter(doc, null, ResourceObjectShadowType.F_RESOURCE_REF, shadow.getResourceRef().getOid());
-		Element objectClassFilter = QueryUtil.createEqualFilter(doc, null, ResourceObjectShadowType.F_OBJECT_CLASS, ResourceObjectShadowUtil.getObjectClassDefinition(shadow).getComplexTypeDefinition().getTypeName());
+		Element objectClassFilter = QueryUtil.createEqualFilter(doc, null, ResourceObjectShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
 		Element filter = QueryUtil.createAndFilter(doc, new Element[]{nameFilter, resourceFilter, objectClassFilter});
 		return QueryUtil.createQuery(filter);
 	}

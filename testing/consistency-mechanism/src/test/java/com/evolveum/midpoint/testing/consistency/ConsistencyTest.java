@@ -848,7 +848,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	}
 
-//	 @Test
+	 @Test
 	public void test014addAccountAlreadyExistLinked() throws Exception {
 		 displayTestTile("test014addAccountAlreadyExistLinked");
 		OperationResult parentResult = new OperationResult("Add account already exist linked");
@@ -892,7 +892,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	}
 
-	 @Test
+	@Test
 	public void test015addAccountAlreadyExistUnlinked() throws Exception {
 		 displayTestTile("test015addAccountAlreadyExistUnlinked");
 
@@ -1133,44 +1133,44 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	}
 
-	@Test
-	public void test021addModifyObjectCommunicationProblem() throws Exception {
-		displayTestTile("test021 add modify object - communication problem");
-		OperationResult result = new OperationResult("add object communication error.");
-
-
-		PrismObject<UserType> userE = repositoryService.getObject(UserType.class, USER_E_OID, result);
-		assertNotNull(userE);
-		List<ObjectReferenceType> accountRefs = userE.asObjectable().getAccountRef();
-		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
-				1, accountRefs.size());
-
-		ObjectModificationType objectChange = unmarshallJaxbFromFile(
-				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
-
-		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
-				PrismTestUtil.getPrismContext());
-
-		modelService.modifyObject(AccountShadowType.class, accountRefs.get(0).getOid(), delta.getModifications(), null, result);
-
-	
-		String accountOid = accountRefs.get(0).getOid();
-		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
-				result).asObjectable();
-		assertNotNull(faieldAccount);
-		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
-		assertEquals("Failed operation saved with account differt from  the expected value.",
-				FailedOperationTypeType.ADD_AND_MODIFY, faieldAccount.getFailedOperationType());
-		assertNotNull(faieldAccount.getResult());
-		assertNotNull(faieldAccount.getResourceRef());
-		assertEquals(resourceTypeOpenDjrepo.getOid(), faieldAccount.getResourceRef().getOid());
-		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
-		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "sn", "e");
-		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "cn", "e");
-		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "givenName", "e");
-		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "uid", "e");
-
-	}
+//	@Test
+//	public void test021addModifyObjectCommunicationProblem() throws Exception {
+//		displayTestTile("test021 add modify object - communication problem");
+//		OperationResult result = new OperationResult("add object communication error.");
+//
+//
+//		PrismObject<UserType> userE = repositoryService.getObject(UserType.class, USER_E_OID, result);
+//		assertNotNull(userE);
+//		List<ObjectReferenceType> accountRefs = userE.asObjectable().getAccountRef();
+//		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+//				1, accountRefs.size());
+//
+//		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+//				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+//
+//		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
+//				PrismTestUtil.getPrismContext());
+//
+//		modelService.modifyObject(AccountShadowType.class, accountRefs.get(0).getOid(), delta.getModifications(), null, result);
+//
+//	
+//		String accountOid = accountRefs.get(0).getOid();
+//		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
+//				result).asObjectable();
+//		assertNotNull(faieldAccount);
+//		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
+//		assertEquals("Failed operation saved with account differt from  the expected value.",
+//				FailedOperationTypeType.ADD_AND_MODIFY, faieldAccount.getFailedOperationType());
+//		assertNotNull(faieldAccount.getResult());
+//		assertNotNull(faieldAccount.getResourceRef());
+//		assertEquals(resourceTypeOpenDjrepo.getOid(), faieldAccount.getResourceRef().getOid());
+//		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+//		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "sn", "e");
+//		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "cn", "e");
+//		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "givenName", "e");
+//		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "uid", "e");
+//
+//	}
 
 	
 	@Test

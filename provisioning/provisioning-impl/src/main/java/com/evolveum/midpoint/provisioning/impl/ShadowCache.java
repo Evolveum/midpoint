@@ -33,6 +33,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -284,6 +285,7 @@ public class ShadowCache {
 
 		LOGGER.trace("Adding object with identifiers to the repository.");
 
+		LOGGER.trace("Reconciled shadow: {}", isReconciled);
 		addOrReplaceShadowToRepository(shadow, isReconciled, shadowConverterResult.isError(), parentResult);
 
 		LOGGER.trace("Object added to the repository successfully.");
@@ -422,7 +424,15 @@ public class ShadowCache {
 				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid,
 						modifications, parentResult);
 			} catch (Exception ex) {
+//				ErrorHandler handler = null;
+				//TODO: UGLY UGLY HACK
+//				if (shadow.getFailedOperationType() != null && FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
+//					handler = errorHandlerFactory.createErrorHandler(new CommunicationException(ex));
+//				}
+//				if (handler == null){
 				ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
+//				}
+				
 				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
 				shadow.setResult(parentResult.createOperationResultType());
 				shadow.setResource(resource);
@@ -847,6 +857,7 @@ public class ShadowCache {
 			boolean error, OperationResult parentResult) throws SchemaException,
 			ObjectAlreadyExistsException, ObjectNotFoundException {
 
+		
 		// Store shadow in the repository
 		if (isReconciled && !error) {
 			PrismObject<AccountShadowType> oldShadow = shadow.asPrismObject().clone();
@@ -854,6 +865,8 @@ public class ShadowCache {
 			ShadowCacheUtil.normalizeShadow(shadow, parentResult);
 
 			ObjectDelta delta = oldShadow.diff(shadow.asPrismObject());
+			LOGGER.trace("normalizing shadow: change description: {}", delta.dump());
+			prismContext.adopt(shadow);
 			repositoryService.modifyObject(AccountShadowType.class, shadow.getOid(),
 					delta.getModifications(), parentResult);
 		} else if (!isReconciled) {

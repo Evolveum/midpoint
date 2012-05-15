@@ -210,7 +210,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
-		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, result)
+		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".ResourceReconciliation");
+		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult)
 				.asObjectable();
 
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
@@ -229,7 +230,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		QueryType query = createAccountSearchQuery(resource, refinedAccountDefinition);
 
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, result);
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, opResult);
 
 		// TODO: process result
 	}
@@ -240,8 +241,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		// find accounts
 //		QueryType query = QueryUtil.createQuery(QueryUtil.createEqualFilter(DOMUtil.getDocument(), null,
 //				AccountShadowType.F_FAILED_OPERATION_TYPE, "!=null"));
+		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".RepoReconciliation");
+		opResult.addParam("reconciled", true);
 		List<PrismObject<AccountShadowType>> shadows = repositoryService.listObjects(
-				AccountShadowType.class, new PagingType(), result);
+				AccountShadowType.class, new PagingType(), opResult);
 
 		for (PrismObject<AccountShadowType> shadow : shadows) {
 
@@ -254,13 +257,13 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			}
 
 			try {
-				retryFailedOperation(shadow.asObjectable(), result);
+				retryFailedOperation(shadow.asObjectable(), opResult);
 			} catch (Exception ex) {
 				Collection<? extends ItemDelta> modifications = PropertyDelta
 						.createModificationReplacePropertyCollection(AccountShadowType.F_ATTEMPT_NUMBER,
 								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
 				repositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
-						result);
+						opResult);
 			}
 		}
 
@@ -277,6 +280,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.ADD)) {
 			addObject(shadow.asPrismObject(), parentResult);
+			return;
 
 		}
 		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.MODIFY)) {
@@ -285,10 +289,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 					shadowDelta.getModification(), shadow.asPrismObject().getDefinition());
 
 			modifyObject(shadow.getOid(), modifications, parentResult);
+			return;
 		}
 
 		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.DELETE)) {
 			deleteObject(shadow.getOid(), parentResult);
+			return;
 		}
 	}
 
