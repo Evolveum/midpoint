@@ -4,7 +4,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -87,7 +87,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OptionContent content = new OptionContent("optionContent");
         main.add(content);
-        TablePanel table = new TablePanel("table", new ObjectDataProvider(PageDebugList.this, UserType.class), columns);
+        TablePanel table = new TablePanel("table", new RepositoryObjectDataProvider(PageDebugList.this, UserType.class), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
 
@@ -176,7 +176,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         ObjectTypes type = selected.getObject();
         if (type != null) {
-            ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
+            RepositoryObjectDataProvider provider = getTableDataProvider();
             provider.setType(type.getClassDefinition());
         }
         target.add(table);
@@ -188,10 +188,14 @@ public class PageDebugList extends PageAdminConfiguration {
         setResponsePage(PageDebugView.class, parameters);
     }
 
-    private List<ObjectType> getSelectedObjects() {
+    private RepositoryObjectDataProvider getTableDataProvider() {
         TablePanel tablePanel = getListTable();
         DataTable table = tablePanel.getDataTable();
-        ObjectDataProvider<ObjectType> provider = (ObjectDataProvider<ObjectType>) table.getDataProvider();
+        return (RepositoryObjectDataProvider<ObjectType>) table.getDataProvider();
+    }
+
+    private List<ObjectType> getSelectedObjects() {
+        RepositoryObjectDataProvider<ObjectType> provider = getTableDataProvider();
 
         List<ObjectType> selected = new ArrayList<ObjectType>();
         for (SelectableBean<ObjectType> row : provider.getAvailableData()) {

@@ -323,6 +323,7 @@ public class ObjectWrapper implements Serializable {
             PrismContainer container = containerWrapper.getItem();
             PropertyPath path = containerWrapper.getPath();
             if (containerWrapper.getPath() != null) {
+                container = container.clone();
                 if (path.size() > 1) {
                     PropertyPath parentPath = path.allExceptLast();
                     PrismContainer parent = object.findOrCreateContainer(parentPath);
@@ -339,7 +340,7 @@ public class ObjectWrapper implements Serializable {
                     continue;
                 }
 
-                PrismProperty property = propertyWrapper.getItem();
+                PrismProperty property = propertyWrapper.getItem().clone();
                 container.add(property);
                 for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
                     if (!valueWrapper.hasValueChanged() || ValueStatus.DELETED.equals(valueWrapper.getStatus())) {

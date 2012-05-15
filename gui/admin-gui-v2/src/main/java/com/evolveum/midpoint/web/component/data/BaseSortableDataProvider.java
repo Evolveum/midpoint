@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -60,6 +61,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected ModelService getModel() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
         return application.getModel();
+    }
+
+    protected RepositoryService getRepository() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getRepository();
     }
 
     protected TaskManager getTaskManager() {

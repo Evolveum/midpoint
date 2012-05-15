@@ -23,8 +23,6 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -39,20 +37,20 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataProvider<SelectableBean<T>> {
+public class RepositoryObjectDataProvider<T extends ObjectType>
+        extends BaseSortableDataProvider<SelectableBean<T>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
-    private static final String DOT_CLASS = ObjectDataProvider.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(RepositoryObjectDataProvider.class);
+    private static final String DOT_CLASS = RepositoryObjectDataProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
     private Class<T> type;
 
-    public ObjectDataProvider(PageBase page, Class<T> type) {
+    public RepositoryObjectDataProvider(PageBase page, Class<T> type) {
         super(page);
 
-        Validate.notNull(type);
-        this.type = type;
+        setType(type);
     }
 
     @Override
@@ -62,10 +60,8 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
             PagingType paging = createPaging(first, count);
-            TaskManager manager = getTaskManager();
-            Task task = manager.createTaskInstance(OPERATION_SEARCH_OBJECTS);
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, getQuery(), paging, task, result);
+            List<PrismObject<T>> list = getRepository().searchObjects(type, getQuery(), paging, result);
             for (PrismObject<T> object : list) {
                 getAvailableData().add(new SelectableBean<T>(object.asObjectable()));
             }
@@ -87,9 +83,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-            TaskManager manager = getTaskManager();
-            Task task = manager.createTaskInstance(OPERATION_COUNT_OBJECTS);
-            count = getModel().countObjects(type, getQuery(), task, result);
+            count = getRepository().countObjects(type, getQuery(), result);
 
             result.recordSuccess();
         } catch (Exception ex) {
@@ -101,5 +95,10 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
         }
 
         return count;
+    }
+
+    public void setType(Class<T> type) {
+        Validate.notNull(type);
+        this.type = type;
     }
 }

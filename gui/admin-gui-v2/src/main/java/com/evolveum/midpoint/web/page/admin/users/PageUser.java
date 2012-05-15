@@ -25,8 +25,10 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -93,7 +95,7 @@ public class PageUser extends PageAdminUsers {
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
-    private static final String OPERAION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
+    private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
 
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
     private static final String MODAL_ID_ROLE = "rolePopup";
@@ -367,10 +369,10 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected IModel<ResourceReference> createIconModel(final IModel<UserAssignmentDto> rowModel) {
-                return new AbstractReadOnlyModel() {
+                return new AbstractReadOnlyModel<ResourceReference>() {
 
                     @Override
-                    public Object getObject() {
+                    public ResourceReference getObject() {
                         UserAssignmentDto dto = rowModel.getObject();
                         switch (dto.getType()) {
                             case ROLE:
@@ -634,9 +636,10 @@ public class PageUser extends PageAdminUsers {
                         || delta.isEmpty()) {
                     continue;
                 }
-                subResult = result.createSubresult(OPERAION_MODIFY_ACCOUNT);
+                subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
+                Task task = getTaskManager().createTaskInstance(OPERATION_MODIFY_ACCOUNT);
 
-                Task task = getTaskManager().createTaskInstance(OPERAION_MODIFY_ACCOUNT);
+                encryptCredentials(delta, true);
                 getModelService().modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(),
                         task, subResult);
                 subResult.recomputeStatus();
@@ -691,18 +694,19 @@ public class PageUser extends PageAdminUsers {
         //handle accounts
         List<UserAccountDto> accounts = accountsModel.getObject();
         for (UserAccountDto accDto : accounts) {
+            ObjectWrapper accountWrapper = accDto.getObject();
+            ObjectDelta delta = accountWrapper.getObjectDelta();
+            PrismObject<AccountShadowType> account = delta.getObjectToAdd();
+            encryptCredentials(account, true);
+
+            ReferenceDelta refDelta = new ReferenceDelta(findAccountRefDefinition());
+            userDelta.addModification(refDelta);
+
+            PrismReferenceValue refValue = new PrismReferenceValue(null, SourceType.USER_ACTION, null);
+
             switch (accDto.getStatus()) {
                 case ADD:
                 case DELETE:
-                    ObjectWrapper accountWrapper = accDto.getObject();
-                    ObjectDelta delta = accountWrapper.getObjectDelta();
-                    PrismObject<AccountShadowType> account = delta.getObjectToAdd();
-                    encryptCredentials(account, true);
-
-                    ReferenceDelta refDelta = new ReferenceDelta(findAccountRefDefinition());
-                    userDelta.addModification(refDelta);
-
-                    PrismReferenceValue refValue = new PrismReferenceValue(null, SourceType.USER_ACTION, null);
                     refValue.setObject(account);
                     if (UserDtoStatus.ADD.equals(accDto.getStatus())) {
                         refDelta.addValueToAdd(refValue);
@@ -714,7 +718,9 @@ public class PageUser extends PageAdminUsers {
                     //nothing to do, account modifications were applied before
                     continue;
                 case UNLINK:
-                    //todo implement later
+                    refValue.setOid(account.getOid());
+                    refValue.setTargetType(account.getName());
+                    refDelta.addValueToDelete(refValue);
                     break;
                 default:
                     warn(getString("pageUser.message.illegalAccountState", accDto.getStatus()));
@@ -765,7 +771,7 @@ public class PageUser extends PageAdminUsers {
                     getModelService().modifyObject(UserType.class, delta.getOid(),
                             delta.getModifications(), task, result);
                     break;
-                //todo delete state is where? wtf?? in next release add there delete state as well as
+                // delete state is where? wtf?? in next release add there delete state as well as
                 // support for add/delete containers (e.g. delete credentials)
                 default:
                     error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
@@ -777,8 +783,6 @@ public class PageUser extends PageAdminUsers {
             LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
         }
 
-        // encryptCredentials(userWrapper.getObject(), true); //todo encryption
-
         if (!result.isSuccess()) {
             showResult(result);
             target.add(getFeedbackPanel());
@@ -789,10 +793,20 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void encryptCredentials(ObjectDelta delta, boolean encrypt) {
+        if (delta == null || delta.isEmpty()) {
+            return;
+        }
 
+        PropertyDelta propertyDelta = delta.findPropertyDelta(new PropertyPath(
+                SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD));
+        if (propertyDelta == null) {
+            return;
+        }
 
-        ProtectedStringType string = null;
-        encryptProtectedString(string, encrypt);
+        Collection<ProtectedStringType> values = propertyDelta.getValues(ProtectedStringType.class);
+        for (ProtectedStringType string : values) {
+            encryptProtectedString(string, encrypt);
+        }
     }
 
     private void encryptCredentials(PrismObject object, boolean encrypt) {
@@ -1031,6 +1045,12 @@ public class PageUser extends PageAdminUsers {
             return;
         }
 
-        //todo implement
+        for (UserAccountDto account : selected) {
+            if (UserDtoStatus.ADD.equals(account.getStatus())) {
+                continue;
+            }
+            account.setStatus(UserDtoStatus.UNLINK);
+        }
+        target.add(getAccountsAccordionItem());
     }
 }

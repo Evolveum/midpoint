@@ -1,12 +1,11 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -25,16 +24,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class PageDebugView extends PageAdminConfiguration {
 
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
-
-    @Autowired
-    private Task task;
 
     public static final String PARAM_OBJECT_ID = "objectId";
     private IModel<ObjectViewDto> model;
@@ -62,23 +57,22 @@ public class PageDebugView extends PageAdminConfiguration {
         ObjectViewDto dto = null;
         try {
             MidPointApplication application = PageDebugView.this.getMidpointApplication();
-            ModelService model = application.getModel();
+            RepositoryService repository = application.getRepository();
 
-            Task task = getTaskManager().createTaskInstance(OPERATION_LOAD_OBJECT);
-            PrismObject<ObjectType> object = model.getObject(ObjectType.class, objectOid.toString(),
-                    null, task, result);
+            PrismObject<ObjectType> object = repository.getObject(ObjectType.class, objectOid.toString(), result);
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
 
             dto = new ObjectViewDto(object.getOid(), DtoUtils.getName(object), object, xml);
 
-            result.recordSuccess();
+            result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't load object.", ex);
         }
 
         if (dto == null) {
-            dto = new ObjectViewDto();
+            showResultInSession(result);
+            throw new RestartResponseException(PageDebugList.class);
         }
 
         if (!result.isSuccess()) {
@@ -131,8 +125,8 @@ public class PageDebugView extends PageAdminConfiguration {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 target.appendJavaScript("history.go(-1)");
-            	
-            	//setResponsePage(PageDebugList.class);
+
+                //setResponsePage(PageDebugList.class);
             }
         };
         mainForm.add(backButton);
@@ -159,7 +153,10 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismObject<ObjectType> newObject = domProcessor.parseObject(editor.getModel().getObject());
             ObjectDelta<ObjectType> delta = oldObject.diff(newObject);
 
-            getModelService().modifyObject(ObjectType.class, delta.getOid(), delta.getModifications(), task, result);
+            MidPointApplication application = PageDebugView.this.getMidpointApplication();
+            RepositoryService repository = application.getRepository();
+
+            repository.modifyObject(ObjectType.class, delta.getOid(), delta.getModifications(), result);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save object.", ex);
@@ -169,6 +166,7 @@ public class PageDebugView extends PageAdminConfiguration {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
+            showResultInSession(result);
             setResponsePage(PageDebugList.class);
         }
     }
