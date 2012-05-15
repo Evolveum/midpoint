@@ -35,23 +35,35 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3._2001._04.xmlenc.EncryptedDataType;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -167,5 +179,32 @@ public class TestJaxbParsing {
         
         //todo locations ????? how to test DOM ??????
     }
-    
+
+    @Test
+    public void testMarshallObjectDeltaType() throws Exception {
+        ObjectDeltaType delta = new ObjectDeltaType();
+        delta.setOid("07b32c14-0c18-460b-bd4a-99b96699f952");
+        delta.setChangeType(ChangeTypeType.MODIFY);
+
+        ItemDeltaType item1 = new ItemDeltaType();
+        delta.getModification().add(item1);
+        item1.setModificationType(ModificationTypeType.REPLACE);
+        Document document = DOMUtil.getDocument();
+        Element path = document.createElementNS(SchemaConstantsGenerated.NS_TYPES, "path");
+        path.setTextContent("c:credentials/c:password");
+        item1.setPath(path);
+        ProtectedStringType string = new ProtectedStringType();
+        string.setEncryptedData(new EncryptedDataType());
+        ItemDeltaType.Value value = new ItemDeltaType.Value();
+        value.getAny().add(string);
+        item1.setValue(value);
+
+        //fix marshalling somehow, or change the way how to create XML from ObjectDeltaType
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
+        String xml = prismContext.getPrismJaxbProcessor().marshalElementToString(
+                new JAXBElement<Object>(new QName("http://www.example.com", "custom"), Object.class, delta), properties);
+        assertNotNull(xml);
+    }
 }
