@@ -64,9 +64,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     protected PrismValue parent;
     protected ItemDefinition definition;
     private List<V> values = new ArrayList<V>();
-    private Map<String,Object> userData;
+    private transient Map<String,Object> userData;
     
-    transient protected PrismContext prismContext;
+    protected transient PrismContext prismContext;
 
     /**
      * This is used for definition-less construction, e.g. in JAXB beans.

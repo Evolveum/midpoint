@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -626,6 +625,8 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void modifyAccounts(OperationResult result) {
+        LOGGER.debug("Modifying existing accounts.");
+
         List<UserAccountDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
         for (UserAccountDto account : accounts) {
@@ -763,11 +764,17 @@ public class PageUser extends PageAdminUsers {
                     prepareUserForAdd(user);
                     getPrismContext().adopt(user, UserType.class);
 
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before add user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
                     getModelService().addObject(user, task, result);
                     break;
                 case MODIFYING:
                     encryptCredentials(delta, true);
                     prepareUserDeltaForModify(delta);
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
                     getModelService().modifyObject(UserType.class, delta.getOid(),
                             delta.getModifications(), task, result);
                     break;
