@@ -679,6 +679,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             //merge and update user
             LOGGER.debug("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
+            rObject.setVersion(rObject.getVersion() + 1);
 
             session.merge(rObject);
             session.getTransaction().commit();
