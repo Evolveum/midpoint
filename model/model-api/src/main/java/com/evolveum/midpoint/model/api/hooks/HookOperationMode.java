@@ -40,6 +40,11 @@ public enum HookOperationMode {
 	 * hook method must be used only to return back to the caller (e.g. GUI) and inform
 	 * him that the task was switched to background.
 	 */
-	BACKGROUND;
+	BACKGROUND,
+
+    /**
+     * Hook completes with an error (TODO).
+     */
+    ERROR;
 
 }

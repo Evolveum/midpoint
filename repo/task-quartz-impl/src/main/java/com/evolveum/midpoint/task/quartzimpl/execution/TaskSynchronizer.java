@@ -52,6 +52,9 @@ import static org.quartz.impl.matchers.GroupMatcher.jobGroupEquals;
  * The mapping between tasks in repo and jobs in Quartz looks like this:
  *
  * 1) each task corresponds to a job; job name = task oid, job group = DEFAULT
+ *
+ *    TODO: should waiting/closed tasks have their jobs? At minimum, we do not create them if they do not exist
+ *
  * 2) each task has 0, 1 or 2 triggers
  *    - if task is RUNNABLE, it has 1 or 2 triggers
  *      (one trigger is standard, with trigger name = task oid, trigger group = DEFAULT;
@@ -104,13 +107,16 @@ public class TaskSynchronizer {
         // check consistency of tasks present in repo
         Set<String> oidsInRepo = new HashSet<String>();
         int processed = 0;
+        int changed = 0;
         int errors = 0;
         for (PrismObject<TaskType> taskPrism : tasks) {
             oidsInRepo.add(taskPrism.getOid());
             TaskQuartzImpl task = null;
             try {
                 task = (TaskQuartzImpl) taskManager.getTask(taskPrism.getOid(), result);    // in order for the task to be "fresh"
-                synchronizeTask(task, result);
+                if (synchronizeTask(task, result)) {
+                    changed++;      // todo are we sure that we increment this counter only for successfully processed tasks? we hope so :)
+                }
             } catch (SchemaException e) {
                 LoggingUtils.logException(LOGGER, "Task Manager cannot synchronize task {} due to schema exception.", e, taskPrism.getOid());
             } catch (ObjectNotFoundException e) {
@@ -154,7 +160,7 @@ public class TaskSynchronizer {
         }
 
         String resultMessage = "Synchronization of midpoint and Quartz task store finished. "
-                + processed + " task(s) existing in midPoint repository successfully processed. "
+                + processed + " task(s) existing in midPoint repository successfully processed, resulting in " + changed + " updated Quartz job(s). "
                 + removed + " task(s) removed from Quartz job store. Processing of "
                 + errors + " task(s) failed.";
 
@@ -168,8 +174,13 @@ public class TaskSynchronizer {
 
     /**
      * Task should be refreshed when entering this method.
+     *
+     * @return true if task info in Quartz was updated
      */
-    public void synchronizeTask(TaskQuartzImpl task, OperationResult parentResult) {
+    public boolean synchronizeTask(TaskQuartzImpl task, OperationResult parentResult) {
+
+        boolean changed = false;
+        String message = "";
 
         OperationResult result = parentResult.createSubresult(TaskSynchronizer.class.getName() + ".synchronizeTask");
         result.addParam("task", task);
@@ -184,18 +195,26 @@ public class TaskSynchronizer {
             JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
             TriggerKey triggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
 
-            if (!scheduler.checkExists(jobKey)) {
-                LOGGER.trace(" - Quartz job does not exist for a task, adding it. Task = {}", task);
+            boolean waitingOrClosed = task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
+
+            if (!scheduler.checkExists(jobKey) && !waitingOrClosed) {
+                String m1 = "Quartz job does not exist for a task, adding it. Task = " + task;
+                message += "[" + m1 + "] ";
+                LOGGER.trace(" - " + m1);
                 scheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
+                changed = true;
             }
 
             // WAITING and CLOSED tasks should have no triggers
 
             boolean triggerExists = scheduler.checkExists(triggerKey);
-            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+            if (waitingOrClosed) {
                 if (triggerExists) {
-                    LOGGER.trace(" - removing Quartz trigger for WAITING/CLOSED task {}", task);
+                    String m1 = "Removing Quartz trigger for WAITING/CLOSED task " + task;
+                    message += "[" + m1 + "] ";
+                    LOGGER.trace(" - " + m1);
                     scheduler.unscheduleJob(TriggerKey.triggerKey(oid));
+                    changed = true;
                 }
             } else if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
                 // For SUSPENDED tasks, we do nothing.
@@ -208,44 +227,58 @@ public class TaskSynchronizer {
                 try {
                     triggerToBe = TaskQuartzImplUtil.createTriggerForTask(task);
                 } catch (ParseException e) {
-                    String message = "Cannot create a trigger for a task " + this + " because of a cron expression parsing exception";
-                    LoggingUtils.logException(LOGGER, message, e);
-                    result.recordFatalError(message, e);
+                    String message2 = "Cannot create a trigger for a task " + this + " because of a cron expression parsing exception";
+                    LoggingUtils.logException(LOGGER, message2, e);
+                    result.recordFatalError(message2, e);
                     // TODO: implement error handling correctly
                     throw new SystemException("Cannot a trigger for a task because of a cron expression parsing exception", e);
                 }
 
                 // if the trigger should exist and it does not...
                 if (!triggerExists) {
-                    LOGGER.trace(" - creating trigger for a RUNNABLE task {}", task);
+                    String m1 = "Creating trigger for a RUNNABLE task " + task;
+                    LOGGER.trace(" - " + m1);
+                    message += "[" + m1 + "] ";
                     scheduler.scheduleJob(triggerToBe);
+                    changed = true;
                 } else {
 
                     // we have to compare trigger parameters with the task's ones
                     Trigger triggerAsIs = scheduler.getTrigger(triggerKey);
 
                     if (TaskQuartzImplUtil.triggerDataMapsDiffer(triggerAsIs, triggerToBe)) {
-                        LOGGER.trace(" - existing trigger has an incompatible parameters, recreating it; task = {}", task);
+                        String m1 = "Existing trigger has an incompatible parameters, recreating it; task = " + task;
+                        LOGGER.trace(" - " + m1);
+                        message += "[" + m1 + "] ";
                         scheduler.rescheduleJob(triggerKey, triggerToBe);
+                        changed = true;
                     } else {
-                        LOGGER.trace(" - existing trigger is OK, leaving it as is; task = {}", task);
+                        String m1 = "Existing trigger is OK, leaving it as is; task = " + task;
+                        LOGGER.trace(" - " + m1);
+                        message += "[" + m1 + "] ";
                         Trigger.TriggerState state = scheduler.getTriggerState(triggerKey);
                         if (state == Trigger.TriggerState.PAUSED) {
-                            LOGGER.trace(" - however, the trigger is paused, resuming it; task = {}", task);
+                            String m2 = "However, the trigger is paused, resuming it; task = " + task;
+                            LOGGER.trace(" - " + m2);
+                            message += "[" + m2 + "] ";
                             scheduler.resumeTrigger(triggerKey);
+                            changed = true;
                         }
                     }
                 }
             }
         } catch (SchedulerException e) {
-            String message = "Cannot synchronize repository/Quartz Job Store information for task " + task;
-            LoggingUtils.logException(LOGGER, message, e);
-            result.recordFatalError(message, e);
+            String message2 = "Cannot synchronize repository/Quartz Job Store information for task " + task;
+            LoggingUtils.logException(LOGGER, message2, e);
+            result.recordFatalError(message2, e);
         }
 
         if (result.isUnknown()) {
             result.computeStatus();
+            result.recordStatus(result.getStatus(), message);
         }
+
+        return changed;
     }
 
     private RepositoryService getRepositoryService() {

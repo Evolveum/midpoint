@@ -88,6 +88,20 @@ public interface Task extends Dumpable {
 	public TaskExecutionStatus getExecutionStatus();
 
     /**
+     * Status-changing method. It changes task's execution status to WAITING.
+     * Use with care, currently only on transient tasks.
+     */
+
+    public void makeWaiting();
+
+    /**
+     * Status-changing method. It changes task's execution status to RUNNABLE.
+     * Use with care, currently only on transient tasks.
+     */
+
+    public void makeRunnable();
+
+    /**
      * Returns the node the task is currently executing at, based on real run-time information.
      *
      * BEWARE, this information is valid only when returned from searchTasks
@@ -123,6 +137,10 @@ public interface Task extends Dumpable {
 	 * @return task persistence status.
 	 */
 	public TaskPersistenceStatus getPersistenceStatus();
+
+    boolean isTransient();
+
+    boolean isPersistent();
 	
 	/**
 	 * Returns task exclusivity status.
@@ -455,6 +473,8 @@ public interface Task extends Dumpable {
 
     void makeRecurrentCron(String cronLikeSpecification);
 
+    void makeSingle();
+
     String getNode();
 
     OperationResultStatusType getResultStatus();
@@ -468,4 +488,31 @@ public interface Task extends Dumpable {
      */
 
     boolean isResilient();
+
+    ModelOperationStateType getModelOperationState();
+
+    void pushHandlerUri(String uri);
+
+    void setCategory(String category);
+
+
+    void setDescriptionImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+    void setDescription(String value);
+
+    String getDescription();
+
+    void addExtensionProperty(PrismProperty<?> property) throws SchemaException;
+
+    /**
+     * Removes specified VALUES of this extension property (not all of its values).
+     *
+     * @param property
+     * @throws SchemaException
+     */
+    void deleteExtensionProperty(PrismProperty<?> property) throws SchemaException;
+
+    void setModelOperationState(ModelOperationStateType state);
+
+    void replaceCurrentHandlerUri(String newUri);
 }

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.wf.WorkflowManager;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
@@ -57,6 +58,8 @@ public abstract class PageBase extends WebPage {
     private RepositoryService cacheRepositoryService;
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
+    @SpringBean(name = "workflowManager")
+    private WorkflowManager workflowManager;
 
     public PageBase() {
         Injector.get().inject(this);
@@ -128,6 +131,10 @@ public abstract class PageBase extends WebPage {
 
     protected TaskManager getTaskManager() {
         return taskManager;
+    }
+
+    protected WorkflowManager getWorkflowManager() {
+        return workflowManager;
     }
 
     protected IModel<String> createPageTitleModel() {

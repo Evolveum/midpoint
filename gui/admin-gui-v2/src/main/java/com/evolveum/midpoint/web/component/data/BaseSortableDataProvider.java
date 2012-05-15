@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -71,6 +72,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected TaskManager getTaskManager() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
         return application.getTaskManager();
+    }
+
+    protected WorkflowManager getWorkflowManager() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getWorkflowManager();
     }
 
     public List<T> getAvailableData() {

@@ -54,5 +54,6 @@
 	<modules>
 		<module>model-api</module>
 		<module>model-impl</module>
+        <module>workflow</module>
 	</modules>
 </project>

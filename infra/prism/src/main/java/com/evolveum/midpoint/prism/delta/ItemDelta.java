@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -45,7 +46,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  * 
  */
-public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable {
+public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Serializable {
 
 	/**
 	 * Name of the property

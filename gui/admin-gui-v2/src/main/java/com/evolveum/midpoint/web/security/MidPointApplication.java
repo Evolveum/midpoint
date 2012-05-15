@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.resource.js.JsResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.wf.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
@@ -79,10 +80,13 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient TaskManager taskManager;
     @Autowired
+    transient private WorkflowManager workflowManager;
+    @Autowired
     transient MidpointConfiguration configuration;
     @Autowired(required = true)
     transient Protector protector;
     private WebApplicationConfiguration webApplicationConfiguration;
+
 
     @Override
     public Class<PageHome> getHomePage() {
@@ -205,6 +209,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Override
     protected Class<? extends AbstractAuthenticatedWebSession> getWebSessionClass() {
         return MidPointAuthWebSession.class;
+    }
+
+    public WorkflowManager getWorkflowManager() {
+        return workflowManager;
     }
 
     private static class ResourceFileFilter implements FilenameFilter {

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -61,7 +62,7 @@ import java.util.*;
  * @author Radovan Semancik
  * @see PropertyDelta
  */
-public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpable {
+public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpable, Serializable {
 
     private ChangeType changeType;
 

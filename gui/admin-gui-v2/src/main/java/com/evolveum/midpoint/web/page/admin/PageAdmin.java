@@ -37,6 +37,10 @@ import com.evolveum.midpoint.web.page.admin.server.PageAdminTasks;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +57,12 @@ public class PageAdmin extends PageBase {
 //        items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description", PageHome.class));
         items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description",
                 PageUsers.class, PageAdminUsers.class));
+
+        if (getWorkflowManager().isEnabled()) {
+            items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description",
+                    PageWorkItems.class, PageAdminWorkItems.class));
+        }
+
         items.add(new TopMenuItem("pageAdmin.serverTasks", "pageAdmin.serverTasks.description",
                 PageTasks.class, PageAdminTasks.class));
         items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description",

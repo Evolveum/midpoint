@@ -19,23 +19,28 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.task.api;
+package com.evolveum.midpoint.wf.activiti;
+
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 3.5.2012
- * Time: 21:50
- * To change this template use File | Settings | File Templates.
+ * Currently unused. Necessary for "smart" workflow tasks.
  */
-public class TaskCategory {
 
-    public static final String DEMO = "Demo";
-    public static final String IMPORTING_ACCOUNTS = "ImportingAccounts";
-    public static final String IMPORT_FROM_FILE = "ImportFromFile";
-    public static final String LIVE_SYNCHRONIZATION = "LiveSynchronization";
-    public static final String MOCK = "Mock";
-    public static final String USER_RECOMPUTATION = "UserRecomputation";
-    public static final String RECONCILIATION = "Reconciliation";
-    public static final String WORKFLOW = "Workflow";
+public class SpringApplicationContextHolder implements ApplicationContextAware {
+
+	private static ApplicationContext context;
+
+	public void setApplicationContext(ApplicationContext ctx) throws BeansException { 
+		context = ctx;
+    }  
+
+	public static ApplicationContext getApplicationContext() {
+		return context;
+	}
+
 }
+
+  

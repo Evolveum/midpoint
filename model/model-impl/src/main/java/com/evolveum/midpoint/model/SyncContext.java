@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,7 +64,7 @@ import java.util.Map.Entry;
  *
  * @author Radovan Semancik
  */
-public class SyncContext implements Dumpable, DebugDumpable {
+public class SyncContext implements Dumpable, DebugDumpable, Serializable {
 
     /**
      * User as midPointObject before any change (at the time when context was created)
