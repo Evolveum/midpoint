@@ -71,14 +71,16 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 public class PageResource extends PageAdminResources {
 
 	public static final String PARAM_RESOURCE_ID = "resourceId";
-	private static final String OPERATION_LOAD_RESOURCE = "pageResource.loadResource";
 	private static final String DOT_CLASS = PageResource.class.getName() + ".";
+	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+	
 	private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
 
 	private IModel<ResourceDto> model;
@@ -126,7 +128,7 @@ public class PageResource extends PageAdminResources {
             }
             throw new RestartResponseException(PageResources.class);
         }
-		return new ResourceDto(resource, resource.asObjectable().getConnector(),
+		return new ResourceDto(resource, getMidpointApplication().getPrismContext(), resource.asObjectable().getConnector(),
 				initCapabilities(resource.asObjectable()));
 	}
 
@@ -219,13 +221,13 @@ public class PageResource extends PageAdminResources {
 			}
 		}));
 
-		container.add(new Image("conSanity", new AbstractReadOnlyModel() {
+		/*container.add(new Image("conSanity", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
 				return new PackageResourceReference(PageResource.class, model.getObject().getState()
 						.getConSanity().getIcon());
 			}
-		}));
+		}));*/
 
 		container.add(new Image("conSchema", new AbstractReadOnlyModel() {
 			@Override

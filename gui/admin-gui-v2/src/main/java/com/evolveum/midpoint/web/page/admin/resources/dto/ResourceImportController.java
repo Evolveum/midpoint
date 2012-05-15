@@ -38,6 +38,10 @@ public class ResourceImportController implements Serializable {
 	private OperationResult lastError;
 	private long progress;
 	private boolean running;
+	
+	public ResourceImportController(){
+		//TODO
+	}
 
 	public String getName() {
 		return name;

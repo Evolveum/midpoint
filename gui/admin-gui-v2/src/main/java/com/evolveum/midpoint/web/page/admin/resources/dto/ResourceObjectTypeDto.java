@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 
 /**
@@ -39,29 +40,21 @@ public class ResourceObjectTypeDto implements Serializable {
 	private String displayName;
 	private String nativeObjectClass;
 	private String help;
-	private QName type;
+	private String type;
 
-	public ResourceObjectTypeDto(ResourceAttributeContainerDefinition definition) {
+	public ResourceObjectTypeDto(ObjectClassComplexTypeDefinition definition) {
 		Validate.notNull(definition, "Resource object definition can't be null.");
 
 		displayName = definition.getDisplayName();
+		if(displayName == null){
+			displayName = "-";
+		}
+
 		nativeObjectClass = definition.getNativeObjectClass();
 		help = definition.getHelp();
 		if (definition.getTypeName() != null) {
-			this.type = definition.getTypeName();
+			this.type = definition.getTypeName().getLocalPart();
 		}
-	}
-
-	public String getQualifiedType() {
-		if (type == null) {
-			return "";
-		}
-		StringBuilder builder = new StringBuilder();
-		builder.append("{");
-		builder.append(type.getNamespaceURI());
-		builder.append("}");
-		builder.append(type.getLocalPart());
-		return builder.toString();
 	}
 
 	public String getDisplayName() {
@@ -85,15 +78,7 @@ public class ResourceObjectTypeDto implements Serializable {
 		return help;
 	}
 
-	public QName getType() {
+	public String getType() {
 		return type;
 	}
-
-	public String getSimpleType() {
-		if (type == null) {
-			return "";
-		}
-		return type.getLocalPart();
-	}
-	
 }

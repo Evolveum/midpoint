@@ -26,11 +26,19 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.RestartResponseException;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.page.admin.resources.PageResource;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -39,6 +47,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  * @author lazyman
  */
 public class ResourceDto extends Selectable {
+	
+	private static final String DOT_CLASS = ResourceDto.class.getName() + ".";
+	private static final String OPERATION_LOAD_RESOURCE_DEFINITION = DOT_CLASS + "ResourceDto - load resource attribute container definition";
 
     private String oid;
     private String name;
@@ -56,17 +67,17 @@ public class ResourceDto extends Selectable {
     }
     
     public ResourceDto(PrismObject<ResourceType> resource, ConnectorType connector) {
-        Validate.notNull(resource);
-
-        oid = resource.getOid();
+    	oid = resource.getOid();
         name = MiscUtil.getName(resource);
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;
     }
 
-    public ResourceDto(PrismObject<ResourceType> resource, ConnectorType connector, List<String> capabilities) {
+    public ResourceDto(PrismObject<ResourceType> resource, PrismContext prismContext, ConnectorType connector, List<String> capabilities) {
         Validate.notNull(resource);
+        
+        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE_DEFINITION);
 
         oid = resource.getOid();
         name = MiscUtil.getName(resource);
@@ -75,14 +86,20 @@ public class ResourceDto extends Selectable {
         type = connector != null ? connector.getConnectorType() : null;
         this.capabilities = capabilities;
         
-        Collection<ItemDefinition> definitions = resource.getDefinition().findContainerDefinition(resource.getName()).getDefinitions();
-		for (ItemDefinition definition : definitions) {
-			if (!(definition instanceof ResourceAttributeContainerDefinition)) {
-				continue;
-			}
-
-			ResourceAttributeContainerDefinition objectDefinition = (ResourceAttributeContainerDefinition) definition;
-			objectTypes.add(new ResourceObjectTypeDto(objectDefinition));
+        try {
+	        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+	        Collection<ObjectClassComplexTypeDefinition> definitions = resourceSchema.getObjectClassDefinitions();
+	        for (ObjectClassComplexTypeDefinition definition : definitions) {
+    			if (!(definition instanceof ObjectClassComplexTypeDefinition)) {
+    				continue;
+    			}
+    			if(objectTypes == null){
+    				objectTypes = new ArrayList<ResourceObjectTypeDto>();
+    			}
+    			objectTypes.add(new ResourceObjectTypeDto(definition));
+    		}
+		} catch (Exception ex) {
+			result.recordFatalError("Couldn't load resource attribute container definition.", ex);
 		}
     }
 
