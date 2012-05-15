@@ -153,6 +153,8 @@ public class TestSchemaSanity {
 		assertTrue("Extension is NOT runtime", extensionContainer.isRuntimeSchema());
 		assertTrue("Extension is NOT dynamic", extensionContainer.isDynamic());
 		assertEquals("Extension size", 0, extensionContainer.getDefinitions().size());
+		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, UserType.F_EXTENSION, "Extension");
+		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, UserType.F_EXTENSION, 1000);
 
 		PrismContainerDefinition activationContainer = userDefinition.findContainerDefinition(UserType.F_ACTIVATION);
 		PrismAsserts.assertDefinition(activationContainer, UserType.F_ACTIVATION, ActivationType.COMPLEX_TYPE, 0, 1);
