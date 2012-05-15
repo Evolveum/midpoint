@@ -700,21 +700,12 @@ class DomToSchemaProcessor {
 			setMultiplicity(pcd, elementParticle, elementDecl.getAnnotation(), topLevel);
 		}
 		
-		// ignore		
-		List<Element> ignore = SchemaProcessorUtil.getAnnotationElements(complexTypeAnnotation, A_IGNORE);
-		if (ignore != null && !ignore.isEmpty()) {
-			if (ignore.size() != 1) {
-				throw new SchemaException("More than one "+A_IGNORE.getLocalPart()+" annotation on declaration of element "+elementName);
-			}
-			String ignoreString = ignore.get(0).getTextContent();
-			if (StringUtils.isEmpty(ignoreString)) {
-				// Element is present but no content: defaults to "true"
-				pcd.setIgnored(true);
-			} else {
-				pcd.setIgnored(Boolean.parseBoolean(ignoreString));
-			}
+		parseItemDefinitionAnnotations(pcd, complexTypeAnnotation);
+		parseItemDefinitionAnnotations(pcd, elementDecl.getAnnotation());
+		if (elementParticle != null) {
+			parseItemDefinitionAnnotations(pcd, elementParticle.getAnnotation());
 		}
-		
+				
 		return pcd;
 	}
 
@@ -734,53 +725,8 @@ class DomToSchemaProcessor {
 		setMultiplicity(propDef, elementParticle, annotation, ctd == null);
 		
 		// Process generic annotations
-		
-		if (annotation == null || annotation.getAnnotation() == null) {
-			return propDef;
-		}
-		
-		// ignore		
-		List<Element> ignore = SchemaProcessorUtil.getAnnotationElements(annotation, A_IGNORE);
-		if (ignore != null && !ignore.isEmpty()) {
-			if (ignore.size() != 1) {
-				// TODO: error!
-			}
-			String ignoreString = ignore.get(0).getTextContent();
-			if (StringUtils.isEmpty(ignoreString)) {
-				// Element is present but no content: defaults to "true"
-				propDef.setIgnored(true);
-			} else {
-				propDef.setIgnored(Boolean.parseBoolean(ignoreString));
-			}
-		}
-		
-		// access
-		List<Element> accessList = SchemaProcessorUtil.getAnnotationElements(annotation, A_ACCESS);
-		if (accessList != null && !accessList.isEmpty()) {
-			propDef.setCreate(containsAccessFlag("create", accessList));
-			propDef.setRead(containsAccessFlag("read", accessList));
-			propDef.setUpdate(containsAccessFlag("update", accessList));
-		}
-		
-		// displayName
-		Element attributeDisplayName = SchemaProcessorUtil.getAnnotationElement(annotation, A_DISPLAY_NAME);
-		if (attributeDisplayName != null) {
-			propDef.setDisplayName(attributeDisplayName.getTextContent());
-		}
-
-		// displayOrder
-		Element displayOrderElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_DISPLAY_ORDER);
-		if (displayOrderElement != null) {
-			Integer displayOrder = DOMUtil.getIntegerValue(displayOrderElement);
-			propDef.setDisplayOrder(displayOrder);
-		}
-		
-		// help
-		Element help = SchemaProcessorUtil.getAnnotationElement(annotation, A_HELP);
-		if (help != null) {
-			propDef.setHelp(help.getTextContent());
-		}
-		
+		parseItemDefinitionAnnotations(propDef, annotation);
+				
 		List<Element> accessElements = SchemaProcessorUtil.getAnnotationElements(annotation, A_ACCESS);
 		if (accessElements == null || accessElements.isEmpty()) {
 			// Default access is read-write-create
@@ -812,6 +758,48 @@ class DomToSchemaProcessor {
 		}
 		
 		return propDef;
+	}
+	
+	private void parseItemDefinitionAnnotations(ItemDefinition itemDef, XSAnnotation annotation) throws SchemaException {
+		if (annotation == null || annotation.getAnnotation() == null) {
+			return;
+		}
+		
+		QName elementName = itemDef.getName();
+		
+		// ignore		
+		List<Element> ignore = SchemaProcessorUtil.getAnnotationElements(annotation, A_IGNORE);
+		if (ignore != null && !ignore.isEmpty()) {
+			if (ignore.size() != 1) {
+				throw new SchemaException("More than one "+A_IGNORE.getLocalPart()+" annotation on declaration of element "+elementName);
+			}
+			String ignoreString = ignore.get(0).getTextContent();
+			if (StringUtils.isEmpty(ignoreString)) {
+				// Element is present but no content: defaults to "true"
+				itemDef.setIgnored(true);
+			} else {
+				itemDef.setIgnored(Boolean.parseBoolean(ignoreString));
+			}
+		}
+				
+		// displayName
+		Element attributeDisplayName = SchemaProcessorUtil.getAnnotationElement(annotation, A_DISPLAY_NAME);
+		if (attributeDisplayName != null) {
+			itemDef.setDisplayName(attributeDisplayName.getTextContent());
+		}
+
+		// displayOrder
+		Element displayOrderElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_DISPLAY_ORDER);
+		if (displayOrderElement != null) {
+			Integer displayOrder = DOMUtil.getIntegerValue(displayOrderElement);
+			itemDef.setDisplayOrder(displayOrder);
+		}
+		
+		// help
+		Element help = SchemaProcessorUtil.getAnnotationElement(annotation, A_HELP);
+		if (help != null) {
+			itemDef.setHelp(help.getTextContent());
+		}
 	}
 
 

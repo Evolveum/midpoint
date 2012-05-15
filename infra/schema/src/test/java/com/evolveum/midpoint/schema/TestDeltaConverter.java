@@ -217,4 +217,19 @@ public class TestDeltaConverter {
         assertFalse("Empty modifications", modifications.isEmpty());
         // TODO: more asserts
     }
+    
+//    @Test
+//    public void testProtectedStringObjectDelta() throws Exception {
+//    	System.out.println("===[ testProtectedStringObjectDelta ]====");
+//    	
+//    	// GIVEN
+//    	ObjectDeltaType objectDeltaType = new ObjectDeltaType();
+//        objectDeltaType.setChangeType(ChangeTypeType.MODIFY);
+//        objectDeltaType.setOid(shadow.getOid());
+//        for (ItemDelta itemDelta : modifications) {
+//         objectDeltaType.getModification().addAll(
+//           DeltaConvertor.toPropertyModificationTypes(itemDelta));
+//        }
+//        shadow.setObjectChange(objectDeltaType);
+//    }
 }

@@ -156,21 +156,21 @@ public class PrismAsserts {
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
 	
-	public static void assertPropertyDefinitionDisplayName(PrismContainerDefinition<?> containerDef, QName propertyName, String expectedDisplayName) {
-		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
-		assert expectedDisplayName.equals(definition.getDisplayName()) : "Wrong display name for property "+propertyName+", expected " +
+	public static void assertItemDefinitionDisplayName(PrismContainerDefinition<?> containerDef, QName propertyName, String expectedDisplayName) {
+		ItemDefinition definition = containerDef.findItemDefinition(propertyName);
+		assert equals(expectedDisplayName, definition.getDisplayName()) : "Wrong display name for item "+propertyName+", expected " +
 			expectedDisplayName + ", was " + definition.getDisplayName();
 	}
 
-	public static void assertPropertyDefinitionDisplayOrder(PrismContainerDefinition<?> containerDef, QName propertyName, Integer expectedDisplayOrder) {
-		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
-		assert expectedDisplayOrder == definition.getDisplayOrder() : "Wrong display order for property "+propertyName+", expected " +
+	public static void assertItemDefinitionDisplayOrder(PrismContainerDefinition<?> containerDef, QName propertyName, Integer expectedDisplayOrder) {
+		ItemDefinition definition = containerDef.findItemDefinition(propertyName);
+		assert equals(expectedDisplayOrder, definition.getDisplayOrder()) : "Wrong display order for item "+propertyName+", expected " +
 		expectedDisplayOrder + ", was " + definition.getDisplayOrder();
 	}
-	
-	public static void assertPropertyDefinitionHelp(PrismContainerDefinition<?> containerDef, QName propertyName, String expectedHelp) {
-		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
-		assert expectedHelp.equals(definition.getHelp()) : "Wrong help for property "+propertyName+", expected " +
+		
+	public static void assertItemDefinitionHelp(PrismContainerDefinition<?> containerDef, QName propertyName, String expectedHelp) {
+		ItemDefinition definition = containerDef.findItemDefinition(propertyName);
+		assert equals(expectedHelp, definition.getHelp()) : "Wrong help for item "+propertyName+", expected " +
 			expectedHelp + ", was " + definition.getHelp();
 	}
 	
@@ -491,6 +491,16 @@ public class PrismAsserts {
 	
 	static void fail(String message) {
 		assert false: message;
+	}
+
+	private static boolean equals(Object a, Object b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		return a.equals(b);
 	}
 
 }

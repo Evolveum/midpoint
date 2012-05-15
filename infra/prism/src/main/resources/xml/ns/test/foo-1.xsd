@@ -100,7 +100,15 @@
             	</xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:displayName>Extension</a:displayName>
+            			<a:displayOrder>1000</a:displayOrder>
+            			<a:help>Object extension contains extra properties</a:help>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="oid" type="xsd:string" use="optional"/>
         <xsd:attribute name="version" type="xsd:string" use="optional"/>
@@ -129,7 +137,15 @@
                     <!-- Multi-valued container -->
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>
                     <!-- Single-valued container -->
-                    <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
+                    <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
+                    	<xsd:annotation>
+		            		<xsd:appinfo>
+		            			<a:displayName>Activation</a:displayName>
+		            			<a:displayOrder>1200</a:displayOrder>
+		            			<a:help>User activation properties</a:help>
+		            		</xsd:appinfo>
+		            	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="account" type="tns:AccountType" minOccurs="0" maxOccurs="unbounded">
                     	<xsd:annotation>
                     		<xsd:appinfo>
