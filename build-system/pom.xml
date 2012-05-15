@@ -643,7 +643,7 @@
                                 <suiteXmlFile>testng.xml</suiteXmlFile>
                             </suiteXmlFiles>
                             <systemPropertyVariables>
-                                <!-- 								<midpoint.home>target/midPointHome/</midpoint.home> -->
+                                <midpoint.home>target/midpoint-home</midpoint.home>
                             </systemPropertyVariables>
                             <argLine>-Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>
                             <!--<argLine>-agentpath:/usr/local/yjp-11.0.2/bin/linux-x86-32/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.2/bin/yjp.sh,onexit=snapshot -Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>-->

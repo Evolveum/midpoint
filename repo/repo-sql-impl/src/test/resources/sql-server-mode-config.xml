@@ -29,7 +29,7 @@
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
             <embedded>true</embedded>
             <asServer>true</asServer>
-            <baseDir>target</baseDir>
+            <!--<baseDir>target</baseDir>-->
             <port>5438</port>
             <fileName>midpoint-sm</fileName>
             <dropIfExists>true</dropIfExists>

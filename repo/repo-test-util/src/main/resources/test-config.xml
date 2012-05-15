@@ -28,28 +28,12 @@
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
             <port>5438</port>
             <asServer>true</asServer>
-            <baseDir>target</baseDir>
+            <!--<baseDir>target</baseDir>-->
             <dropIfExists>true</dropIfExists>
         </repository>
         <taskManager>
             <jdbcJobStore>false</jdbcJobStore>
         </taskManager>
-        <!--<repository>-->
-        <!--<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory</repositoryServiceFactoryClass>-->
-        <!--<runServer>true</runServer>-->
-        <!--<embedded>true</embedded> -->
-        <!--<shutdown>true</shutdown>-->
-        <!--<dropDatabase>true</dropDatabase>-->
-        <!--<debug>true</debug>-->
-        <!--<initialDataPath></initialDataPath> -->
-        <!--<databaseName>midPoint-test</databaseName> -->
-        <!--<serverPath>target/basex-data</serverPath>-->
-        <!--<host>localhost</host>-->
-        <!--<port>19840</port>-->
-        <!--<eventPort>19850</eventPort>-->
-        <!--<username>admin</username>-->
-        <!--<password>admin</password>-->
-        <!--</repository>-->
         <icf>
             <scanClasspath>true</scanClasspath>
             <scanDirectory>/C:/tmp</scanDirectory>
