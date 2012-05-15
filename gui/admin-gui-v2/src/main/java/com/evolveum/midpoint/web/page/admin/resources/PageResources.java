@@ -273,7 +273,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourcePerformed(AjaxRequestTarget target) {
-    	List<ResourceType> selected = getSelectedResources();
+    	List<ResourceDto> selected = getSelectedResources();
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.nothingSelected"));
             target.add(getFeedbackPanel());
@@ -284,15 +284,14 @@ public class PageResources extends PageAdminResources {
         dialog.show(target);
     }
     
-    private List<ResourceType> getSelectedResources() {
+    private List<ResourceDto> getSelectedResources() {
         DataTable table = getResourceTable().getDataTable();
-        ObjectDataProvider<ResourceType> provider = (ObjectDataProvider<ResourceType>) table.getDataProvider();
+        ResourceDtoProvider provider = (ResourceDtoProvider) table.getDataProvider();
 
-        List<SelectableBean<ResourceType>> rows = provider.getAvailableData();
-        List<ResourceType> selected = new ArrayList<ResourceType>();
-        for (SelectableBean<ResourceType> row : rows) {
+        List<ResourceDto> selected = new ArrayList<ResourceDto>();
+        for (ResourceDto row : provider.getAvailableData()) {
             if (row.isSelected()) {
-                selected.add(row.getValue());
+                selected.add(row);
             }
         }
 
@@ -315,10 +314,10 @@ public class PageResources extends PageAdminResources {
     }
     
     private void deleteConfirmedPerformed(AjaxRequestTarget target) {
-        List<ResourceType> selected = getSelectedResources();
+        List<ResourceDto> selected = getSelectedResources();
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
-        for (ResourceType resource : selected) {
+        for (ResourceDto resource : selected) {
             try {
                 Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_RESOURCES);
                 getModelService().deleteObject(ResourceType.class, resource.getOid(), task, result);
