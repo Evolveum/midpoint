@@ -193,10 +193,10 @@ public class TestJaxbParsing {
         Element path = document.createElementNS(SchemaConstantsGenerated.NS_TYPES, "path");
         path.setTextContent("c:credentials/c:password");
         item1.setPath(path);
-        ProtectedStringType string = new ProtectedStringType();
-        string.setEncryptedData(new EncryptedDataType());
+        ProtectedStringType protectedString = new ProtectedStringType();
+        protectedString.setEncryptedData(new EncryptedDataType());
         ItemDeltaType.Value value = new ItemDeltaType.Value();
-        value.getAny().add(string);
+        value.getAny().add(new JAXBElement(new QName(SchemaConstants.NS_C, "protectedString"), ProtectedStringType.class, protectedString));
         item1.setValue(value);
 
         //fix marshalling somehow, or change the way how to create XML from ObjectDeltaType
