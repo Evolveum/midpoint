@@ -32,7 +32,7 @@ public class AceEditor<T> extends TextArea<T> {
 
     public static final String F_READONLY = "readonly";
     private static final String EDITOR_SUFFIX = "_edit";
-    private static final String THEME = "textmate";
+    private static final String THEME = "eclipse";
     private static final String MODE = "xml";
     private String editorId;
     private String width = "100%";
@@ -49,9 +49,11 @@ public class AceEditor<T> extends TextArea<T> {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
+        //response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "ace-script_a.js"));
         response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "ace-script.js"));
         response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "mode-xml.js"));
-        response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "textmate.js"));
+        //response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "textmate.js"));
+        response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "theme-eclipse.js"));
         response.renderCSSReference(new PackageResourceReference(AceEditor.class, "style-ace.css"));
 
         /*IHeaderContributor header = JSLib.getHeaderContribution(VersionDescriptor.alwaysLatest(Library.JQUERY));
@@ -71,8 +73,8 @@ public class AceEditor<T> extends TextArea<T> {
                 .append("').val());");
         script.append("window.").append(editorId).append(" = ace.edit(\"").append(editorId).append("\"); ");
         script.append(editorId).append(".setTheme(\"ace/theme/").append(THEME).append("\");");
-        script.append("var XmlMode = require(\"ace/mode/").append(MODE).append("\").Mode; ");
-        script.append(editorId).append(".getSession().setMode(new XmlMode());");
+        //script.append("var XmlMode = require(\"ace/mode/").append(MODE).append("\").Mode; ");
+        script.append(editorId).append(".getSession().setMode('ace/mode/"+ MODE +"');");
         script.append("$('#").append(this.getMarkupId()).append("').hide();");
         script.append(editorId).append(".setShowPrintMargin(false); ");
         script.append(editorId).append(".setReadOnly(").append(isReadonly()).append("); ");
