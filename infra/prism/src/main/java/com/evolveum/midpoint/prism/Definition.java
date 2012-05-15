@@ -199,10 +199,11 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	
 	protected void copyDefinitionData(Definition clone) {
 		clone.defaultName = this.defaultName;
-		clone.displayName = this.displayName;
-		clone.help = this.help;
 		clone.ignored = this.ignored;
 		clone.typeName = this.typeName;
+		clone.displayName = this.displayName;
+		clone.displayOrder = this.displayOrder;
+		clone.help = this.help;
 	}
 	
 	@Override
