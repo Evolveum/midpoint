@@ -488,6 +488,9 @@ public class UserSynchronizer {
 			SecurityViolationException {
 		AccountShadowType accountType = account.asObjectable();
         String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
+        if (resourceOid == null) {
+        	throw new SchemaException("The "+account+" has null resource reference OID");
+        }
         ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
         AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
         if (accountSyncContext == null) {

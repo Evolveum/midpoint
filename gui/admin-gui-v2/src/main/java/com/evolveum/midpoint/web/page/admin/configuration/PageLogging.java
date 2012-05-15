@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -65,6 +67,8 @@ public class PageLogging extends PageAdminConfiguration {
     private static final String DOT_CLASS = PageLogging.class.getName() + ".";
     private static final String OPERATION_LOAD_LOGGING_CONFIGURATION = "loadLoggingConfiguration";
     private static final String OPERATION_UPDATE_LOGGING_CONFIGURATION = DOT_CLASS + "updateLoggingConfiguration";
+    
+    private static final Trace LOGGER = TraceManager.getTrace(PageLogging.class);
 
     private LoadableModel<LoggingDto> model;
 
@@ -623,7 +627,13 @@ public class PageLogging extends PageAdminConfiguration {
             LoggingConfigurationType config = createConfiguration();
             newObject.asObjectable().setLogging(config);
 
+//            if (LOGGER.isTraceEnabled()) {
+//            	LOGGER.trace("Before diff:\nOLD:\n{}\nNEW:\n{}",dto.getOldConfiguration().dump(), newObject.dump());
+//            }
             ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(dto.getOldConfiguration(), newObject);
+//            if (LOGGER.isTraceEnabled()) {
+//            	LOGGER.trace("After diff:\n{}",delta.dump());
+//            }
             getModelService().modifyObject(SystemConfigurationType.class, oid,
                     delta.getModifications(), task, result);
 
