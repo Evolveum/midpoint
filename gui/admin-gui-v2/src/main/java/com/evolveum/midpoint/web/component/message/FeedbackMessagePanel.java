@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -100,8 +99,8 @@ public class FeedbackMessagePanel extends Panel {
             protected String load() {
                 OpResult result = (OpResult) message.getObject().getMessage();
 
-                PageBase page = (PageBase) getPage();
-                return page.getString(OperationResultPanel.OPERATION_RESOURCE_KEY_PREFIX + result.getOperation());
+                String resourceKey = OperationResultPanel.OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
+                return getPage().getString(resourceKey, null, resourceKey);
             }
         }));
 

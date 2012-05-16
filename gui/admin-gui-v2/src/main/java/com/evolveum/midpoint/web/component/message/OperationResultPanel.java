@@ -24,7 +24,6 @@ package com.evolveum.midpoint.web.component.message;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -35,7 +34,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,8 +59,8 @@ public class OperationResultPanel extends Panel {
             protected Object load() {
                 OpResult result = model.getObject();
 
-                PageBase page = (PageBase) getPage();
-                return page.getString(OPERATION_RESOURCE_KEY_PREFIX + result.getOperation());
+                String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
+                return getPage().getString(resourceKey, null, resourceKey);
             }
         });
         operation.setOutputMarkupId(true);

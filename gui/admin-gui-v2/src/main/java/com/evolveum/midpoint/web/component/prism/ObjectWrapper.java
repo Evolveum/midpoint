@@ -143,12 +143,8 @@ public class ObjectWrapper implements Serializable {
         PrismContainer container = object.findContainer(name);
         ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
         if (container == null) {
-            try {
-                container = object.findOrCreateContainer(name);
-            } catch (SchemaException ex) {
-                LoggingUtils.logException(LOGGER, "Error occurred during container wrapping", ex);
-                throw new SystemException(ex.getMessage(), ex);
-            }
+            PrismContainerDefinition definition = object.getDefinition().findContainerDefinition(name);
+            container = definition.instantiate();
         }
 
         List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
@@ -167,7 +163,9 @@ public class ObjectWrapper implements Serializable {
                 PrismContainer attributes = object.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
                 ContainerStatus status = attributes != null ? getStatus() : ContainerStatus.ADDING;
                 if (attributes == null) {
-                    attributes = object.findOrCreateContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+                    PrismContainerDefinition definition = object.getDefinition().findContainerDefinition(
+                            ResourceObjectShadowType.F_ATTRIBUTES);
+                    attributes = definition.instantiate();
                 }
 
                 ContainerWrapper container = new ContainerWrapper(this, attributes, status,
@@ -188,6 +186,10 @@ public class ObjectWrapper implements Serializable {
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Error occurred during container wrapping", ex);
             throw new SystemException(ex.getMessage(), ex);
+        }
+
+        for (ContainerWrapper c : containers) {
+            System.out.println(c.getDisplayName() + " " + c.getItem().getDefinition().getDisplayOrder());
         }
 
         Collections.sort(containers, new ItemWrapperComparator());
@@ -309,7 +311,7 @@ public class ObjectWrapper implements Serializable {
     }
 
     private ObjectDelta createAddingObjectDelta() throws SchemaException {
-        PrismObject object = new PrismObject(this.object.getName(), this.object.getCompileTimeClass());
+        PrismObject object = this.object.clone();
 
         List<ContainerWrapper> containers = getContainers();
         //sort containers by path size
@@ -329,7 +331,12 @@ public class ObjectWrapper implements Serializable {
                     PrismContainer parent = object.findOrCreateContainer(parentPath);
                     parent.add(container);
                 } else {
-                    object.add(container);
+                    PrismContainer existing = object.findContainer(container.getName());
+                    if (existing == null) {
+                        object.add(container);
+                    } else {
+                        continue;
+                    }
                 }
             } else {
                 container = object;
@@ -341,12 +348,18 @@ public class ObjectWrapper implements Serializable {
                 }
 
                 PrismProperty property = propertyWrapper.getItem().clone();
+                if (container.findProperty(property.getName()) != null) {
+                    continue;
+                }
                 container.add(property);
                 for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
                     if (!valueWrapper.hasValueChanged() || ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
                         continue;
                     }
 
+                    if (property.hasRealValue(valueWrapper.getValue())) {
+                        continue;
+                    }
                     property.addValue(valueWrapper.getValue());
                 }
             }
