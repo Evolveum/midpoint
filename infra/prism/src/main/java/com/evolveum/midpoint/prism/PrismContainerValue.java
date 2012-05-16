@@ -141,7 +141,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 	
 	@SuppressWarnings("unchecked")
-	public PrismContainerable getParent() {
+	public PrismContainerable<T> getParent() {
 		Itemable parent = super.getParent();
 		if (parent == null) {
 			return null;
@@ -150,7 +150,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			throw new IllegalStateException("Expected that parent of "+PrismContainerValue.class.getName()+" will be "+
 					PrismContainerable.class.getName()+", but it is "+parent.getClass().getName());
 		}
-		return (PrismContainerable)super.getParent();
+		return (PrismContainerable<T>)parent;
 	}
 	
 	void setParent(PrismContainerable container) {

@@ -349,9 +349,14 @@ public final class PrismForJAXBUtil {
     	return new AnyArrayList(value);
     }
 
-	public static void setupContainerValue(PrismContainer prismContainer, PrismContainerValue containerValue) {
+	public static PrismObject setupContainerValue(PrismObject prismObject, PrismContainerValue containerValue) {
+		PrismContainerable parent = containerValue.getParent();
+		if (parent != null && parent instanceof PrismObject) {
+			return (PrismObject)parent;
+		}
 		try {
-			prismContainer.setValue(containerValue);
+			prismObject.setValue(containerValue);
+			return prismObject;
 		} catch (SchemaException e) {
 			// This should not happen. Code generator and compiler should take care of that.
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);

@@ -657,7 +657,7 @@ public class SchemaProcessor implements Processor {
         JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_SETUP_CONTAINER_VALUE);
         invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER));
         invocation.arg(containerValue);
-        body.add(invocation);
+        body.assign(container, invocation);
     }
 
     private void createAsPrismContainer(ClassOutline classOutline, JVar container) {
