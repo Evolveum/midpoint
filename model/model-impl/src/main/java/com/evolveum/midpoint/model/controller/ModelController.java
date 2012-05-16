@@ -316,18 +316,6 @@ public class ModelController implements ModelService {
 				changeExecutor.executeChange(objectDelta, result);
 
 				executePostChange(objectDelta, task, result);
-
-				// Non-systemic solition. TODO: cleanup
-//				if (objectType instanceof SystemConfigurationType) {
-//					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
-//							task, result);
-//				}
-
-                // Sorry, even more brutal solution (because of version numbers), TODO: cleanup
-                if (objectType instanceof SystemConfigurationType) {
-                    systemConfigurationHandler.postConfigurationAdd(getSystemConfiguration(result), result);
-                }
-
 			}
 
 			oid = objectDelta.getOid();
@@ -695,6 +683,9 @@ public class ModelController implements ModelService {
 					userSynchronizer.synchronizeUser(syncContext, result);
 					try {
 						changeExecutor.executeChanges(syncContext, parentResult);
+
+                        // todo: call executePostChange with correct collection of modifications
+
 					} catch (ObjectAlreadyExistsException ex) {
 						throw new SystemException(ex.getMessage(), ex);
 					}
@@ -727,7 +718,11 @@ public class ModelController implements ModelService {
 
 				try {
 					changeExecutor.executeChanges(changes, parentResult);
-					result.computeStatus();
+
+                    // todo: is objectDelta the correct holder of the modifications?
+                    executePostChange(objectDelta, task, result);
+
+                    result.computeStatus();
 				} catch (ObjectAlreadyExistsException e) {
 					// This should not happen
 					// TODO Better handling
@@ -737,20 +732,10 @@ public class ModelController implements ModelService {
 				// cacheRepositoryService.listAccountShadowOwner(oid,
 				// parentResult);
 				// }
-
-//				// Non-systemic solition. TODO: cleanup
-//				if (SystemConfigurationType.class.isAssignableFrom(type)) {
-//					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
-//							task, result);
-//				}
-
-                if (SystemConfigurationType.class.isAssignableFrom(type)) {
-                    systemConfigurationHandler.postConfigurationModify(getSystemConfiguration(result), result);
-                }
-
             }
 
-		} catch (ExpressionEvaluationException ex) {
+
+        } catch (ExpressionEvaluationException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);
 			throw ex;
@@ -935,18 +920,11 @@ public class ModelController implements ModelService {
 
 			try {
 				changeExecutor.executeChanges(changes, result);
+
+                executePostChange(changes, task, result);
+
 				auditRecord.clearDeltas();
 				auditRecord.addDeltas(changes);
-
-				// Non-systemic solition. TODO: cleanup
-//				if (SystemConfigurationType.class.isAssignableFrom(clazz)) {
-//					systemConfigurationHandler.postChange((ObjectDelta<SystemConfigurationType>) objectDelta,
-//							task, result);
-//				}
-
-                if (SystemConfigurationType.class.isAssignableFrom(clazz)) {
-                    systemConfigurationHandler.postConfigurationDelete(result);
-                }
 
                 result.computeStatus();
 			} catch (ObjectAlreadyExistsException e) {
@@ -1298,41 +1276,5 @@ public class ModelController implements ModelService {
 
 		RepositoryCache.exit();
 	}
-
-    @Override
-    public void checkSystemConfigurationChanged(OperationResult parentResult) {
-
-        OperationResult result = parentResult.createSubresult(CHECK_SYSTEM_CONFIGURATION_CHANGED);
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
-
-        PrismObject<SystemConfigurationType> systemConfiguration;
-        try {
-            systemConfiguration = getSystemConfiguration(result);
-
-            String versionInRepo = systemConfiguration.getVersion();
-            String versionApplied = systemConfigurationHandler.getVersionCurrentlyApplied();
-
-            // we do not try to determine which one is "newer" - we simply use the one from repo
-            // (it is important that when modifying it, we ALWAYS write it into repo first, then apply locally)
-            if (!versionInRepo.equals(versionApplied)) {
-                LOGGER.info("System configuration change check: detected difference between version in repo ({}) and currently applied version ({}) - configuration from repo will be applied now.", versionInRepo, versionApplied);
-                systemConfigurationHandler.onNewValueDetected(systemConfiguration, result);
-            } else {
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("System configuration change check: version in repo = version currently applied = {}", versionApplied);
-                }
-            }
-
-        } catch (ObjectNotFoundException e) {
-            String message = "No system configuration found, skipping application of system settings";
-            LOGGER.error(message + ": " + e.getMessage(), e);
-            result.recordWarning(message, e);
-        } catch (SchemaException e) {
-            String message = "Schema error in system configuration, skipping application of system settings";
-            LOGGER.error(message + ": " + e.getMessage(), e);
-            result.recordWarning(message, e);
-        }
-
-    }
 
 }

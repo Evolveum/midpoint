@@ -98,7 +98,6 @@ public interface ModelService {
 	String IMPORT_OBJECTS_FROM_FILE = CLASS_NAME_WITH_DOT + "importObjectsFromFile";
 	String IMPORT_OBJECTS_FROM_STREAM = CLASS_NAME_WITH_DOT + "importObjectsFromStream";
 	String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";
-    String CHECK_SYSTEM_CONFIGURATION_CHANGED = CLASS_NAME_WITH_DOT + "checkSystemConfigurationChanged";
 	String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
 
 	/**
@@ -545,12 +544,4 @@ public interface ModelService {
 	 * up.
 	 */
 	void postInit(OperationResult parentResult);
-
-    /**
-     * Check whether system configuration has not changed in repository (e.g. by another node in cluster).
-     * Applies new configuration if so.
-     *
-     * @param parentResult
-     */
-    void checkSystemConfigurationChanged(OperationResult parentResult);
 }

@@ -20,8 +20,8 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,6 +36,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,6 +54,9 @@ import java.util.List;
 public class ClusterManager {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(ClusterManager.class);
+
+    private static final String CLASS_DOT = ClusterManager.class.getName() + ".";
+    private static final String CHECK_SYSTEM_CONFIGURATION_CHANGED = CLASS_DOT + "checkSystemConfigurationChanged";
 
     private TaskManagerQuartzImpl taskManager;
 
@@ -131,7 +136,7 @@ public class ClusterManager {
             while (canRun) {
 
                 try {
-                    taskManager.getModelService().checkSystemConfigurationChanged(result);
+                    checkSystemConfigurationChanged(result);
 
                     checkClusterConfiguration(result);                          // if error, the scheduler will be stopped
                     nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
@@ -228,6 +233,52 @@ public class ClusterManager {
         }
     }
 
+
+    /**
+     * Check whether system configuration has not changed in repository (e.g. by another node in cluster).
+     * Applies new configuration if so.
+     *
+     * @param parentResult
+     */
+
+    public void checkSystemConfigurationChanged(OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(CHECK_SYSTEM_CONFIGURATION_CHANGED);
+
+        PrismObject<SystemConfigurationType> systemConfiguration;
+        try {
+            PrismObject<SystemConfigurationType> config = getRepositoryService().getObject(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+
+            String versionInRepo = config.getVersion();
+            String versionApplied = LoggingConfigurationManager.getCurrentlyUsedVersion();
+
+            // we do not try to determine which one is "newer" - we simply use the one from repo
+            if (!versionInRepo.equals(versionApplied)) {
+                //LOGGER.info("System configuration change check: detected difference between version in repo ({}) and currently applied version ({}) - configuration from repo will be applied now.", versionInRepo, versionApplied);
+                LoggingConfigurationManager.configure(config.asObjectable().getLogging(), versionInRepo, result);
+            } else {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("System configuration change check: version in repo = version currently applied = {}", versionApplied);
+                }
+            }
+
+            if (result.isUnknown()) {
+                result.computeStatus();
+            }
+
+        } catch (ObjectNotFoundException e) {
+            LoggingConfigurationManager.resetCurrentlyUsedVersion();        // because the new config (if any) will have version number probably starting at 1 - so to be sure to read it when it comes [hope this never occurs :)]
+            String message = "No system configuration found, skipping application of system settings";
+            LOGGER.error(message + ": " + e.getMessage(), e);
+            result.recordWarning(message, e);
+        } catch (SchemaException e) {
+            String message = "Schema error in system configuration, skipping application of system settings";
+            LOGGER.error(message + ": " + e.getMessage(), e);
+            result.recordWarning(message, e);
+        }
+
+    }
 
 
 }

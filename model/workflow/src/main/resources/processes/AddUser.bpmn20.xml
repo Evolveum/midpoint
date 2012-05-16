@@ -10,8 +10,8 @@
         <activiti:formProperty id="managementComment" name="Management comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
       </extensionElements>
     </userTask>
-    <sequenceFlow id="flow1" name="" sourceRef="start" targetRef="approveByManagement"></sequenceFlow>
     <endEvent id="end1" name="End"></endEvent>
+    <sequenceFlow id="flow1" name="" sourceRef="start" targetRef="approveByManagement"></sequenceFlow>
     <sequenceFlow id="flow2" name="" sourceRef="approveByManagement" targetRef="end1"></sequenceFlow>
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_AddUser">

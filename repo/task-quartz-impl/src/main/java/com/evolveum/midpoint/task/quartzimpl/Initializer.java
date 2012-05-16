@@ -85,9 +85,6 @@ public class Initializer {
         taskManager.getClusterManager().createNodeObject(result);     // may throw initialization exception
         if (!taskManager.getConfiguration().isTestMode()) {  // in test mode do not start cluster manager thread nor verify cluster config
             taskManager.getClusterManager().checkClusterConfiguration(result);      // does not throw exceptions, sets the ERROR state if necessary, however
-            if (taskManager.getModelService() == null) {
-                throw new TaskManagerInitializationException("Model service must be initialized (unless running unit tests).");
-            }
         }
 
         NoOpTaskHandler.instantiateAndRegister(taskManager);

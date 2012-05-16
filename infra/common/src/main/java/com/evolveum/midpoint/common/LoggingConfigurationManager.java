@@ -53,9 +53,14 @@ public class LoggingConfigurationManager {
 	
 	final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
 
-	public static void configure(LoggingConfigurationType config, OperationResult result) {
+    private static String currentlyUsedVersion = null;
+
+	public static void configure(LoggingConfigurationType config, String version, OperationResult result) {
+
 		OperationResult res = result.createSubresult("Logging reconfiguration configuration");
-		LOGGER.info("Changing logging configuration");
+		LOGGER.info("Changing logging configuration (current config version: {}, new version {})", currentlyUsedVersion, version);
+        currentlyUsedVersion = version;
+
 		//Get current log configuration
 		LoggerContext lc = (LoggerContext) TraceManager.getILoggerFactory();
 
@@ -300,4 +305,13 @@ public class LoggingConfigurationManager {
 		sb.append("\t\t<OnMatch>ACCEPT</OnMatch>\n");
 		sb.append("\t</turboFilter>\n");
 	}
+
+    public static String getCurrentlyUsedVersion() {
+        return currentlyUsedVersion;
+    }
+
+    public static void resetCurrentlyUsedVersion() {
+        currentlyUsedVersion = null;
+    }
+
 }

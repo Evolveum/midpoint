@@ -375,12 +375,17 @@ public class NodeRegistrar {
     }
 
     private String getMyAddress() {
-        try {
-            InetAddress address = InetAddress.getLocalHost();
-            return address.getHostAddress();
-        } catch (UnknownHostException e) {
-            LoggingUtils.logException(LOGGER, "Cannot get local IP address", e);
-            return "unknown-host";
+
+        if (taskManager.getConfiguration().getJmxHostName() != null) {
+            return taskManager.getConfiguration().getJmxHostName();
+        } else {
+            try {
+                InetAddress address = InetAddress.getLocalHost();
+                return address.getHostAddress();
+            } catch (UnknownHostException e) {
+                LoggingUtils.logException(LOGGER, "Cannot get local IP address", e);
+                return "unknown-host";
+            }
         }
     }
 

@@ -67,6 +67,7 @@ public class TaskManagerConfiguration {
     private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
+    private static final String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
     private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
     private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
 
@@ -88,6 +89,7 @@ public class TaskManagerConfiguration {
     private boolean jdbcJobStore;
     private boolean clustered;
     private String nodeId;
+    private String jmxHostName;
     private int jmxPort;
     private int jmxConnectTimeout;
     private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
@@ -135,6 +137,8 @@ public class TaskManagerConfiguration {
         nodeId = System.getProperty(MIDPOINT_NODE_ID_PROPERTY);
         if (StringUtils.isEmpty(nodeId) && !clustered)
             nodeId = NODE_ID_DEFAULT;
+
+        jmxHostName = System.getProperty(MIDPOINT_JMX_HOST_NAME_PROPERTY);
 
         String portString = System.getProperty(JMX_PORT_PROPERTY);
         if (StringUtils.isEmpty(portString)) {
@@ -349,5 +353,9 @@ public class TaskManagerConfiguration {
 
     public String getJmxPassword() {
         return jmxPassword;
+    }
+
+    public String getJmxHostName() {
+        return jmxHostName;
     }
 }

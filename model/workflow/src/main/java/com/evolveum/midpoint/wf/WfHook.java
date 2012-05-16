@@ -54,7 +54,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class WfHook implements ChangeHook {
 
-    public static final String WORKFLOW_HOOK_URI = "http://evolveum.com/wf-hook-uri";
+    public static final String WORKFLOW_HOOK_URI = "http://midpoint.evolveum.com/model/workflow-hook-1";
 
     private static final Trace LOGGER = TraceManager.getTrace(WfHook.class);
 
