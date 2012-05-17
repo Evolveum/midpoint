@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author lazyman
@@ -36,19 +37,20 @@ public class UserAssignmentDto extends Selectable {
         ROLE, OTHER
     }
 
-    private Type type;
-    private ObjectReferenceType targetRef;
     private String name;
-    private ActivationType activation;
+    private Type type;
     private UserDtoStatus status;
+    private AssignmentType assignment;
 
-    public UserAssignmentDto(String name, ObjectReferenceType targetRef, ActivationType activation,
-            Type type, UserDtoStatus status) {
-        this.activation = activation;
+    public UserAssignmentDto(String name, Type type, UserDtoStatus status, AssignmentType assignment) {
+        Validate.notNull(status, "User dto status must not be null.");
+        Validate.notNull(type, "Type must not be null.");
+        Validate.notNull(assignment, "Assignment must not be null.");
+
         this.name = name;
-        this.targetRef = targetRef;
         this.type = type;
         this.status = status;
+        this.assignment = assignment;
     }
 
     public UserDtoStatus getStatus() {
@@ -56,7 +58,7 @@ public class UserAssignmentDto extends Selectable {
     }
 
     public ActivationType getActivation() {
-        return activation;
+        return assignment.getActivation();
     }
 
     public String getName() {
@@ -64,7 +66,7 @@ public class UserAssignmentDto extends Selectable {
     }
 
     public ObjectReferenceType getTargetRef() {
-        return targetRef;
+        return assignment.getTargetRef();
     }
 
     public void setStatus(UserDtoStatus status) {
@@ -76,10 +78,6 @@ public class UserAssignmentDto extends Selectable {
     }
 
     public AssignmentType createAssignment() {
-        AssignmentType assignment = new AssignmentType();
-        assignment.setTargetRef(targetRef);
-        assignment.setActivation(activation);
-
         return assignment;
     }
 }

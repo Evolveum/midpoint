@@ -351,8 +351,7 @@ public class PageUser extends PageAdminUsers {
                 }
             }
 
-            list.add(new UserAssignmentDto(name, assignment.getTargetRef(), assignment.getActivation(), type,
-                    UserDtoStatus.MODIFY));
+            list.add(new UserAssignmentDto(name, type, UserDtoStatus.MODIFY, assignment));
         }
 
         return list;
@@ -741,7 +740,7 @@ public class PageUser extends PageAdminUsers {
 
                     break;
                 case MODIFY:
-                    //todo implement later
+                    // will be implemented later
                 default:
                     warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
             }
@@ -776,6 +775,10 @@ public class PageUser extends PageAdminUsers {
                     prepareUserDeltaForModify(delta);
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
+
+                    if (delta.isEmpty()) {
+                        //todo message and return
                     }
                     getModelService().modifyObject(UserType.class, delta.getOid(),
                             delta.getModifications(), task, result);
@@ -956,8 +959,11 @@ public class PageUser extends PageAdminUsers {
                 targetRef.setOid(role.getOid());
                 targetRef.setType(RoleType.COMPLEX_TYPE);
 
-                assignments.add(new UserAssignmentDto(role.getName(), targetRef, null, UserAssignmentDto.Type.ROLE,
-                        UserDtoStatus.ADD));
+                AssignmentType assignment = new AssignmentType();
+                assignment.setTargetRef(targetRef);
+
+                assignments.add(new UserAssignmentDto(role.getName(), UserAssignmentDto.Type.ROLE,
+                        UserDtoStatus.ADD, assignment));
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntAddRole", role.getName()));
             }
