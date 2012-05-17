@@ -116,8 +116,9 @@ public class PageDebugList extends PageAdminConfiguration {
                 return object.getClassDefinition().getSimpleName();
             }
         };
-
-        ListChoice listChoice = new ListChoice("choice", choice, createChoiceModel(renderer), renderer, 5) {
+        
+        IModel<List<ObjectTypes>> choiceModel = createChoiceModel(renderer);
+        final ListChoice listChoice = new ListChoice("choice", choice, choiceModel, renderer, choiceModel.getObject().size()) {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
@@ -128,20 +129,11 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                //it's here just to update model
+                target.add(listChoice);
+                listObjectsPerformed(target, choice.getObject());
             }
         });
         item.getBodyContainer().add(listChoice);
-
-        AjaxLinkButton button = new AjaxLinkButton("listButton",
-                createStringResource("pageDebugList.button.listObjects")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                listObjectsPerformed(target, choice);
-            }
-        };
-        item.getBodyContainer().add(button);
     }
 
     private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {
@@ -171,13 +163,11 @@ public class PageDebugList extends PageAdminConfiguration {
         return (TablePanel) content.getBodyContainer().get("table");
     }
 
-    private void listObjectsPerformed(AjaxRequestTarget target, IModel<ObjectTypes> selected) {
+    private void listObjectsPerformed(AjaxRequestTarget target, ObjectTypes selected) {
         TablePanel table = getListTable();
-
-        ObjectTypes type = selected.getObject();
-        if (type != null) {
+        if (selected != null) {
             RepositoryObjectDataProvider provider = getTableDataProvider();
-            provider.setType(type.getClassDefinition());
+            provider.setType(selected.getClassDefinition());
         }
         target.add(table);
     }

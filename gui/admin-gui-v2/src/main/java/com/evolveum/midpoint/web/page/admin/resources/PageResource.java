@@ -153,7 +153,6 @@ public class PageResource extends PageAdminResources {
 		TablePanel objectTypes = new TablePanel<ResourceObjectTypeDto>("objectTypesTable", provider,
 				initObjectTypesColumns());
 		objectTypes.setShowPaging(true);
-		objectTypes.setItemsPerPage(50);
 		objectTypes.setOutputMarkupId(true);
 		mainForm.add(objectTypes);
 
