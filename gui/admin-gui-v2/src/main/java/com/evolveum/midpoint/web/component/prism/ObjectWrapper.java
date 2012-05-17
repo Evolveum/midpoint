@@ -188,9 +188,10 @@ public class ObjectWrapper implements Serializable {
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        for (ContainerWrapper c : containers) {
-            System.out.println(c.getDisplayName() + " " + c.getItem().getDefinition().getDisplayOrder());
-        }
+//        //todo fix display order
+//        for (ContainerWrapper c : containers) {
+//            System.out.println(c.getDisplayName() + " " + c.getItem().getDefinition().getDisplayOrder());
+//        }
 
         Collections.sort(containers, new ItemWrapperComparator());
 
@@ -275,7 +276,8 @@ public class ObjectWrapper implements Serializable {
 
                 PrismPropertyDefinition propertyDef = propertyWrapper.getItem().getDefinition();
 
-                PropertyDelta pDelta = new PropertyDelta(propertyDef);
+                PropertyPath path = containerWrapper.getPath() != null ? containerWrapper.getPath() : new PropertyPath();
+                PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef);
                 for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
                     if (!valueWrapper.hasValueChanged() && ValueStatus.NOT_CHANGED.equals(valueWrapper.getStatus())) {
                         continue;

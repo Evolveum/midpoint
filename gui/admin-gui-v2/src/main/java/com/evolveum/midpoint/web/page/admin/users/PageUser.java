@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -139,7 +138,6 @@ public class PageUser extends PageAdminUsers {
                 UserType userType = new UserType();
                 getMidpointApplication().getPrismContext().adopt(userType);
                 user = userType.asPrismObject();
-                System.out.println("EMPTY:\n" + user.debugDump(3));
             } else {
                 Collection<PropertyPath> resolve = com.evolveum.midpoint.util.MiscUtil.createCollection(
                         new PropertyPath(UserType.F_ACCOUNT),
@@ -636,10 +634,14 @@ public class PageUser extends PageAdminUsers {
                         || delta.isEmpty()) {
                     continue;
                 }
+                encryptCredentials(delta, true);
+
                 subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
                 Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
 
-                encryptCredentials(delta, true);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Modifying account:\n{}", new Object[]{delta.debugDump(3)});
+                }
                 getModelService().modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(),
                         task, subResult);
                 subResult.recomputeStatus();
@@ -696,8 +698,6 @@ public class PageUser extends PageAdminUsers {
         for (UserAccountDto accDto : accounts) {
             ObjectWrapper accountWrapper = accDto.getObject();
             ObjectDelta delta = accountWrapper.getObjectDelta();
-            PrismObject<AccountShadowType> account = delta.getObjectToAdd();
-            encryptCredentials(account, true);
 
             ReferenceDelta refDelta = new ReferenceDelta(findAccountRefDefinition());
             userDelta.addModification(refDelta);
@@ -707,6 +707,9 @@ public class PageUser extends PageAdminUsers {
             switch (accDto.getStatus()) {
                 case ADD:
                 case DELETE:
+                    PrismObject<AccountShadowType> account = delta.getObjectToAdd();
+                    encryptCredentials(account, true);
+
                     refValue.setObject(account);
                     if (UserDtoStatus.ADD.equals(accDto.getStatus())) {
                         refDelta.addValueToAdd(refValue);
@@ -718,8 +721,8 @@ public class PageUser extends PageAdminUsers {
                     //nothing to do, account modifications were applied before
                     continue;
                 case UNLINK:
-                    refValue.setOid(account.getOid());
-                    refValue.setTargetType(account.getName());
+                    refValue.setOid(delta.getOid());
+                    refValue.setTargetType(AccountShadowType.COMPLEX_TYPE);
                     refDelta.addValueToDelete(refValue);
                     break;
                 default:
@@ -841,8 +844,14 @@ public class PageUser extends PageAdminUsers {
         Protector protector = application.getProtector();
         try {
             if (encrypt) {
+                if (StringUtils.isEmpty(string.getClearValue())) {
+                    return;
+                }
                 protector.encrypt(string);
             } else {
+                if (string.getEncryptedData() == null) {
+                    return;
+                }
                 protector.decrypt(string);
             }
         } catch (EncryptionException ex) {
