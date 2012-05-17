@@ -18,7 +18,6 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted 2011 [name of copyright owner]"
- * Portions Copyrighted 2011 ForgeRock Inc.
  * -->
 
 
@@ -27,23 +26,15 @@
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:abs="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
-    <import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" location="../../public/model/model-1.wsdl"/>
+    <!-- WARNING! The CXF catalog resolver takes the content of "location" attribute and tries to use it as both systemId and publicId
+                  therefore it has to be set to a namespace for the catalog resolution to work -->
+    <import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" 
+    		location="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
     <service name="modelService">
-        <port name="modelPort" binding="abs:modelBinding">
-            <!-- http://localhost:${HttpDefaultPort}/modelService/ModelService
-            <soap:address location="http://localhost:${HttpDefaultPort}/modelService/ModelService"/>
-            <soap:address location="REPLACE_WITH_ACTUAL_URL"/>
-            <soap:address location="http://localhost:8080/modelService/ModelService"/-->
+        <port name="modelPort" binding="tns:modelBinding">
             <soap:address location="http://localhost:${HttpDefaultPort}/modelService/modelPort"/>
         </port>
     </service>
 </definitions>
-
-
-
-
-
-

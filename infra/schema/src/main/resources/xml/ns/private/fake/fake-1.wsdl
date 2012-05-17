@@ -35,15 +35,23 @@
 
     <types>
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/private/fake/fake-1.wsdl">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="../../public/common/common-1.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" schemaLocation="../../public/resource/resource-schema-1.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" schemaLocation="../../public/resource/capabilities-1.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" schemaLocation="../../public/connector/icf-1/resource-schema-1.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" schemaLocation="../../public/connector/icf-1/connector-schema-1.xsd"/>
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" schemaLocation="../../public/communication/workflow-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+            			schemaLocation="../../public/common/common-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" 
+            			schemaLocation="../../public/resource/resource-schema-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" 
+            			schemaLocation="../../public/resource/capabilities-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" 
+            			schemaLocation="../../public/connector/icf-1/resource-schema-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" 
+            			schemaLocation="../../public/connector/icf-1/connector-schema-1.xsd"/>
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" 
+						schemaLocation="../../public/communication/workflow-1.xsd"/>
 
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" schemaLocation="../../public/prism/query-2.xsd"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" schemaLocation="../../public/prism/types-2.xsd"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" 
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" 
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2"/>
         </xsd:schema>
     </types>
 

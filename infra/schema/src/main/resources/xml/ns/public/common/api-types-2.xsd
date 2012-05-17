@@ -40,7 +40,7 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="../../standard/XMLSchema.xsd">
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema">
         <xsd:annotation>
             <xsd:documentation>
                 Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
@@ -50,7 +50,7 @@
     </xsd:import>
 
 	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-                schemaLocation="common-1.xsd">
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
         <xsd:annotation>
             <xsd:documentation>
                 Common midPoint schema.
@@ -59,7 +59,7 @@
     </xsd:import>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"
-                schemaLocation="../prism/annotation-2.xsd">
+    			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-2">
         <xsd:annotation>
             <xsd:documentation>
                 Common midPoint annotations used in various XSD schemas.
@@ -67,7 +67,8 @@
         </xsd:annotation>
     </xsd:import>
     
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" schemaLocation="../prism/types-2.xsd">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2"
+    			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.

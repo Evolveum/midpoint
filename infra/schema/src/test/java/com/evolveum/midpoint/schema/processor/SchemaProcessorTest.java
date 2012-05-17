@@ -59,8 +59,9 @@ public class SchemaProcessorTest {
 	
 	@Test
 	public void testAccessList() throws Exception {
-		Document schemaDom = DOMUtil.parseFile("src/test/resources/processor/resource-schema-complex.xsd");
-		ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), PrismTestUtil.getPrismContext());
+		String filename = "src/test/resources/processor/resource-schema-complex.xsd";
+		Document schemaDom = DOMUtil.parseFile(filename);
+		ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), filename, PrismTestUtil.getPrismContext());
 		
 		final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
@@ -118,7 +119,7 @@ public class SchemaProcessorTest {
 		
 		Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
 		
-		PrismSchema newSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(parsedXsd), PrismTestUtil.getPrismContext());
+		PrismSchema newSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(parsedXsd), "serialized schema", PrismTestUtil.getPrismContext());
 
 		System.out.println("Generic schema after parsing from XSD: ");
 		System.out.println(newSchema.dump());
@@ -197,7 +198,7 @@ public class SchemaProcessorTest {
 		
 		Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
 		
-		ResourceSchema newSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(parsedXsd), PrismTestUtil.getPrismContext());
+		ResourceSchema newSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(parsedXsd), "serialized schema", PrismTestUtil.getPrismContext());
 
 		System.out.println("Resource schema after parsing from XSD: ");
 		System.out.println(newSchema.dump());

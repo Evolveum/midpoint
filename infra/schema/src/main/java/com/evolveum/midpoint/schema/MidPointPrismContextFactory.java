@@ -91,20 +91,35 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
     }
 	
 	private void registerBuiltinSchemas(SchemaRegistry schemaRegistry) throws SchemaException {
+		// Note: the order of schema registration may affect the way how the schema files are located
+		// (whether are pulled from the registry or by using a catalog file).
 		
+		// Standard schemas
+		
+		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
+		schemaRegistry.registerSchemaResource("xml/ns/standard/xmldsig-core-schema.xsd", "ds");
+		schemaRegistry.registerSchemaResource("xml/ns/standard/xenc-schema.xsd", "enc");
+		
+		schemaRegistry.getNamespacePrefixMapper().registerPrefix(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi");
+
+		
+		// Prism Schemas
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-2.xsd", "a");
+
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-2.xsd", "t", 
+				com.evolveum.prism.xml.ns._public.types_2.ObjectFactory.class.getPackage());
+
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-2.xsd", "q", 
+				com.evolveum.prism.xml.ns._public.query_2.ObjectFactory.class.getPackage());
+		
+		
+		// midPoint schemas
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/common-1.xsd", "c", 
 				com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory.class.getPackage());
 		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/prism/types-2.xsd", "t", 
-				com.evolveum.prism.xml.ns._public.types_2.ObjectFactory.class.getPackage());
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-2.xsd", "apti", 
 				com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectFactory.class.getPackage());
-		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/prism/query-2.xsd", "q", 
-				com.evolveum.prism.xml.ns._public.query_2.ObjectFactory.class.getPackage());
-		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/prism/annotation-2.xsd", "a");
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/resource-schema-1.xsd", "r");
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-2.xsd", "ra");
@@ -122,11 +137,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow-1.xsd", "wf");
 		
-		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
-		schemaRegistry.registerSchemaResource("xml/ns/standard/xmldsig-core-schema.xsd", "ds");
-		schemaRegistry.registerSchemaResource("xml/ns/standard/xenc-schema.xsd", "enc");
-		
-		schemaRegistry.getNamespacePrefixMapper().registerPrefix(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi");
 	}
 	
 	private void setupDebug() {

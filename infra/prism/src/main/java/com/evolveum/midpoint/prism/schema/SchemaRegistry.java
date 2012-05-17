@@ -261,7 +261,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			
 			if (schemaDescription.isPrismSchema()) {
 				Element domElement = schemaDescription.getDomElement();
-				PrismSchema schema = PrismSchema.parse(domElement, this, getPrismContext());
+				PrismSchema schema = PrismSchema.parse(domElement, this, schemaDescription.getSourceDescription(), getPrismContext());
 				//Schema schema = Schema.parse(domElement);
 				if (namespace == null) {
 					namespace = schema.getNamespace();
@@ -401,11 +401,11 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
 		// Prefer built-in resolution over the pre-parsed one. This is less efficient, but if the order is swapped
 		// the parsers complaints about re-definition of the elements
-		InputSource inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
-		//InputSource inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
+//		InputSource inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
+		InputSource inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
 		if (inputSource == null) {
-			//inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
-			inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
+			inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
+//			inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
 		}
 		if (inputSource == null) {
 			LOGGER.error("Unable to resolve resource with publicID: {}, systemID: {}",new Object[]{publicId, systemId});
@@ -424,11 +424,11 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			String baseURI) {
 		// Prefer built-in resolution over the pre-parsed one. This is less efficient, but if the order is swapped
 		// the parsers complaints about re-definition of the elements
-		InputSource inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
-		// InputSource inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
+//		InputSource inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
+		 InputSource inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
 		if (inputSource == null) {
-			//inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
-			inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
+			inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
+//			inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
 		}
 		if (inputSource == null) {
 			LOGGER.error("Unable to resolve resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI});
@@ -440,6 +440,17 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		
 	private InputSource resolveResourceFromRegisteredSchemas(String type, String namespaceURI,
 			String publicId, String systemId, String baseURI) {
+		InputSource source = resolveResourceFromRegisteredSchemasByNamespace(namespaceURI);
+		if (source == null) {
+			source = resolveResourceFromRegisteredSchemasByNamespace(publicId);
+		}
+		if (source == null) {
+			source = resolveResourceFromRegisteredSchemasByNamespace(systemId);
+		}
+		return source;
+	}
+		
+	private InputSource resolveResourceFromRegisteredSchemasByNamespace(String namespaceURI) {
 		if (namespaceURI != null) {
 			if (parsedSchemas.containsKey(namespaceURI)) {
 				SchemaDescription schemaDescription = parsedSchemas.get(namespaceURI);
@@ -448,8 +459,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 					InputSource source = new InputSource();
 					source.setByteStream(inputStream);
 					//source.setSystemId(schemaDescription.getPath());
-					source.setSystemId(systemId);
-					source.setPublicId(publicId);
+					// Make sure that both publicId and systemId are always set to schema namespace
+					// this helps to avoid double processing of the schemas
+					source.setSystemId(namespaceURI);
+					source.setPublicId(namespaceURI);
 					return source;
 				} else {
 					throw new IllegalStateException("Requested resolution of schema "+schemaDescription.getSourceDescription()+" that does not support input stream");

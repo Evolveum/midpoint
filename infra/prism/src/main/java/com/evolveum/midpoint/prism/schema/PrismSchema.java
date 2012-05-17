@@ -136,19 +136,19 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 	
 	
 	// TODO: cleanup this chaos
-	public static PrismSchema parse(Element element, PrismContext prismContext) throws SchemaException {
-		return parse(element, prismContext.getSchemaRegistry().getBuiltinSchemaResolver(), new PrismSchema(prismContext), prismContext);
+	public static PrismSchema parse(Element element, String shortDescription, PrismContext prismContext) throws SchemaException {
+		return parse(element, prismContext.getSchemaRegistry(), new PrismSchema(prismContext), shortDescription, prismContext);
 	}
 	
-	public static PrismSchema parse(Element element, EntityResolver resolver, PrismContext prismContext) throws SchemaException {
-		return parse(element, resolver, new PrismSchema(prismContext), prismContext);
+	public static PrismSchema parse(Element element, EntityResolver resolver, String shortDescription, PrismContext prismContext) throws SchemaException {
+		return parse(element, resolver, new PrismSchema(prismContext), shortDescription, prismContext);
 	}
 	
-	protected static PrismSchema parse(Element element, PrismSchema schema, PrismContext prismContext) throws SchemaException {
-		return parse(element, prismContext.getSchemaRegistry().getBuiltinSchemaResolver(), schema, prismContext);
+	protected static PrismSchema parse(Element element, PrismSchema schema, String shortDescription, PrismContext prismContext) throws SchemaException {
+		return parse(element, prismContext.getSchemaRegistry(), schema, shortDescription, prismContext);
 	}
 	
-	protected static PrismSchema parse(Element element, EntityResolver resolver, PrismSchema schema, PrismContext prismContext) throws SchemaException {
+	protected static PrismSchema parse(Element element, EntityResolver resolver, PrismSchema schema, String shortDescription, PrismContext prismContext) throws SchemaException {
 		if (element == null) {
 			throw new IllegalArgumentException("Schema DOM element must not be null.");
 		}
@@ -156,6 +156,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();
 		processor.setEntityResolver(resolver);
 		processor.setPrismContext(prismContext);
+		processor.setShortDescription(shortDescription);
 		return processor.parseDom(schema, element);
 	}
 

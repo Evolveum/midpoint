@@ -39,7 +39,7 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="../../standard/XMLSchema.xsd">
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema">
         <xsd:annotation>
             <xsd:documentation>
                 Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
@@ -49,7 +49,7 @@
     </xsd:import>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"
-                schemaLocation="annotation-2.xsd">
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-2">
         <xsd:annotation>
             <xsd:documentation>
                 Common prism annotations used in various XSD schemas.
@@ -58,7 +58,7 @@
     </xsd:import>
     
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2"
-                schemaLocation="types-2.xsd">
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2">
         <xsd:annotation>
             <xsd:documentation>
                 Common prism types.

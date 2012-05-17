@@ -99,7 +99,7 @@
         <!-- Code generator is not used in Prism. We can't really test JAXB here
              as we get the propert JAXB plugin code only after Prism is compiled.
              The classes that we need are hard-copied into the prism test source tree.
-             Disabling this plugin speeds up the compilation.
+             Disabling this plugin speeds up the compilation. -->
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
@@ -113,12 +113,12 @@
                             <verbose>true</verbose>
                             <catalog>src/main/resources/META-INF/catalog.xml</catalog>
                             <extension>true</extension>
-                            <schemaDirectory>src/main/resources/xml/ns/test</schemaDirectory>
+                            <schemaDirectory>src/main/resources/xml/ns/public</schemaDirectory>
                             <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>  -->
+            </plugin>
         </plugins>
     </build>
 </project>

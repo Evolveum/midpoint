@@ -15,7 +15,8 @@
 	
 	<types>
 		<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl">
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="common-1.xsd"/>			
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+						schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>			
 
 			<xsd:complexType name="FaultType" abstract="true">
 				<xsd:sequence>

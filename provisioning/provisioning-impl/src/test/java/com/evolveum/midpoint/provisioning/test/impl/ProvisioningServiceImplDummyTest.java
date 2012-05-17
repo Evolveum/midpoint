@@ -219,7 +219,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 			assertNotNull("No schema", connectorXsdSchemaElement);
 			
 			// Try to parse the schema
-			PrismSchema schema = PrismSchema.parse(connectorXsdSchemaElement, prismContext);
+			PrismSchema schema = PrismSchema.parse(connectorXsdSchemaElement, "connector schema "+conn, prismContext);
 			assertNotNull("Cannot parse schema", schema);
 			assertFalse("Empty schema", schema.isEmpty());
 			
@@ -306,7 +306,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
+		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceBefore.toString(), prismContext);
 		assertNotNull("No schema after parsing", parsedSchema);
 
 		// schema will be checked in next test

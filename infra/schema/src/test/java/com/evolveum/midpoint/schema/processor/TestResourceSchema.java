@@ -103,7 +103,8 @@ public class TestResourceSchema {
 
         // WHEN
 
-        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), PrismTestUtil.getPrismContext());
+        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), 
+        		RESOURCE_SCHEMA_SIMPLE_FILENAME, PrismTestUtil.getPrismContext());
 
         // THEN
 
@@ -162,7 +163,7 @@ public class TestResourceSchema {
 		System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
 		XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
 		Element unXsd = unXmlSchemaType.getDefinition().getAny().get(0);
-		ResourceSchema unSchema = ResourceSchema.parse(unXsd, PrismTestUtil.getPrismContext());
+		ResourceSchema unSchema = ResourceSchema.parse(unXsd, "unmarshalled resource", PrismTestUtil.getPrismContext());
 		
 		System.out.println("unmarshalled schema");
 		System.out.println(unSchema.dump());
@@ -208,7 +209,7 @@ public class TestResourceSchema {
 		System.out.println("unmarshalled resource schema");
 		System.out.println(DOMUtil.serializeDOMToString(unXsd));
 		
-		ResourceSchema unSchema = ResourceSchema.parse(unXsd, PrismTestUtil.getPrismContext());
+		ResourceSchema unSchema = ResourceSchema.parse(unXsd, "unmarshalled resource schema", PrismTestUtil.getPrismContext());
 		
 		System.out.println("unmarshalled parsed schema");
 		System.out.println(unSchema.dump());

@@ -120,13 +120,13 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 				connectorType = connector.asObjectable();
 				Element xsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
 				LOGGER.debug("Parsing dom schema to object");
-				schema = PrismSchema.parse(xsdSchemaElement, PrismTestUtil.getPrismContext());
+				schema = PrismSchema.parse(xsdSchemaElement, connector.toString(), PrismTestUtil.getPrismContext());
 				LOGGER.debug("Schema parsed {}", schema);
 				document = schema.serializeToXsd();
 				xml = DOMUtil.printDom(document).toString();
 				LOGGER.trace("Schema parsed to dom:\n{}", xml);
 				document = DOMUtil.parseDocument(xml);
-				schema = PrismSchema.parse(document.getDocumentElement(), PrismTestUtil.getPrismContext());
+				schema = PrismSchema.parse(document.getDocumentElement(), "serialized schema", PrismTestUtil.getPrismContext());
 			} catch (Exception ex) {
 				Assert.fail(ex.getMessage(), ex);
 			} finally {

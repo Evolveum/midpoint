@@ -20,12 +20,21 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!-- Portions Copyrighted 2011 Evolveum                      -->
 <!--                                                         -->
-<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">	
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
 
-	<!-- Schema locations for public namespaces -->
-	<public publicId="http://prism.evolveum.com/xml/ns/public/annotation-2" uri="../xml/ns/public/prism/annotation-2.xsd" />
-	<system systemId="http://prism.evolveum.com/xml/ns/public/annotation-2" uri="../xml/ns/public/prism/annotation-2.xsd" />
+	<!-- <rewriteSystem systemIdStartString="http://midpoint.evolveum.com/xml/" rewritePrefix="main/resources/xml/"/>
+	<rewriteSystem systemIdStartString="http://prism.evolveum.com/xml/" rewritePrefix="../prism/main/resources/xml/"/>  -->
 
+	<public publicId="http://prism.evolveum.com/xml/ns/public/annotation-2" uri="../../../../../prism/src/main/resources/xml/ns/public/annotation-2.xsd" />
+	<system systemId="http://prism.evolveum.com/xml/ns/public/annotation-2" uri="../../../../../prism/src/main/resources/xml/ns/public/annotation-2.xsd" />
+	
+	<public publicId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../../../../../prism/src/main/resources/xml/ns/public/types-2.xsd" />
+    <system systemId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../../../../../prism/src/main/resources/xml/ns/public/types-2.xsd" />
+
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../../../../../prism/src/main/resources/xml/ns/public/query-2.xsd" />
+    <system systemId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../../../../../prism/src/main/resources/xml/ns/public/query-2.xsd" />
+    	
+	
 	<public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" uri="../xml/ns/public/common/common-1.xsd" />
 	<system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" uri="../xml/ns/public/common/common-1.xsd" />
 
@@ -41,11 +50,8 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-2" uri="../xml/ns/public/model/import/extension-2.xsd" />
 	<system systemId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-2" uri="../xml/ns/public/model/import/extension-2.xsd" />
 	
-	<public publicId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../xml/ns/public/prism/types-2.xsd" />
-    <system systemId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../xml/ns/public/prism/types-2.xsd" />
-
-    <public publicId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../xml/ns/public/prism/query-2.xsd" />
-    <system systemId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../xml/ns/public/prism/query-2.xsd" />
+	<public publicId="http://midpoint.evolveum.com/xml/ns/public/model/workflow-1.xsd" uri="../xml/ns/public/model/workflow-1.xsd" />
+	<system systemId="http://midpoint.evolveum.com/xml/ns/public/model/workflow-1.xsd" uri="../xml/ns/public/model/workflow-1.xsd" />
     
 	<!-- Experimental XSD schema file locations -->
 	<public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />

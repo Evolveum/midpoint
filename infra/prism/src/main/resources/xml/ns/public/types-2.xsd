@@ -38,7 +38,7 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="../../standard/XMLSchema.xsd">
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema">
         <xsd:annotation>
             <xsd:documentation>
                 Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
@@ -47,7 +47,7 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="../../standard/xenc-schema.xsd">
+    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="http://www.w3.org/2001/04/xmlenc#">
         <xsd:annotation>
             <xsd:documentation>
                 The XML Encryption schema. Used for "protected" data types (property encryption).
@@ -57,13 +57,61 @@
 
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"
-                schemaLocation="annotation-2.xsd">
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-2">
         <xsd:annotation>
             <xsd:documentation>
                 Common prism annotations used in various XSD schemas.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
+    
+    <!-- ########################################### -->
+    <!-- ##         PROPERTY DATA TYPES           ## -->
+    <!-- ########################################### -->
+
+	<xsd:complexType name="PolyStringType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Polymorphic string. String that may have more than one representation at
+				the same time. The primary representation is the original version that is
+				composed of the full Unicode character set. The other versions may be
+				normalized to trim it, normalize character case, normalize spaces,
+				remove national characters or even transliterate the string.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="orig" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Original value of the string. There are no constraints on the string structure
+						beyond the natural constraints of the platform. E.g. it may contain full set of
+						Unicode characters, multiple subsequent whitespaces, etc. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="norm" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Normalized value of the string. The values is processed by the default normalization
+						algorithm defined in the system. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Any additional form of normalized value. Any element present in this section
+						must be of xsd:string type and it must be single-value (in the prism sense).
+						Note: Some implementations may not be able to use them or even store them. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+	</xsd:complexType>
+
+    <!-- ########################################### -->
+    <!-- ##         DATA STRUCTURE TYPES          ## -->
+    <!-- ########################################### -->
     
     <xsd:complexType name="extension">
         <xsd:annotation>

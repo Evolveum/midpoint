@@ -96,7 +96,7 @@ public class ResourceSchemaCache {
 		if (xsdElement == null) {
 			throw new IllegalArgumentException("No resource schema in " + resourceType + ", cannot put in cache");
 		}
-		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
+		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceType.toString(), prismContext);
 		// Put it into cache
 		ResourceSchemaCacheEntry entry = new ResourceSchemaCacheEntry(serial, xsdElement, parsedSchema);
 		cache.put(oid,entry);

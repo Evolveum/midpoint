@@ -34,6 +34,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -45,6 +46,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
@@ -88,6 +90,7 @@ class DomToSchemaProcessor {
 	private EntityResolver entityResolver;
 	private PrismContext prismContext;
 	private XSSchemaSet xsSchemaSet;
+	private String shortDescription;
 	
 	public EntityResolver getEntityResolver() {
 		return entityResolver;
@@ -119,6 +122,14 @@ class DomToSchemaProcessor {
 	
 	private boolean isMyNamespace(QName qname) {
 		return getNamespace().equals(qname.getNamespaceURI());
+	}
+	
+	public String getShortDescription() {
+		return shortDescription;
+	}
+
+	public void setShortDescription(String shortDescription) {
+		this.shortDescription = shortDescription;
 	}
 
 	/**
@@ -189,9 +200,13 @@ class DomToSchemaProcessor {
 			parser.parse(inSource);
 			
 			xss = parser.getResult();
-		} catch (Exception ex) {
-			throw new SchemaException("Uknown error during resource xsd schema parsing: "
-					+ ex.getMessage(), ex);
+			
+		} catch (SAXException e) {
+			throw new SchemaException("XML error during XSD schema parsing: "
+					+ e.getMessage() + "(embedded exception "+ e.getException()+") in "+shortDescription, e);
+		} catch (TransformerException e) {
+			throw new SchemaException("XML transformer error during XSD schema parsing: "
+					+ e.getMessage() + "(locator: "+e.getLocator()+", embedded exception:"+ e.getException()+") in "+shortDescription, e);
 		}
 
 		return xss;
@@ -200,7 +215,7 @@ class DomToSchemaProcessor {
 	private XSOMParser createSchemaParser() {
 		XSOMParser parser = new XSOMParser();
 		if (entityResolver == null) {
-			entityResolver = prismContext.getSchemaRegistry().getBuiltinSchemaResolver();
+			entityResolver = prismContext.getSchemaRegistry();
 			if (entityResolver == null) {
 				throw new IllegalStateException("Entity resolver is not set (even tried to pull it from prism context)");
 			}

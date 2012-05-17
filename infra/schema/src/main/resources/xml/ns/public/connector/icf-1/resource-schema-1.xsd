@@ -26,9 +26,9 @@
             elementFormDefault="qualified">
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-                schemaLocation="../../common/common-1.xsd"/>
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-                schemaLocation="../../resource/resource-schema-1.xsd"/>
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
 
     <xsd:annotation>
         <xsd:documentation>

@@ -245,7 +245,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
 		
 		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
-		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
+		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceTypeRepoAfter.toString(), prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
 		ObjectClassComplexTypeDefinition accountDefinition = parsedSchema.findDefaultAccountDefinition();

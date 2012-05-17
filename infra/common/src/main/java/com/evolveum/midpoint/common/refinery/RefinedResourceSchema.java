@@ -177,7 +177,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 						USER_DATA_KEY_PARSED_RESOURCE_SCHEMA+ "in "+resource+", but got "+userDataEntry.getClass());
 			}
 		} else {
-			ResourceSchema parsedSchema = ResourceSchema.parse(resourceXsdSchema, prismContext);
+			ResourceSchema parsedSchema = ResourceSchema.parse(resourceXsdSchema, "resource schema of "+resource, prismContext);
 			if (parsedSchema == null) {
 				throw new IllegalStateException("Parsed schema is null: most likely an internall error");
 			}

@@ -95,14 +95,14 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
 		}
 		try {
 			InputSource source = entityResolver.resolveEntity(publicId, systemId);
-			LOGGER.trace("Resolved entity '{}', '{}': '{}'", new Object[] { publicId, systemId, source });
+			LOGGER.trace("Resolved entity '{}', '{}': '{}' (resolver: {})", new Object[] { publicId, systemId, source, entityResolver});
 			return source;
 		} catch (SAXException e) {
-			LOGGER.error("Error resolving entity '{}', '{}': '{}'",
+			LOGGER.error("XML error resolving entity '{}', '{}': '{}'",
 					new Object[] { publicId, systemId, e.getMessage(), e });
 			throw e;
 		} catch (IOException e) {
-			LOGGER.error("Error resolving entity '{}', '{}': '{}'",
+			LOGGER.error("IO error resolving entity '{}', '{}': '{}'",
 					new Object[] { publicId, systemId, e.getMessage(), e });
 			throw e;
 		}
