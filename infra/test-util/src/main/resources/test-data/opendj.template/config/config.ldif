@@ -255,9 +255,9 @@ ds-cfg-backend-id: userRoot
 ds-cfg-index-entry-limit: 4000
 ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
 ds-cfg-writability-mode: enabled
-ds-cfg-db-cache-percent: 10
+ds-cfg-db-cache-percent: 1
 ds-cfg-db-evictor-lru-only: true
-ds-cfg-db-cache-size: 0 megabytes
+ds-cfg-db-cache-size: 5 megabytes
 ds-cfg-entries-compressed: false
 ds-cfg-db-directory-permissions: 700
 ds-cfg-db-cleaner-min-utilization: 50
