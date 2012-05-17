@@ -128,7 +128,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 
     @Override
     public boolean isIgnored() {
-        return false;
+        return ignored;
     }
 
     @Override
@@ -260,6 +260,8 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
             }
             
         }
+        
+        rAttrDef.ignored = attrDef.isIgnored();
         
         rAttrDef.create = parseAccess(attrDefType, AccessType.CREATE, attrDef.canCreate());
         rAttrDef.update = parseAccess(attrDefType, AccessType.UPDATE, attrDef.canUpdate());

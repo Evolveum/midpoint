@@ -19,11 +19,13 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 lazyman                       -->
 <!--                                                         -->
-<object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" 
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2" 
+	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
 	<name>Localhost OpenDJ</name>
 	<connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
@@ -88,8 +90,10 @@
 	  <definition>
 		<xsd:schema elementFormDefault="qualified"
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" 
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2" 
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" />
 			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
@@ -184,6 +188,13 @@
 					<xsd:element minOccurs="0" ref="icfs:password" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
 					<xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string" />
+					<xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:ignore/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:complexType>
 		</xsd:schema>

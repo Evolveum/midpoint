@@ -106,13 +106,17 @@ public class TestRefinedSchema {
         Collection<RefinedAttributeDefinition> attributeDefinitions = rAccount.getAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", attributeDefinitions);
         assertFalse("Empty attributeDefinitions", attributeDefinitions.isEmpty());
-        assertEquals("Unexpected number of attributeDefinitions", 54, attributeDefinitions.size());
+        assertEquals("Unexpected number of attributeDefinitions", 55, attributeDefinitions.size());
+        
+        RefinedAttributeDefinition disabledAttribute = rAccount.findAttributeDefinition("ds-pwp-account-disabled");
+        assertNotNull("No ds-pwp-account-disabled attribute", disabledAttribute);
+        assertTrue("ds-pwp-account-disabled not ignored", disabledAttribute.isIgnored());
         
         // This is compatibility with PrismContainerDefinition, it should work well
         Set<PrismPropertyDefinition> propertyDefinitions = rAccount.getPropertyDefinitions();
         assertNotNull("Null propertyDefinitions", propertyDefinitions);
         assertFalse("Empty propertyDefinitions", propertyDefinitions.isEmpty());
-        assertEquals("Unexpected number of propertyDefinitions", 54, propertyDefinitions.size());
+        assertEquals("Unexpected number of propertyDefinitions", 55, propertyDefinitions.size());
     }
 
 
