@@ -22,6 +22,9 @@
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
@@ -31,10 +34,19 @@ import org.apache.wicket.model.IModel;
  */
 public class DropDownChoicePanel<T> extends InputPanel {
 
-    public DropDownChoicePanel(String id, IModel<T> model, IModel<T> choices) {
+    public DropDownChoicePanel(String id, final IModel<T> model, final IModel<T> choices) {
         super(id);
 
-        DropDownChoice drop = new DropDownChoice("input", model, choices);
+        final DropDownChoice drop = new DropDownChoice("input", model, choices);
+        
+        drop.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+			
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				
+				model.setObject((T) drop.getModelObject());
+			}
+		});
         add(drop);
     }
 
