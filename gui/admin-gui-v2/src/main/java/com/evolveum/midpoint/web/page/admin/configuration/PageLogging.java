@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.Editable;
@@ -178,7 +179,7 @@ public class PageLogging extends PageAdminConfiguration {
                 "level") {
 
             @Override
-            protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
+            protected InputPanel createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
                 DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                         new PropertyModel(model, getPropertyExpression()),
                         MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
@@ -212,7 +213,7 @@ public class PageLogging extends PageAdminConfiguration {
             }
 
             @Override
-            protected Component createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
+            protected InputPanel createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
                 ListMultipleChoicePanel panel = new ListMultipleChoicePanel<String>(componentId,
                         new PropertyModel<List<String>>(model, getPropertyExpression()), createAppendersListModel());
 
@@ -320,14 +321,26 @@ public class PageLogging extends PageAdminConfiguration {
 
 			@Override
 			protected Component createInputPanel(String componentId, IModel<AppenderConfiguration> model) {
-				return new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+				TextPanel panel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+
+                return panel;
 			}
 		};
 		columns.add(column);
 
 		// pattern editable column
 		columns.add(new EditablePropertyColumn(createStringResource("pageLogging.appenders.pattern"),
-				"pattern"));
+				"pattern") {
+
+            @Override
+            protected InputPanel createInputPanel(String componentId, IModel iModel) {
+                InputPanel panel = super.createInputPanel(componentId, iModel);
+                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+
+                return panel;
+            }
+        });
 		// file path editable column
 		columns.add(new FileAppenderColumn(createStringResource("pageLogging.appenders.filePath"), "filePath"));
 		// file pattern editable column
@@ -338,11 +351,12 @@ public class PageLogging extends PageAdminConfiguration {
 				"maxHistory") {
 
 			@Override
-			protected Component createInputPanel(String componentId, IModel iModel) {
-				TextPanel panel = new TextPanel(componentId, new PropertyModel(iModel,
-						getPropertyExpression()));
-				TextField text = (TextField) panel.getBaseFormComponent();
-				text.add(new AttributeModifier("size", 5));
+			protected InputPanel createInputPanel(String componentId, IModel iModel) {
+				TextPanel panel = new TextPanel(componentId, new PropertyModel(iModel, getPropertyExpression()));
+				FormComponent component = panel.getBaseFormComponent();
+                component.add(new AttributeModifier("size", 5));
+                component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+
 				return panel;
 			}
 		});
@@ -351,17 +365,28 @@ public class PageLogging extends PageAdminConfiguration {
 				"maxFileSize") {
 
 			@Override
-			protected Component createInputPanel(String componentId, IModel iModel) {
+			protected InputPanel createInputPanel(String componentId, IModel iModel) {
 				TextPanel panel = new TextPanel(componentId, new PropertyModel(iModel,
 						getPropertyExpression()));
-				TextField text = (TextField) panel.getBaseFormComponent();
-				text.add(new AttributeModifier("size", 5));
+                FormComponent component = panel.getBaseFormComponent();
+                component.add(new AttributeModifier("size", 5));
+                component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+
 				return panel;
 			}
 		});
 
-		CheckBoxColumn check = new EditableCheckboxColumn(
-				createStringResource("pageLogging.appenders.appending"), "appending");
+		CheckBoxColumn check = new EditableCheckboxColumn(createStringResource("pageLogging.appenders.appending"),
+                "appending") {
+
+            @Override
+            protected InputPanel createInputPanel(String componentId, IModel iModel) {
+                InputPanel panel = super.createInputPanel(componentId, iModel);
+                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+
+                return panel;
+            }
+        };
 		check.setEnabled(false);
 		columns.add(check);
 
@@ -712,5 +737,13 @@ public class PageLogging extends PageAdminConfiguration {
 		protected boolean isEditing(IModel<T> rowModel) {
 			return super.isEditing(rowModel) && (rowModel.getObject() instanceof FileAppenderConfig);
 		}
+
+        @Override
+        protected InputPanel createInputPanel(String componentId, IModel iModel) {
+            InputPanel panel = super.createInputPanel(componentId, iModel);
+            panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+
+            return panel;
+        }
 	}
 }

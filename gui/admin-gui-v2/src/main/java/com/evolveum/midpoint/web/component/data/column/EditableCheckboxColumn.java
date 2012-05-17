@@ -21,9 +21,10 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.web.component.input.CheckPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -62,7 +63,7 @@ public class EditableCheckboxColumn<T extends Editable> extends CheckBoxColumn<T
         return editable.isEditing();
     }
 
-    protected Component createInputPanel(String componentId, IModel<Selectable> model) {
-        return new CheckBoxPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+    protected InputPanel createInputPanel(String componentId, IModel<Selectable> model) {
+        return new CheckPanel(componentId, new PropertyModel(model, getPropertyExpression()));
     }
 }
