@@ -155,14 +155,27 @@ public class PageLogging extends PageAdminConfiguration {
                 createStringResource("pageLogging.classPackageSubsystem"), "name") {
 
             @Override
-            protected Component createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
+            protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
                 if (model.getObject() instanceof ComponentLogger) {
-                	return new DropDownChoicePanel(componentId, createComponentLoggerModel(model),
+                	final DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId, createComponentLoggerModel(model),
                             MiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class));
+                	dropDownChoicePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+            			
+            			@Override
+            			protected void onUpdate(AjaxRequestTarget target) {
+            			}
+            		});
+                	return dropDownChoicePanel;
                 } else {
-                	return new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));	
+                	final TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+                	textPanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+            			
+            			@Override
+            			protected void onUpdate(AjaxRequestTarget target) {
+            			}
+            		});
+                	return textPanel;
                 }
-                
             }
 
             @Override
@@ -177,9 +190,16 @@ public class PageLogging extends PageAdminConfiguration {
                 "level") {
 
             @Override
-            protected Component createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
-                return new DropDownChoicePanel(componentId, new PropertyModel(model, getPropertyExpression()),
+            protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
+                final DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId, new PropertyModel(model, getPropertyExpression()),
                         MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
+            	dropDownChoicePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+        			
+        			@Override
+        			protected void onUpdate(AjaxRequestTarget target) {
+        			}
+        		});
+            	return dropDownChoicePanel;
             }
         });
 
@@ -214,7 +234,13 @@ public class PageLogging extends PageAdminConfiguration {
 
                 ListMultipleChoice choice = (ListMultipleChoice) panel.getBaseFormComponent();
                 choice.setMaxRows(3);
-
+                
+                panel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+					
+					@Override
+					protected void onUpdate(AjaxRequestTarget target) {
+					}
+				});
 
                 return panel;
             }

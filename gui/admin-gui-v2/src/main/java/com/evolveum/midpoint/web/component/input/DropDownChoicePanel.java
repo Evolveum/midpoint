@@ -38,15 +38,6 @@ public class DropDownChoicePanel<T> extends InputPanel {
         super(id);
 
         final DropDownChoice drop = new DropDownChoice("input", model, choices);
-        
-        drop.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
-			
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				
-				model.setObject((T) drop.getModelObject());
-			}
-		});
         add(drop);
     }
 

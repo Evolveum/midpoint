@@ -42,15 +42,6 @@ public class TextPanel<T> extends InputPanel {
         final TextField<T> text = new TextField<T>("input", model);
         text.setType(clazz);
         text.add(new SimpleAttributeModifier("style","width: 100%"));
-        
-        text.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
-			
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				
-				model.setObject(text.getModelObject());
-			}
-		});
         add(text);
     }
 
