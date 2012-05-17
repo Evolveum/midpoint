@@ -132,9 +132,10 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
         Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
         for (PrismPropertyDefinition def : propertyDefinitions) {
-            if (skipProperty(def)) {
+            if (def.isIgnored() || skipProperty(def)) {
                 continue;
             }
+
             PrismProperty property = container.findProperty(def.getName());
             if (property == null) {
                 properties.add(new PropertyWrapper(this, def.instantiate(), ValueStatus.ADDED));

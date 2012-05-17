@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.SimpleAttributeModifier;
@@ -36,12 +37,12 @@ public class TextPanel<T> extends InputPanel {
         this(id, model, String.class);
     }
 
-    public TextPanel(String id, final IModel<T> model, Class clazz) {
+    public TextPanel(String id, IModel<T> model, Class clazz) {
         super(id);
 
         final TextField<T> text = new TextField<T>("input", model);
         text.setType(clazz);
-        text.add(new SimpleAttributeModifier("style","width: 100%"));
+        text.add(new AttributeModifier("style", "width: 100%"));
         add(text);
     }
 

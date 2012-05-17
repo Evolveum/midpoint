@@ -32,7 +32,6 @@ import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -50,9 +49,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.form.*;
@@ -157,23 +153,15 @@ public class PageLogging extends PageAdminConfiguration {
             @Override
             protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
                 if (model.getObject() instanceof ComponentLogger) {
-                	final DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId, createComponentLoggerModel(model),
+                	DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
+                            createComponentLoggerModel(model),
                             MiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class));
-                	dropDownChoicePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
-            			
-            			@Override
-            			protected void onUpdate(AjaxRequestTarget target) {
-            			}
-            		});
+
+                	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 	return dropDownChoicePanel;
                 } else {
-                	final TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
-                	textPanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
-            			
-            			@Override
-            			protected void onUpdate(AjaxRequestTarget target) {
-            			}
-            		});
+                	TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+                	textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 	return textPanel;
                 }
             }
@@ -183,7 +171,7 @@ public class PageLogging extends PageAdminConfiguration {
                 loggedEditPerformed(target, rowModel);
             }
         });
-  
+
 
         //level editing column
         columns.add(new EditablePropertyColumn<LoggerConfiguration>(createStringResource("pageLogging.loggersLevel"),
@@ -191,14 +179,10 @@ public class PageLogging extends PageAdminConfiguration {
 
             @Override
             protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
-                final DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId, new PropertyModel(model, getPropertyExpression()),
+                DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
+                        new PropertyModel(model, getPropertyExpression()),
                         MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-            	dropDownChoicePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
-        			
-        			@Override
-        			protected void onUpdate(AjaxRequestTarget target) {
-        			}
-        		});
+            	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             	return dropDownChoicePanel;
             }
         });
@@ -234,13 +218,8 @@ public class PageLogging extends PageAdminConfiguration {
 
                 ListMultipleChoice choice = (ListMultipleChoice) panel.getBaseFormComponent();
                 choice.setMaxRows(3);
-                
-                panel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
-					
-					@Override
-					protected void onUpdate(AjaxRequestTarget target) {
-					}
-				});
+
+                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 
                 return panel;
             }
@@ -711,6 +690,17 @@ public class PageLogging extends PageAdminConfiguration {
 
 		target.add(get("mainForm"));
 	}
+
+    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
+
+        public EmptyOnBlurAjaxFormUpdatingBehaviour() {
+            super("onBlur");
+        }
+
+        @Override
+        protected void onUpdate(AjaxRequestTarget target) {
+        }
+    }
 
 	private static class FileAppenderColumn<T extends Editable> extends EditablePropertyColumn<T> {
 

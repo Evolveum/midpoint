@@ -34,11 +34,10 @@ import org.apache.wicket.model.IModel;
  */
 public class DropDownChoicePanel<T> extends InputPanel {
 
-    public DropDownChoicePanel(String id, final IModel<T> model, final IModel<T> choices) {
+    public DropDownChoicePanel(String id, IModel<T> model, IModel<T> choices) {
         super(id);
 
-        final DropDownChoice drop = new DropDownChoice("input", model, choices);
-        add(drop);
+        add(new DropDownChoice("input", model, choices));
     }
 
     @Override
