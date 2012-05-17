@@ -21,42 +21,45 @@
 
 package com.evolveum.midpoint.web.component.util;
 
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  * @author lazyman
  */
-public class ListDataProvider<T extends Serializable> extends SortableDataProvider<T> {
+public class ListDataProvider<T extends Serializable> extends BaseSortableDataProvider<T> {
 
     private IModel<List<T>> model;
 
-    public ListDataProvider(IModel<List<T>> model) {
+    public ListDataProvider(PageBase page, IModel<List<T>> model) {
+        super(page);
+
         Validate.notNull(model);
-        this.model = model;        
+        this.model = model;
     }
 
     @Override
     public Iterator<? extends T> iterator(int first, int count) {
+        getAvailableData().clear();
+
         List<T> list = model.getObject();
-        if (list == null || list.isEmpty()) {
-            return new ArrayList<T>().iterator();
+        if (list != null) {
+            for (int i = first; i < first + count; i++) {
+                if (i < 0 || i >= list.size()) {
+                    throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
+                            + " but list size is " + list.size());
+                }
+                getAvailableData().add(list.get(i));
+            }
         }
 
-        List<T> out = new ArrayList<T>();
-        for (int i = first; i < first + count; i++) {
-            out.add(list.get(i));
-        }
-
-        return out.iterator();
+        return getAvailableData().iterator();
     }
 
     @Override
@@ -67,10 +70,5 @@ public class ListDataProvider<T extends Serializable> extends SortableDataProvid
         }
 
         return list.size();
-    }
-
-    @Override
-    public IModel<T> model(T object) {
-        return new Model<T>(object);
     }
 }

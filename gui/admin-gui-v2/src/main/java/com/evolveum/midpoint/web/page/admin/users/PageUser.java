@@ -427,7 +427,7 @@ public class PageUser extends PageAdminUsers {
             }
         });
 
-        ISortableDataProvider provider = new ListDataProvider(assignmentsModel);
+        ISortableDataProvider provider = new ListDataProvider(this, assignmentsModel);
         TablePanel assignmentTable = new TablePanel("assignmentTable", provider, columns);
         assignmentTable.setShowPaging(false);
 

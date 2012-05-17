@@ -235,7 +235,7 @@ public class PageLogging extends PageAdminConfiguration {
     private void initLoggers(AccordionItem loggers) {
         initRoot(loggers);
 
-        ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(
+        ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(this,
                 new PropertyModel<List<LoggerConfiguration>>(model, "loggers"));
         TablePanel table = new TablePanel<LoggerConfiguration>("loggersTable", provider, initLoggerColumns());
         table.setOutputMarkupId(true);
@@ -349,7 +349,7 @@ public class PageLogging extends PageAdminConfiguration {
     }
 
     private void initAppenders(AccordionItem appenders) {
-        ISortableDataProvider<AppenderConfiguration> provider = new ListDataProvider<AppenderConfiguration>(
+        ISortableDataProvider<AppenderConfiguration> provider = new ListDataProvider<AppenderConfiguration>(this,
                 new PropertyModel<List<AppenderConfiguration>>(model, "appenders"));
         TablePanel table = new TablePanel<AppenderConfiguration>("appendersTable", provider, initAppendersColumns());
         table.setOutputMarkupId(true);

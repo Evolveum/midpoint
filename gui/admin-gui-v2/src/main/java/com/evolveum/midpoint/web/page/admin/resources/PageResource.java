@@ -147,7 +147,7 @@ public class PageResource extends PageAdminResources {
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
-		SortableDataProvider<ResourceObjectTypeDto> provider = new ListDataProvider<ResourceObjectTypeDto>(
+		SortableDataProvider<ResourceObjectTypeDto> provider = new ListDataProvider<ResourceObjectTypeDto>(this,
 				new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
 		provider.setSort("displayName", SortOrder.ASCENDING);
 		TablePanel objectTypes = new TablePanel<ResourceObjectTypeDto>("objectTypesTable", provider,
