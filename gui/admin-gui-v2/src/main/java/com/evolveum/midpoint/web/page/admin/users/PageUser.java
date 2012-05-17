@@ -734,7 +734,7 @@ public class PageUser extends PageAdminUsers {
         for (UserAssignmentDto assDto : assignments) {
             switch (assDto.getStatus()) {
                 case ADD:
-
+                    //todo implement
                     break;
                 case DELETE:
 
@@ -777,11 +777,12 @@ public class PageUser extends PageAdminUsers {
                         LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
                     }
 
-                    if (delta.isEmpty()) {
-                        //todo message and return
+                    if (!delta.isEmpty()) {
+                        getModelService().modifyObject(UserType.class, delta.getOid(), delta.getModifications(), task, result);
+                    } else {
+                        result.recordSuccessIfUnknown();
                     }
-                    getModelService().modifyObject(UserType.class, delta.getOid(),
-                            delta.getModifications(), task, result);
+
                     break;
                 // delete state is where? wtf?? in next release add there delete state as well as
                 // support for add/delete containers (e.g. delete credentials)
