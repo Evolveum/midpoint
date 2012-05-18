@@ -165,6 +165,13 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		}
 		return false;
 	}
+	
+	/**
+	 * Returns true if the value is raw. Raw value is a semi-parsed value.
+	 * A value for which we don't have a full definition yet and therefore
+	 * the parsing could not be finished until the defintion is supplied.
+	 */
+	public abstract boolean isRaw();
 
 	public static <X extends PrismValue> Collection<X> cloneValues(Collection<X> values) {
 		Collection<X> clonedCollection = new ArrayList<X>(values.size());

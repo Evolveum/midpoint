@@ -220,7 +220,7 @@ public class InboundProcessor {
             PrismObject<UserType> newUser, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<ValueFilterType> filters = inbound.getValueFilter();
         
-        if (oldAccountProperty != null && oldAccountProperty.isRaw()) {
+        if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
         }
         

@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.prism.xjc;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -72,55 +73,21 @@ public final class PrismForJAXBUtil {
         return getPropertyValue(property, clazz);
     }
 
-    private static <T> T getPropertyValue(PrismProperty property, Class<T> clazz) {
+    private static <T> T getPropertyValue(PrismProperty<?> property, Class<T> requestedType) {
         if (property == null) {
             return null;
         }
 
-        PrismPropertyValue<Object> value = property.getValue();
+        PrismPropertyValue<?> value = property.getValue();
         if (value == null) {
             return null;
         }
-
-        return (T) value.getValue();
+        
+        Object propertyRealValue = value.getValue();
+        
+        return JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue, requestedType);
     }
-
-    public static <T> void setPropertyValue(PrismContainerValue container, QName name, T value) {
-        Validate.notNull(container, "Container must not be null.");
-        Validate.notNull(name, "QName must not be null.");
-
-        PrismProperty property;
-		try {
-			property = container.findOrCreateProperty(name);
-		} catch (SchemaException e) {
-			// This should not happen. Code generator and compiler should take care of that.
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
-        if (value == null) {
-        	property.clear();
-        } else {
-        	property.setValue(new PrismPropertyValue(value));
-        }
-    }
-
-    public static <T> void setPropertyValue(PrismContainer container, QName name, T value) {
-        Validate.notNull(container, "Container must not be null.");
-        Validate.notNull(name, "QName must not be null.");
-
-        PrismProperty property;
-		try {
-			property = container.findOrCreateProperty(name);
-		} catch (SchemaException e) {
-			// This should not happen. Code generator and compiler should take care of that.
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
-        if (value == null) {
-        	property.clear();
-        } else {
-        	property.setValue(new PrismPropertyValue(value));
-        }
-    }
-
+    
     public static <T> List<T> getPropertyValues(PrismContainerValue container, QName name, Class<T> clazz) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
@@ -134,6 +101,30 @@ public final class PrismForJAXBUtil {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
         return new PropertyArrayList<T>(property);
+    }
+
+    
+    public static <T> void setPropertyValue(PrismContainerValue container, QName name, T value) {
+        Validate.notNull(container, "Container must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+
+        PrismProperty<?> property;
+		try {
+			property = container.findOrCreateProperty(name);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
+        if (value == null) {
+        	property.clear();
+        } else {
+        	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(value);
+        	property.setValue(new PrismPropertyValue(propertyRealValue));
+        }
+    }
+
+    public static <T> void setPropertyValue(PrismContainer container, QName name, T value) {
+    	setPropertyValue(container.getValue(), name, value);
     }
 
     public static <T extends Containerable> PrismContainerValue<T> getFieldContainerValue(PrismContainer<?> parent, QName fieldName) {
@@ -371,4 +362,5 @@ public final class PrismForJAXBUtil {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
 	}
+
 }

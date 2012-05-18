@@ -91,6 +91,7 @@ public class TestParseDiffPatch {
         userBefore.checkConsistence();
         userAfter.checkConsistence();
         userDelta.checkConsistence();
+        userDelta.assertDefinitions();
 
         PropertyPath path = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
@@ -126,6 +127,7 @@ public class TestParseDiffPatch {
         userBefore.checkConsistence();
         userAfter.checkConsistence();
         userDelta.checkConsistence();
+        userDelta.assertDefinitions();
         
         assertEquals("Wrong delta OID", userBefore.getOid(), userDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
@@ -305,6 +307,7 @@ public class TestParseDiffPatch {
         System.out.println(resourceDelta.dump());
 
         resourceDelta.checkConsistence();
+        resourceDelta.assertDefinitions(true);
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
 
@@ -369,6 +372,7 @@ public class TestParseDiffPatch {
         System.out.println(resourceDelta.dump());
         
         resourceDelta.checkConsistence();
+        resourceDelta.assertDefinitions(true);
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
         
@@ -379,6 +383,7 @@ public class TestParseDiffPatch {
         System.out.println(resourceBefore.dump());
         
         resourceDelta.checkConsistence();
+        resourceDelta.assertDefinitions(true);
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
         
@@ -388,6 +393,7 @@ public class TestParseDiffPatch {
         assertTrue("Resource roundtrip 1 failed", roundTripDelta1.isEmpty());
         
         roundTripDelta1.checkConsistence();
+        roundTripDelta1.assertDefinitions(true);
         resourceDelta.checkConsistence();
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
@@ -398,6 +404,7 @@ public class TestParseDiffPatch {
         assertTrue("Resource roundtrip 2 failed", roundTripDelta2.isEmpty());
 
         roundTripDelta2.checkConsistence();
+        roundTripDelta2.assertDefinitions(true);
         resourceDelta.checkConsistence();
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
@@ -405,6 +412,7 @@ public class TestParseDiffPatch {
         PrismAsserts.assertEquivalent("Resources after roundtrip not equivalent", resourceAfter, resourceBefore);
         
         resourceDelta.checkConsistence();
+        resourceDelta.assertDefinitions(true);
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
 	}

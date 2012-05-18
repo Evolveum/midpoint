@@ -266,6 +266,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 					"src/test/resources/resource-modified-removed-tags.xml"), 
 					ResourceType.class, PrismTestUtil.getPrismContext());
 			
+			objectModificationType.assertDefinitions(true);
 			
 			repositoryService.modifyObject(ResourceType.class, objectModificationType.getOid(), 
 					objectModificationType.getModifications(), new OperationResult("test"));

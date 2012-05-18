@@ -801,7 +801,13 @@ public class DOMUtil {
 				definitionElement);
 		return createElement(document, qname);
 	}
-
+	
+	public static Element createSubElement(Element parent, QName subElementQName) {
+		Document doc = parent.getOwnerDocument();
+		Element subElement = createElement(doc, subElementQName);
+		parent.appendChild(subElement);
+		return subElement;
+	}
 
 	public static boolean compareElement(Element a, Element b, boolean considerNamespacePrefixes) {
 		if (a==b) {

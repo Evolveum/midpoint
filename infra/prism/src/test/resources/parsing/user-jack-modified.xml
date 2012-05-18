@@ -22,6 +22,7 @@
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:ext="http://example.com/xml/ns/user-extension">
     <name>jack</name>
     <extension>
@@ -38,6 +39,10 @@
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
     <additionalNames>Jackie</additionalNames>
+    <polyName>
+    	<t:orig>Džek Sperou</t:orig>
+    	<t:norm>dzek sperou</t:norm>
+    </polyName>
     <locality>World's End</locality>
 
 	<assignment id="i1111">

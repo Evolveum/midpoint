@@ -96,10 +96,8 @@
     </dependencies>
     <build>
         <plugins>
-        <!-- Code generator is not used in Prism. We can't really test JAXB here
-             as we get the propert JAXB plugin code only after Prism is compiled.
-             The classes that we need are hard-copied into the prism test source tree.
-             Disabling this plugin speeds up the compilation. -->
+        	<!-- Code generator is used in Prism in the "pure" form without any prism-specific plugins.
+        	 This creates the classes for basic (almost-primitive) data types such as PolyStringType. -->
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
@@ -119,6 +117,33 @@
                     </execution>
                 </executions>
             </plugin>
+        	<!-- 
+        	 Following plugin generates the JAXB classes for prism tests.
+        	 We can't really test full JAXB capabilities here as we get the proper JAXB plugin code
+        	 only after Prism is compiled.
+        	 This plugin is not really needed during normal build.
+             The classes that we need are hard-copied into the prism test source tree.
+             Disabling this plugin speeds up the compilation. -->
+             <!-- 
+            <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.8.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <verbose>true</verbose>
+                            <catalog>src/main/resources/META-INF/catalog.xml</catalog>
+                            <extension>true</extension>
+                            <schemaDirectory>src/main/resources/xml/ns/test</schemaDirectory>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>  -->
         </plugins>
     </build>
 </project>

@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -266,14 +267,14 @@ public class TestPrismParsing {
 		user.assertDefinitions("test");
 		assertUserContent(user);
 		assertUserExtensionBar(user);
-		assertVisitor(user,42);
+		assertVisitor(user,44);
 	}
 	
 	private void assertUserAdhoc(PrismObject<UserType> user) {
 		user.checkConsistence();
 		assertUserContent(user);
 		assertUserExtensionAdhoc(user);
-		assertVisitor(user, 36);
+		assertVisitor(user, 38);
 	}
 	
 	private void assertUserContent(PrismObject<UserType> user) {
@@ -291,6 +292,9 @@ public class TestPrismParsing {
 		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "name", "jack");
 		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
+		
+		assertPropertyValue(user, "polyName", new PolyString("Džek Sperou","dzek sperou"));
+		assertPropertyDefinition(user, "polyName", PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
 		
 		PropertyPath enabledPath = USER_ENABLED_PATH;
 		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);

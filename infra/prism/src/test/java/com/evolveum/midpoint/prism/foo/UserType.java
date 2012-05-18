@@ -170,7 +170,7 @@ public class UserType
         }
         return this.additionalNames;
     }
-    
+        
     /**
      * Gets the value of the locality property.
      * 

@@ -179,5 +179,22 @@ public class MiscUtil {
 		}
 		return collection;
 	}
+
+	/**
+	 * n-ary and that ignores null values.
+	 */
+	public static Boolean and(Boolean... operands) {
+		Boolean result = null;
+		for (Boolean operand: operands) {
+			if (operand == null) {
+				continue;
+			}
+			if (!operand) {
+				return false;
+			}
+			result = true;
+		}
+		return result;
+	}
 		
 }

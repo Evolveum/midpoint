@@ -23,6 +23,8 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -218,8 +220,8 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     	getValues().clear();
         addValue(value);
     }
-    
-    public void setRealValue(Object realValue) {
+
+	public void setRealValue(Object realValue) {
     	setValue(new PrismPropertyValue(realValue));
     }
 
@@ -238,9 +240,29 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     			iterator.remove();
     		}
     	}
+    	prepareValue(pValueToAdd);
     	pValueToAdd.setParent(this);
     	getValues().add(pValueToAdd);
     }
+    
+    /**
+	 * Prepare the value to be stored in prism by recomputing it or otherwise "initialize" it.
+	 */
+	private void prepareValue(PrismPropertyValue<V> value) {
+		if (value.isRaw()) {
+			return;
+		}
+		V realValue = value.getValue();
+		if (realValue == null) {
+			return;
+		}
+		if (realValue instanceof PolyString && getPrismContext() != null) {
+			PolyStringNormalizer polyStringNormalizer = getPrismContext().getDefaultPolyStringNormalizer();
+			if (polyStringNormalizer != null) {
+				((PolyString)realValue).recompute(polyStringNormalizer);
+			}
+		}
+	}
 
     public boolean deleteValues(Collection<PrismPropertyValue<V>> pValuesToDelete) {
         boolean changed = false;
@@ -317,15 +339,6 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     	// TODO: How to determine value class?????
     	return PrismConstants.DEFAULT_VALUE_CLASS;
     }
-	
-	public boolean isRaw() {
-		for (PrismPropertyValue<V> val: getValues()) {
-			if (val.isRaw()) {
-				return true;
-			}
-		}
-		return false;
-	}
     	
     @Override
 	public PropertyDelta<V> createDelta(PropertyPath path) {

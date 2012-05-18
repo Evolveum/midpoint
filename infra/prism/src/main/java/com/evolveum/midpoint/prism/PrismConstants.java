@@ -75,51 +75,12 @@ public class PrismConstants {
 	public static final String A_NAMESPACE_PREFIX = "prefix";
 	public static final String A_NAMESPACE_URL = "url";
 	
+	// Misc
+	
 	public static final Class DEFAULT_VALUE_CLASS = String.class;
 	
-	
-//	static final QName A_RESOURCE_OBJECT = new QName(SchemaConstants.NS_RESOURCE, "resourceObject");
-//
-//	static final QName A_IDENTIFIER = new QName(SchemaConstants.NS_RESOURCE, "identifier");
-//
-//	static final QName A_SECONDARY_IDENTIFIER = new QName(SchemaConstants.NS_RESOURCE, "secondaryIdentifier");
-//
-//	static final QName A_COMPOSITE_IDENTIFIER = new QName(SchemaConstants.NS_RESOURCE, "compositeIdentifier");
-
-
-//	static final QName A_DESCRIPTION_ATTRIBUTE = new QName(SchemaConstants.NS_RESOURCE,
-//			"descriptionAttribute");
-//	
-//	static final QName A_NAMING_ATTRIBUTE = new QName(SchemaConstants.NS_RESOURCE,"namingAttribute");
-//
-//	static final QName A_NATIVE_ATTRIBUTE_NAME = new QName(SchemaConstants.NS_RESOURCE, "nativeAttributeName");
-//
-//	static final QName A_CLASSIFIED_ATTRIBUTE = new QName(SchemaConstants.NS_RESOURCE, "classifiedAttribute");
-//
-//	static final QName A_CA_ENCRYPTION = new QName(SchemaConstants.NS_RESOURCE, "encryption");
-//
-//	static final QName A_CA_CLASSIFICATION_LEVEL = new QName(SchemaConstants.NS_RESOURCE,
-//			"classificationLevel");
-//
-//	static final QName A_OBJECT_CLASS_ATTRIBUTE = new QName(SchemaConstants.NS_RESOURCE,
-//			"objectClassAttribute");// ???
-//
-//	static final QName A_OPERATION = new QName(SchemaConstants.NS_RESOURCE, "operation");// ???
-//
-//	static final QName A_CONTAINER = new QName(SchemaConstants.NS_RESOURCE, "container");
-//
-//	static final QName A_RESOURCE_OBJECT_REFERENCE = new QName(SchemaConstants.NS_RESOURCE,
-//			"resourceObjectReference");// ???
-//
-//	static final QName A_NATIVE_OBJECT_CLASS = new QName(SchemaConstants.NS_RESOURCE, "nativeObjectClass");
-//
-//	static final QName A_ACCOUNT_TYPE = new QName(SchemaConstants.NS_RESOURCE, "accountType");
-
-
-//	static final QName A_ATTRIBUTE_DISPLAY_NAME = new QName(SchemaConstants.NS_RESOURCE,
-//			"attributeDisplayName");
-//
-//	// Annotation attributes
-//	static final QName A_ATTR_DEFAULT = new QName(SchemaConstants.NS_RESOURCE, "default");
-	
+	public static final QName POLYSTRING_TYPE_QNAME = new QName(NS_TYPES, "PolyStringType");
+	public static final QName POLYSTRING_ELEMENT_ORIG_QNAME = new QName(NS_TYPES, "orig");
+	public static final QName POLYSTRING_ELEMENT_NORM_QNAME = new QName(NS_TYPES, "norm");
+		
 }

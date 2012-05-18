@@ -652,16 +652,24 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	assertDefinitions("");
     }
     
+    public void assertDefinitions(String sourceDescription) throws SchemaException {
+    	assertDefinitions(false, sourceDescription);
+    }
+    
+    public void assertDefinitions(boolean tolerateRawElements) throws SchemaException {
+    	assertDefinitions(tolerateRawElements, "");
+    }
+    
     /**
      * Assert that all the items has appropriate definition.
      */
-    public void assertDefinitions(String sourceDescription) throws SchemaException {
+    public void assertDefinitions(boolean tolerateRawElements, String sourceDescription) throws SchemaException {
     	if (changeType == ChangeType.ADD) {
     		objectToAdd.assertDefinitions("add delta in "+sourceDescription);
     	}
     	if (changeType == ChangeType.MODIFY) {
     		for (ItemDelta<?> mod: modifications) {
-    			mod.assertDefinitions("modify delta for "+getOid()+" in "+sourceDescription);
+    			mod.assertDefinitions(tolerateRawElements, "modify delta for "+getOid()+" in "+sourceDescription);
     		}
     	}
     }

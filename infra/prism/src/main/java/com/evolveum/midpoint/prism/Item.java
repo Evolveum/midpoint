@@ -378,7 +378,8 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	if (other == null) {
     		//other doesn't exist, so delta means delete all values
             for (PrismValue value : getValues()) {
-                delta.addValueToDelete(value.clone());
+            	PrismValue valueClone = value.clone();
+                delta.addValueToDelete(valueClone);
             }
     	} else {
     		// the other exists, this means that we need to compare the values one by one
@@ -523,11 +524,42 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     }
 
 	public void assertDefinitions(String sourceDescription) throws SchemaException {
+		assertDefinitions(false, sourceDescription);
+	}
+	
+	public void assertDefinitions(boolean tolarateRawValues, String sourceDescription) throws SchemaException {
+		if (tolarateRawValues && isRaw()) {
+			return;
+		}
 		if (definition == null) {
 			throw new SchemaException("No definition in "+this+" in "+sourceDescription);
 		}
 	}
 	
+	/**
+	 * Returns true is all the values are raw.
+	 */
+	public boolean isRaw() {
+		for (V val: getValues()) {
+			if (!val.isRaw()) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Returns true is at least one of the values is raw.
+	 */
+	public boolean hasRaw() {
+		for (V val: getValues()) {
+			if (val.isRaw()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public boolean isEmpty() {
         return (getValues() == null || getValues().isEmpty());
     }

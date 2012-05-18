@@ -30,6 +30,8 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -49,6 +51,7 @@ public class PrismContext {
 	private PrismJaxbProcessor prismJaxbProcessor;
 	private PrismDomProcessor prismDomProcessor;
 	private SchemaDefinitionFactory definitionFactory;
+	private PolyStringNormalizer defaultPolyStringNormalizer;
 
 	private PrismContext() {
 		// empty
@@ -72,6 +75,9 @@ public class PrismContext {
 
 	public void initialize() throws SchemaException, SAXException, IOException {
 		schemaRegistry.initialize();
+		if (defaultPolyStringNormalizer == null) {
+			defaultPolyStringNormalizer = new PrismDefaultPolyStringNormalizer();
+		}
 	}
 
 	public SchemaRegistry getSchemaRegistry() {
@@ -107,6 +113,14 @@ public class PrismContext {
 
 	public void setDefinitionFactory(SchemaDefinitionFactory definitionFactory) {
 		this.definitionFactory = definitionFactory;
+	}
+
+	public PolyStringNormalizer getDefaultPolyStringNormalizer() {
+		return defaultPolyStringNormalizer;
+	}
+
+	public void setDefaultPolyStringNormalizer(PolyStringNormalizer defaultPolyStringNormalizer) {
+		this.defaultPolyStringNormalizer = defaultPolyStringNormalizer;
 	}
 
 	/**

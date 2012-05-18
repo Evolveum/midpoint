@@ -133,7 +133,12 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		this.filter = filter;
 	}
 	
-	
+	@Override
+	public boolean isRaw() {
+		// Reference value cannot be raw
+		return false;
+	}
+
 	@Override
 	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
 		if (!(definition instanceof PrismReferenceDefinition)) {

@@ -26,6 +26,8 @@ import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import java.io.IOException;
 import java.util.GregorianCalendar;
 
+import javax.xml.namespace.QName;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -78,5 +80,27 @@ public class TestPolyString {
 		assertEquals("wrong norm", norm, polyString.getNorm());
 	}
 	
+	@Test
+	public void testRecompute() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testRecompute ]===");
+		
+		// GIVEN
+		PrismContext ctx = constructInitializedPrismContext();
+		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObject<UserType> user = userDefinition.instantiate();
+
+		String orig = "Ľala ho papľuha";
+		PolyString polyName = new PolyString(orig);
+		
+		PrismProperty<Object> polyNameProperty = user.findOrCreateProperty(USER_POLYNAME_QNAME);
+		
+		// WHEN
+		polyNameProperty.setRealValue(polyName);
+		
+		// THEN
+		assertEquals("Changed orig", orig, polyName.getOrig());
+		assertEquals("Wrong norm", "lala ho papluha", polyName.getNorm());
+		
+	}
 	
 }

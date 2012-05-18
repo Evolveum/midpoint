@@ -19,6 +19,10 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
+
 /**
  * Polymorphic string. String that may have more than one representation at
  * the same time. The primary representation is the original version that is
@@ -32,7 +36,7 @@ package com.evolveum.midpoint.prism.polystring;
  * 				
  * @author Radovan Semancik
  */
-public class PolyString {
+public class PolyString implements Dumpable, DebugDumpable {
 
 	private String orig;
 	private String norm = null;
@@ -40,6 +44,12 @@ public class PolyString {
 	public PolyString(String orig) {
 		super();
 		this.orig = orig;
+	}
+	
+	public PolyString(String orig, String norm) {
+		super();
+		this.orig = orig;
+		this.norm = norm;
 	}
 
 	public String getOrig() {
@@ -88,6 +98,30 @@ public class PolyString {
 	@Override
 	public String toString() {
 		return orig;
+	}
+	
+	@Override
+	public String dump() {
+		return debugDump();
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("PolyString(");
+		sb.append(orig);
+		if (norm != null) {
+			sb.append(",");
+			sb.append(norm);
+		}
+		sb.append(")");
+		return sb.toString();
 	}
 	
 }

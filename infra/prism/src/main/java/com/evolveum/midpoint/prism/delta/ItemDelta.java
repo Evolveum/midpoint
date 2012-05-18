@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -575,15 +576,22 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 	
 	public void assertDefinitions(String sourceDescription) throws SchemaException {
+			assertDefinitions(false, sourceDescription);
+	}
+	
+	public void assertDefinitions(boolean tolarateRawValues, String sourceDescription) throws SchemaException {
+		if (tolarateRawValues && isRaw()) {
+			return;
+		}
 		if (definition == null) {
 			throw new SchemaException("No definition in "+this+" in "+sourceDescription);
 		}
-		assertDefinitions(valuesToAdd, "values to add in "+sourceDescription);
-		assertDefinitions(valuesToReplace, "values to replace in "+sourceDescription);
-		assertDefinitions(valuesToDelete, "values to delete in "+sourceDescription);
+		assertDefinitions(tolarateRawValues, valuesToAdd, "values to add in "+sourceDescription);
+		assertDefinitions(tolarateRawValues, valuesToReplace, "values to replace in "+sourceDescription);
+		assertDefinitions(tolarateRawValues, valuesToDelete, "values to delete in "+sourceDescription);
 	}
 
-	private void assertDefinitions(Collection<V> values, String sourceDescription) throws SchemaException {
+	private void assertDefinitions(boolean tolarateRawValues, Collection<V> values, String sourceDescription) throws SchemaException {
 		if (values == null) {
 			return;
 		}
@@ -591,10 +599,30 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			if (val instanceof PrismContainerValue<?>) {
 				PrismContainerValue<?> cval = (PrismContainerValue<?>)val;
 				for (Item<?> item: cval.getItems()) {
-					item.assertDefinitions(cval.toString()+" in "+sourceDescription);
+					item.assertDefinitions(tolarateRawValues, cval.toString()+" in "+sourceDescription);
 				}
 			}
 		}
+	}
+	
+	public boolean isRaw() {
+		Boolean isRaw = MiscUtil.and(isRawSet(valuesToAdd), isRawSet(valuesToReplace), isRawSet(valuesToDelete));
+		if (isRaw == null) {
+			return false;
+		}
+		return isRaw;
+	}
+
+	private Boolean isRawSet(Collection<V> set) {
+		if (set == null) {
+			return null;
+		}
+		for (V val: set) {
+			if (!val.isRaw()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
@@ -630,6 +658,10 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		sb.append(getClass().getSimpleName()).append("(");
 		sb.append(parentPath).append(" / ").append(DebugUtil.prettyPrint(name)).append(")");
+		
+		if (definition != null) {
+			sb.append(" def");
+		}
 
 		if (valuesToReplace != null) {
 			sb.append("\n");

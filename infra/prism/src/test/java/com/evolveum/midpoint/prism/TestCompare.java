@@ -109,6 +109,9 @@ public class TestCompare {
 		System.out.println("Jack delta:");
 		System.out.println(jackDelta.dump());
 		
+		jackDelta.assertDefinitions();
+		jackDelta.checkConsistence(true);
+		
 		assertEquals("Wrong delta type", ChangeType.MODIFY, jackDelta.getChangeType());
 		assertEquals("Wrong delta OID", USER_JACK_OID, jackDelta.getOid());
 		assertEquals("Wrong number of modificaitions", 10, jackDelta.getModifications().size());
@@ -155,6 +158,8 @@ public class TestCompare {
 		PrismObject<UserType> jackModified = prismContext.parseObject(userElement);
 		
 		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
+		jackDelta.assertDefinitions();
+		jackDelta.checkConsistence(true);
 		
 		// WHEN
 		jackDelta.applyTo(jackOriginal);

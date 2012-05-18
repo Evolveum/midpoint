@@ -84,6 +84,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName USER_GIVENNAME_QNAME = new QName(NS_FOO,"givenName");
 	public static final QName USER_FAMILYNAME_QNAME = new QName(NS_FOO,"familyName");
 	public static final QName USER_ADDITIONALNAMES_QNAME = new QName(NS_FOO,"additionalNames");
+	public static final QName USER_POLYNAME_QNAME = new QName(NS_FOO,"polyName");
 	public static final QName USER_LOCALITY_QNAME = new QName(NS_FOO,"locality");
 
 	public static final QName USER_ACTIVATION_QNAME = new QName(NS_FOO,"activation");

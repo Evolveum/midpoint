@@ -25,6 +25,7 @@
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -46,7 +47,7 @@
     
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
     
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="../standard/XMLSchema.xsd">
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema">
         <xsd:annotation>
             <xsd:documentation>
                 Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
@@ -55,7 +56,15 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="../standard/xenc-schema.xsd">
+    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="http://www.w3.org/2001/04/xmlenc#">
+        <xsd:annotation>
+            <xsd:documentation>
+                The XML Encryption schema. Used for "protected" data types (property encryption).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2">
         <xsd:annotation>
             <xsd:documentation>
                 The XML Encryption schema. Used for "protected" data types (property encryption).
@@ -133,6 +142,7 @@
                     <xsd:element name="familyName" type="xsd:string"/>
                     <!-- Multi-valued property -->
                     <xsd:element name="additionalNames" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="polyName" type="t:PolyStringType" minOccurs="0"/>
                     <xsd:element name="locality" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                     <!-- Multi-valued container -->
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>

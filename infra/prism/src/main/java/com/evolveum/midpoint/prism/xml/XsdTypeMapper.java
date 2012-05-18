@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.prism.xml;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -85,6 +87,8 @@ public class XsdTypeMapper {
         addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
+        
+        addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
 
         xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
     }

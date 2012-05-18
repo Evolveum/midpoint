@@ -23,6 +23,7 @@
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
 		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:ext="http://example.com/xml/ns/user-extension">
     <name>jack</name>
     <extension>
@@ -40,6 +41,10 @@
     <familyName>Sparrow</familyName>
     <additionalNames>Captain</additionalNames>
     <additionalNames>Jackie</additionalNames>
+    <polyName>
+    	<t:orig>Džek Sperou</t:orig>
+    	<t:norm>dzek sperou</t:norm>
+    </polyName>
 
 	<assignment id="i1111">
 		<description>Assignment 1</description>

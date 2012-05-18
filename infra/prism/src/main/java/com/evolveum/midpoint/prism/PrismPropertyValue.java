@@ -109,6 +109,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		this.rawElement = rawElement;
 	}
 	
+	@Override
 	public boolean isRaw() {
 		return rawElement != null;
 	}

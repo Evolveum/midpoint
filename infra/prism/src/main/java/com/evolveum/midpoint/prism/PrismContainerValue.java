@@ -698,6 +698,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		diffItems(thisValue, otherValue, pathPrefix, deltas, ignoreMetadata);
 	}
 	
+	@Override
+	public boolean isRaw() {
+		return rawElements != null;
+	}
+
 	private PrismContainerValue<T> parseRawElementsToNewValue(PrismContainerValue<T> origCVal, PrismContainerValue<T> definitionSource) throws SchemaException {
 		List<Object> rawElements = origCVal.rawElements;
 		if (definitionSource.getParent() == null || definitionSource.getParent().getDefinition() == null) {
@@ -847,9 +852,13 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		}
 	}
     
-	public void assertDefinitions(String sourceDescription) throws SchemaException {
+    public void assertDefinitions(String sourceDescription) throws SchemaException {
+    	assertDefinitions(false, sourceDescription);
+    }
+    
+	public void assertDefinitions(boolean tolerateRaw, String sourceDescription) throws SchemaException {
 		for (Item<?> item: getItems()) {
-			item.assertDefinitions("value("+getId()+") in "+sourceDescription);
+			item.assertDefinitions(tolerateRaw, "value("+getId()+") in "+sourceDescription);
 		}
 	}
 

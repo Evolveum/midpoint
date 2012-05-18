@@ -362,9 +362,12 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 	public PrismContainerDefinition createPropertyContainerDefinition(String localElementName, String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), localElementName);
-		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, prismContext);
-		PrismContainerDefinition def = new PrismContainerDefinition(name, cTypeDef, prismContext);
-		definitions.add(cTypeDef);
+		ComplexTypeDefinition cTypeDef = findComplexTypeDefinition(typeName);
+		if (cTypeDef == null) {
+			cTypeDef = new ComplexTypeDefinition(name, typeName, prismContext);
+			definitions.add(cTypeDef);
+		}
+		PrismContainerDefinition def = new PrismContainerDefinition(name, cTypeDef, prismContext);		
 		definitions.add(def);
 		return def;
 	}

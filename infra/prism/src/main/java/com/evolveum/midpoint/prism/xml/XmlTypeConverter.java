@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.prism.xml;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -75,6 +77,8 @@ public class XmlTypeConverter {
             return (T) xmlElement;
         } else if (type.equals(QName.class)) {
             return (T) DOMUtil.getQNameValue(xmlElement);
+        } else if (PolyString.class.isAssignableFrom(type)) {
+        	return (T) polyStringToJava(xmlElement);
         } else {
             String stringContent = xmlElement.getTextContent();
             if (stringContent == null) {
@@ -88,7 +92,8 @@ public class XmlTypeConverter {
         }
     }
 
-    public static <T> T toJavaValue(String stringContent, Class<T> type) {
+	@SuppressWarnings("unchecked")
+	public static <T> T toJavaValue(String stringContent, Class<T> type) {
         if (type.equals(String.class)) {
             return (T) stringContent;
         } else if (type.equals(char.class)) {
@@ -224,6 +229,8 @@ public class XmlTypeConverter {
         } else if (val instanceof QName) {
             QName qname = (QName) val;
             DOMUtil.setQNameValue(element, qname);
+        } else if (val instanceof PolyString) {
+        	polyStringToElement(element, (PolyString)val);
         } else {
             element.setTextContent(toXmlTextContent(val, DOMUtil.getQName(element)));
         }
@@ -233,7 +240,7 @@ public class XmlTypeConverter {
         }
     }
     
-    public static String toXmlTextContent(Object val, QName elementName) {
+	public static String toXmlTextContent(Object val, QName elementName) {
         if (val == null) {
             // if no value is specified, do not create element
             return null;
@@ -416,4 +423,37 @@ public class XmlTypeConverter {
     public static long toMillis(XMLGregorianCalendar xmlCal) {
         return xmlCal.toGregorianCalendar().getTimeInMillis();
     }
+    
+    /**
+     * Parse PolyString from DOM element.
+     */
+	private static PolyString polyStringToJava(Element polyStringElement) throws SchemaException {
+		Element origElement = DOMUtil.getChildElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME);
+		if (origElement == null) {
+			throw new SchemaException("Missing element "+PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME+" in polystring element "+
+					DOMUtil.getQName(polyStringElement));
+		}
+		String orig = origElement.getTextContent();
+		String norm = null;
+		Element normElement = DOMUtil.getChildElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
+		if (normElement != null) {
+			norm = normElement.getTextContent();
+		}
+		return new PolyString(orig, norm);
+	}
+	
+	/**
+	 * Serialize PolyString to DOM element.
+	 */
+	private static void polyStringToElement(Element polyStringElement, PolyString polyString) {
+		if (polyString.getOrig() != null) {
+			Element origElement = DOMUtil.createSubElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME);
+			origElement.setTextContent(polyString.getOrig());
+		}
+		if (polyString.getNorm() != null) {
+			Element origElement = DOMUtil.createSubElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
+			origElement.setTextContent(polyString.getNorm());
+		}		
+	}
+
 }
