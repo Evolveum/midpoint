@@ -71,7 +71,6 @@ public class InitialDataImport {
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
         Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
-        // TODO: task initialization
         for (String file : FILES_FOR_IMPORT) {
             OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 

@@ -89,7 +89,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author lazyman
+ * @author mederly
  */
 public class PageWorkItem extends PageAdminWorkItems {
 

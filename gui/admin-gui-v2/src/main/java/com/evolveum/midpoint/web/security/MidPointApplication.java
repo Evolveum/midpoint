@@ -134,7 +134,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/role", PageRole.class, new OnePageParameterEncoder(PageRole.PARAM_ROLE_ID)));
         mount(new MountedMapper("/admin/task", PageTask.class, new OnePageParameterEncoder(PageTask.PARAM_TASK_ID)));
         mount(new MountedMapper("/admin/resource", PageResource.class, new OnePageParameterEncoder(PageResource.PARAM_RESOURCE_ID)));
-        //todo will be different as add???
 //        mount(new MountedMapper("/admin/task", PageTaskEdit.class,
 //                new OnePageParameterEncoder(PageTaskEdit.PARAM_TASK_ID)));
 
