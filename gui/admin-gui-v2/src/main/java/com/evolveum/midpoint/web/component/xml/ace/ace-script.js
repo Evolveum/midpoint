@@ -19926,8 +19926,7 @@ exports.cssText = ".ace-tm .ace_editor {\
 }\
 \
 .ace-tm .ace_marker-layer .ace_selected_word {\
-  background: rgb(250, 250, 255);\
-  border: 1px solid rgb(200, 200, 250);\
+  background: #BFBFBF;\
 }\
 \
 .ace-tm .ace_meta.ace_tag {\
