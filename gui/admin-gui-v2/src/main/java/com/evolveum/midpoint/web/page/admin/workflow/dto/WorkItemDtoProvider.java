@@ -22,19 +22,15 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.WorkItem;
 import com.evolveum.midpoint.wf.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Iterator;
 import java.util.List;
@@ -51,19 +47,13 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
     boolean assigned;
 
-    public static String currentUser() {            // TODO move to SecurityUtils
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
+    public static String currentUser() {
+        PrincipalUser principal = SecurityUtils.getPrincipalUser();
         if (principal == null) {
             return "Unknown";
         }
 
-        if (principal instanceof PrincipalUser) {
-            PrincipalUser user = (PrincipalUser) principal;
-            return user.getName();
-        }
-
-        return principal.toString();
+        return principal.getName();
     }
 
     public WorkItemDtoProvider(PageBase page, boolean assigned) {

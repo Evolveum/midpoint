@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -57,7 +58,7 @@ import java.util.List;
  */
 public abstract class PageBase extends WebPage {
 
-    private static final Trace LOGGER  = TraceManager.getTrace(PageBase.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
     @SpringBean(name = "modelController")
     private ModelService modelService;
     @SpringBean(name = "cacheRepositoryService")
@@ -168,14 +169,10 @@ public abstract class PageBase extends WebPage {
         TaskManager manager = getTaskManager();
         Task task = manager.createTaskInstance(operation);
 
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal != null || !(principal instanceof PrincipalUser)) {
-            LOGGER.warn("Principal user in security context holder is {} but not type of {}",
-                    new Object[]{principal, PrincipalUser.class.getName()});
+        PrincipalUser user = SecurityUtils.getPrincipalUser();
+        if (user == null) {
             return task;
         }
-
-        PrincipalUser user = (PrincipalUser) principal;
         task.setOwner(user.getUser().asPrismObject());
 
         return task;

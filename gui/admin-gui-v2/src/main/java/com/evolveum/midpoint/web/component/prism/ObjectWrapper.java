@@ -188,11 +188,6 @@ public class ObjectWrapper implements Serializable {
             throw new SystemException(ex.getMessage(), ex);
         }
 
-//        //todo fix display order
-//        for (ContainerWrapper c : containers) {
-//            System.out.println(c.getDisplayName() + " " + c.getItem().getDefinition().getDisplayOrder());
-//        }
-
         Collections.sort(containers, new ItemWrapperComparator());
 
         return containers;

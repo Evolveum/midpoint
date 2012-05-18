@@ -31,7 +31,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
@@ -46,6 +45,9 @@ import java.io.InputStream;
 public class InitialDataImport {
 
     private static final Trace LOGGER = TraceManager.getTrace(InitialDataImport.class);
+    private static final String DOT_CLASS = InitialDataImport.class.getName() + ".";
+    private static final String OPERATION_INITIAL_OBJECTS_IMPORT = DOT_CLASS + "initialObjectsImport";
+    private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
 
     private final String[] FILES_FOR_IMPORT = new String[]{"systemConfiguration.xml", "admin.xml"};
     @Autowired(required = true)
@@ -57,21 +59,21 @@ public class InitialDataImport {
         Validate.notNull(model, "Model service must not be null.");
         this.model = model;
     }
-    
+
     public void setTaskManager(TaskManager taskManager) {
-    	Validate.notNull(taskManager, "Task manager must not be null.");
-    	this.taskManager = taskManager;
+        Validate.notNull(taskManager, "Task manager must not be null.");
+        this.taskManager = taskManager;
     }
 
     @SuppressWarnings("unchecked")
     public void init() {
         LOGGER.info("Starting initial object import.");
 
-        OperationResult mainResult = new OperationResult("Initial Objects Import");
-        Task task = taskManager.createTaskInstance();
-		// TODO: task initialization
+        OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
+        Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
+        // TODO: task initialization
         for (String file : FILES_FOR_IMPORT) {
-            OperationResult result = mainResult.createSubresult("Import Object");
+            OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
             InputStream stream = null;
             try {

@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -684,23 +685,13 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
-    private PrismReferenceDefinition findAccountRefDefinition() {
-        SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-        return (PrismReferenceDefinition) objectDef.findItemDefinition(UserType.F_ACCOUNT_REF,
-                PrismReferenceDefinition.class);
-    }
+    private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef) throws SchemaException {
+        ReferenceDelta refDelta = new ReferenceDelta(refDef);
 
-    private void prepareUserDeltaForModify(ObjectDelta<UserType> userDelta) throws SchemaException {
-        //handle accounts
         List<UserAccountDto> accounts = accountsModel.getObject();
         for (UserAccountDto accDto : accounts) {
             ObjectWrapper accountWrapper = accDto.getObject();
             ObjectDelta delta = accountWrapper.getObjectDelta();
-
-            ReferenceDelta refDelta = new ReferenceDelta(findAccountRefDefinition());
-            userDelta.addModification(refDelta);
-
             PrismReferenceValue refValue = new PrismReferenceValue(null, SourceType.USER_ACTION, null);
 
             switch (accDto.getStatus()) {
@@ -729,21 +720,50 @@ public class PageUser extends PageAdminUsers {
             }
         }
 
-        //handle assignments
+        return refDelta;
+    }
+
+    private ContainerDelta prepareUserAssignmentsDeltaForModify(PrismContainerDefinition def) {
+        ContainerDelta assDelta = new ContainerDelta(new PropertyPath(), UserType.F_ASSIGNMENT, def);
+
         List<UserAssignmentDto> assignments = assignmentsModel.getObject();
         for (UserAssignmentDto assDto : assignments) {
             switch (assDto.getStatus()) {
                 case ADD:
-                    //todo implement
-                    break;
                 case DELETE:
-
+                    AssignmentType assignment = assDto.createAssignment();
+                    PrismContainerValue value = assignment.asPrismContainerValue();
+                    if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
+                        assDelta.addValueToAdd(value);
+                    } else {
+                        assDelta.addValueToDelete(value);
+                    }
                     break;
                 case MODIFY:
                     // will be implemented later
                 default:
                     warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
             }
+        }
+
+        return assDelta;
+    }
+
+    private void prepareUserDeltaForModify(ObjectDelta<UserType> userDelta) throws SchemaException {
+        //handle accounts
+        SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+        PrismObjectDefinition objectDefinition = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismReferenceDefinition refDef = objectDefinition.findReferenceDefinition(UserType.F_ACCOUNT_REF);
+        ReferenceDelta refDelta = prepareUserAccountsDeltaForModify(refDef);
+        if (!refDelta.isEmpty()) {
+            userDelta.addModification(refDelta);
+        }
+
+        //handle assignments
+        PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
+        ContainerDelta assDelta = prepareUserAssignmentsDeltaForModify(def);
+        if (!assDelta.isEmpty()) {
+            userDelta.addModification(assDelta);
         }
     }
 
