@@ -21,9 +21,7 @@
 
 function initMessages() {
 	$("a").click(function(){
-		$(".messagesTop").fadeOut(200,function(){
-			$(".messagesTop").remove();
-		});
+		$(".messagesTop").remove();
 	});
 	
 	$(".messagesTop").find(".messages-topPanel").each(function(index){
