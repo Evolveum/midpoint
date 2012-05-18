@@ -39,7 +39,7 @@
     background: none repeat scroll 0 0 #E8E8E8;
     color: #333333;
     overflow: hidden;
-    width: 60px;
+    text-align: right;
 }
 
 .ace_gutter {
