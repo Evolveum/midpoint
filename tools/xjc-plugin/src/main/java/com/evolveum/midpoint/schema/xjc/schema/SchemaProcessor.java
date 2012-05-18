@@ -22,7 +22,9 @@
 package com.evolveum.midpoint.schema.xjc.schema;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.xjc.*;
+import com.evolveum.midpoint.prism.xjc.*;
+import com.evolveum.midpoint.schema.xjc.PrefixMapper;
+import com.evolveum.midpoint.schema.xjc.Processor;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
