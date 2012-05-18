@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.prism.schema;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -69,12 +70,12 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 	private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
 	
 	protected String namespace;
-	protected Set<Definition> definitions;
+	protected Collection<Definition> definitions;
 	protected PrismContext prismContext;
 
 	protected PrismSchema(PrismContext prismContext) {
 		this.prismContext = prismContext;
-		definitions = new HashSet<Definition>();
+		definitions = new ArrayList<Definition>();
 	}
 	
 	public PrismSchema(String namespace, PrismContext prismContext) {
@@ -83,7 +84,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		}
 		this.namespace = namespace;
 		this.prismContext = prismContext;
-		definitions = new HashSet<Definition>();
+		definitions = new ArrayList<Definition>();
 	}
 
 	/**

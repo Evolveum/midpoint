@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.schema.util.SchemaTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -81,6 +82,7 @@ public class TestJaxbConstruction {
 		
 		PrismObject<UserType> user = userType.asPrismObject();
 		assertNotNull("No object definition after adopt", user.getDefinition());
+		SchemaTestUtil.assertUserDefinition(user.getDefinition());
 		
 		// Extension
 		ExtensionType extension = new ExtensionType();

@@ -79,11 +79,36 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 
 	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
 		QName extensionQName = getExtensionQName();
-		PrismContainerDefinition newExtensionDef = new PrismContainerDefinition(extensionQName, 
+		
+		PrismContainerDefinition<Containerable> oldExtensionDef = findContainerDefinition(extensionQName);
+		
+		PrismContainerDefinition<?> newExtensionDef = new PrismContainerDefinition(extensionQName, 
 				extensionComplexTypeDefinition, prismContext);
-		ComplexTypeDefinition newCtd = this.complexTypeDefinition.clone();
 		newExtensionDef.setRuntimeSchema(true);
+		if (oldExtensionDef != null) {
+			if (newExtensionDef.getDisplayName() == null) {
+				newExtensionDef.setDisplayName(oldExtensionDef.getDisplayName());
+			}
+			if (newExtensionDef.getDisplayOrder() == null) {
+				newExtensionDef.setDisplayOrder(oldExtensionDef.getDisplayOrder());
+			}
+			if (newExtensionDef.getHelp() == null) {
+				newExtensionDef.setHelp(oldExtensionDef.getHelp());
+			}
+		}
+		
+		ComplexTypeDefinition newCtd = this.complexTypeDefinition.clone();
 		newCtd.replaceDefinition(extensionQName, newExtensionDef);
+		if (newCtd.getDisplayName() == null) {
+			newCtd.setDisplayName(this.complexTypeDefinition.getDisplayName());
+		}
+		if (newCtd.getDisplayOrder() == null) {
+			newCtd.setDisplayOrder(this.complexTypeDefinition.getDisplayOrder());
+		}
+		if (newCtd.getHelp() == null) {
+			newCtd.setHelp(this.complexTypeDefinition.getHelp());
+		}
+
 		this.complexTypeDefinition = newCtd;
 	}
 	

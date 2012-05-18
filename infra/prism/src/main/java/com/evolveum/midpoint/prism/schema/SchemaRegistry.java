@@ -227,7 +227,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		try {
 			initResolver();
-			parseMidPointSchema();
+			parsePrismSchemas();
 			parseJavaxSchema();
 			compileCompileTimeClassList();
 			initialized = true;
@@ -254,7 +254,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		javaxSchema = schemaFactory.newSchema(sources);
 	}
 
-	private void parseMidPointSchema() throws SchemaException {
+	private void parsePrismSchemas() throws SchemaException {
 		for (SchemaDescription schemaDescription : schemaDescriptions) {
 			
 			String namespace = schemaDescription.getNamespace();

@@ -173,6 +173,7 @@ public class TestExtraSchema {
 		PrismContainerDefinition extDef = userDef.findContainerDefinition(USER_EXTENSION_QNAME);
 		assertTrue("Extension is not dynamic", extDef.isRuntimeSchema());
 		assertEquals("Wrong extension type", USER_EXTENSION_TYPE_QNAME, extDef.getTypeName());
+		assertEquals("Wrong extension displayOrder", (Integer)1000, extDef.getDisplayOrder());
 
 		PrismPropertyDefinition barPropDef = extDef.findPropertyDefinition(USER_EXT_BAR_ELEMENT);
 		assertNotNull("No 'bar' definition in user extension", barPropDef);
