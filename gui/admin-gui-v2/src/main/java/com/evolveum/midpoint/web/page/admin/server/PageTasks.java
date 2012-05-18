@@ -99,6 +99,7 @@ public class PageTasks extends PageAdminTasks {
         add(mainForm);
 
         OptionPanel option = new OptionPanel("option", createStringResource("pageTasks.optionsTitle"));
+        option.setHidden(true);
         mainForm.add(option);
 
         OptionItem diagnostics = new OptionItem("diagnostics", createStringResource("pageTasks.diagnostics"));
