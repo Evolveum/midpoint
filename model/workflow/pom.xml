@@ -38,7 +38,7 @@
     <repositories>
         <repository>
             <id>alfresco</id>
-            <url>http://maven.alfresco.com/nexus/content/repositories/activiti</url>
+            <url>http://maven.alfresco.com/nexus/content/repositories/activiti-releases</url>
         </repository>
     </repositories>
     <licenses>
