@@ -655,25 +655,25 @@ public class PageTasks extends PageAdminTasks {
 
     private void nodeDetailsPerformed(AjaxRequestTarget target, String oid) {
 
-        OperationResult test = new OperationResult("test");
-        OperationResult sub1 = test.createSubresult("sub1-success");
-        OperationResult sub2 = test.createSubresult("sub2-warning");
-        OperationResult sub3 = test.createSubresult("sub3-partial-error");
-        OperationResult sub31 = sub3.createSubresult("sub31-success");
-        OperationResult sub32 = sub3.createSubresult("sub32-success");
-
-        test.recordSuccess();
-        sub1.recordSuccess();
-        sub2.recordWarning("Warning");
-        sub3.recordPartialError("Partial Error");
-        sub31.recordSuccess();
-        sub32.recordSuccess();
-
-//        test.recomputeStatus();
-
-        showResult(test);
-
-        target.add(getFeedbackPanel());
+//        OperationResult test = new OperationResult("test");
+//        OperationResult sub1 = test.createSubresult("sub1-success");
+//        OperationResult sub2 = test.createSubresult("sub2-warning");
+//        OperationResult sub3 = test.createSubresult("sub3-partial-error");
+//        OperationResult sub31 = sub3.createSubresult("sub31-success");
+//        OperationResult sub32 = sub3.createSubresult("sub32-success");
+//
+//        test.recordSuccess();
+//        sub1.recordSuccess();
+//        sub2.recordWarning("Warning");
+//        sub3.recordPartialError("Partial Error");
+//        sub31.recordSuccess();
+//        sub32.recordSuccess();
+//
+////        test.recomputeStatus();
+//
+//        showResult(test);
+//
+//        target.add(getFeedbackPanel());
     }
 
     private void deleteTasksPerformed(AjaxRequestTarget target) {
