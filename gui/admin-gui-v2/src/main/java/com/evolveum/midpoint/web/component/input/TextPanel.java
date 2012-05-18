@@ -42,7 +42,6 @@ public class TextPanel<T> extends InputPanel {
 
         final TextField<T> text = new TextField<T>("input", model);
         text.setType(clazz);
-        text.add(new AttributeModifier("style", "width: 100%"));
         add(text);
     }
 

@@ -162,6 +162,7 @@ public class PageLogging extends PageAdminConfiguration {
                 	return dropDownChoicePanel;
                 } else {
                 	TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+                	textPanel.getBaseFormComponent().add(new AttributeModifier("style", "width: 100%"));
                 	textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 	return textPanel;
                 }

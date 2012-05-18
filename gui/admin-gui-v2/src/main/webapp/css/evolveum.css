@@ -50,11 +50,12 @@ h4 {
 
 
 /*for FireFox*/
-input[type="checkbox"]::-moz-focus-inner, .button::-moz-focus-inner {   
+input::-moz-focus-inner, .button::-moz-focus-inner, select::-moz-focus-inner {   
     border: 0px solid transparent;
-} 
+}
+
 /*for IE8 */
-input[type="checkbox"]:focus, .button:focus {     
+input:focus, .button:focus, select:focus {     
     outline : none; 
 }
 
