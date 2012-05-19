@@ -346,6 +346,8 @@ public class PageUsers extends PageAdminUsers {
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
         model.reset();
+
+        target.add(get("mainForm:option"));
         searchPerformed(target);
     }
 

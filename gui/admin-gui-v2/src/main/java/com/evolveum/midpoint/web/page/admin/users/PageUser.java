@@ -95,6 +95,9 @@ public class PageUser extends PageAdminUsers {
     private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
     private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
+    private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
+    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
+
 
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
     private static final String MODAL_ID_ROLE = "rolePopup";
@@ -140,15 +143,10 @@ public class PageUser extends PageAdminUsers {
                 getMidpointApplication().getPrismContext().adopt(userType);
                 user = userType.asPrismObject();
             } else {
-                Collection<PropertyPath> resolve = com.evolveum.midpoint.util.MiscUtil.createCollection(
-                        new PropertyPath(UserType.F_ACCOUNT),
-                        new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
-                );
-
                 Task task = createSimpleTask(OPERATION_LOAD_USER);
 
                 StringValue userOid = getPageParameters().get(PARAM_USER_ID);
-                user = getModelService().getObject(UserType.class, userOid.toString(), resolve, task, result);
+                user = getModelService().getObject(UserType.class, userOid.toString(), null, task, result);
             }
             result.recordSuccess();
         } catch (Exception ex) {
@@ -294,19 +292,40 @@ public class PageUser extends PageAdminUsers {
 
         ObjectWrapper user = userModel.getObject();
         PrismObject<UserType> prismUser = user.getObject();
-        List<AccountShadowType> accounts = prismUser.asObjectable().getAccount();
-        for (AccountShadowType account : accounts) {
-            String resourceName = null;
-            ResourceType resource = account.getResource();
-            if (resource != null && StringUtils.isNotEmpty(resource.getName())) {
-                resourceName = resource.getName();
-            }
+        List<ObjectReferenceType> references = prismUser.asObjectable().getAccountRef();
+        OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
+        Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
+        for (ObjectReferenceType reference : references) {
+            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
+            try {
+                Collection<PropertyPath> resolve = com.evolveum.midpoint.util.MiscUtil.createCollection(
+                        new PropertyPath(AccountShadowType.F_RESOURCE)
+                );
 
-            ObjectWrapper wrapper = new ObjectWrapper(resourceName, account.getName(),
-                    account.asPrismObject(), ContainerStatus.MODIFYING);
-            wrapper.setSelectable(true);
-            wrapper.setMinimalized(true);
-            list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
+                PrismObject<AccountShadowType> account = getModelService().getObject(AccountShadowType.class,
+                        reference.getOid(), resolve, task, subResult);
+                AccountShadowType accountType = account.asObjectable();
+
+                String resourceName = null;
+                ResourceType resource = accountType.getResource();
+                if (resource != null && StringUtils.isNotEmpty(resource.getName())) {
+                    resourceName = resource.getName();
+                }
+                ObjectWrapper wrapper = new ObjectWrapper(resourceName, accountType.getName(),
+                        account, ContainerStatus.MODIFYING);
+                wrapper.setSelectable(true);
+                wrapper.setMinimalized(true);
+                list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
+
+                subResult.recomputeStatus();
+            } catch (Exception ex) {
+                subResult.recordFatalError("Couldn't load account.", ex);
+            }
+        }
+        result.recomputeStatus();
+
+        if (!result.isSuccess()) {
+            showResult(result);
         }
 
         return list;
