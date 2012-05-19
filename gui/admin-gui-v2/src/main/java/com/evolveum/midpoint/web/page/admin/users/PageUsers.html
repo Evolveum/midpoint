@@ -27,30 +27,7 @@
     <form wicket:id="mainForm">
         <div wicket:id="option">
             <div wicket:id="search">
-                <input type="text" wicket:id="searchText"/>
-                <table>
-                    <tr>
-                        <td>
-                            <input type="checkbox" wicket:id="nameCheck"/>
-                            <wicket:message key="pageUsers.name"/>
-                        </td>
-                        <td><input type="checkbox" wicket:id="fullNameCheck"/>
-                            <wicket:message key="pageUsers.fullName"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="checkbox" wicket:id="givenNameCheck"/>
-                            <wicket:message key="pageUsers.givenName"/>
-                        </td>
-                        <td>
-                            <input type="checkbox" wicket:id="familyNameCheck"/>
-                            <wicket:message key="pageUsers.familyName"/>
-                        </td>
-                    </tr>
-                </table>
-                <a wicket:id="clearButton"/>
-                <a wicket:id="searchButton"/>
+                <div wicket:id="simpleSearch" />
             </div>
             <div wicket:id="action">
                 <select wicket:id="choice"/>

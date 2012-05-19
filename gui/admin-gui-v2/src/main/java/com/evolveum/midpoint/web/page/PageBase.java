@@ -108,7 +108,7 @@ public abstract class PageBase extends WebPage {
         add(new MainFeedback("feedback"));
     }
 
-    protected MainFeedback getFeedbackPanel() {
+    public MainFeedback getFeedbackPanel() {
         return (MainFeedback) get("feedback");
     }
 
