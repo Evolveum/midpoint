@@ -26,6 +26,7 @@
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
          xmlns:my="http://myself.me/schemas/whatever"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
     <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
@@ -33,7 +34,10 @@
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>atestuserX00002</name>
-        <fullName>Test UserX00002</fullName>
+        <fullName>
+            <t:orig>Test UserX00002</t:orig>
+            <t:norm>test userx00002</t:norm>
+        </fullName>
         <givenName>TestX</givenName>
         <familyName>UserX00002</familyName>
         <emailAddress>testuserX00002@example.com</emailAddress>
@@ -76,7 +80,10 @@
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>atestuserX00003</name>
-        <fullName>Test UserX00003</fullName>
+        <fullName>
+            <t:orig>Test UserX00003</t:orig>
+            <t:norm>test userx00003</t:norm>
+        </fullName>
         <givenName>TestX</givenName>
         <familyName>UserX00003</familyName>
         <emailAddress>testuserX00003@example.com</emailAddress>

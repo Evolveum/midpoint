@@ -1474,7 +1474,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                    <xsd:element name="fullName" type="xsd:string">
+                    <xsd:element name="fullName" type="t:PolyStringType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Full name of the user with all the decorations,

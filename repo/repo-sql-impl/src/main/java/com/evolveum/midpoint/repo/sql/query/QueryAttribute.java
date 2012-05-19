@@ -40,4 +40,6 @@ public @interface QueryAttribute {
     String namespace() default "";
 
     boolean enumerated() default false;
+
+    boolean polyString() default false;
 }

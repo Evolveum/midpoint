@@ -23,6 +23,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
+import java.io.Serializable;
+
 /**
  * Polymorphic string. String that may have more than one representation at
  * the same time. The primary representation is the original version that is
@@ -36,7 +38,7 @@ import com.evolveum.midpoint.util.Dumpable;
  * 				
  * @author Radovan Semancik
  */
-public class PolyString implements Dumpable, DebugDumpable {
+public class PolyString implements Dumpable, DebugDumpable, Serializable {
 
 	private String orig;
 	private String norm = null;

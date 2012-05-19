@@ -26,6 +26,7 @@
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:foo="http://www.example.com/foo">
     <name>barbossa</name>
     <extension>
@@ -38,7 +39,10 @@
 			<clearValue>openS3zam3</clearValue>
 		</foo:password>
 	</extension>
-    <fullName>Hector Barbossa</fullName>
+    <fullName>
+        <t:orig>Hector Barbossa</t:orig>
+        <t:norm>hector barbossa</t:norm>
+    </fullName>
     <givenName>Hector</givenName>
     <familyName>Barbossa</familyName>
     

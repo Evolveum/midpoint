@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
@@ -44,12 +46,13 @@ import java.util.Set;
 @Entity
 @Table(name = "user")
 @org.hibernate.annotations.Table(appliesTo = "user",
-        indexes = {@Index(name = "iUserEnabled", columnNames = "enabled")})
+        indexes = {@Index(name = "iUserEnabled", columnNames = "enabled"),
+                @Index(name = "iFullName", columnNames = "fullName_norm")})
 @ForeignKey(name = "fk_user")
 public class RUser extends RObject {
 
-    @QueryAttribute
-    private String fullName;
+    @QueryAttribute(polyString = true)
+    private RPolyString fullName;
     @QueryAttribute
     private String givenName;
     @QueryAttribute
@@ -165,8 +168,12 @@ public class RUser extends RObject {
         return familyName;
     }
 
-    @Index(name = "iFullName")
-    public String getFullName() {
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "fullName_orig", nullable = true)),
+            @AttributeOverride(name = "norm", column = @Column(name = "fullName_norm", nullable = true))
+    })
+    @Embedded
+    public RPolyString getFullName() {
         return fullName;
     }
 
@@ -253,7 +260,7 @@ public class RUser extends RObject {
         this.accountRefs = accountRefs;
     }
 
-    public void setFullName(String fullName) {
+    public void setFullName(RPolyString fullName) {
         this.fullName = fullName;
     }
 
@@ -310,7 +317,7 @@ public class RUser extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setFullName(jaxb.getFullName());
+        repo.setFullName(RPolyString.copyFromJAXB(jaxb.getFullName()));
         repo.setGivenName(jaxb.getGivenName());
         repo.setFamilyName(jaxb.getFamilyName());
         repo.setHonorificPrefix(jaxb.getHonorificPrefix());
@@ -360,7 +367,7 @@ public class RUser extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setFullName(repo.getFullName());
+        jaxb.setFullName(RPolyString.copyToJAXB(repo.getFullName()));
         jaxb.setGivenName(repo.getGivenName());
         jaxb.setFamilyName(repo.getFamilyName());
         jaxb.setHonorificPrefix(repo.getHonorificPrefix());

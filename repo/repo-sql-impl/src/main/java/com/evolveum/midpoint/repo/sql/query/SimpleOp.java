@@ -52,7 +52,7 @@ import java.util.List;
  */
 public class SimpleOp extends Op {
 
-    private static enum Operation {EQUAL}
+    private static enum Operation {EQUAL, SUBSTRING}
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleOp.class);
 
@@ -62,12 +62,14 @@ public class SimpleOp extends Op {
 
     @Override
     protected QName[] canHandle() {
-        return new QName[]{SchemaConstantsGenerated.Q_EQUAL};
+        return new QName[]{SchemaConstantsGenerated.Q_EQUAL, SchemaConstantsGenerated.Q_SUBSTRING};
     }
 
     private Operation getOperationType(Element filterPart) throws QueryException {
         if (DOMUtil.isElementName(filterPart, SchemaConstantsGenerated.Q_EQUAL)) {
             return Operation.EQUAL;
+        } else if (DOMUtil.isElementName(filterPart, SchemaConstantsGenerated.Q_SUBSTRING)) {
+            return Operation.SUBSTRING;
         }
 
         throw new QueryException("Unknown filter type '" + DOMUtil.getQNameWithoutPrefix(filterPart) + "'.");
@@ -142,6 +144,12 @@ public class SimpleOp extends Op {
                     return Restrictions.ne(name, testedValue);
                 } else {
                     return Restrictions.eq(name, testedValue);
+                }
+            case SUBSTRING:
+                if (pushNot) {
+                    return Restrictions.not(Restrictions.like(name, "%" + testedValue + "%"));
+                } else {
+                    return Restrictions.like(name, "%" + testedValue + "%");
                 }
         }
 
@@ -258,8 +266,12 @@ public class SimpleOp extends Op {
                 item.item = "targetOid";
             } else {
                 item.item = attrDef.getRealName();
+                if (attrDef.isPolyString()) {
+                    item.item += ".norm";
+                }
             }
 
+            item.isPolyString = attrDef.isPolyString();
             item.isEnum = attrDef.isEnumerated();
             item.enumType = attrDef.getClassType();
         }
@@ -353,6 +365,7 @@ public class SimpleOp extends Op {
         boolean isAny;
         boolean isReference;
         boolean isEnum;
+        boolean isPolyString;
         Class<?> enumType;
 
         String getQueryableItem() {

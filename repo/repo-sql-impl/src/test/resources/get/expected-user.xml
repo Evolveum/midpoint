@@ -22,10 +22,14 @@
   -->
 
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <user oid="f00d-0">
         <name>get account user</name>
-        <fullName>Hector Barbossa</fullName>
+        <fullName>
+            <t:orig>Hector Barbossa</t:orig>
+            <t:norm>hector barbossa</t:norm>
+        </fullName>
         <givenName>Hector</givenName>
         <familyName>Barbossa</familyName>
         <account oid="f00d-acc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

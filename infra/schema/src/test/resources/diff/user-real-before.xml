@@ -21,9 +21,14 @@
 
 <!-- Simple user definition -->
  
-<object xsi:type="UserType" oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20" xmlns:gen973="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+<object xsi:type="UserType" oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns:gen973="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <name>jack</name>
-    <fullName>Jack Sparrow</fullName>
+    <fullName>
+        <t:orig>Jack Sparrow</t:orig>
+        <t:norm>jack sparrow</t:norm>
+    </fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
     <emailAddress></emailAddress>

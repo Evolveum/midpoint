@@ -22,9 +22,13 @@
 <!-- Simple user definition -->
  
 <user oid="deadbeef-c001-f00d-1111-222233330001"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 	<name>novacik</name>
-	<fullName>Jožko Nováčik</fullName>
+	<fullName>
+        <t:orig>Jožko Nováčik</t:orig>
+        <t:norm>jozko novacik</t:norm>
+	</fullName>
 	<givenName>Jožko</givenName>
 	<familyName>Nováčik</familyName>
 	<honorificPrefix>Cpt.</honorificPrefix>

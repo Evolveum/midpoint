@@ -159,7 +159,7 @@ public class PageUsers extends PageAdminUsers {
         column = new PropertyColumn(createStringResource("pageUsers.familyName"), "familyName", "value.familyName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageUsers.fullName"), "fullName", "value.fullName");
+        column = new PropertyColumn(createStringResource("pageUsers.fullName"), "fullName", "value.fullName.orig");
         columns.add(column);
 
         column = new AbstractColumn<SelectableBean<UserType>>(createStringResource("pageUsers.email")) {
@@ -320,16 +320,16 @@ public class PageUsers extends PageAdminUsers {
             Document document = DOMUtil.getDocument();
             List<Element> elements = new ArrayList<Element>();
             if (dto.isName()) {
-                elements.add(QueryUtil.createEqualFilter(document, null, ObjectType.F_NAME, dto.getSearchText()));
+                elements.add(QueryUtil.createSubstringFilter(document, null, ObjectType.F_NAME, dto.getSearchText()));
             }
             if (dto.isFamilyName()) {
-                elements.add(QueryUtil.createEqualFilter(document, null, UserType.F_FAMILY_NAME, dto.getSearchText()));
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FAMILY_NAME, dto.getSearchText()));
             }
             if (dto.isFullName()) {
-                elements.add(QueryUtil.createEqualFilter(document, null, UserType.F_FULL_NAME, dto.getSearchText()));
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FULL_NAME, dto.getSearchText()));
             }
             if (dto.isGivenName()) {
-                elements.add(QueryUtil.createEqualFilter(document, null, UserType.F_GIVEN_NAME, dto.getSearchText()));
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_GIVEN_NAME, dto.getSearchText()));
             }
 
             if (!elements.isEmpty()) {

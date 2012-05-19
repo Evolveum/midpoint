@@ -20,10 +20,12 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -208,8 +210,8 @@ public class TestParseUser {
 		
 		assertPropertyValue(user, "name", "jack");
 		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
-		assertPropertyValue(user, "fullName", "Jack Sparrow");
-		assertPropertyDefinition(user, "fullName", DOMUtil.XSD_STRING, 1, 1);
+		assertPropertyValue(user, "fullName", new PolyString("Jack Sparrow", "jack sparrow"));
+		assertPropertyDefinition(user, "fullName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
 		assertPropertyValue(user, "givenName", "Jack");
 		assertPropertyDefinition(user, "givenName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "familyName", "Sparrow");
@@ -275,7 +277,8 @@ public class TestParseUser {
 
 	private void assertUserJaxb(UserType userType) {
 		assertEquals("Wrong name", "jack", userType.getName());
-		assertEquals("Wrong fullName", "Jack Sparrow", userType.getFullName());
+		assertEquals("Wrong fullName", "Jack Sparrow", userType.getFullName().getOrig());
+        assertEquals("Wrong fullName", "jack sparrow", userType.getFullName().getNorm());
 		assertEquals("Wrong givenName", "Jack", userType.getGivenName());
 		assertEquals("Wrong familyName", "Sparrow", userType.getFamilyName());
 

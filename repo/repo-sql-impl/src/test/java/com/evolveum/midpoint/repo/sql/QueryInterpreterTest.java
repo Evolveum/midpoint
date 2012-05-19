@@ -23,10 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
-import com.evolveum.midpoint.repo.sql.data.common.RConnector;
-import com.evolveum.midpoint.repo.sql.data.common.RGenericObject;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
@@ -37,10 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -150,14 +144,51 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void queryUserByFullName() throws Exception {
+        LOGGER.info("===[{}]===", new Object[]{"queryUserByFullName"});
         Session session = open();
 
         Criteria main = session.createCriteria(RUser.class, "u");
-        main.add(Restrictions.eq("fullName", "Cpt. Jack Sparrow"));
+        main.add(Restrictions.eq("fullName.norm", "cpt jack sparrow"));
         String expected = HibernateToSqlTranslator.toSql(main);
 
         String real = getInterpretedQuery(session, UserType.class,
                 new File(TEST_DIR, "query-user-by-fullName.xml"));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryUserSubstringFullName() throws Exception {
+        LOGGER.info("===[{}]===", new Object[]{"queryUserSubstringFullName"});
+        Session session = open();
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        main.add(Restrictions.like("fullName.norm", "%cpt jack sparrow%"));
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        String real = getInterpretedQuery(session, UserType.class,
+                new File(TEST_DIR, "query-user-substring-fullName.xml"));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryUserByName() throws Exception {
+        LOGGER.info("===[{}]===", new Object[]{"queryUserByName"});
+        Session session = open();
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        main.add(Restrictions.eq("name", "some name identificator"));
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        String real = getInterpretedQuery(session, UserType.class,
+                new File(TEST_DIR, "query-user-by-name.xml"));
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);

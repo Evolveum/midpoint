@@ -19,9 +19,13 @@
   ~
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <name>guybrush</name>
-    <fullName>Guybrush Threepwood</fullName>
+    <fullName>
+        <t:orig>Guybrush Threepwood</t:orig>
+        <t:norm>guybrush threepwood</t:norm>
+    </fullName>
     <givenName>Guybrush</givenName>
     <familyName>Threepwood</familyName>
 </user>

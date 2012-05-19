@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
@@ -213,23 +214,6 @@ public class PrismValuePanel extends Panel {
             AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onKeyUp");
             validator.setThrottleDelay(Duration.ONE_SECOND);
             formComponent.add(validator);
-//            final FormComponent comp = formComponent;
-//            formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
-//
-//                @Override
-//                protected void onUpdate(AjaxRequestTarget target) {
-//                    target.add(comp);
-//                    target.add(feedback);
-//                }
-//
-//                @Override
-//                protected void onError(AjaxRequestTarget target, RuntimeException e) {
-//                    target.add(comp);
-//                    target.add(feedback);
-//
-//                    super.onError(target, e);
-//                }
-//            });
         }
 
         return component;
@@ -239,19 +223,23 @@ public class PrismValuePanel extends Panel {
         PrismProperty property = model.getObject().getProperty().getItem();
         QName valueType = property.getDefinition().getTypeName();
 
+        final String baseExpression = "value.value"; //pointing to prism property real value
+
         InputPanel panel;
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {
-            panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, "value.value"));
+            panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, baseExpression));
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
-            panel = new PasswordPanel(id, new PropertyModel<String>(model, "value.value.clearValue"), form);
+            panel = new PasswordPanel(id, new PropertyModel<String>(model, baseExpression + ".clearValue"), form);
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
-            panel = new CheckPanel(id, new PropertyModel<Boolean>(model, "value.value"));
+            panel = new CheckPanel(id, new PropertyModel<Boolean>(model, baseExpression));
+        } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
+            panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
         } else {
             Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
             if (type != null && type.isPrimitive()) {
                 type = ClassUtils.primitiveToWrapper(type);
             }
-            panel = new TextPanel<String>(id, new PropertyModel<String>(model, "value.value"),
+            panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression),
                     type);
         }
 

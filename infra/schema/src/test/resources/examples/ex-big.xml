@@ -28,6 +28,7 @@
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
    xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
    xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
@@ -48,7 +49,10 @@
         <c:extension>
             <piracy:ship>Black Pearl</piracy:ship>
         </c:extension>
-        <i:fullName>Cpt. Jack Sparrow</i:fullName>
+        <i:fullName>
+            <t:orig>Cpt. Jack Sparrow</t:orig>
+            <t:norm>cpt jack sparrow</t:norm>
+        </i:fullName>
         <i:givenName>Jack</i:givenName>
         <i:familyName>Sparrow</i:familyName>
         <i:honorificPrefix>Cpt.</i:honorificPrefix>
@@ -70,7 +74,10 @@
 
     <i:user oid="c0c010c0-d34d-b33f-f00d-111111111112">
         <c:name>will</c:name>
-        <i:fullName>Will Turner</i:fullName>
+        <i:fullName>
+            <t:orig>Will Turner</t:orig>
+            <t:norm>will turner</t:norm>
+        </i:fullName>
         <i:givenName>William</i:givenName>
         <i:familyName>Turner</i:familyName>
         <i:activation>

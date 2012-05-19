@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.model.security.api;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -106,7 +107,8 @@ public class PrincipalUser implements Serializable{//   } UserDetails {
     }
 
     public String getFullName() {
-        return getUser().getFullName();
+        PolyStringType string = getUser().getFullName();
+        return string != null ? string.getOrig() : null;
     }
 
     public String getGivenName() {

@@ -144,6 +144,27 @@ public class QueryUtil {
         return createEqualFilter(doc, xpath, element);
     }
 
+    public static Element createSubstringFilter(Document document, XPathHolder xpath, QName propertyName,
+            String searchText) throws SchemaException {
+        Validate.notNull(document, "Document must not be null.");
+        Validate.notNull(propertyName, "Property name must not be null.");
+        Validate.notEmpty(searchText, "Search text must not be empty.");
+
+        Element realValue = DOMUtil.createElement(document, propertyName);
+        realValue.setTextContent(searchText);
+
+        Element substring = DOMUtil.createElement(document, SchemaConstantsGenerated.Q_SUBSTRING);
+        if (xpath != null) {
+            Element path = xpath.toElement(SchemaConstantsGenerated.Q_PATH, document);
+            substring.appendChild(path);
+        }
+        Element value = DOMUtil.createElement(document, SchemaConstantsGenerated.Q_VALUE);
+        value.appendChild(realValue);
+        substring.appendChild(value);
+
+        return substring;
+    }
+
     /**
      * Creates "equal" filter segment for single-valued properties with QName content.
      *
@@ -153,13 +174,13 @@ public class QueryUtil {
      * @return "equal" filter segment (as DOM)
      * @throws JAXBException
      */
-    public static Element createEqualFilter(Document doc, XPathHolder xpath, QName properyName, QName value) throws
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, QName propertyName, QName value) throws
             SchemaException {
         Validate.notNull(doc);
-        Validate.notNull(properyName);
+        Validate.notNull(propertyName);
         Validate.notNull(value);
 
-        Element element = doc.createElementNS(properyName.getNamespaceURI(), properyName.getLocalPart());
+        Element element = doc.createElementNS(propertyName.getNamespaceURI(), propertyName.getLocalPart());
         DOMUtil.setQNameValue(element, value);
         return createEqualFilter(doc, xpath, element);
     }
@@ -308,5 +329,4 @@ public class QueryUtil {
 			sb.append("(no filter)");
 		return sb.toString();
 	}
-
 }

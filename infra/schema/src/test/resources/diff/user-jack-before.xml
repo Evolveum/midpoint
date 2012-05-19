@@ -26,9 +26,13 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
 	xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:foo="http://www.example.com/foo">
 	<name>jack</name>
-	<fullName>Jack Sparrow</fullName>
+	<fullName>
+        <t:orig>Jack Sparrow</t:orig>
+        <t:norm>jack sparrow</t:norm>
+    </fullName>
 	<givenName>Jack</givenName>
 	<familyName>Sparrow</familyName>
 </user>

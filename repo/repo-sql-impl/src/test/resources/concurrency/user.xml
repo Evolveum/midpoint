@@ -20,9 +20,13 @@
   -->
 
 <user version="1" oid="f65963e3-9d47-4b18-aaf3-000000000000"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <name>concurrentModifyUser</name>
-    <fullName>Test UserX00002</fullName>
+    <fullName>
+        <t:orig>Test UserX00002</t:orig>
+        <t:norm>test userx00002</t:norm>
+    </fullName>
     <givenName></givenName>
     <familyName></familyName>
     <emailAddress>testuserX00002@example.com</emailAddress>

@@ -20,7 +20,8 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 
     <object xsi:type="UserType" version="1"
             xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
@@ -32,7 +33,10 @@
             <p:shipName>user boad</p:shipName>
         </extension>
         <name>user assignment extension</name>
-        <fullName>Test UserX00002</fullName>
+        <fullName>
+            <t:orig>Test UserX00002</t:orig>
+            <t:norm>test userx00002</t:norm>
+        </fullName>
         <givenName>TestX</givenName>
         <familyName>UserX00002</familyName>
         <emailAddress>testuserX00002@example.com</emailAddress>

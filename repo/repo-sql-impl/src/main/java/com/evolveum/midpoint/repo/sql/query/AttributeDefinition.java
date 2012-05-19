@@ -33,6 +33,7 @@ public class AttributeDefinition extends Definition implements DebugDumpable {
     private boolean indexed;
     private boolean reference;
     private boolean enumerated;
+    private boolean polyString;
     private Class<?> classType;
 
     public Class<?> getClassType() {
@@ -41,6 +42,14 @@ public class AttributeDefinition extends Definition implements DebugDumpable {
 
     void setClassType(Class<?> classType) {
         this.classType = classType;
+    }
+
+    public boolean isPolyString() {
+        return polyString;
+    }
+
+    public void setPolyString(boolean polyString) {
+        this.polyString = polyString;
     }
 
     public boolean isEnumerated() {

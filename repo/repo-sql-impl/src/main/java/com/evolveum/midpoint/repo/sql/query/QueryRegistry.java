@@ -124,6 +124,7 @@ public class QueryRegistry {
             attrDef.setName(new QName(namespace, name));
             attrDef.setIndexed(hasAnnotation(field, Index.class));
             attrDef.setEnumerated(queryAttribute.enumerated());
+            attrDef.setPolyString(queryAttribute.polyString());
             if (queryAttribute.enumerated()) {
                 attrDef.setClassType(field.getType());
             }

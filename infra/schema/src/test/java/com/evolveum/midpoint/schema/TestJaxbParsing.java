@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -101,7 +102,7 @@ public class TestJaxbParsing {
 
         user.checkConsistence();
         assertPropertyValue(user, SchemaConstants.C_NAME, "jack");
-        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "fullName"), "Jack Sparrow");
+        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "fullName"), new PolyString("Jack Sparrow", "jack sparrow"));
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "givenName"), "Jack");
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "familyName"), "Sparrow");
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "honorificPrefix"), "Cpt.");

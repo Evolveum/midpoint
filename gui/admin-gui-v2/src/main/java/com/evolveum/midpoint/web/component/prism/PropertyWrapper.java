@@ -22,9 +22,12 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -100,11 +103,15 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
         }
 
+        PrismPropertyDefinition definition = property.getDefinition();
         if (values.isEmpty()) {
             PrismPropertyValue value;
-            if (ProtectedStringType.COMPLEX_TYPE.equals(property.getDefinition().getTypeName())) {
+            if (ProtectedStringType.COMPLEX_TYPE.equals(definition.getTypeName())) {
                 values.add(new ValueWrapper(this, new PrismPropertyValue(new ProtectedStringType()),
                         new PrismPropertyValue(new ProtectedStringType()), ValueStatus.ADDED));
+            } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
+                values.add(new ValueWrapper(this, new PrismPropertyValue(new PolyString(null)),
+                        new PrismPropertyValue(new PolyString(null)), ValueStatus.ADDED));
             } else if (isThisPropertyActivationEnabled()) {
                 value = new PrismPropertyValue(true);
                 values.add(new ValueWrapper(this, value, new PrismPropertyValue(null), ValueStatus.ADDED));

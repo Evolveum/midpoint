@@ -30,6 +30,7 @@ import java.util.Enumeration;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
@@ -130,6 +131,8 @@ public abstract class SchemaConstants {
 	public static final QName C_ACTIVATION_ENABLED = new QName(NS_C, "enabled");
 	public static final QName C_OBJECT_MODIFICATION = new QName(NS_C, "objectModification");
 	public static final QName C_FAILED_OPERATION_TYPE = new QName(NS_C, "failedOperationType");
+
+    public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "PolyStringType");
 	
 	public static final QName X_ANNOTATION = new QName(W3C_XML_SCHEMA_NS_URI, "annotation");
 	public static final QName X_APPINFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");

@@ -28,6 +28,7 @@ import java.io.IOException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -61,11 +62,11 @@ public class JAXBUtilTest {
 		
 		// WHEN
 
-		String fullname = user.getFullName();
-		
+        PolyStringType fullName = user.getFullName();
+
 		// THEN
-		
-		assertTrue("National characters incorrectly decoded", "Jožko Nováčik".equals(fullname));
+
+		assertTrue("National characters incorrectly decoded", "Jožko Nováčik".equals(fullName.getOrig()));
 	}
 
 	@Test
@@ -77,11 +78,11 @@ public class JAXBUtilTest {
 		
 		// WHEN
 
-		String fullname = user.getFullName();
-		
+        PolyStringType fullname = user.getFullName();
+
 		// THEN
-		
-		assertTrue("National characters incorrectly decoded", "Jožko Nováčik".equals(fullname));
+
+		assertTrue("National characters incorrectly decoded", "Jožko Nováčik".equals(fullname.getOrig()));
 	}
 
 	@Test
@@ -90,19 +91,20 @@ public class JAXBUtilTest {
 
 		String s = "<?xml version='1.0' encoding='utf-8'?> " +
 				"<user oid='deadbeef-c001-f00d-1111-222233330001'" +
+                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'" +
 				"      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>" +
-				"	<fullName>Jožko Nováčik</fullName>" +
+				"	<fullName><t:orig>Jožko Nováčik</t:orig><t:norm>jozko novacik</t:norm></fullName>" +
 				"</user>";
 
 		UserType user = PrismTestUtil.unmarshalElement(s, UserType.class).getValue();
 		
 		// WHEN
 
-		String fullname = user.getFullName();
-		
+        PolyStringType fullname = user.getFullName();
+
 		// THEN
-		
-		assertTrue("Diacritics correctly decoded", "Jožko Nováčik".equals(fullname));
+
+		assertTrue("Diacritics correctly decoded", "Jožko Nováčik".equals(fullname.getOrig()));
 	}
 	
 	@Test
@@ -111,19 +113,20 @@ public class JAXBUtilTest {
 
 		String s = "<?xml version='1.0' encoding='iso-8859-2'?> " +
 				"<user oid='deadbeef-c001-f00d-1111-222233330001'" +
+                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'" +
 				"      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>" +
-				"	<fullName>Jožko Nováčik</fullName>" +
+				"	<fullName><t:orig>Jožko Nováčik</t:orig><t:norm>jozko novacik</t:norm></fullName>" +
 				"</user>";
 
 		UserType user = PrismTestUtil.unmarshalElement(s,UserType.class).getValue();
 		
 		// WHEN
 
-		String fullname = user.getFullName();
-		
+        PolyStringType fullname = user.getFullName();
+
 		// THEN
-		
-		assertTrue("Diacritics correctly decoded", "Jožko Nováčik".equals(fullname));
+
+		assertTrue("Diacritics correctly decoded", "Jožko Nováčik".equals(fullname.getOrig()));
 	}
 
 }
