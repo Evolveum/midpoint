@@ -54,15 +54,7 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 			throws ObjectNotFoundException, SchemaException {
 		File file = new File( directory, oidToFilename(ref.getOid()));
 		if (file.exists()) {
-			try {
-				try {
-					return PrismTestUtil.unmarshalObject(file, expectedType);
-				} catch (FileNotFoundException e) {
-					throw new ObjectNotFoundException(e);
-				}
-			} catch (JAXBException e) {
-				throw new SchemaException(e.getMessage(),e);
-			}
+			return (T)PrismTestUtil.parseObject(file).asObjectable();
 		} else {
 			throw new ObjectNotFoundException("Object "+ref.getOid()+" does not exists");
 		}

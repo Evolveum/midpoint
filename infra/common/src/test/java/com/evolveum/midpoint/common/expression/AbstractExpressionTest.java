@@ -142,6 +142,22 @@ public abstract class AbstractExpressionTest {
         assertEquals("Captain jack", result.getValue());
     }
 
+    @Test
+    public void testExpressionObjectRefVariablesPolyString() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
+        // GIVEN
+        JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
+                new File(getTestDir(), "expression-objectref-variables-polystring.xml"), ExpressionType.class);
+        ExpressionType expressionType = expressionTypeElement.getValue();
+
+        OperationResult opResult = new OperationResult("testExpressionObjectRefVariablesPolyString");
+
+        // WHEN
+        Expression expression = factory.createExpression(expressionType, "objectref variable polystring thing");
+        PrismPropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
+
+        // THEN
+        assertEquals("Captain Jack Sparrow", result.getValue());
+    }
 
     @Test
     public void testSystemVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
