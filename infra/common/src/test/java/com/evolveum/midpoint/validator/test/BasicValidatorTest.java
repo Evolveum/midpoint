@@ -157,7 +157,7 @@ public class BasicValidatorTest {
         validateFile("three-objects.xml",handler,result);
 
         System.out.println(result.dump());
-        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertTrue("Result is not success", result.isSuccess());
         AssertJUnit.assertTrue(postMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
         AssertJUnit.assertTrue(preMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
         AssertJUnit.assertTrue(postMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111112"));

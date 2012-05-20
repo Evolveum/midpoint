@@ -85,12 +85,16 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="orig" type="xsd:string">
+			<xsd:element name="orig" type="xsd:string" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Original value of the string. There are no constraints on the string structure
 						beyond the natural constraints of the platform. E.g. it may contain full set of
-						Unicode characters, multiple subsequent whitespaces, etc. 
+						Unicode characters, multiple subsequent whitespaces, etc.
+						
+						Although this element is marked as optional, it is mandatory. It should be either
+						provided in a form of this element or as an alternative representation (no elements
+						and the value of "orig" provided as text content) 
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
