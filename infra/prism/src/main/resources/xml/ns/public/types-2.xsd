@@ -69,7 +69,7 @@
     <!-- ##         PROPERTY DATA TYPES           ## -->
     <!-- ########################################### -->
 
-	<xsd:complexType name="PolyStringType">
+	<xsd:complexType name="PolyStringType" mixed="true">
 		<xsd:annotation>
 			<xsd:documentation>
 				Polymorphic string. String that may have more than one representation at
@@ -77,6 +77,11 @@
 				composed of the full Unicode character set. The other versions may be
 				normalized to trim it, normalize character case, normalize spaces,
 				remove national characters or even transliterate the string.
+				
+				There is an alternative syntactic short-cut representation of PolyString. If no
+				child element is present then the text entire text content of this element is
+				considered as if it was present in the "orig" element. That's the reason for making
+				this type "mixed".
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>

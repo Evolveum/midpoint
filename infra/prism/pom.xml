@@ -96,9 +96,16 @@
     </dependencies>
     <build>
         <plugins>
-        	<!-- Code generator is used in Prism in the "pure" form without any prism-specific plugins.
-        	 This creates the classes for basic (almost-primitive) data types such as PolyStringType. -->
-            <plugin>
+        	<!-- Code generator may be used in Prism in the "pure" form without any prism-specific plugins.
+        	 This creates the classes for basic (almost-primitive) data types such as PolyStringType. 
+        	 But ... the JAXB-generated classes are not that useful. They may reflect the schema well, but
+        	 there are glitches. E.g. the JAXB classes generated for query namespace are completely useless.
+        	 The default JAXB-generated class for PolyStringType is also useless. Therefore the classes that
+        	 were generated from the schema are copied to the "main" source tree in the form that suits us
+        	 better than just blindly following the schema. Therefore the following plugin is commented out.
+        	 It may be used in case that the schemas change and we need to re-generate and re-tweak them.
+        	 But the plugin should be disabled during normal build. -->
+            <!-- <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
                 <version>0.8.0</version>
@@ -116,7 +123,7 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>  -->
         	<!-- 
         	 Following plugin generates the JAXB classes for prism tests.
         	 We can't really test full JAXB capabilities here as we get the proper JAXB plugin code

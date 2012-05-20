@@ -210,6 +210,8 @@
                                         <extraarg>
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.schema.DomAwareEqualsStrategy
                                         </extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>
@@ -234,6 +236,8 @@
                                         <extraarg>
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.schema.DomAwareEqualsStrategy
                                         </extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>
