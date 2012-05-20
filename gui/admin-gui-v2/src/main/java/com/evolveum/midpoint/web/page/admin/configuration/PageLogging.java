@@ -543,8 +543,7 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 	}
 
-	private LoggingConfigurationType createConfiguration() {
-		LoggingDto dto = model.getObject();
+	private LoggingConfigurationType createConfiguration(LoggingDto dto) {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		AuditingConfigurationType audit = new AuditingConfigurationType();
 		audit.setEnabled(dto.isAuditLog());
@@ -670,18 +669,14 @@ public class PageLogging extends PageAdminConfiguration {
 			Task task = createSimpleTask(OPERATION_UPDATE_LOGGING_CONFIGURATION);
 			LoggingDto dto = model.getObject();
 
-			PrismObject<SystemConfigurationType> newObject = dto.getOldConfiguration().clone();
-			LoggingConfigurationType config = createConfiguration();
+			PrismObject<SystemConfigurationType> newObject = dto.getOldConfiguration();
+			LoggingConfigurationType config = createConfiguration(dto);
 			newObject.asObjectable().setLogging(config);
 
-			// if (LOGGER.isTraceEnabled()) {
-			// LOGGER.trace("Before diff:\nOLD:\n{}\nNEW:\n{}",dto.getOldConfiguration().dump(),
-			// newObject.dump());
-			// }
-			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(dto.getOldConfiguration(), newObject);
-			// if (LOGGER.isTraceEnabled()) {
-			// LOGGER.trace("After diff:\n{}",delta.dump());
-			// }
+            PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
+                    oid, null, task, result);
+
+			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
 			getModelService().modifyObject(SystemConfigurationType.class, oid, delta.getModifications(),
 					task, result);
 
