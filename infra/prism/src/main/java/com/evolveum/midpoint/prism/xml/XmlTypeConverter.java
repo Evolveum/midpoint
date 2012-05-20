@@ -430,8 +430,14 @@ public class XmlTypeConverter {
 	private static PolyString polyStringToJava(Element polyStringElement) throws SchemaException {
 		Element origElement = DOMUtil.getChildElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME);
 		if (origElement == null) {
-			throw new SchemaException("Missing element "+PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME+" in polystring element "+
-					DOMUtil.getQName(polyStringElement));
+			// Check for a special syntactic short-cut. If the there are no child elements use the text content of the
+			// element as the value of orig
+			if (DOMUtil.hasChildElements(polyStringElement)) {
+				throw new SchemaException("Missing element "+PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME+" in polystring element "+
+						DOMUtil.getQName(polyStringElement));
+			}
+			String orig = polyStringElement.getTextContent();
+			return new PolyString(orig);
 		}
 		String orig = origElement.getTextContent();
 		String norm = null;

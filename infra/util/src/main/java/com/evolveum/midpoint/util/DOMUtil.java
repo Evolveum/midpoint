@@ -352,6 +352,11 @@ public class DOMUtil {
 		}
 		return subelements;
 	}
+	
+	public static boolean hasChildElements(Node node) {
+		List<Element> childElements = listChildElements(node);
+		return (!childElements.isEmpty());
+	}
 
 	public static QName resolveQName(Element element) {
 		return resolveQName(element, element.getTextContent());

@@ -18,6 +18,12 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
+
+<!-- This is the same user "Jack" but it has alternative representation
+     with <object> element instead <user>. The type is defined by xsi:type.
+     It also has alternativ "shortcut" representation of PolyString. It should
+     result in the same prism structure as the other "jack" file. -->
+
 <object xsi:type="UserType" oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
@@ -41,10 +47,7 @@
     <familyName>Sparrow</familyName>
     <additionalNames>Captain</additionalNames>
     <additionalNames>Jackie</additionalNames>
-    <polyName>
-    	<t:orig>Džek Sperou</t:orig>
-    	<t:norm>dzek sperou</t:norm>
-    </polyName>
+    <polyName>Džek Sperou</polyName>
 
 	<assignment id="i1111">
 		<description>Assignment 1</description>

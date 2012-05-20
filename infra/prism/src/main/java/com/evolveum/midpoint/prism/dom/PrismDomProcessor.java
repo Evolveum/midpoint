@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -486,17 +487,32 @@ public class PrismDomProcessor {
     		// The values is already in java form, just store it directly
     		realValue = valueElement;
     	}
+    	postProcessPropertyRealValue((T) realValue);
     	return (T) realValue;
+	}
+	
+	private <T> void postProcessPropertyRealValue(T realValue) {
+		if (realValue == null) {
+			return;
+		}
+		if (realValue instanceof PolyString) {
+			PolyString polyString = (PolyString)realValue;
+			if (!polyString.isComputed()) {
+				polyString.recompute(getPrismContext().getDefaultPolyStringNormalizer());
+			}
+		}
 	}
 
 	public <T> PrismProperty<T> parsePropertyFromValueElement(Element valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
     	PrismProperty<T> prop = propertyDefinition.instantiate();
         if (propertyDefinition.isSingleValue()) {
         	T realValue = (T) XmlTypeConverter.convertValueElementAsScalar(valueElement, propertyDefinition.getTypeName());
+        	postProcessPropertyRealValue(realValue);
             prop.addValue(new PrismPropertyValue<T>(realValue));
         } else {
             List<T> list = (List)XmlTypeConverter.convertValueElementAsList(valueElement, propertyDefinition.getTypeName());
             for (T realValue : list) {
+            	postProcessPropertyRealValue(realValue);
                 prop.add(new PrismPropertyValue<T>(realValue));
             }
         }

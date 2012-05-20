@@ -65,6 +65,10 @@ public class PolyString implements Dumpable, DebugDumpable, Serializable {
 	public void recompute(PolyStringNormalizer normalizer) {
 		norm = normalizer.normalize(orig);
 	}
+	
+	public boolean isComputed() {
+		return !(norm == null);
+	}
 
 	@Override
 	public int hashCode() {
