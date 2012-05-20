@@ -175,7 +175,14 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
         }
 
         try {
-            String decoded = protector.decryptString(protectedString);
+            String decoded;
+            if (protectedString.getEncryptedData() != null) {
+                decoded = protector.decryptString(protectedString);
+            } else {
+                LOGGER.warn("Authenticating user based on clear value. Please check objects, " +
+                        "this should not happen. Protected string should be encrypted.");
+                decoded = protectedString.getClearValue();
+            }
             if (password.equals(decoded)) {
                 if (credentials.getFailedLogins() > 0) {
                     credentials.clearFailedLogin();

@@ -323,6 +323,7 @@ public class PageUser extends PageAdminUsers {
             }
         }
         result.recomputeStatus();
+        result.recordSuccessIfUnknown();
 
         if (!result.isSuccess()) {
             showResult(result);

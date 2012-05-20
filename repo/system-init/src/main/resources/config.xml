@@ -37,6 +37,16 @@
             <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
             <keyStorePassword>changeit</keyStorePassword>
             <encryptionKeyAlias>default</encryptionKeyAlias>
+            <!--
+            You can use smaller cipher key size for encryption. For:
+            AES_128 "http://www.w3.org/2001/04/xmlenc#aes128-cbc";
+            AES_256 "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+            AES_192 "http://www.w3.org/2001/04/xmlenc#aes192-cbc";
+
+            in element <xmlCipher></xmlCipher>
+            By default AES_256 is used. If you change key size, than
+            you must also change secret key in key store.
+            -->
         </keystore>
     </midpoint>
 </configuration>

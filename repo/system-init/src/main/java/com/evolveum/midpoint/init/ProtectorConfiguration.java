@@ -31,12 +31,14 @@ public class ProtectorConfiguration {
     private String keyStorePath;
     private String keyStorePassword;
     private String encryptionKeyAlias;
+    private String xmlCipher;
 
     public ProtectorConfiguration(Configuration configuration) {
         this.setKeyStorePath(configuration.getString("protectorClass"));
         this.setKeyStorePath(configuration.getString("keyStorePath"));
         this.setKeyStorePassword(configuration.getString("keyStorePassword"));
         this.setEncryptionKeyAlias(configuration.getString("encryptionKeyAlias"));
+        this.setXmlCipher(configuration.getString("xmlCipher"));
     }
 
     public String getEncryptionKeyAlias() {
@@ -61,5 +63,13 @@ public class ProtectorConfiguration {
 
     public void setKeyStorePath(String keyStorePath) {
         this.keyStorePath = keyStorePath;
+    }
+
+    public String getXmlCipher() {
+        return xmlCipher;
+    }
+
+    public void setXmlCipher(String xmlCipher) {
+        this.xmlCipher = xmlCipher;
     }
 }
