@@ -30,8 +30,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.SimpleSearchDto;
-import com.evolveum.midpoint.web.component.SimpleSearchPanel;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -43,6 +42,7 @@ import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersAction;
+import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -57,13 +57,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.ListChoice;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -84,8 +83,16 @@ public class PageUsers extends PageAdminUsers {
     private static final String OPERATION_ENABLE_USERS = DOT_CLASS + "enableUsers";
     private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
+    private LoadableModel<UsersDto> model;
 
     public PageUsers() {
+        model = new LoadableModel<UsersDto>(false) {
+
+            @Override
+            protected UsersDto load() {
+                return new UsersDto();
+            }
+        };
         initLayout();
     }
 
@@ -184,22 +191,47 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void initSearch(OptionItem item) {
-        SimpleSearchPanel search = new SimpleSearchPanel("simpleSearch") {
+        TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(model, "searchText"));
+        item.add(search);
+
+        CheckBox nameCheck = new CheckBox("nameCheck", new PropertyModel<Boolean>(model, "name"));
+        item.add(nameCheck);
+        CheckBox fullNameCheck = new CheckBox("fullNameCheck", new PropertyModel<Boolean>(model, "fullName"));
+        item.add(fullNameCheck);
+        CheckBox givenNameCheck = new CheckBox("givenNameCheck", new PropertyModel<Boolean>(model, "givenName"));
+        item.add(givenNameCheck);
+        CheckBox familyNameCheck = new CheckBox("familyNameCheck", new PropertyModel<Boolean>(model, "familyName"));
+        item.add(familyNameCheck);
+
+        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
+                createStringResource("pageUsers.button.clearButton")) {
 
             @Override
-            public void clearPerformed(AjaxRequestTarget target) {
-                getModel().reset();
-
-                target.add(PageUsers.this.get("mainForm:option"));
-                searchPerformed(target);
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
             }
 
             @Override
-            public void searchPerformed(AjaxRequestTarget target) {
-                searchButtonPerformed(getModel().getObject(), target);
+            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                clearButtonPerformed(target);
             }
         };
-        item.add(search);
+        item.add(clearButton);
+
+        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
+                createStringResource("pageUsers.button.searchButton")) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                searchPerformed(target);
+            }
+        };
+        item.add(searchButton);
     }
 
     private IModel<List<UsersAction>> createChoiceModel() {
@@ -264,8 +296,8 @@ public class PageUsers extends PageAdminUsers {
         return (TablePanel) content.getBodyContainer().get("table");
     }
 
-    private void searchButtonPerformed(SimpleSearchDto search, AjaxRequestTarget target) {
-        QueryType query = createQuery(search);
+    private void searchPerformed(AjaxRequestTarget target) {
+        QueryType query = createQuery();
         target.add(getFeedbackPanel());
 
         TablePanel panel = getTable();
@@ -278,30 +310,27 @@ public class PageUsers extends PageAdminUsers {
         target.add(panel);
     }
 
-    private QueryType createQuery(SimpleSearchDto search) {
+    private QueryType createQuery() {
+        UsersDto dto = model.getObject();
         QueryType query = null;
-        if (StringUtils.isEmpty(search.getSearchText())) {
+        if (StringUtils.isEmpty(dto.getSearchText())) {
             return null;
         }
 
         try {
             Document document = DOMUtil.getDocument();
             List<Element> elements = new ArrayList<Element>();
-            if (search.isName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null,
-                        ObjectType.F_NAME, search.getSearchText()));
+            if (dto.isName()) {
+                elements.add(QueryUtil.createSubstringFilter(document, null, ObjectType.F_NAME, dto.getSearchText()));
             }
-            if (search.isFamilyName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null,
-                        UserType.F_FAMILY_NAME, search.getSearchText()));
+            if (dto.isFamilyName()) {
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FAMILY_NAME, dto.getSearchText()));
             }
-            if (search.isFullName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null,
-                        UserType.F_FULL_NAME, search.getSearchText()));
+            if (dto.isFullName()) {
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FULL_NAME, dto.getSearchText()));
             }
-            if (search.isGivenName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null,
-                        UserType.F_GIVEN_NAME, search.getSearchText()));
+            if (dto.isGivenName()) {
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_GIVEN_NAME, dto.getSearchText()));
             }
 
             if (!elements.isEmpty()) {
@@ -314,6 +343,13 @@ public class PageUsers extends PageAdminUsers {
         }
 
         return query;
+    }
+
+    private void clearButtonPerformed(AjaxRequestTarget target) {
+        model.reset();
+
+        target.add(get("mainForm:option"));
+        searchPerformed(target);
     }
 
     private List<SelectableBean<UserType>> getSelectedUsers() {

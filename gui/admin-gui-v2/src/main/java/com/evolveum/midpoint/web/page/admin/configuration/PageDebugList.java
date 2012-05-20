@@ -1,9 +1,15 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
@@ -18,6 +24,8 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -25,10 +33,13 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.ListChoice;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,6 +48,7 @@ import java.util.List;
 
 public class PageDebugList extends PageAdminConfiguration {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageDebugList.class);
     private static final String DOT_CLASS = PageDebugList.class.getName() + ".";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
@@ -79,11 +91,16 @@ public class PageDebugList extends PageAdminConfiguration {
         add(main);
 
         OptionPanel option = new OptionPanel("option", createStringResource("pageDebugList.optionsTitle"));
+        option.setOutputMarkupId(true);
         main.add(option);
 
-        OptionItem item = new OptionItem("category", createStringResource("pageDebugList.selectType"));
+        OptionItem item = new OptionItem("search", createStringResource("pageDebugList.search"));
         option.getBodyContainer().add(item);
-        initCategory(item, choice);
+        IModel<String> searchNameModel = initSearch(item, choice);
+
+        item = new OptionItem("category", createStringResource("pageDebugList.selectType"));
+        option.getBodyContainer().add(item);
+        initCategory(item, choice, searchNameModel);
 
         OptionContent content = new OptionContent("optionContent");
         main.add(content);
@@ -102,7 +119,49 @@ public class PageDebugList extends PageAdminConfiguration {
         main.add(button);
     }
 
-    private void initCategory(OptionItem item, final IModel<ObjectTypes> choice) {
+    private IModel<String> initSearch(OptionItem item, final IModel<ObjectTypes> choice) {
+        final IModel<String> model = new Model<String>();
+        TextField<String> search = new TextField<String>("searchText", model);
+        item.add(search);
+
+        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
+                new StringResourceModel("pageDebugList.button.clear", this, null)) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                PageBase page = (PageBase) getPage();
+                target.add(page.getFeedbackPanel());
+            }
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                model.setObject(null);
+                target.add(PageDebugList.this.get("mainForm:option"));
+                listObjectsPerformed(target, model.getObject(), choice.getObject());
+            }
+        };
+        item.add(clearButton);
+
+        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
+                new StringResourceModel("pageDebugList.button.search", this, null)) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                PageBase page = (PageBase) getPage();
+                target.add(page.getFeedbackPanel());
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                listObjectsPerformed(target, model.getObject(), choice.getObject());
+            }
+        };
+        item.add(searchButton);
+
+        return model;
+    }
+
+    private void initCategory(OptionItem item, final IModel<ObjectTypes> choice, final IModel<String> searchNameModel) {
         IChoiceRenderer<ObjectTypes> renderer = new IChoiceRenderer<ObjectTypes>() {
 
             @Override
@@ -116,7 +175,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 return object.getClassDefinition().getSimpleName();
             }
         };
-        
+
         IModel<List<ObjectTypes>> choiceModel = createChoiceModel(renderer);
         final ListChoice listChoice = new ListChoice("choice", choice, choiceModel, renderer, choiceModel.getObject().size()) {
 
@@ -130,7 +189,7 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(listChoice);
-                listObjectsPerformed(target, choice.getObject());
+                listObjectsPerformed(target, searchNameModel.getObject(), choice.getObject());
             }
         });
         item.getBodyContainer().add(listChoice);
@@ -163,12 +222,28 @@ public class PageDebugList extends PageAdminConfiguration {
         return (TablePanel) content.getBodyContainer().get("table");
     }
 
-    private void listObjectsPerformed(AjaxRequestTarget target, ObjectTypes selected) {
-        TablePanel table = getListTable();
+    private void listObjectsPerformed(AjaxRequestTarget target, String nameText, ObjectTypes selected) {
+        RepositoryObjectDataProvider provider = getTableDataProvider();
+        if (StringUtils.isNotEmpty(nameText)) {
+            try {
+                Document document = DOMUtil.getDocument();
+                Element substring = QueryUtil.createSubstringFilter(document, null, ObjectType.F_NAME, nameText);
+                QueryType query = new QueryType();
+                query.setFilter(substring);
+                provider.setQuery(query);
+            } catch (Exception ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't create substring filter", ex);
+                error(getString("pageDebugList.message.queryException", ex.getMessage()));
+                target.add(getFeedbackPanel());
+            }
+        } else {
+            provider.setQuery(null);
+        }
+
         if (selected != null) {
-            RepositoryObjectDataProvider provider = getTableDataProvider();
             provider.setType(selected.getClassDefinition());
         }
+        TablePanel table = getListTable();
         target.add(table);
     }
 
