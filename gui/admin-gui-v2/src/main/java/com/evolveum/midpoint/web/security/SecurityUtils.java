@@ -34,7 +34,7 @@ public class SecurityUtils {
 
     public static com.evolveum.midpoint.model.security.api.PrincipalUser getPrincipalUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal != null || !(principal instanceof com.evolveum.midpoint.model.security.api.PrincipalUser)) {
+        if (!(principal instanceof com.evolveum.midpoint.model.security.api.PrincipalUser)) {
             LOGGER.warn("Principal user in security context holder is {} but not type of {}",
                     new Object[]{principal, com.evolveum.midpoint.model.security.api.PrincipalUser.class.getName()});
             return null;
