@@ -24,7 +24,9 @@ import javax.xml.bind.annotation.XmlType;
  * 				composed of the full Unicode character set. The other versions may be
  * 				normalized to trim it, normalize character case, normalize spaces,
  * 				remove national characters or even transliterate the string.
- * 			
+ * 
+ * WARNING: THIS IS NOT A GENERATED CODE
+ * Although it was originally generated, it has local modifications.			
  * 
  * <p>Java class for PolyStringType complex type.
  * 
@@ -137,4 +139,17 @@ public class PolyStringType {
         return this.any;
     }
 
+    /**
+     * toString is tweaked to provide convenience and compatibility with normal strings.
+     * If PolyStringType is used in expressions that target the entire PolyString, the result
+     * will be the "orig" value of PolyString.
+     * 
+     * WARNING: This method was NOT generated. If the code is re-generated then it must be
+     * manually re-introduced to the code.
+     */
+	@Override
+	public String toString() {
+		return orig;
+	}
+    
 }

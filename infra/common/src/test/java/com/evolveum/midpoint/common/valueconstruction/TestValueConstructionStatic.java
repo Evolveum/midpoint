@@ -79,7 +79,7 @@ public class TestValueConstructionStatic {
     @Test
     public void testConstructionValue() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-value.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-value.xml", "name", 
     			null, null, "testConstructionValue");
     	
         // THEN
@@ -103,7 +103,7 @@ public class TestValueConstructionStatic {
     @Test
     public void testConstructionAsIs() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-asis.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-asis.xml", "name", 
     			"barbar", null, "testConstructionAsIs");
     	
         // THEN
@@ -113,7 +113,7 @@ public class TestValueConstructionStatic {
     @Test
     public void testConstructionExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-simple.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-simple.xml", "name", 
     			null, null, "testConstructionExpressionSimple");
     	
         // THEN
@@ -123,11 +123,11 @@ public class TestValueConstructionStatic {
     @Test
     public void testConstructionExpressionVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-variables.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-variables.xml", "name", 
     			null, null, "testConstructionExpressionVariables");
     	
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue().getValue());
+        assertEquals("Captain jack", result.getValue().getValue());
     }
 
     @Test
@@ -140,11 +140,11 @@ public class TestValueConstructionStatic {
         vars.put(ExpressionConstants.VAR_USER, ref);
 
         // WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables.xml", "name", 
     			null, vars , "testConstructionExpressionSystemVariablesRef");
     	
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue().getValue());
+        assertEquals("Captain jack", result.getValue().getValue());
     }
 
     @Test
@@ -157,11 +157,11 @@ public class TestValueConstructionStatic {
         vars.put(ExpressionConstants.VAR_USER, userType);
 
         // WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables.xml", "name", 
     			null, vars , "testConstructionExpressionSystemVariablesValueJaxb");
 
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue().getValue());
+        assertEquals("Captain jack", result.getValue().getValue());
     }
 
     @Test
@@ -174,11 +174,11 @@ public class TestValueConstructionStatic {
         vars.put(ExpressionConstants.VAR_USER, userType.asPrismObject());
 
         // WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables.xml", "name", 
     			null, vars , "testConstructionExpressionSystemVariablesValueMidPointObject");
     	
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue().getValue());
+        assertEquals("Captain jack", result.getValue().getValue());
     }
 
     @Test
@@ -247,7 +247,7 @@ public class TestValueConstructionStatic {
     	final String TEST_NAME = "testConstructionGenerate";
 
     	ValueConstruction<PrismPropertyValue<String>> construction = evaluator.createConstruction(String.class, 
-    			"construction-generate.xml", "givenName", 
+    			"construction-generate.xml", "name", 
     			null, null, TEST_NAME);
 
     	OperationResult opResult = new OperationResult(TEST_NAME);
@@ -291,7 +291,7 @@ public class TestValueConstructionStatic {
     @Test
     public void testConstructionValueConditionTrue() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-value-condition-true.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-value-condition-true.xml", "name", 
     			null, null, "testConstructionValueConditionTrue");
     	
     	// THEN
@@ -301,7 +301,7 @@ public class TestValueConstructionStatic {
     @Test
     public void testConstructionValueConditionFalse() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-value-condition-false.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-value-condition-false.xml", "name", 
     			null, null, "testConstructionValueConditionTrue");
     	
     	// THEN
@@ -318,11 +318,11 @@ public class TestValueConstructionStatic {
         vars.put(ExpressionConstants.VAR_USER, userType);
 
         // WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables-condition.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables-condition.xml", "name", 
     			null, vars , "testConstructionExpressionSystemVariablesValueJaxbConditionTrue");
 
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue().getValue());
+        assertEquals("Captain jack", result.getValue().getValue());
     }
 
     @Test
@@ -337,7 +337,7 @@ public class TestValueConstructionStatic {
         vars.put(ExpressionConstants.VAR_USER, userType);
 
         // WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables-condition.xml", "givenName", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-system-variables-condition.xml", "name", 
     			null, vars , "testConstructionExpressionSystemVariablesValueJaxbConditionFalse");
 
         // THEN

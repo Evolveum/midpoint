@@ -87,7 +87,7 @@ public class TestValueConstructionDynamic {
     public void testConstructionValue() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-value.xml", "givenName", "rock", null, "testConstructionValue",
+    			"construction-value.xml", "name", "rock", null, "testConstructionValue",
     			"apple", "orange");
     	
         // THEN
@@ -113,7 +113,7 @@ public class TestValueConstructionDynamic {
     public void testConstructionAsIsAdd() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-asis.xml", "givenName", "rock", null, "testConstructionAsIsAdd",
+    			"construction-asis.xml", "name", "rock", null, "testConstructionAsIsAdd",
     			"apple", "orange");
     	
     	// THEN
@@ -126,7 +126,7 @@ public class TestValueConstructionDynamic {
     public void testConstructionAsIsDelete() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicDelete(String.class, 
-    			"construction-asis.xml", "givenName", "rock", null, "testConstructionAsIs",
+    			"construction-asis.xml", "name", "rock", null, "testConstructionAsIs",
     			"rock");
     	
     	// THEN
@@ -140,7 +140,7 @@ public class TestValueConstructionDynamic {
     public void testConstructionExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-simple.xml", "givenName", null, null, "testConstructionExpressionSimple");
+    			"construction-expression-simple.xml", "name", null, null, "testConstructionExpressionSimple");
     	
         // THEN
     	PrismAsserts.assertTripleZero(outputTriple, "fooBAR");
@@ -152,10 +152,10 @@ public class TestValueConstructionDynamic {
     public void testConstructionExpressionVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-variables.xml", "givenName", null, null, "testConstructionExpressionVariables");
+    			"construction-expression-variables.xml", "name", null, null, "testConstructionExpressionVariables");
     	
         // THEN
-    	PrismAsserts.assertTripleZero(outputTriple, "Captain Jack Sparrow");
+    	PrismAsserts.assertTripleZero(outputTriple, "Captain jack");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }
@@ -171,10 +171,10 @@ public class TestValueConstructionDynamic {
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-system-variables.xml", "givenName", null, vars, "testConstructionExpressionSystemVariablesRef");
+    			"construction-expression-system-variables.xml", "name", null, vars, "testConstructionExpressionSystemVariablesRef");
             	
         // THEN
-    	PrismAsserts.assertTripleZero(outputTriple, "Captain Jack Sparrow");
+    	PrismAsserts.assertTripleZero(outputTriple, "Captain jack");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -190,10 +190,10 @@ public class TestValueConstructionDynamic {
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-system-variables.xml", "givenName", null, vars, "testConstructionExpressionSystemVariablesValueJaxb");
+    			"construction-expression-system-variables.xml", "name", null, vars, "testConstructionExpressionSystemVariablesValueJaxb");
 
         // THEN
-        PrismAsserts.assertTripleZero(outputTriple, "Captain Jack Sparrow");
+        PrismAsserts.assertTripleZero(outputTriple, "Captain jack");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -209,23 +209,23 @@ public class TestValueConstructionDynamic {
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-system-variables.xml", "givenName", null, vars, "testConstructionExpressionSystemVariablesValuePrismObjectNoChange");
+    			"construction-expression-system-variables.xml", "name", null, vars, "testConstructionExpressionSystemVariablesValuePrismObjectNoChange");
     	
         // THEN
-        PrismAsserts.assertTripleZero(outputTriple, "Captain Jack Sparrow");
+        PrismAsserts.assertTripleZero(outputTriple, "Captain jack");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
     
     @Test
-    public void testConstructionExpressionSystemVariablesValuePrismObjectReplaceGivenName() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
-    	System.out.println("===[ testConstructionExpressionSystemVariablesValuePrismObjectReplaceGivenName ]===");
+    public void testConstructionExpressionSystemVariablesValuePrismObjectReplaceName() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
+    	System.out.println("===[ testConstructionExpressionSystemVariablesValuePrismObjectReplaceName ]===");
     	// GIVEN
     	Map<QName, Object> vars = new HashMap<QName, Object>();
     	JAXBElement<UserType> userTypeElement = PrismTestUtil.unmarshalElement(
                 new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"), UserType.class);
         PrismObject<UserType> user = userTypeElement.getValue().asPrismObject();
-        PropertyDelta<String> fullNameDelta = evaluator.createReplaceDelta(String.class, "fullName", "Sparrow");
+        PropertyDelta<String> fullNameDelta = evaluator.createReplaceDelta(String.class, "name", "sparrow");
         ObjectDeltaObject<UserType> userOdo = ObjectDeltaObject.create(user, fullNameDelta);
         vars.put(ExpressionConstants.VAR_USER, userOdo);
         
@@ -234,13 +234,13 @@ public class TestValueConstructionDynamic {
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-system-variables.xml", "fullName", null, vars, 
-    			"testConstructionExpressionSystemVariablesValuePrismObjectReplaceGivenName");
+    			"construction-expression-system-variables.xml", "name", null, vars, 
+    			"testConstructionExpressionSystemVariablesValuePrismObjectReplaceName");
     	
         // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, "Captain Sparrow");
-        PrismAsserts.assertTripleMinus(outputTriple, "Captain Jack Sparrow");
+        PrismAsserts.assertTriplePlus(outputTriple, "Captain sparrow");
+        PrismAsserts.assertTripleMinus(outputTriple, "Captain jack");
     }
     
 
@@ -288,9 +288,9 @@ public class TestValueConstructionDynamic {
     	final String TEST_NAME = "testConstructionGenerate";
     	
     	ValueConstruction<PrismPropertyValue<String>> construction = evaluator.createConstruction(String.class, 
-    			"construction-generate.xml", "givenName", 
+    			"construction-generate.xml", "name", 
     			null, null, TEST_NAME);
-    	PropertyDelta<String> delta = evaluator.createAddDelta(String.class, "givenName", "apple", "orange");
+    	PropertyDelta<String> delta = evaluator.createAddDelta(String.class, "name", "apple", "orange");
     	construction.setInputDelta(delta);
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -344,7 +344,7 @@ public class TestValueConstructionDynamic {
     public void testConstructionValueConditionTrue() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-value-condition-true.xml", "givenName", "rock", null, "testConstructionValueConditionTrue",
+    			"construction-value-condition-true.xml", "name", "rock", null, "testConstructionValueConditionTrue",
     			"apple", "orange");
     	
         // THEN
@@ -358,7 +358,7 @@ public class TestValueConstructionDynamic {
     public void testConstructionValueConditionFalse() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-value-condition-false.xml", "givenName", "rock", null, "testConstructionValueConditionFalse",
+    			"construction-value-condition-false.xml", "name", "rock", null, "testConstructionValueConditionFalse",
     			"apple", "orange");
     	
     	// THEN
@@ -375,11 +375,11 @@ public class TestValueConstructionDynamic {
         vars.put(ExpressionConstants.VAR_USER, userType);
         
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-system-variables-condition.xml", "givenName", null, vars,
+    			"construction-expression-system-variables-condition.xml", "name", null, vars,
     					"testConstructionExpressionSystemVariablesValueJaxbConditionTrue");
     	
         // THEN
-        PrismAsserts.assertTripleZero(outputTriple, "Captain Jack Sparrow");
+        PrismAsserts.assertTripleZero(outputTriple, "Captain jack");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -397,7 +397,7 @@ public class TestValueConstructionDynamic {
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-system-variables-condition.xml", "givenName", null, vars,
+    			"construction-expression-system-variables-condition.xml", "name", null, vars,
     					"testConstructionExpressionSystemVariablesValueJaxbConditionFalse");
         
         // THEN
@@ -423,12 +423,12 @@ public class TestValueConstructionDynamic {
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-system-variables-condition.xml", "givenName", null, vars,
+    			"construction-expression-system-variables-condition.xml", "name", null, vars,
     					"testConstructionExpressionSystemVariablesValueJaxbConditionFalse");
         
      // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
-    	PrismAsserts.assertTriplePlus(outputTriple, "Captain Jack Sparrow");
+    	PrismAsserts.assertTriplePlus(outputTriple, "Captain jack");
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -451,20 +451,20 @@ public class TestValueConstructionDynamic {
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-system-variables-condition.xml", "givenName", null, vars,
+    			"construction-expression-system-variables-condition.xml", "name", null, vars,
     					"testConstructionExpressionSystemVariablesValueJaxbConditionFalse");
         
         // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
     	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleMinus(outputTriple, "Captain Jack Sparrow");
+    	PrismAsserts.assertTripleMinus(outputTriple, "Captain jack");
     }
     
     @Test
     public void testConstructionExpressionInputDelta() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-expression-input.xml", "givenName", "rock", null, "testConstructionExpressionSimple",
+    			"construction-expression-input.xml", "name", "rock", null, "testConstructionExpressionSimple",
     			"apple", "orange");
     	
         // THEN

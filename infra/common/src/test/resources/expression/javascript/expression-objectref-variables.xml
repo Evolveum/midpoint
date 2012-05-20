@@ -10,6 +10,6 @@
     	<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
     </variable>
 	<code>
-		foo + ' ' + jack.getFullName();
+		foo + ' ' + jack.getName();
 	</code>
 </expression>

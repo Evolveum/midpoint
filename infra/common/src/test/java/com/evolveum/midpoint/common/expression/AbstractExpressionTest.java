@@ -139,7 +139,7 @@ public abstract class AbstractExpressionTest {
         PrismPropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
 
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue());
+        assertEquals("Captain jack", result.getValue());
     }
 
 
