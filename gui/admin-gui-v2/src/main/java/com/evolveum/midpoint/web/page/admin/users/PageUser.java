@@ -69,6 +69,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -265,10 +266,11 @@ public class PageUser extends PageAdminUsers {
                         new PropertyModel<ObjectWrapper>(item.getModel(), "object"),
                         new PackageResourceReference(PageUser.class, "Hdd.png"), (Form) PageUser.this.get("mainForm")) {
 
-//                	@Override
-//        			protected Panel createOperationPanel(String id) {
-//        				return new AccountOperationButtons(id, item.getModel());
-//        			}
+
+                	@Override
+        			protected Panel createOperationPanel(String id) {
+        				return new AccountOperationButtons(id, new PropertyModel<ObjectWrapper>(item.getModel(), "object"));
+        			}
                 };
                 item.add(account);
             }

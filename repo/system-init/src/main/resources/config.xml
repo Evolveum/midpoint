@@ -34,7 +34,7 @@
             <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
         </icf>
         <keystore>
-            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePath>${midpoint.home}/keystore-aes-128.jceks</keyStorePath>
             <keyStorePassword>changeit</keyStorePassword>
             <encryptionKeyAlias>default</encryptionKeyAlias>
             <!--
@@ -44,8 +44,13 @@
             AES_192 "http://www.w3.org/2001/04/xmlenc#aes192-cbc";
 
             in element <xmlCipher></xmlCipher>
-            By default AES_256 is used. If you change key size, than
-            you must also change secret key in key store.
+            By default AES_128 is used. If you change key size, than
+            you must also create secret key in key store with proper key size and change encryptionKeyAlias.
+
+            To generate keystore with keytool use command:
+            keytool -genseckey -alias default -keystore keystore.jceks -storetype jceks -keyalg AES -keysize 128
+
+            secret key password is by default 'midpoint'
             -->
         </keystore>
     </midpoint>

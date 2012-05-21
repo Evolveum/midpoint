@@ -148,7 +148,7 @@ public class AESProtector implements Protector {
 
     public String getXmlCipher() {
         if (xmlCipher == null) {
-            xmlCipher = XMLCipher.AES_256;
+            xmlCipher = XMLCipher.AES_128;
         }
         return xmlCipher;
     }
