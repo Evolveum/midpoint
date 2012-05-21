@@ -518,8 +518,11 @@ public class PageTasks extends PageAdminTasks {
 
         List<String> list = manager.getAllTaskCategories();
         if (list != null) {
-            categories.addAll(list);
-            Collections.sort(list);
+        	Collections.sort(list);
+        	for (int i=0; i < list.size(); i++) {
+        		StringResourceModel item = createStringResource("pageTasks.category." + list.get(i));
+        		categories.add(item.getString());    		
+			}
         }
         //todo i18n
 
@@ -530,7 +533,7 @@ public class PageTasks extends PageAdminTasks {
         List<TaskDtoExecutionStatus> list = new ArrayList<TaskDtoExecutionStatus>();
         //todo probably reimplement
         Collections.addAll(list, TaskDtoExecutionStatus.values());
-
+        
         return list;
     }
 
