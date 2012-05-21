@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,11 +58,17 @@ public class UserDto extends ObjectDto<UserType> implements ContainsAssignment {
     }
 
     public String getFullName() {
-        return getXmlObject().getFullName();
+        PolyStringType poly = getXmlObject().getFullName();
+        return poly != null ? poly.getOrig() : null;
     }
 
     public void setFullName(String value) {
-        getXmlObject().setFullName(value);
+        PolyStringType poly = getXmlObject().getFullName();
+        if (poly == null) {
+            poly = new PolyStringType();
+            getXmlObject().setFullName(poly);
+        }
+        poly.setOrig(value);
     }
 
     public String getGivenName() {
