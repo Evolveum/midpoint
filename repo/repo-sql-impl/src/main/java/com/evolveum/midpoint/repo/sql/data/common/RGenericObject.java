@@ -33,7 +33,7 @@ import javax.persistence.Table;
  * @author lazyman
  */
 @Entity
-@Table(name = "generic_object")
+@Table(name = "m_generic_object")
 @ForeignKey(name = "fk_generic_object")
 public class RGenericObject extends RObject {
 

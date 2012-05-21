@@ -43,7 +43,7 @@ import java.util.Set;
  */
 @Entity
 @IdClass(RAnyContainerId.class)
-@Table(name = "any")
+@Table(name = "m_any")
 public class RAnyContainer implements Serializable {
 
     private RContainer owner;

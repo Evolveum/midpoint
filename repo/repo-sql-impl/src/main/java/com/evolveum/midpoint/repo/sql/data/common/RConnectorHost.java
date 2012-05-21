@@ -37,7 +37,7 @@ import javax.persistence.Table;
  * @author lazyman
  */
 @Entity
-@Table(name = "connector_host")
+@Table(name = "m_connector_host")
 @ForeignKey(name = "fk_connector_host")
 public class RConnectorHost extends RObject {
 

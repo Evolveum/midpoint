@@ -44,8 +44,8 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 @Entity
-@Table(name = "resource_shadow")
-@org.hibernate.annotations.Table(appliesTo = "resource_shadow",
+@Table(name = "m_resource_shadow")
+@org.hibernate.annotations.Table(appliesTo = "m_resource_shadow",
         indexes = {@Index(name = "iResourceObjectShadowEnabled", columnNames = "enabled")})
 @ForeignKey(name = "fk_resource_object_shadow")
 public class RResourceObjectShadow extends RObject {

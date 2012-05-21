@@ -37,7 +37,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * @author lazyman
  */
 @Entity
-@Table(name = "task")
+@Table(name = "m_task")
 @ForeignKey(name = "fk_task")
 public class RTask extends RObject {
 

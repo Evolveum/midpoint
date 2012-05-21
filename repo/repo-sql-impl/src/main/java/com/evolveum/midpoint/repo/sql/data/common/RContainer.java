@@ -31,7 +31,7 @@ import java.io.Serializable;
  */
 @Entity
 @IdClass(RContainerId.class)
-@Table(name = "container")
+@Table(name = "m_container")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class RContainer implements Serializable {
 

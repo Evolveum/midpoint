@@ -43,8 +43,8 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@Table(name = "assignment")
-@org.hibernate.annotations.Table(appliesTo = "assignment",
+@Table(name = "m_assignment")
+@org.hibernate.annotations.Table(appliesTo = "m_assignment",
         indexes = {@Index(name = "iAssignmentEnabled", columnNames = "enabled")})
 @ForeignKey(name = "fk_assignment")
 public class RAssignment extends RContainer implements ROwnable {

@@ -44,8 +44,8 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table(name = "user")
-@org.hibernate.annotations.Table(appliesTo = "user",
+@Table(name = "m_user")
+@org.hibernate.annotations.Table(appliesTo = "m_user",
         indexes = {@Index(name = "iUserEnabled", columnNames = "enabled"),
                 @Index(name = "iFullName", columnNames = "fullName_norm")})
 @ForeignKey(name = "fk_user")

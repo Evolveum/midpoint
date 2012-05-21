@@ -38,7 +38,7 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@Table(name = "exclusion")
+@Table(name = "m_exclusion")
 @ForeignKey(name = "fk_exclusion")
 public class RExclusion extends RContainer implements ROwnable  {
 

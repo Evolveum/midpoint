@@ -37,7 +37,7 @@ import javax.persistence.Table;
  * @author lazyman
  */
 @Entity
-@Table(name = "account_shadow")
+@Table(name = "m_account_shadow")
 @ForeignKey(name = "fk_account_shadow")
 public class RAccountShadow extends RResourceObjectShadow {
 

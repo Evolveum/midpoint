@@ -40,7 +40,7 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@Table(name = "object")
+@Table(name = "m_object")
 @ForeignKey(name = "fk_container")
 public abstract class RObject extends RContainer {
 

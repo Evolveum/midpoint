@@ -41,7 +41,7 @@ import java.io.Serializable;
  */
 @Entity
 @IdClass(RObjectReferenceId.class)
-@Table(name = "reference")
+@Table(name = "m_reference")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "reference_type", discriminatorType = DiscriminatorType.INTEGER)
 @DiscriminatorValue(value = "0")
