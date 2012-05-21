@@ -34,7 +34,7 @@
             <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
         </icf>
         <keystore>
-            <keyStorePath>${midpoint.home}/keystore-aes-128.jceks</keyStorePath>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
             <keyStorePassword>changeit</keyStorePassword>
             <encryptionKeyAlias>default</encryptionKeyAlias>
             <!--
