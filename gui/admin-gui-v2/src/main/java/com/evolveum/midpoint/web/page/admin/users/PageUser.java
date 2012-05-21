@@ -853,13 +853,14 @@ public class PageUser extends PageAdminUsers {
         }
 
         PropertyDelta propertyDelta = delta.findPropertyDelta(new PropertyPath(
-                SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD));
+                SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_PROTECTED_STRING));
         if (propertyDelta == null) {
             return;
         }
 
-        Collection<ProtectedStringType> values = propertyDelta.getValues(ProtectedStringType.class);
-        for (ProtectedStringType string : values) {
+        Collection<PrismPropertyValue<ProtectedStringType>> values = propertyDelta.getValues(ProtectedStringType.class);
+        for (PrismPropertyValue<ProtectedStringType> value : values) {
+            ProtectedStringType string = value.getValue();
             encryptProtectedString(string, encrypt);
         }
     }
