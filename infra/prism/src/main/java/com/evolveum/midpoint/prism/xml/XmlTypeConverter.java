@@ -128,6 +128,8 @@ public class XmlTypeConverter {
             return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
         	return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent);
+        } else if (type.equals(PolyString.class)) {
+        	return (T) new PolyString(stringContent);
         } else {
             return null;
         }

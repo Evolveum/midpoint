@@ -2959,6 +2959,7 @@
 
     <xsd:element name="expression" type="tns:ExpressionType" substitutionGroup="tns:valueConstructor"/>
 
+	<xsd:element name="path" type="xsd:anyType" substitutionGroup="tns:valueConstructor"/>
 
     <xsd:complexType name="PropertyConstructionType">
         <xsd:annotation>

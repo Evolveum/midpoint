@@ -38,6 +38,7 @@ import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.common.expression.jsr223.Jsr223ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -92,11 +93,14 @@ public class ValueConstructionTestEvaluator {
         ExpressionFactory expressionFactory = new ExpressionFactory();
         XPathExpressionEvaluator xpathEvaluator = new XPathExpressionEvaluator();
         expressionFactory.registerEvaluator(XPathExpressionEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
+        Jsr223ExpressionEvaluator groovyEvaluator = new Jsr223ExpressionEvaluator("Groovy");
+        expressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
         ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
         expressionFactory.setObjectResolver(resolver);
 
         factory = new ValueConstructionFactory();
         factory.setExpressionFactory(expressionFactory);
+        factory.setObjectResolver(resolver);
         
         protector = new AESProtector();
         protector.setKeyStorePath(KEYSTORE_PATH);

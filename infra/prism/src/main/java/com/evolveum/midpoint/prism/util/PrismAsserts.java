@@ -270,14 +270,17 @@ public class PrismAsserts {
 	// DeltaSetTriple asserts
 	
 	public static <T, V extends PrismValue> void assertTriplePlus(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
+		assert triple != null : "Plus set is null";
 		assertTripleSet("plus set", triple.getPlusSet(), expectedValues);
 	}
 
 	public static <T, V extends PrismValue> void assertTripleZero(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
+		assert triple != null : "Zero set is null";
 		assertTripleSet("zero set", triple.getZeroSet(), expectedValues);
 	}
 
 	public static <T, V extends PrismValue> void assertTripleMinus(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
+		assert triple != null : "Minus set is null";
 		assertTripleSet("minus set", triple.getMinusSet(), expectedValues);
 	}
 	

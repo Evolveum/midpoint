@@ -33,6 +33,7 @@ public class PropertyPathSegment implements Serializable {
 	
 	private QName name;
 	private String id;
+	private boolean isVariable = false;
 	
 	public PropertyPathSegment(QName name) {
 		this.name = name;
@@ -44,6 +45,12 @@ public class PropertyPathSegment implements Serializable {
 		this.id = id;
 	}
 
+	public PropertyPathSegment(QName name, String id, boolean isVariable) {
+		this.name = name;
+		this.id = id;
+		this.isVariable = isVariable;
+	}
+
 	public QName getName() {
 		return name;
 	}
@@ -52,12 +59,16 @@ public class PropertyPathSegment implements Serializable {
 		return id;
 	}
 
+	public boolean isVariable() {
+		return isVariable;
+	}
+
 	@Override
 	public String toString() {
 		if (id == null) {
-			return DebugUtil.prettyPrint(name);
+			return (isVariable ? "$" : "") + DebugUtil.prettyPrint(name);
 		} else {
-			return DebugUtil.prettyPrint(name) + "[" + id + "]";
+			return (isVariable ? "$" : "") + DebugUtil.prettyPrint(name) + "[" + id + "]";
 		}
 	}
 

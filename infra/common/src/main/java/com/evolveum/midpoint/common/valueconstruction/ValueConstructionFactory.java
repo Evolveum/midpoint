@@ -31,11 +31,13 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenerateValueConstructorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
+import com.evolveum.prism.xml.ns._public.types_2.XPathType;
 
 /**
  * @author Radovan Semancik
@@ -47,6 +49,7 @@ public class ValueConstructionFactory {
 	
 	private Map<QName,ValueConstructor> constructors;
 	private ExpressionFactory expressionFactory;
+	private ObjectResolver objectResolver;
 	private Protector protector;
 	
 	public ValueConstructionFactory() {
@@ -69,10 +72,19 @@ public class ValueConstructionFactory {
 		this.protector = protector;
 	}
 
+	public ObjectResolver getObjectResolver() {
+		return objectResolver;
+	}
+
+	public void setObjectResolver(ObjectResolver objectResolver) {
+		this.objectResolver = objectResolver;
+	}
+
 	private void initialize() {
 		constructors = new HashMap<QName, ValueConstructor>();
 		createLiteralConstructor();
 		createAsIsConstructor();
+		createPathConstructor();
 		createExpressionConstructor();
 		createGenerateConstructor();
 	}
@@ -88,7 +100,14 @@ public class ValueConstructionFactory {
 		JAXBElement<AsIsValueConstructorType> element = objectFactory.createAsIs(objectFactory.createAsIsValueConstructorType());
 		constructors.put(element.getName(), constructor);
 	}
+
 	
+	private void createPathConstructor() {
+		ValueConstructor constructor = new PathValueConstructor(objectResolver);
+		JAXBElement<Object> element = objectFactory.createPath(new Object());
+		constructors.put(element.getName(), constructor);
+	}
+
 	private void createExpressionConstructor() {
 		ValueConstructor constructor = new ExpressionValueConstructor(expressionFactory);
 		JAXBElement<ExpressionType> element = objectFactory.createExpression(objectFactory.createExpressionType());

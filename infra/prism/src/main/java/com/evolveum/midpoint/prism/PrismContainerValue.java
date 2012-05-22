@@ -408,6 +408,15 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		}
     }
     
+    public Item<?> findItem(PropertyPath itemPath) {
+    	try {
+			return findCreateItem(itemPath, Item.class, null, false);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
+    }
+    
     @SuppressWarnings("unchecked")
 	<I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
     	for (Item<?> item : items) {

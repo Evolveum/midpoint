@@ -544,8 +544,11 @@ public class XPathHolder {
 		List<XPathSegment> xsegments = toSegments();
 		List<PropertyPathSegment> segments = new ArrayList<PropertyPathSegment>(xsegments.size());
 		for (XPathSegment segment : xsegments) {
+			QName qName = segment.getQName();
 			// TODO: support IDs
-			segments.add(new PropertyPathSegment(segment.getQName()));
+			String id = null;
+			boolean variable = segment.isVariable();
+			segments.add(new PropertyPathSegment(qName, id, variable));
 		}
 		return new PropertyPath(segments);
 	}

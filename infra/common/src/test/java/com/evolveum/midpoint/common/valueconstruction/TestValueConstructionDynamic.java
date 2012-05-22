@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -135,6 +136,24 @@ public class TestValueConstructionDynamic {
     	PrismAsserts.assertTripleMinus(outputTriple, "rock");    	
     }
 
+    @Test
+    public void testConstructionPathVariables() throws Exception {
+    	// GIVEN
+    	Map<QName, Object> vars = new HashMap<QName, Object>();
+    	ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
+        ref.setType(SchemaConstants.I_USER_TYPE);
+        vars.put(ExpressionConstants.VAR_USER, ref);
+
+        // WHEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
+    			"construction-path-system-variables.xml", "name", null, vars, "testConstructionPathVariables");
+    	
+        // THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "jack");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
     
     @Test
     public void testConstructionExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
@@ -158,6 +177,44 @@ public class TestValueConstructionDynamic {
     	PrismAsserts.assertTripleZero(outputTriple, "Captain jack");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+
+    @Test
+    public void testConstructionExpressionVariablesPolyStringXPath() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
+    	// GIVEN
+    	Map<QName, Object> vars = new HashMap<QName, Object>();
+    	ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
+        ref.setType(SchemaConstants.I_USER_TYPE);
+        vars.put(ExpressionConstants.VAR_USER, ref);
+
+        // WHEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
+    			"construction-expression-system-variables-polystring-xpath.xml", "fullName", null, vars, "testConstructionExpressionVariablesPolyStringXPath");
+    	
+        // THEN
+    	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Captain Jack Sparrow"));
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+
+    @Test
+    public void testConstructionExpressionVariablesPolyStringGroovy() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
+    	// GIVEN
+    	Map<QName, Object> vars = new HashMap<QName, Object>();
+    	ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
+        ref.setType(SchemaConstants.I_USER_TYPE);
+        vars.put(ExpressionConstants.VAR_USER, ref);
+
+        // WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
+    			"construction-expression-system-variables-polystring-groovy.xml", "fullName", null, vars, "testConstructionExpressionVariablesPolyStringGroovy");
+    	
+        // THEN
+    	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Captain Jack Sparrow"));
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test

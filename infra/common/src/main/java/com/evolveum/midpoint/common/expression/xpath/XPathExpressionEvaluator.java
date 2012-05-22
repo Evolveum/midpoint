@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.expression.xpath;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
@@ -193,6 +194,9 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         }
         if (type.equals(Node.class)) {
             return XPathConstants.NODE;
+        }
+        if (type.equals(PolyString.class)) {
+        	return XPathConstants.STRING;
         }
         throw new ExpressionEvaluationException("Unsupported return type " + type);
     }

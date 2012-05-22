@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -112,6 +113,12 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 	private <T> T convertScalarResult(Class<T> type, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
 		if (rawValue == null || type.isInstance(rawValue)) {
 			return (T)rawValue;
+		}
+		if (type.equals(PolyString.class) && rawValue instanceof String) {
+			return (T) new PolyString((String)rawValue);
+		}
+		if (type.equals(String.class) && rawValue instanceof PolyString) {
+			return (T)((PolyString)rawValue).getOrig();
 		}
 		throw new ExpressionEvaluationException("Expected "+type+" from expression, but got "+rawValue.getClass()+" "+contextDescription);
 	}

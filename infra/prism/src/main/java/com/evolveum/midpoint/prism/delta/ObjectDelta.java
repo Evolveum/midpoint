@@ -179,6 +179,10 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	}
     }
     
+    public ItemDelta<?> findItemDelta(PropertyPath propertyPath) {
+    	return findItemDelta(propertyPath, ItemDelta.class, Item.class);
+    }
+    
     private <D extends ItemDelta, I extends Item> D findItemDelta(PropertyPath propertyPath, Class<D> deltaType, Class<I> itemType) {
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);

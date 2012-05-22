@@ -174,6 +174,7 @@ public class ExpressionHandler {
 		
 		ValueConstructionFactory valueConstructionFactory = new ValueConstructionFactory();
 		valueConstructionFactory.setExpressionFactory(expressionFactory);
+		valueConstructionFactory.setObjectResolver(resolver);
 		return valueConstructionFactory;
 	}
 	
