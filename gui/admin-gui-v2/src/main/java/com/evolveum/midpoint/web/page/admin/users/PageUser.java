@@ -267,10 +267,22 @@ public class PageUser extends PageAdminUsers {
                         new PackageResourceReference(PageUser.class, "Hdd.png"), (Form) PageUser.this.get("mainForm")) {
 
 
-                	@Override
-        			protected Panel createOperationPanel(String id) {
-        				return new AccountOperationButtons(id, new PropertyModel<ObjectWrapper>(item.getModel(), "object"));
-        			}
+                    @Override
+                    protected Panel createOperationPanel(String id) {
+                        return new AccountOperationButtons(id, new PropertyModel<ObjectWrapper>(
+                                item.getModel(), "object")) {
+
+                            @Override
+                            public void deletePerformed(AjaxRequestTarget target) {
+                                deleteAccountPerformed(target, item.getModel());
+                            }
+
+                            @Override
+                            public void linkPerformed(AjaxRequestTarget target) {
+                                unlinkAccountPerformed(target, item.getModel());
+                            }
+                        };
+                    }
                 };
                 item.add(account);
             }
@@ -1115,6 +1127,28 @@ public class PageUser extends PageAdminUsers {
                 continue;
             }
             account.setStatus(UserDtoStatus.UNLINK);
+        }
+        target.add(getAccountsAccordionItem());
+    }
+
+    private void unlinkAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
+        UserAccountDto dto = model.getObject();
+        if (UserDtoStatus.ADD.equals(dto.getStatus())) {
+            return;
+        }
+        dto.setStatus(UserDtoStatus.UNLINK);
+
+        target.add(getAccountsAccordionItem());
+    }
+
+    private void deleteAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
+        List<UserAccountDto> accounts = accountsModel.getObject();
+        UserAccountDto account = model.getObject();
+
+        if (UserDtoStatus.ADD.equals(account.getStatus())) {
+            accounts.remove(account);
+        } else {
+            account.setStatus(UserDtoStatus.DELETE);
         }
         target.add(getAccountsAccordionItem());
     }

@@ -58,7 +58,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
 
     @Override
     public Iterator<SelectableBean<T>> iterator(int first, int count) {
-        LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first,  count});
+        LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);

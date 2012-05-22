@@ -21,89 +21,57 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import java.awt.LayoutManager;
-
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
-
-import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 
 /**
  * @author mserbak
  */
 public class AccountOperationButtons extends Panel {
 
-	public AccountOperationButtons(String id, final IModel<ObjectWrapper> model) {
-		super(id);
+    public AccountOperationButtons(String id, final IModel<ObjectWrapper> model) {
+        super(id);
 
-		initButtons(model);
-	}
+        initButtons(model);
+    }
 
-	private void initButtons(final IModel<ObjectWrapper> model) {
-		AjaxLink link = new AjaxLink("link") {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				linkOnClick(target);
-			}
-		};
-		add(link);
+    private void initButtons(final IModel<ObjectWrapper> model) {
+        AjaxLink unlink = new AjaxLink("unlink") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                linkPerformed(target);
+            }
+        };
+        add(unlink);
 
-		// TODO: change button if account is unlink
-		// Image linkImg = new Image("linkImg", new AbstractReadOnlyModel() {
-		//
-		// @Override
-		// public Object getObject() {
-		// ObjectWrapper wrapper = model.getObject();
-		// if (wrapper.isShowEmpty()) {
-		// return new PackageResourceReference(AccountOperationButtons.class,
-		// "ShowEmptyFalse.png");
-		// }
-		//
-		// return new PackageResourceReference(AccountOperationButtons.class,
-		// "ShowEmptyTrue.png");
-		// }
-		// });
-		Image linkImg = new Image("linkImg", new PackageResourceReference(AccountOperationButtons.class,
-				"Link.png"));
-		
-		linkImg.add(new AttributeAppender("title", ""));
-		//TODO: change title text if account is link or unlink
-//        if(model.getObject().isShowEmpty()){
-//        	linkImg.add(new AttributeModifier("title", getString("prismOperationButtonPanel.link")));
-//        } else {
-//        	linkImg.add(new AttributeModifier("title", getString("prismOperationButtonPanel.unlink")));
-//        }
-        linkImg.add(new AttributeModifier("title", getString("prismOperationButtonPanel.link")));
-		link.add(linkImg);
+        Image unlinkImg = new Image("unlinkImg", new PackageResourceReference(AccountOperationButtons.class,
+                "UnLink.png"));
+        unlinkImg.add(new AttributeModifier("title", getString("prismOperationButtonPanel.unlink")));
+        unlink.add(unlinkImg);
 
-		AjaxLink delete = new AjaxLink("delete") {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				deleteOnClick(target);
-			}
-		};
-		add(delete);
+        AjaxLink delete = new AjaxLink("delete") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deletePerformed(target);
+            }
+        };
+        add(delete);
 
-		Image deleteImg = new Image("deleteImg", new PackageResourceReference(AccountOperationButtons.class,
-				"delete.png"));
-		delete.add(deleteImg);
-	}
+        Image deleteImg = new Image("deleteImg", new PackageResourceReference(AccountOperationButtons.class,
+                "Delete.png"));
+        deleteImg.add(new AttributeModifier("title", getString("prismOperationButtonPanel.delete")));
+        delete.add(deleteImg);
+    }
 
-	public void deleteOnClick(AjaxRequestTarget target) {
-	}
+    public void deletePerformed(AjaxRequestTarget target) {
+    }
 
-	public void linkOnClick(AjaxRequestTarget target) {
-	}
+    public void linkPerformed(AjaxRequestTarget target) {
+    }
 }

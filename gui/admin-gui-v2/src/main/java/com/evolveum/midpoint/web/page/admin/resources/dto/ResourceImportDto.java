@@ -28,7 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 /**
  * @author Katuska
  */
-public class ResourceImportController implements Serializable {
+public class ResourceImportDto implements Serializable {
 
 	private String name;
 	private Date launchTime;
@@ -39,7 +39,7 @@ public class ResourceImportController implements Serializable {
 	private long progress;
 	private boolean running;
 	
-	public ResourceImportController(){
+	public ResourceImportDto(){
 		//TODO
 	}
 

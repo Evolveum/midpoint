@@ -21,59 +21,27 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.web.page.admin.resources.dto.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.message.OpResult;
-import com.evolveum.midpoint.web.component.message.OperationResultPanel;
-import com.evolveum.midpoint.web.component.message.Param;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceImportController;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceImportDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 public class PageResourceImport extends PageAdminResources {
@@ -81,7 +49,7 @@ public class PageResourceImport extends PageAdminResources {
 	public static final String PARAM_RESOURCE_IMPORT_ID = "resourceImportId";
 	private static final String DOT_CLASS = PageResourceImport.class.getName() + ".";
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
-	private ResourceImportController resImport;
+	private ResourceImportDto resImport;
 
 	private IModel<ResourceDto> model;
 
@@ -94,7 +62,7 @@ public class PageResourceImport extends PageAdminResources {
 			}
 		};
 		if(resImport == null){
-			resImport = new ResourceImportController();
+			resImport = new ResourceImportDto();
 		}
 		initLayout();
 	}
