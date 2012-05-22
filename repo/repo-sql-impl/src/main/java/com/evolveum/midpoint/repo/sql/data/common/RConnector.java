@@ -83,7 +83,7 @@ public class RConnector extends RObject {
 
     @ElementCollection
     @ForeignKey(name = "fk_connector_target_system")
-    @CollectionTable(name = "connector_target_system", joinColumns = {
+    @CollectionTable(name = "m_connector_target_system", joinColumns = {
             @JoinColumn(name = "connector_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "connector_id", referencedColumnName = "id")
     })

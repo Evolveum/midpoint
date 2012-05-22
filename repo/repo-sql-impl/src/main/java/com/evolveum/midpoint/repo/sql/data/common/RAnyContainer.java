@@ -94,7 +94,7 @@ public class RAnyContainer implements Serializable {
 
     @ElementCollection
     @ForeignKey(name = "fk_any_long")
-    @CollectionTable(name = "any_long", joinColumns =
+    @CollectionTable(name = "m_any_long", joinColumns =
             {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RLongValue> getLongs() {
@@ -103,7 +103,7 @@ public class RAnyContainer implements Serializable {
 
     @ElementCollection
     @ForeignKey(name = "fk_any_string")
-    @CollectionTable(name = "any_string", joinColumns =
+    @CollectionTable(name = "m_any_string", joinColumns =
             {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RStringValue> getStrings() {
@@ -112,7 +112,7 @@ public class RAnyContainer implements Serializable {
 
     @ElementCollection
     @ForeignKey(name = "fk_any_clob")
-    @CollectionTable(name = "any_clob", joinColumns =
+    @CollectionTable(name = "m_any_clob", joinColumns =
             {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RClobValue> getClobs() {
@@ -121,7 +121,7 @@ public class RAnyContainer implements Serializable {
 
     @ElementCollection
     @ForeignKey(name = "fk_any_date")
-    @CollectionTable(name = "any_date", joinColumns =
+    @CollectionTable(name = "m_any_date", joinColumns =
             {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RDateValue> getDates() {

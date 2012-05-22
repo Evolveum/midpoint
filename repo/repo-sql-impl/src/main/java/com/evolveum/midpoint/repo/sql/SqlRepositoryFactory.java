@@ -60,6 +60,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     public void destroy() throws RepositoryServiceFactoryException {
         if (!getSqlConfiguration().isEmbedded()) {
             LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
+            return;
         }
 
         if (getSqlConfiguration().isAsServer()) {

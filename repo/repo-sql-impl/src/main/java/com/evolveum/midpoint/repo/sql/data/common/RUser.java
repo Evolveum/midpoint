@@ -105,7 +105,7 @@ public class RUser extends RObject {
 
     @ElementCollection
     @ForeignKey(name = "fk_user_additional_name")
-    @CollectionTable(name = "user_additional_name", joinColumns = {
+    @CollectionTable(name = "m_user_additional_name", joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "user_id", referencedColumnName = "id")
     })
@@ -121,7 +121,7 @@ public class RUser extends RObject {
 
     @ElementCollection
     @ForeignKey(name = "fk_user_email_address")
-    @CollectionTable(name = "user_email_address", joinColumns = {
+    @CollectionTable(name = "m_user_email_address", joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "user_id", referencedColumnName = "id")
     })
@@ -132,7 +132,7 @@ public class RUser extends RObject {
 
     @ElementCollection
     @ForeignKey(name = "fk_user_org_unit")
-    @CollectionTable(name = "user_organizational_unit", joinColumns = {
+    @CollectionTable(name = "m_user_organizational_unit", joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "user_id", referencedColumnName = "id")
     })
@@ -143,7 +143,7 @@ public class RUser extends RObject {
 
     @ElementCollection
     @ForeignKey(name = "fk_user_telephone_number")
-    @CollectionTable(name = "user_telephone_number", joinColumns = {
+    @CollectionTable(name = "m_user_telephone_number", joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "user_id", referencedColumnName = "id")
     })
@@ -154,7 +154,7 @@ public class RUser extends RObject {
 
     @ElementCollection
     @ForeignKey(name = "fk_user_employee_type")
-    @CollectionTable(name = "user_employee_type", joinColumns = {
+    @CollectionTable(name = "m_user_employee_type", joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "user_id", referencedColumnName = "id")
     })

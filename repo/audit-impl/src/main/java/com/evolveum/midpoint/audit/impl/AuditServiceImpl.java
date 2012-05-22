@@ -72,7 +72,7 @@ public class AuditServiceImpl implements AuditService {
 			LOGGER.warn("Task is null in a call to audit service");
 		} else {
 			if (task.getOwner() == null) {
-				LOGGER.warn("Task has no owner in a call to audit service");
+				LOGGER.warn("Task '{}' has no owner in a call to audit service", new Object[]{task.getName()});
 			}
 		}
 	}
