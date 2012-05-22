@@ -90,7 +90,7 @@ public class TestValueConstructionStatic {
     @Test
     public void testConstructionValueMulti() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-value-multi.xml", "telephoneNumber", 
+    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-value-multi.xml", "employeeType", 
     			null, null, "testConstructionValueMulti");
 
         // THEN

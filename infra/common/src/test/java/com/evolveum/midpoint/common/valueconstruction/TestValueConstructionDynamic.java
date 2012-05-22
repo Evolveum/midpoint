@@ -98,10 +98,10 @@ public class TestValueConstructionDynamic {
     }
 
     @Test
-    public void testConstructionValueMulti() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
+    public void testConstructionValueMulti() throws Exception {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
-    			"construction-value-multi.xml", "telephoneNumber", "rock", null, "testConstructionValueMulti",
+    			"construction-value-multi.xml", "employeeType", "rock", null, "testConstructionValueMulti",
     			"apple", "orange");
     	
     	// THEN

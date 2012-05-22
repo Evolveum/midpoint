@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <valueConstruction xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 	<value>
-		<telephoneNumber>12345</telephoneNumber>
-		<telephoneNumber>67890</telephoneNumber>
+		<employeeType>12345</employeeType>
+		<employeeType>67890</employeeType>
 	</value>
 </valueConstruction>
