@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -57,6 +58,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
 
     @Override
     public Iterator<SelectableBean<T>> iterator(int first, int count) {
+        LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first,  count});
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
@@ -73,17 +75,20 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list objects.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
         }
 
         if (!result.isSuccess()) {
             getPage().showResultInSession(result);
         }
 
+        LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
     }
 
     @Override
     public int size() {
+        LOGGER.trace("begin::size()");
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
@@ -94,12 +99,13 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't count objects", ex);
         }
 
         if (!result.isSuccess()) {
             getPage().showResultInSession(result);
         }
-
+        LOGGER.trace("end::size()");
         return count;
     }
 }

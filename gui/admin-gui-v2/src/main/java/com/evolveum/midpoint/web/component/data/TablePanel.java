@@ -28,12 +28,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.IHeaderResponse;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
-
-import com.evolveum.midpoint.web.component.accordion.Accordion;
 
 import java.util.List;
 
@@ -95,7 +92,7 @@ public class TablePanel<T> extends Panel {
         DataTable table = getDataTable();
         table.add(new AttributeAppender("class", new Model(cssClass), " "));
     }
-    
+
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);

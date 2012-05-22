@@ -24,8 +24,10 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
@@ -43,12 +45,35 @@ public class NavigatorPanel extends PagingNavigator {
         super(id, pageable);
 
         add(new Label("label", createModel(pageable)));
+    }
 
-        //todo if count == 0 hide << >> stuff
+    private VisibleEnableBehaviour createVisibleBehaviour(final IPageable pageable) {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return pageable.getPageCount() != 0;
+            }
+        };
+    }
+
+    @Override
+    protected AbstractLink newPagingNavigationIncrementLink(String id, IPageable pageable, int increment) {
+        AbstractLink link = super.newPagingNavigationIncrementLink(id, pageable, increment);
+        link.add(createVisibleBehaviour(pageable));
+        return link;
+    }
+
+    @Override
+    protected AbstractLink newPagingNavigationLink(String id, IPageable pageable, int pageNumber) {
+        AbstractLink link = super.newPagingNavigationLink(id, pageable, pageNumber);
+        link.add(createVisibleBehaviour(pageable));
+        return link;
     }
 
     private IModel<String> createModel(final IPageable pageable) {
         return new LoadableModel<String>() {
+
             @Override
             protected String load() {
                 int from = 0;
@@ -60,19 +85,21 @@ public class NavigatorPanel extends PagingNavigator {
 
                     from = view.getFirstItemOffset() + 1;
                     to = from + view.getItemsPerPage() - 1;
-                    if (to > view.getItemCount()) {
-                        to = view.getItemCount();
+                    int itemCount = view.getItemCount();
+                    if (to > itemCount) {
+                        to = itemCount;
                     }
-                    count = view.getItemCount();
+                    count = itemCount;
                 } else if (pageable instanceof DataTable) {
                     DataTable table = (DataTable) pageable;
 
                     from = table.getCurrentPage() * table.getItemsPerPage() + 1;
                     to = from + table.getItemsPerPage() - 1;
-                    if (to > table.getItemCount()) {
-                        to = table.getItemCount();
+                    int itemCount = table.getItemCount();
+                    if (to > itemCount) {
+                        to = itemCount;
                     }
-                    count = table.getItemCount();
+                    count = itemCount;
                 } else {
                     LOGGER.warn("Navigator panel, missing implementation... TODO");
                 }
