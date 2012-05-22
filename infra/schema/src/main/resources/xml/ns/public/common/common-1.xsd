@@ -1485,10 +1485,10 @@
                                 a common user of the system.
 
                                 Examples: cpt. Jack Sparrow,
-                                          William
-                                		  "Bootstrap" Turner,
-                                		  James W.
-                                		  Random, PhD.,
+                                          William "Bootstrap" Turner,
+                                		  James W. Random, PhD.,
+                                		  Vladimir Iljic Lenin,
+                                		  Josip Broz Tito,
                                 		  Chuck Norris
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -1498,7 +1498,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="givenName" type="xsd:string">
+                    <xsd:element name="givenName" type="t:PolyStringType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Given name of the user. It is usually the first
@@ -1517,7 +1517,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="familyName" type="xsd:string">
+                    <xsd:element name="familyName" type="t:PolyStringType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Family name of the user. It is usually the last
@@ -1536,19 +1536,13 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="additionalNames" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="additionalName" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Middle name, nick name or any other names of a
-                                person.
+                                Middle name, patronymic, matronymic or any other name of a person. It is usually the
+                                middle component of the name, however that may be culture-dependent.
 
-                                Examples: "Bootstrap", Walker
-
-                                Multi-valued property. Please note that the order
-                                of additional names may not be preserved. If
-                                the order is important, the use a single
-                                value with all the names concatenated as
-                                appropriate.
+                                Examples: Walker, John, Iljic
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Additional Name</a:displayName>
@@ -1557,7 +1551,26 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="honorificPrefix" type="xsd:string" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="nickName" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Familiar or otherwise informal way to address a person.
+                                
+                                Examples: Bootstrap, Bobby
+                                
+                                The meaning of this property is to take part in the formatted full
+                                name of the person, e.g. William "Bootstrap" Turner. It is not intended
+                                to be used as a username or login name. This value is usually changable
+                                by the user itself and it defines how the user wants other to address him. 
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Additional Name</a:displayName>
+		                    	<a:displayOrder>130</a:displayOrder>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="honorificPrefix" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Honorific titles that go before the name.
@@ -1575,7 +1588,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="honorificSuffix" type="xsd:string" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="honorificSuffix" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Honorific titles that go after the name.
@@ -1593,7 +1606,59 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="title" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User's title defining a work position or a primary role in the
+                                organization.
+
+                                Examples: CEO, Security Officer, Assistant
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Honorific Suffix</a:displayName>
+		                    	<a:displayOrder>140</a:displayOrder>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                                        <xsd:element name="preferredLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Indicates user's preferred language, usually for the purpose of localizing
+                                user interfaces. The format is ISO 639-1 two letter language code and the 
+                                ISO 3166-1 two letter country code separated by underscore. If not specified
+                                then system default locale is assumed.
+
+                                Examples: en_US, sk_SK
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="locale" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines user's preferrence in displaying currency, dates and other items
+                                related to location and culture. The format ISO 639-1 two letter language code and the 
+                                ISO 3166-1 two letter country code separated by underscore. If not specified
+                                then system default locale is assumed.
+
+                                Examples: en_US, sk_SK
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="timezone" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User's preferred timezone. It is specified in the "tz database" (a.k.a "Olson")
+                                format. If not specified then system default timezone is assumed.
+
+                                Examples: Europe/Bratislava
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 E-Mail address of the user. This is the address
@@ -1602,10 +1667,6 @@
                                 to the e-mail address. It is NOT supposed to be
                                 full-featured e-mail address data structure
                                 e.g. for the purpose of complex address-book application.
-
-                                This is multi-valued property. In case more than
-                                one e-mail address is specified, the same message
-                                should be sent to all the addresses.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Email Address</a:displayName>
@@ -1655,7 +1716,15 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="organizationalUnit" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The name of the cost center.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="organizationalUnit" type="t:PolyStringType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Name or (preferrably) immutable identifier of
@@ -1672,7 +1741,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="locality" type="xsd:string" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Primary locality of the user, the place where
