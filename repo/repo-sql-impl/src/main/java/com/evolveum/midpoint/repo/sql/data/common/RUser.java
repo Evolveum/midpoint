@@ -23,7 +23,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
@@ -47,29 +45,38 @@ import java.util.Set;
 @Table(name = "m_user")
 @org.hibernate.annotations.Table(appliesTo = "m_user",
         indexes = {@Index(name = "iUserEnabled", columnNames = "enabled"),
-                @Index(name = "iFullName", columnNames = "fullName_norm")})
+                @Index(name = "iFullName", columnNames = "fullName_norm"),
+                @Index(name = "iFamilyName", columnNames = "familyName_norm"),
+                @Index(name = "iGivenName", columnNames = "givenName_norm"),
+                @Index(name = "iLocality", columnNames = "locality_norm"),
+                @Index(name = "iAdditionalName", columnNames = "additionalName_norm"),
+                @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_norm"),
+                @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_norm")})
 @ForeignKey(name = "fk_user")
 public class RUser extends RObject {
 
     @QueryAttribute(polyString = true)
     private RPolyString fullName;
     @QueryAttribute
-    private String givenName;
+    private RPolyString givenName;
     @QueryAttribute
-    private String familyName;
-    private Set<String> additionalNames;
+    private RPolyString familyName;
     @QueryAttribute
-    private String honorificPrefix;
+    private RPolyString additionalName;
     @QueryAttribute
-    private String honorificSuffix;
-    private Set<String> emailAddress;
-    private Set<String> telephoneNumber;
+    private RPolyString honorificPrefix;
+    @QueryAttribute
+    private RPolyString honorificSuffix;
+    @QueryAttribute
+    private String emailAddress;
+    @QueryAttribute
+    private String telephoneNumber;
     @QueryAttribute
     private String employeeNumber;
     private Set<String> employeeType;
-    private Set<String> organizationalUnit;
+    private Set<RPolyString> organizationalUnit;
     @QueryAttribute
-    private String locality;
+    private RPolyString locality;
     @QueryEntity(embedded = true)
     private RCredentials credentials;
     @QueryEntity(embedded = true)
@@ -103,15 +110,13 @@ public class RUser extends RObject {
         return activation;
     }
 
-    @ElementCollection
-    @ForeignKey(name = "fk_user_additional_name")
-    @CollectionTable(name = "m_user_additional_name", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "additionalName_orig", nullable = true)),
+            @AttributeOverride(name = "norm", column = @Column(name = "additionalName_norm", nullable = true))
     })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getAdditionalNames() {
-        return additionalNames;
+    @Embedded
+    public RPolyString getAdditionalName() {
+        return additionalName;
     }
 
     @Embedded
@@ -119,14 +124,7 @@ public class RUser extends RObject {
         return credentials;
     }
 
-    @ElementCollection
-    @ForeignKey(name = "fk_user_email_address")
-    @CollectionTable(name = "m_user_email_address", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
-    })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getEmailAddress() {
+    public String getEmailAddress() {
         return emailAddress;
     }
 
@@ -137,18 +135,11 @@ public class RUser extends RObject {
             @JoinColumn(name = "user_id", referencedColumnName = "id")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getOrganizationalUnit() {
+    public Set<RPolyString> getOrganizationalUnit() {
         return organizationalUnit;
     }
 
-    @ElementCollection
-    @ForeignKey(name = "fk_user_telephone_number")
-    @CollectionTable(name = "m_user_telephone_number", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
-    })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getTelephoneNumber() {
+    public String getTelephoneNumber() {
         return telephoneNumber;
     }
 
@@ -163,8 +154,12 @@ public class RUser extends RObject {
         return employeeType;
     }
 
-    @Index(name = "iFamilyName")
-    public String getFamilyName() {
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "familyName_orig", nullable = true)),
+            @AttributeOverride(name = "norm", column = @Column(name = "familyName_norm", nullable = true))
+    })
+    @Embedded
+    public RPolyString getFamilyName() {
         return familyName;
     }
 
@@ -177,13 +172,21 @@ public class RUser extends RObject {
         return fullName;
     }
 
-    @Index(name = "iGivenName")
-    public String getGivenName() {
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "givenName_orig", nullable = true)),
+            @AttributeOverride(name = "norm", column = @Column(name = "givenName_norm", nullable = true))
+    })
+    @Embedded
+    public RPolyString getGivenName() {
         return givenName;
     }
 
-    @Index(name = "iLocality")
-    public String getLocality() {
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "locality_orig", nullable = true)),
+            @AttributeOverride(name = "norm", column = @Column(name = "locality_norm", nullable = true))
+    })
+    @Embedded
+    public RPolyString getLocality() {
         return locality;
     }
 
@@ -192,11 +195,21 @@ public class RUser extends RObject {
         return employeeNumber;
     }
 
-    public String getHonorificPrefix() {
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "honorificPrefix_orig", nullable = true)),
+            @AttributeOverride(name = "norm", column = @Column(name = "honorificPrefix_norm", nullable = true))
+    })
+    @Embedded
+    public RPolyString getHonorificPrefix() {
         return honorificPrefix;
     }
 
-    public String getHonorificSuffix() {
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "honorificSuffix_orig", nullable = true)),
+            @AttributeOverride(name = "norm", column = @Column(name = "honorificSuffix_norm", nullable = true))
+    })
+    @Embedded
+    public RPolyString getHonorificSuffix() {
         return honorificSuffix;
     }
 
@@ -204,15 +217,15 @@ public class RUser extends RObject {
         this.activation = activation;
     }
 
-    public void setAdditionalNames(Set<String> additionalNames) {
-        this.additionalNames = additionalNames;
+    public void setAdditionalNames(RPolyString additionalName) {
+        this.additionalName = additionalName;
     }
 
     public void setCredentials(RCredentials credentials) {
         this.credentials = credentials;
     }
 
-    public void setEmailAddress(Set<String> emailAddress) {
+    public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
     }
 
@@ -224,31 +237,31 @@ public class RUser extends RObject {
         this.employeeType = employeeType;
     }
 
-    public void setFamilyName(String familyName) {
+    public void setFamilyName(RPolyString familyName) {
         this.familyName = familyName;
     }
 
-    public void setGivenName(String givenName) {
+    public void setGivenName(RPolyString givenName) {
         this.givenName = givenName;
     }
 
-    public void setHonorificPrefix(String honorificPrefix) {
+    public void setHonorificPrefix(RPolyString honorificPrefix) {
         this.honorificPrefix = honorificPrefix;
     }
 
-    public void setHonorificSuffix(String honorificSuffix) {
+    public void setHonorificSuffix(RPolyString honorificSuffix) {
         this.honorificSuffix = honorificSuffix;
     }
 
-    public void setLocality(String locality) {
+    public void setLocality(RPolyString locality) {
         this.locality = locality;
     }
 
-    public void setOrganizationalUnit(Set<String> organizationalUnit) {
+    public void setOrganizationalUnit(Set<RPolyString> organizationalUnit) {
         this.organizationalUnit = organizationalUnit;
     }
 
-    public void setTelephoneNumber(Set<String> telephoneNumber) {
+    public void setTelephoneNumber(String telephoneNumber) {
         this.telephoneNumber = telephoneNumber;
     }
 
@@ -273,7 +286,7 @@ public class RUser extends RObject {
         RUser rUser = (RUser) o;
 
         if (activation != null ? !activation.equals(rUser.activation) : rUser.activation != null) return false;
-        if (additionalNames != null ? !additionalNames.equals(rUser.additionalNames) : rUser.additionalNames != null)
+        if (additionalName != null ? !additionalName.equals(rUser.additionalName) : rUser.additionalName != null)
             return false;
         if (credentials != null ? !credentials.equals(rUser.credentials) : rUser.credentials != null) return false;
         if (emailAddress != null ? !emailAddress.equals(rUser.emailAddress) : rUser.emailAddress != null) return false;
@@ -318,12 +331,15 @@ public class RUser extends RObject {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setFullName(RPolyString.copyFromJAXB(jaxb.getFullName()));
-        repo.setGivenName(jaxb.getGivenName());
-        repo.setFamilyName(jaxb.getFamilyName());
-        repo.setHonorificPrefix(jaxb.getHonorificPrefix());
-        repo.setHonorificSuffix(jaxb.getHonorificSuffix());
+        repo.setGivenName(RPolyString.copyFromJAXB(jaxb.getGivenName()));
+        repo.setFamilyName(RPolyString.copyFromJAXB(jaxb.getFamilyName()));
+        repo.setHonorificPrefix(RPolyString.copyFromJAXB(jaxb.getHonorificPrefix()));
+        repo.setHonorificSuffix(RPolyString.copyFromJAXB(jaxb.getHonorificSuffix()));
         repo.setEmployeeNumber(jaxb.getEmployeeNumber());
-        repo.setLocality(jaxb.getLocality());
+        repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));
+        repo.setAdditionalNames(RPolyString.copyFromJAXB(jaxb.getAdditionalName()));
+        repo.setEmailAddress(jaxb.getEmailAddress());
+        repo.setTelephoneNumber(jaxb.getTelephoneNumber());
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
@@ -338,11 +354,8 @@ public class RUser extends RObject {
         }
 
         //sets
-        repo.setAdditionalNames(RUtil.listToSet(jaxb.getAdditionalNames()));
-        repo.setEmailAddress(RUtil.listToSet(jaxb.getEmailAddress()));
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
-        repo.setOrganizationalUnit(RUtil.listToSet(jaxb.getOrganizationalUnit()));
-        repo.setTelephoneNumber(RUtil.listToSet(jaxb.getTelephoneNumber()));
+        repo.setOrganizationalUnit(RUtil.listPolyToSet(jaxb.getOrganizationalUnit()));
 
         for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
             RObjectReference ref = RUtil.jaxbRefToRepo(accountRef, repo, prismContext);
@@ -368,12 +381,15 @@ public class RUser extends RObject {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setFullName(RPolyString.copyToJAXB(repo.getFullName()));
-        jaxb.setGivenName(repo.getGivenName());
-        jaxb.setFamilyName(repo.getFamilyName());
-        jaxb.setHonorificPrefix(repo.getHonorificPrefix());
-        jaxb.setHonorificSuffix(repo.getHonorificSuffix());
+        jaxb.setGivenName(RPolyString.copyToJAXB(repo.getGivenName()));
+        jaxb.setFamilyName(RPolyString.copyToJAXB(repo.getFamilyName()));
+        jaxb.setHonorificPrefix(RPolyString.copyToJAXB(repo.getHonorificPrefix()));
+        jaxb.setHonorificSuffix(RPolyString.copyToJAXB(repo.getHonorificSuffix()));
         jaxb.setEmployeeNumber(repo.getEmployeeNumber());
-        jaxb.setLocality(repo.getLocality());
+        jaxb.setLocality(RPolyString.copyToJAXB(repo.getLocality()));
+        jaxb.setAdditionalName(RPolyString.copyToJAXB(repo.getAdditionalName()));
+        jaxb.setEmailAddress(repo.getEmailAddress());
+        jaxb.setTelephoneNumber(repo.getTelephoneNumber());
 
         if (repo.getActivation() != null) {
             jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
@@ -384,11 +400,8 @@ public class RUser extends RObject {
             jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
         }
 
-        jaxb.getAdditionalNames().addAll(RUtil.safeSetToList(repo.getAdditionalNames()));
-        jaxb.getEmailAddress().addAll(RUtil.safeSetToList(repo.getEmailAddress()));
         jaxb.getEmployeeType().addAll(RUtil.safeSetToList(repo.getEmployeeType()));
-        jaxb.getTelephoneNumber().addAll(RUtil.safeSetToList(repo.getTelephoneNumber()));
-        jaxb.getOrganizationalUnit().addAll(RUtil.safeSetToList(repo.getOrganizationalUnit()));
+        jaxb.getOrganizationalUnit().addAll(RUtil.safeSetPolyToList(repo.getOrganizationalUnit()));
 
         for (RObjectReference repoRef : repo.getAccountRefs()) {
             jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));

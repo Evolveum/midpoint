@@ -149,6 +149,30 @@ public final class RUtil {
         return new HashSet<T>(list);
     }
 
+    public static Set<RPolyString> listPolyToSet(List<PolyStringType> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+
+        Set<RPolyString> set = new HashSet<RPolyString>();
+        for (PolyStringType str : list) {
+            set.add(RPolyString.copyFromJAXB(str));
+        }
+        return set;
+    }
+
+    public static List<PolyStringType> safeSetPolyToList(Set<RPolyString> set) {
+        if (set == null || set.isEmpty()) {
+            return new ArrayList<PolyStringType>();
+        }
+
+        List<PolyStringType> list = new ArrayList<PolyStringType>();
+        for (RPolyString str : set) {
+            list.add(RPolyString.copyToJAXB(str));
+        }
+        return list;
+    }
+
     public static <T> List<T> safeSetToList(Set<T> set) {
         if (set == null || set.isEmpty()) {
             return new ArrayList<T>();
