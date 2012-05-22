@@ -217,7 +217,7 @@ public class RUser extends RObject {
         this.activation = activation;
     }
 
-    public void setAdditionalNames(RPolyString additionalName) {
+    public void setAdditionalName(RPolyString additionalName) {
         this.additionalName = additionalName;
     }
 
@@ -337,7 +337,7 @@ public class RUser extends RObject {
         repo.setHonorificSuffix(RPolyString.copyFromJAXB(jaxb.getHonorificSuffix()));
         repo.setEmployeeNumber(jaxb.getEmployeeNumber());
         repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));
-        repo.setAdditionalNames(RPolyString.copyFromJAXB(jaxb.getAdditionalName()));
+        repo.setAdditionalName(RPolyString.copyFromJAXB(jaxb.getAdditionalName()));
         repo.setEmailAddress(jaxb.getEmailAddress());
         repo.setTelephoneNumber(jaxb.getTelephoneNumber());
 

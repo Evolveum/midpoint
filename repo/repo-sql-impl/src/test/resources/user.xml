@@ -26,6 +26,12 @@
         <t:orig>Guybrush Threepwood</t:orig>
         <t:norm>guybrush threepwood</t:norm>
     </fullName>
-    <givenName>Guybrush</givenName>
-    <familyName>Threepwood</familyName>
+    <givenName>
+        <t:orig>Guybrush</t:orig>
+        <t:norm>guybrush</t:norm>
+    </givenName>
+    <familyName>
+        <t:orig>Threepwood</t:orig>
+        <t:norm>threepwood</t:norm>
+    </familyName>
 </user>

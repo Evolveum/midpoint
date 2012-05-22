@@ -30,6 +30,9 @@
     <givenName></givenName>
     <familyName></familyName>
     <emailAddress>testuserX00002@example.com</emailAddress>
-    <locality>L</locality>
+    <locality>
+        <t:orig>L</t:orig>
+        <t:norm>l</t:norm>
+    </locality>
     <employeeNumber>en1234</employeeNumber>
 </user>

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -152,7 +153,7 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
 
                 String dataWritten = Integer.toString(counter++);
 
-                PropertyDelta<?> delta = PropertyDelta.createReplaceDeltaOrEmptyDelta(userPrismDefinition, attribute, dataWritten);
+                PropertyDelta<?> delta = PropertyDelta.createReplaceDeltaOrEmptyDelta(userPrismDefinition, attribute, new PolyString(dataWritten));
                 List<? extends PropertyDelta<?>> deltas = Arrays.asList(delta);
                 try {
                     repositoryService.modifyObject(UserType.class, oid, deltas, result);

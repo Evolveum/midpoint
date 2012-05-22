@@ -30,8 +30,14 @@
             <t:orig>Hector Barbossa</t:orig>
             <t:norm>hector barbossa</t:norm>
         </fullName>
-        <givenName>Hector</givenName>
-        <familyName>Barbossa</familyName>
+        <givenName>
+            <t:orig>Hector</t:orig>
+            <t:norm>hector</t:norm>
+        </givenName>
+        <familyName>
+            <t:orig>Barbossa</t:orig>
+            <t:norm>barbossa</t:norm>
+        </familyName>
         <account oid="f00d-acc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <name>get account</name>
             <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>

@@ -38,10 +38,19 @@
             <t:orig>Test UserX00002</t:orig>
             <t:norm>test userx00002</t:norm>
         </fullName>
-        <givenName>TestX</givenName>
-        <familyName>UserX00002</familyName>
+        <givenName>
+            <t:orig>TestX</t:orig>
+            <t:norm>testx</t:norm>
+        </givenName>
+        <familyName>
+            <t:orig>UserX00002</t:orig>
+            <t:norm>userx00002</t:norm>
+        </familyName>
         <emailAddress>testuserX00002@example.com</emailAddress>
-        <locality>AreaX 00002</locality>
+        <locality>
+            <t:orig>AreaX 00002</t:orig>
+            <t:norm>areax 00002</t:norm>
+        </locality>
         <employeeNumber>en1234</employeeNumber>
         <credentials>
             <password>
