@@ -1674,7 +1674,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Primary telephone number of the user.
