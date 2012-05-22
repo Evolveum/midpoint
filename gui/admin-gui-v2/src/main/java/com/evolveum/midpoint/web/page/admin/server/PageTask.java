@@ -23,15 +23,20 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
+import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -42,157 +47,177 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDetailsDto;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
- * @author lazyman, mserbak
+ * @author lazyman
+ * @author mserbak
  */
 public class PageTask extends PageAdminTasks {
 	private static final long serialVersionUID = 2317887071933841581L;
 	
 	public static final String PARAM_TASK_ID = "taskOid";
-	private IModel<TaskType> model;
+	private IModel<TaskDetailsDto> model;
 
 	public PageTask() {
-		model = new LoadableModel<TaskType>(false) {
+		model = new LoadableModel<TaskDetailsDto>(false) {
 
 			@Override
-			protected TaskType load() {
+			protected TaskDetailsDto load() {
 				return loadTask();
 			}
 		};
 		initLayout();
 	}
 
-	private TaskType loadTask() {
+	private TaskDetailsDto loadTask() {
 		// todo implement
-		return new TaskType();
+		return new TaskDetailsDto();
+		//return new TaskType();
 	}
 
 	private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        DropDownChoice type = new DropDownChoice("type", new Model(), new AbstractReadOnlyModel<List<String>>() {
+        DropDownChoice type = new DropDownChoice("type", new PropertyModel<String>(model, "type"), new AbstractReadOnlyModel<List<String>>() {
 
             @Override
             public List<String> getObject() {
                 return createCategoryList();
             }
         });
-        type.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         mainForm.add(type);
 
-        AjaxLink browse = new AjaxLink("browse") {
+        DropDownChoice browse = new DropDownChoice("resource", new PropertyModel<String>(model, "resource"), new AbstractReadOnlyModel<List<String>>() {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                browsePerformed(target);
+            public List<String> getObject() {
+                return createResouceList();
             }
-        };
+        });
         mainForm.add(browse);
         
-        TextField<String> name = new TextField<String>("name", new Model<String>()); //todo to model
-        name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        TextField<String> name = new TextField<String>("name", new PropertyModel<String>(model, "name"));
         mainForm.add(name);
         
         initScheduling(mainForm);
         
-        CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new Model<Boolean>()); // todo to model
-        runUntilNodeDown.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model, "runUntilNodeDown"));
         mainForm.add(runUntilNodeDown);
+        
+        initAdvanced(mainForm);
         
         initButtons(mainForm);
     }
 	
 	private void initScheduling(final Form mainForm){
+		final WebMarkupContainer container = new WebMarkupContainer("container");
+		container.setOutputMarkupId(true);
+		mainForm.add(container);
+		
+		final IModel<Boolean> recurringCheck = new PropertyModel<Boolean>(model, "reccuring");
+		final IModel<Boolean> boundCheck = new PropertyModel<Boolean>(model, "bound");
+		
 		final WebMarkupContainer boundContainer = new WebMarkupContainer("boundContainer");
-		boundContainer.setVisible(false);
-		mainForm.add(boundContainer);
+		boundContainer.add(new VisibleEnableBehaviour(){
+
+			@Override
+			public boolean isVisible() {
+				return recurringCheck.getObject();
+			}
+        	
+        });
+		boundContainer.setOutputMarkupId(true);
+		container.add(boundContainer);
         
         
         final WebMarkupContainer intervalContainer = new WebMarkupContainer("intervalContainer");
-        intervalContainer.setVisible(false);
-        mainForm.add(intervalContainer);
+        intervalContainer.add(new VisibleEnableBehaviour(){
+
+			@Override
+			public boolean isVisible() {
+				return recurringCheck.getObject();
+			}
+        	
+        });
+        intervalContainer.setOutputMarkupId(true);
+        container.add(intervalContainer);
         
         final WebMarkupContainer cronContainer = new WebMarkupContainer("cronContainer");
-        cronContainer.setVisible(false);
-        mainForm.add(cronContainer);
-        
-        
-		final IModel<Boolean> recurringCheck = new Model<Boolean>(false);
-		final IModel<Boolean> boundCheck = new Model<Boolean>(false);
-		
+        cronContainer.add(new VisibleEnableBehaviour(){
+
+			@Override
+			public boolean isVisible() {
+				return recurringCheck.getObject() && !boundCheck.getObject();
+			}
+        	
+        });
+        cronContainer.setOutputMarkupId(true);
+        container.add(cronContainer);
+
         AjaxCheckBox recurring = new AjaxCheckBox("recurring", recurringCheck){
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-            	boundContainer.setVisible(recurringCheck.getObject());
-            	intervalContainer.setVisible(recurringCheck.getObject());
-            	if(recurringCheck.getObject() && !boundCheck.getObject()){
-            		cronContainer.setVisible(true);
-            	} else {
-            		cronContainer.setVisible(false);
-            	}
-            	target.add(mainForm);
+            	
+            	target.add(container);
             }
         };
-        recurring.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         mainForm.add(recurring);
 
         AjaxCheckBox bound = new AjaxCheckBox("bound", boundCheck){
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-            	if(recurringCheck.getObject() && !boundCheck.getObject()){
-            		cronContainer.setVisible(true);
-            	} else {
-            		cronContainer.setVisible(false);
-            	}
-            	target.add(mainForm);
+            	target.add(container);
             }
         };
-        bound.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         boundContainer.add(bound);
         
-        TextField<Integer> interval = new TextField<Integer>("interval", new Model<Integer>()); //todo to model
+        TextField<Integer> interval = new TextField<Integer>("interval", new PropertyModel<Integer>(model, "interval"));
         interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         intervalContainer.add(interval);
 
-        TextField<String> cron = new TextField<String>("cron", new Model<String>()); //todo to model
+        TextField<String> cron = new TextField<String>("cron", new PropertyModel<String>(model, "cron")); //todo to model
         cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         cronContainer.add(cron);
         
-        final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField"){
+        final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField", new PropertyModel<Date>(model, "notStopBefore")){
         	@Override 
             protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) { 
                     return DateTextField.forDatePattern(id, dateFieldModel,"dd/MMM/yyyy"); 
             } 
         };
-        notStartBefore.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         notStartBefore.setOutputMarkupId(true);
         mainForm.add(notStartBefore);
         
-		final DateTimeField notStartAfter = new DateTimeField("notStartAfterField"){
+		final DateTimeField notStartAfter = new DateTimeField("notStartAfterField", new PropertyModel<Date>(model, "notStartAfter")){
         	@Override 
-            protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) { 
-                    return DateTextField.forDatePattern(id, dateFieldModel,"dd/MMM/yyyy"); 
-            }
-        	
+            protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
+                return DateTextField.forDatePattern(id, dateFieldModel,"dd/MMM/yyyy"); 
+        	}
         };
-        notStartAfter.add(new AjaxFormComponentUpdatingBehavior("onChange") {
-			
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-			}
-		});
-        notStartAfter.setOutputMarkupId(true);
+        notStartAfter.setOutputMarkupId(true);       
         mainForm.add(notStartAfter);
+	}
+	
+	private void initAdvanced(Form mainForm){
+		final IModel<Boolean> createSuspendedCheck = new PropertyModel<Boolean>(model, "suspendedState");
+		CheckBox createSuspended = new CheckBox("createSuspended", createSuspendedCheck);
+		mainForm.add(createSuspended);
+		
 	}
 
 	private void initButtons(final Form mainForm) {
@@ -237,8 +262,20 @@ public class PageTask extends PageAdminTasks {
 				}
 			}
 		}
-
 		return categories;
+	}
+	
+	private List<String> createResouceList(){
+		TaskManager manager = getTaskManager();
+		List<String> resourceList = new ArrayList<String>();
+		
+		List<ResourceDto> resources = new ArrayList<ResourceDto>();
+		if(resources != null){
+			for (ResourceDto resource : resources) {
+				resourceList.add(resource.getName());
+			}
+		}
+		return resourceList;
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
@@ -249,7 +286,12 @@ public class PageTask extends PageAdminTasks {
 		// todo implement
 	}
 	
-	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
+	private boolean isEditingTask() {
+        StringValue taskOid = getPageParameters().get(PageTask.PARAM_TASK_ID);
+        return taskOid != null && StringUtils.isNotEmpty(taskOid.toString());
+    }
+	
+    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
         public EmptyOnBlurAjaxFormUpdatingBehaviour() {
             super("onBlur");

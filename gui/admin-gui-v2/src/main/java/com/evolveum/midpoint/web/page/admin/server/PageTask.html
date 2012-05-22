@@ -31,7 +31,7 @@
             </tr>
             <tr>
                 <td><wicket:message key="pageTask.objectRef"/></td>
-                <td><a wicket:id="browse"><wicket:message key="pageTask.browse"/></a></td>
+                <td><select wicket:id="resource"/></td>
             </tr>
             <tr>
                 <td><wicket:message key="pageTask.name"/></td>
@@ -40,38 +40,53 @@
        	</table>
        	
        	<h2><wicket:message key="pageTask.scheduleTitle"/></h2>
-        <table> 
+        <table>
+	  		<tbody>
+	            <tr>
+	                <td><wicket:message key="pageTask.recurringTask"/></td>
+	                <td><input type="checkbox" wicket:id="recurring"/></td>
+	            </tr>
+	        </tbody>
+			<tbody wicket:id="container">    
+				<tr wicket:id="boundContainer">
+				    <td><wicket:message key="pageTask.bound"/></td>
+				    <td><input type="checkbox" wicket:id="bound"/></td>
+				</tr>
+				<tr wicket:id="intervalContainer">
+				    <td><wicket:message key="pageTask.scheduleInterval"/></td>
+				    <td><input type="text" wicket:id="interval"/></td>
+				</tr>
+				<tr wicket:id="cronContainer">
+				    <td><wicket:message key="pageTask.scheduleCronLikeSpecification"/></td>
+				    <td><input type="text" wicket:id="cron"/></td>
+				</tr>
+			</tbody>
+			<tbody>            
+				<tr>
+				    <td><wicket:message key="pageTask.notStartBefore"/></td>
+				    <td><span wicket:id="notStartBeforeField" /></td>
+				</tr>
+				<tr>
+				    <td><wicket:message key="pageTask.notStartAfter"/></td>
+				    <td><span wicket:id="notStartAfterField" /></td>
+				</tr>
+			</tbody>
+        </table>
+        <table>
+	        <tr>
+	            <td><wicket:message key="pageTask.runUntilNodeDown"/></td>
+	            <td><input type="checkbox" wicket:id="runUntilNodeDown"/></td>
+	        </tr>
+        </table>
+        
+        <h2><wicket:message key="pageTask.advancedOption"/></h2>
+        <table>
             <tr>
-                <td><wicket:message key="pageTask.recurringTask"/></td>
-                <td><input type="checkbox" wicket:id="recurring"/></td>
-            </tr>
-            <tr wicket:id="boundContainer">
-                <td><wicket:message key="pageTask.bound"/></td>
-                <td><input type="checkbox" wicket:id="bound"/></td>
-            </tr>
-            <tr wicket:id="intervalContainer">
-                <td><wicket:message key="pageTask.scheduleInterval"/></td>
-                <td><input type="text" wicket:id="interval"/></td>
-            </tr>
-            <tr wicket:id="cronContainer">
-                <td><wicket:message key="pageTask.scheduleCronLikeSpecification"/></td>
-                <td><input type="text" wicket:id="cron"/></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageTask.notStartBefore"/></td>
-                <td><span wicket:id="notStartBeforeField" /></td>
-            </tr>
-             <tr>
-                <td><wicket:message key="pageTask.notStartAfter"/></td>
-                <td><span wicket:id="notStartAfterField" /></td>
-            </tr>
-         </table>
-         <table>
-            <tr>
-                <td><wicket:message key="pageTask.runUntilNodeDown"/></td>
-                <td><input type="checkbox" wicket:id="runUntilNodeDown"/></td>
+                <td><wicket:message key="pageTask.createSuspended"/></td>
+                <td><input type="checkbox" wicket:id="createSuspended"/></td>
             </tr>
         </table>
+        
         <span><wicket:message key="pageTask.notes"/></span>
 
         <div class="operatingFormButtons">
