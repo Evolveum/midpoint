@@ -27,6 +27,7 @@
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
@@ -210,12 +211,9 @@ This is now the only account type that midPoint can work with. -->
                 -->
 
                 <outbound>
-                    <expression>
-                        <code>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:fullName
-                        </code>
-                    </expression>
+                    <path>
+                    	$user/fullName
+                    </path>
                 </outbound>
 
                 <!-- Inbound expression. It is used to synchronize changes
@@ -244,11 +242,11 @@ This is now the only account type that midPoint can work with. -->
                 <outbound>
                     <expression>
                     	<description>
-                    		The expression is using "c" prefix without declaring it. The prefix is taken from
+                    		The expression is using "c" and "t" prefixes without declaring it. The prefix is taken from
                     		the enclosing XML definition.
                     	</description>
                         <code>
-                            $c:user/c:familyName
+                            $c:user/c:familyName/t:orig
                         </code>
                     </expression>
                 </outbound>
@@ -277,7 +275,8 @@ This is now the only account type that midPoint can work with. -->
                     	</description>
                         <code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            i:givenName
+                            declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
+                            i:givenName/t:orig
                         </code>
                     </expression>
                 </outbound>
@@ -470,10 +469,11 @@ This is now the only account type that midPoint can work with. -->
                              in the $my:config variable specified above. -->
                         <c:code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
                             declare namespace my="http://whatever.com/my";
 
-                            if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
-                            $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
+                            if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality/t:orig]) then
+                            $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality/t:orig]
                             else
                             $my:defaultLocation
                         </c:code>

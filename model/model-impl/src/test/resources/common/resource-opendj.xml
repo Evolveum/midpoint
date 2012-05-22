@@ -268,15 +268,13 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<expression>
-						<code>
+					<path>
 							$c:user/c:fullName
-						</code>
-					</expression>
+					</path>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:fullName
+						$user/fullName
 					</target>
 				</inbound>
 			</attribute>
@@ -287,11 +285,9 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<expression>
-						<code>
-							$c:user/c:familyName
-						</code>
-					</expression>
+					<path>
+						$c:user/c:familyName
+					</path>
 				</outbound>
 				<inbound>
 					<target>
