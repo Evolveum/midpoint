@@ -169,12 +169,7 @@ public class PageUsers extends PageAdminUsers {
             public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem, String componentId,
                     IModel<SelectableBean<UserType>> rowModel) {
 
-                List<String> emails = rowModel.getObject().getValue().getEmailAddress();
-                String email = "";
-                if (emails != null && !emails.isEmpty()) {
-                    email = emails.get(0);
-                }
-
+                String email = rowModel.getObject().getValue().getEmailAddress();
                 cellItem.add(new Label(componentId, new Model<String>(email)));
             }
         };

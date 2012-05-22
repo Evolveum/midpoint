@@ -25,6 +25,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +70,10 @@ public class ExpressionHandler {
 	private ExpressionFactory expressionFactory;
 	
 	@Autowired(required = true)
-	ModelObjectResolver modelObjectResolver;
+	private ModelObjectResolver modelObjectResolver;
+
+    @Autowired(required = true)
+    private PrismContext prismContext;
 	
 	private XPathExpressionEvaluator xpathEvaluator = null;
 	
@@ -180,7 +184,7 @@ public class ExpressionHandler {
 	
 	public void registerEvaluators(ExpressionFactory expressionFactory) {
 		if (xpathEvaluator == null) {
-			xpathEvaluator = new XPathExpressionEvaluator();
+			xpathEvaluator = new XPathExpressionEvaluator(prismContext);
 		}
 		expressionFactory.registerEvaluator(XPathExpressionEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
 	}

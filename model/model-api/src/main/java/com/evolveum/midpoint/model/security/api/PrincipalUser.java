@@ -24,12 +24,8 @@ package com.evolveum.midpoint.model.security.api;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * Temporary place, till we create special component for it
@@ -37,7 +33,7 @@ import java.util.HashSet;
  * @author lazyman
  * @author Igor Farinic
  */
-public class PrincipalUser implements Serializable{//   } UserDetails {
+public class PrincipalUser implements Serializable {//   } UserDetails {
 
     private static final long serialVersionUID = 8299738301872077768L;
     private UserType user;
@@ -85,7 +81,7 @@ public class PrincipalUser implements Serializable{//   } UserDetails {
 //        return true;  //To change body of implemented methods use File | Settings | File Templates.
 //    }
 
-        private Credentials credentials;
+    private Credentials credentials;
     private boolean enabled;
 
     public PrincipalUser(UserType user, boolean enabled) {
@@ -103,7 +99,8 @@ public class PrincipalUser implements Serializable{//   } UserDetails {
     }
 
     public String getFamilyName() {
-        return getUser().getFamilyName();
+        PolyStringType string = getUser().getFamilyName();
+        return string != null ? string.getOrig() : null;
     }
 
     public String getFullName() {
@@ -112,7 +109,8 @@ public class PrincipalUser implements Serializable{//   } UserDetails {
     }
 
     public String getGivenName() {
-        return getUser().getGivenName();
+        PolyStringType string = getUser().getGivenName();
+        return string != null ? string.getOrig() : null;
     }
 
     public Credentials getCredentials() {
