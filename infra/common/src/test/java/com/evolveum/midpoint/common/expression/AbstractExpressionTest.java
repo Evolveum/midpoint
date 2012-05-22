@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.expression;
 
 import com.evolveum.midpoint.common.expression.jsr223.Jsr223ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -72,7 +73,7 @@ public abstract class AbstractExpressionTest {
     @BeforeClass
     public void setupFactory() {
         factory = new ExpressionFactory();
-        evaluator = createEvaluator();
+        evaluator = createEvaluator(PrismTestUtil.getPrismContext());
         String languageUrl = evaluator.getLanguageUrl();
         System.out.println("Expression test for "+evaluator.getLanguageName()+": registering "+evaluator+" with URL "+languageUrl);
         factory.registerEvaluator(languageUrl, evaluator);
@@ -80,7 +81,7 @@ public abstract class AbstractExpressionTest {
         factory.setObjectResolver(resolver);
     }
 
-	protected abstract ExpressionEvaluator createEvaluator();
+	protected abstract ExpressionEvaluator createEvaluator(PrismContext prismContext);
 	
 	protected abstract File getTestDir();
 	

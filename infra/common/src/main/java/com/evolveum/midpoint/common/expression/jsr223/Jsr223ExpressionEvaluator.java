@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
@@ -63,13 +65,15 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 	private static final String LANGUAGE_URL_BASE = MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
 	
 	private ScriptEngine scriptEngine;
+	private PrismContext prismContext;
 	
-	public Jsr223ExpressionEvaluator(String engineName) {
+	public Jsr223ExpressionEvaluator(String engineName, PrismContext prismContext) {
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		scriptEngine = scriptEngineManager.getEngineByName(engineName);
 		if (scriptEngine == null) {
 			throw new SystemException("The JSR-223 scripting engine for '"+engineName+"' was not found");
 		}
+		this.prismContext = prismContext;
 	}
 
 	/* (non-Javadoc)
@@ -117,8 +121,16 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 		if (type.equals(PolyString.class) && rawValue instanceof String) {
 			return (T) new PolyString((String)rawValue);
 		}
+		if (type.equals(PolyStringType.class) && rawValue instanceof String) {
+			PolyStringType polyStringType = new PolyStringType();
+			polyStringType.setOrig((String)rawValue);
+			return (T) polyStringType;
+		}
 		if (type.equals(String.class) && rawValue instanceof PolyString) {
 			return (T)((PolyString)rawValue).getOrig();
+		}
+		if (type.equals(String.class) && rawValue instanceof PolyStringType) {
+			return (T)((PolyStringType)rawValue).getOrig();
 		}
 		throw new ExpressionEvaluationException("Expected "+type+" from expression, but got "+rawValue.getClass()+" "+contextDescription);
 	}

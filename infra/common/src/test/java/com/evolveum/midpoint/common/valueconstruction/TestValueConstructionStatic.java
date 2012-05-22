@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -202,8 +203,8 @@ public class TestValueConstructionStatic {
     	
         // THEN
         PrismProperty result = (PrismProperty) construction.getOutput();
-        Set<String> expected = new HashSet<String>();
-        expected.add("Black Pearl");
+        Set<PolyString> expected = new HashSet<PolyString>();
+        expected.add(new PolyString("Black Pearl", "black pearl"));
 //		assertEquals(expected,result.getValues());
         assertPropertyValues("Wrong result", expected, result.getValues());
     }
@@ -211,13 +212,13 @@ public class TestValueConstructionStatic {
     @Test
     public void testConstructionExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // WHEN
-    	PrismProperty<String> result = evaluator.evaluateConstructionStatic(String.class, "construction-expression-list.xml", "organizationalUnit", 
+    	PrismProperty<PolyString> result = evaluator.evaluateConstructionStatic(PolyString.class, "construction-expression-list.xml", "organizationalUnit", 
     			null, null , "testConstructionExpressionList");
     	
         // THEN
-        Set<String> expected = new HashSet<String>();
-        expected.add("Leaders");
-        expected.add("Followers");
+        Set<PolyString> expected = new HashSet<PolyString>();
+        expected.add(new PolyString("Leaders","leaders"));
+        expected.add(new PolyString("Followers","followers"));
 //		assertEquals(expected,result.getValues());
         assertPropertyValues("Wrong result", expected, result.getValues());
     }

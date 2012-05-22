@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.common.expression.xpath;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -52,8 +53,14 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
     public static String XPATH_LANGUAGE_URL = "http://www.w3.org/TR/xpath/";
 
     private XPathFactory factory = XPathFactory.newInstance();
+    
+    private PrismContext prismContext;
 
-    @Override
+    public XPathExpressionEvaluator(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
+	@Override
     public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables,
             ObjectResolver objectResolver, String contextDescription, OperationResult result) throws
             ExpressionEvaluationException,
@@ -207,13 +214,19 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
             return new PrismPropertyValue<T>((T) value);
         }
         try {
+        	T resultValue = null;
             if (value instanceof String) {
-                return new PrismPropertyValue<T>(XmlTypeConverter.toJavaValue((String) value, type));
+            	resultValue = XmlTypeConverter.toJavaValue((String) value, type);
+                
+            } else if (value instanceof Element) {
+            	resultValue = XmlTypeConverter.convertValueElementAsScalar((Element) value, type);
+            } else {
+            	throw new ExpressionEvaluationException("Unexpected scalar return type " + value.getClass().getName());
             }
-            if (value instanceof Element) {
-                return new PrismPropertyValue<T>(XmlTypeConverter.convertValueElementAsScalar((Element) value, type));
+            if (resultValue instanceof PolyString) {
+            	((PolyString)resultValue).recompute(prismContext.getDefaultPolyStringNormalizer());
             }
-            throw new ExpressionEvaluationException("Unexpected scalar return type " + value.getClass().getName());
+            return new PrismPropertyValue<T>(resultValue);
         } catch (SchemaException e) {
             throw new ExpressionEvaluationException("Error converting result of "
                     + contextDescription + ": " + e.getMessage(), e);

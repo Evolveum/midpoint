@@ -193,7 +193,7 @@ public class TestValueConstructionDynamic {
     			"construction-expression-system-variables-polystring-xpath.xml", "fullName", null, vars, "testConstructionExpressionVariablesPolyStringXPath");
     	
         // THEN
-    	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Captain Jack Sparrow"));
+    	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Captain Jack Sparrow", "captain jack sparrow"));
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }
@@ -322,7 +322,7 @@ public class TestValueConstructionDynamic {
     	
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = construction.getOutputTriple();
-        PrismAsserts.assertTripleZero(outputTriple, "Black Pearl");
+        PrismAsserts.assertTripleZero(outputTriple, new PolyString("Black Pearl", "black pearl"));
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);        
     }
@@ -334,7 +334,7 @@ public class TestValueConstructionDynamic {
     			"construction-expression-list.xml", "organizationalUnit", null, null, "testConstructionExpressionList");
     	
         // THEN
-    	PrismAsserts.assertTripleZero(outputTriple, "Leaders", "Followers");
+    	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Leaders", "leaders"), new PolyString("Followers", "followers"));
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }

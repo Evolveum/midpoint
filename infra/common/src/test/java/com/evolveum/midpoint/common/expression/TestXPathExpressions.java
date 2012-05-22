@@ -21,6 +21,8 @@
 package com.evolveum.midpoint.common.expression;
 
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
+import com.evolveum.midpoint.prism.PrismContext;
+
 import java.io.File;
 
 /**
@@ -29,8 +31,8 @@ import java.io.File;
 public class TestXPathExpressions extends AbstractExpressionTest {
 
     @Override
-	protected ExpressionEvaluator createEvaluator() {
-		return new XPathExpressionEvaluator();
+	protected ExpressionEvaluator createEvaluator(PrismContext prismContext) {
+		return new XPathExpressionEvaluator(prismContext);
 	}
 
 	@Override

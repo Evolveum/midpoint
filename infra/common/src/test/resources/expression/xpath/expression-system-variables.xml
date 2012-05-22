@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<code>
-		$c:user/c:givenName
+		$c:user/c:givenName/t:orig
 	</code>
 </expression>

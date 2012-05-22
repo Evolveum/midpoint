@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2" 
 		xmlns:x="http://example.com/xxx"
 		xmlns:y="http://example.com/yyy">
     <variable>
@@ -8,6 +9,6 @@
     	<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
     </variable>
 	<code>
-		$y:jack/c:organizationalUnit
+		$y:jack/c:organizationalUnit/t:orig
 	</code>
 </expression>

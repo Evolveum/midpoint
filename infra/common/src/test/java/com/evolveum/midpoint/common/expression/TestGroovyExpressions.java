@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.expression;
 
 import com.evolveum.midpoint.common.expression.jsr223.Jsr223ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -61,8 +62,8 @@ public class TestGroovyExpressions extends AbstractExpressionTest {
 	 * @see com.evolveum.midpoint.common.expression.AbstractExpressionTest#createEvaluator()
 	 */
 	@Override
-	protected ExpressionEvaluator createEvaluator() {
-		return new Jsr223ExpressionEvaluator("groovy");
+	protected ExpressionEvaluator createEvaluator(PrismContext prismContext) {
+		return new Jsr223ExpressionEvaluator("groovy", prismContext);
 	}
 
 	/* (non-Javadoc)
