@@ -2765,7 +2765,7 @@ public class TestSanity extends AbstractIntegrationTest {
             assertNotEmpty("No name in user", user.getName());
             assertNotNull("No fullName in user", user.getFullName());
             assertNotEmpty("No fullName in user", user.getFullName().getOrig());
-            assertNotEmpty("No familyName in user", user.getFamilyName());
+            assertNotEmpty("No familyName in user", user.getFamilyName().getOrig());
             // givenName is not mandatory in LDAP, therefore givenName may not
             // be present on user
 

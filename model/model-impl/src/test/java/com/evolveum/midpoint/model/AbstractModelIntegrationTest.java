@@ -502,8 +502,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertEquals("Wrong jack familyName", "Sparrow", userType.getFamilyName());
 		assertEquals("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
 		assertEquals("Wrong jack honorificSuffix", "PhD.", userType.getHonorificSuffix());
-		assertEquals("Wrong jack emailAddress", "jack.sparrow@evolveum.com", userType.getEmailAddress().get(0));
-		assertEquals("Wrong jack telephoneNumber", "555-1234", userType.getTelephoneNumber().get(0));
+		assertEquals("Wrong jack emailAddress", "jack.sparrow@evolveum.com", userType.getEmailAddress());
+		assertEquals("Wrong jack telephoneNumber", "555-1234", userType.getTelephoneNumber());
 		assertEquals("Wrong jack employeeNumber", "emp1234", userType.getEmployeeNumber());
 		assertEquals("Wrong jack employeeType", "CAPTAIN", userType.getEmployeeType().get(0));
 		assertEquals("Wrong jack organizationalUnit", "Leaders", userType.getOrganizationalUnit().get(0));
