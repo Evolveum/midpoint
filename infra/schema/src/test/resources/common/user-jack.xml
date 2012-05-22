@@ -47,9 +47,18 @@
         <t:orig>Jack Sparrow</t:orig>
         <t:norm>jack sparrow</t:norm>
     </fullName>
-    <givenName>Jack</givenName>
-    <familyName>Sparrow</familyName>
-    <honorificPrefix>Cpt.</honorificPrefix>
+    <givenName>
+    	<t:orig>Jack</t:orig>
+        <t:norm>jack</t:norm>
+    </givenName>
+    <familyName>
+        <t:orig>Sparrow</t:orig>
+        <t:norm>sparrow</t:norm>
+	</familyName>
+    <honorificPrefix>
+    	<t:orig>Cpt.</t:orig>
+        <t:norm>cpt</t:norm>
+    </honorificPrefix>
     <emailAddress></emailAddress>
     <locality></locality>
     <credentials>

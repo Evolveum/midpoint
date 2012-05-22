@@ -103,9 +103,9 @@ public class TestJaxbParsing {
         user.checkConsistence();
         assertPropertyValue(user, SchemaConstants.C_NAME, "jack");
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "fullName"), new PolyString("Jack Sparrow", "jack sparrow"));
-        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "givenName"), "Jack");
-        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "familyName"), "Sparrow");
-        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "honorificPrefix"), "Cpt.");
+        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "givenName"), new PolyString("Jack", "jack"));
+        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "familyName"), new PolyString("Sparrow", "sparrow"));
+        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "honorificPrefix"), new PolyString("Cpt.", "cpt"));
         assertPropertyValue(user.findContainer(SchemaConstants.C_EXTENSION),
                 new QName(NS_FOO, "bar"), "BAR");
         PrismProperty<ProtectedStringType> password = user.findOrCreateContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "password"));

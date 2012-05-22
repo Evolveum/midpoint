@@ -32,6 +32,7 @@
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
     <emailAddress>jack@blackpearl.com</emailAddress>
+    <organizationalUnit>Brethren of the Coast</organizationalUnit>
     <locality>World's End</locality>
     <credentials>
         <password>

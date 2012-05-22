@@ -423,7 +423,8 @@ public class PrismAsserts {
 	}
 
 	private static void assertSet(QName propertyName, Collection<PrismPropertyValue<?>> valuesFromDelta, Object[] expectedValues) {
-		assertEquals("Wrong number of values",expectedValues.length, valuesFromDelta.size());
+		assertNotNull("Null value set in property "+propertyName, valuesFromDelta);
+		assertEquals("Wrong number of values in property "+propertyName, expectedValues.length, valuesFromDelta.size());
 		for (PrismPropertyValue<?> valueToReplace: valuesFromDelta) {
 			boolean found = false;
 			for (Object value: expectedValues) {

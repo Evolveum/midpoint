@@ -137,8 +137,10 @@ public class TestParseDiffPatch {
         assertEquals("Unexpected number of modifications", 3, modifications.size());
         PrismAsserts.assertPropertyReplace(userDelta, new QName(SchemaConstants.NS_C,"fullName"),
                 new PolyString("Cpt. Jack Sparrow", "cpt jack sparrow"));
-        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"honorificPrefix"), "Cpt.");
-        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"locality"), "Tortuga");
+        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"honorificPrefix"), 
+        		new PolyString("Cpt.", "cpt"));
+        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"locality"), 
+        		new PolyString("Tortuga", "tortuga"));
 
         ObjectModificationType objectModificationType = DeltaConvertor.toObjectModificationType(userDelta);
         System.out.println("Modification XML:");
@@ -150,8 +152,14 @@ public class TestParseDiffPatch {
         polyString.setOrig("Cpt. Jack Sparrow");
         polyString.setNorm("cpt jack sparrow");
         assertXmlPolyMod(objectModificationType, new QName(SchemaConstants.NS_C,"fullName"), ModificationTypeType.REPLACE, polyString);
-        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"honorificPrefix"), ModificationTypeType.ADD, "Cpt.");
-        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"locality"), ModificationTypeType.ADD, "Tortuga");
+        polyString = new PolyStringType();
+        polyString.setOrig("Cpt.");
+        polyString.setNorm("cpt");
+        assertXmlPolyMod(objectModificationType, new QName(SchemaConstants.NS_C,"honorificPrefix"), ModificationTypeType.ADD, polyString);
+        polyString = new PolyStringType();
+        polyString.setOrig("Tortuga");
+        polyString.setNorm("tortuga");
+        assertXmlPolyMod(objectModificationType, new QName(SchemaConstants.NS_C,"locality"), ModificationTypeType.ADD, polyString);
 
         userBefore.checkConsistence();
         userAfter.checkConsistence();
@@ -195,10 +203,13 @@ public class TestParseDiffPatch {
         assertEquals("Wrong delta OID", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", userDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = userDelta.getModifications();
-        assertEquals("Unexpected number of modifications", 3, modifications.size());
-        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"emailAddress"), "jack@blackpearl.com");
-        PrismAsserts.assertPropertyReplace(userDelta, new QName(SchemaConstants.NS_C,"locality"), "World's End");
+        assertEquals("Unexpected number of modifications", 4, modifications.size());
+        PrismAsserts.assertPropertyReplace(userDelta, new QName(SchemaConstants.NS_C,"emailAddress"), "jack@blackpearl.com");
+        PrismAsserts.assertPropertyReplace(userDelta, new QName(SchemaConstants.NS_C,"locality"), 
+        		new PolyString("World's End", "worlds end"));
         PrismAsserts.assertPropertyReplace(userDelta, SchemaConstants.PATH_ACTIVATION_ENABLE, false);
+        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"organizationalUnit"), 
+        		new PolyString("Brethren of the Coast", "brethren of the coast"));
 	}
 
 	@Test

@@ -43,8 +43,14 @@
         <t:orig>Hector Barbossa</t:orig>
         <t:norm>hector barbossa</t:norm>
     </fullName>
-    <givenName>Hector</givenName>
-    <familyName>Barbossa</familyName>
+    <givenName>
+    	<t:orig>Hector</t:orig>
+        <t:norm>hector</t:norm>
+	</givenName>
+    <familyName>
+        <t:orig>Barbossa</t:orig>
+        <t:norm>barbossa</t:norm>
+	</familyName>
     
     <credentials>
         <password>

@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -57,9 +58,9 @@ public class SchemaTestUtil {
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FULL_NAME, SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
 		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, UserType.F_FULL_NAME, "Full Name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, UserType.F_FULL_NAME, 100);
-		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_GIVEN_NAME, DOMUtil.XSD_STRING, 1, 1);
-		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, DOMUtil.XSD_STRING, 1, 1);
-		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAMES, DOMUtil.XSD_STRING, 0, -1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_GIVEN_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 1, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 1, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
 		assertFalse("User definition is marked as runtime", userDefinition.isRuntimeSchema());
 		
 		PrismContainerDefinition extensionContainer = userDefinition.findContainerDefinition(UserType.F_EXTENSION);

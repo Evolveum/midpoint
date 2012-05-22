@@ -212,10 +212,10 @@ public class TestParseUser {
 		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
 		assertPropertyValue(user, "fullName", new PolyString("Jack Sparrow", "jack sparrow"));
 		assertPropertyDefinition(user, "fullName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
-		assertPropertyValue(user, "givenName", "Jack");
-		assertPropertyDefinition(user, "givenName", DOMUtil.XSD_STRING, 1, 1);
-		assertPropertyValue(user, "familyName", "Sparrow");
-		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 1, 1);
+		assertPropertyValue(user, "givenName", new PolyString("Jack", "jack"));
+		assertPropertyDefinition(user, "givenName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
+		assertPropertyValue(user, "familyName", new PolyString("Sparrow", "sparrow"));
+		assertPropertyDefinition(user, "familyName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
 		
 //		PrismContainer extension = user.getExtension();
 //		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
@@ -277,10 +277,12 @@ public class TestParseUser {
 
 	private void assertUserJaxb(UserType userType) {
 		assertEquals("Wrong name", "jack", userType.getName());
-		assertEquals("Wrong fullName", "Jack Sparrow", userType.getFullName().getOrig());
-        assertEquals("Wrong fullName", "jack sparrow", userType.getFullName().getNorm());
-		assertEquals("Wrong givenName", "Jack", userType.getGivenName());
-		assertEquals("Wrong familyName", "Sparrow", userType.getFamilyName());
+		assertEquals("Wrong fullName (orig)", "Jack Sparrow", userType.getFullName().getOrig());
+        assertEquals("Wrong fullName (norm)", "jack sparrow", userType.getFullName().getNorm());
+		assertEquals("Wrong givenName (orig)", "Jack", userType.getGivenName().getOrig());
+		assertEquals("Wrong givenName (norm)", "jack", userType.getGivenName().getNorm());
+		assertEquals("Wrong familyName (orig)", "Sparrow", userType.getFamilyName().getOrig());
+		assertEquals("Wrong familyName (norm)", "sparrow", userType.getFamilyName().getNorm());
 
 		ActivationType activation = userType.getActivation();
 		assertNotNull("No activation", activation);

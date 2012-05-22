@@ -76,7 +76,7 @@ public class TestDiffEquals {
         assertNotNull(delta);
         assertEquals(0, delta.getModifications().size());
 
-        u2.getAdditionalNames();
+        u2.getAdditionalName();
 
         delta = u1.asPrismObject().diff(u2.asPrismObject());
         assertNotNull(delta);
