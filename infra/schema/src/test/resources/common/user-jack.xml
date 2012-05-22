@@ -60,6 +60,14 @@
         <t:norm>cpt</t:norm>
     </honorificPrefix>
     <emailAddress></emailAddress>
+    <organizationalUnit>
+    	<t:orig>Brethren of the Coast</t:orig>
+    	<t:norm>brethren of the coast</t:norm>
+    </organizationalUnit>
+    <organizationalUnit>
+    	<t:orig>Davie Jones' Locker</t:orig>
+    	<t:norm>davie jones locker</t:norm>
+    </organizationalUnit>
     <locality></locality>
     <credentials>
         <password>

@@ -216,6 +216,11 @@ public class TestParseUser {
 		assertPropertyDefinition(user, "givenName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
 		assertPropertyValue(user, "familyName", new PolyString("Sparrow", "sparrow"));
 		assertPropertyDefinition(user, "familyName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
+	
+		assertPropertyDefinition(user, "organizationalUnit", SchemaConstants.T_POLY_STRING_TYPE, 0, -1);
+		assertPropertyValues(user, "organizationalUnit", 
+				new PolyString("Brethren of the Coast", "brethren of the coast"),
+				new PolyString("Davie Jones' Locker", "davie jones locker"));
 		
 //		PrismContainer extension = user.getExtension();
 //		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
@@ -317,6 +322,11 @@ public class TestParseUser {
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
+	}
+
+	public static <T> void assertPropertyValues(PrismContainer<?> container, String propName, T... expectedValues) {
+		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
+		PrismAsserts.assertPropertyValue(container, propQName, expectedValues);
 	}
 
     @Test

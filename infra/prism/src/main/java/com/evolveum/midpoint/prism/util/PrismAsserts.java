@@ -73,27 +73,24 @@ public class PrismAsserts {
 	
 	// VALUE asserts
 		
-	public static <T> void assertPropertyValue(PrismContainer<?> container, QName propQName, T realPropValue) {
+	public static <T> void assertPropertyValue(PrismContainer<?> container, QName propQName, T... realPropValues) {
 		PrismContainerValue<?> containerValue = container.getValue();
 		assertSame("Wrong parent for value of container "+container, container, containerValue.getParent());
-		assertPropertyValue(containerValue, propQName, realPropValue);
+		assertPropertyValue(containerValue, propQName, realPropValues);
 	}
 		
-	public static <T> void assertPropertyValue(PrismContainerValue<?> containerValue, QName propQName, T realPropValue) {
+	public static <T> void assertPropertyValue(PrismContainerValue<?> containerValue, QName propQName, T... realPropValues) {
 		PrismProperty<T> property = containerValue.findProperty(propQName);
 		assertNotNull("Property " + propQName + " not found in " + containerValue.getParent(), property);
 		assertSame("Wrong parent for property " + property, containerValue, property.getParent());
-		assertPropertyValue(property, realPropValue);
+		assertPropertyValue(property, realPropValues);
 	}
 		
-	public static <T> void assertPropertyValue(PrismProperty<T> property, T propValue) {
+	public static <T> void assertPropertyValue(PrismProperty<T> property, T... expectedPropValues) {
 		Collection<PrismPropertyValue<T>> pvals = property.getValues();
 		QName propQName = property.getName();
 		assert pvals != null && !pvals.isEmpty() : "Empty property "+propQName;
-		assertEquals("Numver of values of property "+propQName, 1, pvals.size());
-		PrismPropertyValue<T> pval = pvals.iterator().next();
-		assertEquals("Values of property "+propQName, propValue, pval.getValue());
-		assertSame("Wrong parent for value of property "+property, property, pval.getParent());
+		assertSet("property "+propQName, pvals, expectedPropValues);
 	}
 	
 	public static <T> void assertPropertyValues(String message, Collection<T> expected, Collection<PrismPropertyValue<T>> results) {
@@ -104,16 +101,12 @@ public class PrismAsserts {
             values.add(result.getValue());
         }
         assertEquals(message, expected, values);
-
-//        Object[] array = expected.toArray();
-//        PropertyValue[] array1 = new PropertyValue[results.size()];
-//        results.toArray(array1);
-//
-//        for (int i=0;i<expected.size();i++) {
-//            assertEquals(array[i], array1[i].getValue());
-//        }
     }
-	
+
+	public static <T> void assertPropertyValues(String message, Collection<PrismPropertyValue<T>> results, T... expectedValues) {
+		assertSet(message, results, expectedValues);
+    }
+
 	public static void assertReferenceValues(PrismReference ref, String... oids) {
 		assert oids.length == ref.getValues().size() : "Wrong number of values in "+ref+"; expected "+oids.length+" but was "+ref.getValues().size();
 		for (String oid: oids) {
@@ -204,37 +197,37 @@ public class PrismAsserts {
 	public static void assertPropertyReplace(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
-		assertSet(propertyName, propertyDelta.getValuesToReplace(), expectedValues);
+		assertSet("delta for "+propertyName, propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
-		assertSet(propertyName, propertyDelta.getValuesToAdd(), expectedValues);
+		assertSet("delta for "+propertyName, propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
-		assertSet(propertyName, propertyDelta.getValuesToDelete(), expectedValues);
+		assertSet("delta for "+propertyName, propertyDelta.getValuesToDelete(), expectedValues);
 	}
 
 	public static void assertPropertyReplace(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToReplace(), expectedValues);
+		assertSet("delta for "+propertyPath.last().getName(), propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToAdd(), expectedValues);
+		assertSet("delta for "+propertyPath.last().getName(), propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
+		assertSet("delta for "+propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
 	}
 	
 	public static void assertNoItemDelta(ObjectDelta<?> userDelta, PropertyPath propertyPath) {
@@ -422,18 +415,18 @@ public class PrismAsserts {
 		assert false: message + ": " + suffix;
 	}
 
-	private static void assertSet(QName propertyName, Collection<PrismPropertyValue<?>> valuesFromDelta, Object[] expectedValues) {
-		assertNotNull("Null value set in property "+propertyName, valuesFromDelta);
-		assertEquals("Wrong number of values in property "+propertyName, expectedValues.length, valuesFromDelta.size());
-		for (PrismPropertyValue<?> valueToReplace: valuesFromDelta) {
+	private static <T> void assertSet(String inMessage, Collection<PrismPropertyValue<T>> actualPValues, T[] expectedValues) {
+		assertNotNull("Null value set in " + inMessage, actualPValues);
+		assertEquals("Wrong number of values in " + inMessage, expectedValues.length, actualPValues.size());
+		for (PrismPropertyValue<?> actualPValue: actualPValues) {
 			boolean found = false;
-			for (Object value: expectedValues) {
-				if (value.equals(valueToReplace.getValue())) {
+			for (T value: expectedValues) {
+				if (value.equals(actualPValue.getValue())) {
 					found = true;
 				}
 			}
 			if (!found) {
-				fail("Unexpected value "+valueToReplace+" in delta for "+propertyName);
+				fail("Unexpected value "+actualPValue+" in " + inMessage);
 			}
 		}
 	}
