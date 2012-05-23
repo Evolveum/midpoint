@@ -63,7 +63,7 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
     }
 
     @Override
-    public int size() {
+    protected int internalSize() {
         List<T> list = model.getObject();
         if (list == null) {
             return 0;

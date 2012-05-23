@@ -30,13 +30,16 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Index;
 
 import javax.xml.namespace.QName;
+import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -122,7 +125,7 @@ public class QueryRegistry {
 
             AttributeDefinition attrDef = new AttributeDefinition();
             attrDef.setName(new QName(namespace, name));
-            attrDef.setIndexed(hasAnnotation(field, Index.class));
+            attrDef.setIndexed(isFieldIndexed(field));
             attrDef.setEnumerated(queryAttribute.enumerated());
             attrDef.setPolyString(queryAttribute.polyString());
             if (queryAttribute.enumerated()) {
@@ -133,6 +136,27 @@ public class QueryRegistry {
             }
             parent.putDefinition(attrDef.getName(), attrDef);
         }
+    }
+
+    private boolean isFieldIndexed(Field field) {
+        try {
+            Method getter = PropertyUtils.getReadMethod(new PropertyDescriptor(field.getName(),
+                    field.getDeclaringClass()));
+            if (getter == null) {
+                return false;
+            }
+
+            Annotation[] annotations = getter.getDeclaredAnnotations();
+            for (Annotation annotation : annotations) {
+                if (annotation instanceof Index) {
+                    return true;
+                }
+            }
+        } catch (Exception ex) {
+            LOGGER.trace("Is field indexed check failed, reason: " + ex.getMessage(), ex);
+        }
+
+        return false;
     }
 
     private boolean hasAnnotation(Field field, Class<? extends Annotation> type) {

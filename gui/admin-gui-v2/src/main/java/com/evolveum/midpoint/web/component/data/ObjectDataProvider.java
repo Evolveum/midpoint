@@ -34,8 +34,10 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -50,7 +52,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
     private Class<T> type;
 
     public ObjectDataProvider(PageBase page, Class<T> type) {
-        super(page);
+        super(page, true);
 
         Validate.notNull(type);
         this.type = type;
@@ -87,8 +89,8 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
     }
 
     @Override
-    public int size() {
-        LOGGER.trace("begin::size()");
+    protected int internalSize() {
+        LOGGER.trace("begin::internalSize()");
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
@@ -105,7 +107,17 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
         if (!result.isSuccess()) {
             getPage().showResultInSession(result);
         }
-        LOGGER.trace("end::size()");
+        LOGGER.trace("end::internalSize()");
         return count;
+    }
+
+    @Override
+    protected CachedSize getCachedSize(Map<Serializable, CachedSize> cache) {
+        return cache.get(new TypedCacheKey(getQuery(), type));
+    }
+
+    @Override
+    protected void addCachedSize(Map<Serializable, CachedSize> cache, CachedSize newSize) {
+        cache.put(new TypedCacheKey(getQuery(), type), newSize);
     }
 }

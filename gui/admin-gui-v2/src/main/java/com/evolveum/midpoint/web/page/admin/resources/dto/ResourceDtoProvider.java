@@ -107,7 +107,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
     }
 
     @Override
-    public int size() {
+    protected int internalSize() {
         OperationResult result = new OperationResult(OPERATION_COUNT_RESOURCES);
         int count = 0;
         try {

@@ -76,7 +76,7 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     }
 
     @Override
-    public int size() {
+    protected int internalSize() {
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_RESOURCES);
         try {

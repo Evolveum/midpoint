@@ -250,7 +250,7 @@ public class SimpleOp extends Op {
 
             AttributeDefinition attrDef = (AttributeDefinition) def;
             if (!attrDef.isIndexed()) {
-                LOGGER.warn("You're probably querying by attribute ('" + attrDef + "') which is not indexed.");
+                LOGGER.debug("You're probably querying by attribute ('" + attrDef + "') which is not indexed.");
             }
             if (attrDef.isReference()) {
                 PropertyPath propPath = propertyPath;

@@ -23,8 +23,6 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
@@ -40,7 +38,6 @@ import java.util.List;
 public class RepositoryObjectDataProvider<T extends ObjectType>
         extends BaseSortableDataProvider<SelectableBean<T>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RepositoryObjectDataProvider.class);
     private static final String DOT_CLASS = RepositoryObjectDataProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
@@ -48,7 +45,7 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
     private Class<T> type;
 
     public RepositoryObjectDataProvider(PageBase page, Class<T> type) {
-        super(page);
+        super(page, true);
 
         setType(type);
     }
@@ -79,7 +76,7 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
     }
 
     @Override
-    public int size() {
+    protected int internalSize() {
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
