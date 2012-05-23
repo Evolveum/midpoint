@@ -59,7 +59,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void initLayout() {
         //listed type
-        final IModel<ObjectTypes> choice = new Model<ObjectTypes>(ObjectTypes.USER);
+        final IModel<ObjectTypes> choice = new Model<ObjectTypes>(ObjectTypes.SYSTEM_CONFIGURATION);
 
         List<IColumn<? extends ObjectType>> columns = new ArrayList<IColumn<? extends ObjectType>>();
 

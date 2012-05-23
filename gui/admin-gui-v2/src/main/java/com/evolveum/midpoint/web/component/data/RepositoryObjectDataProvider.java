@@ -29,8 +29,10 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -97,5 +99,15 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
     public void setType(Class<T> type) {
         Validate.notNull(type);
         this.type = type;
+    }
+
+    @Override
+    protected CachedSize getCachedSize(Map<Serializable, CachedSize> cache) {
+        return cache.get(new TypedCacheKey(getQuery(), type));
+    }
+
+    @Override
+    protected void addCachedSize(Map<Serializable, CachedSize> cache, CachedSize newSize) {
+        cache.put(new TypedCacheKey(getQuery(), type), newSize);
     }
 }
