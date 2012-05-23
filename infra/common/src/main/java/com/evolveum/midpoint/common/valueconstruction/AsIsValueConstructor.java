@@ -26,12 +26,18 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -43,8 +49,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructor
  * @author Radovan Semancik
  */
 public class AsIsValueConstructor implements ValueConstructor {
+	
+	private PrismContext prismContext;
 
-    /* (non-Javadoc)
+    public AsIsValueConstructor(PrismContext prismContext) {
+		super();
+		this.prismContext = prismContext;
+	}
+
+	/* (non-Javadoc)
       * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
       */
     @Override
@@ -54,18 +67,48 @@ public class AsIsValueConstructor implements ValueConstructor {
 			String contextDescription, OperationResult result) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 
-        Object constructorTypeObject = constructorElement.getValue();
-        if (!(constructorTypeObject instanceof AsIsValueConstructorType)) {
+        Object constructorTypeObject = null;
+        if (constructorElement != null) {
+        	constructorTypeObject = constructorElement.getValue();
+        }
+        if (constructorTypeObject != null && !(constructorTypeObject instanceof AsIsValueConstructorType)) {
             throw new IllegalArgumentException("AsIs value constructor cannot handle elements of type " + constructorTypeObject.getClass().getName());
         }
         //AsIsValueConstructorType constructorType = (AsIsValueConstructorType)constructorTypeObject;
-
+        
         PrismValueDeltaSetTriple<V> outputTriple = ItemDelta.toDeltaSetTriple(input, inputDelta, conditionResultOld, conditionResultNew);
         
         if (outputTriple == null) {
         	return null;
         }
-        return outputTriple.clone();
+        return toOutputTriple(outputTriple, outputDefinition);
+    }
+    
+    // Black magic hack follows. This is TODO to refactor to a cleaner state.
+    private <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(PrismValueDeltaSetTriple<V> resultTriple, 
+    		ItemDefinition outputDefinition) {
+    	Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
+    	if (resultTripleValueClass == null) {
+    		// triple is empty. type does not matter.
+    		return resultTriple;
+    	}
+    	PrismValueDeltaSetTriple<V> clonedTriple = resultTriple.clone();
+    	if (resultTripleValueClass.equals(String.class) && outputDefinition.getTypeName().equals(PrismConstants.POLYSTRING_TYPE_QNAME)) {
+    		// Have String, want PolyString
+    		clonedTriple.accept(new Visitor() {
+				@Override
+				public void visit(Visitable visitable) {
+					if (visitable instanceof PrismPropertyValue<?>) {
+						PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>)visitable;
+						String realVal = (String)pval.getValue();
+						PolyString polyStringVal = new PolyString(realVal);
+						polyStringVal.recompute(prismContext.getDefaultPolyStringNormalizer());
+						pval.setValue(polyStringVal);
+					}
+				}
+			});
+    	}
+    	return clonedTriple;
     }
 
 }

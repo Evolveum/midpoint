@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -124,7 +125,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, "Tortuga");
+        addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
         context.recomputeNew();
 
         display("Input context", context);

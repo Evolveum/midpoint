@@ -101,6 +101,7 @@ public class ValueConstructionTestEvaluator {
         factory = new ValueConstructionFactory();
         factory.setExpressionFactory(expressionFactory);
         factory.setObjectResolver(resolver);
+        factory.setPrismContext(prismContext);
         
         protector = new AESProtector();
         protector.setKeyStorePath(KEYSTORE_PATH);
@@ -110,6 +111,15 @@ public class ValueConstructionTestEvaluator {
         factory.setProtector(protector);
     }
 
+	public PrismPropertyDefinition getPropertyDefinition(String propertyName) {
+		return getPropertyDefinition(toPath(propertyName));
+	}
+	
+	public PrismPropertyDefinition getPropertyDefinition(PropertyPath propertyPath) {
+		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        return userDef.findPropertyDefinition(propertyPath);
+	}
+	
     public <T> ValueConstruction<PrismPropertyValue<T>> createConstruction(Class<T> type, String filename, String propertyName, 
     		T inputPropertyValue, Map<QName, Object> extraVariables, String testName) 
     		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -124,14 +134,8 @@ public class ValueConstructionTestEvaluator {
                 new File(TEST_DIR, filename), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismPropertyDefinition propDef = userDef.findPropertyDefinition(propertyPath);
-
-
+        PrismPropertyDefinition propDef = getPropertyDefinition(propertyPath);
         
-        OperationResult opResult = new OperationResult(testName);
-
-        // WHEN
         ValueConstruction<PrismPropertyValue<T>> construction = factory.createValueConstruction(valueConstructionType, propDef, testName);
         if (inputPropertyValue != null) {
         	PrismProperty inputProperty = propDef.instantiate();

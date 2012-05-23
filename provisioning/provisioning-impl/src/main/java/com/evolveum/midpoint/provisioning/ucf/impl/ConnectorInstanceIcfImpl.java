@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
@@ -51,6 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ScriptCapabilityType.Host;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -2206,12 +2209,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	private Object convertToIcfSingle(PrismProperty configProperty, Class expectedType)
+	private Object convertToIcfSingle(PrismProperty<?> configProperty, Class<?> expectedType)
 			throws ConfigurationException {
 		if (configProperty == null) {
 			return null;
 		}
-		PrismPropertyValue pval = configProperty.getValue();
+		PrismPropertyValue<?> pval = configProperty.getValue();
 		return convertToIcf(pval, expectedType);
 	}
 
@@ -2226,27 +2229,32 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return (Object[]) valuesArrary;
 	}
 
-	private Object convertToIcf(PrismPropertyValue pval, Class expectedType) throws ConfigurationException {
+	private Object convertToIcf(PrismPropertyValue<?> pval, Class<?> expectedType) throws ConfigurationException {
+		Object midPointRealValue = pval.getValue();
 		if (expectedType.equals(GuardedString.class)) {
 			// Guarded string is a special ICF beast
 			// The value must be ProtectedStringType
-			Object midPointValue = pval.getValue();
-			if (midPointValue instanceof ProtectedStringType) {
+			if (midPointRealValue instanceof ProtectedStringType) {
 				ProtectedStringType ps = (ProtectedStringType) pval.getValue();
 				return toGuardedString(ps, pval.getParent().getName().getLocalPart());
 			} else {
 				throw new ConfigurationException(
 						"Expected protected string as value of configuration property "
 								+ pval.getParent().getName().getLocalPart() + " but got "
-								+ midPointValue.getClass());
+								+ midPointRealValue.getClass());
 			}
 
 		} else if (expectedType.equals(GuardedByteArray.class)) {
 			// Guarded string is a special ICF beast
 			// TODO
 			return new GuardedByteArray(Base64.decodeBase64((String) pval.getValue()));
+		} else if (midPointRealValue instanceof PolyString) {
+			return ((PolyString)midPointRealValue).getOrig();
+		} else if (midPointRealValue instanceof PolyStringType) {
+			return ((PolyStringType)midPointRealValue).getOrig();
+		} else {
+			return midPointRealValue;
 		}
-		return pval.getValue();
 	}
 
 	private GuardedString toGuardedString(ProtectedStringType ps, String propertyName) {

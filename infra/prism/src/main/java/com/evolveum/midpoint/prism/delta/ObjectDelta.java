@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -546,6 +547,12 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	PropertyDelta<X> propertyDelta = objectDelta.createPropertyModification(propertyPath, propDef);
     	Collection<PrismPropertyValue<X>> valuesToReplace = new ArrayList<PrismPropertyValue<X>>(propertyValues.length);
     	for (X val: propertyValues) {
+    		if (val instanceof PolyString) {
+    			PolyString polyStringVal = (PolyString)val;
+    			if (!polyStringVal.isComputed()) {
+    				polyStringVal.recompute(prismContext.getDefaultPolyStringNormalizer());
+    			}
+    		}
     		PrismPropertyValue<X> pval = new PrismPropertyValue<X>(val);
     		valuesToReplace.add(pval);
     	}

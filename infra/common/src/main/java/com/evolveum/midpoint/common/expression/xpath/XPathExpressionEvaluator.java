@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.common.expression.xpath;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -223,9 +224,13 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
             } else {
             	throw new ExpressionEvaluationException("Unexpected scalar return type " + value.getClass().getName());
             }
+            if (returnType.equals(PrismConstants.POLYSTRING_TYPE_QNAME) && resultValue instanceof String) {
+            	resultValue = (T) new PolyString((String)resultValue);
+            }
             if (resultValue instanceof PolyString) {
             	((PolyString)resultValue).recompute(prismContext.getDefaultPolyStringNormalizer());
             }
+            
             return new PrismPropertyValue<T>(resultValue);
         } catch (SchemaException e) {
             throw new ExpressionEvaluationException("Error converting result of "

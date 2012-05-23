@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -197,6 +198,12 @@ public class PrismTestUtil {
 
 	public static <T extends Objectable> PrismObjectDefinition<T> getObjectDefinition(Class<T> compileTimeClass) {
 		return getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
+	}
+
+	public static PolyString createPolyString(String orig) {
+		PolyString polyString = new PolyString(orig);
+		polyString.recompute(getPrismContext().getDefaultPolyStringNormalizer());
+		return polyString;
 	}
 
 }

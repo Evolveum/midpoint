@@ -209,6 +209,9 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	}
 	
 	public boolean isInitial() {
+		if (valueConstructionType == null) {
+			return false;
+		}
 		Boolean value = valueConstructionType.isInitial();
 		if (value == null) {
 			value = false;
@@ -217,6 +220,9 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	}
 
 	public boolean isAuthoritative() {
+		if (valueConstructionType == null) {
+			return false;
+		}
 		Boolean value = valueConstructionType.isAuthoritative();
 		if (value == null) {
 			value = false;
@@ -225,6 +231,9 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	}
 
 	public boolean isExclusive() {
+		if (valueConstructionType == null) {
+			return false;
+		}
 		Boolean value = valueConstructionType.isExclusive();
 		if (value == null) {
 			value = false;
@@ -266,6 +275,9 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	}
 	
 	private boolean evaluateConditionOld(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		if (valueConstructionType == null) {
+			return true;
+		}
 		ExpressionType conditionExpressionType = valueConstructionType.getCondition();
 		if (conditionExpressionType == null) {
 			return true;
@@ -280,6 +292,9 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	}
 
 	private boolean evaluateConditionNew(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		if (valueConstructionType == null) {
+			return true;
+		}
 		ExpressionType conditionExpressionType = valueConstructionType.getCondition();
 		if (conditionExpressionType == null) {
 			return true;
@@ -295,6 +310,13 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 
 	
 	private void evaluateValueConstructors(OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		if (valueConstructionType == null) {
+			ValueConstructor constructor = getDefaultConstructor();
+			outputTriple = constructor.construct(null, outputDefinition, input, inputDelta, variables, 
+					conditionResultOld, conditionResultNew, shortDesc, result);
+			return;
+		}
+		
 		if (valueConstructionType.getValueConstructor() != null && valueConstructionType.getSequence() != null) {
 			throw new SchemaException("Both constructor and sequence was specified, ambiguous situation in "+shortDesc);
 		}
@@ -307,6 +329,7 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 			outputTriple = constructor.construct(valueConstructionType.getValueConstructor(), outputDefinition,
 						input, inputDelta, variables, conditionResultOld, conditionResultNew,
 						shortDesc, result);
+			return;
 		}
 		
 		if (valueConstructionType.getSequence() != null) {
@@ -322,6 +345,10 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 				}
 			}
 		}
+	}
+	
+	private ValueConstructor getDefaultConstructor()  {
+		return constructors.get(null);
 	}
 
 	private ValueConstructor determineConstructor(JAXBElement<?> valueConstructorElement) throws SchemaException {

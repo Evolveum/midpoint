@@ -56,7 +56,9 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -161,13 +163,14 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , 
+        		PrismTestUtil.createPolyString("Jack Sparrow"));
 
         PrismObject<AccountShadowType> accountNew = accContext.getAccountNew();
         PrismContainer<?> attributes = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
         assertNotNull("No attribute in account new", attributes);
         PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "jack");
-        PrismAsserts.assertPropertyValue(attributes, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, "Jack Sparrow");        
+        PrismAsserts.assertPropertyValue(attributes, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, PrismTestUtil.createPolyString("Jack Sparrow"));        
 	}
 	
 	@Test
@@ -216,7 +219,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 
         PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
         assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
-        assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
+        assertEquals(PrismTestUtil.createPolyString("Jack Sparrow"), attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
         
 	}
 
@@ -230,7 +233,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         SyncContext context = new SyncContext(prismContext);
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, "Tortuga");
+        addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Tortuga"));
         context.recomputeNew();
 
         display("Input context", context);
@@ -310,7 +313,8 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
         assertNotNull("No attributes in new account", attributes);
         assertEquals("jack1", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
-        assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
+        PrismAsserts.assertEqualsPolyString("Wrong fullName", "Jack Sparrow", (PolyString)
+        		attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
         
 	}
 	
@@ -424,7 +428,8 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserSecondaryDelta(context);
         ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , "The crew of Black Pearl");
+        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , 
+        		PrismTestUtil.createPolyString("The crew of Black Pearl"));
                 
     }
 
@@ -457,7 +462,8 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserSecondaryDelta(context);
         ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , "The crew of The Sea Monkey");
+        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , 
+        		PrismTestUtil.createPolyString("The crew of The Sea Monkey"));
                 
     }
 
@@ -499,7 +505,8 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getDummyAttributePath("location"), "Melee Island");
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getDummyAttributePath("location"), 
+        		PrismTestUtil.createPolyString("Melee Island"));
         
     }
 

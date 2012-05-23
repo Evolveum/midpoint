@@ -137,6 +137,28 @@ public class TestValueConstructionDynamic {
     }
 
     @Test
+    public void testConstructionAsIsStringToPolyString() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
+    	// GIVEN        
+    	final String TEST_NAME = "testConstructionAsIsStringToPolyString";
+
+    	ValueConstruction<PrismPropertyValue<String>> construction = evaluator.createConstruction(String.class, 
+    			"construction-asis.xml", "name", "Rock", null, TEST_NAME);
+
+    	construction.setOutputDefinition(evaluator.getPropertyDefinition("fullName"));
+        
+        OperationResult opresult = new OperationResult(TEST_NAME);
+        
+        // WHEN
+        construction.evaluate(opresult);
+    	
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = construction.getOutputTriple();    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Rock"));
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+    
+    @Test
     public void testConstructionPathVariables() throws Exception {
     	// GIVEN
     	Map<QName, Object> vars = new HashMap<QName, Object>();

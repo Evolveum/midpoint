@@ -22,6 +22,8 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -37,7 +39,8 @@ import java.util.HashSet;
  *
  * @author Radovan Semancik
  */
-public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTriple<V> implements Dumpable, DebugDumpable {
+public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTriple<V> 
+				implements Dumpable, DebugDumpable, Visitable {
 
     public PrismValueDeltaSetTriple() {
     	super();
@@ -72,7 +75,45 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
             minusSet.add(myMember);
         }
     }
-    	
+    
+	public Class<V> getValueClass() {
+		V anyValue = getAnyValue();
+		if (anyValue == null) {
+			return null;
+		}
+		return (Class<V>) anyValue.getClass();
+	}
+	
+	public Class<?> getRealValueClass() {
+		V anyValue = getAnyValue();
+		if (anyValue == null) {
+			return null;
+		}
+		if (anyValue instanceof PrismPropertyValue<?>) {
+			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)anyValue;
+			Object realValue = pval.getValue();
+			if (realValue == null) {
+				return null;
+			}
+			return realValue.getClass();
+		} else {
+			return null;
+		}
+	}
+
+	private V getAnyValue() {
+		if (zeroSet != null && !zeroSet.isEmpty()) {
+			return zeroSet.iterator().next();
+		}
+		if (plusSet != null && !plusSet.isEmpty()) {
+			return plusSet.iterator().next();
+		}
+		if (minusSet != null && !minusSet.isEmpty()) {
+			return minusSet.iterator().next();
+		}
+		return null;
+	}
+
 	public PrismValueDeltaSetTriple<V> clone() {
 		PrismValueDeltaSetTriple<V> clone = new PrismValueDeltaSetTriple<V>();
 		clone.zeroSet = cloneSet(this.zeroSet);
@@ -90,6 +131,22 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			clonedSet.add((V) origVal.clone());
 		}
 		return clonedSet;
+	}
+	
+	@Override
+	public void accept(Visitor visitor) {
+		acceptSet(zeroSet, visitor);
+		acceptSet(plusSet, visitor);
+		acceptSet(minusSet, visitor);
+	}
+
+	private void acceptSet(Collection<V> set, Visitor visitor) {
+		if (set == null) {
+			return;
+		}
+		for (V val: set) {
+			val.accept(visitor);
+		}
 	}
 	
 	protected String debugName() {

@@ -28,7 +28,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -51,6 +53,7 @@ public class ValueConstructionFactory {
 	private ExpressionFactory expressionFactory;
 	private ObjectResolver objectResolver;
 	private Protector protector;
+	private PrismContext prismContext;
 	
 	public ValueConstructionFactory() {
 		constructors = null;
@@ -80,6 +83,14 @@ public class ValueConstructionFactory {
 		this.objectResolver = objectResolver;
 	}
 
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
 	private void initialize() {
 		constructors = new HashMap<QName, ValueConstructor>();
 		createLiteralConstructor();
@@ -96,9 +107,11 @@ public class ValueConstructionFactory {
 	}
 
 	private void createAsIsConstructor() {
-		ValueConstructor constructor = new AsIsValueConstructor();
+		ValueConstructor constructor = new AsIsValueConstructor(prismContext);
 		JAXBElement<AsIsValueConstructorType> element = objectFactory.createAsIs(objectFactory.createAsIsValueConstructorType());
 		constructors.put(element.getName(), constructor);
+		// This is also a default constructor
+		constructors.put(null, constructor);
 	}
 
 	
@@ -126,6 +139,14 @@ public class ValueConstructionFactory {
 			initialize();
 		}
 		ValueConstruction<V> construction = new ValueConstruction<V>(valueConstructionType, outputDefinition, shortDesc, constructors, expressionFactory);
+		return construction;
+	}
+
+	public <V extends PrismValue> ValueConstruction<V> createDefaultValueConstruction(ItemDefinition outputDefinition, String shortDesc) {
+		if (constructors == null) {
+			initialize();
+		}
+		ValueConstruction<V> construction = new ValueConstruction<V>(null, outputDefinition, shortDesc, constructors, expressionFactory);
 		return construction;
 	}
 	

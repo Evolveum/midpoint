@@ -79,6 +79,9 @@
         <property name="protector">
             <ref bean="protector"/>
         </property>
+        <property name="prismContext">
+            <ref bean="prismContext"/>
+        </property>
     </bean>
 
     <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">

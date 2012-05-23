@@ -232,14 +232,21 @@ public class InboundProcessor {
         }
         PrismPropertyDefinition targetPropertyDef = newUser.getDefinition().findPropertyDefinition(targetUserPropertyPath);
         
-        PrismProperty<T> sourceProperty = oldAccountProperty;
+        PrismProperty<T> sourceProperty = null;
         // Try to process source
-        ValueConstructionType sourceValueConstructionType = inbound.getSource();
-        if (sourceValueConstructionType != null && oldAccountProperty != null) {
-        	ValueConstruction<PrismPropertyValue<T>> valueConstruction = valueConstructionFactory.createValueConstruction(sourceValueConstructionType, targetPropertyDef, 
-        			"inbound expression for "+oldAccountProperty.getName());
+        if (oldAccountProperty != null) {
+        	ValueConstructionType sourceValueConstructionType = inbound.getSource();
+        	ValueConstruction<PrismPropertyValue<T>> valueConstruction = null;
+        	if (sourceValueConstructionType != null) {
+        		valueConstruction = valueConstructionFactory.createValueConstruction(sourceValueConstructionType, targetPropertyDef, 
+	        			"inbound expression for "+oldAccountProperty.getName());
+        	} else {
+        		valueConstruction = valueConstructionFactory.createDefaultValueConstruction(targetPropertyDef, 
+	        			"inbound expression for "+oldAccountProperty.getName());
+        	}
         	valueConstruction.setInput(oldAccountProperty);
         	valueConstruction.setInputDelta(null);
+        	valueConstruction.setOutputDefinition(targetPropertyDef);
         	valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
         	// Add variables
         	valueConstruction.evaluate(result);
@@ -249,7 +256,7 @@ public class InboundProcessor {
         
         PropertyDelta<T> delta = null;
         if (targetUserProperty != null) {
-            LOGGER.trace("Simple property comparing user property {} to old account property {} ",
+            LOGGER.trace("Simple property comparing user property {} to computed property {} ",
                     new Object[]{targetUserProperty, sourceProperty});
             //simple property comparing if user property exists
             delta = targetUserProperty.diff(sourceProperty, targetUserPropertyPath);
@@ -270,7 +277,7 @@ public class InboundProcessor {
 
         return delta;
     }
-
+    
     private <T> PropertyDelta<T> evaluateInboundExpressionFromDelta(ValueAssignmentType inbound, PropertyDelta<T> accountAttributeDelta,
             PrismObject<UserType> newUser, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<ValueFilterType> filters = inbound.getValueFilter();

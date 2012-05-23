@@ -20,8 +20,6 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -29,7 +27,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * The triple of values (added, unchanged, deleted) that represents difference between two collections of values.
