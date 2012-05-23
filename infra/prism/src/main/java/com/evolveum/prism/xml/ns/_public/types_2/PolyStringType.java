@@ -16,6 +16,10 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
+
 
 /**
  * 
@@ -54,7 +58,7 @@ import javax.xml.bind.annotation.XmlType;
     "norm",
     "any"
 })
-public class PolyStringType {
+public class PolyStringType implements Dumpable, DebugDumpable {
 
     @XmlElement(required = true)
     protected String orig;
@@ -151,5 +155,30 @@ public class PolyStringType {
 	public String toString() {
 		return orig;
 	}
-    
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("PolyStringType(");
+		sb.append(orig);
+		if (norm != null) {
+			sb.append(",");
+			sb.append(norm);
+		}
+		sb.append(")");
+		return sb.toString();
+
+	}
+
+	@Override
+	public String dump() {
+		return debugDump();
+	}
+	
 }

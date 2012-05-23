@@ -76,8 +76,8 @@ public class TestPolyString {
 		
 		// THEN
 		assertEquals("orig have changed", orig, polyString.getOrig());
-		assertEquals("wrong toString", orig, polyString.toString());
 		assertEquals("wrong norm", norm, polyString.getNorm());
+		assertEquals("wrong toString", orig, polyString.toString());
 	}
 	
 	@Test

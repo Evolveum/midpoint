@@ -1564,8 +1564,8 @@
                                 by the user itself and it defines how the user wants other to address him. 
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Additional Name</a:displayName>
-		                    	<a:displayOrder>130</a:displayOrder>
+		                    	<a:displayName>Nickname</a:displayName>
+		                    	<a:displayOrder>140</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1583,7 +1583,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Honorific Prefix</a:displayName>
-		                    	<a:displayOrder>140</a:displayOrder>
+		                    	<a:displayOrder>150</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1601,7 +1601,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Honorific Suffix</a:displayName>
-		                    	<a:displayOrder>140</a:displayOrder>
+		                    	<a:displayOrder>160</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1615,13 +1615,13 @@
                                 Examples: CEO, Security Officer, Assistant
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Honorific Suffix</a:displayName>
-		                    	<a:displayOrder>140</a:displayOrder>
+		                    	<a:displayName>Title</a:displayName>
+		                    	<a:displayOrder>170</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     
-                                        <xsd:element name="preferredLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="preferredLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Indicates user's preferred language, usually for the purpose of localizing
@@ -1631,6 +1631,10 @@
 
                                 Examples: en_US, sk_SK
                             </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Preferred Language</a:displayName>
+		                    	<a:displayOrder>200</a:displayOrder>
+		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1644,6 +1648,10 @@
 
                                 Examples: en_US, sk_SK
                             </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Locale</a:displayName>
+		                    	<a:displayOrder>210</a:displayOrder>
+		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1655,6 +1663,10 @@
 
                                 Examples: Europe/Bratislava
                             </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Timezone</a:displayName>
+		                    	<a:displayOrder>220</a:displayOrder>
+		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1670,6 +1682,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Email Address</a:displayName>
+                                <a:displayOrder>300</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1685,6 +1698,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Telephone Number</a:displayName>
+                                <a:displayOrder>310</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1699,6 +1713,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Employee Number</a:displayName>
+                                <a:displayOrder>400</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1712,6 +1727,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Employee Type</a:displayName>
+                                <a:displayOrder>410</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1721,6 +1737,10 @@
                             <xsd:documentation>
                                 The name of the cost center.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Cost Center</a:displayName>
+                                <a:displayOrder>420</a:displayOrder>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1737,6 +1757,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Organizational Unit</a:displayName>
+                                <a:displayOrder>430</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1751,6 +1772,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Locality</a:displayName>
+                                <a:displayOrder>440</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

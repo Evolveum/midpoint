@@ -28,7 +28,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  */
 public class JaxbTypeConverter {
 	
-	public static <T> T mapPropertyRealValueToJaxb(Object propertyRealValue, Class<T> requestedJaxbType) {
+	public static <T> T mapPropertyRealValueToJaxb(Object propertyRealValue) {
     	// TODO: check for type compatibility
     	if (propertyRealValue instanceof PolyString) {
     		return (T)toPolyStringType((PolyString)propertyRealValue);

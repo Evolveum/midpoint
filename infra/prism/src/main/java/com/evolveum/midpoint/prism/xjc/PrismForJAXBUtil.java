@@ -85,7 +85,7 @@ public final class PrismForJAXBUtil {
         
         Object propertyRealValue = value.getValue();
         
-        return JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue, requestedType);
+        return JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue);
     }
     
     public static <T> List<T> getPropertyValues(PrismContainerValue container, QName name, Class<T> clazz) {

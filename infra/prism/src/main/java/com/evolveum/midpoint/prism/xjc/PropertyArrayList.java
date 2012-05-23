@@ -56,7 +56,8 @@ public class PropertyArrayList<T> extends AbstractList<T> {
     @Override
     public T get(int index) {
         //todo fix PropertyValue set generics in Property, Property class should be generifiable
-        return (T) getPropertyValue(index).getValue();
+    	Object propertyRealValue = getPropertyValue(index).getValue();
+        return (T) JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue);
     }
 
     @Override
@@ -67,8 +68,9 @@ public class PropertyArrayList<T> extends AbstractList<T> {
             return false;
         }
 
-        for (T object : ts) {
-            property.addValue(new PrismPropertyValue<Object>(object, null, null));
+        for (T jaxbObject : ts) {
+        	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(jaxbObject);
+            property.addValue(new PrismPropertyValue<Object>(propertyRealValue, null, null));
         }
 
         return true;
