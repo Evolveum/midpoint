@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
@@ -104,7 +105,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OptionContent content = new OptionContent("optionContent");
         main.add(content);
-        TablePanel table = new TablePanel("table", new RepositoryObjectDataProvider(PageDebugList.this, UserType.class), columns);
+        TablePanel table = new TablePanel("table", new RepositoryObjectDataProvider(PageDebugList.this,
+                SystemConfigurationType.class), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
 

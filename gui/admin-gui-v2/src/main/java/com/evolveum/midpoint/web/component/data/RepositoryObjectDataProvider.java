@@ -23,6 +23,8 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
@@ -44,6 +46,7 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
+    private static final Trace LOGGER = TraceManager.getTrace(RepositoryObjectDataProvider.class);
     private Class<T> type;
 
     public RepositoryObjectDataProvider(PageBase page, Class<T> type) {
@@ -54,6 +57,7 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
 
     @Override
     public Iterator<SelectableBean<T>> iterator(int first, int count) {
+        LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
@@ -74,11 +78,13 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
             getPage().showResultInSession(result);
         }
 
+        LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
     }
 
     @Override
     protected int internalSize() {
+        LOGGER.trace("begin::internalSize()");
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
@@ -92,7 +98,7 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
         if (!result.isSuccess()) {
             getPage().showResultInSession(result);
         }
-
+        LOGGER.trace("end::internalSize()");
         return count;
     }
 
