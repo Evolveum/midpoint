@@ -265,6 +265,8 @@ public class Validator {
 					if (objectResult.isError()) {
 						errors++;
 					}
+					
+					validatorResult.summarize();
 
 					if (cont.isStop()) {
 						if (cont.getReason() != null) {

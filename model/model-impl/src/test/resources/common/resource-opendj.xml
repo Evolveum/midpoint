@@ -22,6 +22,7 @@
 <object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" 
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"

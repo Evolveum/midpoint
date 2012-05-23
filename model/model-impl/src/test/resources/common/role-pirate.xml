@@ -22,6 +22,7 @@
 <role oid="12345678-d34d-b33f-f00d-555555556666"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Pirate</name>    
     <assignment>
@@ -33,15 +34,13 @@
             </attribute>
             <attribute>
                 <ref>ri:location</ref>
-				<expression>
-					<code>
-                        c:locality
-					</code>
-				</expression>
+				<path>
+                	locality
+				</path>
 				<condition>
 					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
 					<code>
-						user?.getLocality() != "hidden"
+						user?.getLocality()?.getNorm() != "hidden"
 					</code>
 				</condition>
             </attribute>

@@ -52,12 +52,15 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Set of prism-related asserts.
@@ -314,6 +317,25 @@ public class PrismAsserts {
 	public static <V extends PrismValue> void assertTripleNoSet(String setName, Collection<V> set) {
 		assert set == null || set.isEmpty() : "Expected triple "+setName+" to be empty, but it was: "+set;
 	}
+	
+	public static void assertEquals(String message, PolyString expected, PolyString actual) {
+		assert expected.equals(actual) : message + "; expected " + DebugUtil.dump(expected) + ", was " +
+					DebugUtil.dump(actual);
+	}
+
+	public static void assertEqualsPolyString(String message, String expectedOrig, PolyString actual) {
+		PolyString expected = new PolyString(expectedOrig);
+		expected.recompute(PrismTestUtil.getPrismContext().getDefaultPolyStringNormalizer());
+		assertEquals(message, expected, actual);
+	}
+
+	public static void assertEqualsPolyString(String message, String expectedOrig, PolyStringType actual) {
+		assert actual != null : message + ": null value";
+		assert MiscUtil.equals(expectedOrig, actual.getOrig()) : message+"; expected orig "+expectedOrig+ " but was " + actual.getOrig();
+		PolyString expected = new PolyString(expectedOrig);
+		expected.recompute(PrismTestUtil.getPrismContext().getDefaultPolyStringNormalizer());
+		assert MiscUtil.equals(expected.getNorm(), actual.getNorm()) : message+"; expected norm "+expected.getNorm()+ " but was " + actual.getNorm();
+	}
 
 	// Calendar asserts
 	
@@ -474,7 +496,7 @@ public class PrismAsserts {
 		assert object != null : string;
 	}
 	
-	static void assertEquals(String message, Object expected, Object actual) {
+	public static void assertEquals(String message, Object expected, Object actual) {
 		assert expected.equals(actual) : message 
 				+ ": expected ("+expected.getClass().getSimpleName() + ")"  + expected 
 				+ ", was (" + actual.getClass().getSimpleName() + ")" + actual;

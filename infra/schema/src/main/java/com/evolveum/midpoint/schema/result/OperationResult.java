@@ -26,6 +26,7 @@ package com.evolveum.midpoint.schema.result;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -105,12 +107,12 @@ public class OperationResult implements Serializable, Dumpable {
 	private String localizationMessage;
 	private List<Object> localizationArguments;
 	private Throwable cause;
+	private int count = 1;
 	private List<OperationResult> subresults;
 	private List<String> details;
 	private boolean summarizeErrors;
 	private boolean summarizePartialErrors;
 	private boolean summarizeSuccesses;
-	private OperationResult summarizeTo;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
@@ -200,6 +202,42 @@ public class OperationResult implements Serializable, Dumpable {
 	public String getOperation() {
 		return operation;
 	}
+	
+	public int getCount() {
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count = count;
+	}
+	
+	public void incrementCount() {
+		this.count++;
+	}
+
+	public boolean isSummarizeErrors() {
+		return summarizeErrors;
+	}
+
+	public void setSummarizeErrors(boolean summarizeErrors) {
+		this.summarizeErrors = summarizeErrors;
+	}
+
+	public boolean isSummarizePartialErrors() {
+		return summarizePartialErrors;
+	}
+
+	public void setSummarizePartialErrors(boolean summarizePartialErrors) {
+		this.summarizePartialErrors = summarizePartialErrors;
+	}
+
+	public boolean isSummarizeSuccesses() {
+		return summarizeSuccesses;
+	}
+
+	public void setSummarizeSuccesses(boolean summarizeSuccesses) {
+		this.summarizeSuccesses = summarizeSuccesses;
+	}
 
 	/**
 	 * Method returns list of operation subresults @{link
@@ -284,6 +322,9 @@ public class OperationResult implements Serializable, Dumpable {
 					(status == OperationResultStatus.PARTIAL_ERROR);
 	}
 
+	public boolean isPartialError() {
+		return (status == OperationResultStatus.PARTIAL_ERROR);
+	}
 
 	/**
 	 * Computes operation result status based on subtask status and sets an
@@ -651,6 +692,10 @@ public class OperationResult implements Serializable, Dumpable {
 		sb.append(status);
 		sb.append(", msg: ");
 		sb.append(message);
+		if (count > 1) {
+			sb.append(" x");
+			sb.append(count);
+		}
 		sb.append("\n");
 		if (cause != null) {
 			for (int i = 0; i < indent + 2; i++) {
@@ -922,6 +967,52 @@ public class OperationResult implements Serializable, Dumpable {
 		ujo.setClazz(value.getClass().getName());
 		ujo.setToString(value.toString());
 		entryType.setAny(new ObjectFactory().createUnknownJavaObject(ujo));
+	}
+	
+	public void summarize() {
+		Iterator<OperationResult> iterator = getSubresults().iterator();
+		while (iterator.hasNext()) {
+			OperationResult subresult = iterator.next();
+			if (subresult.getCount() > 1) {
+				// Already summarized
+				continue;
+			}
+			if (subresult.isError() && summarizeErrors) {
+				// go on
+			} else if (subresult.isPartialError() && summarizePartialErrors) {
+				// go on
+			} else if (subresult.isSuccess() && summarizeSuccesses) {
+				// go on
+			} else {
+				continue;
+			}
+			OperationResult similar = findSimilarSubresult(subresult);
+			if (similar == null) {
+				// Nothing to summarize to
+				continue;
+			}
+			similar.incrementCount();
+			iterator.remove();
+		}
+	}
+
+	private OperationResult findSimilarSubresult(OperationResult subresult) {
+		OperationResult similar = null;
+		for (OperationResult sub: getSubresults()) {
+			if (sub == subresult) {
+				continue;
+			}
+			if (sub.status != subresult.status) {
+				continue;
+			}
+			if (!MiscUtil.equals(sub.message, subresult.message)) {
+				continue;
+			}
+			if (similar == null || (similar.count < sub.count)) {
+				similar = sub;
+			}
+		}
+		return similar;
 	}
 
 }

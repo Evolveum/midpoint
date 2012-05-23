@@ -188,6 +188,12 @@ public class ObjectImporter {
         if (options.getStopAfterErrors() != null) {
             validator.setStopAfterErrors(options.getStopAfterErrors().longValue());
         }
+        if (options.isSummarizeErrors()) {
+        	parentResult.setSummarizeErrors(true);
+        }
+        if (options.isSummarizeSucceses()) {
+        	parentResult.setSummarizeSuccesses(true);
+        }
 
         validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
 

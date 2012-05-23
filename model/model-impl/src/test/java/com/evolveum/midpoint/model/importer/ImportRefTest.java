@@ -23,6 +23,8 @@ package com.evolveum.midpoint.model.importer;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -132,9 +134,9 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		assertEquals("Search retuned unexpected results", 1, users.size());
 		UserType jack = users.get(0).asObjectable();
 		assertNotNull(jack);
-		assertEquals("Jack", jack.getGivenName());
-		assertEquals("Sparrow", jack.getFamilyName());
-		assertEquals("Cpt. Jack Sparrow", jack.getFullName());
+		PrismAsserts.assertEqualsPolyString("wrong givenName", "Jack", jack.getGivenName());
+		PrismAsserts.assertEqualsPolyString("wrong familyName", "Sparrow", jack.getFamilyName());
+		PrismAsserts.assertEqualsPolyString("wrong fullName", "Cpt. Jack Sparrow", jack.getFullName());
 
 	}
 

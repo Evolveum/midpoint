@@ -49,6 +49,13 @@ public class DebugUtil implements ObjectFormatter {
 		defaultNamespacePrefix = prefix;
 	}
 
+	public static String dump(Dumpable dumpable) {
+		if (dumpable == null) {
+			return "null";
+		}
+		return dumpable.dump();
+	}
+	
 	public static String dump(Object object) {
 		if (object == null) {
 			return "null";

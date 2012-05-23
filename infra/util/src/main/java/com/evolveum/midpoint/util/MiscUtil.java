@@ -196,5 +196,15 @@ public class MiscUtil {
 		}
 		return result;
 	}
+
+	public static boolean equals(Object a, Object b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		return a.equals(b);
+	}
 		
 }

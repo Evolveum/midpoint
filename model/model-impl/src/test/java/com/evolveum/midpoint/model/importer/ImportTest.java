@@ -23,6 +23,8 @@ package com.evolveum.midpoint.model.importer;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,6 +39,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -197,9 +201,9 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
 		display("Jack",jack);
 		assertNotNull(jack);
-		assertEquals("Jack", jack.getGivenName());
-		assertEquals("Sparrow", jack.getFamilyName());
-		assertEquals("Cpt. Jack Sparrow", jack.getFullName());
+		PrismAsserts.assertEqualsPolyString("wrong givenName", "Jack", jack.getGivenName());
+		PrismAsserts.assertEqualsPolyString("wrong familyName", "Sparrow", jack.getFamilyName());
+		PrismAsserts.assertEqualsPolyString("wrong fullName", "Cpt. Jack Sparrow", jack.getFullName());
 		// Jack has a password. Check if it was encrypted
 		ProtectedStringType protectedString = jack.getCredentials().getPassword().getProtectedString();
 		assertNull("Arrgh! Pirate sectrets were revealed!",protectedString.getClearValue());
@@ -220,9 +224,9 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertNotNull(guybrush);
 		guybrushOid = guybrush.getOid();
 		assertNotNull(guybrushOid);
-		assertEquals("Guybrush", guybrush.getGivenName());
-		assertEquals("Threepwood", guybrush.getFamilyName());
-		assertEquals("Guybrush Threepwood", guybrush.getFullName());
+		PrismAsserts.assertEqualsPolyString("wrong givenName", "Guybrush", guybrush.getGivenName());
+		PrismAsserts.assertEqualsPolyString("wrong familyName", "Threepwood", guybrush.getFamilyName());
+		PrismAsserts.assertEqualsPolyString("wrong fullName", "Guybrush Threepwood", guybrush.getFullName());
 
 	}
 
@@ -283,9 +287,9 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 			if (userType.getName().equals("jack")) {
 				// OID and all the attributes should be the same
 				assertEquals(USER_JACK_OID,userType.getOid());
-				assertEquals("Jack", userType.getGivenName());
-				assertEquals("Sparrow", userType.getFamilyName());
-				assertEquals("Cpt. Jack Sparrow", userType.getFullName());
+				PrismAsserts.assertEqualsPolyString("wrong givenName", "Jack", userType.getGivenName());
+				PrismAsserts.assertEqualsPolyString("wrong familyName", "Sparrow", userType.getFamilyName());
+				PrismAsserts.assertEqualsPolyString("wrong fullName", "Cpt. Jack Sparrow", userType.getFullName());
 			}
 			if (userType.getName().equals("will")) {
 				// OID should be the same, and there should be an employee type
@@ -296,15 +300,15 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 				// OID may be different, there should be a locality attribute
 				guybrushOid = userType.getOid();
 				assertNotNull(guybrushOid);
-				assertEquals("Guybrush is not in the Caribbean", "Deep in the Caribbean", userType.getLocality());
+				PrismAsserts.assertEqualsPolyString("Guybrush is not in the Caribbean", "Deep in the Caribbean", userType.getLocality());
 			}			
 			if (userType.getName().equals("ht")) {
 				// Herman should be here now
 				hermanOid = userType.getOid();
 				assertNotNull(hermanOid);
-				assertEquals("Herman is confused", "Herman Toothrot", userType.getFullName());
-				assertEquals("Herman is confused", "Herman", userType.getGivenName());
-				assertEquals("Herman is confused", "Toothrot", userType.getFamilyName());
+				PrismAsserts.assertEqualsPolyString("Herman is confused", "Herman Toothrot", userType.getFullName());
+				PrismAsserts.assertEqualsPolyString("Herman is confused", "Herman", userType.getGivenName());
+				PrismAsserts.assertEqualsPolyString("Herman is confused", "Toothrot", userType.getFamilyName());
 			}	
 		}
 	}
@@ -341,9 +345,9 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 			if (userType.getName().equals("jack")) {
 				// OID and all the attributes should be the same
 				assertEquals(USER_JACK_OID,userType.getOid());
-				assertEquals("Jack", userType.getGivenName());
-				assertEquals("Sparrow", userType.getFamilyName());
-				assertEquals("Cpt. Jack Sparrow", userType.getFullName());
+				PrismAsserts.assertEqualsPolyString("wrong givenName", "Jack", userType.getGivenName());
+				PrismAsserts.assertEqualsPolyString("wrong familyName", "Sparrow", userType.getFamilyName());
+				PrismAsserts.assertEqualsPolyString("wrong fullName", "Cpt. Jack Sparrow", userType.getFullName());
 			}
 			if (userType.getName().equals("will")) {
 				// OID should be the same, and there should be an employee type
@@ -353,14 +357,14 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 			if (userType.getName().equals("guybrush")) {
 				// OID should be the same, there should be a locality attribute
 				assertEquals("Guybrush's OID went leeway", guybrushOid, userType.getOid());
-				assertEquals("Guybrush is not in the Caribbean", "Deep in the Caribbean", userType.getLocality());
+				PrismAsserts.assertEqualsPolyString("Guybrush is not in the Caribbean", "Deep in the Caribbean", userType.getLocality());
 			}
 			if (userType.getName().equals("ht")) {
 				// Herman should still be here
 				assertEquals("Herman's OID went leeway", hermanOid, userType.getOid());
-				assertEquals("Herman is confused", "Herman Toothrot", userType.getFullName());
-				assertEquals("Herman is confused", "Herman", userType.getGivenName());
-				assertEquals("Herman is confused", "Toothrot", userType.getFamilyName());
+				PrismAsserts.assertEqualsPolyString("Herman is confused", "Herman Toothrot", userType.getFullName());
+				PrismAsserts.assertEqualsPolyString("Herman is confused", "Herman", userType.getGivenName());
+				PrismAsserts.assertEqualsPolyString("Herman is confused", "Toothrot", userType.getFamilyName());
 			}	
 		}
 	}
