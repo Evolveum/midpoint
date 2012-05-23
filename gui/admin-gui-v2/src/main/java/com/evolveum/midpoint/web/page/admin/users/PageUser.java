@@ -728,18 +728,18 @@ public class PageUser extends PageAdminUsers {
             ObjectDelta delta = accountWrapper.getObjectDelta();
             PrismReferenceValue refValue = new PrismReferenceValue(null, SourceType.USER_ACTION, null);
 
+            PrismObject<AccountShadowType> account;
             switch (accDto.getStatus()) {
                 case ADD:
-                case DELETE:
-                    PrismObject<AccountShadowType> account = delta.getObjectToAdd();
+                    account = delta.getObjectToAdd();
                     encryptCredentials(account, true);
-
                     refValue.setObject(account);
-                    if (UserDtoStatus.ADD.equals(accDto.getStatus())) {
-                        refDelta.addValueToAdd(refValue);
-                    } else {
-                        refDelta.addValueToDelete(refValue);
-                    }
+                    refDelta.addValueToAdd(refValue);
+                    break;
+                case DELETE:
+                    account = accountWrapper.getObject();
+                    refValue.setObject(account);
+                    refDelta.addValueToDelete(refValue);
                     break;
                 case MODIFY:
                     //nothing to do, account modifications were applied before
