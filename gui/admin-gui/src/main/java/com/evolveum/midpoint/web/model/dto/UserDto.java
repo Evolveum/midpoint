@@ -72,49 +72,67 @@ public class UserDto extends ObjectDto<UserType> implements ContainsAssignment {
     }
 
     public String getGivenName() {
-        return getXmlObject().getGivenName();
+        PolyStringType poly = getXmlObject().getGivenName();
+        return poly != null ? poly.getOrig() : null;
     }
 
     public void setGivenName(String value) {
-        getXmlObject().setGivenName(value);
+        PolyStringType poly = getXmlObject().getGivenName();
+        if (poly == null) {
+            poly = new PolyStringType();
+            getXmlObject().setGivenName(poly);
+        }
+        poly.setOrig(value);
     }
 
     public String getFamilyName() {
-        return getXmlObject().getFamilyName();
+        PolyStringType poly = getXmlObject().getFamilyName();
+        return poly != null ? poly.getOrig() : null;
     }
 
     public void setFamilyName(String value) {
-        getXmlObject().setFamilyName(value);
+        PolyStringType poly = getXmlObject().getFamilyName();
+        if (poly == null) {
+            poly = new PolyStringType();
+            getXmlObject().setFamilyName(poly);
+        }
+        poly.setOrig(value);
     }
 
     public void setEmail(String email) {
-        List<String> list = getXmlObject().getEmailAddress();
-        list.clear();
-        list.add(email);
+        getXmlObject().setEmailAddress(email);
     }
 
     public String getEmail() {
-        List<String> list = getXmlObject().getEmailAddress();
-        if (list.size() == 0) {
-            return null;
-        }
-        return list.get(0);
+        return getXmlObject().getEmailAddress();
     }
 
     public String getHonorificPrefix() {
-        return getXmlObject().getHonorificPrefix();
+        PolyStringType poly = getXmlObject().getHonorificPrefix();
+        return poly != null ? poly.getOrig() : null;
     }
 
     public void setHonorificPrefix(String value) {
-        getXmlObject().setHonorificPrefix(value);
+        PolyStringType poly = getXmlObject().getHonorificPrefix();
+        if (poly == null) {
+            poly = new PolyStringType();
+            getXmlObject().setHonorificPrefix(poly);
+        }
+        poly.setOrig(value);
     }
 
     public String getHonorificSuffix() {
-        return getXmlObject().getHonorificSuffix();
+        PolyStringType poly = getXmlObject().getHonorificSuffix();
+        return poly != null ? poly.getOrig() : null;
     }
 
     public void setHonorificSuffix(String value) {
-        getXmlObject().setHonorificSuffix(value);
+        PolyStringType poly = getXmlObject().getHonorificSuffix();
+        if (poly == null) {
+            poly = new PolyStringType();
+            getXmlObject().setHonorificSuffix(poly);
+        }
+        poly.setOrig(value);
     }
 
     public List<AccountShadowDto> getAccount() {
@@ -150,11 +168,17 @@ public class UserDto extends ObjectDto<UserType> implements ContainsAssignment {
     }
 
     public String getLocality() {
-        return getXmlObject().getLocality();
+        PolyStringType poly = getXmlObject().getLocality();
+        return poly != null ? poly.getOrig() : null;
     }
 
     public void setLocality(String value) {
-        getXmlObject().setLocality(value);
+        PolyStringType poly = getXmlObject().getLocality();
+        if (poly == null) {
+            poly = new PolyStringType();
+            getXmlObject().setLocality(poly);
+        }
+        poly.setOrig(value);
     }
 
     @Override
