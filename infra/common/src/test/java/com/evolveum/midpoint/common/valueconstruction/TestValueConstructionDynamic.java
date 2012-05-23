@@ -151,8 +151,8 @@ public class TestValueConstructionDynamic {
         // WHEN
         construction.evaluate(opresult);
     	
-    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = construction.getOutputTriple();    	
     	// THEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = construction.getOutputTriple();    	
     	PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Rock"));
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
@@ -173,6 +173,109 @@ public class TestValueConstructionDynamic {
     	
         // THEN
     	PrismAsserts.assertTripleZero(outputTriple, "jack");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+
+    @Test
+    public void testConstructionPathVariablesNamespace() throws Exception {
+    	// GIVEN
+    	Map<QName, Object> vars = new HashMap<QName, Object>();
+    	ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
+        ref.setType(SchemaConstants.I_USER_TYPE);
+        vars.put(ExpressionConstants.VAR_USER, ref);
+
+        // WHEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateConstructionDynamicAdd(String.class, 
+    			"construction-path-system-variables-namespace.xml", "name", null, vars, "testConstructionPathVariables");
+    	
+        // THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "jack");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+
+    @Test
+    public void testConstructionPathVariablesPolyStringShort() throws Exception {
+    	// GIVEN        
+    	final String TEST_NAME = "testConstructionPathVariablesPolyStringShort";
+
+    	Map<QName, Object> vars = new HashMap<QName, Object>();
+    	ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
+        ref.setType(SchemaConstants.I_USER_TYPE);
+        vars.put(ExpressionConstants.VAR_USER, ref);
+    	
+    	ValueConstruction<PrismPropertyValue<String>> construction = evaluator.createConstruction(String.class, 
+    			"construction-path-system-variables-polystring-short.xml", "fullName", null, vars, TEST_NAME);
+
+    	construction.setOutputDefinition(evaluator.getPropertyDefinition("fullName"));
+        
+        OperationResult opresult = new OperationResult(TEST_NAME);
+        
+        // WHEN
+        construction.evaluate(opresult);
+    	
+    	// THEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = construction.getOutputTriple();    	
+    	PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+
+    @Test
+    public void testConstructionPathVariablesPolyStringToStringShort() throws Exception {
+    	// GIVEN        
+    	final String TEST_NAME = "testConstructionPathVariablesPolyStringToStringShort";
+
+    	Map<QName, Object> vars = new HashMap<QName, Object>();
+    	ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
+        ref.setType(SchemaConstants.I_USER_TYPE);
+        vars.put(ExpressionConstants.VAR_USER, ref);
+    	
+    	ValueConstruction<PrismPropertyValue<String>> construction = evaluator.createConstruction(String.class, 
+    			"construction-path-system-variables-polystring-short.xml", "fullName", null, vars, TEST_NAME);
+
+    	construction.setOutputDefinition(evaluator.getPropertyDefinition("name"));
+        
+        OperationResult opresult = new OperationResult(TEST_NAME);
+        
+        // WHEN
+        construction.evaluate(opresult);
+    	
+    	// THEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = construction.getOutputTriple();    	
+    	PrismAsserts.assertTripleZero(outputTriple, "Jack Sparrow");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+
+    @Test
+    public void testConstructionPathVariablesPolyStringToStringLong() throws Exception {
+    	// GIVEN        
+    	final String TEST_NAME = "testConstructionPathVariablesPolyStringToStringLong";
+
+    	Map<QName, Object> vars = new HashMap<QName, Object>();
+    	ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
+        ref.setType(SchemaConstants.I_USER_TYPE);
+        vars.put(ExpressionConstants.VAR_USER, ref);
+    	
+    	ValueConstruction<PrismPropertyValue<String>> construction = evaluator.createConstruction(String.class, 
+    			"construction-path-system-variables-polystring-long.xml", "fullName", null, vars, TEST_NAME);
+
+    	construction.setOutputDefinition(evaluator.getPropertyDefinition("name"));
+        
+        OperationResult opresult = new OperationResult(TEST_NAME);
+        
+        // WHEN
+        construction.evaluate(opresult);
+    	
+    	// THEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = construction.getOutputTriple();    	
+    	PrismAsserts.assertTripleZero(outputTriple, "jack sparrow");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }

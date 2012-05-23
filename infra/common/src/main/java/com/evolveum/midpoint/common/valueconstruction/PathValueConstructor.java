@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -58,10 +59,11 @@ import com.evolveum.prism.xml.ns._public.types_2.XPathType;
 public class PathValueConstructor implements ValueConstructor {
 	
 	private ObjectResolver objectResolver;
+	private PrismContext prismContext;
 	
-    public PathValueConstructor(ObjectResolver objectResolver) {
-		super();
+    public PathValueConstructor(ObjectResolver objectResolver, PrismContext prismContext) {
 		this.objectResolver = objectResolver;
+		this.prismContext = prismContext;
 	}
 
 	/* (non-Javadoc)
@@ -139,7 +141,7 @@ public class PathValueConstructor implements ValueConstructor {
         if (outputTriple == null) {
         	return null;
         }
-        return outputTriple.clone();
+        return ValueConstructorUtil.toOutputTriple(outputTriple, outputDefinition, path.last(), prismContext);
     }
     
     private ObjectType resolveReference(ObjectReferenceType ref, ObjectResolver objectResolver, QName varName, String contextDescription, 

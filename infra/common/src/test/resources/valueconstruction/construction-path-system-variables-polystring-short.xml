@@ -2,6 +2,6 @@
 <valueConstruction 
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 	<path>
-		$user/name
+		$user/fullName
 	</path>
 </valueConstruction>

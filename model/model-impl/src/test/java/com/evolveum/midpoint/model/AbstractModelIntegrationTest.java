@@ -71,6 +71,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -497,17 +498,17 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		UserType userType = user.asObjectable();
 		assertEquals("Wrong jack OID (jaxb)", USER_JACK_OID, userType.getOid());
 		assertEquals("Wrong jack name", "jack", userType.getName());
-		assertEquals("Wrong jack fullName", "Jack Sparrow", userType.getFullName());
-		assertEquals("Wrong jack givenName", "Jack", userType.getGivenName());
-		assertEquals("Wrong jack familyName", "Sparrow", userType.getFamilyName());
-		assertEquals("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
-		assertEquals("Wrong jack honorificSuffix", "PhD.", userType.getHonorificSuffix());
+		PrismAsserts.assertEqualsPolyString("Wrong jack fullName", "Jack Sparrow", userType.getFullName());
+		PrismAsserts.assertEqualsPolyString("Wrong jack givenName", "Jack", userType.getGivenName());
+		PrismAsserts.assertEqualsPolyString("Wrong jack familyName", "Sparrow", userType.getFamilyName());
+		PrismAsserts.assertEqualsPolyString("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
+		PrismAsserts.assertEqualsPolyString("Wrong jack honorificSuffix", "PhD.", userType.getHonorificSuffix());
 		assertEquals("Wrong jack emailAddress", "jack.sparrow@evolveum.com", userType.getEmailAddress());
 		assertEquals("Wrong jack telephoneNumber", "555-1234", userType.getTelephoneNumber());
 		assertEquals("Wrong jack employeeNumber", "emp1234", userType.getEmployeeNumber());
 		assertEquals("Wrong jack employeeType", "CAPTAIN", userType.getEmployeeType().get(0));
-		assertEquals("Wrong jack organizationalUnit", "Leaders", userType.getOrganizationalUnit().get(0));
-		assertEquals("Wrong jack locality", "Caribbean", userType.getLocality());
+		PrismAsserts.assertEqualsPolyString("Wrong jack organizationalUnit", "Leaders", userType.getOrganizationalUnit().get(0));
+		PrismAsserts.assertEqualsPolyString("Wrong jack locality", "Caribbean", userType.getLocality());
 	}
 	
 	protected void assertDummyShadowRepo(PrismObject<AccountShadowType> accountShadow, String oid, String username) {

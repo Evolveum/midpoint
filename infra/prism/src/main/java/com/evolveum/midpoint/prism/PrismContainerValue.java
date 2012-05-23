@@ -475,7 +475,14 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
             				throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
             						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getName()+")");
             			} else {
-            				return null;
+            				// Return the item for non-container even if the path is non-empty
+            				// FIXME: This is not the best solution but it is needed to be able to look inside properties
+            				// such as PolyString
+            				if (type.isAssignableFrom(item.getClass())) {
+                    			return (I)item;
+                    		} else {
+                    			return null;
+                    		}
             			}
 	            	}
             	}        

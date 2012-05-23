@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -81,34 +82,8 @@ public class AsIsValueConstructor implements ValueConstructor {
         if (outputTriple == null) {
         	return null;
         }
-        return toOutputTriple(outputTriple, outputDefinition);
+        return ValueConstructorUtil.toOutputTriple(outputTriple, outputDefinition, null, prismContext);
     }
     
-    // Black magic hack follows. This is TODO to refactor to a cleaner state.
-    private <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(PrismValueDeltaSetTriple<V> resultTriple, 
-    		ItemDefinition outputDefinition) {
-    	Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
-    	if (resultTripleValueClass == null) {
-    		// triple is empty. type does not matter.
-    		return resultTriple;
-    	}
-    	PrismValueDeltaSetTriple<V> clonedTriple = resultTriple.clone();
-    	if (resultTripleValueClass.equals(String.class) && outputDefinition.getTypeName().equals(PrismConstants.POLYSTRING_TYPE_QNAME)) {
-    		// Have String, want PolyString
-    		clonedTriple.accept(new Visitor() {
-				@Override
-				public void visit(Visitable visitable) {
-					if (visitable instanceof PrismPropertyValue<?>) {
-						PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>)visitable;
-						String realVal = (String)pval.getValue();
-						PolyString polyStringVal = new PolyString(realVal);
-						polyStringVal.recompute(prismContext.getDefaultPolyStringNormalizer());
-						pval.setValue(polyStringVal);
-					}
-				}
-			});
-    	}
-    	return clonedTriple;
-    }
 
 }

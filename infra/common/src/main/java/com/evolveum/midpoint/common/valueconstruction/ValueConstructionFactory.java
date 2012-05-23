@@ -116,7 +116,7 @@ public class ValueConstructionFactory {
 
 	
 	private void createPathConstructor() {
-		ValueConstructor constructor = new PathValueConstructor(objectResolver);
+		ValueConstructor constructor = new PathValueConstructor(objectResolver, prismContext);
 		JAXBElement<Object> element = objectFactory.createPath(new Object());
 		constructors.put(element.getName(), constructor);
 	}
