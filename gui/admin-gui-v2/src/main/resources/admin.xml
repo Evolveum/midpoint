@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2011 Evolveum
   ~
-  ~ The contents of this file are subject to the terms
+  ~ The contents of this file are subject to the terms      21:30:02,982
   ~ of the Common Development and Distribution License
   ~ (the License). You may not use this file except in
   ~ compliance with the License.
@@ -20,11 +20,21 @@
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
 <c:user oid="00000000-0000-0000-0000-000000000002"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <c:name>administrator</c:name>
-    <c:fullName>midPoint Administrator</c:fullName>
-    <c:givenName>midPoint</c:givenName>
-    <c:familyName>Administrator</c:familyName>
+    <c:fullName>
+        <t:orig>midPoint Administrator</t:orig>
+        <t:norm>midpoint administrator</t:norm>
+    </c:fullName>
+    <c:givenName>
+        <t:orig>midPoint</t:orig>
+        <t:norm>midpoint</t:norm>
+    </c:givenName>
+    <c:familyName>
+        <t:orig>Administrator</t:orig>
+        <t:norm>administrator</t:norm>
+    </c:familyName>
     <c:eMailAddress>administrator@example.com</c:eMailAddress>
     <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
         <c:password>
