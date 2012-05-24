@@ -26,6 +26,8 @@ import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.util.string.StringValue;
 
@@ -50,12 +52,22 @@ public class PageAdminTasks extends PageAdmin {
             public boolean isVisible() {
                 return !isEditingTask();
             }
+            
+            @Override
+            public boolean isEnabled() {
+            	return !(getPage() instanceof PageTask);
+            }
         }));
         items.add(new BottomMenuItem("pageAdminTasks.editTask", PageTask.class, new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
                 return isEditingTask();
+            }
+            
+            @Override
+            public boolean isEnabled() {
+                return false;
             }
         }));
 

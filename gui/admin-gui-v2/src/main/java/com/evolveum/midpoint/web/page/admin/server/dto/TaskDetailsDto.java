@@ -24,29 +24,33 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
+
 /**
  * @author lazyman
  */
 public class TaskDetailsDto implements Serializable {
 
 	private String type;
-	private String resource;
+	private TaskDetailsResourcesDto resource;
 	private String name;
 	
 	//Scheduling
-	private Boolean reccuring = false;
-	private Boolean bound = false;
+	private boolean reccuring;
+	private boolean bound;
 	private Integer interval;
 	private String cron;
 	private Date notStopBefore;
 	private Date notStartAfter;
 	
-	private Boolean runUntilNodeDown;
+	private boolean runUntilNodeDown;
 	
 	//Advanced
-	private Boolean suspendedState = false;
+	private boolean suspendedState;
+	private ThreadStopActionType threadStop;
+	private MisfireActionType misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
 	
-
 	public String getType() {
 		return type;
 	}
@@ -55,11 +59,11 @@ public class TaskDetailsDto implements Serializable {
 		this.type = type;
 	}
 	
-	public String getResource() {
+	public TaskDetailsResourcesDto getResource() {
 		return resource;
 	}
 
-	public void setResource(String resource) {
+	public void setResource(TaskDetailsResourcesDto resource) {
 		this.resource = resource;
 	}
 
@@ -135,5 +139,20 @@ public class TaskDetailsDto implements Serializable {
 		this.suspendedState = suspendedState;
 	}
 	
+	public ThreadStopActionType getThreadStop() {
+		return threadStop;
+	}
+
+	public void setThreadStop(ThreadStopActionType threadStop) {
+		this.threadStop = threadStop;
+	}
+
+	public MisfireActionType getMisfireAction() {
+		return misfireAction;
+	}
+
+	public void setMisfireAction(MisfireActionType misfireAction) {
+		this.misfireAction = misfireAction;
+	}
     
 }

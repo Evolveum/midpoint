@@ -39,8 +39,10 @@
             </tr>
        	</table>
        	
-       	<h2><wicket:message key="pageTask.scheduleTitle"/></h2>
-        <table>
+       	<h2><wicket:message key="pageTask.scheduleTitle"/><br />
+       		<small style="font-size: 12px;"><wicket:message key="pageTask.scheduleHelp"/></small>
+       	</h2>
+       <table>
 	  		<tbody>
 	            <tr>
 	                <td><wicket:message key="pageTask.recurringTask"/></td>
@@ -49,16 +51,20 @@
 	        </tbody>
 			<tbody wicket:id="container">    
 				<tr wicket:id="boundContainer">
-				    <td><wicket:message key="pageTask.bound"/></td>
-				    <td><input type="checkbox" wicket:id="bound"/></td>
+				    <td style="vertical-align: top;"><wicket:message key="pageTask.bound"/></td>
+				    <td><input type="checkbox" wicket:id="bound"/><br />
+       					<small><wicket:message key="pageTask.boundHelp"/></small>	
+				    </td>
 				</tr>
 				<tr wicket:id="intervalContainer">
 				    <td><wicket:message key="pageTask.scheduleInterval"/></td>
 				    <td><input type="text" wicket:id="interval"/></td>
 				</tr>
 				<tr wicket:id="cronContainer">
-				    <td><wicket:message key="pageTask.scheduleCronLikeSpecification"/></td>
-				    <td><input type="text" wicket:id="cron"/></td>
+				    <td style="vertical-align: top;"><wicket:message key="pageTask.scheduleCronLikeSpecification"/></td>
+				    <td><input type="text" wicket:id="cron"/><br />
+       					<small><wicket:message key="pageTask.cronHelp"/></small>
+				    </td>
 				</tr>
 			</tbody>
 			<tbody>            
@@ -85,10 +91,16 @@
                 <td><wicket:message key="pageTask.createSuspended"/></td>
                 <td><input type="checkbox" wicket:id="createSuspended"/></td>
             </tr>
+            <tr>
+                <td><wicket:message key="pageTask.threadStop"/></td>
+                <td><select wicket:id="threadStop"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTask.misfire"/></td>
+                <td><select wicket:id="misfire"/></td>
+            </tr>
         </table>
         
-        <span><wicket:message key="pageTask.notes"/></span>
-
         <div class="operatingFormButtons">
             <a wicket:id="backButton"/>
             <a wicket:id="saveButton"/>
