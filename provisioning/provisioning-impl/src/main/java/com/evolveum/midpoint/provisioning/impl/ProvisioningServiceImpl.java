@@ -169,9 +169,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, OperationResult parentResult) 
-			throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
+			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
+			SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -212,7 +212,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ResourceObjectShadowType shadow = null;
 			try {
 
-				
 				shadow = getShadowCache().getShadow((Class<ResourceObjectShadowType>) type, oid,
 						(ResourceObjectShadowType) (repositoryObject.asObjectable()), result);
 
@@ -226,7 +225,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid,
 				// e);
 				// result.recordFatalError(e);
-				
+
 				throw e;
 			} catch (SchemaException e) {
 				logFatalError(LOGGER, result,
@@ -287,7 +286,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException,
-			CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+			CommunicationException, ObjectNotFoundException, ConfigurationException,
+			SecurityViolationException {
 		// TODO
 
 		Validate.notNull(object, "Object to add must not be null.");
@@ -296,9 +296,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		LOGGER.trace("**PROVISIONING: Start to add object {}", object);
 		boolean reconciled;
 		Object isReconciled = parentResult.getParams().get("reconciled");
-		if (isReconciled == null){
+		if (isReconciled == null) {
 			reconciled = false;
-		} else{
+		} else {
 			reconciled = true;
 		}
 
@@ -312,8 +312,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (object.canRepresent(ResourceObjectShadowType.class)) {
 			try {
 				// calling shadow cache to add object
-				oid = getShadowCache().addShadow((ResourceObjectShadowType) object.asObjectable(), reconciled, scripts,
-						null, result);
+				oid = getShadowCache().addShadow((ResourceObjectShadowType) object.asObjectable(),
+						reconciled, scripts, null, result);
 				LOGGER.trace("**PROVISIONING: Added shadow object {}", oid);
 				result.recordSuccess();
 			} catch (GenericFrameworkException ex) {
@@ -359,7 +359,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public int synchronize(String resourceOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+			SecurityViolationException {
 
 		Validate.notNull(resourceOid, "Resource oid must not be null.");
 		Validate.notNull(task, "Task must not be null.");
@@ -558,7 +559,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			return searchObjects(objectType, null, paging, parentResult);
 		} catch (Exception e) {
-			throw new SystemException(e.getMessage(),e);
+			throw new SystemException(e.getMessage(), e);
 		}
 
 	}
@@ -567,14 +568,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException, SecurityViolationException {
-		
+
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".searchObjects");
 		result.addParam("objectType", type);
 		result.addParam("paging", paging);
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-		
+
 		if (!ResourceObjectShadowType.class.isAssignableFrom(type)) {
 			List<PrismObject<T>> objects = searchRepoObjects(type, query, paging, result);
 			result.computeStatus();
@@ -598,10 +599,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus();
 		return objListType;
 	}
-	
-	
-	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, QueryType query, PagingType paging,
-			OperationResult result) throws SchemaException {
+
+	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, QueryType query,
+			PagingType paging, OperationResult result) throws SchemaException {
 
 		List<PrismObject<T>> objListType = null;
 
@@ -684,16 +684,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
-	
-	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult) 
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".countObjects");
 		result.addParam("objectType", type);
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-		
+
 		if (!ResourceObjectShadowType.class.isAssignableFrom(type)) {
 			int count = getCacheRepositoryService().countObjects(type, query, parentResult);
 			result.computeStatus();
@@ -704,7 +704,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		final Holder<Integer> countHolder = new Holder<Integer>(0);
 
 		final ResultHandler<T> handler = new ResultHandler<T>() {
-			
+
 			@SuppressWarnings("unchecked")
 			@Override
 			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
@@ -718,13 +718,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		searchObjectsIterative(type, query, null, handler, result);
 		// TODO: better error handling
 		result.computeStatus();
-		return countHolder.getValue();		
+		return countHolder.getValue();
 	}
 
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
 
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Modifications must not be null.");
@@ -732,12 +733,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		boolean reconciled;
 		Object isReconciled = parentResult.getParams().get("reconciled");
-		if (isReconciled == null){
+		if (isReconciled == null) {
 			reconciled = false;
-		} else{
+		} else {
 			reconciled = true;
 		}
-		
+
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".modifyObject");
 		result.addParam("modifications", modifications);
@@ -760,8 +761,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 
 			// calling shadow cache to modify object
-			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled, scripts,
-					parentResult);
+			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled,
+					scripts, parentResult);
 			result.recordSuccess();
 
 		} catch (CommunicationException e) {
@@ -793,8 +794,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// result.recordFatalError(e);
 			throw e;
 		} catch (SecurityViolationException e) {
-			logFatalError(LOGGER, result, "Couldn't modify object: security violation: " + e.getMessage(),
-					e);
+			logFatalError(LOGGER, result, "Couldn't modify object: security violation: " + e.getMessage(), e);
 			throw e;
 		}
 
@@ -812,8 +812,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		LOGGER.trace("**PROVISIONING: Start to delete object with oid {}", oid);
 
-		
-		
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".deleteObject");
 		result.addParam("oid", oid);
@@ -967,7 +965,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query,
 			PagingType paging, final ResultHandler<T> handler, final OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
 
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -980,7 +979,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-		
+
 		Element filter = null;
 		if (query != null) {
 			filter = query.getFilter();
@@ -1002,10 +1001,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 							result.recordFatalError("Object type is not defined.");
 							throw new IllegalArgumentException("Object type is not defined.");
 						}
-	
+
 					} else if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_EQUAL, list.item(i))) {
 						NodeList equealList = list.item(i).getChildNodes();
-	
+
 						for (int j = 0; j < equealList.getLength(); j++) {
 							if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_VALUE, equealList.item(j))) {
 								Node value = equealList.item(j).getFirstChild();
@@ -1013,7 +1012,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 									resourceOid = value.getAttributes().getNamedItem("oid").getNodeValue();
 									LOGGER.trace("**PROVISIONING: Search objects on resource with oid {}",
 											resourceOid);
-	
+
 								} else if (QNameUtil.compareQName(SchemaConstants.I_OBJECT_CLASS, value)) {
 									objectClass = DOMUtil.getQNameValue((Element) value);
 									LOGGER.trace("**PROVISIONING: Object class to search: {}", objectClass);
@@ -1022,11 +1021,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 										throw new IllegalArgumentException("Object class was not defined.");
 									}
 								}
-							} else if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_PATH, equealList.item(j))){
-	
+							} else if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_PATH,
+									equealList.item(j))) {
+
 								attributeFilter.add(equealList);
 								continue;
-	
+
 							}
 						}
 					}
@@ -1136,10 +1136,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		shadowChangeDescription.setObjectDelta(change.getObjectDelta());
 		shadowChangeDescription.setResource(resourceType.asPrismObject());
 		shadowChangeDescription.setOldShadow(change.getOldShadow());
-		ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
-		currentShadowType.setActivation(ShadowCacheUtil.completeActivation(currentShadowType, resourceType,
-				null));
-
+		if (change.getCurrentShadow() != null) {
+			ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
+			currentShadowType.setActivation(ShadowCacheUtil.completeActivation(currentShadowType,
+					resourceType, null));
+		}
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
 		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
 		return shadowChangeDescription;

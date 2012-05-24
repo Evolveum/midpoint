@@ -1325,7 +1325,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		List<Change> changeList = null;
 		try {
 			PrismSchema schema = getResourceSchema(subresult);
-			changeList = getChangesFromSyncDeltas(syncDeltas, schema, subresult);
+			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, schema, subresult);
 		} catch (SchemaException ex) {
 			subresult.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
@@ -1845,29 +1845,34 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private List<Change> getChangesFromSyncDeltas(Collection<SyncDelta> icfDeltas, PrismSchema schema,
+	private List<Change> getChangesFromSyncDeltas(ObjectClass objClass, Collection<SyncDelta> icfDeltas, PrismSchema schema,
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException {
 		List<Change> changeList = new ArrayList<Change>();
 
 		Validate.notNull(icfDeltas, "Sync result must not be null.");
 		for (SyncDelta icfDelta : icfDeltas) {
 
-			ObjectClass objClass = icfDelta.getObject().getObjectClass();
-			QName objectClass = objectClassToQname(objClass.getObjectClassValue());
+			if (icfDelta.getObject() != null){
+				objClass = icfDelta.getObject().getObjectClass();
+			}
+				QName objectClass = objectClassToQname(objClass.getObjectClassValue());
+				ObjectClassComplexTypeDefinition objClassDefinition = (ObjectClassComplexTypeDefinition) schema
+				.findComplexTypeDefinition(objectClass);
+				
+			
 			// we don't want resource container deifinition, instead we need the
 			// objectClassDef
 			// ResourceAttributeContainerDefinition objectClassDefinition =
 			// (ResourceAttributeContainerDefinition) schema
 			// .findContainerDefinitionByType(objectClass);
-			ObjectClassComplexTypeDefinition objClassDefinition = (ObjectClassComplexTypeDefinition) schema
-					.findComplexTypeDefinition(objectClass);
+			
 			// ResourceAttributeContainerDefinition resourceAttributeDef =
 			// (ResourceAttributeContainerDefinition) objClassDefinition
 			// .findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
 			// FIXME: we are hadcoding Account here, but we should not
-			PrismObjectDefinition<AccountShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
+			
 
-			LOGGER.trace("Object definition: {}", objectDefinition);
+			
 
 			if (SyncDeltaType.DELETE.equals(icfDelta.getDeltaType())) {
 				LOGGER.debug("START creating delta of type DELETE");
@@ -1885,7 +1890,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				LOGGER.debug("END creating delta of type DELETE");
 
 			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(icfDelta.getDeltaType())) {
-
+				PrismObjectDefinition<AccountShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
+				LOGGER.trace("Object definition: {}", objectDefinition);
+				
 				LOGGER.debug("START creating delta of type CREATE_OR_UPDATE");
 				PrismObject<AccountShadowType> currentShadow = convertToResourceObject(icfDelta.getObject(),
 						objectDefinition, false);
