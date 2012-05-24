@@ -40,6 +40,7 @@ object.
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
            xmlns:my="http://myself.me/schemas/whatever"
            xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
@@ -62,12 +63,11 @@ object.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-        <c:configuration
-                xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
+        <c:configuration>
 
             <!-- Configuration specific for the LDAP connector -->
-            <icfc:configurationProperties>
+            <icfc:configurationProperties
+                xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector">
                 <icfcldap:port>11389</icfcldap:port>
                 <icfcldap:host>localhost</icfcldap:host>
                 <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
@@ -75,8 +75,7 @@ object.
                 <icfcldap:credentials>
                     <clearValue>secret</clearValue>
                 </icfcldap:credentials>
-                <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com
-                </icfcldap:modifiersNamesToFilterOut>
+                <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
                 <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
                 <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
                 <icfcldap:uidAttribute>nsUniqueId</icfcldap:uidAttribute>
@@ -148,6 +147,9 @@ object.
                             </code>
                         </expression>
                     </outbound>
+<!-- Try this, but it does not work as of 24.5.2012 10:44
+                                concat('uid=', $i:user/c:name,  $i:iterationToken, ',ou=people,dc=example,dc=com')
+-->
 
                     <!-- No inbound expression here. We cannot sync changes in DN yet -->
 
@@ -186,12 +188,7 @@ object.
                     <outbound>
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
-                        <expression>
-                            <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                                $i:user/i:name
-                            </code>
-                        </expression>
+			   <path>$user/name</path>
                     </outbound>
                     <inbound>
                         <description>It is mapped to (and also from) "name" property of
@@ -223,12 +220,7 @@ object.
                          overwriting the original value of "cn" on the resource.
                      -->
                     <outbound>
-                        <expression>
-                            <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                                $i:user/i:fullName
-                            </code>
-                        </expression>
+                        <path>$user/fullName</path>
                     </outbound>
                     <inbound>
                         <description>
@@ -252,12 +244,7 @@ object.
                     <access>read</access>
                     <access>update</access>
                     <outbound>
-                        <expression>
-                            <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                                $i:user/i:familyName
-                            </code>
-                        </expression>
+                          <path>$user/familyName</path>
                     </outbound>
                     <inbound>
                         <description>sn will be synchronized to user's familyName</description>
@@ -278,12 +265,7 @@ object.
                     <access>read</access>
                     <access>update</access>
                     <outbound>
-                        <expression>
-                            <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                                $i:user/i:givenName
-                            </code>
-                        </expression>
+                        <path>$user/givenName</path>
                     </outbound>
                     <inbound>
                         <description>givenName will be synchronized to user's givenName</description>
