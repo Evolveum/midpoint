@@ -40,7 +40,7 @@ object.
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
-         xmlns:my="http://myself.me/schemas/whatever"
+         xmlns:my="http://whatever.com/my"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
@@ -382,7 +382,7 @@ object.
 						</f:replace>
 					</c:valueFilter>  -->
 					<target>
-						declare namespace my="http://myself.me/schemas/whatever";
+						declare namespace my="http://whatever.com/my";
 						$c:user/c:extension/my:description
                     </target>
 				</inbound>
@@ -391,12 +391,12 @@ object.
 				<ref>ri:l</ref>
 				<outbound>
 					<expression>
-						<variable xmlns:my="http://myself.me/schemas/whatever">
+						<variable xmlns:my="http://whatever.com/my">
 							<name>my:defaultLocation</name>
 							<value xsi:type="xsd:string">middle of nowhere</value>
 						</variable>
 						<returnType>scalar</returnType>
-						<c:code xmlns:my="http://myself.me/schemas/whatever">
+						<c:code xmlns:my="http://whatever.com/my">
 								$my:defaultLocation
 						</c:code>
 					</expression>

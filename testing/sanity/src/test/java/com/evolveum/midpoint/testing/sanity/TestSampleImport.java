@@ -21,7 +21,9 @@ package com.evolveum.midpoint.testing.sanity;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -67,12 +69,16 @@ import static org.testng.AssertJUnit.assertEquals;
 public class TestSampleImport extends AbstractIntegrationTest {
 	
 	private static final String SAMPLE_DIRECTORY_NAME = "../../samples/";
+	private static final String SCHEMA_DIRECTORY_NAME = SAMPLE_DIRECTORY_NAME + "schema/";
 	private static final String USER_ADMINISTRATOR_FILENAME = "src/test/resources/repo/user-administrator.xml";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestSampleImport.class);
 	
 	@Autowired(required = true)
 	private ModelService modelService;
+	
+	@Autowired(required = true)
+	private PrismContext prismContext;
 
 	public TestSampleImport() throws JAXBException {
 		super();
@@ -80,6 +86,9 @@ public class TestSampleImport extends AbstractIntegrationTest {
 
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
+//		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+//		schemaRegistry.loadPrismSchemasFromDirectory(new File(SCHEMA_DIRECTORY_NAME));
+		
 		// Necessary to avoid warnings about missing user in task owner references
 		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
 		
@@ -109,7 +118,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 		displayTestTile(this, "Import sample "+sampleFile.getPath());
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(TestSampleImport.class.getName() + "importSample");
+		OperationResult result = new OperationResult(TestSampleImport.class.getName() + ".importSample");
 		result.addParam("file", sampleFile);
 		FileInputStream stream = new FileInputStream(sampleFile);
 

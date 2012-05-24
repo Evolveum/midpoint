@@ -186,11 +186,16 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	}
 	
 	public void registerPrismSchemaFile(File file) throws FileNotFoundException, SchemaException {
+		loadPrismSchemaFileDescription(file);
+	}
+
+	public SchemaDescription loadPrismSchemaFileDescription(File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = SchemaDescription.parseFile(file);
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);
+		return desc;
 	}
-	
+
 	private void registerSchemaDescription(SchemaDescription desc) {
 		if (desc.getUsualPrefix() != null) {
 			namespacePrefixMapper.registerPrefix(desc.getNamespace(), desc.getUsualPrefix());
@@ -218,6 +223,36 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 	}
 	
+	/**
+	 * This can be used to read additional schemas even after the registry was initialized.
+	 */
+	public void loadPrismSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
+		List<File> files = Arrays.asList(directory.listFiles());
+		// Sort the filenames so we have deterministic order of loading
+		// This is useful in tests but may come handy also during customization
+		Collections.sort(files);
+		for (File file: files) {
+			if (file.getName().startsWith(".")) {
+				// skip dotfiles. this will skip SVN data and similar things
+				continue;
+			}
+			if (file.isDirectory()) {
+				loadPrismSchemasFromDirectory(file);
+			}
+			if (file.isFile()) {
+				loadPrismSchemaFile(file);
+			}
+		}
+	}
+	
+	public void loadPrismSchemaFile(File file) throws FileNotFoundException, SchemaException {
+		SchemaDescription desc = loadPrismSchemaFileDescription(file);
+		parsePrismSchema(desc);
+	}
+
+	/**
+	 * This can be used to read additional schemas even after the registry was initialized.
+	 */	
 	public void initialize() throws SAXException, IOException, SchemaException {
 		if (prismContext == null) {
 			throw new IllegalStateException("Prism context not set");
@@ -256,23 +291,26 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 
 	private void parsePrismSchemas() throws SchemaException {
 		for (SchemaDescription schemaDescription : schemaDescriptions) {
-			
-			String namespace = schemaDescription.getNamespace();
-			
 			if (schemaDescription.isPrismSchema()) {
-				Element domElement = schemaDescription.getDomElement();
-				PrismSchema schema = PrismSchema.parse(domElement, this, schemaDescription.getSourceDescription(), getPrismContext());
-				//Schema schema = Schema.parse(domElement);
-				if (namespace == null) {
-					namespace = schema.getNamespace();
-				}
-				LOGGER.trace("Parsed schema {}, namespace: {}",schemaDescription.getSourceDescription(),namespace);
-				schemaDescription.setSchema(schema);
-				detectExtensionSchema(schema);
+				parsePrismSchema(schemaDescription);
 			}
 		}
 	}
 	
+	private void parsePrismSchema(SchemaDescription schemaDescription) throws SchemaException {
+		String namespace = schemaDescription.getNamespace();
+		
+		Element domElement = schemaDescription.getDomElement();
+		PrismSchema schema = PrismSchema.parse(domElement, this, schemaDescription.getSourceDescription(), getPrismContext());
+		//Schema schema = Schema.parse(domElement);
+		if (namespace == null) {
+			namespace = schema.getNamespace();
+		}
+		LOGGER.trace("Parsed schema {}, namespace: {}",schemaDescription.getSourceDescription(),namespace);
+		schemaDescription.setSchema(schema);
+		detectExtensionSchema(schema);
+	}
+
 	private void detectExtensionSchema(PrismSchema schema) throws SchemaException {
 		for (ComplexTypeDefinition def: schema.getDefinitions(ComplexTypeDefinition.class)) {
 			QName extType = def.getExtensionForType();

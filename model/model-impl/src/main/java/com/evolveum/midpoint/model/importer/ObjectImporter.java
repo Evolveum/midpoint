@@ -155,18 +155,18 @@ public class ObjectImporter {
                     objectResult.recordFatalError("Schema violation: "+e.getMessage(), e);
                     LOGGER.error("Import of object {} failed: Schema violation: {}",
                             new Object[]{object, e.getMessage(), e});
-                } catch (RuntimeException e) {
-                    objectResult.recordFatalError("Unexpected problem: "+e.getMessage(), e);
-                    LOGGER.error("Import of object {} failed: Unexpected problem: {}",
-                            new Object[]{object, e.getMessage(), e});
                 } catch (ObjectAlreadyExistsException e) {
                 	objectResult.recordFatalError("Object already exists: "+e.getMessage(), e);
                     LOGGER.error("Import of object {} failed: Object already exists: {}",
                             new Object[]{object, e.getMessage(), e});
                     LOGGER.error("Object already exists", e);
+                } catch (RuntimeException e) {
+                    objectResult.recordFatalError("Unexpected problem: "+e.getMessage(), e);
+                    LOGGER.error("Import of object {} failed: Unexpected problem: {}",
+                            new Object[]{object, e.getMessage(), e});
                 }
 
-                objectResult.computeStatus();
+                objectResult.recordSuccessIfUnknown();
                 if (objectResult.isAcceptable()) {
                     // Continue import
                     return EventResult.cont();
