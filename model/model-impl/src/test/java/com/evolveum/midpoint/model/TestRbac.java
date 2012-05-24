@@ -53,6 +53,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -117,7 +118,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, "Tortuga");
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
         
         // THEN
         assertHasRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
