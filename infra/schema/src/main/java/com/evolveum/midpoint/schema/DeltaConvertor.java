@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
@@ -33,19 +34,26 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType.ObjectToAdd;
 
 /**
  * @author semancik
@@ -111,7 +119,7 @@ public class DeltaConvertor {
         ObjectModificationType modType = new ObjectModificationType();
         modType.setOid(delta.getOid());
         List<ItemDeltaType> propModTypes = modType.getModification();
-        for (ItemDelta propDelta : delta.getModifications()) {
+        for (ItemDelta<?> propDelta : delta.getModifications()) {
             Collection<ItemDeltaType> propPropModTypes;
             try {
                 propPropModTypes = toPropertyModificationTypes(propDelta);
@@ -123,7 +131,54 @@ public class DeltaConvertor {
         return modType;
     }
     
-    /**
+	public static ObjectDeltaType toObjectDeltaType(ObjectDelta<? extends Objectable> objectDelta) throws SchemaException {
+		ObjectDeltaType objectDeltaType = new ObjectDeltaType();
+		objectDeltaType.setChangeType(convertChangeType(objectDelta.getChangeType()));
+		objectDeltaType.setOid(objectDelta.getOid());
+		
+		if (objectDelta.getChangeType() == ChangeType.ADD) {
+			PrismObject<? extends Objectable> prismObject = objectDelta.getObjectToAdd();
+			if (prismObject != null) {
+				PrismDomProcessor domProcessor = prismObject.getPrismContext().getPrismDomProcessor();
+				Element objectElement = domProcessor.serializeToDom(prismObject);
+				ObjectDeltaType.ObjectToAdd objectToAdd = new ObjectDeltaType.ObjectToAdd();
+				objectToAdd.setAny(objectElement);
+				objectDeltaType.setObjectToAdd(objectToAdd);
+			}
+		} else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
+		    ObjectModificationType modType = new ObjectModificationType();
+		    modType.setOid(objectDelta.getOid());
+		    for (ItemDelta<?> propDelta : objectDelta.getModifications()) {
+		        Collection<ItemDeltaType> propPropModTypes;
+		        try {
+		            propPropModTypes = toPropertyModificationTypes(propDelta);
+		        } catch (SchemaException e) {
+		            throw new SchemaException(e.getMessage() + " in " + objectDelta.toString(), e);
+		        }
+		        objectDeltaType.getModification().addAll(propPropModTypes);
+		    }
+        } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
+        	// Nothing to do
+        } else {
+        	throw new SystemException("Unknown changetype "+objectDelta.getChangeType());
+        }
+		return objectDeltaType;
+	}
+    
+	private static ChangeTypeType convertChangeType(ChangeType changeType) {
+		if (changeType == ChangeType.ADD) {
+			return ChangeTypeType.ADD;
+		}
+		if (changeType == ChangeType.MODIFY) {
+			return ChangeTypeType.MODIFY;
+		}
+		if (changeType == ChangeType.DELETE) {
+			return ChangeTypeType.DELETE;
+		}
+		throw new SystemException("Unknown changetype "+changeType);
+	}
+
+	/**
      * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
      * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
      */
@@ -213,6 +268,7 @@ public class DeltaConvertor {
 
     private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismPropertyValue<Object>> values,
             Document document) throws SchemaException {
+    	QName elementName = delta.getName();
     	ItemDeltaType.Value modValue = new ItemDeltaType.Value();
         mod.setValue(modValue);
         for (PrismPropertyValue<Object> value : values) {
@@ -221,6 +277,9 @@ public class DeltaConvertor {
         	if (XmlTypeConverter.canConvert(realValue.getClass())) {
         		// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
         		xmlValue = XmlTypeConverter.toXsdElement(realValue, delta.getName(), document, true);
+        	}
+        	if (!(xmlValue instanceof Element) && !(xmlValue instanceof JAXBElement)) {
+        		xmlValue = new JAXBElement(elementName, xmlValue.getClass(), xmlValue);
         	}
             modValue.getAny().add(xmlValue);
         }

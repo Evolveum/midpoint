@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -53,8 +54,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -64,6 +67,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -218,18 +222,40 @@ public class TestDeltaConverter {
         // TODO: more asserts
     }
     
-//    @Test
-//    public void testProtectedStringObjectDelta() throws Exception {
-//    	System.out.println("===[ testProtectedStringObjectDelta ]====");
-//    	
-//    	// GIVEN
-//    	ObjectDeltaType objectDeltaType = new ObjectDeltaType();
-//        objectDeltaType.setChangeType(ChangeTypeType.MODIFY);
-//        objectDeltaType.setOid(shadow.getOid());
-//        for (ItemDelta itemDelta : modifications) {
-//         objectDeltaType.getModification().addAll(
-//           DeltaConvertor.toPropertyModificationTypes(itemDelta));
-//        }
-//        shadow.setObjectChange(objectDeltaType);
-//    }
+    @Test
+    public void testProtectedStringObjectDelta() throws Exception {
+    	System.out.println("===[ testProtectedStringObjectDelta ]====");
+
+    	// GIVEN
+    	PropertyPath path = new PropertyPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_PROTECTED_STRING);
+    	ProtectedStringType protectedString = new ProtectedStringType();
+    	protectedString.setClearValue("abrakadabra");
+    	ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, "12345",
+    			path, PrismTestUtil.getPrismContext(), protectedString);
+
+    	System.out.println("ObjectDelta");
+    	System.out.println(objectDelta.dump());
+
+    	// WHEN
+    	ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
+
+    	// THEN
+    	System.out.println("ObjectDeltaType (XML)");
+    	System.out.println(PrismTestUtil.marshalWrap(objectDeltaType));
+    	
+    	assertEquals("Wrong changetype", ChangeTypeType.MODIFY, objectDeltaType.getChangeType());
+    	assertEquals("Wrong OID", "12345", objectDeltaType.getOid());
+    	List<ItemDeltaType> modifications = objectDeltaType.getModification();
+    	assertNotNull("null modifications", modifications);
+    	assertEquals("Wrong number of modifications", 1, modifications.size());
+    	ItemDeltaType mod1 = modifications.iterator().next();
+    	assertEquals("Wrong mod type", ModificationTypeType.REPLACE, mod1.getModificationType());
+    	XPathHolder xpath = new XPathHolder(mod1.getPath());
+    	assertEquals("Wrong path", path.allExceptLast(), xpath.toPropertyPath());
+    	List<Object> valueElements = mod1.getValue().getAny();
+    	assertEquals("Wrong number of value elements", 1, valueElements.size());
+    	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)valueElements.iterator().next();
+    	assertEquals("Wrong element name", PasswordType.F_PROTECTED_STRING, valueElement.getName());
+    	assertEquals("Wrong element value", protectedString, valueElement.getValue());
+    }
 }

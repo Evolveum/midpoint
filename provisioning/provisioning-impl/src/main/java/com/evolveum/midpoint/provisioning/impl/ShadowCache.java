@@ -436,14 +436,13 @@ public class ShadowCache {
 				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
 				shadow.setResult(parentResult.createOperationResultType());
 				shadow.setResource(resource);
-				ObjectDeltaType objectDeltaType = new ObjectDeltaType();
-				objectDeltaType.setChangeType(ChangeTypeType.MODIFY);
-				objectDeltaType.setOid(shadow.getOid());
-				for (ItemDelta itemDelta : modifications) {
-					objectDeltaType.getModification().addAll(
-							DeltaConvertor.toPropertyModificationTypes(itemDelta));
-				}
+				
+				ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createModifyDelta(
+						shadow.getOid(), modifications, objectType.getClass());
+				ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
+				
 				shadow.setObjectChange(objectDeltaType);
+				
 				try {
 					handler.handleError(shadow, ex);
 				} catch (ObjectAlreadyExistsException e) {
