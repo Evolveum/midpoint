@@ -190,7 +190,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             if (item == null) {
                 return null;
             }
-            D itemDelta = createEmptyDelta(propertyPath, item.getDefinition(), deltaType, itemType);
+            D itemDelta = createEmptyDelta(propertyPath, item.getDefinition(), deltaType, item.getClass());
             itemDelta.addValuesToAdd(item.getClonedValues());
             return itemDelta;
         } else if (changeType == ChangeType.MODIFY) {

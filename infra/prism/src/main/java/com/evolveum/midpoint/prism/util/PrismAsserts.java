@@ -336,6 +336,12 @@ public class PrismAsserts {
 		expected.recompute(PrismTestUtil.getPrismContext().getDefaultPolyStringNormalizer());
 		assert MiscUtil.equals(expected.getNorm(), actual.getNorm()) : message+"; expected norm "+expected.getNorm()+ " but was " + actual.getNorm();
 	}
+	
+	public static void assertEqualsPolyString(String message, PolyStringType expected, PolyStringType actual) {
+		assert actual != null : message + ": null value";
+		assert MiscUtil.equals(expected.getOrig(), actual.getOrig()) : message+"; expected orig "+expected.getOrig()+ " but was " + actual.getOrig();
+		assert MiscUtil.equals(expected.getNorm(), actual.getNorm()) : message+"; expected norm "+expected.getNorm()+ " but was " + actual.getNorm();
+	}
 
 	// Calendar asserts
 	

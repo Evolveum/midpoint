@@ -131,10 +131,11 @@ public class PathValueConstructor implements ValueConstructor {
         if (baseObject instanceof PrismContainerValue<?>) {
         	PrismContainerValue<?> containerValue = (PrismContainerValue<?>)baseObject;
         	referedItem = (Item<V>) containerValue.findItem(path);
-        	if (baseDelta != null) {
-        		referedItemDelta = (ItemDelta<V>) baseDelta.findItemDelta(path);
-        	}
         }
+
+        if (baseDelta != null) {
+    		referedItemDelta = (ItemDelta<V>) baseDelta.findItemDelta(path);
+    	}
         
         PrismValueDeltaSetTriple<V> outputTriple = ItemDelta.toDeltaSetTriple(referedItem, referedItemDelta, conditionResultOld, conditionResultNew);
         

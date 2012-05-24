@@ -536,6 +536,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			}
 			return triple;
 		}
+		if (item == null && delta != null) {
+			return delta.toDeltaSetTriple(item);
+		}
 		if (delta == null || (!oldValuesValid && newValuesValid)) {
 			PrismValueDeltaSetTriple<T> triple = new PrismValueDeltaSetTriple<T>();
 			if (item != null) {

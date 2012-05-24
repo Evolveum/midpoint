@@ -739,7 +739,7 @@ public class TestSanity extends AbstractIntegrationTest {
         display("repository.getObject result", repoResult);
         assertSuccess("getObject has failed", repoResult);
         AssertJUnit.assertEquals(USER_JACK_OID, repoUser.getOid());
-        AssertJUnit.assertEquals(userType.getFullName(), repoUser.getFullName());
+        PrismAsserts.assertEqualsPolyString("fullName", userType.getFullName(), repoUser.getFullName());
 
         // TODO: better checks
     }
@@ -1096,8 +1096,8 @@ public class TestSanity extends AbstractIntegrationTest {
         UserType repoUserType = repoUser.asObjectable(); 
         display("repository user", repoUser);
 
-        assertEquals("wrong value for fullName", "Cpt. Jack Sparrow", repoUserType.getFullName());
-        assertEquals("wrong value for locality", "somewhere", repoUserType.getLocality());
+        PrismAsserts.assertEqualsPolyString("wrong value for fullName", "Cpt. Jack Sparrow", repoUserType.getFullName());
+        PrismAsserts.assertEqualsPolyString("wrong value for locality", "somewhere", repoUserType.getLocality());
         assertEquals("wrong value for employeeNumber", "1", repoUserType.getEmployeeNumber());
 
         // Check if appropriate accountRef is still there
@@ -1176,8 +1176,8 @@ public class TestSanity extends AbstractIntegrationTest {
         display("repository user", repoUser);
 
         // Check if nothing else was modified
-        AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUserType.getFullName());
-        AssertJUnit.assertEquals("somewhere", repoUserType.getLocality());
+        PrismAsserts.assertEqualsPolyString("wrong repo fullName", "Cpt. Jack Sparrow", repoUserType.getFullName());
+        PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
         List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
@@ -1270,8 +1270,8 @@ public class TestSanity extends AbstractIntegrationTest {
         UserType repoUserType = repoUser.asObjectable();
 
         // Check if nothing else was modified
-        AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUserType.getFullName());
-        AssertJUnit.assertEquals("somewhere", repoUserType.getLocality());
+        PrismAsserts.assertEqualsPolyString("wrong repo fullName", "Cpt. Jack Sparrow", repoUserType.getFullName());
+        PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
         List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
@@ -1382,8 +1382,8 @@ public class TestSanity extends AbstractIntegrationTest {
         display("repo user", repoUser);
 
         // Check if nothing else was modified
-        AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
-        AssertJUnit.assertEquals("somewhere", repoUser.getLocality());
+        PrismAsserts.assertEqualsPolyString("wrong repo fullName", "Cpt. Jack Sparrow", repoUser.getFullName());
+        PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUser.getLocality());
 
         // Check if appropriate accountRef is still there
         List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
@@ -2423,7 +2423,7 @@ public class TestSanity extends AbstractIntegrationTest {
         UserType user = searchUserByName (WILL_NAME);
 
         AssertJUnit.assertEquals(WILL_NAME, user.getName());
-        AssertJUnit.assertEquals("asdf", user.getGivenName());
+        PrismAsserts.assertEqualsPolyString("wrong givenName", "asdf", user.getGivenName());
         
         assertAndStoreSyncTokenIncrement(syncCycle, 1);
         checkAllShadows();
@@ -3122,9 +3122,9 @@ public class TestSanity extends AbstractIntegrationTest {
 
         assertNotNull(repoUser.getOid());
         assertEquals(ELAINE_NAME, repoUser.getName());
-        assertEquals("Elaine", repoUser.getGivenName());
-        assertEquals("Marley", repoUser.getFamilyName());
-        assertEquals("Elaine Marley", repoUser.getFullName());
+        PrismAsserts.assertEqualsPolyString("wrong repo givenName", "Elaine", repoUser.getGivenName());
+        PrismAsserts.assertEqualsPolyString("wrong repo familyName", "Marley", repoUser.getFamilyName());
+        PrismAsserts.assertEqualsPolyString("wrong repo fullName", "Elaine Marley", repoUser.getFullName());
 
         accountRefs = repoUser.getAccountRef();
         assertEquals("Elaine has wrong number of accounts", 1, accountRefs.size());
