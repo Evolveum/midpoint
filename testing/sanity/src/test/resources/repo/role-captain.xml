@@ -22,6 +22,7 @@
 <role oid="12345678-d34d-b33f-f00d-987987cccccc"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
     <name>Captain Role</name>    
     <assignment>
@@ -53,19 +54,13 @@
 				<expression>
 					<returnType>scalar</returnType>
 					<code>
-						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                        concat('Department of ',$c:user/c:givenName)
+                        concat('Department of ',$c:user/c:givenName/t:orig)
 					</code>
 				</expression>
             </attribute>
             <attribute>
                 <ref>ri:destinationIndicator</ref>
-				<expression>
-					<code>
-						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                        c:fullName
-					</code>
-				</expression>
+				<path>fullName</path>
             </attribute>
     		<attribute>
                 <ref>ri:physicalDeliveryOfficeName</ref>
