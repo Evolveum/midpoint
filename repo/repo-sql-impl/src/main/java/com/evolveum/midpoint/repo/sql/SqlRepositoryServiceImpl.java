@@ -199,6 +199,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             rollbackTransaction(session, ex, result);
             throw ex;
         } catch (Exception ex) {
+            if (ex instanceof SchemaException) {
+                throw (SchemaException) ex;
+            }
             handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
@@ -391,6 +394,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             rollbackTransaction(session, ex, result);
             throw ex;
         } catch (Exception ex) {
+            if (ex instanceof SchemaException) {
+                throw (SchemaException) ex;
+            }
             handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
@@ -618,6 +624,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
+            if (ex instanceof SchemaException) {
+                throw (SchemaException) ex;
+            }
             handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
@@ -741,6 +750,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             rollbackTransaction(session, ex, result);
             throw ex;
         } catch (Exception ex) {
+            if (ex instanceof SchemaException) {
+                throw (SchemaException) ex;
+            }
             handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
