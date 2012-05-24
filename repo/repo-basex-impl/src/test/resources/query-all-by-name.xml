@@ -20,12 +20,16 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <q:query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 
     <q:and>
         <q:equal>
             <q:value>
-                <c:fullName>Cpt. Jack Sparrow</c:fullName>
+                <c:fullName>
+                    <t:orig>Cpt. Jack Sparrow</t:orig>
+                    <t:norm>cpt jack Sparrow</t:norm>
+                </c:fullName>
             </q:value>
         </q:equal>
     </q:and>

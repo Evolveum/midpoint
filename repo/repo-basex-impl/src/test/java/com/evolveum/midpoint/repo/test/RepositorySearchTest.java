@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -118,7 +119,10 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			assertEquals(1, objectList.size());
 
 			PrismObject<UserType> foundUser = objectList.get(0);
-			assertEquals("Cpt. Jack Sparrow", foundUser.asObjectable().getFullName());
+            PolyStringType poly = new PolyStringType();
+            poly.setOrig("Cpt. Jack Sparrow");
+            poly.setNorm("cpt jack sparrow");
+			assertEquals(poly, foundUser.asObjectable().getFullName());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -144,7 +148,10 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			assertEquals(1, objectList.size());
 
 			PrismObject<UserType> foundUser = (PrismObject) objectList.get(0);
-			assertEquals("Cpt. Jack Sparrow", foundUser.asObjectable().getFullName());
+            PolyStringType poly = new PolyStringType();
+            poly.setOrig("Cpt. Jack Sparrow");
+            poly.setNorm("cpt jack sparrow");
+            assertEquals(poly, foundUser.asObjectable().getFullName());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
