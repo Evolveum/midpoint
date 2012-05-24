@@ -34,7 +34,6 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -494,10 +493,24 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     (query == null ? "undefined" : prismContext.silentMarshalObject(query))});
         }
 
-        int count = 0;
         OperationResult subResult = result.createSubresult(COUNT_OBJECTS);
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
+
+        final String operation = "counting";
+        int attempt = 1;
+
+        while (true) {
+            try {
+                return countObjectsAttempt(type, query, subResult);
+            } catch (RuntimeException ex) {
+                attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+            }
+        }
+    }
+
+    private <T extends ObjectType> int countObjectsAttempt(Class<T> type, QueryType query, OperationResult result) {
+        int count = 0;
 
         Session session = null;
         try {
@@ -515,10 +528,19 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.debug("Selecting total count.");
             Long longCount = (Long) criteria.uniqueResult();
             count = longCount.intValue();
+        } catch (PessimisticLockException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (LockAcquisitionException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (HibernateOptimisticLockingFailureException ex) {
+            rollbackTransaction(session);
+            throw ex;
         } catch (Exception ex) {
-            handleGeneralException(ex, session, subResult);
+            handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, subResult);
+            cleanupSessionAndResult(session, result);
         }
 
         return count;
@@ -544,6 +566,20 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
         subResult.addParam("paging", paging);
+
+        final String operation = "searching";
+        int attempt = 1;
+        while (true) {
+            try {
+                return searchObjectsAttempt(type, query, paging, subResult);
+            } catch (RuntimeException ex) {
+                attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+            }
+        }
+    }
+
+    private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, QueryType query,
+            PagingType paging, OperationResult result) throws SchemaException {
 
         List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
         Session session = null;
@@ -572,10 +608,19 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             session.getTransaction().commit();
+        } catch (PessimisticLockException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (LockAcquisitionException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (HibernateOptimisticLockingFailureException ex) {
+            rollbackTransaction(session);
+            throw ex;
         } catch (Exception ex) {
             handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, subResult);
+            cleanupSessionAndResult(session, result);
         }
 
         return list;
@@ -712,6 +757,23 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         LOGGER.debug("Listing resource object shadows '{}' for resource '{}'.",
                 new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
         OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
+        subResult.addParam("oid", resourceOid);
+        subResult.addParam("resourceObjectShadowType", resourceObjectShadowType);
+
+        final String operation = "listing resource object shadows";
+        int attempt = 1;
+        while (true) {
+            try {
+                return listResourceObjectShadowsAttempt(resourceOid, resourceObjectShadowType, subResult);
+            } catch (RuntimeException ex) {
+                attempt = logOperationAttempt(resourceOid, operation, attempt, ex, subResult);
+            }
+        }
+    }
+
+    private <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadowsAttempt(
+            String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
+            throws ObjectNotFoundException {
 
         List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
         Session session = null;
@@ -736,10 +798,19 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
             session.getTransaction().commit();
             LOGGER.debug("Done.");
+        } catch (PessimisticLockException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (LockAcquisitionException ex) {
+            rollbackTransaction(session);
+            throw ex;
+        } catch (HibernateOptimisticLockingFailureException ex) {
+            rollbackTransaction(session);
+            throw ex;
         } catch (Exception ex) {
             handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, subResult);
+            cleanupSessionAndResult(session, result);
         }
 
         return list;
