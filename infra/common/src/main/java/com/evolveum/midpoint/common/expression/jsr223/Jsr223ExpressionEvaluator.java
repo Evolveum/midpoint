@@ -94,45 +94,45 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluateList(java.lang.Class, org.w3c.dom.Element, java.util.Map, com.evolveum.midpoint.schema.util.ObjectResolver, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> type, Element code,
+	public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> expectedType, Element code,
 			Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription,
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 			SchemaException {
-		Object evalRawResult = evaluate(type, code, variables, objectResolver, contextDescription, result);
+		Object evalRawResult = evaluate(expectedType, code, variables, objectResolver, contextDescription, result);
 		List<PrismPropertyValue<T>> pvals = new ArrayList<PrismPropertyValue<T>>();
 		if (evalRawResult instanceof Collection) {
 			for(Object evalRawResultElement : (Collection)evalRawResult) {
-				T evalResult = convertScalarResult(type, evalRawResultElement, contextDescription);
+				T evalResult = convertScalarResult(expectedType, evalRawResultElement, contextDescription);
 				PrismPropertyValue<T> pval = new PrismPropertyValue<T>(evalResult);
 				pvals.add(pval);
 			}
 		} else {
-			T evalResult = convertScalarResult(type, evalRawResult, contextDescription);
+			T evalResult = convertScalarResult(expectedType, evalRawResult, contextDescription);
 			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(evalResult);
 			pvals.add(pval);
 		}
 		return pvals;
 	}
 	
-	private <T> T convertScalarResult(Class<T> type, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
-		if (rawValue == null || type.isInstance(rawValue)) {
+	private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
+		if (rawValue == null || expectedType.isInstance(rawValue)) {
 			return (T)rawValue;
 		}
-		if (type.equals(PolyString.class) && rawValue instanceof String) {
+		if (expectedType.equals(PolyString.class) && rawValue instanceof String) {
 			return (T) new PolyString((String)rawValue);
 		}
-		if (type.equals(PolyStringType.class) && rawValue instanceof String) {
+		if (expectedType.equals(PolyStringType.class) && rawValue instanceof String) {
 			PolyStringType polyStringType = new PolyStringType();
 			polyStringType.setOrig((String)rawValue);
 			return (T) polyStringType;
 		}
-		if (type.equals(String.class) && rawValue instanceof PolyString) {
+		if (expectedType.equals(String.class) && rawValue instanceof PolyString) {
 			return (T)((PolyString)rawValue).getOrig();
 		}
-		if (type.equals(String.class) && rawValue instanceof PolyStringType) {
+		if (expectedType.equals(String.class) && rawValue instanceof PolyStringType) {
 			return (T)((PolyStringType)rawValue).getOrig();
 		}
-		throw new ExpressionEvaluationException("Expected "+type+" from expression, but got "+rawValue.getClass()+" "+contextDescription);
+		throw new ExpressionEvaluationException("Expected "+expectedType+" from expression, but got "+rawValue.getClass()+" "+contextDescription);
 	}
 	
 	private <T> Object evaluate(Class<T> type, Element codeElement,

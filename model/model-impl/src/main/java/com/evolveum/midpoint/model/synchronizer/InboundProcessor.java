@@ -289,21 +289,22 @@ public class InboundProcessor {
         
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> triple = null;
         
-        // Try to process source
         ValueConstructionType sourceValueConstructionType = inbound.getSource();
-        if (sourceValueConstructionType != null) {
-        	ValueConstruction<PrismPropertyValue<T>> valueConstruction = valueConstructionFactory.createValueConstruction(sourceValueConstructionType, targetPropertyDef, 
-        			"inbound expression for "+accountAttributeDelta.getPath());
-        	valueConstruction.setInput(null);
-        	valueConstruction.setInputDelta(accountAttributeDelta);
-        	valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
-        	// Add variables
-        	valueConstruction.evaluate(result);
-        	triple = valueConstruction.getOutputTriple();
-        } else {
-        	// No source, just dissolve delta to triple
-        	triple = accountAttributeDelta.toDeltaSetTriple();
-        }
+    	ValueConstruction<PrismPropertyValue<T>> valueConstruction = null;
+    	if (sourceValueConstructionType != null) {
+    		valueConstruction = valueConstructionFactory.createValueConstruction(sourceValueConstructionType, targetPropertyDef, 
+        			"inbound expression for "+accountAttributeDelta.getName());
+    	} else {
+    		valueConstruction = valueConstructionFactory.createDefaultValueConstruction(targetPropertyDef, 
+        			"inbound expression for "+accountAttributeDelta.getName());
+    	}
+    	valueConstruction.setInput(null);
+    	valueConstruction.setInputDelta(accountAttributeDelta);
+    	valueConstruction.setOutputDefinition(targetPropertyDef);
+    	valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
+    	// Add variables
+    	valueConstruction.evaluate(result);
+    	triple = valueConstruction.getOutputTriple();
         
         if (triple.getPlusSet() != null) {
             LOGGER.trace("Checking account sync property delta values to add");
