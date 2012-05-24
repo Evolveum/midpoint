@@ -22,6 +22,7 @@
 <i:user oid="c0c010c0-d34d-b33f-f00d-111111111111" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
    xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <c:name>jack</c:name>
@@ -29,20 +30,39 @@
         <piracy:ship>Black Pearl</piracy:ship>
         <piracy:loot xsi:type="xsd:int">123123</piracy:loot>
     </c:extension>
-    <i:fullName>Cpt. Jack Sparrow</i:fullName>
-    <i:givenName>Jack</i:givenName>
-    <i:familyName>Sparrow</i:familyName>
-    <i:additionalNames>yet another name</i:additionalNames>
-    <i:honorificPrefix>Cpt.</i:honorificPrefix>
-    
-    <i:honorificSuffix>PhD.</i:honorificSuffix>
+    <i:fullName>
+        <t:orig>Cpt. Jack Sparrow</t:orig>
+        <t:norm>cpt jack sparrow</t:norm>
+    </i:fullName>
+    <i:givenName>
+        <t:orig>Jack</t:orig>
+        <t:norm>jack</t:norm>
+    </i:givenName>
+    <i:familyName>
+        <t:orig>Sparrow</t:orig>
+        <t:norm>sparrow</t:norm>
+    </i:familyName>
+    <i:additionalName>
+        <t:orig>yet another name</t:orig>
+        <t:norm>yet another name</t:norm>
+    </i:additionalName>
+    <i:honorificPrefix>
+        <t:orig>Cpt.</t:orig>
+        <t:norm>cpt</t:norm>
+    </i:honorificPrefix>
+    <i:honorificSuffix>
+        <t:orig>PhD.</t:orig>
+        <t:norm>phd</t:norm>
+    </i:honorificSuffix>
     <i:emailAddress>jack.sparrow@evolveum.com</i:emailAddress>
     <i:telephoneNumber>555-1234</i:telephoneNumber>
     <i:employeeNumber>emp1234</i:employeeNumber>
     <i:employeeType>CAPTAIN</i:employeeType>
     <i:organizationalUnit>Leaders</i:organizationalUnit>
-    <i:locality>Black Pearl</i:locality>
-
+    <i:locality>
+        <t:orig>Black Pearl</t:orig>
+        <t:norm>black pearl</t:norm>
+    </i:locality>
     <i:credentials>
         <i:password>
         	<c:protectedString>

@@ -30,7 +30,7 @@
     <i:fullName>Cpt. Jack Sparrow</i:fullName>
     <i:givenName>Jack</i:givenName>
     <i:familyName>Sparrow</i:familyName>
-    <i:additionalNames>yet another name</i:additionalNames>
+    <i:additionalName>yet another name</i:additionalName>
     <i:honorificPrefix>Cpt.</i:honorificPrefix>
     
     <i:honorificSuffix>PhD.</i:honorificSuffix>
