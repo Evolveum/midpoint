@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
@@ -120,6 +121,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/home", PageHome.class, encoder));
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
         mount(new MountedMapper("/admin/tasks", PageTasks.class, encoder));
+        mount(new MountedMapper("/admin/addTask", PageTaskAdd.class, encoder));
         mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));
         mount(new MountedMapper("/admin/resources", PageResources.class, encoder));
         mount(new MountedMapper("/admin/config", PageLogging.class, encoder));
@@ -132,7 +134,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));
         mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
         mount(new MountedMapper("/admin/role", PageRole.class, new OnePageParameterEncoder(PageRole.PARAM_ROLE_ID)));
-        mount(new MountedMapper("/admin/task", PageTaskAdd.class, new OnePageParameterEncoder(PageTaskAdd.PARAM_TASK_ID)));
+        mount(new MountedMapper("/admin/task", PageTaskEdit.class, new OnePageParameterEncoder(PageTaskEdit.PARAM_TASK_EDIT_ID)));
         mount(new MountedMapper("/admin/resource", PageResource.class, new OnePageParameterEncoder(PageResource.PARAM_RESOURCE_ID)));
 //        mount(new MountedMapper("/admin/task", PageTaskEdit.class,
 //                new OnePageParameterEncoder(PageTaskEdit.PARAM_TASK_ID)));

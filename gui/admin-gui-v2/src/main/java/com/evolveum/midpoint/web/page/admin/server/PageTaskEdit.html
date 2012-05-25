@@ -26,25 +26,29 @@
     <form wicket:id="mainForm">
         <table>
             <tr>
-                <td><wicket:message key="pageTaskEditEdit.name"/></td>
+                <td><wicket:message key="pageTaskEdit.name"/></td>
                 <td><input type="text" wicket:id="name"/></td>
             </tr>
             <tr>
-                <td><wicket:message key="pageTaskEditEdit.oid"/></td>
-                <td><input type="text" wicket:id="oid"/></td>
+                <td><wicket:message key="pageTaskEdit.oid"/></td>
+                <td><span wicket:id="oid"/></td>
             </tr>
             <tr>
-                <td><wicket:message key="pageTaskEditEdit.category"/></td>
-                <td><input type="text" wicket:id="cateory"/></td>
+                <td><wicket:message key="pageTaskEdit.category"/></td>
+                <td><span wicket:id="category"/></td>
             </tr>
             <tr>
-                <td><wicket:message key="pageTaskEditEdit.uri"/></td>
-                <td><input type="text" wicket:id="uri"/></td>
+                <td><wicket:message key="pageTaskEdit.uri"/></td>
+                <td><span wicket:id="uri"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTaskEdit.execution"/></td>
+                <td><span wicket:id="execution"/> <span wicket:id="node"/></td>
             </tr>
        	</table>
        	
-       	<h2><wicket:message key="pageTaskEditEdit.scheduleTitle"/><br />
-       		<small style="font-size: 12px;"><wicket:message key="pageTaskEditEdit.scheduleHelp"/></small>
+       	<h2><wicket:message key="pageTaskEdit.scheduleTitle"/><br />
+       		<small style="font-size: 12px;"><wicket:message key="pageTaskEdit.scheduleHelp"/></small>
        	</h2>
        <table>
 	  		<tbody>
@@ -82,11 +86,11 @@
 				</tr>
 				<tr>
 	                <td><wicket:message key="pageTaskEdit.misfire"/></td>
-	                <td><select wicket:id="misfire"/></td>
+	                <td><select wicket:id="misfireAction"/></td>
 	            </tr>
 	            <tr>
-				    <td><wicket:message key="pageTaskEdit.lastStart"/></td>
-				    <td><span wicket:id="lastStart" /></td>
+				    <td><wicket:message key="pageTaskEdit.lastStarted"/></td>
+				    <td><span wicket:id="lastStarted" /></td>
 				</tr>
 				<tr>
 				    <td><wicket:message key="pageTaskEdit.lastFinished"/></td>
@@ -99,10 +103,10 @@
 			</tbody>
         </table>
         <table>
-        	<tr>
+        	<!-- <tr>
 	            <td><wicket:message key="pageTaskEdit.tightlyBound"/></td>
 	            <td><input type="checkbox" wicket:id="tightlyBound"/></td>
-	        </tr>
+	        </tr> -->
 	        <tr>
 	            <td><wicket:message key="pageTaskEdit.runUntilNodeDown"/></td>
 	            <td><input type="checkbox" wicket:id="runUntilNodeDown"/></td>

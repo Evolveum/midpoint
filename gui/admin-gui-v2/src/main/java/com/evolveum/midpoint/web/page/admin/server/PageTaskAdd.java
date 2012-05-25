@@ -87,7 +87,6 @@ public class PageTaskAdd extends PageAdminTasks {
 	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
 	private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResouceList";
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
-	public static final String PARAM_TASK_ID = "taskOid";
 	private IModel<TaskAddDto> model;
 
 	public PageTaskAdd() {
@@ -312,7 +311,7 @@ public class PageTaskAdd extends PageAdminTasks {
 				new EnumChoiceRenderer<ThreadStopActionType>(PageTaskAdd.this));
 		mainForm.add(threadStop);
 
-		DropDownChoice misfire = new DropDownChoice("misfire", new PropertyModel<MisfireActionType>(model,
+		DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(model,
 				"misfireAction"), MiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
 				new EnumChoiceRenderer<MisfireActionType>(PageTaskAdd.this));
 		mainForm.add(misfire);
@@ -394,21 +393,10 @@ public class PageTaskAdd extends PageAdminTasks {
 		LOGGER.debug("Saving task changes.");
 		OperationResult result = new OperationResult(OPERATION_SAVE_TASK);
 		TaskAddDto dto = model.getObject();
-		
-		if(isEditingTask()){
-			
-		} else {
-			
-		}
 	}
 
 	private void browsePerformed(AjaxRequestTarget target) {
 		// todo implement
-	}
-
-	private boolean isEditingTask() {
-		StringValue taskOid = getPageParameters().get(PageTaskAdd.PARAM_TASK_ID);
-		return taskOid != null && StringUtils.isNotEmpty(taskOid.toString());
 	}
 
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {

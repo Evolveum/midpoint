@@ -21,42 +21,49 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import java.util.Collection;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.SimpleAttributeModifier;
+import org.apache.wicket.datetime.markup.html.form.DateTextField;
+import org.apache.wicket.extensions.yui.calendar.DateTimeField;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.form.validation.IFormValidator;
+import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.Editable;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
 
 /**
  * @author lazyman
+ * @author mserbak
  */
 public class PageTaskEdit extends PageAdminTasks {
 	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
-	public static final String PARAM_TASK_ID = "taskOid";
+	public static final String PARAM_TASK_EDIT_ID = "taskEditOid";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
 	private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
@@ -73,14 +80,14 @@ public class PageTaskEdit extends PageAdminTasks {
 		};
 		initLayout();
 	}
-	
+
 	private TaskDto loadTask() {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 		Task loadedTask = null;
 		TaskManager manager = null;
 		try {
 			manager = getTaskManager();
-			StringValue taskOid = getPageParameters().get(PARAM_TASK_ID);
+			StringValue taskOid = getPageParameters().get(PARAM_TASK_EDIT_ID);
 			loadedTask = manager.getTask(taskOid.toString(), result);
 			result.recordSuccess();
 		} catch (Exception ex) {
@@ -90,15 +97,15 @@ public class PageTaskEdit extends PageAdminTasks {
 		if (!result.isSuccess()) {
 			showResult(result);
 		}
-		
-		if (loadedTask == null) {
-            getSession().error(getString("pageTaskEdit.message.cantTaskDetails"));
 
-            if (!result.isSuccess()) {
-                showResultInSession(result);
-            }
-            throw new RestartResponseException(PageResources.class);
-        }
+		if (loadedTask == null) {
+			getSession().error(getString("pageTaskEdit.message.cantTaskDetails"));
+
+			if (!result.isSuccess()) {
+				showResultInSession(result);
+			}
+			throw new RestartResponseException(PageTasks.class);
+		}
 		ClusterStatusInformation info = manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE, result);
 		return new TaskDto(loadedTask, info, manager);
 	}
@@ -107,62 +114,316 @@ public class PageTaskEdit extends PageAdminTasks {
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
-		//mainForm.add(new editableColumn(model, "name"));
-		
+		// mainForm.add(new editableColumn(model, "name"));
 
-		TextField<String> name = new TextField<String>("name", new PropertyModel<String>(model, "name"));
+		RequiredTextField<String> name = new RequiredTextField<String>("name", new PropertyModel<String>(model, "name"));
+		name.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isEnabled() {
+				return edit;
+			}
+		});
+		name.add(new SimpleAttributeModifier("width","100%"));
+		name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		mainForm.add(name);
-		
-		TextField<String> oid = new TextField<String>("oid", new PropertyModel<String>(model, "oid"));
+
+		Label oid = new Label("oid", new PropertyModel(model, "oid"));
 		mainForm.add(oid);
-		
-	}
 
-	private static class editableColumn<T extends Editable> extends EditablePropertyColumn<T> {
+		Label category = new Label("category", new PropertyModel(model, "category"));
+		mainForm.add(category);
 
-		public editableColumn(IModel<String> displayModel, String propertyExpression) {
-			super(displayModel, propertyExpression);
-		}
+		Label uri = new Label("uri", new PropertyModel(model, "uri"));
+		mainForm.add(uri);
 
-		@Override
-		protected boolean isEditing(IModel<T> rowModel) {
-			return edit;
-		}
+		Label execution = new Label("execution", new PropertyModel(model, "execution"));
+		mainForm.add(execution);
 
-		@Override
-		protected InputPanel createInputPanel(String componentId, IModel iModel) {
-			InputPanel panel = super.createInputPanel(componentId, iModel);
-			panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		Label node = new Label("node", new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				TaskDto dto = model.getObject();
+				if (dto.getExecution() != TaskDtoExecutionStatus.RUNNING) {
+					return null;
+				}				
+				return PageTaskEdit.this.getString("pageTaskEdit.message.node", dto.getExecutingAt());
+			}
+		});
+		mainForm.add(node);
 
-			return panel;
-		}
+		CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model,
+				"runUntilNodeDown"));
+		mainForm.add(runUntilNodeDown);
 
-		/*
-		 * private static class editableColumn<T extends Editable> extends
-		 * PropertyColumn<T>{ String propertyExpression; IModel<String> model;
-		 * 
-		 * private editableColumn(IModel<String> model, String
-		 * propertyExpression) { super(model, propertyExpression);
-		 * this.propertyExpression = propertyExpression; this.model = model; }
-		 * 
-		 * protected boolean isEditing() { return edit; }
-		 * 
-		 * protected InputPanel createInputPanel(String componentId, IModel
-		 * model) { InputPanel panel = new TextPanel(componentId, new
-		 * PropertyModel(model, propertyExpression));
-		 * panel.getBaseFormComponent().add(new
-		 * EmptyOnBlurAjaxFormUpdatingBehaviour()); return panel; } }
-		 */
+		DropDownChoice threadStop = new DropDownChoice("threadStop", new Model<ThreadStopActionType>() {
 
-		private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
-
-			public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-				super("onBlur");
+			@Override
+			public ThreadStopActionType getObject() {
+				return model.getObject().getThreadStop();
 			}
 
 			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
+			public void setObject(ThreadStopActionType object) {
+				model.getObject().setThreadStop(object);
 			}
+		}, MiscUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
+				new EnumChoiceRenderer<ThreadStopActionType>(PageTaskEdit.this));
+		threadStop.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return edit;
+			}
+		});
+		mainForm.add(threadStop);
+
+		initSchedule(mainForm);
+
+		initButtons(mainForm);
+	}
+
+	private void initSchedule(Form mainForm) {
+		final WebMarkupContainer container = new WebMarkupContainer("container");
+		container.setOutputMarkupId(true);
+		mainForm.add(container);
+
+		final IModel<Boolean> recurringCheck = new PropertyModel<Boolean>(model, "recurring");
+		final IModel<Boolean> boundCheck = new PropertyModel<Boolean>(model, "bound");
+
+		final WebMarkupContainer boundContainer = new WebMarkupContainer("boundContainer");
+		boundContainer.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return recurringCheck.getObject();
+			}
+
+		});
+		boundContainer.setOutputMarkupId(true);
+		container.add(boundContainer);
+
+		final WebMarkupContainer intervalContainer = new WebMarkupContainer("intervalContainer");
+		intervalContainer.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return recurringCheck.getObject();
+			}
+
+		});
+		intervalContainer.setOutputMarkupId(true);
+		container.add(intervalContainer);
+
+		final WebMarkupContainer cronContainer = new WebMarkupContainer("cronContainer");
+		cronContainer.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return recurringCheck.getObject() && !boundCheck.getObject();
+			}
+
+		});
+		cronContainer.setOutputMarkupId(true);
+		container.add(cronContainer);
+		AjaxCheckBox recurring = new AjaxCheckBox("recurring", recurringCheck) {
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(container);
+			}
+		};
+		recurring.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isEnabled() {
+				if (edit) {
+					TaskDto dto = model.getObject();
+					return dto.getExecution() != TaskDtoExecutionStatus.RUNNABLE
+							&& dto.getExecution() != TaskDtoExecutionStatus.RUNNING;
+				}
+				return false;
+			}
+		});
+		mainForm.add(recurring);
+
+		AjaxCheckBox bound = new AjaxCheckBox("bound", boundCheck) {
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(container);
+			}
+		};
+		bound.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isEnabled() {
+				if (edit) {
+					TaskDto dto = model.getObject();
+					return dto.getExecution() != TaskDtoExecutionStatus.RUNNABLE
+							&& dto.getExecution() != TaskDtoExecutionStatus.RUNNING;
+				}
+				return false;
+			}
+		});
+		boundContainer.add(bound);
+
+		RequiredTextField<Integer> interval = new RequiredTextField<Integer>("interval", new PropertyModel<Integer>(model,
+				"interval"));
+		interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		interval.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return edit;
+			}
+		});
+		intervalContainer.add(interval);
+
+		RequiredTextField<String> cron = new RequiredTextField<String>("cron", new PropertyModel<String>(model, "cron"));
+		cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		cron.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return edit;
+			}
+		});
+		cronContainer.add(cron);
+
+		final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",
+				new PropertyModel<Date>(model, "notStartBefore")) {
+			@Override
+			protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
+				return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy");
+			}
+		};
+		notStartBefore.setOutputMarkupId(true);
+		notStartBefore.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return edit;
+			}
+		});
+		mainForm.add(notStartBefore);
+
+		final DateTimeField notStartAfter = new DateTimeField("notStartAfterField", new PropertyModel<Date>(
+				model, "notStartAfter")) {
+			@Override
+			protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
+				return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy");
+			}
+		};
+		notStartAfter.setOutputMarkupId(true);
+		notStartAfter.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return edit;
+			}
+		});
+		mainForm.add(notStartAfter);
+
+		DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(model,
+				"misfireAction"), MiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
+				new EnumChoiceRenderer<MisfireActionType>(PageTaskEdit.this));
+		misfire.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isEnabled() {
+				return edit;
+			}
+		});
+		mainForm.add(misfire);
+
+		Label lastStart = new Label("lastStarted", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				TaskDto dto = model.getObject();
+				if(dto.getLastRunStartTimestampLong() != null){
+					Date date = new Date(dto.getLastRunStartTimestampLong());
+					SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+					return dateFormat.format(date);
+				}
+				return null;
+			}
+			
+		});
+		mainForm.add(lastStart);
+
+		Label lastFinished = new Label("lastFinished", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				TaskDto dto = model.getObject();
+				if(dto.getLastRunFinishTimestampLong() != null){
+					Date date = new Date(dto.getLastRunFinishTimestampLong());
+					SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+					return dateFormat.format(date);
+				}
+				return null;
+			}
+		});
+		mainForm.add(lastFinished);
+
+		Label nextRun = new Label("nextRun", new PropertyModel(model, "nextRunStartTimeLong"));
+		mainForm.add(nextRun);
+	}
+
+	private void initButtons(final Form mainForm) {
+		AjaxLinkButton backButton = new AjaxLinkButton("backButton",
+				createStringResource("pageTaskEdit.button.back")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				setResponsePage(PageTasks.class);
+			}
+		};
+		mainForm.add(backButton);
+
+		AjaxLinkButton saveButton = new AjaxLinkButton("saveButton",
+				createStringResource("pageTaskEdit.button.save")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				savePerformed(target);
+			}
+		};
+		saveButton.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return edit;
+			}
+		});
+		mainForm.add(saveButton);
+
+		AjaxLinkButton editButton = new AjaxLinkButton("editButton",
+				createStringResource("pageTaskEdit.button.edit")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				edit = true;
+				target.add(mainForm);
+			}
+		};
+		editButton.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return !edit;
+			}
+		});
+		mainForm.add(editButton);
+	}
+
+	private void savePerformed(AjaxRequestTarget target) {
+		// TODO implement
+	}
+
+	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
+
+		public EmptyOnBlurAjaxFormUpdatingBehaviour() {
+			super("onBlur");
+		}
+
+		@Override
+		protected void onUpdate(AjaxRequestTarget target) {
 		}
 	}
 }

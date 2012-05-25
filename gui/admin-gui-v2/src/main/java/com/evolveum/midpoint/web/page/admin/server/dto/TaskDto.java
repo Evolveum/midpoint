@@ -21,12 +21,19 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import java.util.Date;
+
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
+
 import org.apache.commons.lang.Validate;
 
 /**
@@ -37,6 +44,17 @@ public class TaskDto extends Selectable {
     private String oid;
     private String name;
     private String category;
+    private String uri;
+    private boolean recurring;
+    private boolean bound;
+    private Integer interval;
+    private String cronSpecification;
+    private Date notStartBefore;
+    private Date notStartAfter;
+    private MisfireActionType misfireAction;
+    private boolean runUntilNodeDown;
+    private ThreadStopActionType threadStop;
+    
     private TaskExecutionStatus rawExecutionStatus;
     private TaskDtoExecutionStatus execution;
     private String executingAt;
@@ -61,6 +79,20 @@ public class TaskDto extends Selectable {
         oid = task.getOid();
         name = task.getName();
         category = task.getCategory();
+        uri = task.getHandlerUri();
+        recurring = task.isCycle();
+        bound = task.isTightlyBound();
+        
+        // init Schedule
+        if(task.getSchedule() != null){
+        	interval = task.getSchedule().getInterval();
+            cronSpecification = task.getSchedule().getCronLikePattern();
+            misfireAction = task.getSchedule().getMisfireAction();
+            threadStop = task.getThreadStopAction();
+            notStartBefore = MiscUtil.asDate(task.getSchedule().getEarliestStartTime());
+            notStartAfter = MiscUtil.asDate(task.getSchedule().getLatestStartTime());
+        }
+        
         rawExecutionStatus = task.getExecutionStatus();
         execution = TaskDtoExecutionStatus.fromTaskExecutionStatus(rawExecutionStatus, task.currentlyExecutesAt() != null);
 //        scheduledToStartAgain=task.;
@@ -86,7 +118,51 @@ public class TaskDto extends Selectable {
         return category;
     }
 
-    public Long getCurrentRuntime() {
+    public String getUri() {
+		return uri;
+	}
+
+	public boolean getBound() {
+		return bound;
+	}
+
+	public Integer getInterval() {
+		return interval;
+	}
+
+	public String getCronSpecification() {
+		return cronSpecification;
+	}
+
+	public Date getNotStartBefore() {
+		return notStartBefore;
+	}
+
+	public Date getNotStartAfter() {
+		return notStartAfter;
+	}
+
+	public MisfireActionType getMisfire() {
+		return misfireAction;
+	}
+
+	public boolean isRunUntilNodeDown() {
+		return runUntilNodeDown;
+	}
+
+	public ThreadStopActionType getThreadStop() {
+		return threadStop;
+	}
+
+	public void setThreadStop(ThreadStopActionType threadStop) {
+		this.threadStop = threadStop;
+	}
+
+	public boolean isRecurring() {
+		return recurring;
+	}
+
+	public Long getCurrentRuntime() {
         if (isRunNotFinished()) {
             if (isAliveClusterwide()) {
                 return System.currentTimeMillis() - lastRunStartTimestampLong;
@@ -113,7 +189,15 @@ public class TaskDto extends Selectable {
         return objectRefName;
     }
 
-    public ObjectTypes getObjectRefType() {
+    public Long getLastRunStartTimestampLong() {
+		return lastRunStartTimestampLong;
+	}
+
+	public Long getLastRunFinishTimestampLong() {
+		return lastRunFinishTimestampLong;
+	}
+
+	public ObjectTypes getObjectRefType() {
         return objectRefType;
     }
 
