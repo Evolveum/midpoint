@@ -149,12 +149,7 @@ object.
 					<access>read</access>
 					<outbound>
 						<initial>true</initial>
-						<expression>
-							<code>
-                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/c:name
-							</code>
-						</expression>
+						<path>$i:user/name</path>
 					</outbound>
 				</attribute>
 
@@ -163,12 +158,7 @@ object.
 					<displayName>First name</displayName>
 					<description>Definition of Firstname attribute handling.</description>
 					<outbound>
-						<expression>
-							<code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:givenName
-							</code>
-                        			</expression>
+						<path>$i:user/givenName</path>
 					</outbound>
 							
 				</attribute>
@@ -177,12 +167,7 @@ object.
 					<displayName>Last name</displayName>
 					<description>Definition of Lastname attribute handling.</description>
 					<outbound>
-						<expression>
-							<code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:familyName
-							</code>
-                        			</expression>
+						<path>$i:user/familyName</path>
 					</outbound>
 							
 				</attribute>
@@ -191,12 +176,7 @@ object.
 					<displayName>Full name</displayName>
 					<description>Definition of Fullname attribute handling.</description>
 					<outbound>
-						<expression>
-							<code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:fullName
-							</code>
-                        			</expression>
+						<path>$i:user/fullName</path>
 					</outbound>
 				</attribute>
 				<credentials>
