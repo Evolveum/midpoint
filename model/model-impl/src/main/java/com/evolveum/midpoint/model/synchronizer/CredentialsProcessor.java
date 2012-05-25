@@ -66,15 +66,21 @@ public class CredentialsProcessor {
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
 
-    public void processCredentials(SyncContext context, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void processCredentials(SyncContext context, OperationResult result) 
+    		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	
         ObjectDelta<UserType> userDelta = context.getUserDelta();
-        PropertyDelta passwordValueDelta = null;
+        PropertyDelta<PasswordType> passwordValueDelta = null;
         if (userDelta != null) {
         	passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+        	// Modification sanity check
+            if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null && 
+            		(passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
+            	throw new SchemaException("User password value cannot be added or deleted, it can only be replaced"); 
+            }
         }
 //            LOGGER.trace("userDelta is null, skipping credentials processing");
-//            return;
+//            return; 
 
         PrismObject<UserType> userNew = context.getUserNew();
         if (userNew == null) {
@@ -82,7 +88,7 @@ public class CredentialsProcessor {
             LOGGER.trace("userNew is null, skipping credentials processing");
             return;
         }
-        PrismProperty userPasswordNew = context.getUserNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+        PrismProperty<PasswordType> userPasswordNew = context.getUserNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
         
         PrismObjectDefinition<AccountShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
         PrismPropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
@@ -91,6 +97,12 @@ public class CredentialsProcessor {
             ResourceAccountType rat = accCtx.getResourceAccountType();
 
             ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+            if (accountDelta != null && accountDelta.getChangeType() == ChangeType.MODIFY) {
+            	PropertyDelta<PasswordType> accountPasswordDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+            	if (accountPasswordDelta != null && (accountPasswordDelta.isAdd() || accountDelta.isDelete())) {
+            		throw new SchemaException("Password for account "+rat+" cannot be added or deleted, it can only be replaced");
+            	}
+            }
             if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
                 // adding new account, synchronize password regardless whether the password was changed or not.
             } else if (passwordValueDelta != null) {

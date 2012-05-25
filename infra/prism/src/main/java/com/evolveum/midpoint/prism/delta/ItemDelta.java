@@ -485,7 +485,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 * the delta is applied. Assumes "replace" delta.
 	 */
 	public Item getItemNew() {
-		if (valuesToAdd != null && valuesToDelete != null) {
+		if (valuesToAdd != null || valuesToDelete != null) {
 			throw new IllegalStateException("Cannot fetch new item state, not a 'replace' delta");
 		}
 		Item item = definition.instantiate();
