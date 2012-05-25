@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
+import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -63,6 +64,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -558,13 +560,9 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
-        //useful methods :)
-
-//        TaskManager manager = getTaskManager();
-//        getSelectedTasks();
-//        getSelectedNodes();
-
-        //todo implement
+    	PageParameters parameters = new PageParameters();
+        parameters.add(PageTaskEdit.PARAM_TASK_ID, oid);
+        setResponsePage(PageTaskEdit.class, parameters);
     }
 
     private void suspendTasksPerformed(AjaxRequestTarget target) {

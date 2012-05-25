@@ -46,7 +46,7 @@ public class PageAdminTasks extends PageAdmin {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
         items.add(new BottomMenuItem("pageAdminTasks.listTasks", PageTasks.class));
-        items.add(new BottomMenuItem("pageAdminTasks.newTask", PageTask.class, new VisibleEnableBehaviour() {
+        items.add(new BottomMenuItem("pageAdminTasks.newTask", PageTaskAdd.class, new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
@@ -55,10 +55,10 @@ public class PageAdminTasks extends PageAdmin {
             
             @Override
             public boolean isEnabled() {
-            	return !(getPage() instanceof PageTask);
+            	return !(getPage() instanceof PageTaskAdd);
             }
         }));
-        items.add(new BottomMenuItem("pageAdminTasks.editTask", PageTask.class, new VisibleEnableBehaviour() {
+        items.add(new BottomMenuItem("pageAdminTasks.editTask", PageTaskAdd.class, new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
@@ -75,7 +75,7 @@ public class PageAdminTasks extends PageAdmin {
     }
 
     private boolean isEditingTask() {
-        StringValue roleOid = getPageParameters().get(PageTask.PARAM_TASK_ID);
+        StringValue roleOid = getPageParameters().get(PageTaskAdd.PARAM_TASK_ID);
         return roleOid != null && StringUtils.isNotEmpty(roleOid.toString());
     }
 }

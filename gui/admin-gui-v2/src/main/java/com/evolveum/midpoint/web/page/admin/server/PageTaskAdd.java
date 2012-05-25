@@ -66,8 +66,8 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDetailsDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDetailsResourcesDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.util.MiscUtil;
@@ -80,30 +80,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType
  * @author lazyman
  * @author mserbak
  */
-public class PageTask extends PageAdminTasks {
+public class PageTaskAdd extends PageAdminTasks {
 	private static final long serialVersionUID = 2317887071933841581L;
-	
-	private static final Trace LOGGER = TraceManager.getTrace(PageTask.class);
-	private static final String DOT_CLASS = PageTask.class.getName() + ".";
-	private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResouceList";
-	public static final String PARAM_TASK_ID = "taskOid";
-	private IModel<TaskDetailsDto> model;
 
-	public PageTask() {
-		model = new LoadableModel<TaskDetailsDto>(false) {
+	private static final Trace LOGGER = TraceManager.getTrace(PageTaskAdd.class);
+	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
+	private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResouceList";
+	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
+	public static final String PARAM_TASK_ID = "taskOid";
+	private IModel<TaskAddDto> model;
+
+	public PageTaskAdd() {
+		model = new LoadableModel<TaskAddDto>(false) {
 
 			@Override
-			protected TaskDetailsDto load() {
+			protected TaskAddDto load() {
 				return loadTask();
 			}
 		};
 		initLayout();
 	}
 
-	private TaskDetailsDto loadTask() {
-		// todo implement
-		return new TaskDetailsDto();
-		// return new TaskType();
+	private TaskAddDto loadTask() {
+		return new TaskAddDto();
 	}
 
 	private void initLayout() {
@@ -111,22 +110,22 @@ public class PageTask extends PageAdminTasks {
 		add(mainForm);
 
 		final DropDownChoice resource = new DropDownChoice("resource",
-				new PropertyModel<TaskDetailsResourcesDto>(model, "resource"),
-				new AbstractReadOnlyModel<List<TaskDetailsResourcesDto>>() {
+				new PropertyModel<TaskAddResourcesDto>(model, "resource"),
+				new AbstractReadOnlyModel<List<TaskAddResourcesDto>>() {
 
 					@Override
-					public List<TaskDetailsResourcesDto> getObject() {
+					public List<TaskAddResourcesDto> getObject() {
 						return createResouceList();
 					}
-				}, new IChoiceRenderer<TaskDetailsResourcesDto>() {
+				}, new IChoiceRenderer<TaskAddResourcesDto>() {
 
 					@Override
-					public Object getDisplayValue(TaskDetailsResourcesDto dto) {
+					public Object getDisplayValue(TaskAddResourcesDto dto) {
 						return dto.getName();
 					}
 
 					@Override
-					public String getIdValue(TaskDetailsResourcesDto dto, int index) {
+					public String getIdValue(TaskAddResourcesDto dto, int index) {
 						return Integer.toString(index);
 					}
 				});
@@ -134,7 +133,7 @@ public class PageTask extends PageAdminTasks {
 
 			@Override
 			public boolean isEnabled() {
-				TaskDetailsDto dto = model.getObject();
+				TaskAddDto dto = model.getObject();
 				boolean sync = dto.getType() == TaskCategory.LIVE_SYNCHRONIZATION;
 				boolean cron = dto.getType() == TaskCategory.RECONCILIATION;
 				return sync || cron;
@@ -153,7 +152,7 @@ public class PageTask extends PageAdminTasks {
 
 					@Override
 					public Object getDisplayValue(String item) {
-						return PageTask.this.getString("pageTask.category." + item);
+						return PageTaskAdd.this.getString("pageTask.category." + item);
 					}
 
 					@Override
@@ -172,6 +171,7 @@ public class PageTask extends PageAdminTasks {
 		mainForm.add(type);
 
 		TextField<String> name = new TextField<String>("name", new PropertyModel<String>(model, "name"));
+		name.setRequired(true);
 		mainForm.add(name);
 
 		initScheduling(mainForm);
@@ -251,10 +251,16 @@ public class PageTask extends PageAdminTasks {
 		TextField<Integer> interval = new TextField<Integer>("interval", new PropertyModel<Integer>(model,
 				"interval"));
 		interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		if(recurringCheck.getObject()){
+			interval.setRequired(true);
+		}
 		intervalContainer.add(interval);
 
 		TextField<String> cron = new TextField<String>("cron", new PropertyModel<String>(model, "cron"));
 		cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		if(recurringCheck.getObject() && !boundCheck.getObject()){
+			cron.setRequired(true);
+		}
 		cronContainer.add(cron);
 
 		final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",
@@ -282,12 +288,12 @@ public class PageTask extends PageAdminTasks {
 		final IModel<Boolean> createSuspendedCheck = new PropertyModel<Boolean>(model, "suspendedState");
 		CheckBox createSuspended = new CheckBox("createSuspended", createSuspendedCheck);
 		mainForm.add(createSuspended);
-		
+
 		DropDownChoice threadStop = new DropDownChoice("threadStop", new Model<ThreadStopActionType>() {
 
 			@Override
 			public ThreadStopActionType getObject() {
-				TaskDetailsDto dto = model.getObject();
+				TaskAddDto dto = model.getObject();
 				if (dto.getThreadStop() == null) {
 					if (!dto.getRunUntilNodeDown()) {
 						dto.setThreadStop(ThreadStopActionType.RESTART);
@@ -303,12 +309,12 @@ public class PageTask extends PageAdminTasks {
 				model.getObject().setThreadStop(object);
 			}
 		}, MiscUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
-				new EnumChoiceRenderer<ThreadStopActionType>(PageTask.this));
+				new EnumChoiceRenderer<ThreadStopActionType>(PageTaskAdd.this));
 		mainForm.add(threadStop);
 
 		DropDownChoice misfire = new DropDownChoice("misfire", new PropertyModel<MisfireActionType>(model,
 				"misfireAction"), MiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
-				new EnumChoiceRenderer<MisfireActionType>(PageTask.this));
+				new EnumChoiceRenderer<MisfireActionType>(PageTaskAdd.this));
 		mainForm.add(misfire);
 	}
 
@@ -356,11 +362,11 @@ public class PageTask extends PageAdminTasks {
 		return categories;
 	}
 
-	private List<TaskDetailsResourcesDto> createResouceList() {
+	private List<TaskAddResourcesDto> createResouceList() {
 		OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
 		Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
 		List<PrismObject<ResourceType>> resources = null;
-		List<TaskDetailsResourcesDto> resourceList = new ArrayList<TaskDetailsResourcesDto>();
+		List<TaskAddResourcesDto> resourceList = new ArrayList<TaskAddResourcesDto>();
 
 		try {
 			resources = getModelService().searchObjects(ResourceType.class, null, null, task, result);
@@ -370,22 +376,30 @@ public class PageTask extends PageAdminTasks {
 			LoggingUtils.logException(LOGGER, "Couldn't get resource list", ex);
 		}
 
-		//todo show result somehow...
-//		if (!result.isSuccess()) {
-//			showResult(result);
-//		}
+		// todo show result somehow...
+		// if (!result.isSuccess()) {
+		// showResult(result);
+		// }
 		if (resources != null) {
 			ResourceType item = null;
 			for (PrismObject<ResourceType> resource : resources) {
 				item = resource.asObjectable();
-				resourceList.add(new TaskDetailsResourcesDto(item.getOid(), item.getName()));
+				resourceList.add(new TaskAddResourcesDto(item.getOid(), item.getName()));
 			}
 		}
 		return resourceList;
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
-		// todo implement
+		LOGGER.debug("Saving task changes.");
+		OperationResult result = new OperationResult(OPERATION_SAVE_TASK);
+		TaskAddDto dto = model.getObject();
+		
+		if(isEditingTask()){
+			
+		} else {
+			
+		}
 	}
 
 	private void browsePerformed(AjaxRequestTarget target) {
@@ -393,7 +407,7 @@ public class PageTask extends PageAdminTasks {
 	}
 
 	private boolean isEditingTask() {
-		StringValue taskOid = getPageParameters().get(PageTask.PARAM_TASK_ID);
+		StringValue taskOid = getPageParameters().get(PageTaskAdd.PARAM_TASK_ID);
 		return taskOid != null && StringUtils.isNotEmpty(taskOid.toString());
 	}
 

@@ -26,11 +26,11 @@ import java.io.Serializable;
 /**
  * @author mserbak
  */
-public class TaskDetailsResourcesDto implements Serializable {
+public class TaskAddResourcesDto implements Serializable {
 	private String name;
 	private String oid;
 
-	public TaskDetailsResourcesDto(String oid, String name) {
+	public TaskAddResourcesDto(String oid, String name) {
 		this.oid = oid;
 		this.name = name;
 	}

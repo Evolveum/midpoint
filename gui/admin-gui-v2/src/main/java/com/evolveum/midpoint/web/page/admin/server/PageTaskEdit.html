@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form wicket:id="mainForm">
+        <table>
+            <tr>
+                <td><wicket:message key="pageTaskEditEdit.name"/></td>
+                <td><input type="text" wicket:id="name"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTaskEditEdit.oid"/></td>
+                <td><input type="text" wicket:id="oid"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTaskEditEdit.category"/></td>
+                <td><input type="text" wicket:id="cateory"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageTaskEditEdit.uri"/></td>
+                <td><input type="text" wicket:id="uri"/></td>
+            </tr>
+       	</table>
+       	
+       	<h2><wicket:message key="pageTaskEditEdit.scheduleTitle"/><br />
+       		<small style="font-size: 12px;"><wicket:message key="pageTaskEditEdit.scheduleHelp"/></small>
+       	</h2>
+       <table>
+	  		<tbody>
+	            <tr>
+	                <td><wicket:message key="pageTaskEdit.recurring"/></td>
+	                <td><input type="checkbox" wicket:id="recurring"/></td>
+	            </tr>
+	        </tbody>
+			<tbody wicket:id="container">    
+				<tr wicket:id="boundContainer">
+				    <td style="vertical-align: top;"><wicket:message key="pageTaskEdit.bound"/></td>
+				    <td><input type="checkbox" wicket:id="bound"/><br />
+       					<small><wicket:message key="pageTaskEdit.boundHelp"/></small>	
+				    </td>
+				</tr>
+				<tr wicket:id="intervalContainer">
+				    <td><wicket:message key="pageTaskEdit.scheduleInterval"/></td>
+				    <td><input type="text" wicket:id="interval"/></td>
+				</tr>
+				<tr wicket:id="cronContainer">
+				    <td style="vertical-align: top;"><wicket:message key="pageTaskEdit.cronSpec"/></td>
+				    <td><input type="text" wicket:id="cron"/><br />
+       					<small><wicket:message key="pageTaskEdit.cronHelp"/></small>
+				    </td>
+				</tr>
+			</tbody>
+			<tbody>            
+				<tr>
+				    <td><wicket:message key="pageTaskEdit.notStartBefore"/></td>
+				    <td><span wicket:id="notStartBeforeField" /></td>
+				</tr>
+				<tr>
+				    <td><wicket:message key="pageTaskEdit.notStartAfter"/></td>
+				    <td><span wicket:id="notStartAfterField" /></td>
+				</tr>
+				<tr>
+	                <td><wicket:message key="pageTaskEdit.misfire"/></td>
+	                <td><select wicket:id="misfire"/></td>
+	            </tr>
+	            <tr>
+				    <td><wicket:message key="pageTaskEdit.lastStart"/></td>
+				    <td><span wicket:id="lastStart" /></td>
+				</tr>
+				<tr>
+				    <td><wicket:message key="pageTaskEdit.lastFinished"/></td>
+				    <td><span wicket:id="lastFinished" /></td>
+				</tr>
+				<tr>
+				    <td><wicket:message key="pageTaskEdit.nextRun"/></td>
+				    <td><span wicket:id="nextRun" /></td>
+				</tr>
+			</tbody>
+        </table>
+        <table>
+        	<tr>
+	            <td><wicket:message key="pageTaskEdit.tightlyBound"/></td>
+	            <td><input type="checkbox" wicket:id="tightlyBound"/></td>
+	        </tr>
+	        <tr>
+	            <td><wicket:message key="pageTaskEdit.runUntilNodeDown"/></td>
+	            <td><input type="checkbox" wicket:id="runUntilNodeDown"/></td>
+	        </tr>
+	        <tr>
+                <td><wicket:message key="pageTaskEdit.threadStop"/></td>
+                <td><select wicket:id="threadStop"/></td>
+            </tr>
+        </table>
+        
+        <h2><wicket:message key="pageTaskEdit.opResult"/></h2>
+        
+        
+        <div class="operatingFormButtons">
+            <a wicket:id="backButton"/>
+            <a wicket:id="saveButton"/>
+            <a wicket:id="editButton"/>
+        </div>
+    </form>
+</wicket:extend>
+</body>
+</html>

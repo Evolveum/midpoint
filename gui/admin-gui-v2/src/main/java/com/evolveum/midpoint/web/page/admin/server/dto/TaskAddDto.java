@@ -30,10 +30,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType
 /**
  * @author lazyman
  */
-public class TaskDetailsDto implements Serializable {
+public class TaskAddDto implements Serializable {
 
 	private String type;
-	private TaskDetailsResourcesDto resource;
+	private TaskAddResourcesDto resource;
 	private String name;
 	
 	//Scheduling
@@ -59,11 +59,11 @@ public class TaskDetailsDto implements Serializable {
 		this.type = type;
 	}
 	
-	public TaskDetailsResourcesDto getResource() {
+	public TaskAddResourcesDto getResource() {
 		return resource;
 	}
 
-	public void setResource(TaskDetailsResourcesDto resource) {
+	public void setResource(TaskAddResourcesDto resource) {
 		this.resource = resource;
 	}
 

@@ -57,7 +57,7 @@ public class TaskDto extends Selectable {
         Validate.notNull(task, "Task must not be null.");
         Validate.notNull(clusterStatusInfo, "Cluster status info must not be null.");
         Validate.notNull(taskManager, "Task manager must not be null.");
-
+        
         oid = task.getOid();
         name = task.getName();
         category = task.getCategory();
