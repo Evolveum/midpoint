@@ -328,17 +328,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             name = (String) object.findProperty(ObjectType.F_NAME).getRealValue();
         }
 
-        if (StringUtils.isEmpty(name)) {
-            throw new SystemException("Name in object must not be null or empty.");
-        }
-
         Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type), "o");
         criteria.add(Restrictions.eq("o.name", name));
         criteria.setProjection(Projections.rowCount());
 
         Long objectsCount = (Long) criteria.uniqueResult();
         if (objectsCount == null || objectsCount != 0) {
-            throw new ObjectAlreadyExistsException("Object with the same name already exists.");
+            throw new ObjectAlreadyExistsException("Object type '" + object.getCompileTimeClass()
+                    + "' with the same name '" + name + "' already exists.");
         }
     }
 
