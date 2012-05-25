@@ -32,7 +32,8 @@ object.
 
 -->
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
@@ -139,12 +140,12 @@ object.
                     <access>read</access>
                     <outbound>
                         <initial>true</initial>
-                        <path>$i:user/name</path>
+                        <path>$user/name</path>
                     </outbound>
                     <inbound>
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:name
+                            $user/i:name
                         </target>
                     </inbound>
                 </attribute>
@@ -155,12 +156,12 @@ object.
                     <description>Definition of Firstname attribute handling.</description>
                     <outbound>
                         <initial>true</initial>
-                        <path>$i:user/givenName</path>
+                        <path>$user/givenName</path>
                     </outbound>
                     <inbound>
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:givenName
+                            $user/i:givenName
                         </target>
                     </inbound>
 
@@ -171,12 +172,12 @@ object.
                     <description>Definition of Lastname attribute handling.</description>
                     <outbound>
                         <initial>true</initial>
-                        <path>$i:user/familyName</path>
+                        <path>$user/familyName</path>
                     </outbound>
                     <inbound>
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:familyName
+                            $user/i:familyName
                         </target>
                     </inbound>
                 </attribute>
