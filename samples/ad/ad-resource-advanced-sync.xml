@@ -117,12 +117,7 @@ This resource definition contains only the very basic definitions for midPoint t
                     <displayName>Given Name</displayName>
                     <outbound>
                         <initial>true</initial>
-                        <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                            <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                                $i:user/i:givenName
-                            </code>
-                        </expression>
+                        <path>$user/givenName</path>
                     </outbound>
                     <inbound>
                         <target>
@@ -136,12 +131,7 @@ This resource definition contains only the very basic definitions for midPoint t
                     <displayName>Surname</displayName>
                     <outbound>
                         <initial>true</initial>
-                        <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                            <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                                $i:user/i:familyName
-                            </code>
-                        </expression>
+                        <path>$user/familyName</path>
                     </outbound>
                     <inbound>
                         <target>
@@ -156,12 +146,7 @@ This resource definition contains only the very basic definitions for midPoint t
                     <displayName>Login name</displayName>
                     <outbound>
                         <initial>true</initial>
-                        <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                            <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                                $i:user/i:name
-                            </code>
-                        </expression>
+                        <path>$user/name</path>
                     </outbound>
                     <inbound>
                         <target>
