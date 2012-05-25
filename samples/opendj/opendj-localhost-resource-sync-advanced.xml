@@ -301,7 +301,7 @@ object.
 				<outbound>
 					<expression>
 						<code>
-							$c:user/c:fullName
+							$c:user/c:fullName/t:orig
 						</code>
 					</expression>
 				</outbound>
@@ -320,7 +320,7 @@ object.
 				<outbound>
 					<expression>
 						<code>
-							$c:user/c:familyName
+							$c:user/c:familyName/t:orig
 						</code>
 					</expression>
 				</outbound>
@@ -339,7 +339,7 @@ object.
 				<outbound>
 					<expression>
 						<code>
-							$c:user/c:givenName
+							$c:user/c:givenName/t:orig
 						</code>
 					</expression>
 				</outbound>
