@@ -37,11 +37,12 @@ See the content of the SQL files in this directory to see the table strucutre.
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:my="http://myself.me/schemas/whatever"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
-	<c:resource>
+	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
     
     	<!-- Resource name. It will be displayed in GUI.  -->
 		<c:name>Localhost DBTable</c:name>
@@ -62,12 +63,11 @@ See the content of the SQL files in this directory to see the table strucutre.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<c:configuration
-			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf-1/connector-schema-1.xsd">
+		<c:configuration>
 
             <!-- Configuration specific for the DBTable connector -->
-			<icfc:configurationProperties>
+			<icfc:configurationProperties
+			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
 				<icscdbtable:port>3306</icscdbtable:port>
 				<icscdbtable:quoting></icscdbtable:quoting>
 				<icscdbtable:host>localhost</icscdbtable:host>

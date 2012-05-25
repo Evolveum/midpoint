@@ -37,9 +37,9 @@ object.
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"
-           xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
            xmlns:my="http://myself.me/schemas/whatever"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
            xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe">
@@ -63,12 +63,11 @@ object.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-        <c:configuration
-		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector"
-                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
+        <c:configuration>
 
             <!-- Configuration specific for the CSVfile connector -->
-            <icfc:configurationProperties>
+            <icfc:configurationProperties
+		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
                 <icfccsvfile:filePath>/var/tmp/midpoint-flatfile.csv</icfccsvfile:filePath>
                 <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
                 <icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
