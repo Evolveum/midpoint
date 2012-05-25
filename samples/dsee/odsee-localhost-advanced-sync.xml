@@ -187,7 +187,7 @@ object.
                     <outbound>
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
-                        <path>$i:user/name</path>
+                        <path>$user/name</path>
                     </outbound>
                     <inbound>
                         <description>It is mapped to (and also from) "name" property of
@@ -218,7 +218,7 @@ object.
                          overwriting the original value of "cn" on the resource.
                      -->
                     <outbound>
-                        <path>$i:user/fullName</path>
+                        <path>$user/fullName</path>
                     </outbound>
                     <inbound>
                         <description>
@@ -242,7 +242,7 @@ object.
                     <access>read</access>
                     <access>update</access>
                     <outbound>
-                        <path>$i:user/familyName</path>
+                        <path>$user/familyName</path>
                     </outbound>
                     <inbound>
                         <description>sn will be synchronized to user's familyName</description>
@@ -263,7 +263,7 @@ object.
                     <access>read</access>
                     <access>update</access>
                     <outbound>
-                        <path>$i:user/givenName</path>
+                        <path>$user/givenName</path>
                     </outbound>
                     <inbound>
                         <description>givenName will be synchronized to user's givenName</description>
