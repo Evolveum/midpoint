@@ -677,6 +677,9 @@ public class PageLogging extends PageAdminConfiguration {
                     oid, null, task, result);
 
 			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Logging configuration delta:\n{}", delta.dump());
+			}
 			getModelService().modifyObject(SystemConfigurationType.class, oid, delta.getModifications(),
 					task, result);
 

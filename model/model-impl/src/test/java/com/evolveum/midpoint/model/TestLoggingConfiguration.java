@@ -112,7 +112,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	@Test
 	public void test002InitialConfiguration() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, 
 			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException, SecurityViolationException {
-		displayTestTile("test002AddModelSubsystemLogger");
+		displayTestTile("test002InitialConfiguration");
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
@@ -161,7 +161,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	@Test
 	public void test003AddModelSubsystemLogger() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, 
 			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException, SecurityViolationException {
-		displayTestTile("test002AddModelSubsystemLogger");
+		displayTestTile("test003AddModelSubsystemLogger");
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
@@ -169,6 +169,15 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test003AddModelSubsystemLogger");
 		OperationResult result = task.getResult();
 		
+		// Precondition
+		tailer.logAndTail();
+		
+		assertBasicLogging(tailer);
+
+		tailer.assertNotLogged(LogfileTestTailer.LEVEL_DEBUG, MidpointAspect.SUBSYSTEM_MODEL);
+		tailer.assertNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_MODEL);
+
+		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 
 			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
