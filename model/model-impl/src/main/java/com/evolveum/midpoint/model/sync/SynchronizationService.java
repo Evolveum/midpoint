@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -52,7 +53,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType.Reaction;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectSynchronizationType.Reaction;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -111,7 +112,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         try {
             ResourceType resource = change.getResource().asObjectable();
 
-            if (!isSynchronizationEnabled(resource.getSynchronization())) {
+            if (!isSynchronizationEnabled(ResourceTypeUtil.determineSynchronization(resource, UserType.class))) {
                 String message = "SYNCHRONIZATION is not enabled for " + ObjectTypeUtil.toShortString(resource) + " ignoring change from channel " + change.getSourceChannel();
                 LOGGER.debug(message);
                 subResult.recordStatus(OperationResultStatus.SUCCESS, message);
@@ -135,7 +136,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         }
     }
 
-    private boolean isSynchronizationEnabled(SynchronizationType synchronization) {
+    private boolean isSynchronizationEnabled(ObjectSynchronizationType synchronization) {
         if (synchronization == null || synchronization.isEnabled() == null) {
             return false;
         }
@@ -246,7 +247,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         ResourceType resource = change.getResource().asObjectable();
         validateResourceInShadow(resourceShadow.asObjectable(), resource);
 
-        SynchronizationType synchronization = resource.getSynchronization();
+        ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
 
         SynchronizationSituationType state = null;
         LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of users based on correlation rule.");
@@ -331,7 +332,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         auditRecord.setChannel(change.getSourceChannel());
         auditService.audit(auditRecord, task);
 
-        SynchronizationType synchronization = resource.getSynchronization();
+        ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
         List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
         if (actions.isEmpty()) {
             LOGGER.warn("Skipping synchronization on resource: {}. Actions was not found.",

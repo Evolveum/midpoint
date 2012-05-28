@@ -47,6 +47,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -115,7 +117,8 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		ResourceType resourceType = resource.asObjectable();
 		accountType.setResource(resourceType);
 
-		Element valueExpressionElement = findChildElement(resourceType.getSynchronization().getCorrelation()
+		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resourceType, UserType.class);
+		Element valueExpressionElement = findChildElement(synchronization.getCorrelation()
 				.getFilter(), SchemaConstants.NS_C, "valueExpression");
 		ExpressionType expression = PrismTestUtil.getPrismContext().getPrismJaxbProcessor()
 				.toJavaValue(valueExpressionElement, ExpressionType.class);

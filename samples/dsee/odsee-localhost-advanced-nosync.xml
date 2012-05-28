@@ -311,66 +311,67 @@ object.
             reactions and similar synchronization settings.
         -->
         <synchronization>
-            <!--
-                The synchronization for this resource is enabled.
-                It means that the synchronization will react to changes detected by
-                the system (live sync task, discovery or reconciliation) -->
-            <enabled>true</enabled>
-
-            <correlation>
-                <q:description>
-                    Correlation expression is a search query.
-                    Following search queury will look for users that have "name"
-                    equal to the "uid" attribute of the account. Simply speaking,
-                    it will look for match in usernames in the IDM and the resource.
-                    The correlation rule always looks for users, so it will not match
-                    any other object type.
-                </q:description>
-                <q:equal>
-                    <q:path>.</q:path>
-                    <valueExpression>
-                        <ref>c:name</ref>
-                        <code>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
-                            $i:account/i:attributes/dj:uid
-                        </code>
-                    </valueExpression>
-                </q:equal>
-            </correlation>
-
-            <!-- Confirmation rule may be here, but as the search above will
-                 always return at most one match, the confirmation rule is not needed. -->
-
-            <!-- Following section describes reactions to a situations.
-                 The setting here assumes that this resource is authoritative,
-                 therefore all accounts created on the resource should be
-                 reflected as new users in IDM.
-                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
-             -->
-            <reaction>
-                <situation>linked</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
-                    <!-- Reference to the User Template is here. If the user would be
-                         created as a result of this action, it will be created according
-                         to this template. -->
-                    <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
-                </action>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-            </reaction>
-
+        	<objectSynchronization>
+	            <!--
+	                The synchronization for this resource is enabled.
+	                It means that the synchronization will react to changes detected by
+	                the system (live sync task, discovery or reconciliation) -->
+	            <enabled>true</enabled>
+	
+	            <correlation>
+	                <q:description>
+	                    Correlation expression is a search query.
+	                    Following search queury will look for users that have "name"
+	                    equal to the "uid" attribute of the account. Simply speaking,
+	                    it will look for match in usernames in the IDM and the resource.
+	                    The correlation rule always looks for users, so it will not match
+	                    any other object type.
+	                </q:description>
+	                <q:equal>
+	                    <q:path>.</q:path>
+	                    <valueExpression>
+	                        <ref>c:name</ref>
+	                        <code>
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
+	                            $i:account/i:attributes/dj:uid
+	                        </code>
+	                    </valueExpression>
+	                </q:equal>
+	            </correlation>
+	
+	            <!-- Confirmation rule may be here, but as the search above will
+	                 always return at most one match, the confirmation rule is not needed. -->
+	
+	            <!-- Following section describes reactions to a situations.
+	                 The setting here assumes that this resource is authoritative,
+	                 therefore all accounts created on the resource should be
+	                 reflected as new users in IDM.
+	                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+	             -->
+	            <reaction>
+	                <situation>linked</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+	            </reaction>
+	            <reaction>
+	                <situation>deleted</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+	            </reaction>
+	            <reaction>
+	                <situation>unlinked</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+	            </reaction>
+	            <reaction>
+	                <situation>unmatched</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+	                    <!-- Reference to the User Template is here. If the user would be
+	                         created as a result of this action, it will be created according
+	                         to this template. -->
+	                    <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+	                </action>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+	            </reaction>
+			</objectSynchronization>
         </synchronization>
 
     </c:resource>

@@ -189,33 +189,35 @@
 	</schemaHandling>
 	
 	<synchronization>
-		<enabled>true</enabled>
-		<correlation>
-			<q:equal>
-				<q:path>.</q:path>
-				<valueExpression>
-					<ref>c:name</ref>
-					<code>
-						$c:account/c:attributes/icfs:name
-					</code>
-				</valueExpression>
-			</q:equal>
-		</correlation>
-		<reaction>
-            <situation>linked</situation>
-            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
-        </reaction>
-        <reaction>
-            <situation>deleted</situation>
-            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
-        </reaction>
-        <reaction>
-            <situation>unlinked</situation>
-            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-        </reaction>
-        <reaction>
-            <situation>unmatched</situation>
-        </reaction>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>.</q:path>
+					<valueExpression>
+						<ref>c:name</ref>
+						<code>
+							$c:account/c:attributes/icfs:name
+						</code>
+					</valueExpression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	        </reaction>
+        </objectSynchronization>
 	</synchronization>
 
 </resource>

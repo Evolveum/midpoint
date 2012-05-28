@@ -371,47 +371,49 @@
 		</accountType>
 	</schemaHandling>
 	<synchronization>
-		<enabled>true</enabled>
-		<correlation>
-			<equal xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-				xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
-				<path>.</path>
-				<valueExpression>
-					<ref>c:name</ref>
-					<code>
-						declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-						$c:account/c:attributes/dj:uid
-					</code>
-				</valueExpression>
-			</equal>
-		</correlation>
-		<reaction>
-			<situation>confirmed</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser" />
-		</reaction>
-		<reaction>
-			<situation>deleted</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount" />
-		</reaction>
-		<reaction>
-			<situation>missing</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount" />
-		</reaction>
-		<reaction>
-			<situation>found</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
-		</reaction>
-		<reaction>
-			<situation>unassigned</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
-		</reaction>
-		<reaction>
-			<situation>unmatched</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
-				<userTemplateRef oid="10000000-0000-0000-0000-000000000002"/>
-			</action>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
-		</reaction>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<correlation>
+				<equal xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+					xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
+					<path>.</path>
+					<valueExpression>
+						<ref>c:name</ref>
+						<code>
+							declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+							$c:account/c:attributes/dj:uid
+						</code>
+					</valueExpression>
+				</equal>
+			</correlation>
+			<reaction>
+				<situation>confirmed</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser" />
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount" />
+			</reaction>
+			<reaction>
+				<situation>missing</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount" />
+			</reaction>
+			<reaction>
+				<situation>found</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
+			</reaction>
+			<reaction>
+				<situation>unassigned</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
+			</reaction>
+			<reaction>
+				<situation>unmatched</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+					<userTemplateRef oid="10000000-0000-0000-0000-000000000002"/>
+				</action>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
+			</reaction>
+		</objectSynchronization>
 	</synchronization>
 </object>

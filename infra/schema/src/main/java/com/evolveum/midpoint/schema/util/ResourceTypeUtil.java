@@ -40,10 +40,13 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
@@ -221,6 +224,25 @@ public class ResourceTypeUtil {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Returns appropriate object synchronization settings for the class.
+	 * Assumes single sync setting for now.
+	 */
+	public static ObjectSynchronizationType determineSynchronization(ResourceType resource, Class<UserType> type) {
+		SynchronizationType synchronization = resource.getSynchronization();
+		if (synchronization == null) {
+			return null;
+		}
+		List<ObjectSynchronizationType> objectSynchronizations = synchronization.getObjectSynchronization();
+		if (objectSynchronizations.isEmpty()) {
+			return null;
+		}
+		if (objectSynchronizations.size() == 1) {
+			return objectSynchronizations.get(0);
+		}
+		throw new UnsupportedOperationException("Selecting from multiple synchronization settings is not yet supported");
 	}
 
 }

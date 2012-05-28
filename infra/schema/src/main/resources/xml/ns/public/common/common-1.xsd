@@ -3194,6 +3194,27 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="objectSynchronization" type="tns:ObjectSynchronizationType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+    <xsd:complexType name="ObjectSynchronizationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines a synchronization properties (configuration) for a
+                specific type of object, e.g. User. This applies to all flavors of synchronization
+                (live sync, reconciliation, import, ...)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Type of object that this synchronization definition applies to.
+        				If not specified it applies to User (c:UserType).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>

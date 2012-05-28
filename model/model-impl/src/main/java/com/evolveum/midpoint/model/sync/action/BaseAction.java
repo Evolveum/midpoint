@@ -47,6 +47,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -245,7 +247,8 @@ public abstract class BaseAction implements Action {
     }
 
     private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {
-        Boolean reconcileAttributes = change.getResource().asObjectable().getSynchronization().isReconcileAttributes();
+    	ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(change.getResource().asObjectable(), UserType.class);
+        Boolean reconcileAttributes = synchronization.isReconcileAttributes();
         if (reconcileAttributes == null) {
             // "Automatic mode", do reconciliation only if the complete current shadow was provided
             reconcileAttributes = change.getCurrentShadow() != null;
