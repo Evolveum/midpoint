@@ -348,6 +348,10 @@ public class XmlRepositoryService implements RepositoryService {
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
 
+		if (query.getFilter() == null){
+			listObjects(clazz, paging, parentResult);
+		}
+		
 		if (validateFilterElement(SchemaConstants.NS_QUERY, "and", query.getFilter())) {
 			NodeList children = query.getFilter().getChildNodes();
 
@@ -804,6 +808,17 @@ public class XmlRepositoryService implements RepositoryService {
 					namespace = SchemaConstants.NS_C;
 					lastPathSegment = prefix + ":" + firstChild.getLocalName();
 				}
+			}
+			
+			//check if the filter node value in not consisting of more than one part
+			if (firstChild.getChildNodes().getLength() > 1){
+				Node part1 = firstChild.getFirstChild();
+				parentPath = lastPathSegment;
+				String part1prefix = part1.getPrefix();
+				String part1Namespace = part1.getNamespaceURI();
+				lastPathSegment = part1prefix + ":" + part1.getLocalName();
+				namespaces.put(part1prefix, part1Namespace);
+			
 			}
 			// some search filters does not contain element's text value, for
 			// these filters the value is stored in attribute

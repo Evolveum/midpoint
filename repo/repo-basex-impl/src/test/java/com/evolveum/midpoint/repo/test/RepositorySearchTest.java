@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.test;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -111,6 +112,10 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			PrismObject<UserType> user = PrismTestUtil.parseObject(new File("src/test/resources/user.xml"));
 			repositoryService.addObject(user, new OperationResult("test"));
 
+			PrismObject<UserType> userType = repositoryService.getObject(UserType.class, userOid, new OperationResult("test get user"));
+			System.out.println(userType.dump());
+			
+			
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
 					"src/test/resources/query-user-by-name.xml"), QueryType.class);
 			List<PrismObject<UserType>> objectList = repositoryService.searchObjects(UserType.class, query,
@@ -122,7 +127,9 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
             PolyStringType poly = new PolyStringType();
             poly.setOrig("Cpt. Jack Sparrow");
             poly.setNorm("cpt jack sparrow");
-			assertEquals(poly, foundUser.asObjectable().getFullName());
+            PrismAsserts.assertEqualsPolyString("Values not equal", poly, foundUser.asObjectable().getFullName());
+//			assertEquals(poly.getNorm(), foundUser.asObjectable().getFullName().getNorm());
+//			assertEquals(poly.getOrig(), foundUser.asObjectable().getFullName().getOrig());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -142,7 +149,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
 					"src/test/resources/query-all-by-name.xml"), QueryType.class);
-			List<PrismObject<ObjectType>> objectList = repositoryService.searchObjects(ObjectType.class,
+			List<PrismObject<UserType>> objectList = repositoryService.searchObjects(UserType.class,
 					query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
@@ -151,7 +158,9 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
             PolyStringType poly = new PolyStringType();
             poly.setOrig("Cpt. Jack Sparrow");
             poly.setNorm("cpt jack sparrow");
-            assertEquals(poly, foundUser.asObjectable().getFullName());
+            PrismAsserts.assertEqualsPolyString("Values not equal", poly, foundUser.asObjectable().getFullName());
+//            assertEquals(poly.getNorm(), foundUser.asObjectable().getFullName().getNorm());
+//			assertEquals(poly.getOrig(), foundUser.asObjectable().getFullName().getOrig());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {

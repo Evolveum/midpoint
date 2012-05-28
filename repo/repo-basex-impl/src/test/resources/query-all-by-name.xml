@@ -27,11 +27,17 @@
         <q:equal>
             <q:value>
                 <c:fullName>
-                    <t:orig>Cpt. Jack Sparrow</t:orig>
-                    <t:norm>cpt jack Sparrow</t:norm>
+                    <t:orig>Cpt. Jack Sparrow</t:orig>  
+                </c:fullName>
+            </q:value>
+        </q:equal>
+        <q:equal>
+            <q:value>
+                <c:fullName>
+                   <t:norm>cpt jack sparrow</t:norm>
                 </c:fullName>
             </q:value>
         </q:equal>
     </q:and>
-
+ 
 </q:query>
