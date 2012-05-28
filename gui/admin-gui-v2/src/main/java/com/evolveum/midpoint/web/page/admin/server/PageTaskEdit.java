@@ -22,7 +22,9 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,6 +32,9 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -49,11 +54,17 @@ import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
 
@@ -62,13 +73,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType
  * @author mserbak
  */
 public class PageTaskEdit extends PageAdminTasks {
+	private static final long serialVersionUID = -5933030498922903813L;
+
 	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
 	public static final String PARAM_TASK_EDIT_ID = "taskEditOid";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
 	private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
 	private IModel<TaskDto> model;
-	private static boolean edit;
+	private static boolean edit = false;
 
 	public PageTaskEdit() {
 		model = new LoadableModel<TaskDto>() {
@@ -114,46 +127,24 @@ public class PageTaskEdit extends PageAdminTasks {
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
-		// mainForm.add(new editableColumn(model, "name"));
+		initMainInfo(mainForm);
+		initSchedule(mainForm);
 
-		RequiredTextField<String> name = new RequiredTextField<String>("name", new PropertyModel<String>(model, "name"));
-		name.add(new VisibleEnableBehaviour() {
+		SortableDataProvider<OperationResult> provider = new ListDataProvider<OperationResult>(this,
+				new PropertyModel<List<OperationResult>>(model, "opResult"));
+		TablePanel result = new TablePanel<OperationResult>("operationResult", provider, initResultColumns());
+		result.setShowPaging(false);
+		result.setOutputMarkupId(true);
+		mainForm.add(result);
 
+		CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model,
+				"runUntilNodeDown"));
+		runUntilNodeDown.add(new VisibleEnableBehaviour(){
 			@Override
 			public boolean isEnabled() {
 				return edit;
 			}
 		});
-		name.add(new SimpleAttributeModifier("width","100%"));
-		name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		mainForm.add(name);
-
-		Label oid = new Label("oid", new PropertyModel(model, "oid"));
-		mainForm.add(oid);
-
-		Label category = new Label("category", new PropertyModel(model, "category"));
-		mainForm.add(category);
-
-		Label uri = new Label("uri", new PropertyModel(model, "uri"));
-		mainForm.add(uri);
-
-		Label execution = new Label("execution", new PropertyModel(model, "execution"));
-		mainForm.add(execution);
-
-		Label node = new Label("node", new AbstractReadOnlyModel<String>() {
-			@Override
-			public String getObject() {
-				TaskDto dto = model.getObject();
-				if (dto.getExecution() != TaskDtoExecutionStatus.RUNNING) {
-					return null;
-				}				
-				return PageTaskEdit.this.getString("pageTaskEdit.message.node", dto.getExecutingAt());
-			}
-		});
-		mainForm.add(node);
-
-		CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model,
-				"runUntilNodeDown"));
 		mainForm.add(runUntilNodeDown);
 
 		DropDownChoice threadStop = new DropDownChoice("threadStop", new Model<ThreadStopActionType>() {
@@ -177,9 +168,52 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(threadStop);
 
-		initSchedule(mainForm);
-
 		initButtons(mainForm);
+	}
+
+	private void initMainInfo(Form mainForm) {
+		RequiredTextField<String> name = new RequiredTextField<String>("name", new PropertyModel<String>(
+				model, "name"));
+		name.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isEnabled() {
+				return edit;
+			}
+		});
+		name.add(new SimpleAttributeModifier("style", "width: 100%"));
+		name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		mainForm.add(name);
+
+		Label oid = new Label("oid", new PropertyModel(model, "oid"));
+		mainForm.add(oid);
+
+		Label category = new Label("category", new PropertyModel(model, "category"));
+		mainForm.add(category);
+
+		Label uri = new Label("uri", new PropertyModel(model, "uri"));
+		mainForm.add(uri);
+
+		Label execution = new Label("execution", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				return model.getObject().getExecution().name();
+			}
+		});
+		mainForm.add(execution);
+
+		Label node = new Label("node", new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				TaskDto dto = model.getObject();
+				if (dto.getExecution() == TaskDtoExecutionStatus.RUNNING) {
+					return null;
+				}
+				return PageTaskEdit.this.getString("pageTaskEdit.message.node", dto.getExecutingAt());
+			}
+		});
+		mainForm.add(node);
 	}
 
 	private void initSchedule(Form mainForm) {
@@ -236,12 +270,12 @@ public class PageTaskEdit extends PageAdminTasks {
 
 			@Override
 			public boolean isEnabled() {
-				if (edit) {
-					TaskDto dto = model.getObject();
-					return dto.getExecution() != TaskDtoExecutionStatus.RUNNABLE
-							&& dto.getExecution() != TaskDtoExecutionStatus.RUNNING;
+				if (!edit) {
+					return false;
 				}
-				return false;
+				TaskDto dto = model.getObject();
+				return dto.getExecution() != TaskDtoExecutionStatus.RUNNABLE
+						&& dto.getExecution() != TaskDtoExecutionStatus.RUNNING;
 			}
 		});
 		mainForm.add(recurring);
@@ -257,18 +291,18 @@ public class PageTaskEdit extends PageAdminTasks {
 
 			@Override
 			public boolean isEnabled() {
-				if (edit) {
-					TaskDto dto = model.getObject();
-					return dto.getExecution() != TaskDtoExecutionStatus.RUNNABLE
-							&& dto.getExecution() != TaskDtoExecutionStatus.RUNNING;
+				if (!edit) {
+					return false;
 				}
-				return false;
+				TaskDto dto = model.getObject();
+				return dto.getExecution() != TaskDtoExecutionStatus.RUNNABLE
+						&& dto.getExecution() != TaskDtoExecutionStatus.RUNNING;
 			}
 		});
 		boundContainer.add(bound);
 
-		RequiredTextField<Integer> interval = new RequiredTextField<Integer>("interval", new PropertyModel<Integer>(model,
-				"interval"));
+		RequiredTextField<Integer> interval = new RequiredTextField<Integer>("interval",
+				new PropertyModel<Integer>(model, "interval"));
 		interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		interval.add(new VisibleEnableBehaviour() {
 			@Override
@@ -278,7 +312,8 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		intervalContainer.add(interval);
 
-		RequiredTextField<String> cron = new RequiredTextField<String>("cron", new PropertyModel<String>(model, "cron"));
+		RequiredTextField<String> cron = new RequiredTextField<String>("cron", new PropertyModel<String>(
+				model, "cronSpecification"));
 		cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		cron.add(new VisibleEnableBehaviour() {
 			@Override
@@ -320,8 +355,8 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(notStartAfter);
 
-		DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(model,
-				"misfireAction"), MiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
+		DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(
+				model, "misfireAction"), MiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
 				new EnumChoiceRenderer<MisfireActionType>(PageTaskEdit.this));
 		misfire.add(new VisibleEnableBehaviour() {
 
@@ -337,14 +372,14 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			public String getObject() {
 				TaskDto dto = model.getObject();
-				if(dto.getLastRunStartTimestampLong() != null){
-					Date date = new Date(dto.getLastRunStartTimestampLong());
-					SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
-					return dateFormat.format(date);
+				if (dto.getLastRunStartTimestampLong() == null) {
+					return "-";
 				}
-				return null;
+				Date date = new Date(dto.getLastRunStartTimestampLong());
+				SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+				return dateFormat.format(date);
 			}
-			
+
 		});
 		mainForm.add(lastStart);
 
@@ -353,17 +388,29 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			public String getObject() {
 				TaskDto dto = model.getObject();
-				if(dto.getLastRunFinishTimestampLong() != null){
-					Date date = new Date(dto.getLastRunFinishTimestampLong());
-					SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
-					return dateFormat.format(date);
+				if (dto.getLastRunFinishTimestampLong() == null) {
+					return "-";
 				}
-				return null;
+				Date date = new Date(dto.getLastRunFinishTimestampLong());
+				SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+				return dateFormat.format(date);
 			}
 		});
 		mainForm.add(lastFinished);
 
-		Label nextRun = new Label("nextRun", new PropertyModel(model, "nextRunStartTimeLong"));
+		Label nextRun = new Label("nextRun", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				TaskDto dto = model.getObject();
+				if (dto.getNextRunStartTimeLong() == null) {
+					return "-";
+				}
+				Date date = new Date(dto.getNextRunStartTimeLong());
+				SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+				return dateFormat.format(date);
+			}
+		});
 		mainForm.add(nextRun);
 	}
 
@@ -373,6 +420,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
+				edit = false;
 				setResponsePage(PageTasks.class);
 			}
 		};
@@ -388,7 +436,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		};
 		saveButton.add(new VisibleEnableBehaviour() {
 			@Override
-			public boolean isEnabled() {
+			public boolean isVisible() {
 				return edit;
 			}
 		});
@@ -405,11 +453,21 @@ public class PageTaskEdit extends PageAdminTasks {
 		};
 		editButton.add(new VisibleEnableBehaviour() {
 			@Override
-			public boolean isEnabled() {
+			public boolean isVisible() {
 				return !edit;
 			}
 		});
 		mainForm.add(editButton);
+	}
+
+	private List<IColumn<OperationResult>> initResultColumns() {
+		List<IColumn<OperationResult>> columns = new ArrayList<IColumn<OperationResult>>();
+
+		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.token"), "token"));
+		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.operation"), "operation"));
+		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.status"), "status"));
+		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.message"), "message"));
+		return columns;
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {

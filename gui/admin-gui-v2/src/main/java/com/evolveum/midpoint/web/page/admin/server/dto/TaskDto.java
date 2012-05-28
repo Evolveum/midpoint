@@ -21,7 +21,9 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -58,6 +60,7 @@ public class TaskDto extends Selectable {
     private TaskExecutionStatus rawExecutionStatus;
     private TaskDtoExecutionStatus execution;
     private String executingAt;
+    private List<OperationResult> opResult;
     private OperationResultStatus status;
 
     private ObjectReferenceType objectRef;
@@ -108,10 +111,16 @@ public class TaskDto extends Selectable {
         this.binding = task.getBinding();
         this.recurrence = task.getRecurrenceStatus();
 
+        opResult = new ArrayList<OperationResult>();
+        
         OperationResult result = task.getResult();
         if (result != null) {
             status = result.getStatus();
+            
+            opResult.add(result);
+            opResult.addAll(result.getSubresults());
         }
+        
     }
 
     public String getCategory() {
@@ -181,7 +190,11 @@ public class TaskDto extends Selectable {
         return executingAt;
     }
 
-    public String getName() {
+    public List<OperationResult> getResult() {
+		return opResult;
+	}
+
+	public String getName() {
         return name;
     }
 
