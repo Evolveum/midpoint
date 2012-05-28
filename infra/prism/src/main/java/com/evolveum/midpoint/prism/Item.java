@@ -493,7 +493,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	checkConsistenceInternal(this, PropertyPath.EMPTY_PATH);
     }
     
-    public void checkConsistenceInternal(Item<?> rootItem, PropertyPath path) {
+    public void checkConsistenceInternal(Itemable rootItem, PropertyPath path) {
     	if (name == null) {
     		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
     	}

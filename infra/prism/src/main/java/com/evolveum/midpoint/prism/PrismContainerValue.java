@@ -843,7 +843,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     @Override
-	public void checkConsistenceInternal(Item<?> rootItem, PropertyPath parentPath) {
+	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath) {
 		PropertyPath myPath = getPath(parentPath);
 		if (items == null && rawElements == null) {
 			throw new IllegalStateException("Neither items nor raw elements specified in container value "+this+" ("+myPath+" in "+rootItem+")");

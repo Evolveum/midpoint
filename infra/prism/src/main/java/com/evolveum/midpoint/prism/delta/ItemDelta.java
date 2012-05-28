@@ -362,6 +362,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			if (val == null) {
 				throw new IllegalStateException("Null value in the " + type + " values set in " + this);
 			}
+			val.checkConsistenceInternal(this, parentPath);
 		}
 	}
 
