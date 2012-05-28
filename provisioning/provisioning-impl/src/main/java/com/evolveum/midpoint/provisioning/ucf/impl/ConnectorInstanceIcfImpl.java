@@ -69,6 +69,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
+
+import java.io.File;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -2259,6 +2261,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return ((PolyString)midPointRealValue).getOrig();
 		} else if (midPointRealValue instanceof PolyStringType) {
 			return ((PolyStringType)midPointRealValue).getOrig();
+		} else if (expectedType.equals(File.class) && midPointRealValue instanceof String) {
+			return new File((String)midPointRealValue);
 		} else {
 			return midPointRealValue;
 		}

@@ -98,8 +98,7 @@ public class ProvisioningTestUtil {
 		// TODO: other elements
 	}
 	
-	public static void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
-		
+	public static void assertIcfResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
 		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultAccountDefinition();
@@ -155,7 +154,15 @@ public class ProvisioningTestUtil {
 		assertTrue("No NAME update",nameDef.canUpdate());
 		assertTrue("No NAME read",nameDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
-
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
+	}
+	
+	public static void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
+		assertIcfResourceSchemaSanity(resourceSchema, resourceType);
+		
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultAccountDefinition();
+		
 		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
 		assertNotNull("No definition for fullname", fullnameDef);
 		assertEquals(1, fullnameDef.getMaxOccurs());
@@ -164,7 +171,6 @@ public class ProvisioningTestUtil {
 		assertTrue("No fullname update", fullnameDef.canUpdate());
 		assertTrue("No fullname read", fullnameDef.canRead());
 		
-		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 	}
 
 }
