@@ -19,7 +19,6 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-
 ul.messagesTop {
 	margin: 0px;
 	margin-bottom: 20px;
@@ -424,4 +423,9 @@ ul.messages-topException {
 }
 ul.messages-topException li {
 	margin-top: 5px;
+}
+
+ul.messagesTop p {
+	margin: 0px;
+	display: inline;
 }

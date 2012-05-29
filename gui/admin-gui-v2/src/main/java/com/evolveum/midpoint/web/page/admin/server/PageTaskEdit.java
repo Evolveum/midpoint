@@ -48,12 +48,22 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.validator.AbstractValidator;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRecurrence;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -63,9 +73,16 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.TseValidator;
 import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
 
 /**
@@ -75,6 +92,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType
 public class PageTaskEdit extends PageAdminTasks {
 	private static final long serialVersionUID = -5933030498922903813L;
 
+	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);
 	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
 	public static final String PARAM_TASK_EDIT_ID = "taskEditOid";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
@@ -139,7 +157,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
 		CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model,
 				"runUntilNodeDown"));
-		runUntilNodeDown.add(new VisibleEnableBehaviour(){
+		runUntilNodeDown.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
 				return edit;
@@ -167,6 +185,8 @@ public class PageTaskEdit extends PageAdminTasks {
 			}
 		});
 		mainForm.add(threadStop);
+
+		mainForm.add(new TseValidator(runUntilNodeDown, threadStop));
 
 		initButtons(mainForm);
 	}
@@ -198,7 +218,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
 			@Override
 			public String getObject() {
-				return model.getObject().getExecution().name();
+				return model.getObject().getExecution().toString();
 			}
 		});
 		mainForm.add(execution);
@@ -207,7 +227,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			public String getObject() {
 				TaskDto dto = model.getObject();
-				if (dto.getExecution() == TaskDtoExecutionStatus.RUNNING) {
+				if (!TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution())) {
 					return null;
 				}
 				return PageTaskEdit.this.getString("pageTaskEdit.message.node", dto.getExecutingAt());
@@ -274,8 +294,8 @@ public class PageTaskEdit extends PageAdminTasks {
 					return false;
 				}
 				TaskDto dto = model.getObject();
-				return dto.getExecution() != TaskDtoExecutionStatus.RUNNABLE
-						&& dto.getExecution() != TaskDtoExecutionStatus.RUNNING;
+				return !TaskDtoExecutionStatus.RUNNABLE.equals(dto.getExecution())
+						&& !TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution());
 			}
 		});
 		mainForm.add(recurring);
@@ -295,8 +315,8 @@ public class PageTaskEdit extends PageAdminTasks {
 					return false;
 				}
 				TaskDto dto = model.getObject();
-				return dto.getExecution() != TaskDtoExecutionStatus.RUNNABLE
-						&& dto.getExecution() != TaskDtoExecutionStatus.RUNNING;
+				return !TaskDtoExecutionStatus.RUNNABLE.equals(dto.getExecution())
+						&& !TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution());
 			}
 		});
 		boundContainer.add(bound);
@@ -426,13 +446,19 @@ public class PageTaskEdit extends PageAdminTasks {
 		};
 		mainForm.add(backButton);
 
-		AjaxLinkButton saveButton = new AjaxLinkButton("saveButton",
+		AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton",
 				createStringResource("pageTaskEdit.button.save")) {
 
 			@Override
-			public void onClick(AjaxRequestTarget target) {
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				savePerformed(target);
 			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(getFeedbackPanel());
+			}
+
 		};
 		saveButton.add(new VisibleEnableBehaviour() {
 			@Override
@@ -471,7 +497,56 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
-		// TODO implement
+		LOGGER.debug("Saving new task.");
+		OperationResult result = new OperationResult(OPERATION_SAVE_TASK);
+		TaskDto dto = model.getObject();
+		try {
+			OperationResult loadTask = new OperationResult(OPERATION_LOAD_TASK);
+			TaskManager manager = getTaskManager();
+			StringValue taskOid = getPageParameters().get(PARAM_TASK_EDIT_ID);
+			Task loadedTask = manager.getTask(taskOid.toString(), loadTask);
+			Task task = updateTask(dto, loadedTask);
+
+			task.savePendingModifications(result);
+			edit = false;
+			result.recordSuccess();
+		} catch (Exception ex) {
+			result.recomputeStatus();
+			result.recordFatalError("Couldn't save task.", ex);
+		}
+		showResult(result);
+		target.add(getFeedbackPanel());
+		target.add(get("mainForm"));
+	}
+
+	private Task updateTask(TaskDto dto, Task loadedTask) {
+		loadedTask.setName(dto.getName());
+
+		if (!dto.getRecurring()) {
+			loadedTask.makeSingle();
+		}
+		loadedTask.setBinding(dto.getBound() == true ? TaskBinding.TIGHT : TaskBinding.LOOSE);
+
+		if (dto.getCronSpecification() != null) {
+			loadedTask.makeRecurrentCron(dto.getCronSpecification());
+		}
+
+		if (dto.getInterval() != null) {
+			loadedTask.makeRecurrentSimple(dto.getInterval());
+		}
+
+		ScheduleType schedule = loadedTask.getSchedule();
+		/*
+		 * schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.
+		 * getNotStartBefore()));
+		 * schedule.setLatestStartTime(MiscUtil.asXMLGregorianCalendar
+		 * (dto.getNotStartAfter()));
+		 * schedule.setMisfireAction(dto.getMisfire()); TODO
+		 */
+		// TODO: loadedTask.setThreadStopAction(dto.getThreadStop());
+		// TODO: run only until node down
+
+		return loadedTask;
 	}
 
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {

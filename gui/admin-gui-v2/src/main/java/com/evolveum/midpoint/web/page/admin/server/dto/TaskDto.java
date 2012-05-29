@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
 
 import org.apache.commons.lang.Validate;
@@ -95,6 +97,7 @@ public class TaskDto extends Selectable {
             notStartBefore = MiscUtil.asDate(task.getSchedule().getEarliestStartTime());
             notStartAfter = MiscUtil.asDate(task.getSchedule().getLatestStartTime());
         }
+        //runUntilNodeDown;
         
         rawExecutionStatus = task.getExecutionStatus();
         execution = TaskDtoExecutionStatus.fromTaskExecutionStatus(rawExecutionStatus, task.currentlyExecutesAt() != null);
@@ -120,23 +123,38 @@ public class TaskDto extends Selectable {
             opResult.add(result);
             opResult.addAll(result.getSubresults());
         }
-        
     }
 
     public String getCategory() {
         return category;
     }
+    
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
     public String getUri() {
 		return uri;
+	}
+    
+    public void setUri(String uri) {
+		this.uri = uri;
 	}
 
 	public boolean getBound() {
 		return bound;
 	}
+	
+	public void setBound(boolean bound) {
+		this.bound = bound;
+	}
 
 	public Integer getInterval() {
 		return interval;
+	}
+	
+	public void setInterval(Integer interval) {
+		this.interval = interval;
 	}
 
 	public String getCronSpecification() {
@@ -167,8 +185,12 @@ public class TaskDto extends Selectable {
 		this.threadStop = threadStop;
 	}
 
-	public boolean isRecurring() {
+	public boolean getRecurring() {
 		return recurring;
+	}
+	
+	public void setRecurring(boolean recurring) {
+		this.recurring = recurring;
 	}
 
 	public Long getCurrentRuntime() {
@@ -197,6 +219,10 @@ public class TaskDto extends Selectable {
 	public String getName() {
         return name;
     }
+	
+	public void setName(String name) {
+        this.name = name;
+    }
 
     public String getObjectRefName() {
         return objectRefName;
@@ -220,6 +246,10 @@ public class TaskDto extends Selectable {
 
     public String getOid() {
         return oid;
+    }
+    
+    public void setOid(String oid) {
+        this.oid = oid;
     }
 
     public Long getNextRunStartTimeLong() {
@@ -266,4 +296,96 @@ public class TaskDto extends Selectable {
     private boolean isAliveClusterwide() {
         return executingAt != null;
     }
+
+	public MisfireActionType getMisfireAction() {
+		return misfireAction;
+	}
+
+	public void setMisfireAction(MisfireActionType misfireAction) {
+		this.misfireAction = misfireAction;
+	}
+
+	public TaskExecutionStatus getRawExecutionStatus() {
+		return rawExecutionStatus;
+	}
+
+	public void setRawExecutionStatus(TaskExecutionStatus rawExecutionStatus) {
+		this.rawExecutionStatus = rawExecutionStatus;
+	}
+
+	public List<OperationResult> getOpResult() {
+		return opResult;
+	}
+
+	public void setOpResult(List<OperationResult> opResult) {
+		this.opResult = opResult;
+	}
+
+	public TaskBinding getBinding() {
+		return binding;
+	}
+
+	public void setBinding(TaskBinding binding) {
+		this.binding = binding;
+	}
+
+	public TaskRecurrence getRecurrence() {
+		return recurrence;
+	}
+
+	public void setRecurrence(TaskRecurrence recurrence) {
+		this.recurrence = recurrence;
+	}
+
+	public void setCronSpecification(String cronSpecification) {
+		this.cronSpecification = cronSpecification;
+	}
+
+	public void setNotStartBefore(Date notStartBefore) {
+		this.notStartBefore = notStartBefore;
+	}
+
+	public void setNotStartAfter(Date notStartAfter) {
+		this.notStartAfter = notStartAfter;
+	}
+
+	public void setRunUntilNodeDown(boolean runUntilNodeDown) {
+		this.runUntilNodeDown = runUntilNodeDown;
+	}
+
+	public void setExecution(TaskDtoExecutionStatus execution) {
+		this.execution = execution;
+	}
+
+	public void setExecutingAt(String executingAt) {
+		this.executingAt = executingAt;
+	}
+
+	public void setStatus(OperationResultStatus status) {
+		this.status = status;
+	}
+
+	public void setObjectRef(ObjectReferenceType objectRef) {
+		this.objectRef = objectRef;
+	}
+
+	public void setObjectRefType(ObjectTypes objectRefType) {
+		this.objectRefType = objectRefType;
+	}
+
+	public void setObjectRefName(String objectRefName) {
+		this.objectRefName = objectRefName;
+	}
+
+	public void setLastRunStartTimestampLong(Long lastRunStartTimestampLong) {
+		this.lastRunStartTimestampLong = lastRunStartTimestampLong;
+	}
+
+	public void setLastRunFinishTimestampLong(Long lastRunFinishTimestampLong) {
+		this.lastRunFinishTimestampLong = lastRunFinishTimestampLong;
+	}
+
+	public void setNextRunStartTimeLong(Long nextRunStartTimeLong) {
+		this.nextRunStartTimeLong = nextRunStartTimeLong;
+	}
 }
