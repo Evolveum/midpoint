@@ -558,9 +558,10 @@ public class PageLogging extends PageAdminConfiguration {
 		}
 
 		for (LoggerConfiguration item : dto.getLoggers()) {
-			if ("PROFILING".equals(item.getName())) {
-				continue;
-			}
+			if (LoggingDto.LOGGER_PROFILING.equals(item.getName())
+                    || LoggingDto.LOGGER_MIDPOINT_ROOT.equals(item.getName())) {
+                continue;
+            }
 
 			if (item instanceof ClassLogger) {
 				configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
@@ -569,16 +570,29 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		}
 
-		if (dto.getProfilingLevel() != null && dto.getProfilingAppender() != null) {
-			ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
-			type.setPackage("PROFILING");
-			type.setLevel(ProfilingLevel.toLoggerLevelType(dto.getProfilingLevel()));
-			type.getAppender().add(dto.getProfilingAppender());
-			configuration.getClassLogger().add(type);
-		}
+        if (dto.getProfilingLevel() != null && dto.getProfilingAppender() != null) {
+            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
+                    ProfilingLevel.toLoggerLevelType(dto.getProfilingLevel()), dto.getProfilingAppender());
+            configuration.getClassLogger().add(type);
+        }
+
+        if (dto.getMidPointLevel() != null && dto.getMidPointAppender() != null) {
+            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_MIDPOINT_ROOT,
+                    dto.getMidPointLevel(), dto.getMidPointAppender());
+            configuration.getClassLogger().add(type);
+        }
 
 		return configuration;
 	}
+
+    private ClassLoggerConfigurationType createCustomClassLogger(String name, LoggingLevelType level, String appender) {
+        ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
+        type.setPackage(name);
+        type.setLevel(level);
+        type.getAppender().add(appender);
+
+        return type;
+    }
 
 	private TablePanel getLoggersTable() {
 		Accordion accordion = (Accordion) get("mainForm:accordion");

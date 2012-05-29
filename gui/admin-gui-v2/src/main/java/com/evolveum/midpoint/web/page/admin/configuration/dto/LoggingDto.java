@@ -34,6 +34,9 @@ import java.util.List;
  */
 public class LoggingDto implements Serializable {
 
+    public static final String LOGGER_PROFILING = "PROFILING";
+    public static final String LOGGER_MIDPOINT_ROOT = "com.evolveum.midpoint";
+
     private PrismObject<SystemConfigurationType> oldConfiguration;
 
     private LoggingLevelType rootLevel;
@@ -83,11 +86,16 @@ public class LoggingDto implements Serializable {
         }
 
         for (ClassLoggerConfigurationType logger : config.getClassLogger()) {
-            if ("PROFILING".equals(logger.getPackage())) {
+            if (LOGGER_PROFILING.equals(logger.getPackage())) {
                 setProfilingAppender(logger.getAppender() != null && logger.getAppender().size() > 0 ? logger.getAppender().get(0) : null);
                 setProfilingLevel(ProfilingLevel.fromLoggerLevelType(logger.getLevel()));
                 continue;
+            } else if (LOGGER_MIDPOINT_ROOT.equals(logger.getPackage())) {
+                setMidPointAppender(logger.getAppender() != null && logger.getAppender().size() > 0 ? logger.getAppender().get(0) : null);
+                setMidPointLevel(logger.getLevel());
+                continue;
             }
+
             loggers.add(new ClassLogger(logger));
         }
 
