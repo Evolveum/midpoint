@@ -32,12 +32,12 @@ import org.apache.wicket.validation.validator.AbstractValidator;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
 
-public class TseValidator extends AbstractFormValidator {
+public class TsaValidator extends AbstractFormValidator {
 
 	private CheckBox runUntilNodeDown;
 	private DropDownChoice threadStop;
 
-	public TseValidator(CheckBox runUntilNodeDown, DropDownChoice threadStop) {
+	public TsaValidator(CheckBox runUntilNodeDown, DropDownChoice threadStop) {
 		this.runUntilNodeDown = runUntilNodeDown;
 		this.threadStop = threadStop;
 	}
@@ -52,13 +52,13 @@ public class TseValidator extends AbstractFormValidator {
 		if (runUntilNodeDown.getConvertedInput()) {
 			if (ThreadStopActionType.RESTART.equals(threadStop.getConvertedInput())
 					|| ThreadStopActionType.RESCHEDULE.equals(threadStop.getConvertedInput())){
-				error(runUntilNodeDown);
+				error(runUntilNodeDown, "runUntilNodeDown.error1");
 			}
 				
 		} else {
 			if (ThreadStopActionType.CLOSE.equals(threadStop.getConvertedInput())
 					|| ThreadStopActionType.SUSPEND.equals(threadStop.getConvertedInput())){
-				error(runUntilNodeDown);
+				error(runUntilNodeDown, "runUntilNodeDown.error2");
 			}
 		}
 

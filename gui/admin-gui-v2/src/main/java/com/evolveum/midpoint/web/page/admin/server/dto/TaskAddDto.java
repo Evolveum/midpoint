@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType
  */
 public class TaskAddDto implements Serializable {
 
-	private String type;
+	private String category;
 	private TaskAddResourcesDto resource;
 	private String name;
 	
@@ -41,7 +41,7 @@ public class TaskAddDto implements Serializable {
 	private boolean bound;
 	private Integer interval;
 	private String cron;
-	private Date notStopBefore;
+	private Date notStartBefore;
 	private Date notStartAfter;
 	
 	private boolean runUntilNodeDown;
@@ -51,12 +51,12 @@ public class TaskAddDto implements Serializable {
 	private ThreadStopActionType threadStop;
 	private MisfireActionType misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
 	
-	public String getType() {
-		return type;
+	public String getCategory() {
+		return category;
 	}
 
-	public void setType(String type) {
-		this.type = type;
+	public void setCategory(String category) {
+		this.category = category;
 	}
 	
 	public TaskAddResourcesDto getResource() {
@@ -107,12 +107,12 @@ public class TaskAddDto implements Serializable {
 		this.cron = cron;
 	}
 
-	public Date getNotStopBefore() {
-		return notStopBefore;
+	public Date getNotStartBefore() {
+		return notStartBefore;
 	}
 
-	public void setNotStopBefore(Date notStopBefore) {
-		this.notStopBefore = notStopBefore;
+	public void setNotStartBefore(Date notStartBefore) {
+		this.notStartBefore = notStartBefore;
 	}
 
 	public Date getNotStartAfter() {

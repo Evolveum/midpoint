@@ -58,8 +58,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -73,7 +75,7 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.TseValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.TsaValidator;
 import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
@@ -102,7 +104,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	private static boolean edit = false;
 
 	public PageTaskEdit() {
-		model = new LoadableModel<TaskDto>() {
+		model = new LoadableModel<TaskDto>(false) {
 
 			@Override
 			protected TaskDto load() {
@@ -186,7 +188,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(threadStop);
 
-		mainForm.add(new TseValidator(runUntilNodeDown, threadStop));
+		mainForm.add(new TsaValidator(runUntilNodeDown, threadStop));
 
 		initButtons(mainForm);
 	}
@@ -218,7 +220,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
 			@Override
 			public String getObject() {
-				return model.getObject().getExecution().toString();
+				return getString(TaskDtoExecutionStatus.class.getSimpleName() + "." + model.getObject().getExecution().name());
 			}
 		});
 		mainForm.add(execution);
@@ -284,8 +286,10 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(container);
+				target.add(PageTaskEdit.this.get("mainForm:recurring"));
 			}
 		};
+		recurring.setOutputMarkupId(true);
 		recurring.add(new VisibleEnableBehaviour() {
 
 			@Override
@@ -305,6 +309,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(container);
+				target.add(PageTaskEdit.this.get("mainForm:recurring"));
 			}
 		};
 		bound.add(new VisibleEnableBehaviour() {
@@ -503,16 +508,19 @@ public class PageTaskEdit extends PageAdminTasks {
 		try {
 			OperationResult loadTask = new OperationResult(OPERATION_LOAD_TASK);
 			TaskManager manager = getTaskManager();
-			StringValue taskOid = getPageParameters().get(PARAM_TASK_EDIT_ID);
-			Task loadedTask = manager.getTask(taskOid.toString(), loadTask);
+			Task loadedTask = manager.getTask(dto.getOid(), loadTask);
 			Task task = updateTask(dto, loadedTask);
-
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Saving task modifications.");
+			}
 			task.savePendingModifications(result);
 			edit = false;
 			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't save task.", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't save task modifications", ex);
 		}
 		showResult(result);
 		target.add(getFeedbackPanel());
@@ -543,8 +551,12 @@ public class PageTaskEdit extends PageAdminTasks {
 		 * (dto.getNotStartAfter()));
 		 * schedule.setMisfireAction(dto.getMisfire()); TODO
 		 */
-		// TODO: loadedTask.setThreadStopAction(dto.getThreadStop());
-		// TODO: run only until node down
+		
+		if (dto.getRunUntilNodeDown() && dto.getThreadStop() == null) {
+			// TODO: set TSA to close
+		} else if (!dto.getRunUntilNodeDown() && dto.getThreadStop() == null) {
+			// TODO: set TSA to restart
+		}
 
 		return loadedTask;
 	}

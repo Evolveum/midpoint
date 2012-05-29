@@ -25,33 +25,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
-import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
-import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -64,15 +57,17 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TsaValidator;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
 
@@ -133,14 +128,14 @@ public class PageTaskAdd extends PageAdminTasks {
 			@Override
 			public boolean isEnabled() {
 				TaskAddDto dto = model.getObject();
-				boolean sync = dto.getType() == TaskCategory.LIVE_SYNCHRONIZATION;
-				boolean cron = dto.getType() == TaskCategory.RECONCILIATION;
+				boolean sync = TaskCategory.LIVE_SYNCHRONIZATION.equals(dto.getCategory());
+				boolean cron = TaskCategory.RECONCILIATION.equals(dto.getCategory());
 				return sync || cron;
 			}
 		});
 		resource.setOutputMarkupId(true);
 		mainForm.add(resource);
-		DropDownChoice type = new DropDownChoice("type", new PropertyModel<String>(model, "type"),
+		DropDownChoice type = new DropDownChoice("category", new PropertyModel<String>(model, "category"),
 				new AbstractReadOnlyModel<List<String>>() {
 
 					@Override
@@ -174,11 +169,6 @@ public class PageTaskAdd extends PageAdminTasks {
 		mainForm.add(name);
 
 		initScheduling(mainForm);
-
-		CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model,
-				"runUntilNodeDown"));
-		mainForm.add(runUntilNodeDown);
-
 		initAdvanced(mainForm);
 
 		initButtons(mainForm);
@@ -232,7 +222,6 @@ public class PageTaskAdd extends PageAdminTasks {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-
 				target.add(container);
 			}
 		};
@@ -247,23 +236,21 @@ public class PageTaskAdd extends PageAdminTasks {
 		};
 		boundContainer.add(bound);
 
-		TextField<Integer> interval = new TextField<Integer>("interval", new PropertyModel<Integer>(model,
-				"interval"));
+		RequiredTextField<Integer> interval = new RequiredTextField<Integer>("interval",
+				new PropertyModel<Integer>(model, "interval"));
 		interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		if(recurringCheck.getObject()){
-			interval.setRequired(true);
-		}
 		intervalContainer.add(interval);
 
-		TextField<String> cron = new TextField<String>("cron", new PropertyModel<String>(model, "cron"));
+		RequiredTextField<String> cron = new RequiredTextField<String>("cron", new PropertyModel<String>(
+				model, "cron"));
 		cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		if(recurringCheck.getObject() && !boundCheck.getObject()){
+		if (recurringCheck.getObject() && !boundCheck.getObject()) {
 			cron.setRequired(true);
 		}
 		cronContainer.add(cron);
 
 		final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",
-				new PropertyModel<Date>(model, "notStopBefore")) {
+				new PropertyModel<Date>(model, "notStartBefore")) {
 			@Override
 			protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
 				return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy");
@@ -284,6 +271,10 @@ public class PageTaskAdd extends PageAdminTasks {
 	}
 
 	private void initAdvanced(Form mainForm) {
+		CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model,
+				"runUntilNodeDown"));
+		mainForm.add(runUntilNodeDown);
+
 		final IModel<Boolean> createSuspendedCheck = new PropertyModel<Boolean>(model, "suspendedState");
 		CheckBox createSuspended = new CheckBox("createSuspended", createSuspendedCheck);
 		mainForm.add(createSuspended);
@@ -311,8 +302,10 @@ public class PageTaskAdd extends PageAdminTasks {
 				new EnumChoiceRenderer<ThreadStopActionType>(PageTaskAdd.this));
 		mainForm.add(threadStop);
 
-		DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(model,
-				"misfireAction"), MiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
+		mainForm.add(new TsaValidator(runUntilNodeDown, threadStop));
+
+		DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(
+				model, "misfireAction"), MiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
 				new EnumChoiceRenderer<MisfireActionType>(PageTaskAdd.this));
 		mainForm.add(misfire);
 	}
@@ -390,13 +383,60 @@ public class PageTaskAdd extends PageAdminTasks {
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
-		LOGGER.debug("Saving task changes.");
+		LOGGER.debug("Saving new task.");
 		OperationResult result = new OperationResult(OPERATION_SAVE_TASK);
 		TaskAddDto dto = model.getObject();
+		TaskType task = createTask(dto);
+
+		try {
+			getPrismContext().adopt(task);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Add new task.");
+			}
+			getTaskManager().addTask(task.asPrismObject(), result);
+			result.recordSuccess();
+			setResponsePage(PageTasks.class);
+		} catch (Exception ex) {
+			result.recomputeStatus();
+			result.recordFatalError("Unable to save task.", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't add new task", ex);
+		}
+		showResult(result);
+		target.add(getFeedbackPanel());
 	}
 
-	private void browsePerformed(AjaxRequestTarget target) {
-		// todo implement
+	private TaskType createTask(TaskAddDto dto) {
+		TaskType task = new TaskType();
+		PrincipalUser owner = SecurityUtils.getPrincipalUser();
+		
+		ObjectReferenceType ownerRef = new ObjectReferenceType();
+		ownerRef.setOid(owner.getOid());
+		ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+		task.setOwnerRef(ownerRef);
+		
+		ObjectReferenceType objectRef = new ObjectReferenceType();
+		if(dto.getResource() != null){
+			objectRef.setOid(dto.getResource().getOid());
+		}
+		if(dto.getCategory() != null){
+			task.setCategory(dto.getCategory());
+		}
+		task.setObjectRef(objectRef);
+		task.setName(dto.getName());
+
+		task.setRecurrence(dto.getReccuring() ? TaskRecurrenceType.RECURRING : TaskRecurrenceType.SINGLE);
+		task.setBinding(dto.getBound() ? TaskBindingType.TIGHT : TaskBindingType.LOOSE);
+
+		ScheduleType schedule = new ScheduleType();
+		schedule.setInterval(dto.getInterval());
+		schedule.setCronLikePattern(dto.getCron());
+		schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartBefore()));
+		schedule.setLatestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartAfter()));
+		schedule.setMisfireAction(dto.getMisfireAction());
+		
+		task.setThreadStopAction(dto.getThreadStop());
+
+		return task;
 	}
 
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {

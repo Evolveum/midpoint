@@ -177,7 +177,7 @@ public class PageResource extends PageAdminResources {
 	private void initResourceColumns(Form mainForm) {
 		mainForm.add(new Label("resourceOid", new PropertyModel<Object>(model, "oid")));
 		mainForm.add(new Label("resourceName", new PropertyModel<Object>(model, "name")));
-		mainForm.add(new Label("resourceType", new PropertyModel<Object>(model, "type")));
+		mainForm.add(new Label("resourceType", new PropertyModel<Object>(model, "category")));
 		mainForm.add(new Label("resourceVersion", new PropertyModel<Object>(model, "version")));
 		mainForm.add(new Label("resourceProgress", new PropertyModel<Object>(model, "progress")));
 	}
@@ -264,7 +264,7 @@ public class PageResource extends PageAdminResources {
 		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.nativeObjectClass"),
 				"nativeObjectClass"));
 		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.help"), "help"));
-		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.type"), "type"));
+		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.type"), "category"));
 
 		return columns;
 	}

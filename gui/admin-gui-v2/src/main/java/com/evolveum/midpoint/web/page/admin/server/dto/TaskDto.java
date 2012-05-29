@@ -92,16 +92,32 @@ public class TaskDto extends Selectable {
         if(task.getSchedule() != null){
         	interval = task.getSchedule().getInterval();
             cronSpecification = task.getSchedule().getCronLikePattern();
-            misfireAction = task.getSchedule().getMisfireAction();
-            threadStop = task.getThreadStopAction();
+            if(task.getSchedule().getMisfireAction() == null){
+            	misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
+            } else {
+            	misfireAction = task.getSchedule().getMisfireAction();
+            }
             notStartBefore = MiscUtil.asDate(task.getSchedule().getEarliestStartTime());
             notStartAfter = MiscUtil.asDate(task.getSchedule().getLatestStartTime());
         }
-        //runUntilNodeDown;
+        
+        if(task.getThreadStopAction() == null){
+        	threadStop = ThreadStopActionType.RESTART;
+        } else {
+        	threadStop = task.getThreadStopAction();
+        }
+        
+        
+        if(ThreadStopActionType.CLOSE.equals(threadStop) || ThreadStopActionType.SUSPEND.equals(threadStop)){
+        	runUntilNodeDown = true;
+        } else {
+        	runUntilNodeDown = false;
+        }
+        
+        
         
         rawExecutionStatus = task.getExecutionStatus();
         execution = TaskDtoExecutionStatus.fromTaskExecutionStatus(rawExecutionStatus, task.currentlyExecutesAt() != null);
-//        scheduledToStartAgain=task.;
         lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
         lastRunStartTimestampLong = task.getLastRunStartTimestamp();
         nextRunStartTimeLong = task.getNextRunStartTime(new OperationResult("dummy"));
@@ -173,7 +189,7 @@ public class TaskDto extends Selectable {
 		return misfireAction;
 	}
 
-	public boolean isRunUntilNodeDown() {
+	public boolean getRunUntilNodeDown() {
 		return runUntilNodeDown;
 	}
 
