@@ -72,7 +72,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
     // how many times we want to repeat operation after lock aquisition,
     // pessimistic, optimistic exception
-    private static final int LOCKING_MAX_ATTEMPTS = 5;
+    private static final int LOCKING_MAX_ATTEMPTS = 10;
     // time in ms to wait before next operation attempt. it seems that 0
     // works best here (i.e. it is best to repeat operation immediately)
     private static final long LOCKING_TIMEOUT = 0;
