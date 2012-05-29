@@ -204,12 +204,9 @@ This is now the only account type that midPoint can work with. -->
                 -->
 
                 <outbound>
-                    <expression>
-                        <code>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:fullName
-                        </code>
-                    </expression>
+                    <path>
+                    	$user/fullName
+                    </path>
                 </outbound>
 
                 <!-- Inbound expression. It is used to synchronize changes
@@ -218,10 +215,8 @@ This is now the only account type that midPoint can work with. -->
                     from the account to the fullName property of the user.
                 -->
                 <inbound>
-
                     <target>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                        $i:user/i:fullName
+                        $user/fullName
                     </target>
                 </inbound>
 
@@ -236,15 +231,13 @@ This is now the only account type that midPoint can work with. -->
                 <access>read</access>
                 <access>update</access>
                 <outbound>
-                    <expression>
-                    	<description>
-                    		The expression is using "c" prefix without declaring it. The prefix is taken from
-                    		the enclosing XML definition.
-                    	</description>
-                        <code>
-                            $c:user/c:familyName
-                        </code>
-                    </expression>
+                   	<description>
+                   		The expression is using "c" prefix without declaring it. The prefix is taken from
+                   		the enclosing XML definition.
+                   	</description>
+                    <path>
+                        $user/familyName
+                    </path>
                 </outbound>
                 <!-- sn will be synchronized to user's familyName -->
                 <inbound>
@@ -265,15 +258,7 @@ This is now the only account type that midPoint can work with. -->
 
                 <access>update</access>
                 <outbound>
-                    <expression>
-                    	<description>
-                    		The expression is using the "implicit" node and not the $user variable.
-                    	</description>
-                        <code>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            i:givenName
-                        </code>
-                    </expression>
+                      <path>givenName</path>
                 </outbound>
                 <!-- givenName will be synchronized to user's givenName -->
 
