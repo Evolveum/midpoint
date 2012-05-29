@@ -264,9 +264,9 @@ ds-cfg-db-cleaner-min-utilization: 50
 ds-cfg-db-logging-file-handler-on: true
 ds-cfg-db-log-file-max: 10 megabytes
 ds-cfg-db-evictor-nodes-per-scan: 10
-ds-cfg-db-evictor-max-threads: 10
+ds-cfg-db-evictor-max-threads: 2
 ds-cfg-db-evictor-core-threads: 1
-ds-cfg-db-run-cleaner: true
+ds-cfg-db-run-cleaner: false
 ds-cfg-db-txn-no-sync: false
 ds-cfg-db-txn-write-no-sync: true
 modifyTimestamp: 20110722074115Z
@@ -2523,6 +2523,7 @@ objectClass: ds-cfg-traditional-work-queue
 objectClass: top
 ds-cfg-java-class: org.opends.server.extensions.TraditionalWorkQueue
 ds-cfg-max-work-queue-capacity: 1000
+ds-cfg-num-worker-threads: 5
 cn: Work Queue
 
 dn: cn=Workflow Elements,cn=config
