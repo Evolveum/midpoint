@@ -1000,7 +1000,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void test018AmodifyObjectNotFound() throws Exception {
-
+		displayTestTile("test018AmodifyObjectNotFound");
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Delete account");
 
@@ -1045,6 +1045,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	@Test
 	public void test018BmodifyObjectNotFoundAssignedAccount() throws Exception {
+		displayTestTile("test018BmodifyObjectNotFoundAssignedAccount");
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Re-create account, apply changes.");
 

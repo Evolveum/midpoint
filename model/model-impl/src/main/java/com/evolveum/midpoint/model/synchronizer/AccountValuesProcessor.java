@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.synchronizer;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.model.AccountSyncContext;
+import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -83,6 +84,13 @@ public class AccountValuesProcessor {
 		
 		
 		for (AccountSyncContext accountContext: context.getAccountContexts()) {
+			
+			PolicyDecision policyDecision = accountContext.getPolicyDecision();
+			if (policyDecision != null && 
+					(policyDecision == PolicyDecision.UNLINK || policyDecision == PolicyDecision.DELETE)) {
+				// We will not update accounts that are being dumped
+				continue;
+			}
 			
 			int maxIterations = determineMaxIterations(accountContext);
 			int iteration = 0;

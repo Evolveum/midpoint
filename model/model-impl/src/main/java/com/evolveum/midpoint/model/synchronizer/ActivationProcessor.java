@@ -87,9 +87,10 @@ public class ActivationProcessor {
 
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
             ResourceAccountType rat = accCtx.getResourceAccountType();
-
-            if (accCtx.getPolicyDecision() != null && accCtx.getPolicyDecision() == PolicyDecision.DELETE) {
-                LOGGER.trace("Activation processing skipped for " + rat + ", account is being deleted");
+            
+            PolicyDecision policyDecision = accCtx.getPolicyDecision();
+            if (policyDecision != null && (policyDecision == PolicyDecision.DELETE || policyDecision == PolicyDecision.UNLINK)) {
+                LOGGER.trace("Activation processing skipped for " + rat + ", account is being deleted or unlinked");
                 continue;
             }
 

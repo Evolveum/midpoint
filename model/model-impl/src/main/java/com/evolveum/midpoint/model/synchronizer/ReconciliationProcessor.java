@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AccountSyncContext;
+import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -94,6 +95,12 @@ public class ReconciliationProcessor {
             for (AccountSyncContext accContext : context.getAccountContexts()) {
                 if (!accContext.isDoReconciliation()) {
                     continue;
+                }
+                
+                PolicyDecision policyDecision = accContext.getPolicyDecision();
+                if (policyDecision != null && 
+                		(policyDecision == PolicyDecision.DELETE || policyDecision == PolicyDecision.UNLINK)) {
+                	continue;
                 }
 
                 if (accContext.getAccountOld() == null) {
