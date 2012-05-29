@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.option.OptionContent;
@@ -43,7 +44,9 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersAction;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -64,6 +67,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.ResourceReference;
+import org.apache.wicket.request.resource.SharedResourceReference;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -138,11 +143,31 @@ public class PageUsers extends PageAdminUsers {
         };
     }
 
-    private List<IColumn<UserType>> initColumns() {
-        List<IColumn<UserType>> columns = new ArrayList<IColumn<UserType>>();
+    private List<IColumn<SelectableBean<UserType>>> initColumns() {
+        List<IColumn<SelectableBean<UserType>>> columns = new ArrayList<IColumn<SelectableBean<UserType>>>();
 
         IColumn column = new CheckBoxHeaderColumn<UserType>();
         columns.add(column);
+
+        columns.add(new IconColumn<SelectableBean<UserType>>(createStringResource("pageUsers.type")) {
+
+            @Override
+            protected IModel<ResourceReference> createIconModel(final IModel<SelectableBean<UserType>> rowModel) {
+                return new AbstractReadOnlyModel<ResourceReference>() {
+
+                    @Override
+                    public ResourceReference getObject() {
+                        UserType user = rowModel.getObject().getValue();
+                        CredentialsType credentials = user.getCredentials();
+                        if (credentials == null || !credentials.isAllowedIdmAdminGuiAccess()) {
+                            return new SharedResourceReference(ImgResources.class, "user.png");
+                        }
+
+                        return new SharedResourceReference(ImgResources.class, "user_red.png");
+                    }
+                };
+            }
+        });
 
         column = new LinkColumn<SelectableBean<UserType>>(createStringResource("pageUsers.name"), "name", "value.name") {
 
@@ -179,8 +204,9 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void initTable(OptionContent content) {
-        List<IColumn<UserType>> columns = initColumns();
-        TablePanel table = new TablePanel<UserType>("table", new ObjectDataProvider(PageUsers.this, UserType.class), columns);
+        List<IColumn<SelectableBean<UserType>>> columns = initColumns();
+        TablePanel table = new TablePanel<SelectableBean<UserType>>("table",
+                new ObjectDataProvider(PageUsers.this, UserType.class), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
     }
