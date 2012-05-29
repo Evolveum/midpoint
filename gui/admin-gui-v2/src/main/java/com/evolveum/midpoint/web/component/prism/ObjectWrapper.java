@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -282,7 +283,12 @@ public class ObjectWrapper implements Serializable {
                     val.setType(SourceType.USER_ACTION);
                     switch (valueWrapper.getStatus()) {
                         case ADDED:
-                            pDelta.addValueToAdd(val);
+                            if (SchemaConstants.PATH_PASSWORD.equals(path)) {
+                                //password change will always look like add, therefore we push replace
+                                pDelta.setValuesToReplace(Arrays.asList(val));
+                            } else {
+                                pDelta.addValueToAdd(val);
+                            }
                             break;
                         case DELETED:
                             pDelta.addValueToDelete(val);
