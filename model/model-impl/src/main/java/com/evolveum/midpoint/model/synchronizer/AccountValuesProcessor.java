@@ -193,6 +193,7 @@ public class AccountValuesProcessor {
 		if (foundObjects.size() > 1) {
 			return false;
 		}
+		LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), oid);
 		return foundObjects.get(0).getOid().equals(oid);
 	}
 	

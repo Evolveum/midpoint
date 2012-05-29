@@ -98,7 +98,7 @@ public class TestRefinedSchema {
         System.out.println(rSchema.dump());
 
         assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
-        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition("user");
+        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition(MidPointConstants.DEFAULT_ACCOUNT_NAME);
 
         assertAttributeDefs(rAccount, resourceType);
         System.out.println("Refined account definitionn:");
@@ -155,7 +155,7 @@ public class TestRefinedSchema {
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.C_NAME, "jack");
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, 
         		new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
-        PrismAsserts.assertPropertyValue(accObject, new QName(SchemaConstants.NS_C, "accountType"), "user");
+        PrismAsserts.assertPropertyValue(accObject, new QName(SchemaConstants.NS_C, "accountType"), MidPointConstants.DEFAULT_ACCOUNT_NAME);
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
         assertEquals("Wrong type of <attributes> definition in account", RefinedAccountDefinition.class, attributes.getDefinition().getClass());
@@ -186,7 +186,7 @@ public class TestRefinedSchema {
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
         assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
-        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition("user");
+        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition(MidPointConstants.DEFAULT_ACCOUNT_NAME);
         
         // WHEN
         PrismObject<AccountShadowType> blankShadow = rAccount.createBlankShadow();
@@ -213,7 +213,7 @@ public class TestRefinedSchema {
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
         assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
-        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition("user");
+        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition(MidPointConstants.DEFAULT_ACCOUNT_NAME);
 
         // WHEN
         Collection<ResourceObjectPattern> protectedAccounts = rAccount.getProtectedAccounts();
@@ -229,7 +229,7 @@ public class TestRefinedSchema {
 
     private void assertAttributeDefs(RefinedAccountDefinition rAccount, ResourceType resourceType) {
         assertNotNull("Null account definition", rAccount);
-        assertEquals("user", rAccount.getAccountTypeName());
+        assertEquals(MidPointConstants.DEFAULT_ACCOUNT_NAME, rAccount.getAccountTypeName());
         assertEquals("AccountObjectClass", rAccount.getObjectClassDefinition().getTypeName().getLocalPart());
         assertTrue(rAccount.isDefault());
 

@@ -152,8 +152,14 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 *             if resource object has multiple secondary identifiers
 	 */
 	public PrismProperty getSecondaryIdentifier() {
-		throw new IllegalStateException("not implemented yet.");
-		// TODO assert single value
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers();
+		if (secondaryIdentifiers.size() > 1){
+			throw new IllegalStateException("Resource object has more than one identifier.");
+		}
+		for (PrismProperty<?> p : secondaryIdentifiers){
+			return p;
+		}
+		return null;
 	}
 
 	/**

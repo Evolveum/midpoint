@@ -45,5 +45,7 @@ public class MidPointConstants {
 	
 	public static final String NS_RI = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/instance-2";
 	public static final String PREFIX_NS_RI = "ri";
+	
+	public static final String DEFAULT_ACCOUNT_NAME = "user";
 
 }

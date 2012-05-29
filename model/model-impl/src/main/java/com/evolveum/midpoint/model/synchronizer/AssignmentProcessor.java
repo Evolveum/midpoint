@@ -163,6 +163,11 @@ public class AssignmentProcessor {
                 // There was some change
 
                 if (assignmentDelta.isValueToAdd(propertyValue)) {
+                	if (containsRealValue(assignmentsOld, propertyValue)) {
+                		// Phantom add: adding assignment that is already there
+                        collectToAccountMap(zeroAccountMap, evaluatedAssignment, result);
+                        evaluatedAssignmentsZero.add(evaluatedAssignment);
+                	}
                     collectToAccountMap(plusAccountMap, evaluatedAssignment, result);
                     evaluatedAssignmentsPlus.add(evaluatedAssignment);
                 }

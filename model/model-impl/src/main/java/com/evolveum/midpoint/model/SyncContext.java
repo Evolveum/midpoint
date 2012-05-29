@@ -578,6 +578,7 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         if (accountContextMap.isEmpty()) {
             sb.append(" none");
         } else {
+        	sb.append(" (").append(accountContextMap.size()).append(")");
             for (Entry<ResourceAccountType, AccountSyncContext> entry : accountContextMap.entrySet()) {
                 sb.append("\n");
                 indent(sb, indent + 2);

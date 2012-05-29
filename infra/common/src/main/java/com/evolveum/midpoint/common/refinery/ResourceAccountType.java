@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 /**
  * @author semancik
  *
@@ -30,7 +32,7 @@ public class ResourceAccountType {
 	
 	public ResourceAccountType(String resourceOid, String accountType) {
 		this.resourceOid = resourceOid;
-		this.accountType = accountType;
+		setAccountType(accountType);
 	}
 	
 	public String getResourceOid() {
@@ -43,7 +45,11 @@ public class ResourceAccountType {
 		return accountType;
 	}
 	public void setAccountType(String accountType) {
-		this.accountType = accountType;
+		if (accountType == null) {
+			this.accountType = MidPointConstants.DEFAULT_ACCOUNT_NAME;
+		} else {
+			this.accountType = accountType;
+		}
 	}
 
 	@Override
@@ -80,6 +86,44 @@ public class ResourceAccountType {
 		} else if (!resourceOid.equals(other.resourceOid))
 			return false;
 		return true;
+	}
+	
+	public boolean equivalent(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ResourceAccountType other = (ResourceAccountType) obj;
+		if (accountType == null) {
+			if (other.accountType != null)
+				return false;
+		} else if (!equalsAccountType(this.accountType, other.accountType))
+			return false;
+		if (resourceOid == null) {
+			if (other.resourceOid != null)
+				return false;
+		} else if (!resourceOid.equals(other.resourceOid))
+			return false;
+		return true;
+	}
+	
+	public static boolean equalsAccountType(String a, String b) {
+		if (isDefaultAccountType(a) && isDefaultAccountType(b)) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		return a.equals(b);
+	}
+
+	public static boolean isDefaultAccountType(String accountType) {
+		if (accountType == null) {
+			return true;
+		}
+		return (MidPointConstants.DEFAULT_ACCOUNT_NAME.equals(accountType));
 	}
 	
 }

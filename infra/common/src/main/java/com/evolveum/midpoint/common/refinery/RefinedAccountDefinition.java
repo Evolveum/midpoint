@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -49,8 +50,6 @@ import java.util.*;
  * @author semancik
  */
 public class RefinedAccountDefinition extends ResourceAttributeContainerDefinition implements Dumpable, DebugDumpable {
-
-    private static final String DEFAULT_ACCOUNT_NAME = "user";
 
     private String accountType;
     private String displayName;
@@ -453,7 +452,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
             rAccountDef.setAccountTypeName(accountTypeName);
         } else {
             if (objectClassDef.isDefaultAccountType()) {
-                rAccountDef.setAccountTypeName(DEFAULT_ACCOUNT_NAME);
+                rAccountDef.setAccountTypeName(MidPointConstants.DEFAULT_ACCOUNT_NAME);
             } else {
                 throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
             }
