@@ -138,8 +138,14 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
 
     boolean hasChanged() {
         for (ValueWrapper value : getValues()) {
-            if (value.hasValueChanged()) {
-                return true;
+            switch (value.getStatus()) {
+                case DELETED:
+                    return true;
+                case ADDED:
+                case NOT_CHANGED:
+                    if (value.hasValueChanged()) {
+                        return true;
+                    }
             }
         }
 

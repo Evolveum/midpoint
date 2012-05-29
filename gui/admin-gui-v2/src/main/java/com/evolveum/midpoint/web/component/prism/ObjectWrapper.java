@@ -275,7 +275,9 @@ public class ObjectWrapper implements Serializable {
                 PropertyPath path = containerWrapper.getPath() != null ? containerWrapper.getPath() : new PropertyPath();
                 PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef);
                 for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
-                    if (!valueWrapper.hasValueChanged() && ValueStatus.NOT_CHANGED.equals(valueWrapper.getStatus())) {
+                    ValueStatus valueStatus = valueWrapper.getStatus();
+                    if (!valueWrapper.hasValueChanged()
+                            && (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
                         continue;
                     }
 
