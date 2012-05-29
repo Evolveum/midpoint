@@ -43,6 +43,9 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
 
     @Override
     protected void populateItem(ListItem<FeedbackMessage> item) {
+        FeedbackMessage message = item.getModelObject();
+        message.markRendered();
+
         Panel panel = new FeedbackMessagePanel("message", item.getModel());
         panel.add(new AttributeAppender("class", createModel(item.getModel()), " "));
 

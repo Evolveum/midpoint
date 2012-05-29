@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import org.apache.commons.lang.Validate;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -46,6 +47,9 @@ public class OpResult implements Serializable {
     private List<OpResult> subresults;
 
     public OpResult(OperationResult result) {
+        Validate.notNull(result, "Operation result must not be null.");
+        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
+
         this.message = result.getMessage();
         this.operation = result.getOperation();
         this.status = result.getStatus();

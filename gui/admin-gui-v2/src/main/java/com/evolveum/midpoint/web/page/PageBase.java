@@ -49,7 +49,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
@@ -98,14 +97,11 @@ public abstract class PageBase extends WebPage {
         add(new LeftMenu("leftMenu", getLeftMenuItems()));
 
         LoginPanel loginPanel = new LoginPanel("loginPanel");
-
-        /*if(loginPanel.getIsAdminLoggedIn()){
-            add(loginPanel);
-        }*/
         add(loginPanel);
 
         add(new Label("pageTitle", createPageTitleModel()));
-        add(new MainFeedback("feedback"));
+        MainFeedback feedback = new MainFeedback("feedback");
+        add(feedback);
     }
 
     public MainFeedback getFeedbackPanel() {
@@ -178,35 +174,12 @@ public abstract class PageBase extends WebPage {
         return task;
     }
 
-    public void showResult(OpResult opResult) {
-        Validate.notNull(opResult, "Operation result must not be null.");
-        Validate.notNull(opResult.getStatus(), "Operation result status must not be null.");
-
-        switch (opResult.getStatus()) {
-            case FATAL_ERROR:
-            case PARTIAL_ERROR:
-                error(opResult);
-                break;
-            case IN_PROGRESS:
-            case NOT_APPLICABLE:
-                info(opResult);
-                break;
-            case SUCCESS:
-                success(opResult);
-                break;
-            case UNKNOWN:
-            case WARNING:
-            default:
-                warn(opResult);
-        }
-    }
-
     public void showResult(OperationResult result) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
         OpResult opResult = new OpResult(result);
-        showResult(opResult);
+        showResult(opResult, false);
     }
 
     public void showResultInSession(OperationResult result) {
@@ -214,29 +187,45 @@ public abstract class PageBase extends WebPage {
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
         OpResult opResult = new OpResult(result);
-        showResultInSession(opResult);
+        showResult(opResult, true);
     }
 
-    public void showResultInSession(OpResult opResult) {
+    private void showResult(OpResult opResult, boolean showInSession) {
         Validate.notNull(opResult, "Operation result must not be null.");
         Validate.notNull(opResult.getStatus(), "Operation result status must not be null.");
 
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
             case PARTIAL_ERROR:
-                getSession().error(opResult);
+                if (showInSession) {
+                    getSession().error(opResult);
+                } else {
+                    error(opResult);
+                }
                 break;
             case IN_PROGRESS:
             case NOT_APPLICABLE:
-                getSession().info(opResult);
+                if (showInSession) {
+                    getSession().info(opResult);
+                } else {
+                    info(opResult);
+                }
                 break;
             case SUCCESS:
-                getSession().success(opResult);
+                if (showInSession) {
+                    getSession().success(opResult);
+                } else {
+                    success(opResult);
+                }
                 break;
             case UNKNOWN:
             case WARNING:
             default:
-                getSession().warn(opResult);
+                if (showInSession) {
+                    getSession().warn(opResult);
+                } else {
+                    warn(opResult);
+                }
         }
     }
 }

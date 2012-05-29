@@ -22,14 +22,14 @@
 package com.evolveum.midpoint.web.component.message;
 
 import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.feedback.IFeedback;
+import org.apache.wicket.feedback.IFeedbackMessageFilter;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.request.resource.PackageResourceReference;
-
-import com.evolveum.midpoint.web.component.accordion.Accordion;
 
 import java.util.List;
 
@@ -63,11 +63,12 @@ public class MainFeedback extends Panel implements IFeedback {
         return hasMessages(FeedbackMessage.UNDEFINED);
     }
 
+    private FeedbackListView getFeedbackListView() {
+        return (FeedbackListView) get("ul:li");
+    }
 
     public final boolean hasMessages(int level) {
-        FeedbackListView view = (FeedbackListView) get("ul:li");
-
-        List<FeedbackMessage> messages = view.getModelObject();
+        List<FeedbackMessage> messages = getFeedbackListView().getModelObject();
         for (FeedbackMessage msg : messages) {
             if (msg.isLevel(level)) {
                 return true;
@@ -84,5 +85,10 @@ public class MainFeedback extends Panel implements IFeedback {
         response.renderCSSReference(new CssResourceReference(MainFeedback.class, "MainFeedback.css"));
         response.renderJavaScriptReference(new PackageResourceReference(MainFeedback.class, "MainFeedback.js"));
         response.renderOnLoadJavaScript("initMessages()");
+    }
+
+    public final void setFilter(IFeedbackMessageFilter filter) {
+        FeedbackMessagesModel model = (FeedbackMessagesModel) getFeedbackListView().getDefaultModel();
+        model.setFilter(filter);
     }
 }
