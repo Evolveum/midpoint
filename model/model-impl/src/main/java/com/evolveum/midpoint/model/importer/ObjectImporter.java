@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -291,7 +292,7 @@ public class ObjectImporter {
 
         	PrismObject<ResourceType> resource = (PrismObject<ResourceType>)object;
             ResourceType resourceType = resource.asObjectable();
-            PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+            PrismContainer<Containerable> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resource);
             if (configurationContainer == null || configurationContainer.isEmpty()) {
                 // Nothing to check
                 objectResult.recordWarning("The resource has no configuration");
@@ -420,49 +421,10 @@ public class ObjectImporter {
         PrismContainerDefinition containerDefinition = schema.findItemDefinition(elementRef, PrismContainerDefinition.class);
 
         PrismContainer propertyContainer = null;
-//        try {
-//            propertyContainer = containerDefinition.parseAsContent(elementRef, contentElements, null);
-//        } catch (SchemaException e) {
-//            result.recordFatalError("Error during " + schemaName + " schema validation: " + e.getMessage(), e);
-//            LOGGER.trace("Validation error: {}" + e.getMessage());
-//            return null;
-//        }
 
         result.recordSuccess();
         return propertyContainer;
 
-//		// Shallow clone the tree under a correct element name 
-//		Document doc = element.getOwnerDocument();
-//		Element clonedElement = doc.createElementNS(elementRef.getNamespaceURI(), elementRef.getLocalPart());
-//		NamedNodeMap attributes = element.getAttributes();
-//		for (int i = 0; i < attributes.getLength(); i++) {
-//			clonedElement.setAttributeNodeNS((Attr) ((Attr) attributes.item(i)).cloneNode(true));
-//		}
-//		NodeList childNodes = element.getChildNodes();
-//		for (int i = 0; i < childNodes.getLength(); i++) {
-//			clonedElement.appendChild(childNodes.item(i).cloneNode(true));
-//		}
-
-//		try {
-//			SchemaRegistry reg = new SchemaRegistry();
-//			reg.registerSchema(xsdElement);
-//			reg.initialize();
-//			Schema midPointSchema = reg.getMidPointSchema();		
-//			javax.xml.validation.Validator xsdValidator = midPointSchema.newValidator();
-//			if (logger.isTraceEnabled()) {
-//				logger.trace("Validating following content with dynamic {} schema:\n{}",schemaName,DOMUtil.serializeDOMToString(clonedElement));
-//			}
-//			xsdValidator.validate(new DOMSource(clonedElement));
-//		} catch (SAXException e) {
-//			result.recordFatalError("Error during " + schemaName + " schema validation: " + e.getMessage(), e);
-//			logger.trace("Validation error: {}"+e.getMessage());
-//			return;
-//		} catch (IOException e) {
-//			result.recordFatalError("OI error during " + schemaName + " schema validation: " + e.getMessage(), e);
-//			logger.error("IO error during {} schema validation: {}",schemaName,e.getMessage());
-//			return;
-//		}
-//		result.recordSuccess();
     }
 
     protected <T extends ObjectType> void resolveReferences(PrismObject<T> object, final RepositoryService repository,

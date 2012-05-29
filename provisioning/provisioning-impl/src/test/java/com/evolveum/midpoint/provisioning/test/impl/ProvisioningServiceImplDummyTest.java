@@ -330,9 +330,15 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		PrismContainer confingurationPropertiesContainer = 
 			configurationContainer.findContainer(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("No configuration properties container", confingurationPropertiesContainer);
-		PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();
-		assertNotNull("No configuration properties container definition", confPropDef);
-		
+		PrismContainerDefinition confPropsDef = confingurationPropertiesContainer.getDefinition();
+		assertNotNull("No configuration properties container definition", confPropsDef);
+		List<PrismProperty<?>> configurationProperties = confingurationPropertiesContainer.getValue().getItems();
+		assertFalse("No configuration properties", configurationProperties.isEmpty());
+		for (PrismProperty<?> confProp: configurationProperties) {
+			PrismPropertyDefinition confPropDef = confProp.getDefinition();
+			assertNotNull("No definition for configuration property "+confProp, confPropDef);
+			assertFalse("Configuration property "+confProp+" is raw", confProp.isRaw());
+		}
 	}
 
 	@Test

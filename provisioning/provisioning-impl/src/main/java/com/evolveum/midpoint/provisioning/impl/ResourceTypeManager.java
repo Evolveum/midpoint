@@ -15,6 +15,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -118,6 +119,8 @@ public class ResourceTypeManager {
 	public ResourceType completeResource(ResourceType resource, ResourceSchema resourceSchema,
 			OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ConfigurationException {
+		
+		applyConnectorSchemaToResource(resource, result);
 
 		// Check presence of a schema
 		XmlSchemaType xmlSchemaType = resource.getSchema();
@@ -234,6 +237,22 @@ public class ResourceTypeManager {
 		}
 
 		return newResource;
+	}
+
+	/**
+	 * Apply proper definition (connector schema) to the resource.
+	 */
+	private void applyConnectorSchemaToResource(ResourceType resource, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource, result);	  
+		PrismContainerDefinition<?> configurationContainerDefintion = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, prismContext);
+		if (configurationContainerDefintion == null) {
+			throw new SchemaException("No configuration container definition in "+connectorType);
+		}
+		PrismContainer<Containerable> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resource);
+		if (configurationContainer == null) {
+			throw new SchemaException("No configuration container in "+resource);
+		}
+		configurationContainer.applyDefinition(configurationContainerDefintion, true);
 	}
 
 	public void testConnection(ResourceType resourceType, OperationResult parentResult) {

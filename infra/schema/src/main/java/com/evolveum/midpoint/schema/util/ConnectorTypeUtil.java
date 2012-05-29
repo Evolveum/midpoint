@@ -26,8 +26,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -81,6 +84,24 @@ public class ConnectorTypeUtil {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
 		
+	}
+
+	/**
+	 * Returns parsed connector schema
+	 */
+	public static PrismSchema getConnectorSchema(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
+		Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connectorType);
+		return PrismSchema.parse(connectorSchemaElement, "schema for " + connectorType, prismContext);
+	}
+	
+	public static PrismContainerDefinition<?> findConfigurationContainerDefintion(ConnectorType connectorType, PrismSchema connectorSchema) {
+		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONFIGURATION.getLocalPart());
+		return connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+	}
+	
+	public static PrismContainerDefinition<?> findConfigurationContainerDefintion(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
+		PrismSchema connectorSchema = getConnectorSchema(connectorType, prismContext);
+		return findConfigurationContainerDefintion(connectorType, connectorSchema);
 	}
 	
 }

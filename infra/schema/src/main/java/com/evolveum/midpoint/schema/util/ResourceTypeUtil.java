@@ -28,6 +28,7 @@ import javax.xml.bind.JAXBElement;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -243,6 +244,14 @@ public class ResourceTypeUtil {
 			return objectSynchronizations.get(0);
 		}
 		throw new UnsupportedOperationException("Selecting from multiple synchronization settings is not yet supported");
+	}
+
+	public static PrismContainer<Containerable> getConfigurationContainer(ResourceType resourceType) {
+		return getConfigurationContainer(resourceType.asPrismObject());
+	}
+	
+	public static PrismContainer<Containerable> getConfigurationContainer(PrismObject<ResourceType> resource) {
+		return resource.findContainer(ResourceType.F_CONFIGURATION);
 	}
 
 }
