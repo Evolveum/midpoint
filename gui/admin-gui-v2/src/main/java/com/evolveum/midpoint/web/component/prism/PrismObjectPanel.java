@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -62,6 +63,13 @@ public class PrismObjectPanel extends Panel {
 
     private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
+        headerPanel.add(new AjaxEventBehavior("onClick") {
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                headerOnClickPerformed(target, model);
+            }
+        });
         add(headerPanel);
         headerPanel.add(new VisibleEnableBehaviour() {
 
@@ -162,5 +170,11 @@ public class PrismObjectPanel extends Panel {
 
     public void setShowHeader(boolean showHeader) {
         this.showHeader = showHeader;
+    }
+
+    public void headerOnClickPerformed(AjaxRequestTarget target, IModel<ObjectWrapper> model) {
+        ObjectWrapper wrapper = model.getObject();
+        wrapper.setMinimalized(!wrapper.isMinimalized());
+        target.add(PrismObjectPanel.this);
     }
 }
