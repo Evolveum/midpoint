@@ -180,7 +180,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		
 		factory = connectorFactoryIcfImpl;
 
-		cc = factory.createConnectorInstance(connectorType, resourceType.getNamespace());
+		cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
 		AssertJUnit.assertNotNull("Cannot create connector instance", cc);
 		
 		connectorSchema = cc.generateConnectorSchema();
@@ -216,7 +216,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	public void testResourceSchemaSanity() throws Exception {
 		displayTestTile("testResourceSchemaSanity");
 		
-		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
+		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
 		assertTrue("Object class " + objectClassQname + " is not account", accountDefinition.isAccountType());
@@ -242,7 +242,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 			ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
-		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
+		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition "+objectClassQname, accountDefinition);
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ResourceObjectShadowType.F_ATTRIBUTES);
@@ -254,18 +254,18 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		resourceObject.add(attribute);
 
 		attributeDefinition = accountDefinition
-				.findAttributeDefinition(new QName(resourceType.getNamespace(), "sn"));
+				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"));
 		attribute = attributeDefinition.instantiate();
 		attribute.setValue(new PrismPropertyValue(familyName));
 		resourceObject.add(attribute);
 
 		attributeDefinition = accountDefinition
-				.findAttributeDefinition(new QName(resourceType.getNamespace(), "cn"));
+				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"));
 		attribute = attributeDefinition.instantiate();
 		attribute.setValue(new PrismPropertyValue(givenName + " " + familyName));
 		resourceObject.add(attribute);
 
-		attributeDefinition = accountDefinition.findAttributeDefinition(new QName(resourceType.getNamespace(),
+		attributeDefinition = accountDefinition.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
 				"givenName"));
 		attribute = attributeDefinition.instantiate();
 		attribute.setValue(new PrismPropertyValue(givenName));
@@ -342,14 +342,14 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 				identifiers, true, null, result);
 		ResourceAttributeContainer resObj = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 
-		AssertJUnit.assertNull(resObj.findAttribute(new QName(resourceType.getNamespace(), "givenName")));
+		AssertJUnit.assertNull(resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "givenName")));
 
 		String addedEmployeeNumber = resObj
-				.findAttribute(new QName(resourceType.getNamespace(), "employeeNumber")).getValue(String.class)
+				.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "employeeNumber")).getValue(String.class)
 				.getValue();
-		String changedSn = resObj.findAttribute(new QName(resourceType.getNamespace(), "sn"))
+		String changedSn = resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"))
 				.getValues(String.class).iterator().next().getValue();
-		String addedStreet = resObj.findAttribute(new QName(resourceType.getNamespace(), "street"))
+		String addedStreet = resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "street"))
 				.getValues(String.class).iterator().next().getValue();
 
 		System.out.println("changed employee number: " + addedEmployeeNumber);
@@ -411,9 +411,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PrismProperty createProperty(String propertyName, String propertyValue) {
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(
-				new QName(resourceType.getNamespace(), "AccountObjectClass"));
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
 		ResourceAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
-				resourceType.getNamespace(), propertyName));
+				ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		ResourceAttribute property = propertyDef.instantiate();
 		property.setValue(new PrismPropertyValue(propertyValue));
 		return property;
@@ -422,7 +422,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
 		PropertyPath propertyPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, 
-				new QName(resourceType.getNamespace(), propertyName));
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.setValueToReplace(new PrismPropertyValue(propertyValue));
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
@@ -432,7 +432,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
 		PropertyPath propertyPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, 
-				new QName(resourceType.getNamespace(), propertyName));
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.addValueToAdd(new PrismPropertyValue(propertyValue));
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
@@ -442,7 +442,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
 		PropertyPath propertyPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, 
-				new QName(resourceType.getNamespace(), propertyName));
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.addValueToDelete(new PrismPropertyValue(propertyValue));
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
@@ -497,7 +497,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult("testTestConnectionNegative");
 
 		ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
-				badResourceType.getNamespace());
+				ResourceTypeUtil.getResourceNamespace(badResourceType));
 		badConnector.configure(badResourceType.getConfiguration().asPrismContainerValue(), result);
 
 		// WHEN
@@ -546,7 +546,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 				.println("-------------------------------------------------------------------------------------");
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
-				.findObjectClassDefinition(new QName(resourceType.getNamespace(), "AccountObjectClass"));
+				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
 		AssertJUnit.assertNotNull(accountDefinition);
 
 		AssertJUnit.assertFalse("No identifiers for account object class ", accountDefinition
@@ -767,17 +767,17 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) throws SchemaException {
 		// Account type is hardcoded now
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
-				.findObjectClassDefinition(new QName(resourceType.getNamespace(), "AccountObjectClass"));
+				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
 		// Determine identifier from the schema
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ResourceObjectShadowType.F_ATTRIBUTES);
 
-		ResourceAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resourceType
-				.getNamespace(), "sn"));
+		ResourceAttributeDefinition road = accountDefinition.findAttributeDefinition(
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"));
 		ResourceAttribute roa = road.instantiate();
 		roa.setValue(new PrismPropertyValue(sn));
 		resourceObject.add(roa);
 
-		road = accountDefinition.findAttributeDefinition(new QName(resourceType.getNamespace(), "cn"));
+		road = accountDefinition.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"));
 		roa = road.instantiate();
 		roa.setValue(new PrismPropertyValue(cn));
 		resourceObject.add(roa);

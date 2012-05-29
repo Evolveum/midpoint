@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -159,7 +160,8 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertNotNull(resourceType);
 		display("Imported resource",resourceType);
 		assertEquals("Embedded Test Derby", resourceType.getName());
-		assertEquals("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab", resourceType.getNamespace());
+		assertEquals("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab", 
+				ResourceTypeUtil.getResourceNamespace(resourceType));
 		assertEquals(CONNECOTR_LDAP_OID,resourceType.getConnectorRef().getOid());
 		
 		// The password in the resource configuration should be encrypted after import

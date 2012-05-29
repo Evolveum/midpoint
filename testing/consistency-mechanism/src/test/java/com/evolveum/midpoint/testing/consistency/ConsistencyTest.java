@@ -1083,14 +1083,14 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertNotNull(modifiedAccount);
 		ResourceAttributeContainer attributeContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(modifiedAccount);
-		assertAttribute(modifiedAccount.asObjectable(), new QName(resourceTypeOpenDjrepo.getNamespace(),
+		assertAttribute(modifiedAccount.asObjectable(), new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo),
 				"roomNumber"), "cabin");
 		// assertEquals(
 		// attributeContainer.findProperty(
 		// new QName(resourceTypeOpenDjrepo.getNamespace(),
 		// "roomNumber")).getRealValue(
 		// String.class), "cabin");
-		assertNotNull(attributeContainer.findProperty(new QName(resourceTypeOpenDjrepo.getNamespace(),
+		assertNotNull(attributeContainer.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo),
 				"businessCategory")));
 
 	}

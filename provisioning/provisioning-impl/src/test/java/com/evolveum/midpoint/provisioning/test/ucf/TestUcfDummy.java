@@ -80,6 +80,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -203,7 +204,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	public void test002ConnectorSchema() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test002ConnectorSchema");
 		
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
 		assertNotNull("Failed to instantiate connector", cc);
 		PrismSchema connectorSchema = cc.generateConnectorSchema();
 		ProvisioningTestUtil.assertConnectorSchemaSanity(connectorSchema, "generated");
@@ -255,7 +256,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 			GenericFrameworkException, SchemaException, ConfigurationException {
 		displayTestTile("test004CreateConfiguredConnector");
 		
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + ".testCreateConfiguredConnector");
 		PrismContainerValue configContainer = resourceType.getConfiguration().asPrismContainerValue();
@@ -276,7 +277,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
 		
-		cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
+		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
 		assertNotNull("Failed to instantiate connector", cc);
 		
 		PrismContainerValue configContainer = resourceType.getConfiguration().asPrismContainerValue();

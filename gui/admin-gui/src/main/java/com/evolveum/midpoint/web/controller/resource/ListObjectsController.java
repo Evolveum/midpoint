@@ -289,11 +289,11 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	}
 
 	private boolean isPropertyAccetable(QName attributeName, ResourceType resource) {
-		if (attributeName.equals(new QName(resource.getNamespace(), "userPassword"))) {
+		if (attributeName.equals(new QName(ResourceTypeUtil.getResourceNamespace(resource), "userPassword"))) {
 			return false;
-		} else if (attributeName.equals(new QName(resource.getNamespace(), "description"))) {
+		} else if (attributeName.equals(new QName(ResourceTypeUtil.getResourceNamespace(resource), "description"))) {
 			return false;
-		} else if (attributeName.equals(new QName(resource.getNamespace(), "ou"))) {
+		} else if (attributeName.equals(new QName(ResourceTypeUtil.getResourceNamespace(resource), "ou"))) {
 			return false;
 		} else {
 			return true;

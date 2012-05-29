@@ -1039,16 +1039,16 @@ public class TestSanity extends AbstractIntegrationTest {
                 AccountShadowType shadow = (AccountShadowType) objectType;
                 assertNotNull(shadow.getOid());
                 assertNotNull(shadow.getName());
-                assertEquals(new QName(resourceTypeOpenDjrepo.getNamespace(), "AccountObjectClass"), shadow.getObjectClass());
+                assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "AccountObjectClass"), shadow.getObjectClass());
                 assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
                 String icfUid = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "uid"));
                 assertNotNull("No ICF UID", icfUid);
                 String icfName = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "name"));
                 assertNotNull("No ICF NAME", icfName);
                 assertEquals("Wrong shadow name", shadow.getName(), icfName);
-                assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceTypeOpenDjrepo.getNamespace(), "uid")));
-                assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceTypeOpenDjrepo.getNamespace(), "cn")));
-                assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceTypeOpenDjrepo.getNamespace(), "sn")));
+                assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "uid")));
+                assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "cn")));
+                assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "sn")));
                 assertNotNull("Missing activation", shadow.getActivation());
                 assertNotNull("Missing activation/enabled", shadow.getActivation().isEnabled());
                 return true;
@@ -2798,7 +2798,8 @@ public class TestSanity extends AbstractIntegrationTest {
             
             display("Account after import ", account);
             
-            String attributeValueL = ResourceObjectShadowUtil.getMultiStringAttributeValueAsSingle(account, new QName(resourceTypeOpenDjrepo.getNamespace(), "l"));
+            String attributeValueL = ResourceObjectShadowUtil.getMultiStringAttributeValueAsSingle(account, 
+            		new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "l"));
             assertEquals("Unexcpected value of l", "middle of nowhere", attributeValueL);
         }
         

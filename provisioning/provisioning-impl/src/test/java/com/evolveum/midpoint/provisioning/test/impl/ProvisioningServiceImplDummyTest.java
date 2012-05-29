@@ -655,7 +655,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		Document doc = DOMUtil.getDocument();
 		query.setFilter(QueryUtil.createAndFilter(doc,
 				QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, RESOURCE_DUMMY_OID),
-				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(),ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME)),
+				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, 
+						new QName(ResourceTypeUtil.getResourceNamespace(resourceType),ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME)),
 				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "will")));
 		
 		final List<AccountShadowType> foundObjects = new ArrayList<AccountShadowType>();
@@ -788,7 +789,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		        assertNotNull("No ICF NAME", icfName);
 		        assertEquals("Wrong shadow name", shadow.getName(), icfName);
 		        assertNotNull("Missing fullname attribute", ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
-								new QName(resourceType.getNamespace(), "fullname")));
+								new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname")));
 				assertNotNull("no activation",shadow.getActivation());
 				assertNotNull("no activation/enabled",shadow.getActivation().isEnabled());
 				assertTrue("not enabled",shadow.getActivation().isEnabled());
@@ -1089,7 +1090,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
 		assertEquals("Unexpected number of attributes", 3, attributes.size());
-		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
+		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname"));
 		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
 		assertEquals("Wrong value of fullname attribute in current shadow", "Edward Teach", fullnameAttribute.getRealValue());
 		
@@ -1134,7 +1136,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
 		assertEquals("Unexpected number of attributes", 3, attributes.size());
-		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
+		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname"));
 		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
 		assertEquals("Wrong value of fullname attribute in current shadow", "Captain Blackbeard", fullnameAttribute.getRealValue());
 		
@@ -1182,7 +1185,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
 		assertEquals("Unexpected number of attributes", 3, attributes.size());
-		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(resourceType.getNamespace(), "fullname"));
+		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname"));
 		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
 		assertEquals("Wrong value of fullname attribute in current shadow", "Sir Francis Drake", fullnameAttribute.getRealValue());
 		

@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -873,7 +874,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     // TODO: maybe we should move them to a common utility class
 
     private void assertAttribute(AccountShadowType repoShadow, ResourceType resource, String name, String value) {
-        assertAttribute(repoShadow, new QName(resource.getNamespace(), name), value);
+        assertAttribute(repoShadow, new QName(ResourceTypeUtil.getResourceNamespace(resource), name), value);
     }
 
     private void assertAttribute(AccountShadowType repoShadow, QName name, String value) {

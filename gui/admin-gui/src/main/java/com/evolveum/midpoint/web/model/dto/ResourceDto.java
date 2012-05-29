@@ -82,7 +82,7 @@ public class ResourceDto extends ObjectDto<ResourceType> {
 	}
 
 	public String getNamespace() {
-		return ((ResourceType) getXmlObject()).getNamespace();
+		return ResourceTypeUtil.getResourceNamespace(((ResourceType) getXmlObject()));
 	}
 
 	public static class AccountTypeDto {

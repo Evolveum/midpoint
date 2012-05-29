@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -252,6 +253,17 @@ public class ResourceTypeUtil {
 	
 	public static PrismContainer<Containerable> getConfigurationContainer(PrismObject<ResourceType> resource) {
 		return resource.findContainer(ResourceType.F_CONFIGURATION);
+	}
+	
+	public static String getResourceNamespace(PrismObject<ResourceType> resource) {
+		return getResourceNamespace(resource.asObjectable());
+	}
+	
+	public static String getResourceNamespace(ResourceType resourceType) {
+		if (resourceType.getNamespace() != null) {
+			return resourceType.getNamespace();
+		}
+		return MidPointConstants.NS_RI;
 	}
 
 }

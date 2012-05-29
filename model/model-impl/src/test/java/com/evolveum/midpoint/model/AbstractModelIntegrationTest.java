@@ -85,6 +85,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -379,7 +380,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected <T> ObjectDelta<AccountShadowType> createAccountDelta(AccountSyncContext accCtx, String accountOid, 
 			String attributeLocalName, T... propertyValues) throws SchemaException {
 		ResourceType resourceType = accCtx.getResource();
-		QName attrQName = new QName(resourceType.getNamespace(), attributeLocalName);
+		QName attrQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeLocalName);
 		PropertyPath attrPath = new PropertyPath(AccountShadowType.F_ATTRIBUTES, attrQName);
 		RefinedAccountDefinition refinedAccountDefinition = accCtx.getRefinedAccountDefinition();
 		RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
@@ -525,7 +526,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
 		AccountShadowType accountShadowType = accountShadow.asObjectable();
 		assertEquals("Account shadow OID mismatch (jaxb)", oid, accountShadowType.getOid());
-		assertEquals("Account shadow objectclass", new QName(resourceDummyType.getNamespace(), "AccountObjectClass"), accountShadowType.getObjectClass());
+		assertEquals("Account shadow objectclass", new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"), accountShadowType.getObjectClass());
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());

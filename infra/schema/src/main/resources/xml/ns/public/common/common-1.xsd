@@ -2123,7 +2123,7 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="namespace" type="xsd:anyURI">
+                    <xsd:element name="namespace" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Resource private namespace. This is the namespace            
@@ -3475,7 +3475,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="namespace" type="xsd:anyURI">
+                    <xsd:element name="namespace" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Connector-private namespace. This is the namespace

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -259,7 +260,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     
     @Override
 	public String getNamespace() {
-		return resourceType.getNamespace();
+    	return ResourceTypeUtil.getResourceNamespace(resourceType);
 	}
 
 	public boolean isDefault() {

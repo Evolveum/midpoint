@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -152,7 +153,8 @@ public class TestRefinedSchema {
         System.out.println(accObject.dump());
 
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.C_NAME, "jack");
-        PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), "AccountObjectClass"));
+        PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, 
+        		new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
         PrismAsserts.assertPropertyValue(accObject, new QName(SchemaConstants.NS_C, "accountType"), "user");
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
@@ -161,10 +163,10 @@ public class TestRefinedSchema {
         assertAttributeDefs(attrDef, resourceType);
 
         PrismAsserts.assertPropertyValue(attributes, ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
-        PrismAsserts.assertPropertyValue(attributes, new QName(resourceType.getNamespace(), "cn"), "Jack Sparrow");
-        PrismAsserts.assertPropertyValue(attributes, new QName(resourceType.getNamespace(), "givenName"), "Jack");
-        PrismAsserts.assertPropertyValue(attributes, new QName(resourceType.getNamespace(), "sn"), "Sparrow");
-        PrismAsserts.assertPropertyValue(attributes, new QName(resourceType.getNamespace(), "uid"), "jack");
+        PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"), "Jack Sparrow");
+        PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "givenName"), "Jack");
+        PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"), "Sparrow");
+        PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "uid"), "jack");
 
         assertEquals("JAXB class name doesn't match (1)", AccountShadowType.class, accObject.getCompileTimeClass());
 
@@ -236,8 +238,8 @@ public class TestRefinedSchema {
 
         assertAttributeDef(attrs, ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", true);
         assertAttributeDef(attrs, ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", false);
-        assertAttributeDef(attrs, new QName(resourceType.getNamespace(), "cn"), DOMUtil.XSD_STRING, 1, -1, "Common Name", true);
-        assertAttributeDef(attrs, new QName(resourceType.getNamespace(), "employeeNumber"), DOMUtil.XSD_STRING, 0, 1, null, false);
+        assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"), DOMUtil.XSD_STRING, 1, -1, "Common Name", true);
+        assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "employeeNumber"), DOMUtil.XSD_STRING, 0, 1, null, false);
         // TODO: check access
     }
 

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -177,7 +178,7 @@ public class IntegrationTestTools {
 	public static void assertAttribute(ResourceObjectShadowType repoShadow, ResourceType resource, String name,
 			String value) {
 		assertAttribute("Wrong attribute " + name + " in shadow", repoShadow,
-				new QName(resource.getNamespace(), name), value);
+				new QName(ResourceTypeUtil.getResourceNamespace(resource), name), value);
 	}
 
 	public static void assertAttribute(ResourceObjectShadowType repoShadow, QName name, String value) {
@@ -407,7 +408,7 @@ public class IntegrationTestTools {
 	}
 
 	public static QueryType createAllShadowsQuery(ResourceType resourceType, String objectClassLocalName) throws SchemaException {
-		return createAllShadowsQuery(resourceType, new QName(resourceType.getNamespace(), objectClassLocalName));
+		return createAllShadowsQuery(resourceType, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), objectClassLocalName));
 	}
 
 	
@@ -416,7 +417,8 @@ public class IntegrationTestTools {
 		LOGGER.trace("Checking shadow:\n{}",shadowType.asPrismObject().dump());
 		assertNotNull("no OID",shadowType.getOid());
 		assertNotNull("no name",shadowType.getName());
-		assertEquals(new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME), shadowType.getObjectClass());
+		assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
+				shadowType.getObjectClass());
         assertEquals(resourceType.getOid(), shadowType.getResourceRef().getOid());
         PrismContainer<?> attrs = shadowType.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
 		assertNotNull("no attributes",attrs);

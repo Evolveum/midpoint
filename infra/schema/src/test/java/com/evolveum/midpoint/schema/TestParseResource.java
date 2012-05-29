@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -256,7 +257,7 @@ public class TestParseResource {
 		assertPropertyValue(resource, "name", "Embedded Test OpenDJ");
 		assertPropertyDefinition(resource, "name", DOMUtil.XSD_STRING, 0, 1);		
 		assertPropertyValue(resource, "namespace", RESOURCE_NAMESPACE);
-		assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 1, 1);
+		assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 0, 1);
 		
 		PrismReference connectorRef = resource.findReference(ResourceType.F_CONNECTOR_REF);
 		assertNotNull("No connectorRef", connectorRef);
@@ -285,7 +286,7 @@ public class TestParseResource {
 	private void assertResourceJaxb(ResourceType resourceType) {
 		assertEquals("Wrong oid (JAXB)", RESOURCE_OID, resourceType.getOid());
 		assertEquals("Wrong name (JAXB)", "Embedded Test OpenDJ", resourceType.getName());
-		assertEquals("Wrong namespace (JAXB)", RESOURCE_NAMESPACE, resourceType.getNamespace());
+		assertEquals("Wrong namespace (JAXB)", RESOURCE_NAMESPACE, ResourceTypeUtil.getResourceNamespace(resourceType));
 		
 		ObjectReferenceType connectorRef = resourceType.getConnectorRef();
 		assertNotNull("No connectorRef (JAXB)", connectorRef);

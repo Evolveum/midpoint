@@ -99,7 +99,7 @@ public class ProvisioningTestUtil {
 	}
 	
 	public static void assertIcfResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
-		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
+		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultAccountDefinition();
 		assertTrue("Mismatched account definition", accountDefinition == accountDef);

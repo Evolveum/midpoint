@@ -121,7 +121,7 @@ public class ConnectorTypeManager {
 		ConnectorInstance connector = null;
 		try {
 
-			connector = connectorFactory.createConnectorInstance(connectorType, resource.getNamespace());
+			connector = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resource));
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);

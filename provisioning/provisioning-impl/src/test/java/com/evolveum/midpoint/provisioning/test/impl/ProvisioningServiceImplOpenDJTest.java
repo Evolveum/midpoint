@@ -252,7 +252,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(
 				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 		assertNull("The userPassword attribute sneaked into schema", accountDefinition.findAttributeDefinition(
-				new QName(resourceTypeRepoAfter.getNamespace(),"userPassword")));
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeRepoAfter),"userPassword")));
 		
 	}
 	
@@ -800,7 +800,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName() + ".test016SearchAccountsIterative");
 
-        final String resourceNamespace = resource.asObjectable().getNamespace();
+        final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
         QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
         QueryType query = QueryUtil.createResourceAndAccountQuery(resource.asObjectable(), objectClass, null);
 

@@ -519,8 +519,8 @@ public class ShadowConverter {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
 		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
-		ObjectClassComplexTypeDefinition rod = schema.findObjectClassDefinition(new QName(resource
-				.getNamespace(), "AccountObjectClass"));
+		ObjectClassComplexTypeDefinition rod = schema.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resource),
+				"AccountObjectClass"));
 
 		ResourceObjectShadowType shadow = null;
 		try {

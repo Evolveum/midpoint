@@ -60,6 +60,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -156,7 +157,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         PrismProperty<Object> accountTypeProperty = accountToAddPrimary.findProperty(AccountShadowType.F_ACCOUNT_TYPE);
         assertNotNull("No account type in account primary add delta", accountTypeProperty);
         assertEquals("user", accountTypeProperty.getRealValue());
-        assertEquals(new QName(resourceDummyType.getNamespace(), "AccountObjectClass"),
+        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 accountToAddPrimary.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = accountToAddPrimary.findReference(AccountShadowType.F_RESOURCE_REF);
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
@@ -211,14 +212,14 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
         PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
         assertEquals("user", newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
-        assertEquals(new QName(resourceDummyType.getNamespace(), "AccountObjectClass"),
+        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
         PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
         assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
-        assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
+        assertEquals("Jack Sparrow", attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname")).getRealValue());
         
 	}
 
@@ -304,7 +305,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
         PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
         assertEquals("user", newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
-        assertEquals(new QName(resourceDummyType.getNamespace(), "AccountObjectClass"),
+        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
@@ -313,7 +314,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertNotNull("No attributes in new account", attributes);
         assertEquals("jack1", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
         assertEquals("Wrong fullName", "Jack Sparrow",
-        		attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
+        		attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname")).getRealValue());
         
 	}
 	

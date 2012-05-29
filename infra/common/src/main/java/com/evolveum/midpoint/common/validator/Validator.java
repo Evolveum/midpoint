@@ -56,6 +56,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -468,7 +469,7 @@ public class Validator {
 
 	void checkResource(ResourceType resource, OperationResult objectResult) {
 		OperationResult subresult = objectResult.createSubresult(OPERATION_RESOURCE_NAMESPACE_CHECK);
-		checkUri(resource, resource.getNamespace(), "namespace", subresult);
+		checkUri(resource, ResourceTypeUtil.getResourceNamespace(resource), "namespace", subresult);
 		subresult.recordSuccessIfUnknown();
 	}
 

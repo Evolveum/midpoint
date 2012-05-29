@@ -66,7 +66,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	private ResourceSchema originalResourceSchema;
 	
 	private RefinedResourceSchema(ResourceType resourceType, ResourceSchema originalResourceSchema, PrismContext prismContext) {
-		super(resourceType.getNamespace(), prismContext);
+		super(ResourceTypeUtil.getResourceNamespace(resourceType), prismContext);
 		this.originalResourceSchema = originalResourceSchema;
 	}
 	
