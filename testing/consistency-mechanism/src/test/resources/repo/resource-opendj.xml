@@ -482,6 +482,7 @@ This is now the only account type that midPoint can work with. -->
         reactions and similar synchronization settings.
     -->
     <c:synchronization>
+    <objectSynchronization>
         <!--
     The synchronization for this resource is enabled.
     It means that the synchronization will poll for changes once
@@ -539,7 +540,7 @@ always return at most one match, the confirmation rule is not needed. -->
                 <c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
             </c:action>
         </c:reaction>
-
+</objectSynchronization>
     </c:synchronization>
 
 </resource>

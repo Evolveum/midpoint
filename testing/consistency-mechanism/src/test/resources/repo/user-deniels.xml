@@ -28,7 +28,7 @@
     <i:fullName>Jack Deniels</i:fullName>
     <i:givenName>Jack</i:givenName>
     <i:familyName>Deniels</i:familyName>
-    <i:additionalNames>JackD</i:additionalNames>
+<!--     <i:additionalNames>JackD</i:additionalNames> -->
     <i:honorificPrefix>Mgr.</i:honorificPrefix>
     
     <i:honorificSuffix>PhD.</i:honorificSuffix>
