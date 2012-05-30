@@ -67,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
@@ -401,7 +402,7 @@ public class PageTaskAdd extends PageAdminTasks {
 			result.recordFatalError("Unable to save task.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't add new task", ex);
 		}
-		showResult(result);
+		showResultInSession(result);
 		target.add(getFeedbackPanel());
 	}
 
@@ -414,14 +415,17 @@ public class PageTaskAdd extends PageAdminTasks {
 		ownerRef.setType(owner.getUser().COMPLEX_TYPE);
 		task.setOwnerRef(ownerRef);
 		
-		ObjectReferenceType objectRef = new ObjectReferenceType();
-		if(dto.getResource() != null){
-			objectRef.setOid(dto.getResource().getOid());
-		}
 		if(dto.getCategory() != null){
 			task.setCategory(dto.getCategory());
 		}
-		task.setObjectRef(objectRef);
+		
+		ObjectReferenceType objectRef = null;
+		if(dto.getResource() != null){
+			objectRef = new ObjectReferenceType();
+			objectRef.setOid(dto.getResource().getOid());
+			task.setObjectRef(objectRef);
+		}
+		
 		task.setName(dto.getName());
 
 		task.setRecurrence(dto.getReccuring() ? TaskRecurrenceType.RECURRING : TaskRecurrenceType.SINGLE);
@@ -433,6 +437,13 @@ public class PageTaskAdd extends PageAdminTasks {
 		schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartBefore()));
 		schedule.setLatestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartAfter()));
 		schedule.setMisfireAction(dto.getMisfireAction());
+		task.setSchedule(schedule);
+		
+		if(dto.getSuspendedState()){
+			task.setExecutionStatus(TaskExecutionStatusType.SUSPENDED);
+		} else {
+			task.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
+		}
 		
 		task.setThreadStopAction(dto.getThreadStop());
 

@@ -516,15 +516,15 @@ public class PageTaskEdit extends PageAdminTasks {
 			}
 			task.savePendingModifications(result);
 			edit = false;
+			setResponsePage(PageTasks.class);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't save task.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't save task modifications", ex);
 		}
-		showResult(result);
+		showResultInSession(result);
 		target.add(getFeedbackPanel());
-		target.add(get("mainForm"));
 	}
 
 	private Task updateTask(TaskDto dto, Task loadedTask) {
