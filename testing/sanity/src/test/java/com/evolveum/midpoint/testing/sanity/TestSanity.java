@@ -88,6 +88,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
+import org.w3._2001._04.xmlenc.EncryptedDataType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -567,16 +568,25 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertEquals("Wrong number of credentials property value in "+resource+" from "+source, 1, credentialsProp.getValues().size());
 		PrismPropertyValue<Object> credentialsPropertyValue = credentialsProp.getValues().iterator().next();
 		assertNotNull("No credentials property value in "+resource+" from "+source, credentialsPropertyValue);
-		Object rawElement = credentialsPropertyValue.getRawElement();
-		assertTrue("Wrong element class "+rawElement.getClass()+" in "+resource+" from "+source, rawElement instanceof Element);
-		Element rawDomElement = (Element)rawElement;
-//		display("LDAP credentials raw element", DOMUtil.serializeDOMToString(rawDomElement));
-		assertEquals("Wrong credentials element namespace in "+resource+" from "+source, connectorNamespace, rawDomElement.getNamespaceURI());
-		assertEquals("Wrong credentials element local name in "+resource+" from "+source, credentialsPropertyName, rawDomElement.getLocalName());
-		Element encryptedDataElement = DOMUtil.getChildElement(rawDomElement, new QName(DOMUtil.NS_XML_ENC, "EncryptedData"));
-		assertNotNull("No EncryptedData element", encryptedDataElement);
-		assertEquals("Wrong EncryptedData element namespace in "+resource+" from "+source, DOMUtil.NS_XML_ENC, encryptedDataElement.getNamespaceURI());
-		assertEquals("Wrong EncryptedData element local name in "+resource+" from "+source, "EncryptedData", encryptedDataElement.getLocalName());
+		if (credentialsPropertyValue.isRaw()) {
+			Object rawElement = credentialsPropertyValue.getRawElement();
+			assertTrue("Wrong element class "+rawElement.getClass()+" in "+resource+" from "+source, rawElement instanceof Element);
+			Element rawDomElement = (Element)rawElement;
+	//		display("LDAP credentials raw element", DOMUtil.serializeDOMToString(rawDomElement));
+			assertEquals("Wrong credentials element namespace in "+resource+" from "+source, connectorNamespace, rawDomElement.getNamespaceURI());
+			assertEquals("Wrong credentials element local name in "+resource+" from "+source, credentialsPropertyName, rawDomElement.getLocalName());
+			Element encryptedDataElement = DOMUtil.getChildElement(rawDomElement, new QName(DOMUtil.NS_XML_ENC, "EncryptedData"));
+			assertNotNull("No EncryptedData element", encryptedDataElement);
+			assertEquals("Wrong EncryptedData element namespace in "+resource+" from "+source, DOMUtil.NS_XML_ENC, encryptedDataElement.getNamespaceURI());
+			assertEquals("Wrong EncryptedData element local name in "+resource+" from "+source, "EncryptedData", encryptedDataElement.getLocalName());
+		} else {			
+			Object credentials = credentialsPropertyValue.getValue();
+			assertTrue("Wrong type of credentials configuration property in "+resource+" from "+source+": "+credentials.getClass(), credentials instanceof ProtectedStringType);
+			ProtectedStringType credentialsPs = (ProtectedStringType)credentials;
+			EncryptedDataType encryptedData = credentialsPs.getEncryptedData();
+			assertNotNull("No EncryptedData element", encryptedData);
+		}
+
 	}
     
     /**
