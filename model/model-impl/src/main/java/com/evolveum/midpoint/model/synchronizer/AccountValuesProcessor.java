@@ -86,9 +86,9 @@ public class AccountValuesProcessor {
 		for (AccountSyncContext accountContext: context.getAccountContexts()) {
 			
 			PolicyDecision policyDecision = accountContext.getPolicyDecision();
-			if (policyDecision != null && 
-					(policyDecision == PolicyDecision.UNLINK || policyDecision == PolicyDecision.DELETE)) {
-				// We will not update accounts that are being dumped
+			if (policyDecision != null && policyDecision == PolicyDecision.UNLINK) {
+				// We will not update accounts that are being unlinked.
+				// we cannot skip deleted accounts here as the delete delta will be skipped as well
 				continue;
 			}
 			

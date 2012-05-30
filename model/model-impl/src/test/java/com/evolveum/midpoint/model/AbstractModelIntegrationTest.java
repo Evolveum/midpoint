@@ -542,7 +542,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	protected void assertNotDummyAccount(String username) {
 		DummyAccount account = dummyResource.getAccountByUsername(username);
-		assertNull("No dummy account for username "+username+" exists while not expecting it", account);
+		assertNull("Dummy account for username "+username+" exists while not expecting it", account);
 	}
 	
 	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
