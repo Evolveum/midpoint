@@ -25,7 +25,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.admin.resources.dto.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -66,10 +68,6 @@ import com.evolveum.midpoint.web.component.message.Param;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
@@ -80,7 +78,7 @@ public class PageResource extends PageAdminResources {
 	public static final String PARAM_RESOURCE_ID = "resourceId";
 	private static final String DOT_CLASS = PageResource.class.getName() + ".";
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
-	
+
 	private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
 
 	private IModel<ResourceDto> model;
@@ -118,7 +116,7 @@ public class PageResource extends PageAdminResources {
 		if (!result.isSuccess()) {
 			showResult(result);
 		}
-		
+
 		if (resource == null) {
             getSession().error(getString("pageResource.message.cantResourceDetails"));
 
@@ -177,47 +175,72 @@ public class PageResource extends PageAdminResources {
 	private void initResourceColumns(Form mainForm) {
 		mainForm.add(new Label("resourceOid", new PropertyModel<Object>(model, "oid")));
 		mainForm.add(new Label("resourceName", new PropertyModel<Object>(model, "name")));
-		mainForm.add(new Label("resourceType", new PropertyModel<Object>(model, "category")));
+		mainForm.add(new Label("resourceType", new PropertyModel<Object>(model, "type")));
 		mainForm.add(new Label("resourceVersion", new PropertyModel<Object>(model, "version")));
 		mainForm.add(new Label("resourceProgress", new PropertyModel<Object>(model, "progress")));
 	}
 
+    private IModel<String> createTestConnectionStateTooltip(final String expression) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                PropertyModel<ResourceStatus> pModel = new PropertyModel<ResourceStatus>(model, expression);
+                ResourceStatus status = pModel.getObject();
+                if (status == null) {
+                    return "";
+                }
+
+                return PageResource.this.getString(ResourceStatus.class.getSimpleName() + "." + status.name());
+            }
+        };
+    }
+
 	private void initConnectorDetails(Form mainForm) {
 		WebMarkupContainer container = new WebMarkupContainer("connectors");
 		container.setOutputMarkupId(true);
-		
-		container.add(new Image("overallStatus", new AbstractReadOnlyModel() {
-			@Override
-			public Object getObject() {
-				return new PackageResourceReference(PageResource.class, model.getObject().getState()
-						.getOverall().getIcon());
-			}
-		}));
 
-		container.add(new Image("confValidation", new AbstractReadOnlyModel() {
-			@Override
-			public Object getObject() {
-				return new PackageResourceReference(PageResource.class, model.getObject().getState()
-						.getConfValidation().getIcon());
-			}
-		}));
+        Image image = new Image("overallStatus", new AbstractReadOnlyModel() {
 
-		container.add(new Image("conInitialization", new AbstractReadOnlyModel() {
-			@Override
-			public Object getObject() {
+            @Override
+            public Object getObject() {
+                return new PackageResourceReference(PageResource.class, model.getObject().getState()
+                        .getOverall().getIcon());
+            }
+        });
+        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.overall")));
+		container.add(image);
 
-				return new PackageResourceReference(PageResource.class, model.getObject().getState()
-						.getConInitialization().getIcon());
-			}
-		}));
+        image = new Image("confValidation", new AbstractReadOnlyModel() {
+            @Override
+            public Object getObject() {
+                return new PackageResourceReference(PageResource.class, model.getObject().getState()
+                        .getConfValidation().getIcon());
+            }
+        });
+        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.confValidation")));
+		container.add(image);
 
-		container.add(new Image("conConnection", new AbstractReadOnlyModel() {
-			@Override
-			public Object getObject() {
-				return new PackageResourceReference(PageResource.class, model.getObject().getState()
-						.getConConnection().getIcon());
-			}
-		}));
+        image = new Image("conInitialization", new AbstractReadOnlyModel() {
+            @Override
+            public Object getObject() {
+
+                return new PackageResourceReference(PageResource.class, model.getObject().getState()
+                        .getConInitialization().getIcon());
+            }
+        });
+        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conInitialization")));
+		container.add(image);
+
+        image = new Image("conConnection", new AbstractReadOnlyModel() {
+            @Override
+            public Object getObject() {
+                return new PackageResourceReference(PageResource.class, model.getObject().getState()
+                        .getConConnection().getIcon());
+            }
+        });
+        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conConnection")));
+		container.add(image);
 
 		/*container.add(new Image("conSanity", new AbstractReadOnlyModel() {
 			@Override
@@ -227,13 +250,15 @@ public class PageResource extends PageAdminResources {
 			}
 		}));*/
 
-		container.add(new Image("conSchema", new AbstractReadOnlyModel() {
-			@Override
-			public Object getObject() {
-				return new PackageResourceReference(PageResource.class, model.getObject().getState()
-						.getConSchema().getIcon());
-			}
-		}));
+        image = new Image("conSchema", new AbstractReadOnlyModel() {
+            @Override
+            public Object getObject() {
+                return new PackageResourceReference(PageResource.class, model.getObject().getState()
+                        .getConSchema().getIcon());
+            }
+        });
+		container.add(image);
+        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conSchema")));
 		mainForm.add(container);
 	}
 
@@ -264,7 +289,7 @@ public class PageResource extends PageAdminResources {
 		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.nativeObjectClass"),
 				"nativeObjectClass"));
 		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.help"), "help"));
-		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.type"), "category"));
+		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.type"), "type"));
 
 		return columns;
 	}
@@ -291,28 +316,28 @@ public class PageResource extends PageAdminResources {
 			}
 		};
 	}
-	
+
 	private void initButtons(Form mainForm){
 		AjaxLinkButton back = new AjaxLinkButton("back", createStringResource("pageResource.button.back")) {
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				setResponsePage(PageResources.class);
 			}
 		};
 		mainForm.add(back);
-		
+
 		/*AjaxLinkButton save = new AjaxLinkButton("save", createStringResource("pageResource.button.save")) {
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				savePerform(target);
 			}
 		};
 		mainForm.add(save);*/
-		
+
 		AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("pageResource.button.test")) {
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				testConnectionPerformed(target);
@@ -321,32 +346,32 @@ public class PageResource extends PageAdminResources {
 		};
 		mainForm.add(test);
 	}
-	
+
 	private void savePerform(AjaxRequestTarget target){
 		//TODO: implement
 	}
-	
+
 	private void testConnectionPerformed(AjaxRequestTarget target){
         OperationResult result = null;
     	ResourceDto dto = model.getObject();
     	if (StringUtils.isEmpty(dto.getOid())) {
     		result.recordFatalError("Resource oid not defined in request");
 		}
-    	
+
     	try {
     		result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_CONNECTION));
     		ResourceController.updateResourceState(dto.getState(), result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Fail to test resource connection", ex);
 		}
-    	
+
     	if(result == null) {
     		result = new OperationResult(TEST_CONNECTION);
     	}
-    	
+
     	WebMarkupContainer connectors = (WebMarkupContainer)get("mainForm:connectors");
     	target.add(connectors);
-    	
+
     	if(!result.isSuccess()){
     		showResult(result);
     		target.add(getFeedbackPanel());

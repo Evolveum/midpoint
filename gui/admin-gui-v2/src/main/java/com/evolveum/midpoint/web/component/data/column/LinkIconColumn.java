@@ -42,13 +42,17 @@ public class LinkIconColumn<T extends Serializable> extends AbstractColumn<T> {
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, final IModel<T> rowModel) {
-        cellItem.add(new LinkIconPanel(componentId, createIconModel(rowModel)) {
+        cellItem.add(new LinkIconPanel(componentId, createIconModel(rowModel), createTitleModel(rowModel)) {
 
             @Override
             protected void onClickPerformed(AjaxRequestTarget target) {
                 LinkIconColumn.this.onClickPerformed(target, rowModel, getLink());
             }
         });
+    }
+
+    protected IModel<String> createTitleModel(final IModel<T> rowModel) {
+        return null;
     }
 
     protected IModel<ResourceReference> createIconModel(final IModel<T> rowModel) {

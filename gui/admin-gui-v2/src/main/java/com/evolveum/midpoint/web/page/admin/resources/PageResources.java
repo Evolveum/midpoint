@@ -21,9 +21,24 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -38,44 +53,19 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceImport;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceImportStatus;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceSyncStatus;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
 public class PageResources extends PageAdminResources {
-	
-	private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
-	private static final String DOT_CLASS = PageResources.class.getName() + ".";
-	private static final String TEST_RESOURCE = DOT_CLASS + "testResource";
-	private static final String SYNC_STATUS = DOT_CLASS + "syncStatus";
-	private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
+    private static final String DOT_CLASS = PageResources.class.getName() + ".";
+    private static final String TEST_RESOURCE = DOT_CLASS + "testResource";
+    private static final String SYNC_STATUS = DOT_CLASS + "syncStatus";
+    private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
 
     public PageResources() {
         initLayout();
@@ -97,7 +87,7 @@ public class PageResources extends PageAdminResources {
         mainForm.add(connectorHosts);
 
         initButtons(mainForm);
-        
+
         add(new ConfirmationDialog("confirmDeletePopup", createStringResource("pageResources.dialog.title.confirmDelete"),
                 createDeleteConfirmString()) {
 
@@ -160,13 +150,30 @@ public class PageResources extends PageAdminResources {
             }
 
             @Override
+            protected IModel<String> createTitleModel(final IModel<ResourceDto> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        ResourceDto dto = rowModel.getObject();
+                        ResourceStatus status = dto.getOverallStatus();
+                        if (status == null) {
+                            status = ResourceStatus.NOT_TESTED;
+                        }
+
+                        return PageResources.this.getString(ResourceStatus.class.getSimpleName() + "." + status.name());
+                    }
+                };
+            }
+
+            @Override
             protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
                 testResourcePerformed(target, rowModel);
-                target.add(link);                
+                target.add(link);
             }
         };
         columns.add(column);
-        
+
         /*column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.sync")) {
 
             @Override
@@ -192,7 +199,7 @@ public class PageResources extends PageAdminResources {
             }
         };
         columns.add(column);*/
-        
+
         column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.import")) {
 
             @Override
@@ -213,13 +220,13 @@ public class PageResources extends PageAdminResources {
 
             @Override
             protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
-            	ResourceDto resource = rowModel.getObject();
-            	resourceImportPerformed(target, resource.getOid());
-                target.add(link);                
+                ResourceDto resource = rowModel.getObject();
+                resourceImportPerformed(target, resource.getOid());
+                target.add(link);
             }
         };
         columns.add(column);
-        
+
         //todo sync import progress
 //        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
 //        columns.add(column);
@@ -261,19 +268,19 @@ public class PageResources extends PageAdminResources {
     }
 
     private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
-    	PageParameters parameters = new PageParameters();
+        PageParameters parameters = new PageParameters();
         parameters.add(PageResource.PARAM_RESOURCE_ID, oid);
         setResponsePage(PageResource.class, parameters);
     }
-    
+
     private void resourceImportPerformed(AjaxRequestTarget target, String oid) {
-    	PageParameters parameters = new PageParameters();
+        PageParameters parameters = new PageParameters();
         parameters.add(PageResourceImport.PARAM_RESOURCE_IMPORT_ID, oid);
         setResponsePage(PageResourceImport.class, parameters);
     }
 
     private void deleteResourcePerformed(AjaxRequestTarget target) {
-    	List<ResourceDto> selected = getSelectedResources();
+        List<ResourceDto> selected = getSelectedResources();
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.nothingSelected"));
             target.add(getFeedbackPanel());
@@ -283,7 +290,7 @@ public class PageResources extends PageAdminResources {
         ModalWindow dialog = (ModalWindow) get("confirmDeletePopup");
         dialog.show(target);
     }
-    
+
     private List<ResourceDto> getSelectedResources() {
         DataTable table = getResourceTable().getDataTable();
         ResourceDtoProvider provider = (ResourceDtoProvider) table.getDataProvider();
@@ -297,22 +304,22 @@ public class PageResources extends PageAdminResources {
 
         return selected;
     }
-    
+
     private TablePanel getResourceTable() {
         return (TablePanel) get("mainForm:table");
     }
-    
+
     private IModel<String> createDeleteConfirmString() {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
                 return createStringResource("pageResources.message.deleteResourceConfirm",
-                		getSelectedResources().size()).getString();
+                        getSelectedResources().size()).getString();
             }
         };
     }
-    
+
     private void deleteConfirmedPerformed(AjaxRequestTarget target) {
         List<ResourceDto> selected = getSelectedResources();
 
@@ -334,34 +341,34 @@ public class PageResources extends PageAdminResources {
 
     private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
         OperationResult result = null;
-    	ResourceDto dto = rowModel.getObject();
-    	if (StringUtils.isEmpty(dto.getOid())) {
-    		result.recordFatalError("Resource oid not defined in request");
-		}
-    	
-    	try {
-    		result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_RESOURCE));
-    		ResourceController.updateResourceState(dto.getState(), result);
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Fail to test resource connection", ex);
-		}
-    	
-    	if(result == null) {
-    		result = new OperationResult(TEST_RESOURCE);
-    	}
-    	
-    	if(!result.isSuccess()){
-    		showResult(result);
-    		target.add(getFeedbackPanel());
-    	}
+        ResourceDto dto = rowModel.getObject();
+        if (StringUtils.isEmpty(dto.getOid())) {
+            result.recordFatalError("Resource oid not defined in request");
+        }
+
+        try {
+            result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_RESOURCE));
+            ResourceController.updateResourceState(dto.getState(), result);
+        } catch (ObjectNotFoundException ex) {
+            result.recordFatalError("Fail to test resource connection", ex);
+        }
+
+        if (result == null) {
+            result = new OperationResult(TEST_RESOURCE);
+        }
+
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
     }
-    
+
     private void showSyncStatus(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
-    	OperationResult result = new OperationResult(SYNC_STATUS);
-    	ResourceDto dto = rowModel.getObject();
-		if (dto == null) {
-			result.recordFatalError("Fail to synchronize resource");
-		}
-		//resourceSync.setResource(resourceItem);
-	}
+        OperationResult result = new OperationResult(SYNC_STATUS);
+        ResourceDto dto = rowModel.getObject();
+        if (dto == null) {
+            result.recordFatalError("Fail to synchronize resource");
+        }
+        //resourceSync.setResource(resourceItem);
+    }
 }

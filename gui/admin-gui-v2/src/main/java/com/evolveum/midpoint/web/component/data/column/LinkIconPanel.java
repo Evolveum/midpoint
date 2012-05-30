@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.image.Image;
@@ -34,12 +35,16 @@ import org.apache.wicket.request.resource.ResourceReference;
 public class LinkIconPanel extends Panel {
 
     public LinkIconPanel(String id, IModel<ResourceReference> model) {
-        super(id);
-
-        initLayout(model);
+        this(id, model, null);
     }
 
-    private void initLayout(IModel<ResourceReference> model) {
+    public LinkIconPanel(String id, IModel<ResourceReference> model, IModel<String> titleModel) {
+        super(id);
+
+        initLayout(model, titleModel);
+    }
+
+    private void initLayout(IModel<ResourceReference> model, IModel<String> titleModel) {
         AjaxLink link = new AjaxLink("link") {
 
             @Override
@@ -47,13 +52,17 @@ public class LinkIconPanel extends Panel {
                 onClickPerformed(target);
             }
         };
-        link.add(new Image("image", model));
+        Image image = new Image("image", model);
+        if (titleModel != null) {
+            image.add(new AttributeModifier("title", titleModel));
+        }
+        link.add(image);
         link.setOutputMarkupId(true);
         add(link);
     }
-    
+
     protected AjaxLink getLink() {
-    	return (AjaxLink)get("link");
+        return (AjaxLink) get("link");
     }
 
     protected void onClickPerformed(AjaxRequestTarget target) {
