@@ -159,11 +159,15 @@ public class PageUsers extends PageAdminUsers {
                     public ResourceReference getObject() {
                         UserType user = rowModel.getObject().getValue();
                         CredentialsType credentials = user.getCredentials();
-                        if (credentials == null || !credentials.isAllowedIdmAdminGuiAccess()) {
-                            return new SharedResourceReference(ImgResources.class, "user.png");
+
+                        if (credentials != null) {
+                            Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
+                            if (allowedAdmin != null && allowedAdmin) {
+                                return new SharedResourceReference(ImgResources.class, "user_red.png");
+                            }
                         }
 
-                        return new SharedResourceReference(ImgResources.class, "user_red.png");
+                        return new SharedResourceReference(ImgResources.class, "user.png");
                     }
                 };
             }
