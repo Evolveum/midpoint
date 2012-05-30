@@ -752,3 +752,15 @@ div.objectForm .tableForm tbody .objectFormValue .objectFormHelpContainer {
 .popupWindow .popupButtons {
 	text-align: center;
 }
+
+div.wupb-uploadStatus {
+    color: #AAAAAA;
+    margin: 5px 0;
+    width: 400px;
+    text-align: center;
+}
+
+.wupb-container {
+    margin: 5px 0;
+    width: 400px;
+}

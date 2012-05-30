@@ -36,6 +36,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.form.upload.UploadProgressBar;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -78,6 +79,8 @@ public class PageImportFile extends PageAdminConfiguration {
         FileUploadField fileInput = new FileUploadField("fileInput");
         fileInput.setOutputMarkupId(true);
         mainForm.add(fileInput);
+        
+        mainForm.add(new UploadProgressBar("progress", mainForm, fileInput));
 
         //from example
 //        mainForm.setMultiPart(true);
