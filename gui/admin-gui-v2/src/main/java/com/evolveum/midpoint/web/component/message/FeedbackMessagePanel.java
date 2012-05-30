@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -114,6 +115,18 @@ public class FeedbackMessagePanel extends Panel {
             }
         };
         content.add(params);
+
+        WebMarkupContainer countLi = new WebMarkupContainer("countLi");
+        countLi.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                OpResult result = (OpResult) message.getObject().getMessage();
+                return result.getCount() > 1;
+            }
+        });
+        content.add(countLi);
+        countLi.add(new Label("count", new PropertyModel<String>(message, "message.count")));
 
         initExceptionLayout(content, message);
     }

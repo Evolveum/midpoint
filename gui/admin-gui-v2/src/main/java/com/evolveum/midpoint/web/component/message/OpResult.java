@@ -45,6 +45,7 @@ public class OpResult implements Serializable {
     private String exceptionMessage;
     private String exceptionsStackTrace;
     private List<OpResult> subresults;
+    private int count;
 
     public OpResult(OperationResult result) {
         Validate.notNull(result, "Operation result must not be null.");
@@ -53,6 +54,7 @@ public class OpResult implements Serializable {
         this.message = result.getMessage();
         this.operation = result.getOperation();
         this.status = result.getStatus();
+        this.count = result.getCount();
 
         if (result.getCause() != null) {
             Throwable cause = result.getCause();
@@ -114,5 +116,9 @@ public class OpResult implements Serializable {
 
     public OperationResultStatus getStatus() {
         return status;
+    }
+
+    public int getCount() {
+        return count;
     }
 }

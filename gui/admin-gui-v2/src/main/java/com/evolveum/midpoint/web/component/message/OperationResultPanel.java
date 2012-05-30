@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.message;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -76,17 +77,8 @@ public class OperationResultPanel extends Panel {
 
         operationContent.add(new Label("message", new PropertyModel<String>(model, "message")));
 
-        ListView<Param> params = new ListView<Param>("params",
-                createParamsModel(model)) {
-
-            @Override
-            protected void populateItem(ListItem<Param> item) {
-                item.add(new Label("paramName", new PropertyModel<Object>(item.getModel(), "name")));
-                item.add(new Label("paramValue", new PropertyModel<Object>(item.getModel(), "value")));
-            }
-        };
-        operationContent.add(params);
-
+        initParams(operationContent, model);
+        initCount(operationContent, model);
         initExceptionLayout(operationContent, model);
 
         ListView<OpResult> subresults = new ListView<OpResult>("subresults",
@@ -99,6 +91,33 @@ public class OperationResultPanel extends Panel {
             }
         };
         add(subresults);
+    }
+
+    private void initCount(WebMarkupContainer operationContent, final IModel<OpResult> model) {
+        WebMarkupContainer countLi = new WebMarkupContainer("countLi");
+        countLi.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                OpResult result = model.getObject();
+                return result.getCount() > 1;
+            }
+        });
+        operationContent.add(countLi);
+        countLi.add(new Label("count", new PropertyModel<String>(model, "count")));
+    }
+
+    private void initParams(WebMarkupContainer operationContent, final IModel<OpResult> model) {
+        ListView<Param> params = new ListView<Param>("params",
+                createParamsModel(model)) {
+
+            @Override
+            protected void populateItem(ListItem<Param> item) {
+                item.add(new Label("paramName", new PropertyModel<Object>(item.getModel(), "name")));
+                item.add(new Label("paramValue", new PropertyModel<Object>(item.getModel(), "value")));
+            }
+        };
+        operationContent.add(params);
     }
 
     private void initExceptionLayout(WebMarkupContainer operationContent, final IModel<OpResult> model) {
