@@ -39,7 +39,6 @@ import javax.persistence.Table;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_system_configuration")
 @ForeignKey(name = "fk_system_configuration")
 public class RSystemConfiguration extends RObject {
 

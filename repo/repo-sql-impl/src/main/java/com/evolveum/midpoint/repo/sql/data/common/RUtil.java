@@ -184,32 +184,28 @@ public final class RUtil {
         return list;
     }
 
-    public static RObjectReferenceTaskObject jaxbRefToRepoTaskObject(ObjectReferenceType ref,
-            RContainer owner, PrismContext prismContext) {
-        return jaxbRefToRepo(ref, owner, prismContext, new RObjectReferenceTaskObject());
-    }
-
-    public static RObjectReferenceTaskOwner jaxbRefToRepoTaskOwner(ObjectReferenceType ref,
-            RContainer owner, PrismContext prismContext) {
-        return jaxbRefToRepo(ref, owner, prismContext, new RObjectReferenceTaskOwner());
-    }
-
     public static RObjectReference jaxbRefToRepo(ObjectReferenceType ref, RContainer owner,
             PrismContext prismContext) {
-        return jaxbRefToRepo(ref, owner, prismContext, new RObjectReference());
-    }
-
-    private static <T extends RObjectReference> T jaxbRefToRepo(ObjectReferenceType ref, RContainer owner,
-            PrismContext prismContext, T repoRef) {
         if (ref == null) {
             return null;
         }
         Validate.notNull(owner, "Owner of reference must not be null.");
 
+        RObjectReference repoRef = new RObjectReference();
         repoRef.setOwner(owner);
         RObjectReference.copyFromJAXB(ref, repoRef, prismContext);
 
         return repoRef;
+    }
+
+    public static REmbeddedReference jaxbRefToEmbeddedRepoRef(ObjectReferenceType jaxb, PrismContext prismContext) {
+        if (jaxb == null) {
+            return null;
+        }
+        REmbeddedReference ref = new REmbeddedReference();
+        REmbeddedReference.copyFromJAXB(jaxb, ref, prismContext);
+
+        return ref;
     }
 
     public static Long getLongWrappedFromString(String text) {

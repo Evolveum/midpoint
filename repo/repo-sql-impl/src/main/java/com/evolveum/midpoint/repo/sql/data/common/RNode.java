@@ -35,7 +35,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_node")
 @ForeignKey(name = "fk_node")
 public class RNode extends RObject {
 

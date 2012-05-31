@@ -27,7 +27,6 @@ import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;

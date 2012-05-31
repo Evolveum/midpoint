@@ -40,7 +40,6 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_connector")
 @ForeignKey(name = "fk_connector")
 public class RConnector extends RObject {
 

@@ -37,7 +37,6 @@ import javax.persistence.Table;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_password_policy")
 @ForeignKey(name = "fk_password_policy")
 public class RPasswordPolicy extends RObject {
 

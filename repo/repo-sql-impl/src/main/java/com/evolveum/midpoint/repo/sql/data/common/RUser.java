@@ -42,7 +42,6 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_user")
 @org.hibernate.annotations.Table(appliesTo = "m_user",
         indexes = {@Index(name = "iUserEnabled", columnNames = "enabled"),
                 @Index(name = "iFullName", columnNames = "fullName_norm"),
@@ -110,10 +109,6 @@ public class RUser extends RObject {
         return activation;
     }
 
-    @AttributeOverrides({
-            @AttributeOverride(name = "orig", column = @Column(name = "additionalName_orig", nullable = true)),
-            @AttributeOverride(name = "norm", column = @Column(name = "additionalName_norm", nullable = true))
-    })
     @Embedded
     public RPolyString getAdditionalName() {
         return additionalName;
@@ -154,37 +149,21 @@ public class RUser extends RObject {
         return employeeType;
     }
 
-    @AttributeOverrides({
-            @AttributeOverride(name = "orig", column = @Column(name = "familyName_orig", nullable = true)),
-            @AttributeOverride(name = "norm", column = @Column(name = "familyName_norm", nullable = true))
-    })
     @Embedded
     public RPolyString getFamilyName() {
         return familyName;
     }
 
-    @AttributeOverrides({
-            @AttributeOverride(name = "orig", column = @Column(name = "fullName_orig", nullable = true)),
-            @AttributeOverride(name = "norm", column = @Column(name = "fullName_norm", nullable = true))
-    })
     @Embedded
     public RPolyString getFullName() {
         return fullName;
     }
 
-    @AttributeOverrides({
-            @AttributeOverride(name = "orig", column = @Column(name = "givenName_orig", nullable = true)),
-            @AttributeOverride(name = "norm", column = @Column(name = "givenName_norm", nullable = true))
-    })
     @Embedded
     public RPolyString getGivenName() {
         return givenName;
     }
 
-    @AttributeOverrides({
-            @AttributeOverride(name = "orig", column = @Column(name = "locality_orig", nullable = true)),
-            @AttributeOverride(name = "norm", column = @Column(name = "locality_norm", nullable = true))
-    })
     @Embedded
     public RPolyString getLocality() {
         return locality;
@@ -195,19 +174,11 @@ public class RUser extends RObject {
         return employeeNumber;
     }
 
-    @AttributeOverrides({
-            @AttributeOverride(name = "orig", column = @Column(name = "honorificPrefix_orig", nullable = true)),
-            @AttributeOverride(name = "norm", column = @Column(name = "honorificPrefix_norm", nullable = true))
-    })
     @Embedded
     public RPolyString getHonorificPrefix() {
         return honorificPrefix;
     }
 
-    @AttributeOverrides({
-            @AttributeOverride(name = "orig", column = @Column(name = "honorificSuffix_orig", nullable = true)),
-            @AttributeOverride(name = "norm", column = @Column(name = "honorificSuffix_norm", nullable = true))
-    })
     @Embedded
     public RPolyString getHonorificSuffix() {
         return honorificSuffix;

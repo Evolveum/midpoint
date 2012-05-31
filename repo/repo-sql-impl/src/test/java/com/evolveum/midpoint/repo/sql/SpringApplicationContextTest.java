@@ -56,6 +56,7 @@ public class SpringApplicationContextTest extends AbstractTestNGSpringContextTes
         assertNotNull(sessionFactory);
 
         org.hibernate.cfg.Configuration configuration = new Configuration();
+        configuration.setNamingStrategy(new MidPointNamingStrategy());
         configuration.setProperties(sessionFactory.getHibernateProperties());
 
         File dir = new File("./src/main/java/com/evolveum/midpoint/repo/sql/data/common");

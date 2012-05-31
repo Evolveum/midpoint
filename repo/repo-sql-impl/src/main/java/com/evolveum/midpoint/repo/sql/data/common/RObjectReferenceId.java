@@ -33,6 +33,16 @@ public class RObjectReferenceId implements Serializable {
     private String targetOid;
     private Long targetId;
 
+    public RObjectReferenceId() {
+    }
+
+    public RObjectReferenceId(Long ownerId, String ownerOid, Long targetId, String targetOid) {
+        this.ownerId = ownerId;
+        this.ownerOid = ownerOid;
+        this.targetId = targetId;
+        this.targetOid = targetOid;
+    }
+
     public Long getOwnerId() {
         return ownerId;
     }

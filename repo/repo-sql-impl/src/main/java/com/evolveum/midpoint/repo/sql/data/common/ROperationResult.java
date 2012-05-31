@@ -40,7 +40,6 @@ import java.io.Serializable;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_operation_result")
 public class ROperationResult implements Serializable {
 
     //owner

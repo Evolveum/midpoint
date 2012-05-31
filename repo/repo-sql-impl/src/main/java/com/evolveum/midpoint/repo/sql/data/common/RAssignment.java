@@ -43,7 +43,6 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_assignment")
 @org.hibernate.annotations.Table(appliesTo = "m_assignment",
         indexes = {@Index(name = "iAssignmentEnabled", columnNames = "enabled")})
 @ForeignKey(name = "fk_assignment")
@@ -61,7 +60,7 @@ public class RAssignment extends RContainer implements ROwnable {
     @QueryEntity(embedded = true)
     private RActivation activation;
     private String accountConstruction;
-    private RObjectReference targetRef;
+    private REmbeddedReference targetRef;
 
     @ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
@@ -74,9 +73,8 @@ public class RAssignment extends RContainer implements ROwnable {
         return owner;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReference getTargetRef() {
+    @Embedded
+    public REmbeddedReference getTargetRef() {
         return targetRef;
     }
 
@@ -141,7 +139,7 @@ public class RAssignment extends RContainer implements ROwnable {
         this.ownerOid = ownerOid;
     }
 
-    public void setTargetRef(RObjectReference targetRef) {
+    public void setTargetRef(REmbeddedReference targetRef) {
         this.targetRef = targetRef;
     }
 
@@ -240,7 +238,7 @@ public class RAssignment extends RContainer implements ROwnable {
             LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }
 
-        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), repo, prismContext));
+        repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
     }
 
     public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {

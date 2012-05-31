@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -99,8 +100,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         fixCompositeIdentifierInMetaModel(RAnyContainer.class);
 
         fixCompositeIdentifierInMetaModel(RObjectReference.class);
-        fixCompositeIdentifierInMetaModel(RObjectReferenceTaskObject.class);
-        fixCompositeIdentifierInMetaModel(RObjectReferenceTaskOwner.class);
 
         fixCompositeIdentifierInMetaModel(RAssignment.class);
         fixCompositeIdentifierInMetaModel(RExclusion.class);
@@ -645,6 +644,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
         subResult.addParam("modifications", modifications);
+
+        if (modifications.isEmpty()) {
+            subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
+            return;
+        }
 
         final String operation = "modifying";
         int attempt = 1;

@@ -36,7 +36,6 @@ import javax.persistence.Table;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_user_template")
 @ForeignKey(name = "fk_user_template")
 public class RUserTemplate extends RObject {
 

@@ -25,6 +25,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -37,10 +39,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_task")
 @ForeignKey(name = "fk_task")
 public class RTask extends RObject {
 
+    private static final Trace LOGGER = TraceManager.getTrace(RTask.class);
     private String taskIdentifier;
     @QueryAttribute(enumerated = true)
     private TaskExecutionStatusType executionStatus;
@@ -61,8 +63,8 @@ public class RTask extends RObject {
     private String schedule;
     private String modelOperationState;
 
-    private RObjectReferenceTaskObject objectRef;
-    private RObjectReferenceTaskOwner ownerRef;
+    private REmbeddedReference objectRef;
+    private REmbeddedReference ownerRef;
 
     private OperationResultStatusType resultStatus;
     private String canRunOnNode;
@@ -89,15 +91,13 @@ public class RTask extends RObject {
         return threadStopAction;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReferenceTaskObject getObjectRef() {
+    @Embedded
+    public REmbeddedReference getObjectRef() {
         return objectRef;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReferenceTaskOwner getOwnerRef() {
+    @Embedded
+    public REmbeddedReference getOwnerRef() {
         return ownerRef;
     }
 
@@ -157,11 +157,11 @@ public class RTask extends RObject {
         this.threadStopAction = threadStopAction;
     }
 
-    public void setObjectRef(RObjectReferenceTaskObject objectRef) {
+    public void setObjectRef(REmbeddedReference objectRef) {
         this.objectRef = objectRef;
     }
 
-    public void setOwnerRef(RObjectReferenceTaskOwner ownerRef) {
+    public void setOwnerRef(REmbeddedReference ownerRef) {
         this.ownerRef = ownerRef;
     }
 
@@ -404,8 +404,8 @@ public class RTask extends RObject {
         repo.setThreadStopAction(jaxb.getThreadStopAction());
         repo.setCategory(jaxb.getCategory());
 
-        repo.setObjectRef(RUtil.jaxbRefToRepoTaskObject(jaxb.getObjectRef(), repo, prismContext));
-        repo.setOwnerRef(RUtil.jaxbRefToRepoTaskOwner(jaxb.getOwnerRef(), repo, prismContext));
+        repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), prismContext));
+        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
 
         if (jaxb.getResult() != null) {
             ROperationResult result = new ROperationResult();

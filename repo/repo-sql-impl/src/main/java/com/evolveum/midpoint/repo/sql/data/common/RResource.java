@@ -40,7 +40,6 @@ import javax.persistence.Table;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_resource")
 @ForeignKey(name = "fk_resource")
 public class RResource extends RObject {
 

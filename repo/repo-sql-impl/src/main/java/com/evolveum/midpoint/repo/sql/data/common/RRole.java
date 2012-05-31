@@ -40,7 +40,6 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_role")
 @ForeignKey(name = "fk_role")
 public class RRole extends RObject {
 
