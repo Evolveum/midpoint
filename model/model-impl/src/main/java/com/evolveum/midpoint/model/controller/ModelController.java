@@ -1203,6 +1203,9 @@ public class ModelController implements ModelService {
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		objectImporter.importObjects(input, options, task, result, cacheRepositoryService);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Import result:\n{}", result.dump());
+		}
 		// No need to compute status. The validator inside will do it.
 		// result.computeStatus("Couldn't import object from input stream.");
 		RepositoryCache.exit();

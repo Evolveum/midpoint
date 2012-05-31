@@ -337,6 +337,7 @@ public class UserSynchronizer {
 				String oid = refVal.getOid();
 				AccountSyncContext accountSyncContext = null;
 				PrismObject<AccountShadowType> account = null;
+				boolean isCombinedAdd = false;
 				if (oid == null) {
 					// Adding new account
 					account = refVal.getObject();
@@ -369,10 +370,11 @@ public class UserSynchronizer {
 							ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
 							accountSyncContext.setAccountPrimaryDelta(accountPrimaryDelta);
 							accountSyncContext.setFullAccount(true);
+							isCombinedAdd = true;
 						}
 					}				
 				}
-				if (context.isDoReconciliationForAllAccounts()) {
+				if (context.isDoReconciliationForAllAccounts() && !isCombinedAdd) {
 	                accountSyncContext.setDoReconciliation(true);
 	            }
 			}			

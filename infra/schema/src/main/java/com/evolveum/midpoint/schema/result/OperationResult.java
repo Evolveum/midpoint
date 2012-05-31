@@ -1018,6 +1018,12 @@ public class OperationResult implements Serializable, Dumpable {
 			// Entries do not match. The target entry needs to be marked as VariousValues
 			targetEntry.setValue(new VariousValues());
 		}
+		for (Entry<String, Object> sourceEntry: sourceMap.entrySet()) {
+			String sourceKey = sourceEntry.getKey();
+			if (!targetMap.containsKey(sourceKey)) {
+				targetMap.put(sourceKey, new VariousValues());
+			}
+		}
 	}
 
 	private OperationResult findSimilarSubresult(OperationResult subresult) {
