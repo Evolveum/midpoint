@@ -52,7 +52,6 @@
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
     <modules>
-        <module>admin-gui</module>
         <module>admin-gui-v2</module>
     </modules>
 
