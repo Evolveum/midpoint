@@ -790,8 +790,6 @@ public class ModelController implements ModelService {
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class);
 
-		// TODO? userOld?
-
 		syncContext.setUserOld(null);
 		syncContext.setUserNew(null);
 		syncContext.setUserPrimaryDelta(userDelta);

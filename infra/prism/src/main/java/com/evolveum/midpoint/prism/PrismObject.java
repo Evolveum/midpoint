@@ -246,6 +246,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		return delta;
 	}
 
+	public ObjectDelta<T> createDeleteDelta() {
+		ObjectDelta<T> delta = createDelta(ChangeType.DELETE);
+		delta.setOid(this.getOid());
+		return delta;
+	}
+
 	@Override
 	public void setParent(PrismValue parentValue) {
 		throw new IllegalStateException("Cannot set parent for an object");

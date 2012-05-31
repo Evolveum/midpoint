@@ -141,7 +141,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
         
         // THEN
         assertHasNoRole(USER_JACK_OID, task, result);
-        assertNotDummyAccount("jack");
+        assertNoDummyAccount("jack");
 	}
 
 }

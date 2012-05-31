@@ -398,9 +398,12 @@ public class UserSynchronizer {
 					}				
 				}
 				if (accountSyncContext != null) {
-					accountSyncContext.setPolicyDecision(PolicyDecision.UNLINK);
-					if (context.isDoReconciliationForAllAccounts()) {
-						accountSyncContext.setDoReconciliation(true);
+					if (refVal.getObject() == null) {
+						accountSyncContext.setPolicyDecision(PolicyDecision.UNLINK);
+					} else {
+						accountSyncContext.setPolicyDecision(PolicyDecision.DELETE);
+						ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createDeleteDelta();
+						accountSyncContext.setAccountPrimaryDelta(accountPrimaryDelta);
 					}
 	            }
 			}

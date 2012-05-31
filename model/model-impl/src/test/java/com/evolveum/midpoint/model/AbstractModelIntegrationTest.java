@@ -540,7 +540,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertEquals("Wrong activation for dummy account "+username, active, account.isEnabled());
 	}
 
-	protected void assertNotDummyAccount(String username) {
+	protected void assertNoDummyAccount(String username) {
 		DummyAccount account = dummyResource.getAccountByUsername(username);
 		assertNull("Dummy account for username "+username+" exists while not expecting it", account);
 	}

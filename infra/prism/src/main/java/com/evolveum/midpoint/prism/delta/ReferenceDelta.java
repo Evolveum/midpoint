@@ -132,6 +132,11 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 	}
 
 	public static ReferenceDelta createModificationAdd(QName refName, PrismObjectDefinition<?> objectDefinition,
+    		String oid) {
+		return createModificationAdd(refName, objectDefinition, new PrismReferenceValue(oid));
+	}
+	
+	public static ReferenceDelta createModificationAdd(QName refName, PrismObjectDefinition<?> objectDefinition,
     		PrismReferenceValue refValue) {
     	PrismReferenceDefinition referenceDefinition = objectDefinition.findItemDefinition(refName, PrismReferenceDefinition.class);
     	ReferenceDelta referenceDelta = new ReferenceDelta(refName, referenceDefinition);
@@ -176,6 +181,18 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
     }
     
     public static ReferenceDelta createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
+    		String oid) {
+    	return createModificationDelete(refName, objectDefinition, new PrismReferenceValue(oid));
+    }
+    
+    
+    public static ReferenceDelta createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
+    		PrismObject<?> refTarget) {
+    	PrismReferenceValue refValue = PrismReferenceValue.createFromTarget(refTarget);
+    	return createModificationDelete(refName, objectDefinition, refValue);
+	}
+
+    public static ReferenceDelta createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
     		PrismReferenceValue refValue) {
     	PrismReferenceDefinition referenceDefinition = objectDefinition.findItemDefinition(refName, PrismReferenceDefinition.class);
     	ReferenceDelta referenceDelta = new ReferenceDelta(refName, referenceDefinition);
@@ -203,6 +220,11 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
     	return createModificationDelete(type, refName, prismContext, refValue);
     }
 
+    public static <T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName, PrismObject<?> refTarget) {
+    	PrismReferenceValue refValue = PrismReferenceValue.createFromTarget(refTarget);
+    	return createModificationDelete(type, refName, refTarget.getPrismContext(), refValue);
+    }
+    
     public static <T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName, PrismContext prismContext,
     		PrismObject<?> refTarget) { 
     	Collection<? extends ItemDelta<?>> modifications = createModificationsCollection(1);

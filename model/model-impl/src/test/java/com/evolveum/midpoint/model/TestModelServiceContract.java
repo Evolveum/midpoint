@@ -71,6 +71,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -124,13 +125,13 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test100AddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    public void test100ModifyUserAddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test100AddAccount");
+        displayTestTile(this, "test100ModifyUserAddAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100AddAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100ModifyUserAddAccount");
         OperationResult result = task.getResult();
 
         // IMPORTANT! SWITCHING OFF ASSIGNMENT ENFORCEMENT HERE!
@@ -244,11 +245,203 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test120AddUserBlackbeardWithAccount() throws Exception {
-        displayTestTile(this, "test120AddUserBlackbeardWithAccount");
+    public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test119ModifyUserDeleteAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120AddUserBlackbeardWithAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test119ModifyUserDeleteAccount");
+        OperationResult result = task.getResult();
+
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        account.setOid(accountOid);
+        
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), account);
+		modifications.add(accountDelta);
+        
+		// WHEN
+		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+        
+		// Check is shadow is gone
+        try {
+        	PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        	AssertJUnit.fail("Shadow "+accountOid+" still exists");
+        } catch (ObjectNotFoundException e) {
+        	// This is OK
+        }
+        
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+	}
+	
+	@Test
+    public void test120AddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test120AddAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120AddAccount");
+        OperationResult result = task.getResult();
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        
+		// WHEN
+        accountOid = modelService.addObject(account, task, result);
+		
+		// THEN
+		// Check accountRef (should be none)
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Jack Sparrow", true);
+	}
+	
+	@Test
+    public void test121ModifyUserAddAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test121ModifyUserAddAccountRef");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test121ModifyUserAddAccountRef");
+        OperationResult result = task.getResult();
+        
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+		modifications.add(accountDelta);
+        
+		// WHEN
+		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Jack Sparrow", true);
+	}
+
+
+	
+	@Test
+    public void test128ModifyUserDeleteAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test128ModifyUserDeleteAccountRef");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test128ModifyUserDeleteAccountRef");
+        OperationResult result = task.getResult();
+
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+		modifications.add(accountDelta);
+        
+		// WHEN
+		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+        
+		// Check shadow (if it is unchanged)
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account (if it is unchanged)
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        // Check account in dummy resource (if it is unchanged)
+        assertDummyAccount("jack", "Jack Sparrow", true);
+	}
+	
+	@Test
+    public void test129DeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException, ConsistencyViolationException {
+        displayTestTile(this, "test129DeleteAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test129DeleteAccount");
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        modelService.deleteObject(AccountShadowType.class, accountOid, task, result);
+		
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+        
+		// Check is shadow is gone
+        try {
+        	PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        	AssertJUnit.fail("Shadow "+accountOid+" still exists");
+        } catch (ObjectNotFoundException e) {
+        	// This is OK
+        }
+        
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+	}
+
+	
+	@Test
+    public void test150AddUserBlackbeardWithAccount() throws Exception {
+        displayTestTile(this, "test150AddUserBlackbeardWithAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test150AddUserBlackbeardWithAccount");
         OperationResult result = task.getResult();
 
         // IMPORTANT! SWITCHING ON ASSIGNMENT ENFORCEMENT HERE!
