@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.common.QueryUtil;
@@ -15,12 +36,14 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
@@ -29,12 +52,15 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.ListChoice;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -47,18 +73,43 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * @author lazyman
+ * @author mserbak
+ */
+
 public class PageDebugList extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugList.class);
     private static final String DOT_CLASS = PageDebugList.class.getName() + ".";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
+    private boolean deleteSelected;
+    private IModel<ObjectTypes> choice = null;
+    private ObjectType object = null;
 
     public PageDebugList() {
         initLayout();
     }
 
     private void initLayout() {
+    	//confirm delete
+    	add(new ConfirmationDialog("confirmDeletePopup", createStringResource("pageDebugList.dialog.title.confirmDelete"),
+                createDeleteConfirmString()) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                if(deleteSelected){
+                	deleteSelected = false;
+                	deleteSelectedConfirmedPerformed(target);
+                } else {
+                	deleteObjectConfirmedPerformed(target);
+                }
+                
+            }
+        });
+    	
         //listed type
         final IModel<ObjectTypes> choice = new Model<ObjectTypes>(ObjectTypes.SYSTEM_CONFIGURATION);
 
@@ -83,14 +134,14 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<? extends ObjectType>> rowModel) {
                 ObjectType object = rowModel.getObject().getValue();
-                deletePerformed(target, choice, object);
+                deleteObjectPerformed(target, choice, object);
             }
         };
         columns.add(column);
 
         Form main = new Form("mainForm");
         add(main);
-
+        
         OptionPanel option = new OptionPanel("option", createStringResource("pageDebugList.optionsTitle"));
         option.setOutputMarkupId(true);
         main.add(option);
@@ -110,12 +161,12 @@ public class PageDebugList extends PageAdminConfiguration {
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
 
-        AjaxLinkButton button = new AjaxLinkButton("deleteAll",
-                createStringResource("pageDebugList.button.deleteAll")) {
+        AjaxLinkButton button = new AjaxLinkButton("deleteSelected",
+                createStringResource("pageDebugList.button.deleteSelected")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                deleteAllPerformed(target, choice);
+                deleteSelectedPerformed(target, choice);
             }
         };
         main.add(button);
@@ -273,9 +324,23 @@ public class PageDebugList extends PageAdminConfiguration {
 
         return selected;
     }
+    
+    private IModel<String> createDeleteConfirmString() {
+        return new AbstractReadOnlyModel<String>() {
 
-    private void deleteAllPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice) {
-        MidPointApplication application = getMidpointApplication();
+            @Override
+            public String getObject() {
+            	if(deleteSelected){
+            		return createStringResource("pageDebugList.message.deleteSelectedConfirm", 
+            				getSelectedObjects().size()).getString();
+            	}
+            	return createStringResource("pageDebugList.message.deleteObjectConfirm").getString();
+            }
+        };
+    }
+    
+    private void deleteSelectedConfirmedPerformed(AjaxRequestTarget target){
+    	MidPointApplication application = getMidpointApplication();
         RepositoryService repository = application.getRepository();
         ObjectTypes type = choice.getObject();
 
@@ -286,7 +351,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 repository.deleteObject(type.getClassDefinition(), object.getOid(), subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {
-                subResult.recordFatalError("Couldn't delete object.", ex);
+                subResult.recordFatalError("Couldn't delete objects.", ex);
             }
         }
         result.recomputeStatus();
@@ -295,9 +360,9 @@ public class PageDebugList extends PageAdminConfiguration {
         target.add(getListTable());
         target.add(getFeedbackPanel());
     }
-
-    private void deletePerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice, ObjectType object) {
-        MidPointApplication application = getMidpointApplication();
+    
+    private void deleteObjectConfirmedPerformed(AjaxRequestTarget target){
+    	MidPointApplication application = getMidpointApplication();
         RepositoryService repository = application.getRepository();
 
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
@@ -312,5 +377,26 @@ public class PageDebugList extends PageAdminConfiguration {
         showResult(result);
         target.add(getListTable());
         target.add(getFeedbackPanel());
+    }
+    
+    private void deleteSelectedPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice) {
+    	List<ObjectType> selected = getSelectedObjects();
+        if (selected.isEmpty()) {
+            warn(getString("pageDebugList.message.nothingSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+        
+    	ModalWindow dialog = (ModalWindow) get("confirmDeletePopup");
+    	deleteSelected = true;
+    	this.choice = choice;
+        dialog.show(target);
+    }
+
+    private void deleteObjectPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice, ObjectType object) {
+    	ModalWindow dialog = (ModalWindow) get("confirmDeletePopup");
+    	this.choice = choice;
+    	this.object = object;
+        dialog.show(target);
     }
 }

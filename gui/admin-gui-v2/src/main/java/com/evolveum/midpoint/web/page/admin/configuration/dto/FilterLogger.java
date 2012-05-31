@@ -33,11 +33,11 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 /**
  * @author lazyman
  */
-public class ComponentLogger extends LoggerConfiguration {
+public class FilterLogger extends LoggerConfiguration {
 
     private LoggingComponentType component;
 
-    public ComponentLogger(SubSystemLoggerConfigurationType config) {
+    public FilterLogger(SubSystemLoggerConfigurationType config) {
         Validate.notNull(config, "Subsystem logger configuration must not be null.");
 //        Validate.notNull(config.getComponent(), "Subsystem component is not defined.");
 

@@ -153,7 +153,7 @@ public class PageLogging extends PageAdminConfiguration {
 
             @Override
             protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
-                if (model.getObject() instanceof ComponentLogger) {
+                if (model.getObject() instanceof FilterLogger) {
                 	DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                             createComponentLoggerModel(model),
                             MiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class));
@@ -260,8 +260,8 @@ public class PageLogging extends PageAdminConfiguration {
 		table.setTableCssClass("autowidth");
 		loggers.getBodyContainer().add(table);
 
-		AjaxLinkButton addComponentLogger = new AjaxLinkButton("addComponentLogger",
-				createStringResource("pageLogging.button.addComponentLogger")) {
+		AjaxLinkButton addComponentLogger = new AjaxLinkButton("addFilterLogger",
+				createStringResource("pageLogging.button.addFilterLogger")) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -565,8 +565,8 @@ public class PageLogging extends PageAdminConfiguration {
 
 			if (item instanceof ClassLogger) {
 				configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
-			} else if (item instanceof ComponentLogger) {
-				configuration.getSubSystemLogger().add(((ComponentLogger) item).toXmlType());
+			} else if (item instanceof FilterLogger) {
+				configuration.getSubSystemLogger().add(((FilterLogger) item).toXmlType());
 			}
 		}
 
@@ -608,7 +608,7 @@ public class PageLogging extends PageAdminConfiguration {
 
 	private void addComponentLoggerPerformed(AjaxRequestTarget target) {
 		LoggingDto dto = model.getObject();
-		ComponentLogger logger = new ComponentLogger(new SubSystemLoggerConfigurationType());
+		FilterLogger logger = new FilterLogger(new SubSystemLoggerConfigurationType());
 		logger.setEditing(true);
 		dto.getLoggers().add(logger);
 
