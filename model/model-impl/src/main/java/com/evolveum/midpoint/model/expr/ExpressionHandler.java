@@ -172,7 +172,7 @@ public class ExpressionHandler {
 	}
 	
 	public ValueConstructionFactory createValueConstructionFactory(ObjectResolver resolver) {
-		ExpressionFactory expressionFactory = new ExpressionFactory();
+		ExpressionFactory expressionFactory = new ExpressionFactory(prismContext);
 		registerEvaluators(expressionFactory);
 		expressionFactory.setObjectResolver(resolver);
 		

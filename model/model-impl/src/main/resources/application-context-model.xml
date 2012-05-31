@@ -62,6 +62,9 @@
     <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory"
           factory-method="createExpressionFactory" scope="singleton">
         <constructor-arg>
+        	<ref bean="prismContext"/>
+        </constructor-arg>
+        <constructor-arg>
         	<list>
         		<ref bean="xpathExpressionEvaluator"/>
         		<ref bean="javascriptExpressionEvaluator"/>
