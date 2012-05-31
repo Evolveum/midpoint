@@ -84,7 +84,7 @@ public class AceEditor<T> extends TextArea<T> {
         script.append(" } else {");
         script.append("$('.ace_scroller').css('background','#FFFFFF');");
         script.append(" }");
-
+        script.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");')");
         return script.toString();
     }
 
@@ -138,6 +138,7 @@ public class AceEditor<T> extends TextArea<T> {
             builder.append("#FFFFFF");
         }
         builder.append("');");
+        builder.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");')");
 
         return builder.toString();
     }

@@ -205,3 +205,15 @@ function scrollToTop() {
 	}, 800);
 	return false;
 }
+
+function disablePaste(disable) {
+	document.onkeydown = checkKeycode;
+	function checkKeycode(e) {
+		var keycode = null;
+		if (window.event) keycode = window.event.keyCode;
+		else if (e) keycode = e.which;
+		if(keycode == 86){
+			return !disable;
+		}
+	}
+}
