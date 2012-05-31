@@ -54,6 +54,9 @@ public class OperationResultPanel extends Panel {
     }
 
     private void initLayout(final IModel<OpResult> model) {
+    	WebMarkupContainer operationPanel = new WebMarkupContainer("operationPanel");
+    	operationPanel.setOutputMarkupId(true);
+    	add(operationPanel);
         Label operation = new Label("operation", new LoadableModel<Object>() {
 
             @Override
@@ -65,20 +68,22 @@ public class OperationResultPanel extends Panel {
             }
         });
         operation.setOutputMarkupId(true);
+        operationPanel.add(operation);
+        operationPanel.add(initCountPanel(model));
+        
         WebMarkupContainer arrow = new WebMarkupContainer("arrow");
-        arrow.setMarkupId(operation.getMarkupId() + "_arrow");
+        arrow.setMarkupId(operationPanel.getMarkupId() + "_arrow");
         add(arrow);
-
-        add(operation);
+        
 
         WebMarkupContainer operationContent = new WebMarkupContainer("operationContent");
-        operationContent.setMarkupId(operation.getMarkupId() + "_content");
+        operationContent.setMarkupId(operationPanel.getMarkupId() + "_content");
         add(operationContent);
 
         operationContent.add(new Label("message", new PropertyModel<String>(model, "message")));
 
         initParams(operationContent, model);
-        initCount(operationContent, model);
+        //initCount(operationContent, model);
         initExceptionLayout(operationContent, model);
 
         ListView<OpResult> subresults = new ListView<OpResult>("subresults",
@@ -92,8 +97,22 @@ public class OperationResultPanel extends Panel {
         };
         add(subresults);
     }
+    
+    private WebMarkupContainer initCountPanel(final IModel<OpResult> model){
+    	WebMarkupContainer countPanel = new WebMarkupContainer("countPanel");
+    	countPanel.add(new VisibleEnableBehaviour() {
 
-    private void initCount(WebMarkupContainer operationContent, final IModel<OpResult> model) {
+            @Override
+            public boolean isVisible() {
+                OpResult result = model.getObject();
+                return result.getCount() > 1;
+            }
+        });
+    	countPanel.add(new Label("count", new PropertyModel<String>(model, "count")));
+    	return countPanel;
+    }
+
+/*    private void initCount(WebMarkupContainer operationContent, final IModel<OpResult> model) {
         WebMarkupContainer countLi = new WebMarkupContainer("countLi");
         countLi.add(new VisibleEnableBehaviour() {
 
@@ -105,7 +124,7 @@ public class OperationResultPanel extends Panel {
         });
         operationContent.add(countLi);
         countLi.add(new Label("count", new PropertyModel<String>(model, "count")));
-    }
+    }*/
 
     private void initParams(WebMarkupContainer operationContent, final IModel<OpResult> model) {
         ListView<Param> params = new ListView<Param>("params",
