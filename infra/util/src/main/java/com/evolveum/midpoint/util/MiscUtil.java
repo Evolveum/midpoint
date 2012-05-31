@@ -159,9 +159,13 @@ public class MiscUtil {
 	
 	public static Method findGetter(Object object, String propertyName) {
 		String getterName = getterName(propertyName);
+		return findMethod(object, getterName, 0);
+	}
+	
+	public static Method findMethod(Object object, String methodName, int arity) {
 		for (Method method: object.getClass().getMethods()) {
-			if (method.getName().equals(getterName) &&
-					method.getParameterTypes().length == 0) {
+			if (method.getName().equals(methodName) &&
+					method.getParameterTypes().length == arity) {
 				return method;
 			}
 		}

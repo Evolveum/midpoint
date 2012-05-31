@@ -39,11 +39,11 @@ import java.util.Map;
 public interface ExpressionEvaluator {
 
     public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
-                                               String contextDescription, OperationResult result)
+    		MidPointFunctions functionLibrary, String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 
     public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
-                                                   String contextDescription, OperationResult result)
+    		MidPointFunctions functionLibrary, String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 
     /**

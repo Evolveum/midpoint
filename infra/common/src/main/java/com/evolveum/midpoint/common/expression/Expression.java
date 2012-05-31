@@ -57,6 +57,7 @@ public class Expression {
     private ExpressionEvaluator evaluator;
     private ObjectResolver objectResolver;
     private ExpressionReturnTypeType returnType;
+    private MidPointFunctions functionLibrary;
 
     private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 
@@ -89,7 +90,15 @@ public class Expression {
         this.returnType = returnType;
     }
 
-    public void addVariableDefinition(VariableDefinitionType varDef) {
+    public MidPointFunctions getFunctionLibrary() {
+		return functionLibrary;
+	}
+
+	public void setFunctionLibrary(MidPointFunctions functionLibrary) {
+		this.functionLibrary = functionLibrary;
+	}
+
+	public void addVariableDefinition(VariableDefinitionType varDef) {
         if (varDef.getName() == null) {
             throw new IllegalArgumentException("Null variable name in " + shortDesc);
         }
@@ -206,7 +215,7 @@ public class Expression {
         // Normal evaluation
         try {
 
-            PrismPropertyValue<T> ret = evaluator.evaluateScalar(type, code, variables, objectResolver, shortDesc, result);
+            PrismPropertyValue<T> ret = evaluator.evaluateScalar(type, code, variables, objectResolver, functionLibrary, shortDesc, result);
 
             traceExpressionSuccess("scalar", type, ret);
             return ret;
@@ -245,7 +254,7 @@ public class Expression {
         // Normal evaluation
         try {
 
-            List<PrismPropertyValue<T>> ret = evaluator.evaluateList(type, code, variables, objectResolver, shortDesc, result);
+            List<PrismPropertyValue<T>> ret = evaluator.evaluateList(type, code, variables, objectResolver, functionLibrary, shortDesc, result);
 
             traceExpressionSuccess("list", type, ret);
             return ret;

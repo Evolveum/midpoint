@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.common.expression.xpath;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.common.expression.MidPointFunctions;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -34,8 +35,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.xpath.MidPointXPathFunctionResolver;
-import com.evolveum.midpoint.util.xpath.functions.CapitalizeFunction;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -63,13 +62,13 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 
 	@Override
     public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables,
-            ObjectResolver objectResolver, String contextDescription, OperationResult result) throws
+            ObjectResolver objectResolver, MidPointFunctions functionLibrary, String contextDescription, OperationResult result) throws
             ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException {
 
         QName returnType = determineRerturnType(type);
 
-        Object evaluatedExpression = evaluate(returnType, code, variables, objectResolver, contextDescription, result);
+        Object evaluatedExpression = evaluate(returnType, code, variables, objectResolver, functionLibrary, contextDescription, result);
 
         PrismPropertyValue<T> propertyValue = convertScalar(type, returnType, evaluatedExpression, contextDescription);
         T value = propertyValue.getValue();
@@ -85,11 +84,11 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
       */
     @Override
     public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> type, Element code, Map<QName, Object> variables,
-            ObjectResolver objectResolver, String contextDescription, OperationResult result) throws
+            ObjectResolver objectResolver, MidPointFunctions functionLibrary, String contextDescription, OperationResult result) throws
             ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException {
 
-        Object evaluatedExpression = evaluate(XPathConstants.NODESET, code, variables, objectResolver, contextDescription, result);
+        Object evaluatedExpression = evaluate(XPathConstants.NODESET, code, variables, objectResolver, functionLibrary, contextDescription, result);
 
         if (!(evaluatedExpression instanceof NodeList)) {
             throw new IllegalStateException("The expression " + contextDescription + " resulted in " + evaluatedExpression.getClass().getName() + " while exprecting NodeList");
@@ -100,7 +99,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 
 
     private Object evaluate(QName returnType, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
-            String contextDescription, OperationResult result)
+    		MidPointFunctions functionLibrary, String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
@@ -109,7 +108,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, contextDescription, result);
         xpath.setXPathVariableResolver(variableResolver);
         xpath.setNamespaceContext(new MidPointNamespaceContext(codeHolder.getNamespaceMap()));
-        xpath.setXPathFunctionResolver(getFunctionResolver());
+        xpath.setXPathFunctionResolver(getFunctionResolver(functionLibrary));
 
         XPathExpression expr;
         try {
@@ -264,10 +263,8 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         }
     }
 
-    private MidPointXPathFunctionResolver getFunctionResolver() {
-        MidPointXPathFunctionResolver resolver = new MidPointXPathFunctionResolver();
-        resolver.registerFunction(new QName("http://midpoint.evolveum.com/custom", "capitalize"), new CapitalizeFunction());
-        return resolver;
+    private XPathFunctionResolver getFunctionResolver(MidPointFunctions functionLibrary) {
+    	return new ReflectionXPathFunctionResolver(functionLibrary);
     }
 
     @Override

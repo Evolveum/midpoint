@@ -43,6 +43,7 @@
 		<classes>
 			<class name="com.evolveum.midpoint.common.expression.TestXPathExpressions" />
 			<class name="com.evolveum.midpoint.common.expression.TestJavaScriptExpressions" />
+			<class name="com.evolveum.midpoint.common.expression.TestGroovyExpressions" />
 			<class name="com.evolveum.midpoint.common.valueconstruction.TestValueConstructionStatic" />
 			<class name="com.evolveum.midpoint.common.valueconstruction.TestValueConstructionDynamic" />
 		</classes>

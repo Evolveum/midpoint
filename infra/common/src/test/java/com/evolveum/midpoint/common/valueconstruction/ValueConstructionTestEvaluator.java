@@ -90,7 +90,7 @@ public class ValueConstructionTestEvaluator {
 		
     	prismContext = PrismTestUtil.createInitializedPrismContext();
     	
-        ExpressionFactory expressionFactory = new ExpressionFactory();
+        ExpressionFactory expressionFactory = new ExpressionFactory(prismContext);
         XPathExpressionEvaluator xpathEvaluator = new XPathExpressionEvaluator(prismContext);
         expressionFactory.registerEvaluator(XPathExpressionEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
         Jsr223ExpressionEvaluator groovyEvaluator = new Jsr223ExpressionEvaluator("Groovy", prismContext);

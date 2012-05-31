@@ -72,8 +72,9 @@ public abstract class AbstractExpressionTest {
 
     @BeforeClass
     public void setupFactory() {
-        factory = new ExpressionFactory();
-        evaluator = createEvaluator(PrismTestUtil.getPrismContext());
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+        factory = new ExpressionFactory(prismContext);
+        evaluator = createEvaluator(prismContext);
         String languageUrl = evaluator.getLanguageUrl();
         System.out.println("Expression test for "+evaluator.getLanguageName()+": registering "+evaluator+" with URL "+languageUrl);
         factory.registerEvaluator(languageUrl, evaluator);
@@ -231,6 +232,24 @@ public abstract class AbstractExpressionTest {
         for (int i = 0; i < expected.size(); i++) {
             assertEquals(expected.get(i), results.get(i).getValue());
         }
+    }
+	
+	@Test
+    public void testExpressionFunc() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
+		displayTestTitle("testExpressionFunc");
+        // GIVEN
+        JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
+                new File(getTestDir(), "expression-func.xml"), ExpressionType.class);
+        ExpressionType expressionType = expressionTypeElement.getValue();
+
+        OperationResult opResult = new OperationResult("testExpressionFunc");
+
+        // WHEN
+        Expression expression = factory.createExpression(expressionType, "func thing");
+        PrismPropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
+
+        // THEN
+        assertEquals("gulocka v jamocke", result.getValue());
     }
 
     

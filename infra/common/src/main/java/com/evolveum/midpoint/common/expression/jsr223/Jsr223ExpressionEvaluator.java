@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.common.expression.MidPointFunctions;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -63,6 +64,8 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 
 	private static final String LANGUAGE_URL_BASE = MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
+
+	private static final String FUNCTION_LIBRARY_VARIABLE_NAME = "func";
 	
 	private ScriptEngine scriptEngine;
 	private PrismContext prismContext;
@@ -81,10 +84,10 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 	 */
 	@Override
 	public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, Element code,
-			Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription,
-			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+			Map<QName, Object> variables, ObjectResolver objectResolver, MidPointFunctions functionLibrary,
+			String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 			SchemaException {
-		Object evalRawResult = evaluate(type, code, variables, objectResolver, contextDescription, result);
+		Object evalRawResult = evaluate(type, code, variables, objectResolver, functionLibrary, contextDescription, result);
 		T evalResult = convertScalarResult(type, evalRawResult, contextDescription);
 		PrismPropertyValue<T> pval = new PrismPropertyValue<T>(evalResult);
 		return pval;
@@ -95,10 +98,10 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 	 */
 	@Override
 	public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> expectedType, Element code,
-			Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription,
-			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+			Map<QName, Object> variables, ObjectResolver objectResolver, MidPointFunctions functionLibrary, 
+			String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 			SchemaException {
-		Object evalRawResult = evaluate(expectedType, code, variables, objectResolver, contextDescription, result);
+		Object evalRawResult = evaluate(expectedType, code, variables, objectResolver, functionLibrary, contextDescription, result);
 		List<PrismPropertyValue<T>> pvals = new ArrayList<PrismPropertyValue<T>>();
 		if (evalRawResult instanceof Collection) {
 			for(Object evalRawResultElement : (Collection)evalRawResult) {
@@ -135,11 +138,11 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 		throw new ExpressionEvaluationException("Expected "+expectedType+" from expression, but got "+rawValue.getClass()+" "+contextDescription);
 	}
 	
-	private <T> Object evaluate(Class<T> type, Element codeElement,
-			Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription,
-			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+	private <T> Object evaluate(Class<T> type, Element codeElement, Map<QName, Object> variables, 
+			ObjectResolver objectResolver, MidPointFunctions functionLibrary, 
+			String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 			SchemaException {
-		Bindings bindings = convertToBindings(variables, objectResolver, contextDescription, result);
+		Bindings bindings = convertToBindings(variables, objectResolver, functionLibrary, contextDescription, result);
 		String codeString = codeElement.getTextContent(); 
 		try {
 			return scriptEngine.eval(codeString, bindings);
@@ -148,9 +151,10 @@ public class Jsr223ExpressionEvaluator implements ExpressionEvaluator {
 		}
 	}
 
-	private Bindings convertToBindings(Map<QName, Object> variables, ObjectResolver objectResolver,
+	private Bindings convertToBindings(Map<QName, Object> variables, ObjectResolver objectResolver, MidPointFunctions functionLibrary,
 			String contextDescription, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Bindings bindings = scriptEngine.createBindings();
+		bindings.put(FUNCTION_LIBRARY_VARIABLE_NAME, functionLibrary);
 		for (Entry<QName, Object> variableEntry: variables.entrySet()) {
 			if (variableEntry.getKey() == null) {
 				// This is the "root" node. We have no use for it in JSR223, just skip it

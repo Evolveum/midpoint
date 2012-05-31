@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
@@ -40,17 +41,21 @@ public class ExpressionFactory {
 	
 	private Map<String,ExpressionEvaluator> evaluators;
 	private ObjectResolver objectResolver;
+	private PrismContext prismContext;
+	private MidPointFunctions functionLibrary;
 	
-	public ExpressionFactory() {
+	public ExpressionFactory(PrismContext prismContext) {
+		this.prismContext = prismContext;
 		evaluators = new HashMap<String, ExpressionEvaluator>();
+		functionLibrary = new MidPointFunctions(prismContext);
 	}
 	
 	/**
 	 * Factory method created especially to be used from the Spring context.
 	 */
 	@Deprecated
-	public static ExpressionFactory createExpressionFactory(Map<String,ExpressionEvaluator> evaluators) {
-		ExpressionFactory expressionFactory = new ExpressionFactory();
+	public static ExpressionFactory createExpressionFactory(PrismContext prismContext, Map<String,ExpressionEvaluator> evaluators) {
+		ExpressionFactory expressionFactory = new ExpressionFactory(prismContext);
 		for (Entry<String, ExpressionEvaluator> entry: evaluators.entrySet()) {
 			expressionFactory.registerEvaluator(entry.getKey(), entry.getValue());
 		}
@@ -60,8 +65,8 @@ public class ExpressionFactory {
 	/**
 	 * Factory method created especially to be used from the Spring context.
 	 */
-	public static ExpressionFactory createExpressionFactory(Collection<ExpressionEvaluator> evaluators) {
-		ExpressionFactory expressionFactory = new ExpressionFactory();
+	public static ExpressionFactory createExpressionFactory(PrismContext prismContext, Collection<ExpressionEvaluator> evaluators) {
+		ExpressionFactory expressionFactory = new ExpressionFactory(prismContext);
 		for (ExpressionEvaluator evaluator: evaluators) {
 			expressionFactory.registerEvaluator(evaluator.getLanguageUrl(), evaluator);
 		}
@@ -84,6 +89,7 @@ public class ExpressionFactory {
 		Expression expression = new Expression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType, shortDesc);
 		expression.setObjectResolver(objectResolver);
 		expression.setReturnType(expressionType.getReturnType());
+		expression.setFunctionLibrary(functionLibrary);
 		return expression;
 	}
 	

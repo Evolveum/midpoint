@@ -48,4 +48,6 @@ public class MidPointConstants {
 	
 	public static final String DEFAULT_ACCOUNT_NAME = "user";
 
+	public static final Object NS_FUNC = NS_MIDPOINT_PUBLIC_PREFIX+"/common/function-2";
+
 }
