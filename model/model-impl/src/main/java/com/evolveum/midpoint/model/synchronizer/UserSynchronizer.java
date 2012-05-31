@@ -136,13 +136,13 @@ public class UserSynchronizer {
         
         if (consistenceChecks) context.checkConsistence();
 
+        SynchronizerUtil.traceContext("load", context, false);
+        if (consistenceChecks) context.checkConsistence();
+
         // Check reconcile flag in account sync context and set accountOld
         // variable if it's not set (from provisioning)
         checkAccountContextReconciliation(context, result);
 
-        SynchronizerUtil.traceContext("load", context, false);
-        if (consistenceChecks) context.checkConsistence();
-                
         // Loop through the account changes, apply inbound expressions
         inboundProcessor.processInbound(context, result);
         context.recomputeUserNew();

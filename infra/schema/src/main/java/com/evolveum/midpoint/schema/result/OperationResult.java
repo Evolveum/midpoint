@@ -991,8 +991,32 @@ public class OperationResult implements Serializable, Dumpable {
 				// Nothing to summarize to
 				continue;
 			}
-			similar.incrementCount();
+			merge(similar, subresult);
 			iterator.remove();
+		}
+	}
+
+	private void merge(OperationResult target, OperationResult source) {
+		mergeMap(target.getParams(), source.getParams());
+		mergeMap(target.getContext(), source.getContext());
+		mergeMap(target.getReturns(), source.getReturns());
+		target.incrementCount();
+	}
+
+	private void mergeMap(Map<String, Object> targetMap, Map<String, Object> sourceMap) {
+		for (Entry<String, Object> targetEntry: targetMap.entrySet()) {
+			String targetKey = targetEntry.getKey();
+			Object targetValue = targetEntry.getValue();
+			if (targetValue != null && targetValue instanceof VariousValues) {
+				continue;
+			}
+			Object sourceValue = sourceMap.get(targetKey);
+			if (MiscUtil.equals(targetValue, sourceValue)) {
+				// Entries match, nothing to do
+				continue;
+			}
+			// Entries do not match. The target entry needs to be marked as VariousValues
+			targetEntry.setValue(new VariousValues());
 		}
 	}
 
