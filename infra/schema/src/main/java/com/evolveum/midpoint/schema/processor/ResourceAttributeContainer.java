@@ -364,6 +364,9 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	
 	public static ResourceAttributeContainer convertFromContainer(PrismContainer<?> container,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+		if (container == null) {
+			return null;
+		}
 		QName elementName = container.getName();
 		ResourceAttributeContainer attributesContainer = createEmptyContainer(elementName, objectClassDefinition);
 		for (Item item: container.getValue().getItems()) {
