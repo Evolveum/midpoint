@@ -26,7 +26,8 @@ import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.Index;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -92,6 +93,11 @@ public class RActivation {
         result = 31 * result + (validFrom != null ? validFrom.hashCode() : 0);
         result = 31 * result + (validTo != null ? validTo.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
     public static void copyFromJAXB(ActivationType jaxb, RActivation repo, PrismContext prismContext) throws

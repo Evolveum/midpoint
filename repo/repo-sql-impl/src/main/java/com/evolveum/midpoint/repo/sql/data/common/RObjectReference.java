@@ -22,18 +22,13 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.ClassMapper;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.*;
-import org.hibernate.annotations.CascadeType;
-import org.w3c.dom.Element;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.io.Serializable;
 
 /**
@@ -42,23 +37,15 @@ import java.io.Serializable;
 @Entity
 @IdClass(RObjectReferenceId.class)
 @Table(name = "m_reference")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "reference_type", discriminatorType = DiscriminatorType.INTEGER)
-@DiscriminatorValue(value = "0")
 public class RObjectReference implements Serializable {
 
     //owner
     private RContainer owner;
     private String ownerOid;
     private Long ownerId;
-    //target
-    private RContainer target;
+    //reference
     private String targetOid;
-    private Long targetId;
-    //other fields
-    private String description;
-    private String filter;
-    private RContainerType type;
+    private REmbeddedReference reference = new REmbeddedReference();
 
     @ForeignKey(name = "fk_reference_owner")
     @MapsId("owner")
@@ -69,17 +56,6 @@ public class RObjectReference implements Serializable {
     })
     public RContainer getOwner() {
         return owner;
-    }
-
-    @ForeignKey(name = "none")
-    @MapsId("target")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "target_oid", referencedColumnName = "oid"),
-            @PrimaryKeyJoinColumn(name = "target_id", referencedColumnName = "id")
-    })
-    public RContainer getTarget() {
-        return target;
     }
 
     @Id
@@ -101,22 +77,10 @@ public class RObjectReference implements Serializable {
     }
 
     @Id
-    @Column(name = "target_id", insertable = true, updatable = true, nullable = false)
-    public Long getTargetId() {
-        if (targetId == null && target != null) {
-            targetId = target.getId();
-        }
-        if (targetId == null) {
-            targetId = 0L;
-        }
-        return targetId;
-    }
-
-    @Id
-    @Column(name = "target_oid", length = 36, insertable = true, updatable = true, nullable = false)
+    @Column(name = "targetOid", length = 36)
     public String getTargetOid() {
-        if (targetOid == null && target != null) {
-            targetOid = target.getOid();
+        if (targetOid == null) {
+            targetOid = getReference().getTargetOid();
         }
         if (targetOid == null) {
             targetOid = "";
@@ -124,35 +88,27 @@ public class RObjectReference implements Serializable {
         return targetOid;
     }
 
-    @Type(type = "org.hibernate.type.TextType")
-    public String getDescription() {
-        return description;
+    @AttributeOverrides({
+            @AttributeOverride(name = "type", column = @Column(name = "type")),
+            @AttributeOverride(name = "targetOid", column = @Column(name = "targetOid",
+                    insertable = false, updatable = false)),
+            @AttributeOverride(name = "description", column = @Column(name = "description")),
+            @AttributeOverride(name = "filter", column = @Column(name = "filter"))
+    })
+    @Embedded
+    public REmbeddedReference getReference() {
+        return reference;
     }
 
-    @Enumerated(EnumType.ORDINAL)
-    public RContainerType getType() {
-        return type;
+    public void setTargetOid(String targetOid) {
+        getReference().setTargetOid(targetOid);
+        this.targetOid = targetOid;
     }
 
-    @Type(type = "org.hibernate.type.TextType")
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setType(RContainerType type) {
-        this.type = type;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
-    public void setTarget(RContainer target) {
-        this.target = target;
+    public void setReference(REmbeddedReference reference) {
+        Validate.notNull(reference, "Embedded reference must not be null.");
+        this.reference = reference;
+        this.targetOid = reference.getTargetOid();
     }
 
     public void setOwner(RContainer owner) {
@@ -167,14 +123,6 @@ public class RObjectReference implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public void setTargetId(Long targetId) {
-        this.targetId = targetId;
-    }
-
-    public void setTargetOid(String targetOid) {
-        this.targetOid = targetOid;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -182,66 +130,35 @@ public class RObjectReference implements Serializable {
 
         RObjectReference that = (RObjectReference) o;
 
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        if (filter != null ? !filter.equals(that.filter) : that.filter != null) return false;
-        if (getTargetId() != null ? !getTargetId().equals(that.getTargetId()) : that.getTargetId() != null)
-            return false;
-        if (getTargetOid() != null ? !getTargetOid().equals(that.getTargetOid()) : that.getTargetOid() != null)
-            return false;
-        if (type != that.type) return false;
+        if (reference != null ? !reference.equals(that.reference) : that.reference != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = description != null ? description.hashCode() : 0;
-        result = 31 * result + (filter != null ? filter.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        return result;
+        return reference != null ? reference.hashCode() : 0;
     }
 
     @Override
     public String toString() {
-        return "RObjectReference{" +
-                "targetOid='" + targetOid + '\'' +
-                ", ownerOid='" + ownerOid + '\'' +
-                '}';
+        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
     public static void copyToJAXB(RObjectReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        jaxb.setDescription(repo.getDescription());
-        jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
-        if (StringUtils.isNotEmpty(repo.getTargetOid())) {
-            jaxb.setOid(repo.getTargetOid());
-        }
-
-        String filter = repo.getFilter();
-        if (StringUtils.isNotEmpty(filter)) {
-            Element element = DOMUtil.parseDocument(filter).getDocumentElement();
-            ObjectReferenceType.Filter jaxbFilter = new ObjectReferenceType.Filter();
-            jaxbFilter.setFilter(element);
-            jaxb.setFilter(jaxbFilter);
-        }
+        REmbeddedReference.copyToJAXB(repo.getReference(), jaxb, prismContext);
     }
 
     public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReference repo, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setDescription(jaxb.getDescription());
-        repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-
-        repo.setTargetId(0L);
-        repo.setTargetOid(jaxb.getOid());
-
-        if (jaxb.getFilter() != null && jaxb.getFilter().getFilter() != null) {
-            ObjectReferenceType.Filter filter = jaxb.getFilter();
-            repo.setFilter(DOMUtil.printDom(filter.getFilter()).toString());
-        }
+        REmbeddedReference ref = new REmbeddedReference();
+        REmbeddedReference.copyFromJAXB(jaxb, ref, prismContext);
+        repo.setReference(ref);
     }
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {

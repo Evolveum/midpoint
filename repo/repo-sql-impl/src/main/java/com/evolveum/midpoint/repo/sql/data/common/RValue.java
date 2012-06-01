@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.annotations.Columns;
 
 import javax.persistence.*;
@@ -94,6 +96,11 @@ public abstract class RValue<T> {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
+    }
+
     @Transient
     public abstract T getValue();
 
@@ -107,22 +114,5 @@ public abstract class RValue<T> {
 
     public void setDynamic(boolean dynamic) {
         this.dynamic = dynamic;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(getClass().getSimpleName());
-        builder.append("[n=");
-        builder.append(name);
-        builder.append(",t=");
-        builder.append(type);
-        builder.append(",d=");
-        builder.append(dynamic);
-        builder.append(",type=");
-        builder.append(valueType);
-        builder.append("]");
-
-        return builder.toString();
     }
 }

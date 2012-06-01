@@ -206,6 +206,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             cleanupSessionAndResult(session, result);
         }
 
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Get object:\n{}", new Object[]{(objectType != null ? objectType.debugDump(3) : null)});
+        }
+
         return objectType;
     }
 

@@ -31,7 +31,6 @@ public class RObjectReferenceId implements Serializable {
     private String ownerOid;
     private Long ownerId;
     private String targetOid;
-    private Long targetId;
 
     public RObjectReferenceId() {
     }
@@ -39,7 +38,6 @@ public class RObjectReferenceId implements Serializable {
     public RObjectReferenceId(Long ownerId, String ownerOid, Long targetId, String targetOid) {
         this.ownerId = ownerId;
         this.ownerOid = ownerOid;
-        this.targetId = targetId;
         this.targetOid = targetOid;
     }
 
@@ -59,14 +57,6 @@ public class RObjectReferenceId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Long getTargetId() {
-        return targetId;
-    }
-
-    public void setTargetId(Long targetId) {
-        this.targetId = targetId;
-    }
-
     public String getTargetOid() {
         return targetOid;
     }
@@ -84,7 +74,6 @@ public class RObjectReferenceId implements Serializable {
 
         if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
-        if (targetId != null ? !targetId.equals(that.targetId) : that.targetId != null) return false;
         if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null) return false;
 
         return true;
@@ -95,12 +84,11 @@ public class RObjectReferenceId implements Serializable {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
         result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (targetOid != null ? targetOid.hashCode() : 0);
-        result = 31 * result + (targetId != null ? targetId.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "RObjectReferenceId[" + ownerOid + "," + ownerId + "," + targetOid + "," + targetId + ']';
+        return "RObjectReferenceId[" + ownerOid + "," + ownerId + "," + targetOid + ']';
     }
 }

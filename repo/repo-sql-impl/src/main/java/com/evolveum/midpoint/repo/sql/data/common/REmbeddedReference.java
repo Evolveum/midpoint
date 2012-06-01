@@ -27,11 +27,15 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.ForeignKey;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.annotations.Type;
 import org.w3c.dom.Element;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.io.Serializable;
 
 /**
@@ -41,43 +45,14 @@ import java.io.Serializable;
 public class REmbeddedReference implements Serializable {
 
     //target
-//    private RContainer target;
     private String targetOid;
-//    private Long targetId;
     //other fields
     private String description;
     private String filter;
     private RContainerType type;
 
-//    @ForeignKey(name = "none")
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumns({
-//            @JoinColumn(referencedColumnName = "oid"),
-//            @JoinColumn(referencedColumnName = "id")
-//    })
-//    public RContainer getTarget() {
-//        return target;
-//    }
-//
-//    @Column(insertable = true, updatable = true, nullable = true)
-//    public Long getTargetId() {
-//        if (targetId == null && target != null) {
-//            targetId = target.getId();
-//        }
-//        if (targetId == null) {
-//            targetId = 0L;
-//        }
-//        return targetId;
-//    }
-
     @Column(length = 36, insertable = true, updatable = true, nullable = true)
     public String getTargetOid() {
-//        if (targetOid == null && target != null) {
-//            targetOid = target.getOid();
-//        }
-//        if (targetOid == null) {
-//            targetOid = "";
-//        }
         return targetOid;
     }
 
@@ -104,14 +79,6 @@ public class REmbeddedReference implements Serializable {
         this.filter = filter;
     }
 
-//    public void setTarget(RContainer target) {
-//        this.target = target;
-//    }
-//
-//    public void setTargetId(Long targetId) {
-//        this.targetId = targetId;
-//    }
-
     public void setTargetOid(String targetOid) {
         this.targetOid = targetOid;
     }
@@ -129,9 +96,7 @@ public class REmbeddedReference implements Serializable {
 
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
         if (filter != null ? !filter.equals(that.filter) : that.filter != null) return false;
-//        if (getTargetId() != null ? !getTargetId().equals(that.getTargetId()) : that.getTargetId() != null)
-//            return false;
-        if (getTargetOid() != null ? !getTargetOid().equals(that.getTargetOid()) : that.getTargetOid() != null)
+        if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null)
             return false;
         if (type != that.type) return false;
 
@@ -140,11 +105,15 @@ public class REmbeddedReference implements Serializable {
 
     @Override
     public int hashCode() {
-//        int result = target != null ? target.hashCode() : 0;
         int result = description != null ? description.hashCode() : 0;
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
     public static void copyToJAXB(REmbeddedReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
@@ -173,7 +142,6 @@ public class REmbeddedReference implements Serializable {
         repo.setDescription(jaxb.getDescription());
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
 
-//        repo.setTargetId(0L);
         repo.setTargetOid(jaxb.getOid());
 
         if (jaxb.getFilter() != null && jaxb.getFilter().getFilter() != null) {

@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -80,6 +82,11 @@ public class RPolyString implements Serializable {
         int result = orig != null ? orig.hashCode() : 0;
         result = 31 * result + (norm != null ? norm.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
     public static RPolyString copyFromJAXB(PolyStringType string) {

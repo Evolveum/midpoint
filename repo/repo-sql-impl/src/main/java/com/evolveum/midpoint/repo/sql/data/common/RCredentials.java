@@ -28,6 +28,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
@@ -80,6 +82,11 @@ public class RCredentials {
         int result = password != null ? password.hashCode() : 0;
         result = 31 * result + (allowedIdmAdminGuiAccess != null ? allowedIdmAdminGuiAccess.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
     public static void copyToJAXB(RCredentials repo, CredentialsType jaxb, ObjectType parent, PropertyPath path,
