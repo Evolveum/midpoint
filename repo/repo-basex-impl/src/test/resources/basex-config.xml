@@ -45,9 +45,10 @@
             <scanClasspath>true</scanClasspath>
             <scanDirectory>/C:/tmp</scanDirectory>
             <scanDirectory>/var/tmp</scanDirectory>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
         </icf>
         <keystore>
-            <keyStorePath>test-keystore.jceks</keyStorePath>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
             <keyStorePassword>changeit</keyStorePassword>
             <encryptionKeyAlias>default</encryptionKeyAlias>
         </keystore>

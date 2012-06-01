@@ -61,22 +61,6 @@ public class ConfigurableProtectorFactory {
         if (!ClassPathUtil.extractFileFromClassPath("com/../../" + keyStoreName, protectorConfig.getKeyStorePath())) {
             ClassPathUtil.extractFileFromClassPath(keyStoreName, protectorConfig.getKeyStorePath());
         }
-
-//        File classPathKeystore = new File("com/../../", keyStoreName);
-//        //todo remove this stuff, or only test clause
-//        if (protectorConfig.getKeyStorePath().endsWith("keystore.jceks")) {
-//            //hack to try 2 class paths
-//            if (!ClassPathUtil.extractFileFromClassPath("com/../../keystore.jceks", protectorConfig.getKeyStorePath())) {
-//                ClassPathUtil.extractFileFromClassPath("keystore.jceks", protectorConfig.getKeyStorePath());
-//            }
-//        } else if (protectorConfig.getKeyStorePath().endsWith("test-keystore.jceks")) {
-//            if (!ClassPathUtil.extractFileFromClassPath("com/../../test-keystore.jceks", protectorConfig.getKeyStorePath())) {
-//                ClassPathUtil.extractFileFromClassPath("test-keystore.jceks", protectorConfig.getKeyStorePath());
-//            }
-//        } else {
-//            LOGGER.error("Unable to find/extract keystore file {} from classpath.",
-//                    new Object[]{protectorConfig.getKeyStorePath()});
-//        }
     }
 
     public Protector getProtector() {
