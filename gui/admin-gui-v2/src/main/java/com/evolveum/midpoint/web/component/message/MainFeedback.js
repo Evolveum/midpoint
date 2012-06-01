@@ -20,8 +20,8 @@
  */
 
 function initMessages() {
-	disableSelection($(".messages-details-bold"));
-	disableSelection($(".messages-topPanel"));
+	$(".messages-details-bold").disableTextSelection();
+	$(".messages-topPanel").disableTextSelection();
 	
 	
 	$("a").click(function(){
@@ -205,13 +205,17 @@ function initMessages() {
 	});
 }
 
-function disableSelection(target){
-	if (typeof target.attr("onselectstart") != "undefined"){ //For IE
-		target.attr("onselectstart", function(){return false;});
-	} else if (typeof target.css("MozUserSelect") != "undefined"){ //For Firefox
-		target.css("MozUserSelect", "none");
-	} else { //All other route (For Opera)
-		target.attr("onmousedown", function(){return false;});
-	}
-}
+jQuery.fn.disableTextSelection = function(){
+    return this.each(function(){
+        if (typeof this.onselectstart != "undefined") { // IE
+            this.onselectstart = function() { return false; };
+        }
+        else if (typeof this.style.MozUserSelect != "undefined") { // Firefox
+            this.style.MozUserSelect = "none";
+        }
+        else { // All others
+            this.onmousedown = function() { return false; };
+        }
+    });
+};
 
