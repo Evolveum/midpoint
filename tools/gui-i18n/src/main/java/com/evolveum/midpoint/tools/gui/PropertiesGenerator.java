@@ -23,7 +23,6 @@ package com.evolveum.midpoint.tools.gui;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.io.*;
@@ -69,7 +68,7 @@ public class PropertiesGenerator {
                 backupExistingAndSaveNewProperties(newProperties, locale);
             }
         } catch (Exception ex) {
-            System.out.println("Something went horribly wrong :)");
+            System.out.println("Something went horribly wrong...");
             ex.printStackTrace();
         }
 

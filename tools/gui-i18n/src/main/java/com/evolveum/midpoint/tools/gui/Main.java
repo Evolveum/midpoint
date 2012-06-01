@@ -29,16 +29,6 @@ import java.util.Locale;
  */
 public class Main {
 
-//    private String propertiesBaseName = "Messages";
-//    private String propertiesLocaleDelimiter = "_";
-//    private File targetFolder;
-//
-//    private File baseFolder;
-//
-//    private List<Locale> localesToCheck;
-//    private List<String> recursiveFolderToCheck;
-//    private List<String> nonRecursiveFolderToCheck;
-
     public static void main(String[] args) throws Exception {
         Options options = new Options();
 
@@ -73,31 +63,70 @@ public class Main {
             CommandLineParser parser = new GnuParser();
             CommandLine line = parser.parse(options, args);
             if (line.hasOption(help.getOpt())) {
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp("Main", options);
+                printHelp(options);
                 return;
             }
 
-            //todo create config from options...
+            if (!line.hasOption(recursiveFolderToCheck.getOpt())
+                    && !line.hasOption(nonRecursiveFolderToCheck.getOpt())) {
+                printHelp(options);
+                return;
+            }
+
             GeneratorConfiguration config = new GeneratorConfiguration();
-            config.setBaseFolder(new File("/home/lazyman/Work/evolveum/midpoint/trunk/gui/admin-gui-v2/src/main"));
-            config.getRecursiveFolderToCheck().add("/java/com/evolveum/midpoint/web");
-            config.getLocalesToCheck().add(new Locale("sk", "SK"));
-            config.getLocalesToCheck().add(new Locale("en", "US"));
-            config.setTargetFolder(new File("./tools/gui-i18n/src/main/java"));
+            if (line.hasOption(baseFolder.getOpt())) {
+                config.setBaseFolder(new File(line.getOptionValue(baseFolder.getOpt())));
+            }
+            if (line.hasOption(targetFolder.getOpt())) {
+                config.setTargetFolder(new File(line.getOptionValue(targetFolder.getOpt())));
+            }
+            if (line.hasOption(propertiesBaseName.getOpt())) {
+                config.setPropertiesBaseName(line.getOptionValue(propertiesBaseName.getOpt()));
+            }
+            if (line.hasOption(propertiesLocaleDelimiter.getOpt())) {
+                config.setPropertiesLocaleDelimiter(line.getOptionValue(propertiesLocaleDelimiter.getOpt()));
+            }
+            if (line.hasOption(recursiveFolderToCheck.getOpt())) {
+                String[] recursives = line.getOptionValues(recursiveFolderToCheck.getOpt());
+                if (recursives != null && recursives.length > 0) {
+                    for (String recursive : recursives) {
+                        config.getRecursiveFolderToCheck().add(recursive);
+                    }
+                }
+            }
+            if (line.hasOption(nonRecursiveFolderToCheck.getOpt())) {
+                String[] nonRecursives = line.getOptionValues(nonRecursiveFolderToCheck.getOpt());
+                if (nonRecursives != null && nonRecursives.length > 0) {
+                    for (String nonRecursive : nonRecursives) {
+                        config.getNonRecursiveFolderToCheck().add(nonRecursive);
+                    }
+                }
+            }
+
+            if (line.hasOption(localesToCheck.getOpt())) {
+                String[] locales = line.getOptionValues(localesToCheck.getOpt());
+                for (String locale : locales) {
+                    config.getLocalesToCheck().add(getLocaleFromString(locale));
+                }
+            }
 
             PropertiesGenerator generator = new PropertiesGenerator(config);
             generator.generate();
         } catch (ParseException ex) {
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("Main", options);
+            System.out.println("Error: " + ex.getMessage());
+            printHelp(options);
         } catch (Exception ex) {
             System.out.println("Something is broken.");
             ex.printStackTrace();
         }
     }
 
-    public static Locale getLocaleFromString(String localeString) {
+    private static void printHelp(Options options) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("Main", options);
+    }
+
+    private static Locale getLocaleFromString(String localeString) {
         if (localeString == null) {
             return null;
         }
