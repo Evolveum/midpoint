@@ -69,6 +69,7 @@ public abstract class RObject extends RContainer {
     }
 
     @Index(name = "iName")
+    @Column(name = "objectName")
     public String getName() {
         return name;
     }

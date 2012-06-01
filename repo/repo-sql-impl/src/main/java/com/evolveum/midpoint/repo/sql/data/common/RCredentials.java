@@ -52,7 +52,7 @@ public class RCredentials {
     }
 
     @Type(type = "org.hibernate.type.TextType")
-    @Column(nullable = true)
+    @Column(name = "passwordXml", nullable = true)
     public String getPassword() {
         return password;
     }

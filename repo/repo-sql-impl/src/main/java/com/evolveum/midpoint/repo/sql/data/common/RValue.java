@@ -100,7 +100,7 @@ public abstract class RValue<T> {
     /**
      * @return true if this property has dynamic definition
      */
-    @Column
+    @Column(name = "dynamicDef")
     public boolean isDynamic() {
         return dynamic;
     }
