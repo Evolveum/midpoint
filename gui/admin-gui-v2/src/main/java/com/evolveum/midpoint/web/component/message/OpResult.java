@@ -42,6 +42,7 @@ public class OpResult implements Serializable {
     private String operation;
     private String message;
     private List<Param> params;
+    private List<Context> contexts;
     private String exceptionMessage;
     private String exceptionsStackTrace;
     private List<OpResult> subresults;
@@ -74,6 +75,18 @@ public class OpResult implements Serializable {
                 }
 
                 getParams().add(new Param(entry.getKey(), paramValue));
+            }
+        }
+        
+        if(result.getContext() != null){
+        	for (Map.Entry<String, Object> entry : result.getContext().entrySet()) {
+                String contextValue = null;
+                Object value = entry.getValue();
+                if (value != null) {
+                	contextValue = value.toString();
+                }
+
+                getContexts().add(new Context(entry.getKey(), contextValue));
             }
         }
 
@@ -112,6 +125,13 @@ public class OpResult implements Serializable {
             params = new ArrayList<Param>();
         }
         return params;
+    }
+    
+    public List<Context> getContexts() {
+        if (contexts == null) {
+        	contexts = new ArrayList<Context>();
+        }
+        return contexts;
     }
 
     public OperationResultStatus getStatus() {

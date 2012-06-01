@@ -25,7 +25,13 @@
     <div wicket:id="content" class="messages-content">
 		<ul class="messages-topException">
 		    <li>
-		        <span wicket:id="operation" class="message-info"/>
+		    	<div wicket:id="operationPanel" class="message-info">
+			    	<span wicket:id="operation"/>
+			    	<span wicket:id="countPanel">
+			    		&nbsp;(<span wicket:id="count"/>&nbsp;
+			    		<wicket:message key="operationResultPanel.times"/>)
+			    	</span>
+			    </div>
 		    </li>
 		    <li wicket:id="params">
 		        <span class="message-info">
@@ -33,12 +39,18 @@
 		            <span wicket:id="paramName"/>:&nbsp;<span wicket:id="paramValue"/>
 		        </span>
 		    </li>
-            <li wicket:id="countLi">
+		    <li wicket:id="contexts">
+                <span class="message-info">
+                    <u><wicket:message key="feedbackMessagePanel.context"/></u>
+                    <span wicket:id="contextName"/>:&nbsp;<span wicket:id="contextValue"/>
+                </span>
+            </li>
+<!--             <li wicket:id="countLi">
                 <span class="message-info">
                     <u><wicket:message key="feedbackMessagePanel.count"/></u>
                     <span wicket:id="count"/>
                 </span>
-            </li>
+            </li> -->
 		    <li wicket:id="exception">
 		        <span class="message-info">
 		            <u><wicket:message key="feedbackMessagePanel.cause"/></u>

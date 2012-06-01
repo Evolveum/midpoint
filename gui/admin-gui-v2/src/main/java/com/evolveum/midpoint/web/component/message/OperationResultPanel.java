@@ -83,6 +83,7 @@ public class OperationResultPanel extends Panel {
         operationContent.add(new Label("message", new PropertyModel<String>(model, "message")));
 
         initParams(operationContent, model);
+        initContexts(operationContent, model);
         //initCount(operationContent, model);
         initExceptionLayout(operationContent, model);
 
@@ -137,6 +138,18 @@ public class OperationResultPanel extends Panel {
             }
         };
         operationContent.add(params);
+    }
+    
+    private void initContexts(WebMarkupContainer operationContent, final IModel<OpResult> model) {
+        ListView<Context> contexts = new ListView<Context>("contexts",
+                createContextsModel(model)) {
+			@Override
+			protected void populateItem(ListItem<Context> item) {
+				item.add(new Label("contextName", new PropertyModel<Object>(item.getModel(), "name")));
+                item.add(new Label("contextValue", new PropertyModel<Object>(item.getModel(), "value")));
+			}
+        };
+        operationContent.add(contexts);
     }
 
     private void initExceptionLayout(WebMarkupContainer operationContent, final IModel<OpResult> model) {
@@ -198,6 +211,17 @@ public class OperationResultPanel extends Panel {
             protected List<Param> load() {
                 OpResult result = model.getObject();
                 return result.getParams();
+            }
+        };
+    }
+    
+    static IModel<List<Context>> createContextsModel(final IModel<OpResult> model) {
+        return new LoadableModel<List<Context>>(false) {
+
+            @Override
+            protected List<Context> load() {
+                OpResult result = model.getObject();
+                return result.getContexts();
             }
         };
     }

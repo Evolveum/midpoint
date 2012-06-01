@@ -93,8 +93,11 @@ public class FeedbackMessagePanel extends Panel {
         }
         content.setMarkupId(label.getMarkupId() + "_content");
         add(content);
-
-        content.add(new Label("operation", new LoadableModel<String>() {
+        
+        WebMarkupContainer operationPanel = new WebMarkupContainer("operationPanel");
+        content.add(operationPanel);
+        
+        operationPanel.add(new Label("operation", new LoadableModel<String>() {
 
             @Override
             protected String load() {
@@ -104,6 +107,18 @@ public class FeedbackMessagePanel extends Panel {
                 return getPage().getString(resourceKey, null, resourceKey);
             }
         }));
+        
+        WebMarkupContainer countPanel = new WebMarkupContainer("countPanel");
+    	countPanel.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                OpResult result = (OpResult) message.getObject().getMessage();
+                return result.getCount() > 1;
+            }
+        });
+    	countPanel.add(new Label("count", new PropertyModel<String>(message, "message.count")));
+        operationPanel.add(countPanel);
 
         ListView<Param> params = new ListView<Param>("params",
                 OperationResultPanel.createParamsModel(new PropertyModel<OpResult>(message, "message"))) {
@@ -115,8 +130,18 @@ public class FeedbackMessagePanel extends Panel {
             }
         };
         content.add(params);
+        
+        ListView<Context> contexts = new ListView<Context>("contexts",
+       		 OperationResultPanel.createContextsModel(new PropertyModel<OpResult>(message, "message"))) {
+			@Override
+			protected void populateItem(ListItem<Context> item) {
+				item.add(new Label("contextName", new PropertyModel<Object>(item.getModel(), "name")));
+               item.add(new Label("contextValue", new PropertyModel<Object>(item.getModel(), "value")));
+			}
+       };
+       content.add(contexts);
 
-        WebMarkupContainer countLi = new WebMarkupContainer("countLi");
+        /*WebMarkupContainer countLi = new WebMarkupContainer("countLi");
         countLi.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -126,7 +151,7 @@ public class FeedbackMessagePanel extends Panel {
             }
         });
         content.add(countLi);
-        countLi.add(new Label("count", new PropertyModel<String>(message, "message.count")));
+        countLi.add(new Label("count", new PropertyModel<String>(message, "message.count")));*/
 
         initExceptionLayout(content, message);
     }
