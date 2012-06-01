@@ -20,6 +20,10 @@
  */
 
 function initMessages() {
+	disableSelection($(".messages-details-bold"));
+	disableSelection($(".messages-topPanel"));
+	
+	
 	$("a").click(function(){
 		$(".messagesTop").remove();
 	});
@@ -199,5 +203,15 @@ function initMessages() {
 		}
 		$(this).text(text);
 	});
+}
+
+function disableSelection(target){
+	if (typeof target.attr("onselectstart") != "undefined"){ //For IE
+		target.attr("onselectstart", function(){return false;});
+	} else if (typeof target.css("MozUserSelect") != "undefined"){ //For Firefox
+		target.css("MozUserSelect", "none");
+	} else { //All other route (For Opera)
+		target.attr("onmousedown", function(){return false;});
+	}
 }
 
