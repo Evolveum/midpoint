@@ -317,6 +317,11 @@ public class PageUser extends PageAdminUsers {
                         reference.getOid(), resolve, task, subResult);
                 AccountShadowType accountType = account.asObjectable();
 
+                OperationResultType fetchResult = accountType.getFetchResult();
+                if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
+                    showResult(OperationResult.createOperationResult(fetchResult));
+                }
+
                 String resourceName = null;
                 ResourceType resource = accountType.getResource();
                 if (resource != null && StringUtils.isNotEmpty(resource.getName())) {
