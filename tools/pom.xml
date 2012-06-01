@@ -54,5 +54,6 @@
     <modules>
         <module>test-ng</module>
         <module>xjc-plugin</module>
+        <module>gui-i18n</module>
     </modules>
 </project>
