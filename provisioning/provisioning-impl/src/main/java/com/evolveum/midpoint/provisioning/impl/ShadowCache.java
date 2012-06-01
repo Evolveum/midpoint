@@ -424,16 +424,16 @@ public class ShadowCache {
 				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid,
 						modifications, parentResult);
 			} catch (Exception ex) {
-//				ErrorHandler handler = null;
-				//TODO: UGLY UGLY HACK
-//				if (shadow.getFailedOperationType() != null && FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-//					handler = errorHandlerFactory.createErrorHandler(new CommunicationException(ex));
-//				}
-//				if (handler == null){
+
 				ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
-//				}
+
+				if (shadow.getFailedOperationType() != null && FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
+					shadow.setFailedOperationType(FailedOperationTypeType.ADD);
+				} else{
+					shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
+				}
 				
-				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
+				
 				shadow.setResult(parentResult.createOperationResultType());
 				shadow.setResource(resource);
 				
@@ -447,6 +447,7 @@ public class ShadowCache {
 					handler.handleError(shadow, ex);
 				} catch (ObjectAlreadyExistsException e) {
 				}
+				parentResult.recordSuccess();
 				return;
 			}
 

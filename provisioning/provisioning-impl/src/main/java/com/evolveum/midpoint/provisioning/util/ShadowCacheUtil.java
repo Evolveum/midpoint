@@ -173,6 +173,13 @@ public class ShadowCacheUtil {
 		if (shadow.getResult() != null) {
 			shadow.setResult(null);
 		}
+		
+		if (shadow instanceof AccountShadowType){
+			if (((AccountShadowType) shadow).getCredentials() != null){
+				((AccountShadowType)shadow).setCredentials(null);
+			}
+		}
+		
 		ResourceAttributeContainer normalizedContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(shadow);
 		ResourceAttributeContainer oldContainer = normalizedContainer.clone();

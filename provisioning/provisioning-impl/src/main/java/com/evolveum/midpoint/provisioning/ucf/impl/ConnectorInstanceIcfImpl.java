@@ -909,6 +909,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addParam("changes", changes);
 
 		ObjectClass objClass = objectClassToIcf(objectClass);
+		
 		Uid uid = getUid(identifiers);
 		String originalUid = uid.getUidValue();
 

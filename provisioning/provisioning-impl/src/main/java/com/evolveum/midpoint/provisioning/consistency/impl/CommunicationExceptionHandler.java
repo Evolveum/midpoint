@@ -88,6 +88,12 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			// getCacheRepositoryService().addObject(shadow.asPrismObject(),
 			// operationResult);
 			// shadow.setOid(oid);
+			if (shadow.getObjectChange() != null && shadow.getOid()!= null) {
+				Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(shadow
+						.getObjectChange().getModification(), shadow.asPrismObject().getDefinition());
+				
+				cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), deltas, operationResult);
+			}
 
 		} else {
 			// if the failed operation was modify, we to store the changes, that
@@ -96,7 +102,17 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 			// storing operation result to the account which failed to be
 			// modified
-			if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()) {
+			if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()
+					|| FailedOperationTypeType.ADD_AND_MODIFY == shadow.getFailedOperationType()) {
+
+				AccountShadowType repoShadow = getCacheRepositoryService().getObject(AccountShadowType.class,
+						shadow.getOid(), operationResult).asObjectable();
+				if (repoShadow.getFailedOperationType() != null) {
+					if (FailedOperationTypeType.ADD == repoShadow.getFailedOperationType()) {
+						shadow.setFailedOperationType(FailedOperationTypeType.ADD_AND_MODIFY);
+					}
+				}
+
 				List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 
 				PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
@@ -104,7 +120,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				modifications.add(propertyDelta);
 
 				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-						ResourceObjectShadowType.F_FAILED_OPERATION_TYPE, FailedOperationTypeType.MODIFY);
+						ResourceObjectShadowType.F_FAILED_OPERATION_TYPE, shadow.getFailedOperationType());
 				modifications.add(propertyDelta);
 
 				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
@@ -115,39 +131,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 						ResourceObjectShadowType.F_ATTEMPT_NUMBER, 0);
 				modifications.add(propertyDelta);
 
-				// ObjectModificationType shadowModification =
-				// ObjectTypeUtil.createModificationReplaceProperty(
-				// shadow.getOid(), SchemaConstants.C_RESULT,
-				// shadow.getResult());
-				//
-				// // storing failed operation type
-				// ItemDeltaType propertyModification =
-				// ObjectTypeUtil.createPropertyModificationType(
-				// ModificationTypeType.REPLACE, null,
-				// SchemaConstants.C_FAILED_OPERATION_TYPE,
-				// FailedOperationTypeType.MODIFY);
-				// shadowModification.getModification().add(propertyModification);
-				//
-				// propertyModification =
-				// ObjectTypeUtil.createPropertyModificationType(
-				// ModificationTypeType.REPLACE, null, new
-				// QName(SchemaConstants.NS_C, "objectChange"),
-				// shadow.getObjectChange());
-				// shadowModification.getModification().add(propertyModification);
-				//
-				// propertyModification =
-				// ObjectTypeUtil.createPropertyModificationType(
-				// ModificationTypeType.REPLACE, null,
-				// AccountShadowType.F_ATTEMPT_NUMBER, 0);
-				// shadowModification.getModification().add(propertyModification);
-				//
-				// Collection<? extends ItemDelta> modifications =
-				// DeltaConvertor.toModifications(
-				// shadowModification, shadow.asPrismObject().getDefinition());
-
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(),
 						modifications, operationResult);
-			} else {
+			} else if (FailedOperationTypeType.DELETE == shadow.getFailedOperationType()) {
 				// this is the case when the deletion of account failed..in this
 				// case, we need to sign the account with the tombstone and
 				// delete it later
@@ -165,25 +151,12 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
 						ResourceObjectShadowType.F_ATTEMPT_NUMBER, 0);
 				modifications.add(propertyDelta);
-//				ObjectModificationType shadowModification = ObjectTypeUtil.createModificationReplaceProperty(
-//						shadow.getOid(), SchemaConstants.C_RESULT, shadow.getResult());
 
-//				ItemDeltaType propertyModification = ObjectTypeUtil.createPropertyModificationType(
-//						ModificationTypeType.REPLACE, null, SchemaConstants.C_FAILED_OPERATION_TYPE,
-//						FailedOperationTypeType.DELETE);
-//				shadowModification.getModification().add(propertyModification);
-//
-//				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-//						shadowModification, shadow.asPrismObject().getDefinition());
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(),
 						modifications, operationResult);
 
 			}
 		}
-
-		// throw new
-		// CommunicationException("Error communication with the connector while processing shadow "
-		// + ObjectTypeUtil.toShortString(shadow), ex);
 
 	}
 }

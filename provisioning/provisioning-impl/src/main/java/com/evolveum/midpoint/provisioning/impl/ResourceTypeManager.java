@@ -231,11 +231,15 @@ public class ResourceTypeManager {
 		}
 
 		try {
+			
 			addNativeCapabilities(newResource, connector, result);
 		} catch (CommunicationException ex) {
-			result.recordPartialError("Cannot add native capabilities to resource object because the end resource is unreachable. Resource object returned without native capabilities.");
+//			result.recordPartialError("Cannot add native capabilities to resource object because the end resource is unreachable. Resource object returned without native capabilities. Exception: "+ex.getMessage(), ex);
+			OperationResult capabilityResult = new OperationResult(ResourceTypeManager.class.getName() +".addNativeCapabilities()");
+			newResource.setFetchResult(capabilityResult.createOperationResultType());	
 		}
-
+		
+		result.recordSuccess();
 		return newResource;
 	}
 

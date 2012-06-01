@@ -220,13 +220,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
 				throw e;
 			} catch (CommunicationException e) {
-				logFatalError(LOGGER, result,
+				logPartialError(LOGGER, result,
 						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
 				// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid,
 				// e);
 				// result.recordFatalError(e);
 
-				throw e;
+//				throw e;
+				shadow.setFetchResult(result.createOperationResultType());
+				return shadow.asPrismObject();
 			} catch (SchemaException e) {
 				logFatalError(LOGGER, result,
 						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
@@ -281,6 +283,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private void logFatalError(Trace logger, OperationResult opResult, String message, Exception ex) {
 		logger.error(message, ex);
 		opResult.recordFatalError(message, ex);
+	}
+	private void logPartialError(Trace logger, OperationResult opResult, String message, Exception ex) {
+		logger.error(message, ex);
+		opResult.recordPartialError(message, ex);
 	}
 
 	@Override

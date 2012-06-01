@@ -129,6 +129,10 @@ public class ShadowConverter {
 				.getIdentifiers(repoShadow);
 
 		if (identifiers == null || identifiers.isEmpty()) {
+			//check if the account is not only partially created (exist only in repo so far)
+			if (repoShadow.getFailedOperationType()!= null){
+				throw new CommunicationException("Error communicating with connector");
+			}
 			// No identifiers found
 			SchemaException ex = new SchemaException("No identifiers found in the respository shadow "
 					+ ObjectTypeUtil.toShortString(repoShadow) + " with respect to resource "
@@ -402,6 +406,11 @@ public class ShadowConverter {
 								SchemaDebugUtil.debugDump(identifiers), SchemaDebugUtil.debugDump(operations) });
 			}
 
+			//check idetifier if it is not null
+			if (identifiers.isEmpty() && shadow.getFailedOperationType()!= null){
+				throw new CommunicationException("Error communicating with connector");
+			}
+			
 			// Invoke ICF
 			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations,
 					parentResult);
