@@ -102,16 +102,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 			// storing operation result to the account which failed to be
 			// modified
-			if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()
-					|| FailedOperationTypeType.ADD_AND_MODIFY == shadow.getFailedOperationType()) {
+			if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()) {
 
-				AccountShadowType repoShadow = getCacheRepositoryService().getObject(AccountShadowType.class,
-						shadow.getOid(), operationResult).asObjectable();
-				if (repoShadow.getFailedOperationType() != null) {
-					if (FailedOperationTypeType.ADD == repoShadow.getFailedOperationType()) {
-						shadow.setFailedOperationType(FailedOperationTypeType.ADD_AND_MODIFY);
-					}
-				}
+				
 
 				List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 
