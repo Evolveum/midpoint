@@ -161,7 +161,7 @@ public abstract class PageBase extends WebPage {
         return createStringResource(resourceKey);
     }
 
-    protected Task createSimpleTask(String operation) {
+    public Task createSimpleTask(String operation) {
         TaskManager manager = getTaskManager();
         Task task = manager.createTaskInstance(operation);
 

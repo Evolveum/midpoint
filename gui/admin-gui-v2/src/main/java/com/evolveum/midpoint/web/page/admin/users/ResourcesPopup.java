@@ -70,8 +70,6 @@ public class ResourcesPopup extends Panel {
         columns.add(column);
 
         columns.add(new PropertyColumn(new StringResourceModel("resourcePopup.name", this, null), "value.name"));
-//        columns.add(new PropertyColumn(new StringResourceModel("resourcePopup.bundle", this, null), "bundle"));
-//        columns.add(new PropertyColumn(new StringResourceModel("resourcePopup.version", this, null), "version"));
 
         return columns;
     }

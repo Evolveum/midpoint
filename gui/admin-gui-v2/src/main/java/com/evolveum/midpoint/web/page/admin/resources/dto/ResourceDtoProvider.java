@@ -70,7 +70,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
             }
 
             PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
-            Task task = getTaskManager().createTaskInstance(OPERATION_LIST_RESOURCES);
+            Task task = getPage().createSimpleTask(OPERATION_LIST_RESOURCES);
             List<PrismObject<ResourceType>> resources = getModel().searchObjects(ResourceType.class, getQuery(),
                     paging, task, result);
 
@@ -111,7 +111,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
         OperationResult result = new OperationResult(OPERATION_COUNT_RESOURCES);
         int count = 0;
         try {
-            Task task = getTaskManager().createTaskInstance(OPERATION_COUNT_RESOURCES);
+            Task task = getPage().createSimpleTask(OPERATION_COUNT_RESOURCES);
             count = getModel().countObjects(ResourceType.class, getQuery(), task, result);
 
             result.recordSuccess();

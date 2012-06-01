@@ -54,8 +54,7 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
         OperationResult result = new OperationResult(OPERATION_LIST_RESOURCES);
         try {
             PagingType paging = createPaging(first, count);
-            TaskManager manager = getTaskManager();
-            Task task = manager.createTaskInstance(OPERATION_LIST_RESOURCES);
+            Task task = getPage().createSimpleTask(OPERATION_LIST_RESOURCES);
 
             List<PrismObject<ResourceType>> list = getModel().searchObjects(ResourceType.class,
                     getQuery(), paging, task, result);
@@ -80,8 +79,7 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_RESOURCES);
         try {
-            TaskManager manager = getTaskManager();
-            Task task = manager.createTaskInstance(OPERATION_COUNT_RESOURCES);
+            Task task = getPage().createSimpleTask(OPERATION_COUNT_RESOURCES);
             count = getModel().countObjects(ResourceType.class, getQuery(), task, result);
 
             result.recordSuccess();

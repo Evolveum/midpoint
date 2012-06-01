@@ -24,7 +24,6 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -66,8 +65,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
             PagingType paging = createPaging(first, count);
-            TaskManager manager = getTaskManager();
-            Task task = manager.createTaskInstance(OPERATION_SEARCH_OBJECTS);
+            Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
 
             List<PrismObject<T>> list = getModel().searchObjects(type, getQuery(), paging, task, result);
             for (PrismObject<T> object : list) {
@@ -94,8 +92,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-            TaskManager manager = getTaskManager();
-            Task task = manager.createTaskInstance(OPERATION_COUNT_OBJECTS);
+            Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             count = getModel().countObjects(type, getQuery(), task, result);
 
             result.recordSuccess();
