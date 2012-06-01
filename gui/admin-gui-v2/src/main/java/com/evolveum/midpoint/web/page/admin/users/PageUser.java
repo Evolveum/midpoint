@@ -48,10 +48,7 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.*;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.MiscUtil;
@@ -624,7 +621,9 @@ public class PageUser extends PageAdminUsers {
 
     private void initResourceModal() {
         ModalWindow window = createModalWindow(MODAL_ID_RESOURCE, createStringResource("pageUser.title.selectResource"));
-        window.setContent(new ResourcesPopup(window.getContentId(), this) {
+
+        SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel);
+        window.setContent(new ResourcesPopup(window.getContentId(), provider) {
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {

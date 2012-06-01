@@ -25,7 +25,6 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -40,15 +39,15 @@ import java.util.List;
 
 public class ResourcesPopup extends Panel {
 
-    public ResourcesPopup(String id, PageBase page) {
+    public ResourcesPopup(String id, SimpleUserResourceProvider provider) {
         super(id);
 
-        initLayout(page);
+        initLayout(provider);
     }
 
-    private void initLayout(PageBase page) {
+    private void initLayout(SimpleUserResourceProvider provider) {
         TablePanel resources = new TablePanel<ResourceDto>("table",
-                new SimpleUserResourceProvider(page), initResourceColumns());
+                provider, initResourceColumns());
         resources.setOutputMarkupId(true);
         add(resources);
 
