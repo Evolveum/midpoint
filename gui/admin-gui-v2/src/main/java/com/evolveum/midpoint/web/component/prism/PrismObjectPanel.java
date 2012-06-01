@@ -61,15 +61,18 @@ public class PrismObjectPanel extends Panel {
         response.renderCSSReference(new PackageResourceReference(PrismObjectPanel.class, "PrismObjectPanel.css"));
     }
 
-    private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
-        WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
-        headerPanel.add(new AjaxEventBehavior("onClick") {
+    private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<ObjectWrapper> model) {
+        return new AjaxEventBehavior("onClick") {
 
             @Override
             protected void onEvent(AjaxRequestTarget target) {
                 headerOnClickPerformed(target, model);
             }
-        });
+        };
+    }
+
+    private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
+        WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
         add(headerPanel);
         headerPanel.add(new VisibleEnableBehaviour() {
 
@@ -78,10 +81,15 @@ public class PrismObjectPanel extends Panel {
                 return isShowHeader();
             }
         });
-        headerPanel.add(new Label("header", createDisplayName(model)));
-        headerPanel.add(new Label("description", createDescription(model)));
+        Label header = new Label("header", createDisplayName(model));
+        header.add(createHeaderOnClickBehaviour(model));
+        headerPanel.add(header);
+        Label description = new Label("description", createDescription(model));
+        description.add(createHeaderOnClickBehaviour(model));
+        headerPanel.add(description);
 
         Image headerImg = new Image("headerImg", image);
+        headerImg.add(createHeaderOnClickBehaviour(model));
         headerPanel.add(headerImg);
 
         initButtons(headerPanel, model);
