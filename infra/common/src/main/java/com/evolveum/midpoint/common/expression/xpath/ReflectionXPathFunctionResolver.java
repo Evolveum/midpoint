@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.common.expression.xpath;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -55,13 +56,31 @@ public class ReflectionXPathFunctionResolver implements XPathFunctionResolver {
 			return null;
 		}
 		String functionName = functionQName.getLocalPart();
-		final Method method = MiscUtil.findMethod(functionLibrary, functionName, arity);
+		Method method = MiscUtil.findMethod(functionLibrary, functionName, arity);
+		boolean isVarArg = false;
+		if (method == null) {
+			method = MiscUtil.findVarArgsMethod(functionLibrary, functionName);
+			if (method == null) {
+				return null;
+			}
+			isVarArg = true;
+		}
+		final Method finalMethod = method;
+		final boolean finalIsVarArg = isVarArg; 
 		XPathFunction xPathFunction = new XPathFunction() {
 			@Override
 			public Object evaluate(List argList) throws XPathFunctionException {
 				Object[] args = argList.toArray();
+				if (finalIsVarArg) {
+					Class<?> parameterTypeClass = finalMethod.getParameterTypes()[0];
+					Object[] varArgs = (Object[]) Array.newInstance(parameterTypeClass.getComponentType(), args.length);
+					for (int i = 0; i < args.length; i++) {
+						varArgs[i] = args[i];
+					}
+					args = new Object[] { varArgs };
+				}
 				try {
-					return method.invoke(functionLibrary, args);
+					return finalMethod.invoke(functionLibrary, args);
 				} catch (IllegalArgumentException e) {
 					throw new XPathFunctionException(e);
 				} catch (IllegalAccessException e) {

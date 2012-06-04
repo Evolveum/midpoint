@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
@@ -31,6 +33,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
  */
 public class MidPointFunctions {
 	
+	public static final String NAME_SEPARATOR = " ";
+	
 	private PrismContext prismContext;
 
 	public MidPointFunctions(PrismContext prismContext) {
@@ -38,6 +42,49 @@ public class MidPointFunctions {
 		this.prismContext = prismContext;
 	}
 	
+	/**
+	 * Convert string to lower case.
+	 */
+	public static String lc(String orig) {
+		return StringUtils.lowerCase(orig);
+	}
+
+	/**
+	 * Convert string to upper case.
+	 */
+	public static String uc(String orig) {
+		return StringUtils.upperCase(orig);
+	}
+	
+	/**
+	 * Remove whitespaces at the beginning and at the end of the string.
+	 */
+	public static String trim(String orig) {
+		return StringUtils.trim(orig);
+	}
+
+	/**
+	 * Concatenates the arguments to create a name.
+	 * Each argument is trimmed and the result is concatenated by spaces.
+	 */
+	public String concatName(String... components) {
+		if (components == null || components.length == 0) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < components.length; i++) {
+			String component = components[i];
+			if (component == null) {
+				continue;
+			}
+			sb.append(trim(component));
+			if (i < (components.length - 1)) {
+				sb.append(NAME_SEPARATOR);
+			}
+		}
+		return sb.toString();
+	}
+
 	/**
 	 * Normalize a string value. It follows the default normalization algorithm
 	 * used for PolyString values.

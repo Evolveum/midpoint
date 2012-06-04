@@ -165,7 +165,17 @@ public class MiscUtil {
 	public static Method findMethod(Object object, String methodName, int arity) {
 		for (Method method: object.getClass().getMethods()) {
 			if (method.getName().equals(methodName) &&
-					method.getParameterTypes().length == arity) {
+					method.getParameterTypes().length == arity &&
+					!method.isVarArgs()) {
+				return method;
+			}
+		}
+		return null;
+	}
+	
+	public static Method findVarArgsMethod(Object object, String methodName) {
+		for (Method method: object.getClass().getMethods()) {
+			if (method.getName().equals(methodName) && method.isVarArgs()) {
 				return method;
 			}
 		}

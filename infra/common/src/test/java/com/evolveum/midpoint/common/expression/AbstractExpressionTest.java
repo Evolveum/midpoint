@@ -251,6 +251,24 @@ public abstract class AbstractExpressionTest {
         // THEN
         assertEquals("gulocka v jamocke", result.getValue());
     }
+	
+	@Test
+    public void testExpressionFuncConcatName() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
+		displayTestTitle("testExpressionFuncConcatName");
+        // GIVEN
+        JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
+                new File(getTestDir(), "expression-func-concatname.xml"), ExpressionType.class);
+        ExpressionType expressionType = expressionTypeElement.getValue();
+
+        OperationResult opResult = new OperationResult("testExpressionFuncConcatName");
+
+        // WHEN
+        Expression expression = factory.createExpression(expressionType, "func concatname thing");
+        PrismPropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
+
+        // THEN
+        assertEquals("Horatio Torquemada Marley", result.getValue());
+    }
 
     
 	private void displayTestTitle(String testName) {
