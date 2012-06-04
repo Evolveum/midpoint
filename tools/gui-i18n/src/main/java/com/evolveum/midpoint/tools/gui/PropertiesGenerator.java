@@ -45,7 +45,7 @@ public class PropertiesGenerator {
     public void generate() {
         long time = System.currentTimeMillis();
         System.out.println("Starting...");
-
+        //todo fix page.title key!!!!
         try {
             System.out.println("Checking new properties.");
             Properties newProperties = loadNewProperties();
@@ -59,6 +59,7 @@ public class PropertiesGenerator {
                 Set<Object> keySet = existingProperties.keySet();
                 for (Object key : keySet) {
                     if (!newProperties.containsKey(key)) {
+                        newProperties.setProperty("#" + (String) key, (String) existingProperties.get(key));
                         continue;
                     }
 
