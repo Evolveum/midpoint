@@ -298,9 +298,15 @@ public class ObjectWrapper implements Serializable {
                         case NOT_CHANGED:
                             //this is modify...
                             if (propertyDef.isSingleValue()) {
-                                pDelta.setValuesToReplace(Arrays.asList(val));
+                                if (val.getValue() != null) {
+                                    pDelta.setValuesToReplace(Arrays.asList(val));
+                                } else {
+                                    pDelta.addValueToDelete(valueWrapper.getOldValue());
+                                }
                             } else {
-                                pDelta.addValueToAdd(val);
+                                if (val.getValue() != null) {
+                                    pDelta.addValueToAdd(val);
+                                }
                                 pDelta.addValueToDelete(valueWrapper.getOldValue());
                             }
                             break;
