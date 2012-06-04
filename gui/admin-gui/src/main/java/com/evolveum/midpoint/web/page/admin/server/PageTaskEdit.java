@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -48,43 +49,26 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DiffUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TsaValidator;
-import com.evolveum.midpoint.web.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
 
 /**
@@ -178,7 +162,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			public void setObject(ThreadStopActionType object) {
 				model.getObject().setThreadStop(object);
 			}
-		}, MiscUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
+		}, WebMiscUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
 				new EnumChoiceRenderer<ThreadStopActionType>(PageTaskEdit.this));
 		threadStop.add(new VisibleEnableBehaviour() {
 			@Override
@@ -381,7 +365,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		mainForm.add(notStartAfter);
 
 		DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(
-				model, "misfireAction"), MiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
+				model, "misfireAction"), WebMiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
 				new EnumChoiceRenderer<MisfireActionType>(PageTaskEdit.this));
 		misfire.add(new VisibleEnableBehaviour() {
 

@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.util.MiscUtil;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -59,7 +59,7 @@ public class DatePanel extends InputPanel {
                 if (calendar == null) {
                     return null;
                 }
-                return MiscUtil.asDate(calendar);
+                return WebMiscUtil.asDate(calendar);
             }
 
             @Override
@@ -67,7 +67,7 @@ public class DatePanel extends InputPanel {
                 if (object == null) {
                     model.setObject(null);
                 } else {
-                    model.setObject(MiscUtil.asXMLGregorianCalendar(object));
+                    model.setObject(WebMiscUtil.asXMLGregorianCalendar(object));
                 }
             }
         };

@@ -35,7 +35,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public final class MiscUtil {
+public final class WebMiscUtil {
 
     private static DatatypeFactory df = null;
 
@@ -47,7 +47,7 @@ public final class MiscUtil {
         }
     }
 
-    private MiscUtil() {
+    private WebMiscUtil() {
     }
 
     /**

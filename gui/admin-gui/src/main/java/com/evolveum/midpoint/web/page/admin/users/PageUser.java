@@ -51,7 +51,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.*;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.util.MiscUtil;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -380,7 +380,7 @@ public class PageUser extends PageAdminUsers {
                 }
 
                 if (target != null) {
-                    name = MiscUtil.getName(target);
+                    name = WebMiscUtil.getName(target);
                 }
 
                 if (target != null && RoleType.class.isAssignableFrom(target.getCompileTimeClass())) {
@@ -447,14 +447,14 @@ public class PageUser extends PageAdminUsers {
 
                         if (activation.getValidFrom() != null && activation.getValidTo() != null) {
                             return PageUser.this.getString("pageUser.assignment.activation.enabledFromTo",
-                                    strEnabled, MiscUtil.asDate(activation.getValidFrom()),
-                                    MiscUtil.asDate(activation.getValidTo()));
+                                    strEnabled, WebMiscUtil.asDate(activation.getValidFrom()),
+                                    WebMiscUtil.asDate(activation.getValidTo()));
                         } else if (activation.getValidFrom() != null) {
                             return PageUser.this.getString("pageUser.assignment.activation.enabledFrom",
-                                    strEnabled, MiscUtil.asDate(activation.getValidFrom()));
+                                    strEnabled, WebMiscUtil.asDate(activation.getValidFrom()));
                         } else if (activation.getValidTo() != null) {
                             return PageUser.this.getString("pageUser.assignment.activation.enabledTo",
-                                    strEnabled, MiscUtil.asDate(activation.getValidTo()));
+                                    strEnabled, WebMiscUtil.asDate(activation.getValidTo()));
                         }
 
                         return "-";

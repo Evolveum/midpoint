@@ -25,17 +25,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.util.MiscUtil;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
 
 import org.apache.commons.lang.Validate;
@@ -97,8 +94,8 @@ public class TaskDto extends Selectable {
             } else {
             	misfireAction = task.getSchedule().getMisfireAction();
             }
-            notStartBefore = MiscUtil.asDate(task.getSchedule().getEarliestStartTime());
-            notStartAfter = MiscUtil.asDate(task.getSchedule().getLatestStartTime());
+            notStartBefore = WebMiscUtil.asDate(task.getSchedule().getEarliestStartTime());
+            notStartAfter = WebMiscUtil.asDate(task.getSchedule().getLatestStartTime());
         }
         
         if(task.getThreadStopAction() == null){

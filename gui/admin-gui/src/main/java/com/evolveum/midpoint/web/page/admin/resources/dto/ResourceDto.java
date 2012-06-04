@@ -25,21 +25,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.RestartResponseException;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
@@ -68,7 +63,7 @@ public class ResourceDto extends Selectable {
     
     public ResourceDto(PrismObject<ResourceType> resource, ConnectorType connector) {
     	oid = resource.getOid();
-        name = MiscUtil.getName(resource);
+        name = WebMiscUtil.getName(resource);
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;
@@ -80,7 +75,7 @@ public class ResourceDto extends Selectable {
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE_DEFINITION);
 
         oid = resource.getOid();
-        name = MiscUtil.getName(resource);
+        name = WebMiscUtil.getName(resource);
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;

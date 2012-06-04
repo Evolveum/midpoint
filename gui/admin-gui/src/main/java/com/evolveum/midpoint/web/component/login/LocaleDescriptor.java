@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.web.component.login;
 
-import com.evolveum.midpoint.web.util.MiscUtil;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -52,7 +52,7 @@ public class LocaleDescriptor implements Serializable {
             throw new IllegalStateException("Property file - locale descriptor doesn't contain property '"
                     + PROPERTY_LOCALE + "' with locale definition.");
         }
-        this.locale = MiscUtil.getLocaleFromString(locale);
+        this.locale = WebMiscUtil.getLocaleFromString(locale);
     }
 
     public LocaleDescriptor(String name, String flag, Locale locale) {

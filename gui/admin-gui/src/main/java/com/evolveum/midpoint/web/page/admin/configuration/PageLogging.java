@@ -42,7 +42,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
-import com.evolveum.midpoint.web.util.MiscUtil;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -175,7 +175,7 @@ public class PageLogging extends PageAdminConfiguration {
             protected InputPanel createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
                 DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                         new PropertyModel(model, getPropertyExpression()),
-                        MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
+                        WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
             	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             	return dropDownChoicePanel;
             }
@@ -235,7 +235,7 @@ public class PageLogging extends PageAdminConfiguration {
             protected Component createInputPanel(String componentId, final IModel<FilterConfiguration> model) {
             	DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                         createFilterModel(model),
-                        MiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class));
+                        WebMiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class));
 
             	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             	return dropDownChoicePanel;
@@ -257,7 +257,7 @@ public class PageLogging extends PageAdminConfiguration {
             protected InputPanel createInputPanel(String componentId, final IModel<FilterConfiguration> model) {
                 DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                         new PropertyModel(model, getPropertyExpression()),
-                        MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
+                        WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
             	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             	return dropDownChoicePanel;
             }
@@ -392,7 +392,7 @@ public class PageLogging extends PageAdminConfiguration {
 	private void initSubsystem(AccordionItem loggers) {
 		DropDownChoice<ProfilingLevel> subsystemLevel = createComboBox("profilingLevel",
 				new PropertyModel<ProfilingLevel>(model, "profilingLevel"),
-				MiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class), new EnumChoiceRenderer(
+				WebMiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class), new EnumChoiceRenderer(
 						PageLogging.this));
 		loggers.getBodyContainer().add(subsystemLevel);
 
@@ -533,7 +533,7 @@ public class PageLogging extends PageAdminConfiguration {
 	private void initRoot(final AccordionItem loggers) {
 		DropDownChoice<LoggingLevelType> rootLevel = createComboBox("rootLevel",
 				new PropertyModel<LoggingLevelType>(model, "rootLevel"),
-				MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
+				WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
 
 		loggers.getBodyContainer().add(rootLevel);
 
@@ -543,7 +543,7 @@ public class PageLogging extends PageAdminConfiguration {
 
 		DropDownChoice<LoggingLevelType> midPointLevel = createComboBox("midPointLevel",
 				new PropertyModel<LoggingLevelType>(model, "midPointLevel"),
-				MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
+				WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
 		loggers.getBodyContainer().add(midPointLevel);
 
 		DropDownChoice<String> midPointAppender = createComboBox("midPointAppender",

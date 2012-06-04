@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -61,7 +62,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TsaValidator;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -299,14 +299,14 @@ public class PageTaskAdd extends PageAdminTasks {
 			public void setObject(ThreadStopActionType object) {
 				model.getObject().setThreadStop(object);
 			}
-		}, MiscUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
+		}, WebMiscUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
 				new EnumChoiceRenderer<ThreadStopActionType>(PageTaskAdd.this));
 		mainForm.add(threadStop);
 
 		mainForm.add(new TsaValidator(runUntilNodeDown, threadStop));
 
 		DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(
-				model, "misfireAction"), MiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
+				model, "misfireAction"), WebMiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
 				new EnumChoiceRenderer<MisfireActionType>(PageTaskAdd.this));
 		mainForm.add(misfire);
 	}
@@ -434,8 +434,8 @@ public class PageTaskAdd extends PageAdminTasks {
 		ScheduleType schedule = new ScheduleType();
 		schedule.setInterval(dto.getInterval());
 		schedule.setCronLikePattern(dto.getCron());
-		schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartBefore()));
-		schedule.setLatestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartAfter()));
+		schedule.setEarliestStartTime(WebMiscUtil.asXMLGregorianCalendar(dto.getNotStartBefore()));
+		schedule.setLatestStartTime(WebMiscUtil.asXMLGregorianCalendar(dto.getNotStartAfter()));
 		schedule.setMisfireAction(dto.getMisfireAction());
 		task.setSchedule(schedule);
 		
