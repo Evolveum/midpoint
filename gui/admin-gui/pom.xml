@@ -23,7 +23,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>midPoint User Interface - admin web gui v2</name>
     <groupId>com.evolveum.midpoint.gui</groupId>
-    <artifactId>admin-gui-v2</artifactId>
+    <artifactId>admin-gui</artifactId>
     <packaging>war</packaging>
     <version>2.0-SNAPSHOT</version>
     <parent>
@@ -32,7 +32,7 @@
         <version>2.0-SNAPSHOT</version>
     </parent>
     <build>
-        <finalName>idm2</finalName>
+        <finalName>idm</finalName>
         <plugins />
         <resources>
             <resource>
