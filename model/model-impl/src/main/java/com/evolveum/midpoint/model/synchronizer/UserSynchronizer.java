@@ -350,6 +350,7 @@ public class UserSynchronizer {
 					ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
 					accountSyncContext.setAccountPrimaryDelta(accountPrimaryDelta);
 					accountSyncContext.setFullAccount(true);
+					isCombinedAdd = true;
 				} else {
 					// We have OID. This is either linking of exising account or add of new account
 					// therefore check for account existence to decide
