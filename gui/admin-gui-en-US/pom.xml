@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2011 Evolveum
   ~
@@ -20,13 +19,16 @@
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint User Interface</name>
-    <artifactId>gui</artifactId>
-    <packaging>pom</packaging>
+    <name>midPoint User Interface - admin web gui en_US</name>
+    <groupId>com.evolveum.midpoint.gui</groupId>
+    <artifactId>admin-gui-en-US</artifactId>
+    <packaging>jar</packaging>
+    <version>2.0-SNAPSHOT</version>
     <parent>
-        <artifactId>parent</artifactId>
+        <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>2.0-SNAPSHOT</version>
     </parent>
@@ -51,9 +53,19 @@
         <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
-    <modules>
-        <module>admin-gui</module>
-        <module>admin-gui-en-US</module>
-    </modules>
-
+    <repositories>
+        <repository>
+            <id>evolveum</id>
+            <name>repo</name>
+            <url>http://repo.evolveum.com/repo</url>
+        </repository>
+    </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <version>2.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
