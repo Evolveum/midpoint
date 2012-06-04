@@ -129,6 +129,7 @@ public class PageLogging extends PageAdminConfiguration {
 		AccordionItem loggers = new AccordionItem("loggers", createStringResource("pageLogging.loggers"));
 		accordion.getBodyContainer().add(loggers);
 		initLoggers(loggers);
+		initFilters(loggers);
 
 		AccordionItem appenders = new AccordionItem("appenders",
 				createStringResource("pageLogging.appenders"));
@@ -149,28 +150,19 @@ public class PageLogging extends PageAdminConfiguration {
 
         //name editing column
         columns.add(new EditableLinkColumn<LoggerConfiguration>(
-                createStringResource("pageLogging.classPackageSubsystem"), "name") {
-
+                createStringResource("pageLogging.classPackage"), "name") {
+        	
             @Override
             protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
-                if (model.getObject() instanceof FilterLogger) {
-                	DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
-                            createComponentLoggerModel(model),
-                            MiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class));
-
-                	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                	return dropDownChoicePanel;
-                } else {
-                	TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
-                	textPanel.getBaseFormComponent().add(new AttributeModifier("style", "width: 100%"));
-                	textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                	return textPanel;
-                }
+                TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+            	textPanel.getBaseFormComponent().add(new AttributeModifier("style", "width: 100%"));
+            	textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            	return textPanel;
             }
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
-                loggedEditPerformed(target, rowModel);
+                loggerEditPerformed(target, rowModel);
             }
         });
 
@@ -229,8 +221,90 @@ public class PageLogging extends PageAdminConfiguration {
 
         return columns;
     }
+	
+	private List<IColumn<FilterConfiguration>> initFilterColumns() {
+        List<IColumn<FilterConfiguration>> columns = new ArrayList<IColumn<FilterConfiguration>>();
+        IColumn column = new CheckBoxHeaderColumn<FilterConfiguration>();
+        columns.add(column);
 
-	private IModel<LoggingComponentType> createComponentLoggerModel(final IModel<LoggerConfiguration> model) {
+        //name editing column
+        columns.add(new EditableLinkColumn<FilterConfiguration>(
+                createStringResource("pageLogging.subsystem"), "name") {
+
+            @Override
+            protected Component createInputPanel(String componentId, final IModel<FilterConfiguration> model) {
+            	DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
+                        createFilterModel(model),
+                        MiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class));
+
+            	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            	return dropDownChoicePanel;
+
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<FilterConfiguration> rowModel) {
+            	filterEditPerformed(target, rowModel);
+            }
+        });
+
+
+        //level editing column
+        columns.add(new EditablePropertyColumn<FilterConfiguration>(createStringResource("pageLogging.loggersLevel"),
+                "level") {
+
+            @Override
+            protected InputPanel createInputPanel(String componentId, final IModel<FilterConfiguration> model) {
+                DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
+                        new PropertyModel(model, getPropertyExpression()),
+                        MiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
+            	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            	return dropDownChoicePanel;
+            }
+        });
+
+        //appender editing column
+        columns.add(new EditablePropertyColumn<FilterConfiguration>(createStringResource("pageLogging.loggersAppender"),
+                "appenders") {
+
+            @Override
+            protected IModel<String> createLabelModel(final IModel rowModel) {
+                return new LoadableModel<String>() {
+
+                    @Override
+                    protected String load() {
+                    	FilterConfiguration config = (FilterConfiguration) rowModel.getObject();
+                        StringBuilder builder = new StringBuilder();
+                        for (String appender : config.getAppenders()) {
+                            if (config.getAppenders().indexOf(appender) != 0) {
+                                builder.append(", ");
+                            }
+                            builder.append(appender);
+                        }
+
+                        return builder.toString();
+                    }
+                };
+            }
+
+            @Override
+            protected InputPanel createInputPanel(String componentId, IModel<FilterConfiguration> model) {
+                ListMultipleChoicePanel panel = new ListMultipleChoicePanel<String>(componentId,
+                        new PropertyModel<List<String>>(model, getPropertyExpression()), createAppendersListModel());
+
+                ListMultipleChoice choice = (ListMultipleChoice) panel.getBaseFormComponent();
+                choice.setMaxRows(3);
+
+                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+
+                return panel;
+            }
+        });
+
+        return columns;
+    }
+
+	private IModel<LoggingComponentType> createFilterModel(final IModel<FilterConfiguration> model) {
 		return new Model<LoggingComponentType>() {
 
 			@Override
@@ -260,16 +334,6 @@ public class PageLogging extends PageAdminConfiguration {
 		table.setTableCssClass("autowidth");
 		loggers.getBodyContainer().add(table);
 
-		AjaxLinkButton addComponentLogger = new AjaxLinkButton("addFilterLogger",
-				createStringResource("pageLogging.button.addFilterLogger")) {
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				addComponentLoggerPerformed(target);
-			}
-		};
-		loggers.getBodyContainer().add(addComponentLogger);
-
 		AjaxLinkButton addClassLogger = new AjaxLinkButton("addClassLogger",
 				createStringResource("pageLogging.button.addClassLogger")) {
 
@@ -289,8 +353,40 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		};
 		loggers.getBodyContainer().add(deleteLogger);
-
+		
 		initSubsystem(loggers);
+	}
+	
+	private void initFilters(AccordionItem loggers) {
+
+		ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(this,
+				new PropertyModel<List<LoggerConfiguration>>(model, "filters"));
+		TablePanel table = new TablePanel<FilterConfiguration>("filtersTable", provider, initFilterColumns());
+		table.setOutputMarkupId(true);
+		table.setShowPaging(false);
+		table.setTableCssClass("autowidth");
+		loggers.getBodyContainer().add(table);
+		
+		AjaxLinkButton addComponentLogger = new AjaxLinkButton("addFilter",
+				createStringResource("pageLogging.button.addFilter")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				addFilterLoggerPerformed(target);
+			}
+		};
+		loggers.getBodyContainer().add(addComponentLogger);
+		
+		AjaxLinkButton deleteLogger = new AjaxLinkButton("deleteFilter",
+				createStringResource("pageLogging.button.deleteFilter")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				deleteFilterPerformed(target);
+			}
+		};
+		loggers.getBodyContainer().add(deleteLogger);
+		
 	}
 
 	private void initSubsystem(AccordionItem loggers) {
@@ -489,6 +585,7 @@ public class PageLogging extends PageAdminConfiguration {
 				advancedPerformed(target);
 			}
 		};
+		advancedButton.setVisible(false);
 		mainForm.add(advancedButton);
 	}
 
@@ -561,13 +658,16 @@ public class PageLogging extends PageAdminConfiguration {
 			if (LoggingDto.LOGGER_PROFILING.equals(item.getName())
                     || LoggingDto.LOGGER_MIDPOINT_ROOT.equals(item.getName())) {
                 continue;
-            }
-
-			if (item instanceof ClassLogger) {
-				configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
-			} else if (item instanceof FilterLogger) {
-				configuration.getSubSystemLogger().add(((FilterLogger) item).toXmlType());
 			}
+			configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
+		}
+		
+		for (FilterConfiguration item : dto.getFilters()) {
+			if (LoggingDto.LOGGER_PROFILING.equals(item.getName())
+                    || LoggingDto.LOGGER_MIDPOINT_ROOT.equals(item.getName())) {
+                continue;
+            }
+			configuration.getSubSystemLogger().add(((FilterLogger) item).toXmlType());
 		}
 
         if (dto.getProfilingLevel() != null && dto.getProfilingAppender() != null) {
@@ -599,6 +699,12 @@ public class PageLogging extends PageAdminConfiguration {
 		AccordionItem item = (AccordionItem) accordion.getBodyContainer().get("loggers");
 		return (TablePanel) item.getBodyContainer().get("loggersTable");
 	}
+	
+	private TablePanel getFiltersTable() {
+		Accordion accordion = (Accordion) get("mainForm:accordion");
+		AccordionItem item = (AccordionItem) accordion.getBodyContainer().get("loggers");
+		return (TablePanel) item.getBodyContainer().get("filtersTable");
+	}
 
 	private TablePanel getAppendersTable() {
 		Accordion accordion = (Accordion) get("mainForm:accordion");
@@ -606,13 +712,12 @@ public class PageLogging extends PageAdminConfiguration {
 		return (TablePanel) item.getBodyContainer().get("appendersTable");
 	}
 
-	private void addComponentLoggerPerformed(AjaxRequestTarget target) {
+	private void addFilterLoggerPerformed(AjaxRequestTarget target) {
 		LoggingDto dto = model.getObject();
 		FilterLogger logger = new FilterLogger(new SubSystemLoggerConfigurationType());
 		logger.setEditing(true);
-		dto.getLoggers().add(logger);
-
-		target.add(getLoggersTable());
+		dto.getFilters().add(logger);
+		target.add(getFiltersTable());
 	}
 
 	private void addClassLoggerPerformed(AjaxRequestTarget target) {
@@ -633,6 +738,7 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		}
 		target.add(getAppendersTable());
+		target.add(getFiltersTable());
 	}
 
 	private void deleteLoggerPerformed(AjaxRequestTarget target) {
@@ -644,6 +750,17 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		}
 		target.add(getLoggersTable());
+	}
+	
+	private void deleteFilterPerformed(AjaxRequestTarget target) {
+		Iterator<FilterConfiguration> iterator = model.getObject().getFilters().iterator();
+		while (iterator.hasNext()) {
+			FilterConfiguration item = iterator.next();
+			if (item.isSelected()) {
+				iterator.remove();
+			}
+		}
+		target.add(getFiltersTable());
 	}
 
 	private void addConsoleAppenderPerformed(AjaxRequestTarget target) {
@@ -664,10 +781,16 @@ public class PageLogging extends PageAdminConfiguration {
 		target.add(getAppendersTable());
 	}
 
-	private void loggedEditPerformed(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
+	private void loggerEditPerformed(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
 		LoggerConfiguration config = rowModel.getObject();
 		config.setEditing(true);
 		target.add(getLoggersTable());
+	}
+	
+	private void filterEditPerformed(AjaxRequestTarget target, IModel<FilterConfiguration> rowModel) {
+		FilterConfiguration config = rowModel.getObject();
+		config.setEditing(true);
+		target.add(getFiltersTable());
 	}
 
 	private void appenderEditPerformed(AjaxRequestTarget target, IModel<AppenderConfiguration> model) {
@@ -700,6 +823,9 @@ public class PageLogging extends PageAdminConfiguration {
 			// finish editing for loggers and appenders
 			for (LoggerConfiguration logger : dto.getLoggers()) {
 				logger.setEditing(false);
+			}
+			for (FilterConfiguration filter : dto.getFilters()) {
+				filter.setEditing(false);
 			}
 			for (AppenderConfiguration appender : dto.getAppenders()) {
 				appender.setEditing(false);

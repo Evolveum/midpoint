@@ -26,10 +26,10 @@ import java.util.Comparator;
 /**
  * @author lazyman
  */
-public class LoggersComparator implements Comparator<LoggerConfiguration> {
+public class FiltersComparator implements Comparator<FilterConfiguration> {
 
     @Override
-    public int compare(LoggerConfiguration l1, LoggerConfiguration l2) {
+    public int compare(FilterConfiguration l1, FilterConfiguration l2) {
         /*if ((l1 instanceof FilterLogger) && (l2 instanceof ClassLogger)) {
             return -1;
         }

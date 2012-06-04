@@ -56,7 +56,29 @@
 		                </td>
 		            </tr>
 		        </table>
-                <div wicket:id="loggersTable"/>
+		        <table>
+		        	<tr>
+		        		<td width="500px" style="vertical-align: top;">
+		        			<h4>
+			                    <wicket:message key="pageLogging.classPackageTable"/>
+			                </h4>
+		        			<div wicket:id="loggersTable"/>
+		        			
+		        			<a wicket:id="addClassLogger"/>
+		        			<a wicket:id="deleteLogger"/>
+		        		</td>
+		        		<td style="vertical-align: top;">
+		        			<h4>
+			                    <wicket:message key="pageLogging.filterTable"/>
+			                </h4>
+		        			<div wicket:id="filtersTable"/>
+		        			
+		        			 <a wicket:id="addFilter"/>
+		        			 <a wicket:id="deleteFilter"/>
+		        		</td>
+		        	</tr>
+		        </table>
+                
                 <h4>
                     <wicket:message key="pageLogging.logSubsystemEntryExit"/>
                 </h4>
@@ -76,9 +98,6 @@
                         </td>
                     </tr>
                 </table>
-                <a wicket:id="addFilterLogger"/>
-                <a wicket:id="addClassLogger"/>
-                <a wicket:id="deleteLogger"/>
             </li>
             <li wicket:id="appenders">
                 <div wicket:id="appendersTable"/>

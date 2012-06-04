@@ -46,6 +46,7 @@ public class LoggingDto implements Serializable {
     private String midPointAppender;
 
     private List<LoggerConfiguration> loggers = new ArrayList<LoggerConfiguration>();
+    private List<FilterConfiguration> filters = new ArrayList<FilterConfiguration>();
 
     private ProfilingLevel profilingLevel;
     private String profilingAppender;
@@ -75,7 +76,7 @@ public class LoggingDto implements Serializable {
         rootAppender = config.getRootLoggerAppender();
 
         for (SubSystemLoggerConfigurationType logger : config.getSubSystemLogger()) {
-            loggers.add(new FilterLogger(logger));
+            filters.add(new FilterLogger(logger));
         }
 
         AuditingConfigurationType auditing = config.getAuditing();
@@ -100,6 +101,7 @@ public class LoggingDto implements Serializable {
         }
 
         Collections.sort(loggers, new LoggersComparator());
+        Collections.sort(filters, new FiltersComparator());
 
         for (AppenderConfigurationType appender : config.getAppender()) {
             if (appender instanceof FileAppenderConfigurationType) {
@@ -117,6 +119,10 @@ public class LoggingDto implements Serializable {
 
     public List<LoggerConfiguration> getLoggers() {
         return loggers;
+    }
+    
+    public List<FilterConfiguration> getFilters() {
+        return filters;
     }
 
     public String getMidPointAppender() {

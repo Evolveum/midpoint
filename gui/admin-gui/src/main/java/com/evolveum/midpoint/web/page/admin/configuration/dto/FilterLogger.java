@@ -33,7 +33,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 /**
  * @author lazyman
  */
-public class FilterLogger extends LoggerConfiguration {
+public class FilterLogger extends FilterConfiguration {
 
     private LoggingComponentType component;
 
