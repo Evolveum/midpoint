@@ -25,4 +25,6 @@ package com.evolveum.midpoint.web.resource.js;
  * @author lazyman
  */
 public class JsResources {
+
+    public static final String BASE_PATH = "/js";
 }

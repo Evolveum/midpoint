@@ -25,4 +25,6 @@ package com.evolveum.midpoint.web.resource.css;
  * @author lazyman
  */
 public class CssResources {
+
+    public static final String BASE_PATH = "/css";
 }

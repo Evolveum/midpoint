@@ -25,4 +25,6 @@ package com.evolveum.midpoint.web.resource.img;
  * @author lazyman
  */
 public class ImgResources {
+
+    public static final String BASE_PATH = "/img";
 }

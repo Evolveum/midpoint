@@ -54,7 +54,7 @@ import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSessio
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.MountedMapper;
-import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.request.resource.*;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -110,9 +110,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         }
 
         //pretty url resources
-        mountFiles("/css", CssResources.class);
-        mountFiles("/img", ImgResources.class);
-        mountFiles("/js", JsResources.class);
+        mountFiles(CssResources.BASE_PATH, CssResources.class);
+        mountFiles(ImgResources.BASE_PATH, ImgResources.class);
+        mountFiles(JsResources.BASE_PATH, JsResources.class);
 
         //pretty url pages
         MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();
