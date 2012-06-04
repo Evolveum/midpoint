@@ -52,7 +52,7 @@
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
     <modules>
-        <module>admin-gui-v2</module>
+        <module>admin-gui</module>
     </modules>
 
 </project>
