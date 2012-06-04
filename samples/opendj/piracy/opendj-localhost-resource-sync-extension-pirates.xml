@@ -29,15 +29,15 @@ for use with a stock OpenDJ and OpenDS servers.
 This resource definition contains also definition to enable synchronization.
 
 -->
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-		 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+		 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
          xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
          xmlns:my="http://myself.me/schemas/whatever"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
 
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 
@@ -134,7 +134,7 @@ This resource definition contains also definition to enable synchronization.
                         <initial>true</initial>
                         <expression>
                             <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                                 concat('uid=', $user/name, ',ou=people,dc=example,dc=com')
                             </code>
                         </expression>
@@ -178,7 +178,7 @@ This resource definition contains also definition to enable synchronization.
                     <outbound>
                         <expression>
                             <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                                 $user/fullName
                             </code>
                         </expression>
@@ -190,7 +190,7 @@ This resource definition contains also definition to enable synchronization.
                      -->
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $user/fullName
                         </target>
                     </inbound>
@@ -205,7 +205,7 @@ This resource definition contains also definition to enable synchronization.
                     <outbound>
                         <expression>
                             <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                                 $user/familyName
                             </code>
                         </expression>
@@ -213,7 +213,7 @@ This resource definition contains also definition to enable synchronization.
                     <!-- sn will be synchronized to user's familyName -->
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $user/familyName
                         </target>
                     </inbound>
@@ -228,7 +228,7 @@ This resource definition contains also definition to enable synchronization.
                     <outbound>
                         <expression>
                             <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                                 $user/givenName
                             </code>
                         </expression>
@@ -236,7 +236,7 @@ This resource definition contains also definition to enable synchronization.
                     <!-- givenName will be synchronized to user's givenName -->
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $user/givenName
                         </target>
                     </inbound>
@@ -253,7 +253,7 @@ This resource definition contains also definition to enable synchronization.
                              user. It is essentially a login name -->
                         <expression>
                             <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                                 $user/name
                             </code>
                         </expression>
@@ -262,7 +262,7 @@ This resource definition contains also definition to enable synchronization.
                              user. It is essentially a login name -->
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $user/name
                         </target>
                     </inbound>
@@ -283,12 +283,12 @@ This resource definition contains also definition to enable synchronization.
                     <ref>rpiracyShipName</ref>
                     <inbound
                             xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                             xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyShipName
                         </target>
@@ -298,12 +298,12 @@ This resource definition contains also definition to enable synchronization.
                     <ref>rpiracyStatus</ref>
                     <inbound
                             xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                             xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyStatus
                         </target>
@@ -313,12 +313,12 @@ This resource definition contains also definition to enable synchronization.
                     <ref>rpiracyScarNumber</ref>
                     <inbound
                             xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                             xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyScarNumber
                         </target>
@@ -328,12 +328,12 @@ This resource definition contains also definition to enable synchronization.
                     <ref>rpiracyCaptainship</ref>
                     <inbound
                             xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                             xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyCaptainship
                         </target>
@@ -343,12 +343,12 @@ This resource definition contains also definition to enable synchronization.
                     <ref>rpiracyEnrollmentTimestamp</ref>
                     <inbound
                             xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                             xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyEnrollmentTimestamp
                         </target>
@@ -358,12 +358,12 @@ This resource definition contains also definition to enable synchronization.
                     <ref>rpiracyTreasureSecret</ref>
                     <inbound
                             xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                             xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyTreasureSecret
                         </target>
@@ -373,12 +373,12 @@ This resource definition contains also definition to enable synchronization.
                     <ref>rpiracyNickname</ref>
                     <inbound
                             xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                             xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyNickname
                         </target>
@@ -388,12 +388,12 @@ This resource definition contains also definition to enable synchronization.
                     <ref>rpiracyBestWeapon</ref>
                     <inbound
                             xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                             xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyBestWeapon
                         </target>
@@ -403,12 +403,12 @@ This resource definition contains also definition to enable synchronization.
                     <ref>rpiracyQuote</ref>
                     <inbound
                             xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                             xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyQuote
                         </target>
@@ -416,9 +416,9 @@ This resource definition contains also definition to enable synchronization.
                 </attribute>
                 <attribute xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
                     <ref>rpiracyDrink</ref>
-                    <inbound xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    <inbound xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $user/extension/rpiracyDrink
                         </target>
@@ -443,7 +443,7 @@ This resource definition contains also definition to enable synchronization.
 	              -->
 	            <correlation>
 	                <!-- Correlation rule is a search query -->
-	                <!-- The clause <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType"/> is implicit in correlation rules -->
+	                <!-- The clause <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#UserType"/> is implicit in correlation rules -->
 	                <!-- Following search queury will look for users that have "name"
 	                     equal to the "uid" attribute of the account. Simply speaking,
 	                     it will look for match in usernames in the IDM and the resource. -->
@@ -452,7 +452,7 @@ This resource definition contains also definition to enable synchronization.
 	                    <valueExpression>
 	                        <ref>name</ref>
 	                        <code>
-	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
 	                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 	                            $account/attributes/dj:uid
 	                        </code>
@@ -507,7 +507,7 @@ This resource definition contains also definition to enable synchronization.
                 <initial>true</initial>
                 <expression>
                     <code>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                         concat($user/givenName,' ',$user/familyName)
                     </code>
                 </expression>

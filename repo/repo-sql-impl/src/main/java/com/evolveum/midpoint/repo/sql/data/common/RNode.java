@@ -23,7 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Column;

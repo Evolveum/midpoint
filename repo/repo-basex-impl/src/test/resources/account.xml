@@ -20,7 +20,7 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <c:object xsi:type="c:AccountShadowType" oid="dbb0c37d-9ee6-44a4-8d39-016dbce18b4c"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
     <c:name>jbond</c:name>

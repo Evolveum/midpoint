@@ -24,9 +24,9 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExclusionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ExclusionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 

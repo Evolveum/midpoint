@@ -20,7 +20,7 @@
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
     <name>SystemConfiguration</name>
     <logging>
         <subSystemLogger>

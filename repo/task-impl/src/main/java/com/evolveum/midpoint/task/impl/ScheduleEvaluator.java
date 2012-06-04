@@ -28,9 +28,9 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 
 /**
  * Evaluates schedules. 

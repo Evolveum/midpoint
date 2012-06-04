@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 
 import java.io.File;
@@ -131,7 +131,7 @@ public class XPathTest {
             System.out.println("c: "+nsC);
             System.out.println("piracy: "+nsPiracy);
 
-            AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd",nsC.getValue());
+            AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/public/common/common-2",nsC.getValue());
             AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/samples/piracy",nsPiracy.getValue());
 
             System.out.println("XPATH Element: " + xpathElement);

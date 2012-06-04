@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 

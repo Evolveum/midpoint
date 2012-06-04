@@ -62,15 +62,15 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TsaValidator;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
 
 /**
  * @author lazyman

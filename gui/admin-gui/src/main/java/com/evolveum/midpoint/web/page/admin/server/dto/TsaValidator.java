@@ -30,7 +30,7 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.validator.AbstractValidator;
 
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
 
 public class TsaValidator extends AbstractFormValidator {
 

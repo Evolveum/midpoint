@@ -20,8 +20,8 @@
 <!--                                                         -->
 
 <connector oid="cccccccc-cccc-cccc-cccc-000000000004"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:ns2="http://www.w3.org/2001/04/xmlenc#"
 	xmlns:ns4="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
 	xmlns:ns3="http://www.w3.org/2000/09/xmldsig#">
@@ -33,7 +33,7 @@
    <c:connectorBundle>com.evolveum.icf.dummy</c:connectorBundle>
    <c:namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector</c:namespace>
    <c:schema>
-      <definition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+      <definition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:qn915="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"

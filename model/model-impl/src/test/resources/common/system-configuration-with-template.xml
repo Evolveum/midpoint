@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
 	<name>System Configuration</name>
 	<defaultUserTemplate>
 	    <name>Default User Template</name>
@@ -11,7 +11,7 @@
 	        	<initial>true</initial>
 	            <expression>
 	            	<code>
-	                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
 	                    concat($c:user/c:givenName,' ',$c:user/c:familyName)
 	                </code>
 	            </expression>

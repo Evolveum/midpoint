@@ -29,10 +29,10 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueAssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueAssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;

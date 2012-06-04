@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExecutionStatusType;
 
 /**
  * Task execution status.

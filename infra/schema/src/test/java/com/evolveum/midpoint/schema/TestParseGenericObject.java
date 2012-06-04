@@ -31,9 +31,9 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;

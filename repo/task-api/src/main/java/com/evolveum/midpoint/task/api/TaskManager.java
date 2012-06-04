@@ -32,8 +32,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**

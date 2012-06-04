@@ -19,11 +19,11 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 <object xsi:type="PropertyReferenceListType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
 	<property>
-		<property xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">c:resource</property>
+		<property xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">c:resource</property>
 	</property>
 	<property>
-		<property xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">c:account</property>
+		<property xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">c:account</property>
 	</property>
 </object>

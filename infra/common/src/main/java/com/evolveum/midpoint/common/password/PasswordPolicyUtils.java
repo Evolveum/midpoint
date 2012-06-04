@@ -31,11 +31,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordLifeTimeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.StringLimitType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordLifeTimeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringLimitType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 
 /**
  * 

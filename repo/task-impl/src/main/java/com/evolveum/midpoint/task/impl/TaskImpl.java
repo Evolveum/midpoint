@@ -55,17 +55,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UriStack;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UriStack;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * Implementation of a Task.

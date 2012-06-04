@@ -21,12 +21,12 @@
 <!--                                                         -->
 
 <q:query  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd'
+   http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-2.xsd'
    xmlns:foo="http://foo.com/"
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">

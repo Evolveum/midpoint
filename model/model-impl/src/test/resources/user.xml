@@ -19,8 +19,8 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <c:user oid="12345678-d34d-b33f-f00d-987987987987" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'>
     <name>johny</name>
     <fullName>Jan Prvy</fullName>
     <givenName>Jan</givenName>

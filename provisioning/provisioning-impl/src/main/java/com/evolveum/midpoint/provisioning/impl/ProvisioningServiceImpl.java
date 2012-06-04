@@ -82,15 +82,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptsType;
 
 /**
  * Implementation of provisioning service.
@@ -1172,7 +1172,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	 * 
 	 * @see
 	 * com.evolveum.midpoint.provisioning.api.ProvisioningService#discoverConnectors
-	 * (com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType,
+	 * (com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType,
 	 * com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override

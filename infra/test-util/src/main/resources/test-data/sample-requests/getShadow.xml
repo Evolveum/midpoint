@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-<c:account c:oid="9999" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<c:account c:oid="9999" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
 xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
 xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">

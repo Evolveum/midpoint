@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptOrderType;
 
 /**
  * 

@@ -19,8 +19,8 @@
  */
 package com.evolveum.midpoint.model.synchronizer;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
 /**
  * @author semancik

@@ -42,7 +42,7 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;

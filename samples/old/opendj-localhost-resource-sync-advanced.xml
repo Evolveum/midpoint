@@ -33,8 +33,8 @@ object.
 
 -->
 
-<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
@@ -108,12 +108,12 @@ object.
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         elementFormDefault="qualified"
-                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                         xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
 
                 <!-- Definition of Account object class -->
@@ -302,7 +302,7 @@ object.
                          It is an XPath expression, similar to BPEL assignment expressions. -->
                     <i:outbound default="true">
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
                             </i:valueExpression>
                     </i:outbound>
@@ -353,7 +353,7 @@ object.
                      -->
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:fullName
                         </i:valueExpression>
                     </i:outbound>
@@ -365,7 +365,7 @@ object.
                      -->
                     <i:inbound>
                         <i:target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:fullName
                         </i:target>
                     </i:inbound>
@@ -380,14 +380,14 @@ object.
                     <c:access>update</c:access>
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:familyName
                         </i:valueExpression>
                     </i:outbound>
                     <!-- sn will be synchronized to user's familyName -->
                     <i:inbound>
                         <i:target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:familyName
                         </i:target>
                     </i:inbound>
@@ -401,14 +401,14 @@ object.
                     <c:access>update</c:access>
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:givenName
                         </i:valueExpression>
                     </i:outbound>
                     <!-- givenName will be synchronized to user's givenName -->
                     <i:inbound>
                         <i:target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:givenName
                         </i:target>
                     </i:inbound>
@@ -424,7 +424,7 @@ object.
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:name
                         </i:valueExpression>
                     </i:outbound>
@@ -432,7 +432,7 @@ object.
                              user. It is essentially a login name -->
                     <i:inbound>
                         <i:target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:name
                         </i:target>
                     </i:inbound>
@@ -458,7 +458,7 @@ object.
                                   </f:replace>
                         </i:valueFilter>
                         <i:target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace my="http://whatever.com/my";
                             $i:user/i:extension/my:description
                         </i:target>
@@ -491,7 +491,7 @@ object.
                              using a lookup table defined in the configuration object
                              in the $my:config variable specified above. -->
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace my="http://myself.me/schemas/whatever";
                             if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
                                 $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
@@ -522,7 +522,7 @@ object.
                  It will be used to find appropriate user entry for an account.
               -->
             <i:correlation> <!-- Correlation rule is a search query -->
-            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType"/> is implicit in correlation rules -->
+            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#UserType"/> is implicit in correlation rules -->
                 <!-- Following search queury will look for users that have "name"
                      equal to the "uid" attribute of the account. Simply speaking,
                      it will look for match in usernames in the IDM and the resource. -->
@@ -531,7 +531,7 @@ object.
                     <c:valueExpression>
 			<c:ref>c:name</c:ref>
 			<c:code>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
         	                declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
         	                $i:account/i:attributes/dj:uid
 			</c:code>
@@ -597,7 +597,7 @@ object.
             <i:property>i:fullName</i:property>
             <i:valueConstruction default="true">
                 <i:valueExpression>
-                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                     concat($i:user/i:givenName,' ',$i:user/i:familyName)
                 </i:valueExpression>
             </i:valueConstruction>

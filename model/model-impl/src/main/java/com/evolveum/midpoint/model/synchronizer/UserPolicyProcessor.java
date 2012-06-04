@@ -46,10 +46,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PropertyConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 
 /**
  * Processor to handle user template and possible also other user "policy" elements.

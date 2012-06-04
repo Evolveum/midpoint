@@ -19,14 +19,14 @@
   ~
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
-<task oid="00000000-0000-0000-0000-123450000001" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<task oid="00000000-0000-0000-0000-123450000001" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
       xmlns:noop="http://midpoint.evolveum.com/repo/noop-handler-1"
-      xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+      xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
     <name>Task1: basic single-run task (takes 3x60 sec)</name>
     <extension>
         <noop:delay xsi:type="xsd:int">60000</noop:delay>

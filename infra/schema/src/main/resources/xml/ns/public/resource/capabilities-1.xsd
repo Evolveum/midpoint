@@ -22,7 +22,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
     xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
     xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
     elementFormDefault="qualified"
@@ -40,11 +40,11 @@
             Recommended namespace prefix: cap
         </xsd:documentation>
         <xsd:appinfo>
-			<!--  jaxb:globalBindings are specified indirectly by import from common-1.xsd -->
+			<!--  jaxb:globalBindings are specified indirectly by import from common-2 -->
 		</xsd:appinfo>
     </xsd:annotation>
     
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="../common/common-1.xsd">
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2" schemaLocation="../common/common-2.xsd">
     	<xsd:annotation>
     		<xsd:documentation>
     			Import of the common schema. Some datatypes are reused here.

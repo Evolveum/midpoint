@@ -46,8 +46,8 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ModelOperationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ModelOperationStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStateType;
 
 /**
  * CURRENTLY OBSOLETE!

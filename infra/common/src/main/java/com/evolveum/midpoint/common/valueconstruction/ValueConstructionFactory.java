@@ -34,11 +34,11 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.GenerateValueConstructorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AsIsValueConstructorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateValueConstructorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 import com.evolveum.prism.xml.ns._public.types_2.XPathType;
 
 /**

@@ -22,7 +22,7 @@
 <!-- Simple user definition -->
  
 <user oid="deadbeef-c001-f00d-1111-222233330001"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'>
 	<name>jack</name>
 	<fullName>Cpt. Jack Sparrow</fullName>
 	<givenName>Jack</givenName>

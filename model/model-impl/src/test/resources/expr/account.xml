@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object xsi:type="AccountShadowType" oid="744aa9a0-9eb6-4dd1-9be2-601901d8021a" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<object xsi:type="AccountShadowType" oid="744aa9a0-9eb6-4dd1-9be2-601901d8021a" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<name>3082e023-b777-38f5-9563-d86141806be5</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType" />

@@ -20,7 +20,7 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
-<c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourceType" oid="eced6f20-df52-11df-9e9a-0002a5d5c51b">
     <c:name>FlatFile</c:name>
     <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/eced6f20-df52-11df-9e9a-0002a5d5c51b</c:namespace>
@@ -53,11 +53,11 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourceType" 
     <c:schema>
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/eced6f20-df52-11df-9e9a-0002a5d5c51b"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
     xmlns:xns0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/eced6f20-df52-11df-9e9a-0002a5d5c51b"
     xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
             <xsd:complexType name="Account">
                 <xsd:annotation>

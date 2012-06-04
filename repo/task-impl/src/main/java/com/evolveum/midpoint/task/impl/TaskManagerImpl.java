@@ -69,12 +69,12 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 
 /**
  * Task Manager implementation.
@@ -237,7 +237,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType, java.lang.String)
+	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType, java.lang.String)
 	 */
 	@Override
 	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {

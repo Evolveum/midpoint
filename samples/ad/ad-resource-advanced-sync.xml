@@ -30,15 +30,15 @@ This resource definition contains only the very basic definitions for midPoint t
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:my="http://myself.me/schemas/whatever"
-        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
 
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
 
@@ -121,7 +121,7 @@ This resource definition contains only the very basic definitions for midPoint t
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:givenName
                         </target>
                     </inbound>
@@ -135,7 +135,7 @@ This resource definition contains only the very basic definitions for midPoint t
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:familyName
                         </target>
                     </inbound>
@@ -150,7 +150,7 @@ This resource definition contains only the very basic definitions for midPoint t
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:name
                         </target>
                     </inbound>
@@ -161,16 +161,16 @@ This resource definition contains only the very basic definitions for midPoint t
                     <displayName>Email address</displayName>
                     <!-- FIXME if eMailAddress is null, create crashes
                          <outbound default="true">
-                             <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                             <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                                  <code>
-                                     declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                     declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                                      $i:user/i:eMailAddress
                                  </code>
                              </expression>
                          </outbound>-->
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:eMailAddress
                         </target>
                     </inbound>
@@ -187,7 +187,7 @@ This resource definition contains only the very basic definitions for midPoint t
                         <initial>true</initial>
                         <expression>
                             <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                                 concat('cn=',
                                 $i:user/i:givenName, ' ', $i:user/i:familyName, ',cn=Users,dc=example,dc=com')
                             </code>

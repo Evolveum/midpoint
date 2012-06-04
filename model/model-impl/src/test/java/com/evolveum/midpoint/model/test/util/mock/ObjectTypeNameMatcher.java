@@ -26,7 +26,7 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
 /**
  * 

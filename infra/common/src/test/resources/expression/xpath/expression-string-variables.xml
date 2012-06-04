@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+<expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
 		xmlns:x="http://example.com/xxx"
 		xmlns:y="http://example.com/yyy">
     <variable>

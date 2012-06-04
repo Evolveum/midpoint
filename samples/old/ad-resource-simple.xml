@@ -32,8 +32,8 @@ replaced with real values.
 
 -->
 
-<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66">
 
@@ -77,12 +77,12 @@ replaced with real values.
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66"
                         elementFormDefault="qualified"
-                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                         xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66"
                         xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
                 <xsd:complexType name="Account">
                     <xsd:annotation>
@@ -217,8 +217,8 @@ replaced with real values.
                     <c:access>create</c:access>
                     <c:access>read</c:access>
                     <i:outbound default="true">
-                        <i:valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        <i:valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             concat('cn=', $i:user/c:name, ',cn=Users,dc=testbed-domain')
                         </i:valueExpression>
                     </i:outbound>

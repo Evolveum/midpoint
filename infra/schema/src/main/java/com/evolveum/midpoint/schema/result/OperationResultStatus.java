@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.schema.result;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatusType;
 
 /**
  * 

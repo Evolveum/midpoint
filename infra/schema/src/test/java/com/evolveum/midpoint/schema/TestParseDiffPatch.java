@@ -34,7 +34,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;

@@ -1,4 +1,4 @@
-<object xsi:type="UserType" version="0" oid="383af517-2b29-4ab3-9bf1-07e60075e7ec" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<object xsi:type="UserType" version="0" oid="383af517-2b29-4ab3-9bf1-07e60075e7ec" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->

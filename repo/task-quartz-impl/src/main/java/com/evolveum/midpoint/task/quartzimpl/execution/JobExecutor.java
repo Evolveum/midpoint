@@ -4,7 +4,7 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
 import org.quartz.*;
 
 import com.evolveum.midpoint.repo.cache.RepositoryCache;

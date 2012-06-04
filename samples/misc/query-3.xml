@@ -20,7 +20,7 @@
 <!--                                                         -->
 
 
-<query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
        xmlns="http://prism.evolveum.com/xml/ns/public/query-2"
        xmlns:foo="http://foo.com/">
 

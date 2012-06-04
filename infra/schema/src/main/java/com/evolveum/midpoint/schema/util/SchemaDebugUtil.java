@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -873,7 +873,7 @@ public class SchemaDebugUtil implements ObjectFormatter {
 	private static String tryPrettyPrint(Object value) {
 		if (value instanceof Class) {
 			Class<?> c = (Class<?>)value;
-			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_1")) {
+			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_2")) {
 				return c.getSimpleName();
 			}
 			return c.getName();

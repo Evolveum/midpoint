@@ -19,8 +19,8 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 <resource oid="10000000-0000-0000-0000-000000000003" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
@@ -51,7 +51,7 @@
 		<xsd:schema elementFormDefault="qualified"
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">

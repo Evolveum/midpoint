@@ -4,7 +4,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
 
 /**
  * 

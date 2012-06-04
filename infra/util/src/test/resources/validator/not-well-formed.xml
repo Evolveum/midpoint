@@ -24,8 +24,8 @@
 
 <!-- c:schemaHandling is not terminated properly -->
 
-<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
         <c:name>Localhost OpenDJ</c:name>

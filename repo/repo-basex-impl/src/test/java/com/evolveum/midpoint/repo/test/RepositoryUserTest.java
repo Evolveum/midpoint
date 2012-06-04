@@ -67,11 +67,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
@@ -282,7 +282,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 //			value.getAny()
 //					.add((Element) DOMUtil
 //							.parseDocument(
-//									"<i:accountRef xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' type=\"i:AccountShadowType\" oid=\"8254880d-6584-425a-af2e-58f8ca394bbb\"/>")
+//									"<i:accountRef xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2' type=\"i:AccountShadowType\" oid=\"8254880d-6584-425a-af2e-58f8ca394bbb\"/>")
 //							.getFirstChild());
 //			modification.setValue(value);
 //			modifications.getPropertyModification().add(modification);

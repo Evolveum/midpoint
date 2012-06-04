@@ -33,8 +33,8 @@ basic provisioning.
 
 -->
 
-<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
            xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
@@ -104,12 +104,12 @@ basic provisioning.
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         elementFormDefault="qualified"
-                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                         xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
 
                 <!-- Definition of Account object class -->
@@ -282,7 +282,7 @@ basic provisioning.
                          It is an XPath expression, similar to BPEL assignment expressions. -->
                     <i:outbound default="true">
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
                             </i:valueExpression>
                     </i:outbound>
@@ -329,7 +329,7 @@ basic provisioning.
                          -->
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:fullName
                         </i:valueExpression>
                     </i:outbound>
@@ -344,7 +344,7 @@ basic provisioning.
                     <c:access>update</c:access>
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:familyName
                         </i:valueExpression>
                     </i:outbound>
@@ -358,7 +358,7 @@ basic provisioning.
                     <c:access>update</c:access>
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:givenName
                         </i:valueExpression>
                     </i:outbound>

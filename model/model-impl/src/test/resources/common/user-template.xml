@@ -21,8 +21,8 @@
 <!--                                                         -->
 <userTemplate oid="10000000-0000-0000-0000-000000000002"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'>
     <name>Default User Template</name>
     <propertyConstruction>
@@ -31,7 +31,7 @@
         	<initial>true</initial>
             <expression>
             	<code>
-                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                     declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
                     concat($c:user/c:givenName/t:orig,' ',$c:user/c:familyName/t:orig)
                 </code>

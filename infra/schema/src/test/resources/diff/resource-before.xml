@@ -19,12 +19,12 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
+		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Embedded Test OpenDJ</name>
@@ -75,7 +75,7 @@
 							xmlns:xns0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b"
 							xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
 		            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
-		            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+		            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
 		            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
 		            <xsd:complexType name="Account">
 		                <xsd:annotation>

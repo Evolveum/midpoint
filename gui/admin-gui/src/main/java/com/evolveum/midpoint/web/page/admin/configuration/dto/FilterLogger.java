@@ -21,9 +21,9 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SubSystemLoggerConfigurationType;
 import org.apache.commons.lang.Validate;
 
 import java.util.List;

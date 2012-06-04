@@ -20,8 +20,8 @@
 <!--                                                         -->
 
 <account
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">

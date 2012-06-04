@@ -22,7 +22,7 @@ package com.evolveum.midpoint.schema.constants;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;

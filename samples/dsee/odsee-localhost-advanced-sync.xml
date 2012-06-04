@@ -33,15 +33,15 @@ object.
 
 -->
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
            xmlns:my="http://myself.me/schemas/whatever"
-           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
 
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa">
 
@@ -144,7 +144,7 @@ object.
                         <initial>true</initial>
                         <expression>
                             <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                                 concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
                             </code>
                         </expression>
@@ -194,7 +194,7 @@ object.
                             user. It is essentially a login name
                         </description>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:name
                         </target>
                     </inbound>
@@ -228,7 +228,7 @@ object.
                             from the account to the fullName property of the user.
                         </description>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:fullName
                         </target>
                     </inbound>
@@ -247,7 +247,7 @@ object.
                     <inbound>
                         <description>sn will be synchronized to user's familyName</description>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:familyName
                         </target>
                     </inbound>
@@ -268,7 +268,7 @@ object.
                     <inbound>
                         <description>givenName will be synchronized to user's givenName</description>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             $i:user/i:givenName
                         </target>
                     </inbound>
@@ -342,7 +342,7 @@ object.
 	                    <valueExpression>
 	                        <ref>c:name</ref>
 	                        <code>
-	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
 	                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa";
 	                            $c:account/c:attributes/ri:uid
 	                        </code>

@@ -6,7 +6,7 @@ import javax.net.ssl.TrustManager;
 
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 
 public interface Protector {
 

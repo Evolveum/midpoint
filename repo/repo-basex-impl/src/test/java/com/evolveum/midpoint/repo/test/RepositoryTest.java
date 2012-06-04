@@ -60,10 +60,10 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * 
@@ -181,7 +181,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 //		PropertyModificationType modification = new PropertyModificationType();
 //		Value value = new Value();
 //		Element element = DOMUtil.getFirstChildElement(DOMUtil.parseDocument("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+
-//				"<fullName xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>Foo Bar</fullName>"));
+//				"<fullName xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'>Foo Bar</fullName>"));
 //		value.getAny().add(element);
 //		modification.setValue(value);
 //		objModifications.getPropertyModification().add(modification);

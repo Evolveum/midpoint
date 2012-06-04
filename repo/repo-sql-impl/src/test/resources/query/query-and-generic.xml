@@ -21,7 +21,7 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 
-<query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
        xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
     <and>
         <equal>

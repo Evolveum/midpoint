@@ -1,4 +1,4 @@
-<object oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ResourceType">
+<object oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ResourceType">
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -23,7 +23,7 @@
     <type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</type>
     <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
     <configuration>
-        <idc:ConnectorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+        <idc:ConnectorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
             <idc:ConnectorRef bundleName="org.identityconnectors.ldap" bundleVersion="1.0.5531" connectorName="org.identityconnectors.ldap.LdapConnector">
                 <idc:ConnectorHostRef>/configuration/connectorHost[@oid='1234']/configuration</idc:ConnectorHostRef>
             </idc:ConnectorRef>
@@ -52,9 +52,9 @@
         </idc:ConnectorConfiguration>
     </configuration>
     <schema>
-        <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
             <xsd:complexType name="Account">
                 <xsd:annotation>
@@ -178,7 +178,7 @@
         <accountType default="true">
             <name>Default Account</name>
             <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
-            <attribute default="true" ref="ids:__NAME__" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+            <attribute default="true" ref="ids:__NAME__" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
                 <valueExpression>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</valueExpression>
                 <name>Distinguished Name</name>
                 <access>create</access>

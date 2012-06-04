@@ -23,9 +23,9 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import com.evolveum.midpoint.common.valueconstruction.AsIsValueConstructor;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 
 /**

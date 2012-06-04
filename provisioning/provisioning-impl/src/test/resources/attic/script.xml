@@ -20,12 +20,12 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
-<c:scripts xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<c:scripts xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
 xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:type="c:ObjectChangeType"
-xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd file:///home/elek/IDM/trunk/maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd"
+xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 file:///home/elek/IDM/trunk/maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/common/common-2.xsd"
 >
     <c:script>
         <c:operation>modify</c:operation>

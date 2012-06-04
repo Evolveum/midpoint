@@ -71,7 +71,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
 
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyChange(com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType, com.evolveum.midpoint.common.result.OperationResult)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyChange(com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowChangeDescriptionType, com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
 	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {

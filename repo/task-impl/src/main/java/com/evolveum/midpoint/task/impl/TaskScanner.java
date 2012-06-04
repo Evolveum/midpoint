@@ -40,11 +40,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 
 /**
  * @author Radovan Semancik

@@ -20,8 +20,8 @@
 <!--                                                         -->
 
 <expression
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
    xmlns:foo='http://midpoint.evolveum.com/xml/ns/samples/foo'>
 

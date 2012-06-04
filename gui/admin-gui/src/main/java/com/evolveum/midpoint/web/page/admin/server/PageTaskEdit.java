@@ -67,9 +67,9 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TsaValidator;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
 
 /**
  * @author lazyman

@@ -46,7 +46,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ObjectFactory;
@@ -126,7 +126,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * 
 	 * @see
 	 * com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance#configure
-	 * (com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration)
+	 * (com.evolveum.midpoint.xml.ns._public.common.common_2.Configuration)
 	 */
 	@Override
 	public void configure(PrismContainerValue configuration, OperationResult parentResult)

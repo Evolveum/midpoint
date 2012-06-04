@@ -21,15 +21,15 @@
 <!--                                                         -->
 <i:userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
+   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+   xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-2'>
     <c:name>Default User Template</c:name>
     <i:propertyConstruction>
         <i:property>i:fullName</i:property>
         <i:valueConstruction default="true">
             <i:valueExpression>
-                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                     concat($i:user/i:givenName,' ',$i:user/i:familyName)
             </i:valueExpression>
         </i:valueConstruction>	

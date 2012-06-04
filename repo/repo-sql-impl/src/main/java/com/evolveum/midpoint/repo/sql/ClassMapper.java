@@ -24,7 +24,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;

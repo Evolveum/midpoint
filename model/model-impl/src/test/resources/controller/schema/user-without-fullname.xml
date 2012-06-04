@@ -19,10 +19,10 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 Evolveum                      -->
 <!--                                                         -->
-<object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="UserType"
 	xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../ns/public/common/common-1.xsd">
+   http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../ns/public/common/common-2.xsd">
 	<name>james bond</name>
 	<givenName>James</givenName>
 	<familyName>Bond</familyName>

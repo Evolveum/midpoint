@@ -42,9 +42,9 @@ import com.evolveum.midpoint.common.string.StringPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CharacterClassType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.StringLimitType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CharacterClassType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringLimitType;
 
 public class PasswordGenerator {
 

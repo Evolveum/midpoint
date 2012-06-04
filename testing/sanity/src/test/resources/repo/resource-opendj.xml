@@ -25,8 +25,8 @@
      tests. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -34,7 +34,7 @@
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
           xmlns:my="http://whatever.com/my"
-          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 
     <!-- Resource printable name -->
     <name>Embedded Test OpenDJ</name>
@@ -156,7 +156,7 @@ This is now the only account type that midPoint can work with. -->
 
                     <expression>
                         <code>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
                         </code>
                     </expression>
@@ -224,7 +224,7 @@ This is now the only account type that midPoint can work with. -->
                 <inbound>
 
                     <target>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                         $i:user/i:fullName
                     </target>
                 </inbound>
@@ -253,7 +253,7 @@ This is now the only account type that midPoint can work with. -->
                 <!-- sn will be synchronized to user's familyName -->
                 <inbound>
                     <target>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                         $i:user/i:familyName
                     </target>
                 </inbound>
@@ -274,7 +274,7 @@ This is now the only account type that midPoint can work with. -->
                     		The expression is using the "implicit" node and not the $user variable.
                     	</description>
                         <code>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
                             i:givenName/t:orig
                         </code>
@@ -284,7 +284,7 @@ This is now the only account type that midPoint can work with. -->
 
                 <inbound>
                     <target>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                         $i:user/i:givenName
                     </target>
                 </inbound>
@@ -315,7 +315,7 @@ This is now the only account type that midPoint can work with. -->
                 		It is mapped to (and also from) "name" property of user. It is essentially a login name	
                 	</description>
                     <target>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                         $i:user/i:name
                     </target>
                 </inbound>
@@ -347,7 +347,7 @@ This is now the only account type that midPoint can work with. -->
                         </f:replace>
                     </valueFilter>
                     <target>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                         declare namespace my="http://whatever.com/my";
                         $i:user/i:extension/my:description
                     </target>
@@ -390,7 +390,7 @@ This is now the only account type that midPoint can work with. -->
                         </f:replace>
                     </valueFilter>
                     <target>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                         declare namespace my="http://whatever.com/my";
                         $i:user/i:extension/my:description
                     </target>
@@ -468,7 +468,7 @@ This is now the only account type that midPoint can work with. -->
                              using a lookup table defined in the configuration object
                              in the $my:config variable specified above. -->
                         <c:code>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
                             declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
                             declare namespace my="http://whatever.com/my";
 
@@ -545,7 +545,7 @@ This is now the only account type that midPoint can work with. -->
 	        -->
 	        <c:correlation> <!-- Correlation rule is a search query -->
 	
-	            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType"/> is implicit in correlation rules -->
+	            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#UserType"/> is implicit in correlation rules -->
 	            <!-- Following search query will look for users that have "name"
 	equal to the "uid" attribute of the account. Simply speaking,
 	it will look for match in usernames in the IDM and the resource. -->

@@ -246,7 +246,7 @@
                             </wsdlOptions>
                             <!--							<xsdOptions>
                                        <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/common/common-1.xsd</xsd>
+                                           <xsd>src/main/resources/xml/ns/public/common/common-2.xsd</xsd>
                                            <extensionArgs>
                                                <extensionArg>-Xts</extensionArg>
                                                <extensionArg>-Xequals</extensionArg>

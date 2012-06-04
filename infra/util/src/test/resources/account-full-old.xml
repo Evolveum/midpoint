@@ -19,16 +19,16 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-<c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:AccountShadowType" oid="12345">
+<c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:AccountShadowType" oid="12345">
     <c:name>jdoe</c:name>
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="0">
         <name>Localhost OpenDJ</name>
         <type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</type>
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
         <schema>
-            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
                 <xsd:complexType name="Account">
                     <xsd:annotation>
@@ -152,45 +152,45 @@
             <accountType default="true">
                 <name>Default Account</name>
                 <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
-                                    <attribute default="true" ref="ids:__NAME__" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                        <valueExpression xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</valueExpression>
+                                    <attribute default="true" ref="ids:__NAME__" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+                        <valueExpression xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-2">concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</valueExpression>
                         <i:name>Distinguished Name</i:name>
                         <i:access>create</i:access>
                         <i:access>read</i:access>
                 </attribute>
-                    <attribute ref="ids:__UID__" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    <attribute ref="ids:__UID__" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                         <i:name>Entry UUID</i:name>
                         <i:access>read</i:access>
                 </attribute>
-                    <attribute default="true" ref="ri:cn" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                        <valueExpression xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:fullName</valueExpression>
+                    <attribute default="true" ref="ri:cn" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+                        <valueExpression xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-2">$i:user/i:fullName</valueExpression>
                         <i:name>Common Name</i:name>
                         <i:access>create</i:access>
                         <i:access>read</i:access>
                         <i:access>update</i:access>
                 </attribute>
-                    <attribute default="true" ref="ri:sn" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                        <valueExpression xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:familyName</valueExpression>
+                    <attribute default="true" ref="ri:sn" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+                        <valueExpression xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-2">$i:user/i:familyName</valueExpression>
                         <i:name>Surname</i:name>
                         <i:access>create</i:access>
                         <i:access>read</i:access>
                         <i:access>update</i:access>
                 </attribute>
-                    <attribute default="true" ref="ri:givenName" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                        <valueExpression xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:givenName</valueExpression>
+                    <attribute default="true" ref="ri:givenName" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+                        <valueExpression xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-2">$i:user/i:givenName</valueExpression>
                         <i:name>Given Name</i:name>
                         <i:access>create</i:access>
                         <i:access>read</i:access>
                         <i:access>update</i:access>
                 </attribute>
-                    <attribute default="true" ref="ri:description" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                        <value xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">Created by IDM</value>
+                    <attribute default="true" ref="ri:description" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+                        <value xmlns="" xmlns:ns9="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns7="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ns8="http://midpoint.evolveum.com/xml/ns/public/common/common-2">Created by IDM</value>
                 </attribute>
 
             </accountType>
         </schemaHandling>
         <configuration>
-            <idc:ConnectorConfiguration xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+            <idc:ConnectorConfiguration xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                 <idc:ConnectorRef bundleName="org.identityconnectors.ldap" bundleVersion="1.0.5531" connectorName="org.identityconnectors.ldap.LdapConnector">
                     <idc:ConnectorHostRef>/configuration/connectorHost[@oid='1234']/configuration</idc:ConnectorHostRef>
                 </idc:ConnectorRef>

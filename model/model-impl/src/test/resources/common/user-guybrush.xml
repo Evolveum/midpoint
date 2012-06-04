@@ -19,8 +19,8 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 <user oid="c0c010c0-d34d-b33f-f00d-111111111116" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
 		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'

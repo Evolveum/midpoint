@@ -28,7 +28,7 @@ import java.util.Set;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
 
 /**
  * 

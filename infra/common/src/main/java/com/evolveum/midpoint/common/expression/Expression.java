@@ -33,10 +33,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionReturnTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.VariableDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionReturnTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.VariableDefinitionType;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;

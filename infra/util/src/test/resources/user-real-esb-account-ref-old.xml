@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-<object xsi:type="UserType" version="1" oid="383af517-2b29-4ab3-9bf1-07e60075e7ec" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<object xsi:type="UserType" version="1" oid="383af517-2b29-4ab3-9bf1-07e60075e7ec" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>66666666666hgkjg</name>
     <fullName>vjhk</fullName>
     <givenName>hbuj</givenName>

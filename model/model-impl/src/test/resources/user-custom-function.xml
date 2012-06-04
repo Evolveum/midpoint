@@ -20,8 +20,8 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <c:object oid="007" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xsi:type="c:UserType">
     <name>bond</name>
     <fullName>James Bond 007</fullName>

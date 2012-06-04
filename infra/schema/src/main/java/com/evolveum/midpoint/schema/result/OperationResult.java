@@ -50,14 +50,14 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ParamsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UnknownJavaObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.EntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ParamsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UnknownJavaObjectType;
 
 /**
  * Nested Operation Result.
@@ -940,7 +940,7 @@ public class OperationResult implements Serializable, Dumpable {
 			} else if (value instanceof Element || value instanceof JAXBElement<?>) {
 				entryType.setAny(value);
 			// FIXME: this is really bad code ... it means that 'our' JAXB object should be put as is
-			} else if ("com.evolveum.midpoint.xml.ns._public.common.common_1".equals(value.getClass().getPackage().getName())) {
+			} else if ("com.evolveum.midpoint.xml.ns._public.common.common_2".equals(value.getClass().getPackage().getName())) {
 				Object o = new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, value);
 				entryType.setAny(o);
 			} else {

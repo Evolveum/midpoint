@@ -24,9 +24,9 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordLifeTimeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordLifeTimeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
 

@@ -22,7 +22,7 @@ package com.evolveum.midpoint.model.synchronizer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 
 /**
  * @author semancik

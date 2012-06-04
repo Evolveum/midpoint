@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-<c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:AccountShadowType" oid="12345">
+<c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:AccountShadowType" oid="12345">
     <c:name>jdoe</c:name>
     <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
     <c:objectClass xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">dj:Account</c:objectClass>

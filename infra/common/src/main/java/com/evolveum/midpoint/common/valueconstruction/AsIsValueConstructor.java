@@ -44,7 +44,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AsIsValueConstructorType;
 
 /**
  * @author Radovan Semancik
