@@ -439,6 +439,9 @@ public class ShadowCache {
 				
 				ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createModifyDelta(
 						shadow.getOid(), modifications, objectType.getClass());
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Storing delta to shadow:\n{}",objectDelta.dump());
+				}
 				ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
 				
 				shadow.setObjectChange(objectDeltaType);

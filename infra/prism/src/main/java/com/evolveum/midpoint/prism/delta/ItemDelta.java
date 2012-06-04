@@ -150,7 +150,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	public PrismContext getPrismContext() {
 		if (definition == null) {
-			throw new IllegalStateException("Item "+this+" has no definition, cannot return prism context");
+			// This may happen e.g. in case of raw elements
+			return null;
 		}
 		return definition.getPrismContext();
 	}
