@@ -92,6 +92,13 @@ public class TablePanel<T> extends Panel {
         DataTable table = getDataTable();
         table.add(new AttributeAppender("class", new Model(cssClass), " "));
     }
+    
+    public void setStyle(String value){
+    	Validate.notEmpty(value, "Value must not be null or empty.");
+    	
+    	DataTable table = getDataTable();
+    	table.add(new AttributeAppender("style", new Model(value), " "));
+    }
 
     @Override
     public void renderHead(IHeaderResponse response) {

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -100,8 +101,20 @@ public class LoggingDto implements Serializable {
             loggers.add(new ClassLogger(logger));
         }
 
-        Collections.sort(loggers, new LoggersComparator());
-        Collections.sort(filters, new FiltersComparator());
+        Collections.sort(loggers, new Comparator<LoggerConfiguration>() {
+
+			@Override
+			public int compare(LoggerConfiguration l1, LoggerConfiguration l2) {
+				return String.CASE_INSENSITIVE_ORDER.compare(l1.getName(), l2.getName());
+			}
+		});
+        Collections.sort(filters, new Comparator<FilterConfiguration>() {
+        	
+			@Override
+			public int compare(FilterConfiguration f1, FilterConfiguration f2) {
+				return String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
+			}
+		});
 
         for (AppenderConfigurationType appender : config.getAppender()) {
             if (appender instanceof FileAppenderConfigurationType) {

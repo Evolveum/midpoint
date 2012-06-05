@@ -50,6 +50,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.form.*;
@@ -329,6 +330,7 @@ public class PageLogging extends PageAdminConfiguration {
 		ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(this,
 				new PropertyModel<List<LoggerConfiguration>>(model, "loggers"));
 		TablePanel table = new TablePanel<LoggerConfiguration>("loggersTable", provider, initLoggerColumns());
+		table.setStyle("margin-top: 0px;");
 		table.setOutputMarkupId(true);
 		table.setShowPaging(false);
 		table.setTableCssClass("autowidth");
@@ -362,6 +364,7 @@ public class PageLogging extends PageAdminConfiguration {
 		ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(this,
 				new PropertyModel<List<LoggerConfiguration>>(model, "filters"));
 		TablePanel table = new TablePanel<FilterConfiguration>("filtersTable", provider, initFilterColumns());
+		table.setStyle("margin-top: 0px;");
 		table.setOutputMarkupId(true);
 		table.setShowPaging(false);
 		table.setTableCssClass("autowidth");
