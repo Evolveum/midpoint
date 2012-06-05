@@ -52,10 +52,10 @@
         </idc:ConnectorConfiguration>
     </configuration>
     <schema>
-        <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2"  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+            
             <xsd:complexType name="Account">
                 <xsd:annotation>
                     <xsd:appinfo>

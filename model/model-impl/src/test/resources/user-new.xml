@@ -21,7 +21,7 @@
 <c:object oid="007" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'	
 xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
-   xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
+   
    xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd"
    xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
    xmlns:mi6="http://mi6.gov.uk/schema/"
@@ -30,13 +30,9 @@ xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"
    xmlns:opendse="http://midpoint.evolveum.com/schema/resources/instances/ldap/embeddedJUnitOpenDS"
    xmlns:opendsl="http://midpoint.evolveum.com/schema/resources/instances/ldap/localhostOpenDS"
+   xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   xsi:type="c:UserType"
-   xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../ns/public/common/common-2.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../ns/public/resource/resource-schema-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../ns/public/resource/idconnector/resource-schema-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>
+   xsi:type="c:UserType">
     <name>bond new</name>
     <fullName>James Bond 007</fullName>
     <givenName>James Jr.</givenName>
@@ -61,9 +57,9 @@ xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
                     <xsd:complexType name="Mi6PersonObjectClass">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <r:identifier ref="ldap:dn"/>
-                                <r:displayName ref="ldap:uid"/>
-                                <r:nativeObjectClass>mi6Person</r:nativeObjectClass>
+                                <ra:identifier ref="ldap:dn"/>
+                                <ra:displayName ref="ldap:uid"/>
+                                <ra:nativeObjectClass>mi6Person</ra:nativeObjectClass>
                             </xsd:appinfo>
                         </xsd:annotation>
                         <xsd:complexContent>

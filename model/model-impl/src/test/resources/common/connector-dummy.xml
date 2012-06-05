@@ -23,7 +23,7 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:ns2="http://www.w3.org/2001/04/xmlenc#"
-	xmlns:ns4="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+	
 	xmlns:ns3="http://www.w3.org/2000/09/xmldsig#">
 	
    <c:name>ICF com.evolveum.icf.dummy.connector.DummyConnector</c:name>

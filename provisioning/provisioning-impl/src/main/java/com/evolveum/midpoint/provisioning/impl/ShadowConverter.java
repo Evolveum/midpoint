@@ -55,8 +55,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType.EnableDisable;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;

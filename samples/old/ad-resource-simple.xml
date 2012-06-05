@@ -78,12 +78,12 @@ replaced with real values.
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66"
                         elementFormDefault="qualified"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-                        xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+                        
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66"
                         xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                
                 <xsd:complexType name="Account">
                     <xsd:annotation>
                         <xsd:appinfo>

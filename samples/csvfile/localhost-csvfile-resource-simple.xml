@@ -142,7 +142,7 @@ object.
 				</activation>
 			</c:accountType>
 		</c:schemaHandling>
-		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
 			<cap:activation>
 				<cap:enableDisable>
 					<cap:attribute>ri:disabled</cap:attribute>

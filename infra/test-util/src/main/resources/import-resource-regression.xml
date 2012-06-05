@@ -23,7 +23,7 @@
 <objects  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
-   xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
+   
    xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
    xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
    xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"

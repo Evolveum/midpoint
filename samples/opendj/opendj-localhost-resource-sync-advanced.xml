@@ -147,7 +147,7 @@ object.
 			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" />
+			
 			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
 			<xsd:complexType name="GroupObjectClass">
 				<xsd:annotation>
@@ -436,7 +436,7 @@ object.
 	</schemaHandling>
 
 
-        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
             <cap:activation>
 
                 <cap:enableDisable>

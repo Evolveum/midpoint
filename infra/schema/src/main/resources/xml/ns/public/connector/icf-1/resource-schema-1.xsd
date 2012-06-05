@@ -27,8 +27,6 @@
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
 
     <xsd:annotation>
         <xsd:documentation>

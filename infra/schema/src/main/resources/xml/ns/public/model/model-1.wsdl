@@ -48,10 +48,6 @@
 	This a web service version of the IDM Model Interface represented in WSDL. As such it has some inherent limitations but it is
 	usable for remote access to the Model services.
 
-	Supported object types:
-	All object types from Common Schema
-	All object types from Identity Schema
-
     </documentation>
 
 	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl"

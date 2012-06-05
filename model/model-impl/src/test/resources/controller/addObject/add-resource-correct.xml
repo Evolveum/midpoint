@@ -22,16 +22,12 @@
 <c:object xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
-   xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
    xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd"
    xmlns:mi6="http://mi6.gov.uk/schema/"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   xsi:type="c:ResourceType"
-   xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../ns/public/common/common-2.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../ns/public/resource/resource-schema-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../ns/public/resource/idconnector/resource-schema-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>    
+   xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+   xsi:type="c:ResourceType">    
     <c:name>add-resource-correct</c:name>
     <namespace>http://mi6.gov.uk/schema/</namespace>
     <schema>
@@ -41,9 +37,9 @@
             <xsd:complexType name="Mi6PersonObjectClass">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <r:identifier ref="ldap:dn"/>
-                        <r:displayName ref="ldap:uid"/>
-                        <r:nativeObjectClass>mi6Person</r:nativeObjectClass>
+                        <ra:identifier ref="ldap:dn"/>
+                        <a:displayName ref="ldap:uid"/>
+                        <ra:nativeObjectClass>mi6Person</ra:nativeObjectClass>
                     </xsd:appinfo>
                 </xsd:annotation>
                 <xsd:complexContent>

@@ -65,26 +65,26 @@ xmlns:xns0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be
 xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+            
             <xsd:complexType name="Account">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <r:identifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns1:__UID__"/>
-                        <r:secondaryIdentifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns1:__NAME__"/>
-                        <r:compositeIdentifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns0:sn"/>
-                        <r:displayName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns0:description"/>
-                        <r:descriptionAttribute xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns0:description"/>
-                        <r:nativeObjectClass xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__ACCOUNT__</r:nativeObjectClass>
-                        <r:accountType default="true" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <r:identifier  ref="xns1:__UID__"/>
+                        <r:secondaryIdentifier  ref="xns1:__NAME__"/>
+                        <r:compositeIdentifier  ref="xns0:sn"/>
+                        <r:displayName  ref="xns0:description"/>
+                        <r:descriptionAttribute  ref="xns0:description"/>
+                        <r:nativeObjectClass >__ACCOUNT__</r:nativeObjectClass>
+                        <r:accountType default="true" />
                     </xsd:appinfo>
                 </xsd:annotation>
                 <xsd:complexContent>
-                    <xsd:extension base="r:ResourceObjectClass" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">
+                    <xsd:extension base="r:ResourceObjectClass" >
                         <xsd:sequence>
                             <xsd:element ref="xns1:__NAME__">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__NAME__</r:nativeAttributeName>
+                                        <r:nativeAttributeName >__NAME__</r:nativeAttributeName>
                                         <r:attributeDisplayName>Some custom name</r:attributeDisplayName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
@@ -92,73 +92,73 @@ xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/reso
                             <xsd:element minOccurs="0" name="description" type="xsd:string">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:help xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">DESCRIPTION_NAME_HELP_KEY</r:help>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">description</r:nativeAttributeName>
+                                        <r:help >DESCRIPTION_NAME_HELP_KEY</r:help>
+                                        <r:nativeAttributeName >description</r:nativeAttributeName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element ref="xns1:__PASSWORD__">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:attributeFlag xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">PASSWORD</r:attributeFlag>
-                                        <r:classifiedAttribute xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">
+                                        <r:attributeFlag >PASSWORD</r:attributeFlag>
+                                        <r:classifiedAttribute >
                                             <r:encryption>HASH</r:encryption>
                                             <r:classificationLevel>password</r:classificationLevel>
                                         </r:classifiedAttribute>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__PASSWORD__</r:nativeAttributeName>
+                                        <r:nativeAttributeName >__PASSWORD__</r:nativeAttributeName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element name="sn" type="xsd:string">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">sn</r:nativeAttributeName>
+                                        <r:nativeAttributeName >sn</r:nativeAttributeName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element name="cn" type="xsd:string">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">cn</r:nativeAttributeName>
+                                        <r:nativeAttributeName >cn</r:nativeAttributeName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element maxOccurs="unbounded" minOccurs="0" name="groups" type="xsd:string">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">groups</r:nativeAttributeName>
+                                        <r:nativeAttributeName >groups</r:nativeAttributeName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element minOccurs="0" name="custom" type="xsd:string">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:attributeFlag xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">IGNORE_ATTRIBUTE</r:attributeFlag>
-                                        <r:help xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">This attribute part of the SchemaHandling</r:help>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">custom</r:nativeAttributeName>
+                                        <r:attributeFlag >IGNORE_ATTRIBUTE</r:attributeFlag>
+                                        <r:help >This attribute part of the SchemaHandling</r:help>
+                                        <r:nativeAttributeName >custom</r:nativeAttributeName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element ref="xns1:__UID__">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:attributeFlag xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">NOT_UPDATEABLE</r:attributeFlag>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__UID__</r:nativeAttributeName>
+                                        <r:attributeFlag >NOT_UPDATEABLE</r:attributeFlag>
+                                        <r:nativeAttributeName >__UID__</r:nativeAttributeName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element minOccurs="0" name="givenName" type="xsd:string">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">givenName</r:nativeAttributeName>
+                                        <r:nativeAttributeName >givenName</r:nativeAttributeName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element minOccurs="0" name="fullName" type="xsd:string">
                                 <xsd:annotation>
                                     <xsd:appinfo>
-                                        <r:help xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">DISPLAY_NAME_HELP_KEY</r:help>
-                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">fullName</r:nativeAttributeName>
+                                        <r:help >DISPLAY_NAME_HELP_KEY</r:help>
+                                        <r:nativeAttributeName >fullName</r:nativeAttributeName>
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>

@@ -302,7 +302,7 @@ object.
                 </activation>
             </accountType>
         </schemaHandling>
-        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
             <cap:activation>
                 <cap:enableDisable>
                     <cap:attribute>ri:nsAccountLock</cap:attribute>

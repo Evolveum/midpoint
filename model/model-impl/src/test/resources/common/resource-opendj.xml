@@ -25,7 +25,7 @@
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+	 xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
 	<name>Localhost OpenDJ</name>
 	<connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
@@ -123,7 +123,7 @@
 			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" />
+			
 			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
 			<xsd:complexType name="GroupObjectClass">
 				<xsd:annotation>
@@ -224,7 +224,7 @@
 
 	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
 		Some tests work without running resource, generating fetching capabilities would fail. -->	
-	<nativeCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+	<nativeCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
       <cap:credentials>
          <cap:password/>
       </cap:credentials>

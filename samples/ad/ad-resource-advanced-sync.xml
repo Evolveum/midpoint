@@ -211,7 +211,7 @@ This resource definition contains only the very basic definitions for midPoint t
             </accountType>
         </schemaHandling>
         <!--
-                <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+                <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
                     <cap:credentials>
                         <cap:password/>
                     </cap:credentials>

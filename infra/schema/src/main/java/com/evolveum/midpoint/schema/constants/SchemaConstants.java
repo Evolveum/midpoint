@@ -54,8 +54,7 @@ public abstract class SchemaConstants {
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-2";
 	public static final String NS_C_PREFIX = "c";
-	public static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd";
-	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd";
+	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2";
 	public static final String NS_FILTER = "http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd";
 	public static final QName LOGGING = new QName(NS_C, "logging");
 	public static final QName C_NAME = new QName(NS_C, "name");
@@ -181,7 +180,7 @@ public abstract class SchemaConstants {
 	public static final String[] JAXB_PACKAGES = new String[] {
 			"com.evolveum.midpoint.xml.ns._public.common.common_2",
 			"com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",
-			"com.evolveum.midpoint.xml.ns._public.resource.capabilities_1",
+			"com.evolveum.midpoint.xml.ns._public.resource.capabilities_2",
 			"com.evolveum.midpoint.xml.ns._public.communication.workflow_1" };
 	
 

@@ -20,8 +20,8 @@
  * -->
 
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
-    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
     xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
     xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -33,9 +33,8 @@
         <xsd:documentation>
             Capabilities schema.
             
-            TODO
-            
-            UNSTABLE. This definition may change in the future.
+            Defines resource capabilities such as ability to enable/disable account,
+            ability to reset passwords, etc.
             
             Recommended namespace prefix: cap
         </xsd:documentation>

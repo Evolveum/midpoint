@@ -24,7 +24,7 @@
     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 
     <object xsi:type="UserType" version="1"
-            xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+            
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
             xmlns:p="http://example.com/p">

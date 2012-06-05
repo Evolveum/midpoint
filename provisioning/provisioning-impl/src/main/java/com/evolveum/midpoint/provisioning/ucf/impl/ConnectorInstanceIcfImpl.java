@@ -47,10 +47,10 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ScriptCapabilityType.Host;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType.EnableDisable;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 

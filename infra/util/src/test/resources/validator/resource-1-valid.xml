@@ -109,12 +109,12 @@ basic provisioning.
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         elementFormDefault="qualified"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-                        xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+                        
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                
 
                 <!-- Definition of Account object class -->
                 <xsd:complexType name="Account">

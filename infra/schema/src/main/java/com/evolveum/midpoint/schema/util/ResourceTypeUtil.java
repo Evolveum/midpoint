@@ -50,8 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there

@@ -24,8 +24,8 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-        xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" 
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+         
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"  
         xmlns:enc="http://www.w3.org/2001/04/xmlenc#"

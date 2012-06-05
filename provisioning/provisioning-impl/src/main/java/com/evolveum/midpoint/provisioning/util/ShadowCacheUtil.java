@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

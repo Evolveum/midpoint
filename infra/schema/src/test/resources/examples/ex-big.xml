@@ -29,7 +29,7 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-   xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
+   
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
    xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
    xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
@@ -386,8 +386,8 @@
         <c:type>http://midpoint.evolveum.com/xml/ns/resource/identityconnectors/bundles/solaris1#SolarisConnector</c:type>
         <c:namespace>http://midpoint.evolveum.com/xml/ns/default/resource/unix4</c:namespace>
         <c:schema>
-            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://midpoint.evolveum.com/xml/ns/default/resource/unix4" xmlns:tns="http://midpoint.evolveum.com/xml/ns/default/resource/unix4" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" elementFormDefault="qualified">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://midpoint.evolveum.com/xml/ns/default/resource/unix4" xmlns:tns="http://midpoint.evolveum.com/xml/ns/default/resource/unix4"  xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" elementFormDefault="qualified">
+                
 
                 <xsd:complexType name="ShellMiscObjectClass">
                     <xsd:annotation>

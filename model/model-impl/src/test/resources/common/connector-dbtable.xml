@@ -24,7 +24,7 @@
 <connector oid="7d3ebd6f-6113-4833-8a6a-596b73a5e434"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:ns2="http://www.w3.org/2001/04/xmlenc#"
-	xmlns:ns4="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+	
 	xmlns:ns3="http://www.w3.org/2000/09/xmldsig#">
 	
    <name>ICF org.identityconnectors.databasetable.DatabaseTableConnector</name>

@@ -54,8 +54,8 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
