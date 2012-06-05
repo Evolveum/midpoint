@@ -49,6 +49,9 @@ public class TsaValidator extends AbstractFormValidator {
 
 	@Override
 	public void validate(Form<?> form) {
+        if (threadStop == null)
+            return;
+
 		if (runUntilNodeDown.getConvertedInput()) {
 			if (ThreadStopActionType.RESTART.equals(threadStop.getConvertedInput())
 					|| ThreadStopActionType.RESCHEDULE.equals(threadStop.getConvertedInput())){

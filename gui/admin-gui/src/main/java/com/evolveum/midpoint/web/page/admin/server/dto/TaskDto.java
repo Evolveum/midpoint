@@ -123,6 +123,9 @@ public class TaskDto extends Selectable {
         this.executingAt = n != null ? n.getNodeIdentifier() : null;
 
         this.objectRef = task.getObjectRef();
+        if (this.objectRef != null && task.getObjectRef().getType() != null) {
+            this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(task.getObjectRef().getType());
+        }
 
         this.binding = task.getBinding();
         this.recurrence = task.getRecurrenceStatus();

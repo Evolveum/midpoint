@@ -91,6 +91,7 @@ public class PageTasks extends PageAdminTasks {
     private static final String OPERATION_DEACTIVATE_SERVICE_THREADS = DOT_CLASS + "deactivateServiceThreads";
     private static final String OPERATION_REACTIVATE_SERVICE_THREADS = DOT_CLASS + "reactivateServiceThreads";
     private static final String OPERATION_SYNCHRONIZE_TASKS = DOT_CLASS + "synchronizeTasks";
+    private static final String ALL_CATEGORIES = "";
 
     public PageTasks() {
         initLayout();
@@ -111,15 +112,19 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(content);
 
         DropDownChoice listSelect = new DropDownChoice("state", new Model(),
-                new AbstractReadOnlyModel<List<TaskDtoExecutionStatus>>() {
+                new AbstractReadOnlyModel<List<TaskDtoExecutionStatusFilter>>() {
 
                     @Override
-                    public List<TaskDtoExecutionStatus> getObject() {
+                    public List<TaskDtoExecutionStatusFilter> getObject() {
                         return createTypeList();
                     }
                 },
                 new EnumChoiceRenderer(PageTasks.this));
         listSelect.setMarkupId("stateSelect");
+        listSelect.setNullValid(false);
+        if (listSelect.getModel().getObject() == null) {
+            listSelect.getModel().setObject(TaskDtoExecutionStatusFilter.ALL);
+        }
         content.getBodyContainer().add(listSelect);
 
         DropDownChoice categorySelect = new DropDownChoice("category", new Model(),
@@ -134,6 +139,9 @@ public class PageTasks extends PageAdminTasks {
 
                     @Override
                     public Object getDisplayValue(String object) {
+                        if (ALL_CATEGORIES.equals(object)) {
+                            object = "AllCategories";
+                        }
                         return PageTasks.this.getString("pageTasks.category." + object);
                     }
 
@@ -144,6 +152,10 @@ public class PageTasks extends PageAdminTasks {
                 }
         );
         categorySelect.setMarkupId("categorySelect");
+        categorySelect.setNullValid(false);
+        if (categorySelect.getModel().getObject() == null) {
+            categorySelect.getModel().setObject(ALL_CATEGORIES);
+        }
         content.getBodyContainer().add(categorySelect);
 
         listSelect.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel()));
@@ -166,7 +178,7 @@ public class PageTasks extends PageAdminTasks {
         initDiagnosticButtons(diagnostics);
     }
 
-    private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour(final IModel<TaskDtoExecutionStatus> status,
+    private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour(final IModel<TaskDtoExecutionStatusFilter> status,
             final IModel<String> category) {
         return new AjaxFormComponentUpdatingBehavior("onchange") {
 
@@ -248,7 +260,21 @@ public class PageTasks extends PageAdminTasks {
         };
         columns.add(column);
 
-        columns.add(new PropertyColumn(createStringResource("pageTasks.task.category"), "category"));
+        columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.category")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
+                                     final IModel<TaskDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        return createStringResource("pageTasks.category." + rowModel.getObject().getCategory()).getString();
+                    }
+                }));
+            }
+        });
+
         columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.objectRef")) {
 
             @Override
@@ -315,19 +341,19 @@ public class PageTasks extends PageAdminTasks {
         TaskDto task = taskModel.getObject();
 
         StringBuilder builder = new StringBuilder();
+        if (task.getObjectRef() == null) {
+            return "";
+        }
+
         if (StringUtils.isNotEmpty(task.getObjectRefName())) {
             builder.append(task.getObjectRefName());
         } else {
-            builder.append(createStringResource("pageTasks.unknownRefName").getString());
-            if (task.getObjectRef() != null) {
-                builder.append("(");
-                builder.append(task.getObjectRef().getOid());
-                builder.append(")");
-            }
+            //builder.append(createStringResource("pageTasks.unknownRefName").getString());
+            builder.append(task.getObjectRef().getOid());
         }
         if (task.getObjectRefType() != null) {
-            builder.append("(");
-            builder.append(createStringResource(task.getObjectRefType()).getString());
+            builder.append(" (");
+            builder.append(createStringResource(task.getObjectRefType().getLocalizationKey()).getString());
             builder.append(")");
         }
 
@@ -338,7 +364,7 @@ public class PageTasks extends PageAdminTasks {
         TaskDto task = taskModel.getObject();
         Long time = task.getScheduledToStartAgain();
         if (time == null) {
-            return "-";
+            return "";
         } else if (time == 0) {
             return getString("pageTasks.now");
         } else if (time == -1) {
@@ -354,7 +380,7 @@ public class PageTasks extends PageAdminTasks {
         TaskDto task = taskModel.getObject();
         Long time = task.getCurrentRuntime();
         if (time == null) {
-            return "-";
+            return "";
         }
 
         //todo i18n
@@ -365,7 +391,7 @@ public class PageTasks extends PageAdminTasks {
         NodeDto node = nodeModel.getObject();
         Long time = node.getLastCheckInTime();
         if (time == null || time == 0) {
-            return "-";
+            return "";
         }
 
         //todo i18n
@@ -529,6 +555,8 @@ public class PageTasks extends PageAdminTasks {
 
     private List<String> createCategoryList() {
         List<String> categories = new ArrayList<String>();
+        categories.add(ALL_CATEGORIES);
+
         TaskManager manager = getTaskManager();
 
         List<String> list = manager.getAllTaskCategories();
@@ -540,10 +568,10 @@ public class PageTasks extends PageAdminTasks {
         return categories;
     }
 
-    private List<TaskDtoExecutionStatus> createTypeList() {
-        List<TaskDtoExecutionStatus> list = new ArrayList<TaskDtoExecutionStatus>();
-        //todo probably reimplement
-        Collections.addAll(list, TaskDtoExecutionStatus.values());
+    private List<TaskDtoExecutionStatusFilter> createTypeList() {
+        List<TaskDtoExecutionStatusFilter> list = new ArrayList<TaskDtoExecutionStatusFilter>();
+
+        Collections.addAll(list, TaskDtoExecutionStatusFilter.values());
 
         return list;
     }
@@ -1023,17 +1051,19 @@ public class PageTasks extends PageAdminTasks {
         target.add(getNodeTable());
     }
 
-    private void searchFilterPerformed(AjaxRequestTarget target, IModel<TaskDtoExecutionStatus> status,
+    private void searchFilterPerformed(AjaxRequestTarget target, IModel<TaskDtoExecutionStatusFilter> status,
             IModel<String> category) {
         QueryType query = null;
         try {
             Document document = DOMUtil.getDocument();
             List<Element> elements = new ArrayList<Element>();
             if (status.getObject() != null) {
-                elements.add(QueryUtil.createEqualFilter(document, null, TaskType.F_EXECUTION_STATUS,
-                        status.getObject().name()));
+                Element filter = status.getObject().createFilter(document);
+                if (filter != null) {
+                    elements.add(filter);
+                }
             }
-            if (category.getObject() != null) {
+            if (category.getObject() != null && !ALL_CATEGORIES.equals(category.getObject())) {
                 elements.add(QueryUtil.createEqualFilter(document, null, TaskType.F_CATEGORY, category.getObject()));
             }
             if (!elements.isEmpty()) {
@@ -1044,7 +1074,6 @@ public class PageTasks extends PageAdminTasks {
             error(getString("pageTasks.message.couldntCreateQuery") + " " + ex.getMessage());
             LoggingUtils.logException(LOGGER, "Couldn't create task filter", ex);
         }
-
 
         TablePanel panel = getTaskTable();
         DataTable table = panel.getDataTable();

@@ -130,8 +130,9 @@ public class PageTaskAdd extends PageAdminTasks {
 			public boolean isEnabled() {
 				TaskAddDto dto = model.getObject();
 				boolean sync = TaskCategory.LIVE_SYNCHRONIZATION.equals(dto.getCategory());
-				boolean cron = TaskCategory.RECONCILIATION.equals(dto.getCategory());
-				return sync || cron;
+				boolean recon = TaskCategory.RECONCILIATION.equals(dto.getCategory());
+                boolean importAccounts = TaskCategory.IMPORTING_ACCOUNTS.equals(dto.getCategory());
+				return sync || recon || importAccounts;
 			}
 		});
 		resource.setOutputMarkupId(true);
@@ -285,13 +286,13 @@ public class PageTaskAdd extends PageAdminTasks {
 			@Override
 			public ThreadStopActionType getObject() {
 				TaskAddDto dto = model.getObject();
-				if (dto.getThreadStop() == null) {
-					if (!dto.getRunUntilNodeDown()) {
-						dto.setThreadStop(ThreadStopActionType.RESTART);
-					} else {
-						dto.setThreadStop(ThreadStopActionType.CLOSE);
-					}
-				}
+//				if (dto.getThreadStop() == null) {
+//					if (!dto.getRunUntilNodeDown()) {
+//						dto.setThreadStop(ThreadStopActionType.RESTART);
+//					} else {
+//						dto.setThreadStop(ThreadStopActionType.CLOSE);
+//					}
+//				}
 				return dto.getThreadStop();
 			}
 
