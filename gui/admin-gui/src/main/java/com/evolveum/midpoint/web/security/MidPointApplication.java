@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.resource.css.CssResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.resource.js.JsResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
+import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
@@ -54,7 +55,9 @@ import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSessio
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.MountedMapper;
-import org.apache.wicket.request.resource.*;
+import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.resource.loader.IStringResourceLoader;
+import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -62,6 +65,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -100,9 +104,14 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
-        getMarkupSettings().setStripWicketTags(true);
-        getResourceSettings().setThrowExceptionOnMissingResource(false);
+        IResourceSettings resourceSettings = getResourceSettings();
+        resourceSettings.setThrowExceptionOnMissingResource(false);
 
+        List<IStringResourceLoader> loaders = resourceSettings.getStringResourceLoaders();
+        //replacing standard component string resource loader
+        loaders.set(0, new MidPointStringResourceLoader());
+
+        getMarkupSettings().setStripWicketTags(true);
 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);

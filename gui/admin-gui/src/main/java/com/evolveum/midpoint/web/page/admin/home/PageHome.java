@@ -21,14 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
 
 /**
  * @author lazyman

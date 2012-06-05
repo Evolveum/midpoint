@@ -87,7 +87,7 @@ public class LocalePanel extends Panel {
                         }
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    LoggingUtils.logException(LOGGER, "Couldn't load localization", ex);
                 } finally {
                     IOUtils.closeQuietly(reader);
                 }
@@ -151,8 +151,7 @@ public class LocalePanel extends Panel {
     }
 
     private IModel<String> createStyle(LocaleDescriptor descriptor) {
-        return new Model<String>("background: url('img/flag/"
-                + descriptor.getLocale().getLanguage().toLowerCase() + ".png') no-repeat;");
+        return new Model<String>("background: url('img/flag/" + descriptor.getFlag() + "') no-repeat;");
     }
 
     @Override
@@ -165,5 +164,7 @@ public class LocalePanel extends Panel {
     private void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {
         LOGGER.info("Changing locale to {}.", new Object[]{descriptor.getLocale()});
         getSession().setLocale(descriptor.getLocale());
+
+        target.add(getPage());
     }
 }
