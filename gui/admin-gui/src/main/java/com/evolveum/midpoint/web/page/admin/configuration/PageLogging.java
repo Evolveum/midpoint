@@ -70,6 +70,7 @@ public class PageLogging extends PageAdminConfiguration {
 
 	private static final String DOT_CLASS = PageLogging.class.getName() + ".";
 	private static final String OPERATION_LOAD_LOGGING_CONFIGURATION = "loadLoggingConfiguration";
+	private static final String CREATE_CONFIGURATION = "createConfiguration";
 	private static final String OPERATION_UPDATE_LOGGING_CONFIGURATION = DOT_CLASS
 			+ "updateLoggingConfiguration";
 
@@ -643,7 +644,7 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 	}
 
-	private LoggingConfigurationType createConfiguration(LoggingDto dto) {
+	private LoggingConfigurationType createConfiguration(LoggingDto dto, AjaxRequestTarget target, OperationResult parentResult) {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		AuditingConfigurationType audit = new AuditingConfigurationType();
 		audit.setEnabled(dto.isAuditLog());
@@ -662,6 +663,11 @@ public class PageLogging extends PageAdminConfiguration {
                     || LoggingDto.LOGGER_MIDPOINT_ROOT.equals(item.getName())) {
                 continue;
 			}
+			for(ClassLoggerConfigurationType logger : configuration.getClassLogger()){
+				if(logger.getPackage().equals(item.getName())){
+					parentResult.recordFatalError("Logger with name '" + item.getName() + "' is already defined.");
+				}
+			}	
 			configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
 		}
 		
@@ -670,6 +676,11 @@ public class PageLogging extends PageAdminConfiguration {
                     || LoggingDto.LOGGER_MIDPOINT_ROOT.equals(item.getName())) {
                 continue;
             }
+			for(SubSystemLoggerConfigurationType filter : configuration.getSubSystemLogger()){
+				if(filter.getComponent().name().equals(item.getName())){
+					parentResult.recordFatalError("Filter with name '" + item.getName() + "' is already defined.");
+				}
+			}
 			configuration.getSubSystemLogger().add(((FilterLogger) item).toXmlType());
 		}
 
@@ -684,7 +695,10 @@ public class PageLogging extends PageAdminConfiguration {
                     dto.getMidPointLevel(), dto.getMidPointAppender());
             configuration.getClassLogger().add(type);
         }
-
+        
+        if(parentResult.isError()){
+    		return null;
+        }
 		return configuration;
 	}
 
@@ -810,31 +824,32 @@ public class PageLogging extends PageAdminConfiguration {
 			LoggingDto dto = model.getObject();
 
 			PrismObject<SystemConfigurationType> newObject = dto.getOldConfiguration();
-			LoggingConfigurationType config = createConfiguration(dto);
-			newObject.asObjectable().setLogging(config);
-
-            PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
-                    oid, null, task, result);
-
-			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Logging configuration delta:\n{}", delta.dump());
+			LoggingConfigurationType config = createConfiguration(dto, target, result);
+			if(config != null){
+				newObject.asObjectable().setLogging(config);
+	
+	            PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
+	                    oid, null, task, result);
+	
+				ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Logging configuration delta:\n{}", delta.dump());
+				}
+				getModelService().modifyObject(SystemConfigurationType.class, oid, delta.getModifications(),
+						task, result);
+	
+				// finish editing for loggers and appenders
+				for (LoggerConfiguration logger : dto.getLoggers()) {
+					logger.setEditing(false);
+				}
+				for (FilterConfiguration filter : dto.getFilters()) {
+					filter.setEditing(false);
+				}
+				for (AppenderConfiguration appender : dto.getAppenders()) {
+					appender.setEditing(false);
+				}
+				result.recordSuccess();
 			}
-			getModelService().modifyObject(SystemConfigurationType.class, oid, delta.getModifications(),
-					task, result);
-
-			// finish editing for loggers and appenders
-			for (LoggerConfiguration logger : dto.getLoggers()) {
-				logger.setEditing(false);
-			}
-			for (FilterConfiguration filter : dto.getFilters()) {
-				filter.setEditing(false);
-			}
-			for (AppenderConfiguration appender : dto.getAppenders()) {
-				appender.setEditing(false);
-			}
-
-			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't save logging configuration.", ex);
