@@ -42,6 +42,8 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 
@@ -152,14 +154,36 @@ public class PageLogging extends PageAdminConfiguration {
 
         //name editing column
         columns.add(new EditableLinkColumn<LoggerConfiguration>(
-                createStringResource("pageLogging.classPackage"), "name") {
+                createStringResource("pageLogging.logger"), "name") {
         	
             @Override
             protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
-                TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
-            	textPanel.getBaseFormComponent().add(new AttributeModifier("style", "width: 100%"));
-            	textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-            	return textPanel;
+            	if(model.getObject() instanceof ComponentLogger){
+            		DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
+            				createComponentModel(model),
+                            WebMiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class),
+                            new IChoiceRenderer<LoggingComponentType>() {
+
+    							@Override
+    							public Object getDisplayValue(LoggingComponentType item) {
+    								return PageLogging.this.getString("pageLogging.logger." + item);
+    							}
+
+    							@Override
+    							public String getIdValue(LoggingComponentType item, int index) {
+    								return Integer.toString(index);
+    							}
+    						});
+
+                	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                	return dropDownChoicePanel;
+            	} else {
+            		TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+                	textPanel.getBaseFormComponent().add(new AttributeAppender("style", "width: 100%"));
+                	textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                	return textPanel;
+            	}
+                
             }
 
             @Override
@@ -231,13 +255,25 @@ public class PageLogging extends PageAdminConfiguration {
 
         //name editing column
         columns.add(new EditableLinkColumn<FilterConfiguration>(
-                createStringResource("pageLogging.subsystem"), "name") {
+                createStringResource("pageLogging.filter"), "name") {
 
             @Override
             protected Component createInputPanel(String componentId, final IModel<FilterConfiguration> model) {
             	DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
-                        createFilterModel(model),
-                        WebMiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class));
+            			createFilterModel(model),
+                        WebMiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class),
+                        new IChoiceRenderer<LoggingComponentType>() {
+
+							@Override
+							public Object getDisplayValue(LoggingComponentType item) {
+								return PageLogging.this.getString("pageLogging.filter." + item);
+							}
+
+							@Override
+							public String getIdValue(LoggingComponentType item, int index) {
+								return Integer.toString(index);
+							}
+						});
 
             	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             	return dropDownChoicePanel;
@@ -324,6 +360,25 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		};
 	}
+	
+	private IModel<LoggingComponentType> createComponentModel(final IModel<LoggerConfiguration> model) {
+		return new Model<LoggingComponentType>() {
+
+			@Override
+			public LoggingComponentType getObject() {
+				String name = model.getObject().getName();
+				if (StringUtils.isEmpty(name)) {
+					return null;
+				}
+				return LoggingComponentType.valueOf(name);
+			}
+
+			@Override
+			public void setObject(LoggingComponentType object) {
+				model.getObject().setName(object.name());
+			}
+		};
+	}
 
 	private void initLoggers(AccordionItem loggers) {
 		initRoot(loggers);
@@ -337,6 +392,16 @@ public class PageLogging extends PageAdminConfiguration {
 		table.setTableCssClass("autowidth");
 		loggers.getBodyContainer().add(table);
 
+		AjaxLinkButton addComponentLogger = new AjaxLinkButton("addComponentLogger",
+				createStringResource("pageLogging.button.addComponentLogger")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				addComponentLoggerPerformed(target);
+			}
+		};
+		loggers.getBodyContainer().add(addComponentLogger);
+		
 		AjaxLinkButton addClassLogger = new AjaxLinkButton("addClassLogger",
 				createStringResource("pageLogging.button.addClassLogger")) {
 
@@ -667,8 +732,13 @@ public class PageLogging extends PageAdminConfiguration {
 				if(logger.getPackage().equals(item.getName())){
 					parentResult.recordFatalError("Logger with name '" + item.getName() + "' is already defined.");
 				}
-			}	
-			configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
+			}
+			if(item instanceof ComponentLogger){
+				configuration.getClassLogger().add(((ComponentLogger) item).toXmlType());
+			} else {
+				configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
+			}
+			
 		}
 		
 		for (FilterConfiguration item : dto.getFilters()) {
@@ -735,6 +805,15 @@ public class PageLogging extends PageAdminConfiguration {
 		logger.setEditing(true);
 		dto.getFilters().add(logger);
 		target.add(getFiltersTable());
+	}
+	
+	private void addComponentLoggerPerformed(AjaxRequestTarget target) {
+		LoggingDto dto = model.getObject();
+		ComponentLogger logger = new ComponentLogger(new ClassLoggerConfigurationType());
+		logger.setEditing(true);
+		dto.getLoggers().add(logger);
+
+		target.add(getLoggersTable());
 	}
 
 	private void addClassLoggerPerformed(AjaxRequestTarget target) {

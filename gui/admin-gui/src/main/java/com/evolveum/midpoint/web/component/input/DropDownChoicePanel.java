@@ -27,6 +27,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -38,6 +39,12 @@ public class DropDownChoicePanel<T> extends InputPanel {
         super(id);
 
         add(new DropDownChoice("input", model, choices));
+    }
+    
+    public DropDownChoicePanel(String id, IModel<T> model, IModel<T> choices, IChoiceRenderer<T> renderer) {
+        super(id);
+
+        add(new DropDownChoice("input", model, choices, renderer));
     }
 
     @Override

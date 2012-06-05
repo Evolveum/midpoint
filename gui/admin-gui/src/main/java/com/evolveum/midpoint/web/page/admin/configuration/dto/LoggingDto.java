@@ -28,7 +28,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -36,7 +38,16 @@ import java.util.List;
 public class LoggingDto implements Serializable {
 
     public static final String LOGGER_PROFILING = "PROFILING";
-    public static final String LOGGER_MIDPOINT_ROOT = "com.evolveum.midpoint";
+    public static final String LOGGER_MIDPOINT_ROOT = "com.evolveum.midpoint";   
+    private static final Map componentMap = new HashMap<String, LoggingComponentType>();
+    
+    static {
+    	componentMap.put("com.evolveum.midpoint.all", LoggingComponentType.ALL);
+    	componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
+    	componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
+    	componentMap.put("com.evolveum.midpoint.taskmanager", LoggingComponentType.TASKMANAGER);
+    	componentMap.put("com.evolveum.midpoint.resourceobjectchangelistener", LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
+    }
 
     private PrismObject<SystemConfigurationType> oldConfiguration;
 
@@ -48,6 +59,7 @@ public class LoggingDto implements Serializable {
 
     private List<LoggerConfiguration> loggers = new ArrayList<LoggerConfiguration>();
     private List<FilterConfiguration> filters = new ArrayList<FilterConfiguration>();
+   
 
     private ProfilingLevel profilingLevel;
     private String profilingAppender;
@@ -97,8 +109,12 @@ public class LoggingDto implements Serializable {
                 setMidPointLevel(logger.getLevel());
                 continue;
             }
-
-            loggers.add(new ClassLogger(logger));
+            
+            if(componentMap.containsKey(logger.getPackage())){
+            	loggers.add(new ComponentLogger(logger, componentMap));
+            } else {
+            	loggers.add(new ClassLogger(logger));
+            }
         }
 
         Collections.sort(loggers, new Comparator<LoggerConfiguration>() {
