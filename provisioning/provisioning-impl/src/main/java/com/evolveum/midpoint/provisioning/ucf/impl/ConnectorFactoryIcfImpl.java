@@ -100,9 +100,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
 public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
-	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-1.xsd";
+	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-2";
 	// Note! This is also specified in SchemaConstants (MID-356)
-	public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-1.xsd";
+	public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-2";
 	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
 	public static final String NS_ICF_RESOURCE_INSTANCE_PREFIX = "ri";
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");

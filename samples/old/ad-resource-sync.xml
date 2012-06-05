@@ -80,8 +80,8 @@ replaced with real values.
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                         
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66"
-                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
                 
                 <xsd:complexType name="Account">
@@ -205,7 +205,7 @@ replaced with real values.
             <c:accountType default="true">
                 <c:name>Default Account</c:name>
                 <i:objectClass>ri:Account</i:objectClass>
-                <i:attribute ref="ids:__NAME__" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
+                <i:attribute ref="ids:__NAME__" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">
                     <c:name>Distinguished Name</c:name>
                     <c:access>create</c:access>
                     <c:access>read</c:access>

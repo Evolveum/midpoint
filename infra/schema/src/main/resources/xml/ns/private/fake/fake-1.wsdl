@@ -39,10 +39,10 @@
             			schemaLocation="../../public/common/common-2.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" 
             			schemaLocation="../../public/resource/capabilities-2.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" 
-            			schemaLocation="../../public/connector/icf-1/resource-schema-1.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" 
-            			schemaLocation="../../public/connector/icf-1/connector-schema-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" 
+            			schemaLocation="../../public/connector/icf-1/resource-schema-2.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" 
+            			schemaLocation="../../public/connector/icf-1/connector-schema-2.xsd"/>
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" 
 						schemaLocation="../../public/communication/workflow-1.xsd"/>
 

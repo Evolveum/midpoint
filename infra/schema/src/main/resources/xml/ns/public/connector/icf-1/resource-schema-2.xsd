@@ -20,7 +20,7 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             elementFormDefault="qualified">
@@ -37,6 +37,7 @@
             These will hopefuly get cleaned up and aligned
             with existing common terminology and/or connectors.
 
+			Version: 2.0
             Recommended namespace prefix: icfs
         </xsd:documentation>
     </xsd:annotation>

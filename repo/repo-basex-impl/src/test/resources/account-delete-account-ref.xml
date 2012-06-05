@@ -31,7 +31,7 @@
         </c:password>
     </c:credentials>
     <c:attributes>
-        <__UID__:__UID__ xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:__UID__="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">4d6cfc84-ef47-395d-906d-efd3c79e74b1</__UID__:__UID__>
-        <__NAME__:__NAME__ xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:__NAME__="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">uid=jbond,ou=People,dc=example,dc=com</__NAME__:__NAME__>
+        <__UID__:__UID__ xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd" xmlns:__UID__="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">4d6cfc84-ef47-395d-906d-efd3c79e74b1</__UID__:__UID__>
+        <__NAME__:__NAME__ xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd" xmlns:__NAME__="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">uid=jbond,ou=People,dc=example,dc=com</__NAME__:__NAME__>
     </c:attributes>
 </c:object>

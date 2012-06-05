@@ -69,7 +69,7 @@ import static org.testng.AssertJUnit.*;
 public class TestRefinedSchema {
 
     public static final String TEST_DIR_NAME = "src/test/resources/refinery";
-    private static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
+    private static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
     private static final QName ICFS_NAME = new QName(NS_ICFS, "name");
     private static final QName ICFS_UID = new QName(NS_ICFS, "uid");
     

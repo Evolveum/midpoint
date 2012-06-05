@@ -26,7 +26,7 @@
    xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd"
    xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
    xmlns:mi6="http://mi6.gov.uk/schema/"
-   xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+   xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
    xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
    xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"
    xmlns:opendse="http://midpoint.evolveum.com/schema/resources/instances/ldap/embeddedJUnitOpenDS"
@@ -36,7 +36,7 @@
    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../ns/public/common/common-2.xsd
    
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../ns/public/resource/idconnector/resource-schema-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd ../ns/public/resource/idconnector/resource-schema-2.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>
     <c:extension>
         <mi6:licence>right to kill renewed</mi6:licence>

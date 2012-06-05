@@ -24,7 +24,7 @@
 <c:object
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
 	xsi:type="c:AccountShadowType"
 	oid="dbb0c37d-9ee6-44a4-8d39-016dbce18b4c">
 	<c:name>jbond</c:name>

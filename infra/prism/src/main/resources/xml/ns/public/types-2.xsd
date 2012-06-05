@@ -34,7 +34,10 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Testing schema for Prism framework
+            Basic Prism types.
+            
+            Version: 2.0
+            Recommended namespace prefix: t
         </xsd:documentation>
     </xsd:annotation>
 

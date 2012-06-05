@@ -65,12 +65,12 @@
         	<definition>
             <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
 					
 					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
 					<xsd:complexType name="GroupObjectClass">
@@ -174,7 +174,7 @@
 			<accountType default="true">
 				<name>Default Account</name>
 				<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
-				<attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+				<attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
 					<name>Distinguished Name</name>
@@ -184,7 +184,7 @@
 						<valueExpression><code>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</code></valueExpression>
 					</outbound>
 				</attribute>
-				<attribute ref="ids:uid" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+				<attribute ref="ids:uid" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
 					<name>Entry UUID</name>
@@ -285,11 +285,11 @@
 		<vr0:cn xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">jan prvy</vr0:cn>
 		<vr1:name xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-			xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">uid=janko nemenny,ou=people,dc=example,dc=com</vr1:name>
+			xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">uid=janko nemenny,ou=people,dc=example,dc=com</vr1:name>
 		<vr0:sn xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">prvy</vr0:sn>
 		<vr1:password xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-			xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">janco</vr1:password>
+			xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">janco</vr1:password>
 		<vr0:givenName xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">James Jr. unchanged</vr0:givenName>
 		<dj:givenName xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ">James Jr.</dj:givenName>

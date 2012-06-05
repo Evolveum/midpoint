@@ -23,7 +23,7 @@
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -42,7 +42,7 @@
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004</namespace>
 	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>foobar</icfi:instanceId>
@@ -53,14 +53,14 @@
 	<schema>
 		<definition>
 			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"/>
             <xsd:complexType name="AccountObjectClass">

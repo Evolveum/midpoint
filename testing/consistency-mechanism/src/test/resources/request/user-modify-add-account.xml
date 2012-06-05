@@ -31,7 +31,7 @@
 		<t:modificationType>add</t:modificationType>
 		<t:value>
 			<c:assignment>
-				<c:accountConstruction xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
+				<c:accountConstruction xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
 					<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
 					<c:objectClass>ri:AccountObjectClass</c:objectClass>
 					<c:attributes>

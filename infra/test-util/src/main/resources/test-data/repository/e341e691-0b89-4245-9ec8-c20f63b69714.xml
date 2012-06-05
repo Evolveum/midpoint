@@ -23,7 +23,7 @@
  
 <c:object
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:AccountShadowType">
 	<c:name>jdoe</c:name>
 	<c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" />

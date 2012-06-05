@@ -71,8 +71,8 @@ oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 xmlns:xns0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
             
             <xsd:complexType name="Account">

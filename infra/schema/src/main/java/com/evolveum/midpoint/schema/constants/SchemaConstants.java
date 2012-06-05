@@ -162,8 +162,8 @@ public abstract class SchemaConstants {
 	// This constant should not be here. It is used by schema processor to
 	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)
-	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
-	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd";
+	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2";
 
 	public static final String NS_PROVISIONING = "http://midpoint.evolveum.com/xml/ns/public/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";

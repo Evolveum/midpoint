@@ -31,8 +31,8 @@
         <c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
         <c:password>
             <c:protectedString
-                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
+                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                     xmlns:enc="http://www.w3.org/2001/04/xmlenc#">

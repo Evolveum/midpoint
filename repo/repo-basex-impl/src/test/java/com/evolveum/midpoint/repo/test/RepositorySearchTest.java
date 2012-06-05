@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -191,10 +192,10 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			accountShadow = objectList.get(0);
 			AccountShadowType accountShadowType = accountShadow.asObjectable();
 			assertNotNull(accountShadowType.getAttributes().getAny());
-			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element) accountShadowType.getAttributes()
-					.getAny().get(0)).getTextContent());
-			assertEquals("uid=jbond,ou=People,dc=example,dc=com", ((Element) accountShadowType
-					.getAttributes().getAny().get(1)).getTextContent());
+			PrismAsserts.assertPropertyValue(accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES), SchemaTestConstants.ICFS_UID,
+					"4d6cfc84-ef47-395d-906d-efd3c79e74b1");
+			PrismAsserts.assertPropertyValue(accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES), SchemaTestConstants.ICFS_NAME,
+					"uid=jbond,ou=People,dc=example,dc=com");
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -226,10 +227,10 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			accountShadow = objectList.get(0);
 			AccountShadowType accountShadowType = accountShadow.asObjectable();
 			assertNotNull(accountShadowType.getAttributes().getAny());
-			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element) accountShadowType.getAttributes()
-					.getAny().get(0)).getTextContent());
-			assertEquals("uid=jbond,ou=People,dc=example,dc=com", ((Element) accountShadowType
-					.getAttributes().getAny().get(1)).getTextContent());
+			PrismAsserts.assertPropertyValue(accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES), SchemaTestConstants.ICFS_UID,
+					"4d6cfc84-ef47-395d-906d-efd3c79e74b1");
+			PrismAsserts.assertPropertyValue(accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES), SchemaTestConstants.ICFS_NAME,
+				"uid=jbond,ou=People,dc=example,dc=com");
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -287,7 +288,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			// List<Object> values = new ArrayList<Object>();
 			// values.add((Element) DOMUtil
 			// .parseDocument(
-			// "<s:__NAME__ xmlns:s=\"http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd\">uid=jbond,ou=People,dc=example,dc=com</s:__NAME__>")
+			// "<s:__NAME__ xmlns:s=\"http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd\">uid=jbond,ou=People,dc=example,dc=com</s:__NAME__>")
 			// .getFirstChild());
 			//
 			// // prepare query
@@ -308,10 +309,10 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			accountShadow = objectList.get(0);
 			AccountShadowType accountShadowType = accountShadow.asObjectable();
 			assertNotNull(accountShadowType.getAttributes().getAny());
-			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element) accountShadowType.getAttributes()
-					.getAny().get(0)).getTextContent());
-			assertEquals("uid=jbond,ou=People,dc=example,dc=com", ((Element) accountShadowType
-					.getAttributes().getAny().get(1)).getTextContent());
+			PrismAsserts.assertPropertyValue(accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES), SchemaTestConstants.ICFS_UID,
+				"4d6cfc84-ef47-395d-906d-efd3c79e74b1");
+			PrismAsserts.assertPropertyValue(accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES), SchemaTestConstants.ICFS_NAME,
+				"uid=jbond,ou=People,dc=example,dc=com");
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {

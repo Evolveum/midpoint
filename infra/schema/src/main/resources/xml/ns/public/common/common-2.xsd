@@ -45,6 +45,9 @@
             model schema in midPoint.
 
             See https://wiki.evolveum.com/display/midPoint/Data+Model for more details.
+            
+            Version: 2.0
+            Recommended namespace prefix: (default), c
         </xsd:documentation>
         <xsd:appinfo>
             <jaxb:globalBindings>

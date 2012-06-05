@@ -37,10 +37,10 @@ basic provisioning.
            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-           xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+           xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
            xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../maven/midPoint-xml/midPoint-schemas/src/test/resources/standard/XMLSchema.xsd
            http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/common/common-2.xsd
-           http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/resource/idconnector/resource-schema-1.xsd
+           http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd ../maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/resource/idconnector/resource-schema-2.xsd
            http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/resource/idconnector/configuration-1.xsd'>
                
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
@@ -111,8 +111,8 @@ basic provisioning.
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                         
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
                 
 

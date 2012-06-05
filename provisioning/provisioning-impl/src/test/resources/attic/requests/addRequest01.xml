@@ -24,7 +24,7 @@
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:com='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    
-   xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+   xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
    xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
    xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
    xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
@@ -32,7 +32,7 @@
    xsi:schemaLocation='http://schemas.xmlsoap.org/soap/envelope/ http://schemas.xmlsoap.org/soap/envelope/
    http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema
    http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd   
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/resource/idconnector/resource-schema-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/resource/idconnector/resource-schema-2.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/resource/idconnector/configuration-1.xsd'>
     <soapenv:Header/>
     <soapenv:Body>

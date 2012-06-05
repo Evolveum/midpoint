@@ -36,7 +36,7 @@ This resource definition contains also definition to enable synchronization.
            xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-           xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
+           xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">
 
 
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
@@ -108,8 +108,8 @@ This resource definition contains also definition to enable synchronization.
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                         
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
                 
 
@@ -570,8 +570,8 @@ This resource definition contains also definition to enable synchronization.
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                         
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4"
-                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
                 
                 <xsd:complexType name="Account">

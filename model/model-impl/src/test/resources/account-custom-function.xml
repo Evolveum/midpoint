@@ -29,12 +29,12 @@
         </configuration>
         <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
 					
 					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
 					<xsd:complexType name="GroupObjectClass">
@@ -135,7 +135,7 @@
             <accountType default="true">
                 <name>Default Account</name>
                 <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
-                <attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+                <attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
                     <name>Distinguished Name</name>
                     <access>create</access>
                     <access>read</access>

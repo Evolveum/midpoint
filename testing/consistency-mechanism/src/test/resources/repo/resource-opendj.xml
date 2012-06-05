@@ -31,7 +31,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:my="http://whatever.com/my"
           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 
@@ -56,7 +56,7 @@
     <!-- Resource configuration section -->
     <configuration
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 
         <!-- Configuration specific for the LDAP connector -->
         <icfc:configurationProperties>

@@ -30,7 +30,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:my="http://myself.me/schemas/whatever">
 
     <!-- Resource printable name -->
@@ -54,7 +54,7 @@
     <!-- Resource configuration section -->
     <configuration
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 
         <!-- Configuration specific for the LDAP connector -->
         <icfc:configurationProperties>
@@ -107,12 +107,12 @@
 		<definition>
 			  <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
 					
 					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
 					<xsd:complexType name="GroupObjectClass">

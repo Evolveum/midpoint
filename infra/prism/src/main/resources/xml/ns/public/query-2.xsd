@@ -36,6 +36,9 @@
     <xsd:annotation>
         <xsd:documentation>
             TODO
+            
+            Version: 2.0
+            Recommended namespace prefix: q
         </xsd:documentation>
     </xsd:annotation>
 

@@ -20,7 +20,7 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <c:account xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
 xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
     <c:name>jbond</c:name>
     <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>

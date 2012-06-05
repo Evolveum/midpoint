@@ -23,7 +23,7 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-2.xsd'
    xmlns:foo="http://foo.com/"
