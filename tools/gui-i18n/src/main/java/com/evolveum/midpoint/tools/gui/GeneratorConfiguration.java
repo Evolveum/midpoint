@@ -31,7 +31,6 @@ import java.util.Locale;
  */
 public class GeneratorConfiguration {
 
-    private String propertiesBaseName = "Messages";
     private String propertiesLocaleDelimiter = "_";
     private File targetFolder;
 
@@ -69,14 +68,6 @@ public class GeneratorConfiguration {
 
     public void setNonRecursiveFolderToCheck(List<String> nonRecursiveFolderToCheck) {
         this.nonRecursiveFolderToCheck = nonRecursiveFolderToCheck;
-    }
-
-    public String getPropertiesBaseName() {
-        return propertiesBaseName;
-    }
-
-    public void setPropertiesBaseName(String propertiesBaseName) {
-        this.propertiesBaseName = propertiesBaseName;
     }
 
     public List<String> getRecursiveFolderToCheck() {

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.tools.gui;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.io.*;
@@ -45,28 +46,14 @@ public class PropertiesGenerator {
     public void generate() {
         long time = System.currentTimeMillis();
         System.out.println("Starting...");
-        //todo fix page.title key!!!!
-        try {
-            System.out.println("Checking new properties.");
-            Properties newProperties = loadNewProperties();
-            System.out.println("Loaded " + newProperties.size() + " keys.");
 
+        try {
             for (Locale locale : config.getLocalesToCheck()) {
                 System.out.println("Loading existing properties for " + locale + ".");
-                Properties existingProperties = loadExistingProperties(locale);
-                System.out.println("Loaded " + existingProperties.size() + " keys, merging.");
-
-                Set<Object> keySet = existingProperties.keySet();
-                for (Object key : keySet) {
-                    if (!newProperties.containsKey(key)) {
-                        newProperties.setProperty("#" + (String) key, (String) existingProperties.get(key));
-                        continue;
-                    }
-
-                    newProperties.setProperty((String) key, (String) existingProperties.get(key));
-                }
-                System.out.println("Merge finished, backing up old file and saving.");
-                backupExistingAndSaveNewProperties(newProperties, locale);
+                reloadProperties(config.getBaseFolder(), config.getRecursiveFolderToCheck(),
+                        true, locale, config.getTargetFolder());
+                reloadProperties(config.getBaseFolder(), config.getRecursiveFolderToCheck(),
+                        false, locale, config.getTargetFolder());
             }
         } catch (Exception ex) {
             System.out.println("Something went horribly wrong...");
@@ -76,73 +63,99 @@ public class PropertiesGenerator {
         System.out.println("Finished. Time: " + (System.currentTimeMillis() - time));
     }
 
-    private void backupExistingAndSaveNewProperties(Properties properties, Locale locale) throws IOException {
-        File file = createExistingFile(locale);
-        if (file.exists()) {
-            File backupFile = new File(file.getParentFile(), file.getName() + ".backup");
-            FileUtils.copyFile(file, backupFile);
-            file.delete();
-        }
+    private PropertiesStatistics reloadProperties(File parent, List<String> folders, boolean recursive,
+            Locale locale, File target) throws IOException {
+        PropertiesStatistics fullStats = new PropertiesStatistics();
 
-        file.createNewFile();
-        Writer writer = null;
-        try {
-            writer = new OutputStreamWriter(new FileOutputStream(file), Charset.forName(ENCODING));
-            properties.store(writer, "Generated for locale " + locale);
-        } finally {
-            IOUtils.closeQuietly(writer);
-        }
-    }
-
-    private File createExistingFile(Locale locale) {
-        String fileName = config.getPropertiesBaseName() + "_" + locale + ".properties";
-        return new File(config.getTargetFolder(), fileName);
-    }
-
-    private Properties loadExistingProperties(Locale locale) throws IOException {
-        File file = createExistingFile(locale);
-
-        Properties properties = new SortedProperties();
-        if (!file.exists() || !file.canRead()) {
-            return properties;
-        }
-
-        Reader reader = null;
-        try {
-            reader = new InputStreamReader(new FileInputStream(file), ENCODING);
-            properties.load(reader);
-        } finally {
-            IOUtils.closeQuietly(reader);
-        }
-
-        return properties;
-    }
-
-    private Properties loadNewProperties() throws IOException {
-        Properties properties = new SortedProperties();
-
-        loadExistingProperties(properties, config.getBaseFolder(), config.getRecursiveFolderToCheck(), true);
-        loadExistingProperties(properties, config.getBaseFolder(), config.getNonRecursiveFolderToCheck(), false);
-
-        return properties;
-    }
-
-    private void loadExistingProperties(Properties properties, File parent, List<String> folders,
-            boolean recursive) throws IOException {
-
+        Properties baseProperties;
+        Properties targetProperties;
         for (String path : folders) {
             File realFolder = new File(parent, path);
 
-            Reader reader = null;
+            Reader baseReader = null;
+            Reader targetReader = null;
             Collection<File> files = FileUtils.listFiles(realFolder, new String[]{"properties"}, recursive);
             for (File file : files) {
                 try {
-                    reader = new InputStreamReader(new FileInputStream(file), ENCODING);
-                    properties.load(reader);
+                    baseReader = new InputStreamReader(new FileInputStream(file), ENCODING);
+                    baseProperties = new Properties();
+                    baseProperties.load(baseReader);
+
+                    String absolutePath = file.getParentFile().getAbsolutePath();
+                    int index = absolutePath.lastIndexOf("com/evolveum/midpoint");
+
+                    //create fileName as full qualified name (packages + properties file name and locale)
+                    String fileName = absolutePath.substring(index).replace("/", ".");
+                    if (StringUtils.isNotEmpty(fileName)) {
+                        fileName += ".";
+                    }
+                    fileName += file.getName().replace(".properties", "");
+                    fileName += "_" + locale + ".properties";
+
+                    targetProperties = new SortedProperties();
+                    File targetPropertiesFile = new File(target, fileName);
+                    if (targetPropertiesFile.exists() && targetPropertiesFile.canRead()) {
+                        targetReader = new InputStreamReader(new FileInputStream(targetPropertiesFile), ENCODING);
+                        targetProperties.load(targetReader);
+                    }
+
+                    PropertiesStatistics stats = mergeProperties(baseProperties, targetProperties);
+                    backupExistingAndSaveNewProperties(targetProperties, targetPropertiesFile);
+
+                    fullStats.incrementAdded(stats.getAdded());
+                    fullStats.incrementDeleted(stats.getDeleted());
+
+                    System.out.println(new File(target, fileName).getName() + ": " + stats);
                 } finally {
-                    IOUtils.closeQuietly(reader);
+                    IOUtils.closeQuietly(baseReader);
+                    IOUtils.closeQuietly(targetReader);
                 }
             }
+        }
+
+        return fullStats;
+    }
+
+    private PropertiesStatistics mergeProperties(Properties baseProperties, Properties targetProperties) {
+        PropertiesStatistics stats = new PropertiesStatistics();
+
+        Set<Object> keySet = baseProperties.keySet();
+        for (Object key : keySet) {
+            if (targetProperties.containsKey(key)) {
+                continue;
+            }
+
+            targetProperties.setProperty((String) key, (String) baseProperties.get(key));
+            stats.incrementAdded();
+        }
+
+        keySet = targetProperties.keySet();
+        for (Object key : keySet) {
+            if (baseProperties.containsKey(key)) {
+                continue;
+            }
+
+            targetProperties.remove(key);
+            stats.incrementDeleted();
+        }
+
+        return stats;
+    }
+
+    private void backupExistingAndSaveNewProperties(Properties properties, File target) throws IOException {
+        if (target.exists()) {
+            File backupFile = new File(target.getParentFile(), target.getName() + ".backup");
+            FileUtils.copyFile(target, backupFile);
+            target.delete();
+        }
+
+        target.createNewFile();
+        Writer writer = null;
+        try {
+            writer = new OutputStreamWriter(new FileOutputStream(target), Charset.forName(ENCODING));
+            properties.store(writer, null);
+        } finally {
+            IOUtils.closeQuietly(writer);
         }
     }
 }

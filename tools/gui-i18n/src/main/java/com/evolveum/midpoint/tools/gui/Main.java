@@ -32,9 +32,6 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Options options = new Options();
 
-        Option propertiesBaseName = new Option("p", "baseName", true,
-                "Base name for localization files. Default is 'Messages'.");
-        options.addOption(propertiesBaseName);
         Option propertiesLocaleDelimiter = new Option("d", "delimiter", true,
                 "Delimiter for locale name in properties file. Default is '_' (underscore).");
         options.addOption(propertiesLocaleDelimiter);
@@ -79,9 +76,6 @@ public class Main {
             }
             if (line.hasOption(targetFolder.getOpt())) {
                 config.setTargetFolder(new File(line.getOptionValue(targetFolder.getOpt())));
-            }
-            if (line.hasOption(propertiesBaseName.getOpt())) {
-                config.setPropertiesBaseName(line.getOptionValue(propertiesBaseName.getOpt()));
             }
             if (line.hasOption(propertiesLocaleDelimiter.getOpt())) {
                 config.setPropertiesLocaleDelimiter(line.getOptionValue(propertiesLocaleDelimiter.getOpt()));
