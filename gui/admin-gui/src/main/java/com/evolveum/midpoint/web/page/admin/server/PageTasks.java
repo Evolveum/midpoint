@@ -42,7 +42,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -59,6 +58,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -129,7 +129,20 @@ public class PageTasks extends PageAdminTasks {
                     public List<String> getObject() {
                         return createCategoryList();
                     }
-                });
+                },
+                new IChoiceRenderer<String>() {
+
+                    @Override
+                    public Object getDisplayValue(String object) {
+                        return PageTasks.this.getString("pageTasks.category." + object);
+                    }
+
+                    @Override
+                    public String getIdValue(String object, int index) {
+                        return Integer.toString(index);
+                    }
+                }
+        );
         categorySelect.setMarkupId("categorySelect");
         content.getBodyContainer().add(categorySelect);
 
@@ -520,13 +533,9 @@ public class PageTasks extends PageAdminTasks {
 
         List<String> list = manager.getAllTaskCategories();
         if (list != null) {
-        	Collections.sort(list);
-        	for (int i=0; i < list.size(); i++) {
-        		StringResourceModel item = createStringResource("pageTasks.category." + list.get(i));
-        		categories.add(item.getString());    		
-			}
+            categories.addAll(list);
+            Collections.sort(categories);
         }
-        //todo i18n
 
         return categories;
     }
@@ -535,7 +544,7 @@ public class PageTasks extends PageAdminTasks {
         List<TaskDtoExecutionStatus> list = new ArrayList<TaskDtoExecutionStatus>();
         //todo probably reimplement
         Collections.addAll(list, TaskDtoExecutionStatus.values());
-        
+
         return list;
     }
 
@@ -560,7 +569,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
-    	PageParameters parameters = new PageParameters();
+        PageParameters parameters = new PageParameters();
         parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
         setResponsePage(PageTaskEdit.class, parameters);
     }
