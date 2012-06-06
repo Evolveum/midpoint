@@ -271,17 +271,13 @@ public class MidpointAspect {
 	public void entriesIntoModel() {
 	}
 
-	@Pointcut("execution(* com.evolveum.midpoint.web.controller..*.*(..)) " +
-            "&& !execution(public * com.evolveum.midpoint.web.controller..*.get*(..)) " +
-            "&& !execution(public * com.evolveum.midpoint.web.controller..*.set*(..))" +
-            "&& !execution(public * com.evolveum.midpoint.web.controller..*.is*(..))" +
-            "&& !execution(* com.evolveum.midpoint.web.controller.Language..*.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.web.page..*.*(..)) " +
+            "&& !execution(protected * com.evolveum.midpoint.web.page..*.createStringResource(..)) " +
+            "&& !execution(public * com.evolveum.midpoint.web.page..*.get*(..)) " +
+            "&& !execution(public * com.evolveum.midpoint.web.page..*.set*(..))" +
+            "&& !execution(public * com.evolveum.midpoint.web.page..*.is*(..))")
 	public void entriesIntoWeb() {
 	}
-
-//	@Pointcut("execution(* com.evolveum.midpoint.web.model.impl..*.*(..))")
-//	public void entriesIntoWeb() {
-//	}
 
 	@Pointcut("execution(* com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance.*(..)) " +
 			"|| execution(* com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory.*(..))")
