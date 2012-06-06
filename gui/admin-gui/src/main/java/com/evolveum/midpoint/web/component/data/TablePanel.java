@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.data;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -97,7 +98,7 @@ public class TablePanel<T> extends Panel {
     	Validate.notEmpty(value, "Value must not be null or empty.");
     	
     	DataTable table = getDataTable();
-    	table.add(new AttributeAppender("style", new Model(value), " "));
+    	table.add(new AttributeModifier("style", new Model(value)));
     }
 
     @Override

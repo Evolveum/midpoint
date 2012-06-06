@@ -21,6 +21,30 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.ListMultipleChoice;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -33,37 +57,42 @@ import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.EditableCheckboxColumn;
+import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.Editable;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FileAppenderConfig;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.InputStringValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LevelValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
 
 /**
  * @author lazyman
@@ -175,12 +204,16 @@ public class PageLogging extends PageAdminConfiguration {
     							}
     						});
 
-                	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            		FormComponent<LoggingComponentType> input = dropDownChoicePanel.getBaseFormComponent();
+            		input.add(new LoggerValidator());
+                	input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 	return dropDownChoicePanel;
             	} else {
-            		TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
-                	textPanel.getBaseFormComponent().add(new AttributeAppender("style", "width: 100%"));
-                	textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            		TextPanel<String> textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+            		FormComponent input = textPanel.getBaseFormComponent();
+            		input.add(new AttributeAppender("style", "width: 100%"));
+            		input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            		input.add(new InputStringValidator());
                 	return textPanel;
             	}
                 
@@ -202,7 +235,9 @@ public class PageLogging extends PageAdminConfiguration {
                 DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                         new PropertyModel(model, getPropertyExpression()),
                         WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-            	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
+                input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                input.add(new LevelValidator());
             	return dropDownChoicePanel;
             }
         });
@@ -274,10 +309,10 @@ public class PageLogging extends PageAdminConfiguration {
 								return Integer.toString(index);
 							}
 						});
-
-            	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            	FormComponent<LoggingComponentType> input = dropDownChoicePanel.getBaseFormComponent();
+            	input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            	input.add(new FilterValidator());
             	return dropDownChoicePanel;
-
             }
 
             @Override
@@ -296,7 +331,10 @@ public class PageLogging extends PageAdminConfiguration {
                 DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                         new PropertyModel(model, getPropertyExpression()),
                         WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-            	dropDownChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                
+                FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
+                input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                input.add(new LevelValidator());
             	return dropDownChoicePanel;
             }
         });
@@ -370,7 +408,7 @@ public class PageLogging extends PageAdminConfiguration {
 				if (StringUtils.isEmpty(name)) {
 					return null;
 				}
-				return LoggingComponentType.valueOf(name);
+				return LoggingDto.componentMap.get(name);
 			}
 
 			@Override
@@ -421,7 +459,6 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		};
 		loggers.getBodyContainer().add(deleteLogger);
-		
 		initSubsystem(loggers);
 	}
 	
@@ -487,9 +524,9 @@ public class PageLogging extends PageAdminConfiguration {
 
 			@Override
 			protected Component createInputPanel(String componentId, IModel<AppenderConfiguration> model) {
-				TextPanel panel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+				TextPanel<String> panel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-
+                panel.add(new InputStringValidator());
                 return panel;
 			}
 		};
@@ -503,7 +540,7 @@ public class PageLogging extends PageAdminConfiguration {
             protected InputPanel createInputPanel(String componentId, IModel iModel) {
                 InputPanel panel = super.createInputPanel(componentId, iModel);
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-
+                panel.add(new InputStringValidator());
                 return panel;
             }
         });
@@ -522,7 +559,6 @@ public class PageLogging extends PageAdminConfiguration {
 				FormComponent component = panel.getBaseFormComponent();
                 component.add(new AttributeModifier("size", 5));
                 component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-
 				return panel;
 			}
 		});
@@ -532,12 +568,12 @@ public class PageLogging extends PageAdminConfiguration {
 
 			@Override
 			protected InputPanel createInputPanel(String componentId, IModel iModel) {
-				TextPanel panel = new TextPanel(componentId, new PropertyModel(iModel,
+				TextPanel<String> panel = new TextPanel(componentId, new PropertyModel(iModel,
 						getPropertyExpression()));
                 FormComponent component = panel.getBaseFormComponent();
                 component.add(new AttributeModifier("size", 5));
                 component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-
+                component.add(new InputStringValidator());
 				return panel;
 			}
 		});
@@ -549,7 +585,7 @@ public class PageLogging extends PageAdminConfiguration {
             protected InputPanel createInputPanel(String componentId, IModel iModel) {
                 InputPanel panel = super.createInputPanel(componentId, iModel);
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-
+                panel.add(new InputStringValidator());
                 return panel;
             }
         };
@@ -709,7 +745,7 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 	}
 
-	private LoggingConfigurationType createConfiguration(LoggingDto dto, AjaxRequestTarget target, OperationResult parentResult) {
+	private LoggingConfigurationType createConfiguration(LoggingDto dto) {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		AuditingConfigurationType audit = new AuditingConfigurationType();
 		audit.setEnabled(dto.isAuditLog());
@@ -728,11 +764,14 @@ public class PageLogging extends PageAdminConfiguration {
                     || LoggingDto.LOGGER_MIDPOINT_ROOT.equals(item.getName())) {
                 continue;
 			}
+			
 			for(ClassLoggerConfigurationType logger : configuration.getClassLogger()){
 				if(logger.getPackage().equals(item.getName())){
-					parentResult.recordFatalError("Logger with name '" + item.getName() + "' is already defined.");
+					error("Logger with name '" + item.getName() + "' is already defined.");
+					return null;
 				}
 			}
+			
 			if(item instanceof ComponentLogger){
 				configuration.getClassLogger().add(((ComponentLogger) item).toXmlType());
 			} else {
@@ -746,11 +785,14 @@ public class PageLogging extends PageAdminConfiguration {
                     || LoggingDto.LOGGER_MIDPOINT_ROOT.equals(item.getName())) {
                 continue;
             }
-			for(SubSystemLoggerConfigurationType filter : configuration.getSubSystemLogger()){
+			
+			for(SubSystemLoggerConfigurationType  filter : configuration.getSubSystemLogger()){
 				if(filter.getComponent().name().equals(item.getName())){
-					parentResult.recordFatalError("Filter with name '" + item.getName() + "' is already defined.");
+					error("Filter with name '" + item.getName() + "' is already defined.");
+					return null;
 				}
 			}
+			
 			configuration.getSubSystemLogger().add(((FilterLogger) item).toXmlType());
 		}
 
@@ -764,10 +806,6 @@ public class PageLogging extends PageAdminConfiguration {
             ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_MIDPOINT_ROOT,
                     dto.getMidPointLevel(), dto.getMidPointAppender());
             configuration.getClassLogger().add(type);
-        }
-        
-        if(parentResult.isError()){
-    		return null;
         }
 		return configuration;
 	}
@@ -898,37 +936,42 @@ public class PageLogging extends PageAdminConfiguration {
 	private void savePerformed(AjaxRequestTarget target) {
 		OperationResult result = new OperationResult(OPERATION_UPDATE_LOGGING_CONFIGURATION);
 		String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-		try {
-			Task task = createSimpleTask(OPERATION_UPDATE_LOGGING_CONFIGURATION);
+		try {			
 			LoggingDto dto = model.getObject();
+			
+			LoggingConfigurationType config = createConfiguration(dto);
+			if(config == null){
+				target.add(getFeedbackPanel());
+				target.add(get("mainForm"));
+				return;
+			}
 
+			Task task = createSimpleTask(OPERATION_UPDATE_LOGGING_CONFIGURATION);
 			PrismObject<SystemConfigurationType> newObject = dto.getOldConfiguration();
-			LoggingConfigurationType config = createConfiguration(dto, target, result);
-			if(config != null){
+			
 				newObject.asObjectable().setLogging(config);
 	
-	            PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
-	                    oid, null, task, result);
-	
-				ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Logging configuration delta:\n{}", delta.dump());
-				}
-				getModelService().modifyObject(SystemConfigurationType.class, oid, delta.getModifications(),
-						task, result);
-	
-				// finish editing for loggers and appenders
-				for (LoggerConfiguration logger : dto.getLoggers()) {
-					logger.setEditing(false);
-				}
-				for (FilterConfiguration filter : dto.getFilters()) {
-					filter.setEditing(false);
-				}
-				for (AppenderConfiguration appender : dto.getAppenders()) {
-					appender.setEditing(false);
-				}
-				result.recordSuccess();
+            PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
+                    oid, null, task, result);
+
+			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Logging configuration delta:\n{}", delta.dump());
 			}
+			getModelService().modifyObject(SystemConfigurationType.class, oid, delta.getModifications(),
+					task, result);
+
+			// finish editing for loggers and appenders
+			for (LoggerConfiguration logger : dto.getLoggers()) {
+				logger.setEditing(false);
+			}
+			for (FilterConfiguration filter : dto.getFilters()) {
+				filter.setEditing(false);
+			}
+			for (AppenderConfiguration appender : dto.getAppenders()) {
+				appender.setEditing(false);
+			}
+			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't save logging configuration.", ex);
@@ -978,7 +1021,7 @@ public class PageLogging extends PageAdminConfiguration {
         protected InputPanel createInputPanel(String componentId, IModel iModel) {
             InputPanel panel = super.createInputPanel(componentId, iModel);
             panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-
+            panel.add(new InputStringValidator());
             return panel;
         }
 	}

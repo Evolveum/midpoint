@@ -39,12 +39,14 @@ public class LoggingDto implements Serializable {
 
     public static final String LOGGER_PROFILING = "PROFILING";
     public static final String LOGGER_MIDPOINT_ROOT = "com.evolveum.midpoint";   
-    private static final Map componentMap = new HashMap<String, LoggingComponentType>();
+    public static final Map<String, LoggingComponentType> componentMap = new HashMap<String, LoggingComponentType>();
     
     static {
     	componentMap.put("com.evolveum.midpoint.all", LoggingComponentType.ALL);
+    	componentMap.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
     	componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
     	componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
+    	componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.GUI);
     	componentMap.put("com.evolveum.midpoint.taskmanager", LoggingComponentType.TASKMANAGER);
     	componentMap.put("com.evolveum.midpoint.resourceobjectchangelistener", LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
     }
