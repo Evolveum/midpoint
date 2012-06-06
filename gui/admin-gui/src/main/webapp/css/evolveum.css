@@ -152,6 +152,13 @@ input:focus, .button:focus, select:focus, option:focus {
     text-shadow: 0 0 5px #000000;
 }
 
+#header #login-box .locale span {
+    font-size: 14px;
+    width: 16px;
+    height: 11px;
+    display: inline-block;
+}
+
 #header #login-box a {
 	text-decoration: none;
 	color: #81BACC;

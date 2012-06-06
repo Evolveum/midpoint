@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.login;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.io.IOUtils;
@@ -115,7 +116,7 @@ public class LocalePanel extends Panel {
                 }) {
 
             @Override
-            protected void populateItem(ListItem<LocaleDescriptor> components) {
+            protected void populateItem(final ListItem<LocaleDescriptor> components) {
                 AjaxLink<LocaleDescriptor> link = new AjaxLink<LocaleDescriptor>("localeLink",
                         components.getModel()) {
 
@@ -125,6 +126,19 @@ public class LocalePanel extends Panel {
                     }
                 };
                 components.add(link);
+                link.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isEnabled() {
+                        Locale locale = getSession().getLocale();
+                        if (locale == null) {
+                            return true;
+                        }
+
+                        LocaleDescriptor descriptor = components.getModelObject();
+                        return !locale.equals(descriptor.getLocale());
+                    }
+                });
                 link.add(new AttributeModifier("style", createStyle(link.getModelObject())));
                 link.add(new AttributeModifier("title", new PropertyModel<String>(link.getModelObject(), "name")));
             }

@@ -37,6 +37,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.Locale;
+
 /**
  * @author lazyman
  */
@@ -49,6 +51,11 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
     public MidPointAuthWebSession(Request request) {
         super(request);
         Injector.get().inject(this);
+
+        if (getLocale() == null) {
+            //default locale for web application
+            setLocale(new Locale("en", "US"));
+        }
     }
 
     @Override
