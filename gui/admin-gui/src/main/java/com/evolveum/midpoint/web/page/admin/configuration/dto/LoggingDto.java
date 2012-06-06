@@ -42,7 +42,7 @@ public class LoggingDto implements Serializable {
     public static final Map<String, LoggingComponentType> componentMap = new HashMap<String, LoggingComponentType>();
     
     static {
-    	componentMap.put("com.evolveum.midpoint.all", LoggingComponentType.ALL);
+    	componentMap.put("com.evolveum.midpoint", LoggingComponentType.ALL);
     	componentMap.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
     	componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
     	componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
@@ -113,7 +113,7 @@ public class LoggingDto implements Serializable {
             }
             
             if(componentMap.containsKey(logger.getPackage())){
-            	loggers.add(new ComponentLogger(logger, componentMap));
+            	loggers.add(new ComponentLogger(logger));
             } else {
             	loggers.add(new ClassLogger(logger));
             }

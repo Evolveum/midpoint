@@ -36,20 +36,14 @@ import org.apache.commons.lang.Validate;
 public class ComponentLogger extends LoggerConfiguration {
 
 	private LoggingComponentType component;
-	private static Map<String, LoggingComponentType> componentMap = new HashMap<String, LoggingComponentType>();
 
 	public ComponentLogger(ClassLoggerConfigurationType config) {
-		this(config, null);
-	}
-
-	public ComponentLogger(ClassLoggerConfigurationType config, Map<String, LoggingComponentType> componentMap) {
 		Validate.notNull(config, "Component logger configuration must not be null.");
 		// Validate.notNull(config.getComponent(),
 		// "Subsystem component is not defined.");
-		if (componentMap != null) {
-			this.componentMap = componentMap;
-			component = componentMap.get(config.getPackage());
-		}
+
+		component = LoggingDto.componentMap.get(config.getPackage());
+
 		setLevel(config.getLevel());
 		setAppenders(config.getAppender());
 	}
@@ -59,29 +53,35 @@ public class ComponentLogger extends LoggerConfiguration {
 		if (component == null) {
 			return null;
 		}
-		return getKeyByValue(componentMap, component);
+		return getPackageByValue(component);
 	}
 
 	public LoggingComponentType getComponent() {
 		return component;
 	}
 
+	public void setComponent(LoggingComponentType component) {
+		this.component = component;
+	}
+
 	@Override
 	public void setName(String name) {
-		this.component = LoggingComponentType.valueOf(name);
+
 	}
 
 	public ClassLoggerConfigurationType toXmlType() {
 		ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
-		type.setPackage(getKeyByValue(componentMap, component));
+		type.setPackage(getPackageByValue(component));
 		type.setLevel(getLevel());
 		type.getAppender().addAll(getAppenders());
 		return type;
 	}
 
-	private static String getKeyByValue(Map<String, LoggingComponentType> map,
-			LoggingComponentType value) {
-		for (Entry<String, LoggingComponentType> entry : map.entrySet()) {
+	private static String getPackageByValue(LoggingComponentType value) {
+		if (value == null) {
+			return null;
+		}
+		for (Entry<String, LoggingComponentType> entry : LoggingDto.componentMap.entrySet()) {
 			if (value.equals(entry.getValue())) {
 				return entry.getKey();
 			}

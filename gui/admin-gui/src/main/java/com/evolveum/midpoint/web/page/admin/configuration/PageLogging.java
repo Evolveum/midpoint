@@ -189,7 +189,7 @@ public class PageLogging extends PageAdminConfiguration {
             protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
             	if(model.getObject() instanceof ComponentLogger){
             		DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
-            				createComponentModel(model),
+            				new PropertyModel(model, "component"),
                             WebMiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class),
                             new IChoiceRenderer<LoggingComponentType>() {
 
@@ -399,24 +399,24 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 	}
 	
-	private IModel<LoggingComponentType> createComponentModel(final IModel<LoggerConfiguration> model) {
-		return new Model<LoggingComponentType>() {
-
-			@Override
-			public LoggingComponentType getObject() {
-				String name = model.getObject().getName();
-				if (StringUtils.isEmpty(name)) {
-					return null;
-				}
-				return LoggingDto.componentMap.get(name);
-			}
-
-			@Override
-			public void setObject(LoggingComponentType object) {
-				model.getObject().setName(object.name());
-			}
-		};
-	}
+//	private IModel<LoggingComponentType> createComponentModel(final IModel<ComponentLogger> model) {
+//		return new Model<LoggingComponentType>() {
+//
+//			@Override
+//			public LoggingComponentType getObject() {
+//				String name = model.getObject().getName();
+//				if (StringUtils.isEmpty(name)) {
+//					return null;
+//				}
+//				return LoggingDto.componentMap.get(name);
+//			}
+//
+//			@Override
+//			public void setObject(LoggingComponentType object) {
+//				model.getObject().setName(object.name());
+//			}
+//		};
+//	}
 
 	private void initLoggers(AccordionItem loggers) {
 		initRoot(loggers);
@@ -524,7 +524,7 @@ public class PageLogging extends PageAdminConfiguration {
 
 			@Override
 			protected Component createInputPanel(String componentId, IModel<AppenderConfiguration> model) {
-				TextPanel<String> panel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+				TextPanel<String> panel = new TextPanel<String>(componentId, new PropertyModel(model, getPropertyExpression()));
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 panel.add(new InputStringValidator());
                 return panel;
@@ -979,7 +979,7 @@ public class PageLogging extends PageAdminConfiguration {
 
 		showResult(result);
 		target.add(getFeedbackPanel());
-		target.add(get("mainForm"));
+		resetPerformed(target);
 	}
 
 	private void resetPerformed(AjaxRequestTarget target) {
