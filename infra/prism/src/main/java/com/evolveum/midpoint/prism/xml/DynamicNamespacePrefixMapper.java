@@ -35,7 +35,7 @@ import com.evolveum.midpoint.util.Dumpable;
  */
 public interface DynamicNamespacePrefixMapper extends Dumpable {
 	
-	public void registerPrefix(String namespace, String prefix);
+	public void registerPrefix(String namespace, String prefix, boolean defaultNamespace);
 	
 	public void registerPrefixLocal(String namespace, String prefix);
 	
@@ -43,6 +43,17 @@ public interface DynamicNamespacePrefixMapper extends Dumpable {
 	
 	public QName setQNamePrefix(QName qname);
 	
+	/**
+	 * Makes sure that there is explicit prefix and not a default namespace prefix.
+	 */
+	public QName setQNamePrefixExplicit(QName qname);
+	
 	public DynamicNamespacePrefixMapper clone();
+	
+	// Follwing two methods are kind of a hack to force JAXB to always use prefixes.
+	// This works around the JAXB bug with default namespaces
+	public boolean isAlwaysExplicit();
+
+	public void setAlwaysExplicit(boolean alwaysExplicit);
 
 }

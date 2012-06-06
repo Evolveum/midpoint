@@ -508,6 +508,20 @@ public class DOMUtil {
 			String preferredPrefix, Element definitionElement) {
 		// We need to figure out correct prefix. We have namespace URI, but we
 		// need a prefix to specify in the xsi:type
+		if (!StringUtils.isBlank(preferredPrefix)) {
+			String namespaceForPreferredPrefix = element.lookupNamespaceURI(preferredPrefix);
+			if (namespaceForPreferredPrefix == null) {
+				setNamespaceDeclaration(definitionElement, preferredPrefix, namespaceUri);
+				return preferredPrefix;
+			} else {
+				if (namespaceForPreferredPrefix.equals(namespaceUri)) {
+					return preferredPrefix;
+				} else {
+					// Prefix conflict, we need to create different prefix
+					// Just going on will do that 
+				}
+			}
+		}
 		if (element.isDefaultNamespace(namespaceUri)) {
 			// Namespace URI is a default namespace. Return empty prefix;
 			return "";
@@ -577,6 +591,9 @@ public class DOMUtil {
 		attributes.setNamedItem(attr);
 	}
 	
+	/**
+	 * Returns map of all namespace declarations from specified element (prefix -> namespace).
+	 */
 	public static Map<String,String> getNamespaceDeclarations(Element element) {
 		Map<String,String> nsDeclMap = new HashMap<String, String>();
 		NamedNodeMap attributes = element.getAttributes();

@@ -143,10 +143,10 @@ public class DomSerializer {
 		if (value.getValue() instanceof Element) {
 			// No conversion needed, just adopt the element
 			Element originalValueElement = (Element)value.getValue();
+			// Make sure that all applicable namespace declarations are placed on this element
+			DOMUtil.fixNamespaceDeclarations(originalValueElement);
 			Element adoptedElement = (Element) parentElement.getOwnerDocument().importNode(originalValueElement, true);
 			parentElement.appendChild(adoptedElement);
-			// Make sure that all applicable namespace declarations are placed on this element
-			DOMUtil.fixNamespaceDeclarations(adoptedElement);
 			// HACK HACK HACK. Make sure that the declarations survive stupid XML normalization by placing them
 			// in explicit elements.
 			PrismUtil.fortifyNamespaceDeclarations(adoptedElement);
@@ -216,8 +216,11 @@ public class DomSerializer {
 		parentElement.appendChild(element);
 		element.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, value.getOid());
 		if (value.getTargetType() != null) {
+			// Make the namespace prefix explicit due to JAXB bug
+			QName targetType = value.getTargetType();
+			targetType = getNamespacePrefixMapper().setQNamePrefixExplicit(targetType);
 			try {
-				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME, value.getTargetType());
+				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME, targetType);
 			} catch (IllegalArgumentException e) {
 				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
 			}

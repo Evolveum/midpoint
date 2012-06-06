@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns="http://foo.com/default"
+	  xmlns:foo="http://foo.com/foo">
+	  
+	<target xmlns:bar="http://foo.com/bar">
+		<sub>subsub</sub>
+	</target>
+	
+</root>

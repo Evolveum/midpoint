@@ -177,6 +177,8 @@ class DomToSchemaProcessor {
 	}
 	
 	private XSSchemaSet parseSchema(Element schema) throws SchemaException {
+		// Make sure that the schema parser sees all the namespace declarations
+		DOMUtil.fixNamespaceDeclarations(schema);
 		XSSchemaSet xss = null;
 		try {			
 			TransformerFactory transfac = TransformerFactory.newInstance();

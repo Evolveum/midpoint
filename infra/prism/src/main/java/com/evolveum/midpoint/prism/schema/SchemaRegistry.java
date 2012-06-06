@@ -154,14 +154,30 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);
 	}
-
+	
 	/**
 	 * Must be called before call to initialize()
 	 */
 	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage) throws SchemaException {
+		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, false);
+	}
+
+	/**
+	 * Must be called before call to initialize()
+	 */
+	public void registerPrismDefaultSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage) throws SchemaException {
+		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, true);
+	}
+
+	/**
+	 * Must be called before call to initialize()
+	 */
+	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage, 
+			boolean defaultSchema) throws SchemaException {
 		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
 		desc.setUsualPrefix(usualPrefix);
 		desc.setPrismSchema(true);
+		desc.setDefault(defaultSchema);
 		desc.setCompileTimeClassesPackage(compileTimeClassesPackage);
 		registerSchemaDescription(desc);
 	}
@@ -198,7 +214,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 
 	private void registerSchemaDescription(SchemaDescription desc) {
 		if (desc.getUsualPrefix() != null) {
-			namespacePrefixMapper.registerPrefix(desc.getNamespace(), desc.getUsualPrefix());
+			namespacePrefixMapper.registerPrefix(desc.getNamespace(), desc.getUsualPrefix(), desc.isDefault());
 		}
 		parsedSchemas.put(desc.getNamespace(), desc);
 		schemaDescriptions.add(desc);

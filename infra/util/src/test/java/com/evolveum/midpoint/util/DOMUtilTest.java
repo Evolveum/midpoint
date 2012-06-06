@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.util;
 
+import java.util.Map;
+
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import static org.testng.AssertJUnit.*;
@@ -45,6 +47,7 @@ public class DOMUtilTest {
 	
 	private static final String XSD_TYPE_FILENAME = "src/test/resources/domutil/xsi-type.xml";
 	private static final String QNAMES_FILENAME = "src/test/resources/domutil/qnames.xml";
+	private static final String FIX_NAMESPACE_FILENAME = "src/test/resources/domutil/fix-namespace.xml";
 	
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
@@ -59,10 +62,11 @@ public class DOMUtilTest {
 
 	@Test
 	public void testQNameRoundTrip() {
+		System.out.println("===[ testQNameRoundTrip ]===");
 		// GIVEN
 		Document doc = DOMUtil.getDocument();
 		
-		QName in = new QName(QNAME_IN_NS,QNAME_IN_LOCAL);
+		QName in = new QName(QNAME_IN_NS, QNAME_IN_LOCAL, "x");
 		Element e = doc.createElementNS(ELEMENT_NS, ELEMENT_LOCAL);
 		
 		// WHEN
@@ -96,6 +100,7 @@ public class DOMUtilTest {
 	
 	@Test
 	public void testQNameDefaultNamespace1() {
+		System.out.println("===[ testQNameDefaultNamespace1 ]===");
 		// GIVEN
 		Document doc = DOMUtil.getDocument();
 		
@@ -128,6 +133,7 @@ public class DOMUtilTest {
 	
 	@Test
 	public void testXsiType() {
+		System.out.println("===[ testXsiType ]===");
 		// GIVEN
 		Document doc = DOMUtil.parseFile(XSD_TYPE_FILENAME);
 		Element root = DOMUtil.getFirstChildElement(doc);
@@ -146,6 +152,7 @@ public class DOMUtilTest {
 	
 	@Test
 	public void testQNameMethods() {
+		System.out.println("===[ testQNameMethods ]===");
 		Document doc = DOMUtil.parseFile(QNAMES_FILENAME);
 		Element root = DOMUtil.getFirstChildElement(doc);
 		
@@ -156,6 +163,32 @@ public class DOMUtilTest {
 		Element el2 = (Element) root.getElementsByTagNameNS(DEFAULT_NS, "el2").item(0);
 		QName el2Value = DOMUtil.getQNameValue(el2);
 		assertEquals("getQNameValue failed",new QName(FOO_NS,"BAR"),el2Value);
+	}
+	
+	@Test
+	public void testFixNamespaceDeclarations() {
+		System.out.println("===[ testFixNamespaceDeclarations ]===");
+		Document doc = DOMUtil.parseFile(FIX_NAMESPACE_FILENAME);
+		
+		System.out.println("Original XML:");
+		System.out.println(DOMUtil.serializeDOMToString(doc));
+		
+		Element root = DOMUtil.getFirstChildElement(doc);
+		
+		Element target = (Element) root.getElementsByTagNameNS(DEFAULT_NS, "target").item(0);
+		
+		DOMUtil.fixNamespaceDeclarations(target);
+		
+		System.out.println("Fixed namespaces (doc):");
+		System.out.println(DOMUtil.serializeDOMToString(doc));
+		
+		System.out.println("Fixed namespaces (target):");
+		System.out.println(DOMUtil.serializeDOMToString(target));
+		
+		Map<String, String> decls = DOMUtil.getNamespaceDeclarations(target);
+		assertEquals("bar decl", "http://foo.com/bar", decls.get("bar"));
+		assertEquals("foo decl", "http://foo.com/foo", decls.get("foo"));
+		assertEquals("default decl", "http://foo.com/default", decls.get(null));
 	}
 
 }

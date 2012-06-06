@@ -142,10 +142,10 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
 		// Set default namespace?
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
-		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION);
+		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
 		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
 		PrismContext context = PrismContext.create(schemaRegistry);
 		return context;

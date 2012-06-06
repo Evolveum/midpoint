@@ -82,7 +82,7 @@ public class TestPrismContext {
 		System.out.println("Prefix mapper:");
 		System.out.println(DebugUtil.dump(prefixMapper));
 		
-		assertEquals("Wrong foo prefix", "foo", prefixMapper.getPrefix(NS_FOO));
+		assertEquals("Wrong foo prefix", "", prefixMapper.getPrefix(NS_FOO));
 		assertEquals("Wrong xsd prefix", DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, prefixMapper.getPrefix(XMLConstants.W3C_XML_SCHEMA_NS_URI));
 		
 	}

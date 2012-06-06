@@ -100,7 +100,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		schemaRegistry.registerSchemaResource("xml/ns/standard/xmldsig-core-schema.xsd", "ds");
 		schemaRegistry.registerSchemaResource("xml/ns/standard/xenc-schema.xsd", "enc");
 		
-		schemaRegistry.getNamespacePrefixMapper().registerPrefix(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi");
+		schemaRegistry.getNamespacePrefixMapper().registerPrefix(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi", false);
 
 		
 		// Prism Schemas
@@ -114,7 +114,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		
 		
 		// midPoint schemas
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/common-2.xsd", "c", 
+		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-2.xsd", "c", 
 				com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory.class.getPackage());
 		
 		

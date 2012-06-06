@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertSame;
 import static org.testng.AssertJUnit.assertTrue;
@@ -120,6 +121,8 @@ public class TestDom {
 		String userXml = DOMUtil.serializeDOMToString(userDom);
 		System.out.println("User XML:");
 		System.out.println(userXml);
+		
+		assertNull("<user> element does not have default namespace prefix", userDom.getPrefix());
 	}
 
 	private void assertAssignment(Node node) {

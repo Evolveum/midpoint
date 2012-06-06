@@ -301,6 +301,8 @@ public class TestResourceSchema {
 		Element identifierAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_IDENTIFIER);
 		assertPrefix("ra", identifierAnnotationElement);
 		QName identifier = DOMUtil.getQNameValue(identifierAnnotationElement);
+		assertEquals("Wrong <a:identifier> value namespace", SchemaTestConstants.ICFS_UID.getNamespaceURI(), identifier.getNamespaceURI());
+		assertEquals("Wrong <a:identifier> value localname", SchemaTestConstants.ICFS_UID.getLocalPart(), identifier.getLocalPart());
 		assertEquals("Wrong <a:identifier> value prefix", "icfs", identifier.getPrefix());
 		Element dnaAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_DISPLAY_NAME_ATTRIBUTE);
 		assertPrefix("ra", dnaAnnotationElement);

@@ -206,6 +206,9 @@ public class PrismDomProcessor {
 		// locate appropriate definition based on the element name
 		QName elementName = DOMUtil.getQName(domElement);
 		PrismSchema schema = schemaRegistry.findSchemaByNamespace(elementName.getNamespaceURI());
+		if (schema == null) {
+			throw new SchemaException("No schema definition for namespace '"+elementName.getNamespaceURI()+"'");
+		}
 		PrismContainerDefinition<T> propertyContainerDefinition = schema.findItemDefinition(elementName,
 				PrismContainerDefinition.class);
 		if (propertyContainerDefinition == null) {

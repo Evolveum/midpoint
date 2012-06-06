@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -233,6 +234,49 @@ public class TestParseResource {
 //		
 //		PrismContainer<?> originalSchemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 //		PrismContainer<?> reparsedSchemaContainer = reparsedResource.findContainer(ResourceType.F_SCHEMA);
+	}
+	
+	/**
+	 * Serialize and parse "schema" element on its own. There may be problems e.g. with preservation
+	 * of namespace definitions.
+	 */
+	@Test
+	public void testSchemaRoundtrip() throws SchemaException {
+		System.out.println("===[ testSchemaRoundtrip ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_FILE);
+				
+		assertResource(resource, true);
+		
+		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
+		
+		System.out.println("Parsed schema:");
+		System.out.println(schemaContainer.dump());
+
+		Element parentElement = DOMUtil.createElement(DOMUtil.getDocument(), new QName("fakeNs", "fake"));
+		
+		// SERIALIZE
+		
+		String serializesSchema = prismContext.getPrismDomProcessor().serializeObjectToString(schemaContainer.getValue(), parentElement);
+		
+		System.out.println("serialized schema:");
+		System.out.println(serializesSchema);
+		
+		// RE-PARSE
+		Document reparsedDocument = DOMUtil.parseDocument(serializesSchema);
+		Element reparsedSchemaElement = DOMUtil.getFirstChildElement(DOMUtil.getFirstChildElement(reparsedDocument));
+		PrismContainer<Containerable> reparsedSchemaContainer = prismContext.getPrismDomProcessor().parsePrismContainer(reparsedSchemaElement);
+		
+		System.out.println("Re-parsed schema container:");
+		System.out.println(reparsedSchemaContainer.dump());
+		
+		Element reparsedXsdSchemaElement = DOMUtil.getChildElement(DOMUtil.getFirstChildElement(reparsedSchemaElement), DOMUtil.XSD_SCHEMA_ELEMENT);
+		
+		ResourceSchema reparsedSchema = ResourceSchema.parse(reparsedXsdSchemaElement, "reparsed schema", prismContext);
+		
 	}
 	
 	private void assertResource(PrismObject<ResourceType> resource, boolean checkConsistence) {

@@ -54,6 +54,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 	private static final Map<String, String> globalNamespacePrefixMap = new HashMap<String, String>();
 	private Map<String, String> localNamespacePrefixMap = new HashMap<String, String>();
 	private String defaultNamespace = null;
+	private boolean alwaysExplicit = false;
 	
 	public String getDefaultNamespace() {
 		return defaultNamespace;
@@ -62,9 +63,23 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 	public void setDefaultNamespace(String defaultNamespace) {
 		this.defaultNamespace = defaultNamespace;
 	}
+	
+	@Override
+	public boolean isAlwaysExplicit() {
+		return alwaysExplicit;
+	}
 
-	public void registerPrefix(String namespace, String prefix) {
+	@Override
+	public void setAlwaysExplicit(boolean alwaysExplicit) {
+		this.alwaysExplicit = alwaysExplicit;
+	}
+
+	@Override
+	public void registerPrefix(String namespace, String prefix, boolean isDefaultNamespace) {
 		globalNamespacePrefixMap.put(namespace, prefix);
+		if (isDefaultNamespace || prefix == null) {
+			defaultNamespace = namespace;
+		}
 	}
 	
 	@Override
@@ -72,7 +87,15 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		localNamespacePrefixMap.put(namespace, prefix);
 	}
 	
+	@Override
 	public String getPrefix(String namespace) {
+		if (defaultNamespace != null && defaultNamespace.equals(namespace) && !alwaysExplicit) {
+			return "";
+		}
+		return getPrefixExplicit(namespace);
+	}
+	
+	public String getPrefixExplicit(String namespace) {
 		String prefix = localNamespacePrefixMap.get(namespace);
 		if (prefix == null) {
 			return getPreferredPrefix(namespace);
@@ -80,6 +103,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		return prefix;
 	}
 	
+	@Override
 	public QName setQNamePrefix(QName qname) {
 		String namespace = qname.getNamespaceURI();
 		String prefix = getPrefix(namespace);
@@ -90,9 +114,19 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 	}
 	
 	@Override
+	public QName setQNamePrefixExplicit(QName qname) {
+		String namespace = qname.getNamespaceURI();
+		String prefix = getPrefixExplicit(namespace);
+		if (prefix == null) {
+			return qname;
+		}
+		return new QName(qname.getNamespaceURI(),qname.getLocalPart(),prefix);
+	}
+
+	@Override
 	public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {
 		//for JAXB we are mapping midpoint common namespace to default namespace
-		if (defaultNamespace != null && defaultNamespace.equals(namespaceUri)) {
+		if (defaultNamespace != null && defaultNamespace.equals(namespaceUri) && !alwaysExplicit) {
 			return "";
 		} 
 		return getPreferredPrefix(namespaceUri, suggestion);
@@ -143,6 +177,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		GlobalDynamicNamespacePrefixMapper clone = new GlobalDynamicNamespacePrefixMapper();
 		clone.defaultNamespace = this.defaultNamespace;
 		clone.localNamespacePrefixMap = clonePrefixMap(this.localNamespacePrefixMap);
+		clone.alwaysExplicit = this.alwaysExplicit;
 		return clone;
 	}
 

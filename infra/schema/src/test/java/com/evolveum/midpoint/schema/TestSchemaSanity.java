@@ -94,12 +94,27 @@ public class TestSchemaSanity {
 		System.out.println(prefixMapper.dump());
 		// WHEN, THEN
 		assertMapping(prefixMapper, PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION);
-		assertMapping(prefixMapper, SchemaConstantsGenerated.NS_COMMON, "c");
+		assertMapping(prefixMapper, SchemaConstantsGenerated.NS_COMMON, "");
 		assertMapping(prefixMapper, MidPointConstants.NS_RA, MidPointConstants.PREFIX_NS_RA);
 		assertMapping(prefixMapper, SchemaTestConstants.NS_ICFC, "icfc");
 		assertMapping(prefixMapper, SchemaTestConstants.NS_ICFS, "icfs");
+		
+		QName cBarQName = new QName(SchemaConstantsGenerated.NS_COMMON, "bar");
+		QName cBarQNameWithPrefix = prefixMapper.setQNamePrefix(cBarQName);
+		assertQName("common namespace implicit", SchemaConstantsGenerated.NS_COMMON, "bar", "", cBarQNameWithPrefix);
+		QName cBarQNameWithPrefixExplixit = prefixMapper.setQNamePrefixExplicit(cBarQName);
+		assertQName("common namespace implicit", SchemaConstantsGenerated.NS_COMMON, "bar", "c", cBarQNameWithPrefixExplixit);
+		
 	}
 	
+	private void assertQName(String message, String expectedNamespace, String expectedLocalName, String expectedPrefix,
+			QName actual) {
+		assertEquals("Wrong qname namespace in "+message, expectedNamespace, actual.getNamespaceURI());
+		assertEquals("Wrong qname local part in "+message, expectedLocalName, actual.getLocalPart());
+		assertEquals("Wrong qname prefix in "+message, expectedPrefix, actual.getPrefix());
+		
+	}
+
 	private void assertMapping(DynamicNamespacePrefixMapper prefixMapper, String namespace, String prefix) {
 		assertEquals("Wrong prefix mapping for namespace "+namespace, prefix, prefixMapper.getPrefix(namespace));
 	}

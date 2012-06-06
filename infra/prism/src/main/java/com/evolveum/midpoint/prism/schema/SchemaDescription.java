@@ -47,6 +47,7 @@ public class SchemaDescription implements Dumpable {
 	private InputStreamable streamable; 
 	private Node node;
 	private boolean isPrismSchema = false;
+	private boolean isDefault = false;
 	private PrismSchema schema;
 	private Package compileTimeClassesPackage;
 	private Map<QName, Class<?>> xsdTypeTocompileTimeClassMap;
@@ -99,6 +100,14 @@ public class SchemaDescription implements Dumpable {
 		this.isPrismSchema = isMidPointSchema;
 	}
 	
+	public boolean isDefault() {
+		return isDefault;
+	}
+
+	public void setDefault(boolean isDefault) {
+		this.isDefault = isDefault;
+	}
+
 	public PrismSchema getSchema() {
 		return schema;
 	}

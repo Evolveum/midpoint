@@ -189,7 +189,9 @@ public class PrismJaxbProcessor {
 		// set default properties
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", getSchemaRegistry().getNamespacePrefixMapper());
+		DynamicNamespacePrefixMapper namespacePrefixMapper = getSchemaRegistry().getNamespacePrefixMapper().clone();
+		namespacePrefixMapper.setAlwaysExplicit(true);
+		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", namespacePrefixMapper);
 		// set custom properties
 		if (jaxbProperties != null) {
 			for (Entry<String, Object> property : jaxbProperties.entrySet()) {
