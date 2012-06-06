@@ -48,12 +48,19 @@ public class PropertiesGenerator {
         System.out.println("Starting...");
 
         try {
+            PropertiesStatistics stats;
             for (Locale locale : config.getLocalesToCheck()) {
+                stats = new PropertiesStatistics();
                 System.out.println("Loading existing properties for " + locale + ".");
-                reloadProperties(config.getBaseFolder(), config.getRecursiveFolderToCheck(),
-                        true, locale, config.getTargetFolder());
-                reloadProperties(config.getBaseFolder(), config.getRecursiveFolderToCheck(),
+
+                PropertiesStatistics partial = reloadProperties(config.getBaseFolder(),
+                        config.getRecursiveFolderToCheck(), true, locale, config.getTargetFolder());
+                stats.increment(partial);
+                partial = reloadProperties(config.getBaseFolder(), config.getRecursiveFolderToCheck(),
                         false, locale, config.getTargetFolder());
+                stats.increment(partial);
+
+                System.out.println("Changes for locale " + locale + ": " + stats);
             }
         } catch (Exception ex) {
             System.out.println("Something went horribly wrong...");
@@ -85,12 +92,16 @@ public class PropertiesGenerator {
                     int index = absolutePath.lastIndexOf("com/evolveum/midpoint");
 
                     //create fileName as full qualified name (packages + properties file name and locale)
-                    String fileName = absolutePath.substring(index).replace("/", ".");
+                    String fileName = absolutePath.substring(index);//.replace("/", ".");
                     if (StringUtils.isNotEmpty(fileName)) {
-                        fileName += ".";
+                        fileName += "/";
                     }
                     fileName += file.getName().replace(".properties", "");
-                    fileName += "_" + locale + ".properties";
+                    fileName += "_" + locale;
+                    if ("utf-8".equals(ENCODING.toLowerCase())) {
+                        fileName += ".utf8";
+                    }
+                    fileName += ".properties";
 
                     targetProperties = new SortedProperties();
                     File targetPropertiesFile = new File(target, fileName);
@@ -144,11 +155,17 @@ public class PropertiesGenerator {
 
     private void backupExistingAndSaveNewProperties(Properties properties, File target) throws IOException {
         if (target.exists()) {
-            File backupFile = new File(target.getParentFile(), target.getName() + ".backup");
-            FileUtils.copyFile(target, backupFile);
+            if (!config.isDisableBackup()) {
+                File backupFile = new File(target.getParentFile(), target.getName() + ".backup");
+                FileUtils.copyFile(target, backupFile);
+            }
             target.delete();
         }
 
+        File parent = target.getParentFile();
+        if (!parent.exists() || !parent.isDirectory()) {
+            FileUtils.forceMkdir(parent);
+        }
         target.createNewFile();
         Writer writer = null;
         try {

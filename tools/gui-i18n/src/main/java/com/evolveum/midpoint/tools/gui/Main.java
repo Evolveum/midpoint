@@ -55,6 +55,9 @@ public class Main {
         options.addOption(nonRecursiveFolderToCheck);
         Option help = new Option("h", "help", false, "Print this help.");
         options.addOption(help);
+        Option disableBackup = new Option("db", "disableBackup", false,
+                "Disable backuping property files.");
+        options.addOption(disableBackup);
 
         try {
             CommandLineParser parser = new GnuParser();
@@ -102,6 +105,10 @@ public class Main {
                 for (String locale : locales) {
                     config.getLocalesToCheck().add(getLocaleFromString(locale));
                 }
+            }
+
+            if (line.hasOption(disableBackup.getOpt())) {
+                config.setDisableBackup(true);
             }
 
             PropertiesGenerator generator = new PropertiesGenerator(config);

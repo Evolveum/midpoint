@@ -33,6 +33,15 @@ public class PropertiesStatistics {
         return added;
     }
 
+    public void increment(PropertiesStatistics partial) {
+        if (partial == null) {
+            return;
+        }
+
+        incrementAdded(partial.getAdded());
+        incrementDeleted(partial.getDeleted());
+    }
+
     public void incrementAdded(int value) {
         added += value;
     }

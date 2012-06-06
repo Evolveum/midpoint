@@ -40,6 +40,8 @@ public class GeneratorConfiguration {
     private List<String> recursiveFolderToCheck;
     private List<String> nonRecursiveFolderToCheck;
 
+    private boolean disableBackup;
+
     public File getBaseFolder() {
         return baseFolder;
     }
@@ -95,5 +97,13 @@ public class GeneratorConfiguration {
 
     public void setPropertiesLocaleDelimiter(String propertiesLocaleDelimiter) {
         this.propertiesLocaleDelimiter = propertiesLocaleDelimiter;
+    }
+
+    public boolean isDisableBackup() {
+        return disableBackup;
+    }
+
+    public void setDisableBackup(boolean disableBackup) {
+        this.disableBackup = disableBackup;
     }
 }

@@ -103,13 +103,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         IResourceSettings resourceSettings = getResourceSettings();
         resourceSettings.setThrowExceptionOnMissingResource(false);
-        //todo implement resource lookup properly
-//        resourceSettings.setResourceStreamLocator(new CachingResourceStreamLocator(new MidPointStreamLocator()));
-
-//        List<IStringResourceLoader> loaders = resourceSettings.getStringResourceLoaders();
-        //replacing standard component string resource loader
-//        loaders.set(0, new MidPointStringResourceLoader());
-
         getMarkupSettings().setStripWicketTags(true);
 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {

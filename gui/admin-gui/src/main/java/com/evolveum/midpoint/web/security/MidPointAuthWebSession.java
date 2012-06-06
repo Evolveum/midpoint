@@ -75,8 +75,8 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
             authenticated = authentication.isAuthenticated();
         } catch (AuthenticationException ex) {
         	ComponentStringResourceLoader comp = new ComponentStringResourceLoader();
-            error(comp.loadStringResource(MidPointAuthWebSession.class, ex.getMessage(), getLocale(), "", ""));
-           
+            error(comp.loadStringResource(MidPointApplication.class, ex.getMessage(), getLocale(), "", ""));
+
             LOGGER.debug("Couldn't authenticate user.", ex);
             authenticated = false;
         }
