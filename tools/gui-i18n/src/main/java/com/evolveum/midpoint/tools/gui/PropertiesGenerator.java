@@ -164,7 +164,8 @@ public class PropertiesGenerator {
             stats.incrementAdded();
         }
 
-        keySet = targetProperties.keySet();
+        keySet = new HashSet<Object>();
+        keySet.addAll(targetProperties.keySet());
         for (Object key : keySet) {
             if (baseProperties.containsKey(key)) {
                 continue;
