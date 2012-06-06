@@ -38,6 +38,8 @@ public class PropertiesGenerator {
     private static final String ENCODING = "utf-8";
     private GeneratorConfiguration config;
 
+    private PropertiesStatistics stats;
+
     public PropertiesGenerator(GeneratorConfiguration config) {
         Validate.notNull(config, "Generator configuration must not be null.");
         this.config = config;
@@ -48,17 +50,18 @@ public class PropertiesGenerator {
         System.out.println("Starting...");
 
         try {
-            PropertiesStatistics stats;
             for (Locale locale : config.getLocalesToCheck()) {
                 stats = new PropertiesStatistics();
                 System.out.println("Loading existing properties for " + locale + ".");
 
-                PropertiesStatistics partial = reloadProperties(config.getBaseFolder(),
-                        config.getRecursiveFolderToCheck(), true, locale, config.getTargetFolder());
-                stats.increment(partial);
-                partial = reloadProperties(config.getBaseFolder(), config.getRecursiveFolderToCheck(),
-                        false, locale, config.getTargetFolder());
-                stats.increment(partial);
+                List<File> existingFiles = new ArrayList<File>();
+                existingFiles.addAll(reloadProperties(config.getBaseFolder(),
+                        config.getRecursiveFolderToCheck(), true, locale, config.getTargetFolder()));
+
+                existingFiles.addAll(reloadProperties(config.getBaseFolder(), config.getRecursiveFolderToCheck(),
+                        false, locale, config.getTargetFolder()));
+
+                cleanupTargetFolder(existingFiles, config.getTargetFolder());
 
                 System.out.println("Changes for locale " + locale + ": " + stats);
             }
@@ -70,9 +73,27 @@ public class PropertiesGenerator {
         System.out.println("Finished. Time: " + (System.currentTimeMillis() - time));
     }
 
-    private PropertiesStatistics reloadProperties(File parent, List<String> folders, boolean recursive,
+    private void cleanupTargetFolder(List<File> existingFiles, File target) throws IOException {
+        Collection<File> files = FileUtils.listFiles(target, new String[]{"properties"}, true);
+
+        for (File file : files) {
+            if (existingFiles.contains(file)) {
+                continue;
+            }
+            System.out.println("File to be deleted: " + file.getAbsolutePath());
+
+            if (!config.isDisableBackup()) {
+                File backupFile = new File(target, file.getName() + ".backup");
+                FileUtils.moveFile(file, backupFile);
+            } else {
+                file.delete();
+            }
+        }
+    }
+
+    private List<File> reloadProperties(File parent, List<String> folders, boolean recursive,
             Locale locale, File target) throws IOException {
-        PropertiesStatistics fullStats = new PropertiesStatistics();
+        List<File> actualTargetFiles = new ArrayList<File>();
 
         Properties baseProperties;
         Properties targetProperties;
@@ -88,35 +109,19 @@ public class PropertiesGenerator {
                     baseProperties = new Properties();
                     baseProperties.load(baseReader);
 
-                    String absolutePath = file.getParentFile().getAbsolutePath();
-                    int index = absolutePath.lastIndexOf("com/evolveum/midpoint");
-
-                    //create fileName as full qualified name (packages + properties file name and locale)
-                    String fileName = absolutePath.substring(index);//.replace("/", ".");
-                    if (StringUtils.isNotEmpty(fileName)) {
-                        fileName += "/";
-                    }
-                    fileName += file.getName().replace(".properties", "");
-                    fileName += "_" + locale;
-                    if ("utf-8".equals(ENCODING.toLowerCase())) {
-                        fileName += ".utf8";
-                    }
-                    fileName += ".properties";
-
                     targetProperties = new SortedProperties();
-                    File targetPropertiesFile = new File(target, fileName);
+                    File targetPropertiesFile = createTargetFile(file, target, locale);
+                    actualTargetFiles.add(targetPropertiesFile);
                     if (targetPropertiesFile.exists() && targetPropertiesFile.canRead()) {
                         targetReader = new InputStreamReader(new FileInputStream(targetPropertiesFile), ENCODING);
                         targetProperties.load(targetReader);
                     }
 
                     PropertiesStatistics stats = mergeProperties(baseProperties, targetProperties);
+                    this.stats.increment(stats);
+
                     backupExistingAndSaveNewProperties(targetProperties, targetPropertiesFile);
-
-                    fullStats.incrementAdded(stats.getAdded());
-                    fullStats.incrementDeleted(stats.getDeleted());
-
-                    System.out.println(new File(target, fileName).getName() + ": " + stats);
+                    System.out.println(targetPropertiesFile.getName() + ": " + stats);
                 } finally {
                     IOUtils.closeQuietly(baseReader);
                     IOUtils.closeQuietly(targetReader);
@@ -124,7 +129,26 @@ public class PropertiesGenerator {
             }
         }
 
-        return fullStats;
+        return actualTargetFiles;
+    }
+
+    private File createTargetFile(File source, File targetDir, Locale locale) {
+        String absolutePath = source.getParentFile().getAbsolutePath();
+        int index = absolutePath.lastIndexOf("com/evolveum/midpoint");
+
+        //create fileName as full qualified name (packages + properties file name and locale)
+        String fileName = absolutePath.substring(index);//.replace("/", ".");
+        if (StringUtils.isNotEmpty(fileName)) {
+            fileName += "/";
+        }
+        fileName += source.getName().replace(".properties", "");
+        fileName += "_" + locale;
+        if ("utf-8".equals(ENCODING.toLowerCase())) {
+            fileName += ".utf8";
+        }
+        fileName += ".properties";
+
+        return new File(targetDir, fileName);
     }
 
     private PropertiesStatistics mergeProperties(Properties baseProperties, Properties targetProperties) {
