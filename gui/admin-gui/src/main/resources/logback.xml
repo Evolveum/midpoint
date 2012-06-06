@@ -38,7 +38,7 @@
             <maxHistory>20</maxHistory>
         </rollingPolicy>
     </appender>
-    <logger name="com.evolveum.midpoint.repo" level="TRACE"/>
+    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="PROFILING" level="TRACE"/>
     <root level="WARN">
         <appender-ref ref="IDM_LOG"/>
