@@ -31,13 +31,19 @@
        default-lazy-init="true" default-autowire="byName">
 
     <bean id="sqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.SqlRepositoryFactory"
-            depends-on="repositoryFactory" />
+          depends-on="repositoryFactory"/>
 
-    <bean id="sqlDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-        <property name="driverClassName" value="#{sqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
-        <property name="url" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
-        <property name="username" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
+    <bean id="sqlDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="#{sqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
+        <property name="jdbcUrl" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
+        <property name="user" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
         <property name="password" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
+
+        <property name="acquireIncrement" value="3"/>
+        <property name="minPoolSize" value="8"/>
+        <property name="maxPoolSize" value="20"/>
+        <property name="idleConnectionTestPeriod" value="3000"/>
+        <property name="maxStatements" value="50"/>
     </bean>
 
     <!-- Hibernate session factory -->
@@ -54,16 +60,10 @@
                 <!--<prop key="hibernate.format_sql">true</prop>-->
                 <prop key="hibernate.hbm2ddl.auto">#{sqlRepositoryFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
                 <prop key="hibernate.id.new_generator_mappings">true</prop>
-                <!-- connection pool -->
-                <prop key="hibernate.c3p0.min_size">5</prop>
-                <prop key="hibernate.c3p0.max_size">20</prop>
-                <prop key="hibernate.c3p0.timeout">0</prop>
-                <prop key="hibernate.c3p0.max_statements">50</prop>
-                <prop key="hibernate.c3p0.idle_test_period">3000</prop>
             </props>
         </property>
         <property name="namingStrategy">
-            <bean class="com.evolveum.midpoint.repo.sql.MidPointNamingStrategy" />
+            <bean class="com.evolveum.midpoint.repo.sql.MidPointNamingStrategy"/>
         </property>
         <property name="annotatedPackages">
             <list>
