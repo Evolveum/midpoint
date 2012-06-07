@@ -1923,15 +1923,49 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="lastFailedLoginTimestamp" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="lastSuccessfulLogin" type="tns:LoginEventType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The date and time of last failed login attempt.
+                        The date and time of last successful login attempt.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="previousSuccessfulLogin" type="tns:LoginEventType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The date and time of successful before the last login attempt.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lastFailedLogin" type="tns:LoginEventType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The date and time of last successful login attempt.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="LoginEventType">
+        <xsd:sequence>
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The date and time of login attempt.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="from" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The source from where the login came. It is supposed to be human-readable,
+                        e.g. a hotname, IP address, etc.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="AssignmentType">
