@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -115,7 +116,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             } else {
                 credentials.setFailedLogins(password.getFailedLogins());
             }
-            XMLGregorianCalendar calendar = password.getLastFailedLoginTimestamp();
+            XMLGregorianCalendar calendar = password.getLastFailedLogin().getTimestamp();
             if (calendar != null) {
                 credentials.setLastFailedLoginAttempt(calendar.toGregorianCalendar().getTimeInMillis());
             } else {
@@ -177,7 +178,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             GregorianCalendar gc = new GregorianCalendar();
             gc.setTimeInMillis(user.getCredentials().getLastFailedLoginAttempt());
             XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
-            password.setLastFailedLoginTimestamp(calendar);
+            LoginEventType loginEvent = new LoginEventType();
+            loginEvent.setTimestamp(calendar);
+            password.setLastFailedLogin(loginEvent);
         } catch (DatatypeConfigurationException ex) {
             LOGGER.error("Can't save last failed login timestamp, reason: " + ex.getMessage());
         }
