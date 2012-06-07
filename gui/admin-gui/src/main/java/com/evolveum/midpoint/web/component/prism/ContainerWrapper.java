@@ -237,7 +237,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     private boolean skipProperty(PrismPropertyDefinition def) {
         final List<QName> names = new ArrayList<QName>();
         names.add(PasswordType.F_FAILED_LOGINS);
-        names.add(PasswordType.F_LAST_FAILED_LOGIN_TIMESTAMP);
+        names.add(PasswordType.F_LAST_FAILED_LOGIN);
+        names.add(PasswordType.F_LAST_SUCCESSFUL_LOGIN);
+        names.add(PasswordType.F_PREVIOUS_SUCCESSFUL_LOGIN);
         names.add(ObjectType.F_FETCH_RESULT);
 
         if (AccountShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
