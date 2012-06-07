@@ -21,16 +21,18 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+import java.util.Date;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Date;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 /**
  * @author lazyman
@@ -59,7 +61,7 @@ public class DatePanel extends InputPanel {
                 if (calendar == null) {
                     return null;
                 }
-                return WebMiscUtil.asDate(calendar);
+                return MiscUtil.asDate(calendar);
             }
 
             @Override
@@ -67,7 +69,7 @@ public class DatePanel extends InputPanel {
                 if (object == null) {
                     model.setObject(null);
                 } else {
-                    model.setObject(WebMiscUtil.asXMLGregorianCalendar(object));
+                    model.setObject(MiscUtil.asXMLGregorianCalendar(object));
                 }
             }
         };

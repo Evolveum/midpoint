@@ -29,9 +29,14 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,6 +48,15 @@ import org.apache.commons.lang.StringUtils;
 public class MiscUtil {
 	
 	private static final int BUFFER_SIZE = 2048; 
+	private static DatatypeFactory df = null;
+
+    static {
+        try {
+            df = DatatypeFactory.newInstance();
+        } catch (DatatypeConfigurationException dce) {
+            throw new IllegalStateException("Exception while obtaining Datatype Factory instance", dce);
+        }
+    }
 	
 	public static <T> Collection<T> union(Collection<T>... sets) {
 		Set<T> resultSet = new HashSet<T>();
@@ -220,5 +234,39 @@ public class MiscUtil {
 		}
 		return a.equals(b);
 	}
+
+    /**
+     * Converts a java.util.Date into an instance of XMLGregorianCalendar
+     *
+     * @param date Instance of java.util.Date or a null reference
+     * @return XMLGregorianCalendar instance whose value is based upon the
+     *         value in the date parameter. If the date parameter is null then
+     *         this method will simply return null.
+     */
+    public static XMLGregorianCalendar asXMLGregorianCalendar(java.util.Date date) {
+        if (date == null) {
+            return null;
+        } else {
+            GregorianCalendar gc = new GregorianCalendar();
+            gc.setTimeInMillis(date.getTime());
+            return df.newXMLGregorianCalendar(gc);
+        }
+    }
+
+    /**
+     * Converts an XMLGregorianCalendar to an instance of java.util.Date
+     *
+     * @param xgc Instance of XMLGregorianCalendar or a null reference
+     * @return java.util.Date instance whose value is based upon the
+     *         value in the xgc parameter. If the xgc parameter is null then
+     *         this method will simply return null.
+     */
+    public static java.util.Date asDate(XMLGregorianCalendar xgc) {
+        if (xgc == null) {
+            return null;
+        } else {
+            return xgc.toGregorianCalendar().getTime();
+        }
+    }
 		
 }

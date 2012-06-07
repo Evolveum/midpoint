@@ -23,7 +23,41 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <wicket:message key="pageHome.description"/>
+    <div wicket:id="accordion">
+    	<li wicket:id="personal">
+            <table>
+	            <tr>
+	                <td><wicket:message key="pageHome.lastLoginDate"/></td>
+	                <td><span wicket:id="lastLoginDate"/></td>
+	            </tr>
+	            <tr>
+	                <td><wicket:message key="pageHome.lastLoginFrom"/></td>
+	                <td><span wicket:id="lastLoginFrom"/></td>
+	            </tr>
+	            <tr>
+	                <td><wicket:message key="pageHome.lastFaildDate"/></td>
+	                <td><span wicket:id="lastFaildDate"/></td>
+	            </tr>
+	            <tr>
+	                <td><wicket:message key="pageHome.lastFaildFrom"/></td>
+	                <td><span wicket:id="lastFaildFrom"/></td>
+	            </tr>
+	            <tr>
+	                <td><wicket:message key="pageHome.passwordExp"/></td>
+	                <td><span wicket:id="passwordExp"/></td>
+	            </tr>
+	        </table>
+        </li>
+    	<li wicket:id="accounts">
+            <div wicket:id="assignedAccounts" />
+        </li>
+        <li wicket:id="assignments">
+            <div wicket:id="assignedAssignments" />
+        </li>
+        <li wicket:id="roles">
+           <!--  <div wicket:id="assignedRoles" /> -->
+        </li>
+     </div>
 </wicket:extend>
 </body>
 </html>

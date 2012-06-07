@@ -25,17 +25,23 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.ClusterStatusInformation;
+import com.evolveum.midpoint.task.api.Node;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRecurrence;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
-
-import org.apache.commons.lang.Validate;
 
 /**
  * @author lazyman
@@ -94,8 +100,8 @@ public class TaskDto extends Selectable {
             } else {
             	misfireAction = task.getSchedule().getMisfireAction();
             }
-            notStartBefore = WebMiscUtil.asDate(task.getSchedule().getEarliestStartTime());
-            notStartAfter = WebMiscUtil.asDate(task.getSchedule().getLatestStartTime());
+            notStartBefore = MiscUtil.asDate(task.getSchedule().getEarliestStartTime());
+            notStartAfter = MiscUtil.asDate(task.getSchedule().getLatestStartTime());
         }
         
         if(task.getThreadStopAction() == null){

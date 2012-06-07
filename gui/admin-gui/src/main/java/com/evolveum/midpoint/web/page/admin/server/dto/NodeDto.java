@@ -21,18 +21,19 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Node;
 import com.evolveum.midpoint.task.api.NodeErrorStatus;
 import com.evolveum.midpoint.task.api.NodeExecutionStatus;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author lazyman
@@ -60,7 +61,7 @@ public class NodeDto extends Selectable {
 
         XMLGregorianCalendar calendar = node.getLastCheckInTime();
         if (calendar != null) {
-            lastCheckInTime = WebMiscUtil.asDate(calendar).getTime();
+            lastCheckInTime = MiscUtil.asDate(calendar).getTime();
         }
 
         nodeIdentifier = node.getNodeIdentifier();

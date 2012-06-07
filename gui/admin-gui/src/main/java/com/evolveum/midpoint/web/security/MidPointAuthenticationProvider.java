@@ -21,17 +21,17 @@
 
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.model.security.api.Credentials;
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.http.WebRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -42,158 +42,192 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.GrantedAuthorityImpl;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LoginEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * @author lazyman
  */
 public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
-    @Autowired(required = true)
-    private transient UserDetailsService userManagerService;
-    @Autowired(required = true)
-    private transient Protector protector;
-    private int loginTimeout;
-    private int maxFailedLogins;
+	private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
+	@Autowired(required = true)
+	private transient UserDetailsService userManagerService;
+	@Autowired(required = true)
+	private transient Protector protector;
+	private int loginTimeout;
+	private int maxFailedLogins;
 
-    public void setLoginTimeout(int loginTimeout) {
-        if (loginTimeout < 0) {
-            loginTimeout = 0;
-        }
-        this.loginTimeout = loginTimeout;
-    }
+	public void setLoginTimeout(int loginTimeout) {
+		if (loginTimeout < 0) {
+			loginTimeout = 0;
+		}
+		this.loginTimeout = loginTimeout;
+	}
 
-    public void setMaxFailedLogins(int maxFailedLogins) {
-        if (maxFailedLogins < 0) {
-            maxFailedLogins = 0;
-        }
-        this.maxFailedLogins = maxFailedLogins;
-    }
+	public void setMaxFailedLogins(int maxFailedLogins) {
+		if (maxFailedLogins < 0) {
+			maxFailedLogins = 0;
+		}
+		this.maxFailedLogins = maxFailedLogins;
+	}
 
-    @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        if (StringUtils.isBlank((String) authentication.getPrincipal())
-                || StringUtils.isBlank((String) authentication.getCredentials())) {
-            throw new BadCredentialsException("web.security.provider.invalid");
-        }
-        //throw new BadCredentialsException("web.security.provider.illegal");
-        PrincipalUser user = null;
-        List<GrantedAuthority> grantedAuthorities = null;
-        try {
-            user = userManagerService.getUser((String) authentication.getPrincipal());
-            authenticateUser(user, (String) authentication.getCredentials());
-        } catch (BadCredentialsException ex) {
-            if (user != null) {
-                Credentials credentials = user.getCredentials();
-                credentials.addFailedLogin();
-                credentials.setLastFailedLoginAttempt(System.currentTimeMillis());
+	@Override
+	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+		if (StringUtils.isBlank((String) authentication.getPrincipal())
+				|| StringUtils.isBlank((String) authentication.getCredentials())) {
+			throw new BadCredentialsException("web.security.provider.invalid");
+		}
+		// throw new BadCredentialsException("web.security.provider.illegal");
+		PrincipalUser user = null;
+		PasswordType password = null;
+		List<GrantedAuthority> grantedAuthorities = null;
+		try {
+			user = userManagerService.getUser((String) authentication.getPrincipal());
+			authenticateUser(user, (String) authentication.getCredentials());
+		} catch (BadCredentialsException ex) {
+			if (user != null) {
+				password = user.getUser().getCredentials().getPassword();
+				password.setFailedLogins(password.getFailedLogins() + 1);
+				XMLGregorianCalendar systemTime = MiscUtil.asXMLGregorianCalendar(new Date(System
+						.currentTimeMillis()));
+				LoginEventType event = new LoginEventType();
+				event.setTimestamp(systemTime);
+				event.setFrom(getRemoteHost());
+				password.setLastFailedLogin(event);
+				userManagerService.updateUser(user);
+			}
 
-                userManagerService.updateUser(user);
-            }
+			throw ex;
+		} catch (Exception ex) {
+			LOGGER.error("Can't get user with username '{}'. Unknown error occured, reason {}.",
+					new Object[] { authentication.getPrincipal(), ex.getMessage() });
+			LOGGER.debug("Can't authenticate user '{}'.", new Object[] { authentication.getPrincipal() }, ex);
+			throw new AuthenticationServiceException("web.security.provider.unavailable");
+		}
 
-            throw ex;
-        } catch (Exception ex) {
-            LOGGER.error("Can't get user with username '{}'. Unknown error occured, reason {}.",
-                    new Object[]{authentication.getPrincipal(), ex.getMessage()});
-            LOGGER.debug("Can't authenticate user '{}'.", new Object[]{authentication.getPrincipal()}, ex);
-            throw new AuthenticationServiceException("web.security.provider.unavailable");
-        }
+		if (user != null) {
+			grantedAuthorities = new ArrayList<GrantedAuthority>();
+			UserType userType = user.getUser();
+			CredentialsType credentialsType = userType.getCredentials();
 
-        if (user != null) {
-            grantedAuthorities = new ArrayList<GrantedAuthority>();
-            UserType userType = user.getUser();
-            CredentialsType credentials = userType.getCredentials();
+			if (credentialsType == null) {
+				credentialsType = new CredentialsType();
+				userType.setCredentials(credentialsType);
+			}
 
-            if (credentials == null) {
-                credentials = new CredentialsType();
-                userType.setCredentials(credentials);
-            }
+			boolean isAdminGuiAccess = credentialsType.isAllowedIdmAdminGuiAccess() != null ? credentialsType
+					.isAllowedIdmAdminGuiAccess() : false;
+			if (isAdminGuiAccess) {
+				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_ADMIN"));
+			} else {
+				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_USER"));
+			}
 
-            boolean isAdminGuiAccess = credentials.isAllowedIdmAdminGuiAccess() != null
-                    ? credentials.isAllowedIdmAdminGuiAccess() : false;
-            if (isAdminGuiAccess) {
-                grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_ADMIN"));
-            } else {
-                grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_USER"));
-            }
+			/*
+			 * List<Role> roles = new ArrayList<Role>(0);
+			 * //user.getAssociatedRoles(); for (Role role : roles) {
+			 * GrantedAuthority authority = new
+			 * SimpleGrantedAuthority(role.getRoleName());
+			 * grantedAuthorities.add(authority); }
+			 */
+		} else {
+			throw new BadCredentialsException("web.security.provider.invalid");
+		}
+		return new UsernamePasswordAuthenticationToken(user, authentication.getCredentials(),
+				grantedAuthorities);
+	}
 
-            /*
-                * List<Role> roles = new ArrayList<Role>(0);
-                * //user.getAssociatedRoles(); for (Role role : roles) {
-                * GrantedAuthority authority = new
-                * SimpleGrantedAuthority(role.getRoleName());
-                * grantedAuthorities.add(authority); }
-                */
-        } else {
-            throw new BadCredentialsException("web.security.provider.invalid");
-        }
-        return new UsernamePasswordAuthenticationToken(user, authentication.getCredentials(),
-                grantedAuthorities);
-    }
+	@Override
+	public boolean supports(Class<? extends Object> authentication) {
+		if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
+			return true;
+		}
 
-    @Override
-    public boolean supports(Class<? extends Object> authentication) {
-        if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
+		return false;
+	}
 
-        return false;
-    }
+	private void authenticateUser(PrincipalUser user, String password) throws BadCredentialsException {		
+		if (user == null || user.getUser() == null || user.getUser().getCredentials() == null) {
+			throw new BadCredentialsException("web.security.provider.invalid");
+		}
 
-    private void authenticateUser(PrincipalUser user, String password) throws BadCredentialsException {
-        if (user == null) {
-            throw new BadCredentialsException("web.security.provider.invalid");
-        }
+		if (!user.isEnabled()) {
+			throw new BadCredentialsException("web.security.provider.disabled");
+		}
+		
+		UserType userType = user.getUser();
+		CredentialsType credentials = userType.getCredentials();
 
-        if (!user.isEnabled()) {
-            throw new BadCredentialsException("web.security.provider.disabled");
-        }
+		PasswordType passwordType = credentials.getPassword();
+		int failedLogins = passwordType.getFailedLogins() != null ? passwordType.getFailedLogins() : 0;
+		if (maxFailedLogins > 0 && failedLogins >= maxFailedLogins) {
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTimeInMillis(MiscUtil.asDate(passwordType.getLastFailedLogin().getTimestamp()).getTime());
+			calendar.add(Calendar.MINUTE, loginTimeout);
+			long lockedTill = calendar.getTimeInMillis();
 
-        Credentials credentials = user.getCredentials();
-        if (maxFailedLogins > 0 && credentials.getFailedLogins() >= maxFailedLogins) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(credentials.getLastFailedLoginAttempt());
-            calendar.add(Calendar.MINUTE, loginTimeout);
-            long lockedTill = calendar.getTimeInMillis();
+			if (lockedTill > System.currentTimeMillis()) {
+				long time = (lockedTill - System.currentTimeMillis()) / 60000L;
+				throw new BadCredentialsException("web.security.provider.locked", new Object[] { time });
+			}
+		}
 
-            if (lockedTill > System.currentTimeMillis()) {
-                long time = (lockedTill - System.currentTimeMillis()) / 60000L;
-                throw new BadCredentialsException("web.security.provider.locked", new Object[]{time});
-            }
-        }
+		ProtectedStringType protectedString = passwordType.getProtectedString();
+		if (protectedString == null) {
+			throw new BadCredentialsException("web.security.provider.password.bad");
+		}
 
-        ProtectedStringType protectedString = credentials.getPassword();
-        if (protectedString == null) {
-            throw new BadCredentialsException("web.security.provider.password.bad");
-        }
+		if (StringUtils.isEmpty(password)) {
+			throw new BadCredentialsException("web.security.provider.password.encoding");
+		}
 
-        if (StringUtils.isEmpty(password)) {
-            throw new BadCredentialsException("web.security.provider.password.encoding");
-        }
+		try {
+			String decoded;
+			if (protectedString.getEncryptedData() != null) {
+				decoded = protector.decryptString(protectedString);
+			} else {
+				LOGGER.warn("Authenticating user based on clear value. Please check objects, "
+						+ "this should not happen. Protected string should be encrypted.");
+				decoded = protectedString.getClearValue();
+			}
+			if (password.equals(decoded)) {
+				if (failedLogins > 0) {
+					passwordType.setFailedLogins(0);
+				}
+				XMLGregorianCalendar systemTime = MiscUtil.asXMLGregorianCalendar(new Date(System
+						.currentTimeMillis()));
+				LoginEventType event = new LoginEventType();
+				event.setTimestamp(systemTime);
+				event.setFrom(getRemoteHost());
 
-        try {
-            String decoded;
-            if (protectedString.getEncryptedData() != null) {
-                decoded = protector.decryptString(protectedString);
-            } else {
-                LOGGER.warn("Authenticating user based on clear value. Please check objects, " +
-                        "this should not happen. Protected string should be encrypted.");
-                decoded = protectedString.getClearValue();
-            }
-            if (password.equals(decoded)) {
-                if (credentials.getFailedLogins() > 0) {
-                    credentials.clearFailedLogin();
-                    userManagerService.updateUser(user);
-                }
-                return;
-            }
-        } catch (EncryptionException ex) {
-            throw new AuthenticationServiceException("web.security.provider.unavailable", ex);
-        }
+				passwordType.setPreviousSuccessfulLogin(passwordType.getLastSuccessfulLogin());
+				passwordType.setLastSuccessfulLogin(event);
 
-        throw new BadCredentialsException("web.security.provider.invalid");
-    }
+				userManagerService.updateUser(user);
+				return;
+			}
+		} catch (EncryptionException ex) {
+			throw new AuthenticationServiceException("web.security.provider.unavailable", ex);
+		}
+
+		throw new BadCredentialsException("web.security.provider.invalid");
+	}
+
+	public static String getRemoteHost() {
+		WebRequest req = (WebRequest) RequestCycle.get().getRequest();
+		HttpServletRequest httpReq = (HttpServletRequest) req.getContainerRequest();
+		return httpReq.getRemoteHost();
+	}
 }

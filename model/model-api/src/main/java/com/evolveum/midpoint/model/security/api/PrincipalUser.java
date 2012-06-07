@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.model.security.api;
 
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
@@ -77,17 +80,30 @@ public class PrincipalUser implements Serializable {//   } UserDetails {
 //    }
 //
 //    @Override
-//    public boolean isEnabled() {
-//        return true;  //To change body of implemented methods use File | Settings | File Templates.
-//    }
-
-    private Credentials credentials;
-    private boolean enabled;
-
-    public PrincipalUser(UserType user, boolean enabled) {
-        Validate.notNull(user, "User must not be null.");
-        this.user = user;
-        this.enabled = enabled;
+    public boolean isEnabled() {
+        CredentialsType credentials = user.getCredentials();
+        if (credentials == null || credentials.getPassword() == null){ 
+        	return false;
+        }
+        
+        if (user.getActivation() != null) {
+        	ActivationType activation = user.getActivation();
+        	long time = System.currentTimeMillis();
+        	if (activation.getValidFrom() != null) {
+        		long from = MiscUtil.asDate(activation.getValidFrom()).getTime();
+        		if (time < from) {
+        			return false;
+        		}
+        	}
+        	if (activation.getValidTo() != null) {
+        		long to = MiscUtil.asDate(activation.getValidTo()).getTime();
+        		if (to > time) {
+        			return false;
+        		}
+        	}
+        }
+        
+        return true;
     }
 
     public UserType getUser() {
@@ -111,26 +127,6 @@ public class PrincipalUser implements Serializable {//   } UserDetails {
     public String getGivenName() {
         PolyStringType string = getUser().getGivenName();
         return string != null ? string.getOrig() : null;
-    }
-
-    public Credentials getCredentials() {
-        if (credentials == null) {
-            credentials = new Credentials();
-        }
-
-        return credentials;
-    }
-
-    void setCredentials(Credentials credentials) {
-        this.credentials = credentials;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    void setEnabled(boolean enabled) {
-        this.enabled = enabled;
     }
 
     public String getOid() {

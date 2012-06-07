@@ -29,6 +29,10 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+
 import org.apache.ws.security.WSPasswordCallback;
 
 /**
@@ -48,9 +52,13 @@ public class PasswordCallback implements CallbackHandler {
         WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
 
         PrincipalUser user = userDetailsService.getUser(pc.getIdentifier());
-        if (user != null && user.getCredentials() != null && user.getCredentials().getPassword() != null) {
+        UserType userType = user.getUser();
+        CredentialsType credentials = userType.getCredentials();
+        if (user != null && credentials != null && credentials.getPassword() != null 
+        		&& credentials.getPassword().getProtectedString() != null) {
             try {
-                pc.setPassword(protector.decryptString(user.getCredentials().getPassword()));
+            	PasswordType password = credentials.getPassword();
+                pc.setPassword(protector.decryptString(password.getProtectedString()));
             } catch (EncryptionException e) {
                 throw new IOException(e);
             }
