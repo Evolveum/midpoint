@@ -35,11 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoginEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -104,7 +100,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private PrincipalUser createUser(UserType userType) {
         CredentialsType credentialsType = userType.getCredentials();
-        
+
         PrincipalUser user = new PrincipalUser(userType, true);
         if (credentialsType != null && credentialsType.getPassword() != null) {
             PasswordType password = credentialsType.getPassword();
@@ -116,7 +112,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             } else {
                 credentials.setFailedLogins(password.getFailedLogins());
             }
-            XMLGregorianCalendar calendar = password.getLastFailedLogin().getTimestamp();
+            XMLGregorianCalendar calendar = null;
+            if (password.getLastFailedLogin() != null) {
+                calendar = password.getLastFailedLogin().getTimestamp();
+            }
             if (calendar != null) {
                 credentials.setLastFailedLoginAttempt(calendar.toGregorianCalendar().getTimeInMillis());
             } else {
@@ -127,7 +126,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return user;
     }
 
-    private Element createQuery(String username) throws SchemaException{
+    private Element createQuery(String username) throws SchemaException {
         return QueryUtil.createEqualFilter(DOMUtil.getDocument(), null, ObjectType.F_NAME, username);
     }
 
@@ -141,10 +140,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             updateUserType(newUserType, person);
 
             ObjectDelta<UserType> delta = oldUser.diff(newUser);
-            repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(), 
+            repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(),
                     new OperationResult(OPERATION_UPDATE_USER));
         } catch (Exception ex) {
-            throw new RepositoryException(ex.getMessage(),  ex);
+            throw new RepositoryException(ex.getMessage(), ex);
         }
 
         return person;
@@ -180,6 +179,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
             LoginEventType loginEvent = new LoginEventType();
             loginEvent.setTimestamp(calendar);
+            loginEvent.setFrom(null);   //todo implement...
             password.setLastFailedLogin(loginEvent);
         } catch (DatatypeConfigurationException ex) {
             LOGGER.error("Can't save last failed login timestamp, reason: " + ex.getMessage());
