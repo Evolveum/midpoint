@@ -45,7 +45,9 @@
                 </enc:EncryptedData>
             </c:protectedString>
             <c:failedLogins>1</c:failedLogins>
-            <c:lastFailedLoginTimestamp>2012-04-02T15:26:51.035+02:00</c:lastFailedLoginTimestamp>
+            <c:lastFailedLogin>
+                <c:timestamp>2012-04-02T15:26:51.035+02:00</c:timestamp>
+            </c:lastFailedLogin>
         </c:password>
     </c:credentials>
 
