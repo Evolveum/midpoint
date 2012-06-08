@@ -38,13 +38,14 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -57,19 +58,24 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAssignmentDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -87,32 +93,21 @@ public class PageHome extends PageAdmin {
 	private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageHome.class);
-
-	private IModel<ObjectWrapper> userModel;
-	private IModel<List<UserAccountDto>> accountsModel;
-	private IModel<List<UserAssignmentDto>> assignmentsModel;
-	PrincipalUser user;
+	private IModel<List<SimpleAccountDto>> accountsModel;
+	private IModel<List<SimpleAssignmentDto>> assignmentsModel;
 
 	public PageHome() {
-		this.user = SecurityUtils.getPrincipalUser();
-		userModel = new LoadableModel<ObjectWrapper>(false) {
+		accountsModel = new LoadableModel<List<SimpleAccountDto>>(false) {
 
 			@Override
-			protected ObjectWrapper load() {
-				return loadUserWrapper();
-			}
-		};
-		accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
-
-			@Override
-			protected List<UserAccountDto> load() {
+			protected List<SimpleAccountDto> load() {
 				return loadAccountWrappers();
 			}
 		};
-		assignmentsModel = new LoadableModel<List<UserAssignmentDto>>(false) {
+		assignmentsModel = new LoadableModel<List<SimpleAssignmentDto>>(false) {
 
 			@Override
-			protected List<UserAssignmentDto> load() {
+			protected List<SimpleAssignmentDto> load() {
 				return loadAssignments();
 			}
 		};
@@ -134,21 +129,28 @@ public class PageHome extends PageAdmin {
 		accordion.getBodyContainer().add(personal);
 		initPersonal(personal);
 
-		AccordionItem roles = new AccordionItem("roles", createStringResource("pageHome.roles"));
-		roles.setOutputMarkupId(true);
-		accordion.getBodyContainer().add(roles);
-
-		AccordionItem assignments = new AccordionItem("assignments", new AbstractReadOnlyModel<String>() {
+		AccordionItem resources = new AccordionItem("resources", new AbstractReadOnlyModel<String>() {
 
 			@Override
 			public String getObject() {
-				return createStringResource("pageHome.assignments", assignmentsModel.getObject().size())
+				return createStringResource("pageHome.myAccounts", initMyResources().size()).getString();
+			}
+		});
+		resources.setOutputMarkupId(true);
+		accordion.getBodyContainer().add(resources);
+		initResources(resources);
+
+		AccordionItem roles = new AccordionItem("roles", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				return createStringResource("pageHome.roles", assignmentsModel.getObject().size())
 						.getString();
 			}
 		});
-		assignments.setOutputMarkupId(true);
-		accordion.getBodyContainer().add(assignments);
-		initAssignments(assignments);
+		roles.setOutputMarkupId(true);
+		accordion.getBodyContainer().add(roles);
+		initRoles(roles);
 
 		AccordionItem accounts = new AccordionItem("accounts", new AbstractReadOnlyModel<String>() {
 
@@ -168,7 +170,7 @@ public class PageHome extends PageAdmin {
 		PrismObject<UserType> userObject = null;
 		try {
 			Task task = createSimpleTask(OPERATION_LOAD_USER);
-            userObject = getModelService().getObject(UserType.class, user.getOid(), null, task, result);
+            userObject = getModelService().getObject(UserType.class, SecurityUtils.getPrincipalUser().getOid(), null, task, result);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
@@ -189,11 +191,11 @@ public class PageHome extends PageAdmin {
 		return wrapper;
 	}
 
-	private List<UserAccountDto> loadAccountWrappers() {
-		List<UserAccountDto> list = new ArrayList<UserAccountDto>();
+	private List<SimpleAccountDto> loadAccountWrappers() {
+		List<SimpleAccountDto> list = new ArrayList<SimpleAccountDto>();
 
-		ObjectWrapper user = userModel.getObject();
-		PrismObject<UserType> prismUser = user.getObject();
+		UserType user = SecurityUtils.getPrincipalUser().getUser();
+		PrismObject<UserType> prismUser = user.asPrismObject();
 		List<ObjectReferenceType> references = prismUser.asObjectable().getAccountRef();
 		OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
 		Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
@@ -217,11 +219,7 @@ public class PageHome extends PageAdmin {
 				if (resource != null && StringUtils.isNotEmpty(resource.getName())) {
 					resourceName = resource.getName();
 				}
-				ObjectWrapper wrapper = new ObjectWrapper(resourceName, accountType.getName(), account,
-						ContainerStatus.MODIFYING);
-				wrapper.setSelectable(true);
-				wrapper.setMinimalized(true);
-				list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
+				list.add(new SimpleAccountDto(accountType.getName(), resourceName));
 
 				subResult.recomputeStatus();
 			} catch (Exception ex) {
@@ -238,13 +236,13 @@ public class PageHome extends PageAdmin {
 		return list;
 	}
 
-	private List<UserAssignmentDto> loadAssignments() {
-		List<UserAssignmentDto> list = new ArrayList<UserAssignmentDto>();
+	private List<SimpleAssignmentDto> loadAssignments() {
+		List<SimpleAssignmentDto> list = new ArrayList<SimpleAssignmentDto>();
 
 		OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
 
-		ObjectWrapper user = userModel.getObject();
-		PrismObject<UserType> prismUser = user.getObject();
+		UserType user = SecurityUtils.getPrincipalUser().getUser();
+		PrismObject<UserType> prismUser = user.asPrismObject();
 		List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
 			String name = null;
@@ -277,16 +275,18 @@ public class PageHome extends PageAdmin {
 				if (target != null && RoleType.class.isAssignableFrom(target.getCompileTimeClass())) {
 					type = UserAssignmentDto.Type.ROLE;
 				}
+				
 			}
-
-			list.add(new UserAssignmentDto(name, type, UserDtoStatus.MODIFY, assignment));
+			list.add(new SimpleAssignmentDto(name, type, assignment.getActivation()));
 		}
 
 		return list;
 	}
 
 	private void initPersonal(AccordionItem personal) {
-		final PasswordType passwordType = user.getUser().getCredentials().getPassword();
+		final UserType user = SecurityUtils.getPrincipalUser().getUser();
+		CredentialsType credentials = user.getCredentials();
+		final PasswordType passwordType = credentials.getPassword();
 		
 		Label lastLoginDate = new Label("lastLoginDate", new AbstractReadOnlyModel<String>() {
 
@@ -340,29 +340,29 @@ public class PageHome extends PageAdmin {
 
 			@Override
 			public String getObject() {
-				ActivationType activation = user.getUser().getActivation();
+				ActivationType activation = user.getActivation();
 				if(activation == null || activation.getValidTo() == null){
 					return PageHome.this.getString("pageHome.undefined");
 				}
-				return getSimpleDate(MiscUtil.asDate(user.getUser().getActivation().getValidTo()));
+				return getSimpleDate(MiscUtil.asDate(user.getActivation().getValidTo()));
 			}
 		});
 		personal.getBodyContainer().add(passwordExp);
 	}
 
-	private void initAssignments(AccordionItem assignments) {
-		List<IColumn<UserAssignmentDto>> columns = new ArrayList<IColumn<UserAssignmentDto>>();
-		columns.add(new PropertyColumn(createStringResource("pageHome.assignment.name"), "name"));
-		columns.add(new AbstractColumn<UserAssignmentDto>(createStringResource("pageHome.assignment.active")) {
+	private void initRoles(AccordionItem assignments) {
+		List<IColumn<SimpleAssignmentDto>> columns = new ArrayList<IColumn<SimpleAssignmentDto>>();
+		columns.add(new PropertyColumn(createStringResource("pageHome.assignment.name"), "assignmentName"));
+		columns.add(new AbstractColumn<SimpleAssignmentDto>(createStringResource("pageHome.assignment.active")) {
 
 			@Override
-			public void populateItem(Item<ICellPopulator<UserAssignmentDto>> cellItem, String componentId,
-					final IModel<UserAssignmentDto> rowModel) {
+			public void populateItem(Item<ICellPopulator<SimpleAssignmentDto>> cellItem, String componentId,
+					final IModel<SimpleAssignmentDto> rowModel) {
 				cellItem.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
 
 					@Override
 					public Object getObject() {
-						UserAssignmentDto dto = rowModel.getObject();
+						SimpleAssignmentDto dto = rowModel.getObject();
 						ActivationType activation = dto.getActivation();
 						if (activation == null) {
 							return "-";
@@ -400,14 +400,15 @@ public class PageHome extends PageAdmin {
 		});
 
 		ISortableDataProvider provider = new ListDataProvider(this, assignmentsModel);
-		TablePanel assignmentTable = new TablePanel<UserAssignmentDto>("assignedAssignments", provider, columns);
+		TablePanel assignmentTable = new TablePanel<SimpleAssignmentDto>("assignedRoles", provider, columns);
 		assignmentTable.setShowPaging(false);
 		assignments.getBodyContainer().add(assignmentTable);
 	}
 	
 	private void initAccounts(AccordionItem accounts){
 		List<IColumn<UserAccountDto>> columns = new ArrayList<IColumn<UserAccountDto>>();
-		columns.add(new PropertyColumn(createStringResource("pageHome.account.name"), "object.displayName"));
+		columns.add(new PropertyColumn(createStringResource("pageHome.account.name"), "accountName"));
+		columns.add(new PropertyColumn(createStringResource("pageHome.account.resource"), "resourceName"));
 		
 		ISortableDataProvider provider = new ListDataProvider(this, accountsModel);
 		TablePanel accountsTable = new TablePanel<UserAccountDto>("assignedAccounts", provider, columns);
@@ -419,4 +420,31 @@ public class PageHome extends PageAdmin {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
 		return dateFormat.format(date);
 	}
+	
+	private void initResources(AccordionItem resources){
+		List<IColumn<String>> columns = new ArrayList<IColumn<String>>();
+		columns.add(new PropertyColumn(createStringResource("pageHome.resrouce.name"), ""));
+		
+		ISortableDataProvider provider = new ListDataProvider(this, new AbstractReadOnlyModel<List<String>>() {
+
+			@Override
+			public List<String> getObject() {
+				return initMyResources();
+			}
+		});
+		TablePanel assignedResources = new TablePanel<String>("assignedResources", provider, columns);
+		assignedResources.setShowPaging(false);
+		resources.getBodyContainer().add(assignedResources);
+	}
+	
+	private List<String> initMyResources(){
+		List<String> resources = new ArrayList<String>();
+		for (SimpleAccountDto account : accountsModel.getObject()) {
+			if(!(resources.contains(account.getResourceName()))){
+				resources.add(account.getResourceName());
+			}
+		}
+		return resources;
+	}
+	
 }
