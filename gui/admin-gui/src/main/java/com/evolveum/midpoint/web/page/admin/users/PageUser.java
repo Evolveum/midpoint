@@ -227,12 +227,24 @@ public class PageUser extends PageAdminUsers {
         accordion.setOpenedPanel(0);
         mainForm.add(accordion);
 
-        AccordionItem accounts = new AccordionItem("accounts", createStringResource("pageUser.accounts"));
+        AccordionItem accounts = new AccordionItem("accounts", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				return createStringResource("pageUser.accounts", accountsModel.getObject().size()).getString();
+			}
+		});
         accounts.setOutputMarkupId(true);
         accordion.getBodyContainer().add(accounts);
         initAccounts(accounts);
 
-        AccordionItem assignments = new AccordionItem("assignments", createStringResource("pageUser.assignments"));
+        AccordionItem assignments = new AccordionItem("assignments", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				return createStringResource("pageUser.assignments", assignmentsModel.getObject().size()).getString();
+			}
+		});
         assignments.setOutputMarkupId(true);
         accordion.getBodyContainer().add(assignments);
         initAssignments(assignments);

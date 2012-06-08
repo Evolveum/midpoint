@@ -91,21 +91,25 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		}
 		// throw new BadCredentialsException("web.security.provider.illegal");
 		PrincipalUser user = null;
-		PasswordType password = null;
 		List<GrantedAuthority> grantedAuthorities = null;
 		try {
 			user = userManagerService.getUser((String) authentication.getPrincipal());
 			authenticateUser(user, (String) authentication.getCredentials());
 		} catch (BadCredentialsException ex) {
-			if (user != null) {
-				password = user.getUser().getCredentials().getPassword();
-				password.setFailedLogins(password.getFailedLogins() + 1);
+			if (user != null && user.getUser() != null && user.getUser().getCredentials() != null) {
+				UserType userType = user.getUser();
+				
+				CredentialsType credentials = userType.getCredentials();
+				PasswordType passwordType = credentials.getPassword();
+
+				int failedLogins = passwordType.getFailedLogins() != null ? passwordType.getFailedLogins() : 0;
+				passwordType.setFailedLogins(failedLogins++);
 				XMLGregorianCalendar systemTime = MiscUtil.asXMLGregorianCalendar(new Date(System
 						.currentTimeMillis()));
 				LoginEventType event = new LoginEventType();
 				event.setTimestamp(systemTime);
 				event.setFrom(getRemoteHost());
-				password.setLastFailedLogin(event);
+				passwordType.setLastFailedLogin(event);
 				userManagerService.updateUser(user);
 			}
 

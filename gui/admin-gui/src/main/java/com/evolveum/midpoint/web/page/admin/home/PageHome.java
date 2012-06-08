@@ -340,7 +340,8 @@ public class PageHome extends PageAdmin {
 
 			@Override
 			public String getObject() {
-				if(user.getUser().getActivation() == null){
+				ActivationType activation = user.getUser().getActivation();
+				if(activation == null || activation.getValidTo() == null){
 					return PageHome.this.getString("pageHome.undefined");
 				}
 				return getSimpleDate(MiscUtil.asDate(user.getUser().getActivation().getValidTo()));
