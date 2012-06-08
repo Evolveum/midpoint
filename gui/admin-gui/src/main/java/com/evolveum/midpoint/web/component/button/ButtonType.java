@@ -26,5 +26,5 @@ package com.evolveum.midpoint.web.component.button;
  */
 public enum ButtonType {
 
-    SIMPLE, LEFT, MIDDLE, RIGHT
+    SIMPLE, POSITIVE, NEGATIVE;
 }

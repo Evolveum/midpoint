@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -520,7 +521,7 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void initButtons(Form mainForm) {
-        AjaxSubmitLinkButton save = new AjaxSubmitLinkButton("save",
+        AjaxSubmitLinkButton save = new AjaxSubmitLinkButton("save", ButtonType.POSITIVE,
                 createStringResource("pageUser.button.save")) {
 
             @Override
@@ -555,15 +556,15 @@ public class PageUser extends PageAdminUsers {
 //        };
 //        mainForm.add(refresh);
 
-        AjaxLinkButton cancel = new AjaxLinkButton("cancel",
-                createStringResource("pageUser.button.cancel")) {
+        AjaxLinkButton back = new AjaxLinkButton("back",
+                createStringResource("pageUser.button.back")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 cancelPerformed(target);
             }
         };
-        mainForm.add(cancel);
+        mainForm.add(back);
 
         initAccountButtons(mainForm);
         initRoleButtons(mainForm);

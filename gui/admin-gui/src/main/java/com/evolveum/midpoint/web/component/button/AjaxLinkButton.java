@@ -77,14 +77,11 @@ public abstract class AjaxLinkButton extends AjaxLink<String> {
         model.append("button");
 
         switch (type) {
-            case LEFT:
-                model.append(" left");
+            case POSITIVE:
+                model.append(" positive");
                 break;
-            case MIDDLE:
-                model.append(" middle");
-                break;
-            case RIGHT:
-                model.append(" right");
+            case NEGATIVE:
+                model.append(" negative");
                 break;
         }
 

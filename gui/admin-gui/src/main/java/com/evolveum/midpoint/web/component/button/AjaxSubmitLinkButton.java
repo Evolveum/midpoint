@@ -38,7 +38,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 public abstract class AjaxSubmitLinkButton extends AjaxSubmitLink {
 
     private IModel<String> label;
-    private ButtonType type;
 
     public AjaxSubmitLinkButton(String id, IModel<String> label) {
         this(id, ButtonType.SIMPLE, label);
