@@ -22,30 +22,33 @@
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto.Type;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
+public class AdminHomeDto implements Serializable {
 
-public class SimpleAssignmentDto implements Serializable {
-	private String assignmentName;
-	private Type type;
-	private ActivationType activation;
+	private List<SimpleAccountDto> accounts;
+	private List<SimpleAssignmentDto> assignments;
+	private List<String> resources;
 
-	public SimpleAssignmentDto(String assignmentName, Type type, ActivationType activation) {
-		this.assignmentName = assignmentName;
-		this.type = type;
-		this.activation = activation;
+	public List<SimpleAccountDto> getAccounts() {
+		if (accounts == null) {
+			accounts = new ArrayList<SimpleAccountDto>();
+		}
+		return accounts;
 	}
 
-	public String getAssignmentName() {
-		return assignmentName;
+	public List<SimpleAssignmentDto> getAssignments() {
+		if (assignments == null) {
+			assignments = new ArrayList<SimpleAssignmentDto>();
+		}
+		return assignments;
 	}
 
-	public Type getType() {
-		return type;
-	}
-
-	public ActivationType getActivation() {
-		return activation;
+	public List<String> getResources() {
+		if (resources == null) {
+			resources = new ArrayList<String>();
+		}
+		return resources;
 	}
 }

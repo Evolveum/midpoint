@@ -40,5 +40,9 @@
             <level>OFF</level>
             <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
         </classLogger>
+        <classLogger>
+            <level>TARCE</level>
+            <package>com.evolveum.midpoint.web</package>
+        </classLogger>
     </logging>
 </systemConfiguration>
