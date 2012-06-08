@@ -134,17 +134,17 @@ public class PrismValuePanel extends Panel {
         add(removeButton);
     }
 
-    private boolean isAccessible(PrismPropertyDefinition def, ValueStatus status) {
+    private boolean isAccessible(PrismPropertyDefinition def, ContainerStatus status) {
         //todo remove sysout !!!
-        System.out.println(def.getName() + " " + status + " c: " + def.canCreate()
-                + ", u: " + def.canUpdate());
+//        System.out.println(def.getName() + " " + status + " c: " + def.canCreate()
+//                + ", u: " + def.canUpdate());
         switch (status) {
-            case ADDED:
+            case ADDING:
                 if (!def.canCreate()) {
                     return false;
                 }
                 break;
-            case NOT_CHANGED:
+            case MODIFYING:
                 if (!def.canUpdate()) {
                     return false;
                 }
@@ -163,9 +163,10 @@ public class PrismValuePanel extends Panel {
                 public boolean isEnabled() {
                     ValueWrapper wrapper = model.getObject();
                     PropertyWrapper propertyWrapper = wrapper.getProperty();
+                    ObjectWrapper object = propertyWrapper.getContainer().getObject();
                     PrismPropertyDefinition def = propertyWrapper.getItem().getDefinition();
 
-                    return isAccessible(def, propertyWrapper.getStatus());
+                    return isAccessible(def, object.getStatus());
                 }
             });
         }
@@ -219,7 +220,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        return isAccessible(definition, propertyWrapper.getStatus());
+        return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
     }
 
     private boolean isAddButtonVisible() {
@@ -237,7 +238,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        return isAccessible(definition, propertyWrapper.getStatus());
+        return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
     }
 
     private InputPanel createInputComponent(String id, final FeedbackPanel feedback, Form form) {
