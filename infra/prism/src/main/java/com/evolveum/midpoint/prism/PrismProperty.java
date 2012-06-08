@@ -156,6 +156,9 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
 	}
 	
 	public V getRealValue() {
+		if (getValue() == null) {
+            return null;
+        }
 		return getValue().getValue();
 	}
 	
@@ -163,7 +166,7 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
      * Type override, also for compatibility.
      */
 	public <T> T getRealValue(Class<T> type) {
-        if (getValue() == null) {       // TODO: is this OK?
+        if (getValue() == null) {
             return null;
         }
 		V value = getValue().getValue();
