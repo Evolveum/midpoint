@@ -37,7 +37,6 @@ import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -94,6 +93,7 @@ public class PrismValuePanel extends Panel {
 
         //input
         InputPanel input = createInputComponent("input", feedback, form);
+        initAccessBehaviour(input);
         add(input);
 
         feedback.setFilter(new ComponentFeedbackMessageFilter(input.getBaseFormComponent()));
@@ -132,6 +132,43 @@ public class PrismValuePanel extends Panel {
             }
         });
         add(removeButton);
+    }
+
+    private boolean isAccessible(PrismPropertyDefinition def, ValueStatus status) {
+        //todo remove sysout !!!
+        System.out.println(def.getName() + " " + status + " c: " + def.canCreate()
+                + ", u: " + def.canUpdate());
+        switch (status) {
+            case ADDED:
+                if (!def.canCreate()) {
+                    return false;
+                }
+                break;
+            case NOT_CHANGED:
+                if (!def.canUpdate()) {
+                    return false;
+                }
+                break;
+        }
+
+        return true;
+    }
+
+    private void initAccessBehaviour(InputPanel panel) {
+        List<FormComponent> components = panel.getFormComponents();
+        for (FormComponent component : components) {
+            component.add(new VisibleEnableBehaviour() {
+
+                @Override
+                public boolean isEnabled() {
+                    ValueWrapper wrapper = model.getObject();
+                    PropertyWrapper propertyWrapper = wrapper.getProperty();
+                    PrismPropertyDefinition def = propertyWrapper.getItem().getDefinition();
+
+                    return isAccessible(def, propertyWrapper.getStatus());
+                }
+            });
+        }
     }
 
     private int countUsableValues(PropertyWrapper property) {
@@ -182,7 +219,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        return true;
+        return isAccessible(definition, propertyWrapper.getStatus());
     }
 
     private boolean isAddButtonVisible() {
@@ -200,7 +237,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        return true;
+        return isAccessible(definition, propertyWrapper.getStatus());
     }
 
     private InputPanel createInputComponent(String id, final FeedbackPanel feedback, Form form) {
