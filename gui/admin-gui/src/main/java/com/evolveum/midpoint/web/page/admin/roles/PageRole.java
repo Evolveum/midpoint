@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.DtoUtils;
@@ -141,7 +142,7 @@ public class PageRole extends PageAdminRoles {
     }
 
     private void initButtons(final Form mainForm) {
-        AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton",
+        AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton", ButtonType.POSITIVE, 
                 createStringResource("pageRole.button.save")) {
 
             @Override

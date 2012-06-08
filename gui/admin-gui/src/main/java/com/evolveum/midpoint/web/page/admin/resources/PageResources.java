@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -100,7 +101,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void initButtons(Form mainForm) {
-        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource",
+        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource", ButtonType.NEGATIVE, 
                 createStringResource("pageResources.button.deleteResource")) {
 
             @Override

@@ -59,9 +59,35 @@ a.button:active {
 }
 
 a.button.positive {
-   background: #6aff64;
+	color: #333;
+	background-image: linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
+	background-image: -o-linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
+	background-image: -moz-linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
+	background-image: -webkit-linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
+	background-image: -ms-linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
+	
+	background-image: -webkit-gradient(
+		linear,
+		left bottom,
+		left top,
+		color-stop(0, rgb(169,206,168)),
+		color-stop(1, rgb(196,232,196))
+	);
 }
 
 a.button.negative {
-    background: #ff8c80;
+	color: #333;
+	background-image: linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
+	background-image: -o-linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
+	background-image: -moz-linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
+	background-image: -webkit-linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
+	background-image: -ms-linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
+	
+	background-image: -webkit-gradient(
+		linear,
+		left bottom,
+		left top,
+		color-stop(0, rgb(206,168,168)),
+		color-stop(1, rgb(232,196,196))
+	);
 }

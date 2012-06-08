@@ -581,7 +581,7 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(addRole);
 
-        AjaxLinkButton deleteRole = new AjaxLinkButton("deleteRole",
+        AjaxLinkButton deleteRole = new AjaxLinkButton("deleteRole", ButtonType.NEGATIVE,
                 createStringResource("pageUser.button.delete")) {
 
             @Override
@@ -633,7 +633,7 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(unlinkAccount);
 
-        AjaxLinkButton deleteAccount = new AjaxLinkButton("deleteAccount",
+        AjaxLinkButton deleteAccount = new AjaxLinkButton("deleteAccount", ButtonType.NEGATIVE, 
                 createStringResource("pageUser.button.delete")) {
 
             @Override

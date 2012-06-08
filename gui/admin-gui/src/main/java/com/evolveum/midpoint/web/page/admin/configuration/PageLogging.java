@@ -56,6 +56,7 @@ import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -646,7 +647,7 @@ public class PageLogging extends PageAdminConfiguration {
 	}
 
 	private void initButtons(final Form mainForm) {
-		AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton",
+		AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton", ButtonType.POSITIVE,
 				createStringResource("pageLogging.button.save")) {
 
 			@Override

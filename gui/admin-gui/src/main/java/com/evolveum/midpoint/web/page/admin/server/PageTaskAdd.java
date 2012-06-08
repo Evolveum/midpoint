@@ -56,6 +56,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddDto;
@@ -314,7 +315,7 @@ public class PageTaskAdd extends PageAdminTasks {
 	}
 
 	private void initButtons(final Form mainForm) {
-		AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton",
+		AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton", ButtonType.POSITIVE,
 				createStringResource("pageTask.button.save")) {
 
 			@Override

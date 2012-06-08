@@ -8,6 +8,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.DtoUtils;
@@ -104,7 +105,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void initButtons(final Form mainForm) {
-        AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton",
+        AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton", ButtonType.POSITIVE,
                 createStringResource("pageDebugView.button.save")) {
 
             @Override

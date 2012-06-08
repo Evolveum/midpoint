@@ -89,7 +89,7 @@ div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectF
 
 div.objectForm .tableForm .tableFormHead .objectFormHeaderOperationButtons {
 	position: relative;
-	margin: 5px 0 0 5px;
+	margin: 5px 5px 0 0;
 	display: inline-block;
 	float: right;
 }
@@ -296,26 +296,26 @@ div.objectForm .tableForm .objectFormFooter .statusBarContent {
 }
 
 div.objectFormHeader.normal {
-    //todo colors
+    background-color: #f0f0f6;
 }
 
 div.objectFormHeader.unlinked {
-    background-color: orange;
+    background-color: #fee090;
 }
 
 div.objectFormHeader.linked {
-    background-color: #6b8e23;
+    background-color: #feffc9;
 }
 
 div.objectFormHeader.deleted {
-    background-color: red;
+    background-color: #f2d6d6;
 }
 
 div.objectFormHeader.added {
-    background-color: green;
+    background-color: #e8f2d6;
 }
 
 div.objectFormHeader.modified {
-    background-color: blue;
+    background-color: #d4bbf9;
 }
 

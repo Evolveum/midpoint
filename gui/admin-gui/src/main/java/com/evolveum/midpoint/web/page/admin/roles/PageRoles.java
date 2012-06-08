@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -88,7 +89,7 @@ public class PageRoles extends PageAdminRoles {
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
-        AjaxLinkButton delete = new AjaxLinkButton("delete", createStringResource("pageRoles.button.delete")) {
+        AjaxLinkButton delete = new AjaxLinkButton("delete", ButtonType.NEGATIVE, createStringResource("pageRoles.button.delete")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

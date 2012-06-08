@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
@@ -161,7 +162,7 @@ public class PageDebugList extends PageAdminConfiguration {
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
 
-        AjaxLinkButton button = new AjaxLinkButton("deleteSelected",
+        AjaxLinkButton button = new AjaxLinkButton("deleteSelected", ButtonType.NEGATIVE,
                 createStringResource("pageDebugList.button.deleteSelected")) {
 
             @Override
