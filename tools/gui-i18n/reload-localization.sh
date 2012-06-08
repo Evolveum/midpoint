@@ -1,5 +1,9 @@
 #sample usage for localization tool
 
+#run it with this options from folder admin-gui-sk-SK/src/main/resources
+# -t . -b ../../../../admin-gui/src/main -l sk_SK -r java/com/evolveum/midpoint/web -db
+
+#sample usage
 ./java -jar target/gui-i18n.jar com.evolveum.midpoint.tools.gui.Main \
     -t ./tools/gui-i18n/sample \
     -b /home/lazyman/Work/evolveum/midpoint/trunk/gui/admin-gui/src/main \
