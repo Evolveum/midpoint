@@ -506,6 +506,10 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     	if (StringUtils.isBlank(resourceRef.getOid())) {
     		throw new IllegalStateException("Null or empty OID in resourceRef in "+desc+" in "+this);
     	}
+    	AccountShadowType accountType = account.asObjectable();
+    	if (accountType.getObjectClass() == null) {
+    		throw new IllegalStateException("Null objectClass in "+desc+" in "+this);
+    	}
     }
     
 	public String getHumanReadableAccountName() {
