@@ -288,30 +288,30 @@ replaced with real values.
 
             <i:reaction>
                 <i:situation>confirmed</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>deleted</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>missing</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>found</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>unassigned</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>unmatched</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
                     <i:userTemplateRef oid="6e842d90-0cf2-11e0-81e0-080022222222"/>
                 </i:action>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
             </i:reaction>
         </i:synchronization>
     </c:resource>

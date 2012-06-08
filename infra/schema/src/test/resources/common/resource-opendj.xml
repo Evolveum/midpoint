@@ -641,19 +641,19 @@ always return at most one match, the confirmation rule is not needed. -->
         -->
         <c:reaction>
             <c:situation>linked</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
         </c:reaction>
         <c:reaction>
             <c:situation>deleted</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
         </c:reaction>
         <c:reaction>
             <c:situation>unlinked</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
         </c:reaction>
         <c:reaction>
             <c:situation>unmatched</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
                 <!-- Reference to the User Template is here. If the user would be
              created as a result of this action, it will be created according
              to this template. -->

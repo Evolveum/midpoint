@@ -150,7 +150,7 @@ public class ShadowConstraintsChecker {
 		}
 		LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), oid);
 		boolean match = foundObjects.get(0).getOid().equals(oid);
-		message("Found conflicting existing object with attribute "+identifier.getHumanReadableDump());
+		message("Found conflicting existing object with attribute "+identifier.getHumanReadableDump()+": "+foundObjects.get(0));
 		return match;
 	}
 	

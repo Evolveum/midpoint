@@ -60,7 +60,7 @@ public class ActionManagerImplTest extends AbstractTestNGSpringContextTests  {
 	@Test
 	public void getActionInstanceNullParameters() {
 		Action filter = manager
-				.getActionInstance("http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser");
+				.getActionInstance("http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser");
 		assertNotNull(filter);
 	}
 

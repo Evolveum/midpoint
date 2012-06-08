@@ -494,33 +494,33 @@ This resource definition contains also definition to enable synchronization.
              -->
             <i:reaction>
                 <i:situation>confirmed</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>deleted</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>missing</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>found</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>unassigned</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>unmatched</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
                     <!-- Reference to the User Template is here. If the user would be
                          created as a result of this action, it will be created according
                          to this template. -->
                     <i:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
                 </i:action>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
             </i:reaction>
 
         </i:synchronization>

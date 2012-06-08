@@ -90,37 +90,37 @@
     <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">
         <property name="actionMapping">
             <map>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddUserAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.ModifyUserAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#disableUser">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableUser">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DisableUserAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#enableUser">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#enableUser">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.EnableUserAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.LinkAccountAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.UnlinkAccountAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#deleteAccount">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteAccount">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteAccountAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#disableAccount">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DisableAccountAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addAccount">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddAccountAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#deleteUser">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteUser">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteUserAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyPassword">
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyPassword">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.ModifyPasswordAction</value>
                 </entry>
             </map>
