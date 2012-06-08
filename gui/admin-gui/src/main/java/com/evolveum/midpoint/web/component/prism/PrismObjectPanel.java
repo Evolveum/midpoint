@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -33,6 +34,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -71,8 +73,19 @@ public class PrismObjectPanel extends Panel {
         };
     }
 
+    private IModel<String> createHeaderClassModel(final IModel<ObjectWrapper> model) {
+        return new AbstractReadOnlyModel<String>() {
+            @Override
+            public String getObject() {
+                ObjectWrapper wrapper = model.getObject();
+                return wrapper.getHeaderStatus().name().toLowerCase();
+            }
+        };
+    }
+
     private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
+        headerPanel.add(new AttributeAppender("class", createHeaderClassModel(model), " "));
         add(headerPanel);
         headerPanel.add(new VisibleEnableBehaviour() {
 

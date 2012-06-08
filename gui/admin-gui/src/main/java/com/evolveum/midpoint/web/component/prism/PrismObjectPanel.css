@@ -295,3 +295,27 @@ div.objectForm .tableForm .objectFormFooter .statusBarContent {
     padding-top: 5px;
 }
 
+div.objectFormHeader.normal {
+    //todo colors
+}
+
+div.objectFormHeader.unlinked {
+    background-color: orange;
+}
+
+div.objectFormHeader.linked {
+    background-color: #6b8e23;
+}
+
+div.objectFormHeader.deleted {
+    background-color: red;
+}
+
+div.objectFormHeader.added {
+    background-color: green;
+}
+
+div.objectFormHeader.modified {
+    background-color: blue;
+}
+

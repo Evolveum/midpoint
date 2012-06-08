@@ -49,6 +49,7 @@ public class ObjectWrapper implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
     private PrismObject object;
     private ContainerStatus status;
+    private HeaderStatus headerStatus;
     private String displayName;
     private String description;
     private List<ContainerWrapper> containers;
@@ -66,6 +67,17 @@ public class ObjectWrapper implements Serializable {
         this.description = description;
         this.object = object;
         this.status = status;
+    }
+
+    public HeaderStatus getHeaderStatus() {
+        if (headerStatus == null) {
+            headerStatus = HeaderStatus.NORMAL;
+        }
+        return headerStatus;
+    }
+
+    public void setHeaderStatus(HeaderStatus headerStatus) {
+        this.headerStatus = headerStatus;
     }
 
     public PrismObject getObject() {

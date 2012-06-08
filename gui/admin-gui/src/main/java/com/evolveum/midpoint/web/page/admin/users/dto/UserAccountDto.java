@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import com.evolveum.midpoint.web.component.prism.HeaderStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import org.apache.commons.lang.Validate;
 
@@ -55,5 +56,19 @@ public class UserAccountDto implements Serializable {
     public void setStatus(UserDtoStatus status) {
         Validate.notNull(status, "Status must not be null.");
         this.status = status;
+
+        switch (status) {
+            case DELETE:
+                object.setHeaderStatus(HeaderStatus.DELETED);
+                break;
+            case UNLINK:
+                object.setHeaderStatus(HeaderStatus.UNLINKED);
+                break;
+            case ADD:
+                object.setHeaderStatus(HeaderStatus.ADDED);
+                break;
+            default:
+                object.setHeaderStatus(HeaderStatus.NORMAL);
+        }
     }
 }
