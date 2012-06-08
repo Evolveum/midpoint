@@ -451,8 +451,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Every object has UID in ICF, therefore add it right now
 			ResourceAttributeDefinition uidDefinition = roDefinition.createAttributeDefinition(
 					ConnectorFactoryIcfImpl.ICFS_UID, DOMUtil.XSD_STRING);
-			// Make it mandatory
-			uidDefinition.setMinOccurs(1);
+			// DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
+			uidDefinition.setMinOccurs(0);
 			uidDefinition.setMaxOccurs(1);
 			// Make it read-only
 			uidDefinition.setReadOnly();

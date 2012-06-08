@@ -138,7 +138,7 @@ public class ProvisioningTestUtil {
 		ResourceAttributeDefinition uidDef = accountDef
 				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		assertEquals(1, uidDef.getMaxOccurs());
-		assertEquals(1, uidDef.getMinOccurs());
+		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
 		assertFalse("UID has create", uidDef.canCreate());
 		assertFalse("UID has update",uidDef.canUpdate());
