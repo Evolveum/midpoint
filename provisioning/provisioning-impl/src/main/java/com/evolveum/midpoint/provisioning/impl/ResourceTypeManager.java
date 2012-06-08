@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -702,7 +703,7 @@ public class ResourceTypeManager {
 				parentResult.recordFatalError("Error in the configuration: " + ex.getMessage(), ex);
 
 			}
-			ShadowCacheUtil.convertToUcfShadow(repoShadow.asPrismObject(), resourceSchema);
+			ResourceObjectShadowUtil.fixShadow(repoShadow.asPrismObject(), resourceSchema);
 		}
 		return ShadowCacheUtil.completeShadow(resourceShadow, repoShadow, resource, parentResult);
 	}

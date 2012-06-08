@@ -205,6 +205,7 @@ public class UserSynchronizer {
                 PrismObject<AccountShadowType> account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
                         subResult);
                 accContext.setAccountOld(account);
+                accContext.fixAccounts();
                 accContext.setFullAccount(true);
             }
         } finally {
@@ -293,6 +294,7 @@ public class UserSynchronizer {
 				continue;
 			}
         	accountSyncContext.setAccountOld(account);
+        	accountSyncContext.fixAccounts();
             if (context.isDoReconciliationForAllAccounts()) {
                 accountSyncContext.setDoReconciliation(true);
             }
@@ -359,6 +361,7 @@ public class UserSynchronizer {
 						// Create account context from retrieved object
 						accountSyncContext = getOrCreateAccountContext(context, account, result);
 						accountSyncContext.setAccountOld(account);
+						accountSyncContext.fixAccounts();
 					} catch (ObjectNotFoundException e) {
 						if (refVal.getObject() == null) {
 							// account does not exist, no composite account in ref -> this is really an error
@@ -446,6 +449,7 @@ public class UserSynchronizer {
 				if (syncDelta.getChangeType() == ChangeType.ADD) {
 					account = syncDelta.getObjectToAdd().clone();
 					accountCtx.setAccountOld(account);
+					accountCtx.fixAccounts();
 				} else {
 					if (oid == null) {
 						throw new IllegalArgumentException("No OID in sync delta in "+accountCtx);
@@ -456,6 +460,7 @@ public class UserSynchronizer {
 					if (syncDelta.getChangeType() != ChangeType.DELETE) {
 						syncDelta.applyTo(account);
 						accountCtx.setAccountOld(account);
+						accountCtx.fixAccounts();
 					}
 				}
 				// Make sure OID is set correctly

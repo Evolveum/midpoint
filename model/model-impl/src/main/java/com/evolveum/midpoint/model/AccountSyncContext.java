@@ -23,9 +23,10 @@ package com.evolveum.midpoint.model;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.synchronizer.AccountConstruction;
 import com.evolveum.midpoint.model.synchronizer.PropertyValueWithOrigin;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -36,6 +37,9 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -45,13 +49,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -376,6 +381,11 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         		resource, resourceAccountType.getAccountType());
         return def;
     }
+	
+	private ResourceSchema getResourceSchema() throws SchemaException {
+		return RefinedResourceSchema.getResourceSchema(resource, prismContext);
+	}
+
 
     /**
      * Recomputes the new state of account (accountNew). It is computed by applying deltas to the old state (accountOld).
@@ -404,8 +414,21 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         }
 
         accountNew = accDelta.computeChangedObject(oldAccount);
+        fixAccount(accountNew);
     }
     
+    public void fixAccounts() throws SchemaException {
+		fixAccount(accountOld);
+		fixAccount(accountNew);
+    }
+    
+    private void fixAccount(PrismObject<AccountShadowType> account) throws SchemaException {
+    	if (account == null) {
+    		return;
+    	}
+    	ResourceObjectShadowUtil.fixShadow(account, getResourceSchema());
+    }
+   
 	public RefinedAccountDefinition getRefinedAccountDefinition() throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
 		return refinedSchema.getAccountDefinition(getResourceAccountType().getAccountType());
@@ -484,8 +507,50 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     		throw new IllegalStateException("Null or empty OID in resourceRef in "+desc+" in "+this);
     	}
     }
+    
+	public String getHumanReadableAccountName() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("account(");
+		String humanReadableAccountIdentifier = getHumanReadableAccountIdentifier();
+		if (StringUtils.isEmpty(humanReadableAccountIdentifier)) {
+			sb.append("no ID");
+		} else {
+			sb.append("ID ");
+			sb.append(humanReadableAccountIdentifier);
+		}
+		sb.append(", type '");
+		sb.append(getResourceAccountType().getAccountType());
+		sb.append("', ");
+		sb.append(getResource());
+		sb.append(")");
+		return sb.toString();
+	}
 
-    @Override
+	private String getHumanReadableAccountIdentifier() {
+		PrismObject<AccountShadowType> account = getAccountNew();
+		if (account == null) {
+			account = getAccountOld();
+		}
+		if (account == null) {
+			return null;
+		}
+		Collection<ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(account);
+		if (identifiers == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
+		while (iterator.hasNext()) {
+			ResourceAttribute<?> id = iterator.next();
+			sb.append(id.getHumanReadableDump());
+			if (iterator.hasNext()) {
+				sb.append(",");
+			}
+		}
+		return sb.toString();
+	}
+
+	@Override
 	public String toString() {
     	StringBuilder sb = new StringBuilder("AccountSyncContext(");
     	sb.append("OID: ").append(oid);

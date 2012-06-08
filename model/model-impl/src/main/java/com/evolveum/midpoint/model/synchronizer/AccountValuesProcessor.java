@@ -109,14 +109,31 @@ public class AccountValuesProcessor {
 		 
 		        SynchronizerUtil.traceContext("values", context, true);
 		        
-		        if (satisfiesConstraints(accountContext, result)) {
+		        // Check constraints
+		        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);
+		        checker.setPrismContext(prismContext);
+		        checker.setRepositoryService(repositoryService);
+		        checker.check(result);
+		        if (checker.isSatisfiesConstraints()) {
 		        	break;
 		        }
 		        
 		        iteration++;
 		        if (iteration > maxIterations) {
-		        	throw new ObjectAlreadyExistsException("Too many iterations ("+iteration+") for account "
-		        			+ accountContext.getResourceAccountType() + ", cannot determine valuest that satisfy constraints");
+		        	StringBuilder sb = new StringBuilder();
+		        	if (iteration == 1) {
+		        		sb.append("Error processing ");
+		        	} else {
+		        		sb.append("Too many iterations ("+iteration+") for ");
+		        	}
+		        	sb.append(accountContext.getHumanReadableAccountName());
+		        	if (iteration == 1) {
+		        		sb.append(": constraint violation: ");
+		        	} else {
+		        		sb.append(": cannot determine valuest that satisfy constraints: ");
+		        	}
+		        	sb.append(checker.getMessages());
+		        	throw new ObjectAlreadyExistsException(sb.toString());
 		        }
 		        
 		        cleanupContext(accountContext);
@@ -145,41 +162,6 @@ public class AccountValuesProcessor {
 		return Integer.toString(iteration);
 	}
 
-	private boolean satisfiesConstraints(AccountSyncContext accountContext, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
-		
-		RefinedAccountDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
-		PrismObject<AccountShadowType> accountNew = accountContext.getAccountNew();
-		if (accountNew == null) {
-			// This must be delete
-			return true;
-		}
-		PrismContainer<?> attributesContainer = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
-		if (attributesContainer == null) {
-			// No attributes no constraint violations
-			return true;
-		}
-		Collection<ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.union(accountDefinition.getIdentifiers(),
-				accountDefinition.getSecondaryIdentifiers());
-		LOGGER.trace("Secondary IDs {}", accountDefinition.getSecondaryIdentifiers());
-		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {
-			PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
-			LOGGER.trace("Attempt to check uniquness of {} (def {})", attr, attrDef);
-			if (attr == null) {
-				continue;
-			}
-			boolean unique = checkAttributeUniqueness(attr, accountDefinition, accountContext.getResource(), 
-					accountContext.getOid(), result);
-			if (!unique) {
-				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr,  accountContext.getResourceAccountType());
-				if (isInDelta(attr, accountContext.getAccountPrimaryDelta())) {
-					throw new ObjectAlreadyExistsException("Attribute "+attr+" conflicts with existing object (and it is present in primary "+
-							"account delta therefore no iteration is performed)");
-				}
-				return false;
-			}
-		}
-		return true;
-	}
 
 	private boolean isInDelta(PrismProperty<?> attr, ObjectDelta<AccountShadowType> delta) {
 		if (delta == null) {
@@ -188,22 +170,7 @@ public class AccountValuesProcessor {
 		return delta.hasItemDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, attr.getName()));
 	}
 
-	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedAccountDefinition accountDefinition,
-			ResourceType resourceType, String oid, OperationResult result) throws SchemaException {
-		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
-				resourceType, prismContext);
-		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, null, result);
-		LOGGER.trace("Uniquness check of {} resulted in {} results, using query:\n{}",
-				new Object[]{identifier, foundObjects.size(), DOMUtil.serializeDOMToString(query.getFilter())});
-		if (foundObjects.isEmpty()) {
-			return true;
-		}
-		if (foundObjects.size() > 1) {
-			return false;
-		}
-		LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), oid);
-		return foundObjects.get(0).getOid().equals(oid);
-	}
+	
 	
 	/**
 	 * Remove the intermediate results of values processing such as secondary deltas.

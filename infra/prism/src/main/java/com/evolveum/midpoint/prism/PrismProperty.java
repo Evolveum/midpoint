@@ -460,6 +460,26 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
         }
         return sb.toString();
     }
+    
+    public String getHumanReadableDump() {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append(DebugUtil.prettyPrint(getName())).append(" = ");
+    	if (getValues() == null) {
+            sb.append("null");
+        } else {
+            sb.append("[ ");
+            Iterator<PrismPropertyValue<V>> iterator = getValues().iterator();
+            while(iterator.hasNext()) {
+            	PrismPropertyValue<V> value = iterator.next();
+                sb.append(value.getHumanReadableDump());
+                if (iterator.hasNext()) {
+                	sb.append(", ");
+                }
+            }
+            sb.append(" ]");
+        }
+    	return sb.toString();
+    }
 
     /**
      * Return a human readable name of this class suitable for logs.

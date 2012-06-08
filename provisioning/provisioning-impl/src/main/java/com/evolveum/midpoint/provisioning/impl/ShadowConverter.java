@@ -112,7 +112,7 @@ public class ShadowConverter {
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema
 				.findObjectClassDefinition(objectClass);
 
-		ShadowCacheUtil.convertToUcfShadow(repoShadow.asPrismObject(), schema);
+		ResourceObjectShadowUtil.fixShadow(repoShadow.asPrismObject(), schema);
 
 		if (objectClassDefinition == null) {
 			// Unknown objectclass
@@ -192,7 +192,7 @@ public class ShadowConverter {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow before conversion:\n{}", shadow.dump());
 		}
-		ShadowCacheUtil.convertToUcfShadow(shadow, resourceSchema);
+		ResourceObjectShadowUtil.fixShadow(shadow, resourceSchema);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow after conversion:\n{}", shadow.dump());
 		}
@@ -298,7 +298,7 @@ public class ShadowConverter {
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow
 				.getObjectClass());
 
-		ShadowCacheUtil.convertToUcfShadow(shadow.asPrismObject(), schema);
+		ResourceObjectShadowUtil.fixShadow(shadow.asPrismObject(), schema);
 
 		LOGGER.trace("Getting object identifiers");
 		Collection<? extends ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil
@@ -356,7 +356,7 @@ public class ShadowConverter {
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow
 				.getObjectClass());
 
-		ShadowCacheUtil.convertToUcfShadow(shadow.asPrismObject(), schema);
+		ResourceObjectShadowUtil.fixShadow(shadow.asPrismObject(), schema);
 		// ResourceAttributeContainerDefinition resourceAttributeDefinition =
 		// objectClassDefinition.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil
