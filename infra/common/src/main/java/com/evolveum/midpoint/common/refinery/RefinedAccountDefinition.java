@@ -386,9 +386,6 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         }
 
         for (ResourceAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
-//            if (road.isIgnored()) {
-//                continue;
-//            }
             String attrContextDescription = road.getName() + ", in " + contextDescription;
             ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), accountTypeDefType,
             		attrContextDescription);
@@ -466,9 +463,6 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         rAccountDef.setDefault(objectClassDef.isDefaultAccountType());
 
         for (ResourceAttributeDefinition attrDef : objectClassDef.getAttributeDefinitions()) {
-            if (attrDef.isIgnored()) {
-                continue;
-            }
             String attrContextDescription = accountTypeName + ", in " + contextDescription;
 
             RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(attrDef, null, objectClassDef, prismContext, 

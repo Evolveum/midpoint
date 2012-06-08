@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -69,9 +70,8 @@ import static org.testng.AssertJUnit.*;
 public class TestRefinedSchema {
 
     public static final String TEST_DIR_NAME = "src/test/resources/refinery";
-    private static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
-    private static final QName ICFS_NAME = new QName(NS_ICFS, "name");
-    private static final QName ICFS_UID = new QName(NS_ICFS, "uid");
+	private static final File RESOURCE_COMPLEX_FILE = new File(TEST_DIR_NAME, "resource-complex.xml");
+	private static final File RESOURCE_SIMPLE_FILE = new File(TEST_DIR_NAME, "resource-simple.xml");
     
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -80,13 +80,13 @@ public class TestRefinedSchema {
 	}
 
     @Test
-    public void testParseFromResource() throws JAXBException, SchemaException, SAXException, IOException {
-    	System.out.println("\n===[ testParseFromResource ]===\n");
+    public void testParseFromResourceComplex() throws JAXBException, SchemaException, SAXException, IOException {
+    	System.out.println("\n===[ testParseFromResourceComplex ]===\n");
     	
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "resource.xml"));
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
 
         // WHEN
@@ -97,10 +97,36 @@ public class TestRefinedSchema {
         System.out.println("Refined schema");
         System.out.println(rSchema.dump());
 
+        assertRefinedSchema(resourceType, rSchema, true);
+    }
+
+    @Test
+    public void testParseFromResourceSimple() throws JAXBException, SchemaException, SAXException, IOException {
+    	System.out.println("\n===[ testParseFromResourceSimple ]===\n");
+    	
+        // GIVEN
+    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_SIMPLE_FILE);
+        ResourceType resourceType = resource.asObjectable();
+
+        // WHEN
+        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
+
+        // THEN
+        assertNotNull("Refined schema is null", rSchema);
+        System.out.println("Refined schema");
+        System.out.println(rSchema.dump());
+        
+        assertRefinedSchema(resourceType, rSchema, false);
+
+    }
+    
+    private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, boolean hasSchemaHandling) {
         assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
         RefinedAccountDefinition rAccount = rSchema.getAccountDefinition(MidPointConstants.DEFAULT_ACCOUNT_NAME);
 
-        assertAttributeDefs(rAccount, resourceType);
+        assertAttributeDefs(rAccount, resourceType, hasSchemaHandling);
         System.out.println("Refined account definitionn:");
         System.out.println(rAccount.dump());
         
@@ -128,7 +154,7 @@ public class TestRefinedSchema {
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "resource.xml"));
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
@@ -160,9 +186,9 @@ public class TestRefinedSchema {
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
         assertEquals("Wrong type of <attributes> definition in account", RefinedAccountDefinition.class, attributes.getDefinition().getClass());
         RefinedAccountDefinition attrDef = (RefinedAccountDefinition) attributes.getDefinition();
-        assertAttributeDefs(attrDef, resourceType);
+        assertAttributeDefs(attrDef, resourceType, true);
 
-        PrismAsserts.assertPropertyValue(attributes, ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
+        PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
         PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"), "Jack Sparrow");
         PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "givenName"), "Jack");
         PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"), "Sparrow");
@@ -180,7 +206,7 @@ public class TestRefinedSchema {
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "resource.xml"));
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
@@ -208,7 +234,7 @@ public class TestRefinedSchema {
 
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "resource.xml"));
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
@@ -227,7 +253,7 @@ public class TestRefinedSchema {
         assertProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com");
     }
 
-    private void assertAttributeDefs(RefinedAccountDefinition rAccount, ResourceType resourceType) {
+    private void assertAttributeDefs(RefinedAccountDefinition rAccount, ResourceType resourceType, boolean hasSchemaHandling) {
         assertNotNull("Null account definition", rAccount);
         assertEquals(MidPointConstants.DEFAULT_ACCOUNT_NAME, rAccount.getAccountTypeName());
         assertEquals("AccountObjectClass", rAccount.getObjectClassDefinition().getTypeName().getLocalPart());
@@ -236,22 +262,25 @@ public class TestRefinedSchema {
         Collection<RefinedAttributeDefinition> attrs = rAccount.getAttributeDefinitions();
         assertFalse(attrs.isEmpty());
 
-        assertAttributeDef(attrs, ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", true);
-        assertAttributeDef(attrs, ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", false);
-        assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"), DOMUtil.XSD_STRING, 1, -1, "Common Name", true);
-        assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "employeeNumber"), DOMUtil.XSD_STRING, 0, 1, null, false);
+        assertAttributeDef(attrs, SchemaTestConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", true, hasSchemaHandling);
+        assertAttributeDef(attrs, SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", false, hasSchemaHandling);
+        assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"), DOMUtil.XSD_STRING, 1, -1, "Common Name", true, hasSchemaHandling);
+        assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "employeeNumber"), DOMUtil.XSD_STRING, 0, 1, null, false, hasSchemaHandling);
         // TODO: check access
     }
 
     private void assertAttributeDef(Collection<RefinedAttributeDefinition> attrDefs, QName name,
-                                    QName typeName, int minOccurs, int maxOccurs, String displayName, boolean hasOutbound) {
+                                    QName typeName, int minOccurs, int maxOccurs, String displayName, 
+                                    boolean hasOutbound, boolean hasSchemaHandling) {
         for (RefinedAttributeDefinition def : attrDefs) {
             if (def.getName().equals(name)) {
                 assertEquals("Attribute " + name + " type mismatch", typeName, def.getTypeName());
                 assertEquals("Attribute " + name + " minOccurs mismatch", minOccurs, def.getMinOccurs());
                 assertEquals("Attribute " + name + " maxOccurs mismatch", maxOccurs, def.getMaxOccurs());
-                assertEquals("Attribute " + name + " displayName mismatch", displayName, def.getDisplayName());
-                assertEquals("Attribute " + name + " outbound mismatch", hasOutbound, def.getOutboundValueConstructionType() != null);
+                if (hasSchemaHandling) {
+	                assertEquals("Attribute " + name + " displayName mismatch", displayName, def.getDisplayName());
+	                assertEquals("Attribute " + name + " outbound mismatch", hasOutbound, def.getOutboundValueConstructionType() != null);
+                }
                 return;
             }
         }
@@ -270,7 +299,7 @@ public class TestRefinedSchema {
 		Collection<ResourceAttribute<?>> testAttrs = new ArrayList<ResourceAttribute<?>>(3);
 		ResourceAttribute<String> confusingAttr1 = createStringAttribute(new QName("http://whatever.com","confuseMe"), "HowMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChudkWood");
 		testAttrs.add(confusingAttr1);
-		ResourceAttribute<String> nameAttr = createStringAttribute(ICFS_NAME, value);
+		ResourceAttribute<String> nameAttr = createStringAttribute(SchemaTestConstants.ICFS_NAME, value);
 		testAttrs.add(nameAttr);
 		ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com","confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
 		testAttrs.add(confusingAttr2);
