@@ -129,7 +129,7 @@ public class PageHome extends PageAdmin {
 
 		
 		AccordionItem personal = new AccordionItem("personal",
-		createStringResource("pageHome.persoanal"));
+		createStringResource("pageHome.personal"));
 		personal.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(personal);
 		initPersonal(personal);
@@ -304,12 +304,15 @@ public class PageHome extends PageAdmin {
 
 			@Override
 			public String getObject() {
+                if (passwordType.getPreviousSuccessfulLogin() == null) {
+                    return PageHome.this.getString("pageHome.undefined");
+                }
 				return passwordType.getPreviousSuccessfulLogin().getFrom();
 			}
 		});
 		personal.getBodyContainer().add(lastLoginFrom);
 		
-		Label lastFaildDate = new Label("lastFaildDate", new AbstractReadOnlyModel<String>() {
+		Label lastFailDate = new Label("lastFailDate", new AbstractReadOnlyModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -319,9 +322,9 @@ public class PageHome extends PageAdmin {
 				return getSimpleDate(MiscUtil.asDate(passwordType.getLastFailedLogin().getTimestamp()));
 			}
 		});
-		personal.getBodyContainer().add(lastFaildDate);
+		personal.getBodyContainer().add(lastFailDate);
 		
-		Label lastFaildFrom = new Label("lastFaildFrom", new AbstractReadOnlyModel<String>() {
+		Label lastFailFrom = new Label("lastFailFrom", new AbstractReadOnlyModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -331,7 +334,7 @@ public class PageHome extends PageAdmin {
 				return passwordType.getLastFailedLogin().getFrom();
 			}
 		});
-		personal.getBodyContainer().add(lastFaildFrom);
+		personal.getBodyContainer().add(lastFailFrom);
 		
 		Label passwordExp = new Label("passwordExp", new AbstractReadOnlyModel<String>() {
 
