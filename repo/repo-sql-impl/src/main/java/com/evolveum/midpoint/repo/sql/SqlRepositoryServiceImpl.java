@@ -49,6 +49,7 @@ import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.GenericJDBCException;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
@@ -672,7 +673,16 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         if (!(ex instanceof PessimisticLockException) && !(ex instanceof LockAcquisitionException)
                 && !(ex instanceof HibernateOptimisticLockingFailureException)) {
             //it's not locking exception (optimistic, pesimistic lock or simple lock acquisition)
-            throw ex;
+
+            if (ex instanceof GenericJDBCException) {
+                //fix for table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code
+                GenericJDBCException jdbcEx = (GenericJDBCException) ex;
+                if (jdbcEx.getErrorCode() != 50200) {
+                    throw new SystemException(ex);
+                }
+            } else {
+                throw ex;
+            }
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -975,6 +985,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private void handleGeneralException(Exception ex, Session session, OperationResult result) {
         rollbackTransaction(session, ex, result);
+        if (ex instanceof GenericJDBCException) {
+            //fix for table timeout lock in H2, this exception will be wrapped as system exception
+            //in SqlRepositoryServiceImpl#logOperationAttempt if necessary
+            throw (GenericJDBCException) ex;
+        }
         if (ex instanceof SystemException) {
             throw (SystemException) ex;
         }

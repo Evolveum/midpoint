@@ -177,6 +177,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE");
         //Both read locks and write locks are kept until the transaction commits.
         jdbcUrl.append(";LOCK_MODE=1");
+        //fix for "Timeout trying to lock table [50200-XXX]" in H2 database. Default value is 1000ms.
+        jdbcUrl.append(";LOCK_TIMEOUT=10000");
 
         config.setJdbcUrl(jdbcUrl.toString());
         LOGGER.trace("JDBC url created: {}", new Object[]{config.getJdbcUrl()});
