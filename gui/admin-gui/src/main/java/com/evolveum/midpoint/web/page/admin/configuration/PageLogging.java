@@ -100,10 +100,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
 public class PageLogging extends PageAdminConfiguration {
 
 	private static final String DOT_CLASS = PageLogging.class.getName() + ".";
-	private static final String OPERATION_LOAD_LOGGING_CONFIGURATION = "loadLoggingConfiguration";
-	private static final String CREATE_CONFIGURATION = "createConfiguration";
-	private static final String OPERATION_UPDATE_LOGGING_CONFIGURATION = DOT_CLASS
-			+ "updateLoggingConfiguration";
+	private static final String OPERATION_LOAD_LOGGING_CONFIGURATION = DOT_CLASS + "loadLoggingConfiguration";
+	private static final String OPERATION_UPDATE_LOGGING_CONFIGURATION = DOT_CLASS + "updateLoggingConfiguration";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageLogging.class);
 
@@ -184,7 +182,7 @@ public class PageLogging extends PageAdminConfiguration {
         //name editing column
         columns.add(new EditableLinkColumn<LoggerConfiguration>(
                 createStringResource("pageLogging.logger"), "name") {
-        	
+
             @Override
             protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
             	if(model.getObject() instanceof ComponentLogger){
@@ -216,7 +214,7 @@ public class PageLogging extends PageAdminConfiguration {
             		input.add(new InputStringValidator());
                 	return textPanel;
             	}
-                
+
             }
 
             @Override
@@ -282,7 +280,7 @@ public class PageLogging extends PageAdminConfiguration {
 
         return columns;
     }
-	
+
 	private List<IColumn<FilterConfiguration>> initFilterColumns() {
         List<IColumn<FilterConfiguration>> columns = new ArrayList<IColumn<FilterConfiguration>>();
         IColumn column = new CheckBoxHeaderColumn<FilterConfiguration>();
@@ -331,7 +329,7 @@ public class PageLogging extends PageAdminConfiguration {
                 DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                         new PropertyModel(model, getPropertyExpression()),
                         WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-                
+
                 FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
                 input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 input.add(new LevelValidator());
@@ -398,7 +396,7 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		};
 	}
-	
+
 //	private IModel<LoggingComponentType> createComponentModel(final IModel<ComponentLogger> model) {
 //		return new Model<LoggingComponentType>() {
 //
@@ -439,7 +437,7 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		};
 		loggers.getBodyContainer().add(addComponentLogger);
-		
+
 		AjaxLinkButton addClassLogger = new AjaxLinkButton("addClassLogger",
 				createStringResource("pageLogging.button.addClassLogger")) {
 
@@ -461,7 +459,7 @@ public class PageLogging extends PageAdminConfiguration {
 		loggers.getBodyContainer().add(deleteLogger);
 		initSubsystem(loggers);
 	}
-	
+
 	private void initFilters(AccordionItem loggers) {
 
 		ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(this,
@@ -472,7 +470,7 @@ public class PageLogging extends PageAdminConfiguration {
 		table.setShowPaging(false);
 		table.setTableCssClass("autowidth");
 		loggers.getBodyContainer().add(table);
-		
+
 		AjaxLinkButton addComponentLogger = new AjaxLinkButton("addFilter",
 				createStringResource("pageLogging.button.addFilter")) {
 
@@ -482,7 +480,7 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		};
 		loggers.getBodyContainer().add(addComponentLogger);
-		
+
 		AjaxLinkButton deleteLogger = new AjaxLinkButton("deleteFilter",
 				createStringResource("pageLogging.button.deleteFilter")) {
 
@@ -492,7 +490,7 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		};
 		loggers.getBodyContainer().add(deleteLogger);
-		
+
 	}
 
 	private void initSubsystem(AccordionItem loggers) {
@@ -645,15 +643,6 @@ public class PageLogging extends PageAdminConfiguration {
 		DropDownChoice<String> rootAppender = createComboBox("rootAppender", new PropertyModel<String>(model,
 				"rootAppender"), createAppendersListModel());
 		loggers.getBodyContainer().add(rootAppender);
-
-		DropDownChoice<LoggingLevelType> midPointLevel = createComboBox("midPointLevel",
-				new PropertyModel<LoggingLevelType>(model, "midPointLevel"),
-				WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-		loggers.getBodyContainer().add(midPointLevel);
-
-		DropDownChoice<String> midPointAppender = createComboBox("midPointAppender",
-				new PropertyModel<String>(model, "midPointAppender"), createAppendersListModel());
-		loggers.getBodyContainer().add(midPointAppender);
 	}
 
 	private void initButtons(final Form mainForm) {
@@ -760,39 +749,37 @@ public class PageLogging extends PageAdminConfiguration {
 		}
 
 		for (LoggerConfiguration item : dto.getLoggers()) {
-			if (LoggingDto.LOGGER_PROFILING.equals(item.getName())
-                    || LoggingDto.LOGGER_MIDPOINT_ROOT.equals(item.getName())) {
+			if (LoggingDto.LOGGER_PROFILING.equals(item.getName())) {
                 continue;
 			}
-			
+
 			for(ClassLoggerConfigurationType logger : configuration.getClassLogger()){
 				if(logger.getPackage().equals(item.getName())){
 					error("Logger with name '" + item.getName() + "' is already defined.");
 					return null;
 				}
 			}
-			
+
 			if(item instanceof ComponentLogger){
 				configuration.getClassLogger().add(((ComponentLogger) item).toXmlType());
 			} else {
 				configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
 			}
-			
+
 		}
-		
+
 		for (FilterConfiguration item : dto.getFilters()) {
-			if (LoggingDto.LOGGER_PROFILING.equals(item.getName())
-                    || LoggingDto.LOGGER_MIDPOINT_ROOT.equals(item.getName())) {
+			if (LoggingDto.LOGGER_PROFILING.equals(item.getName())) {
                 continue;
             }
-			
+
 			for(SubSystemLoggerConfigurationType  filter : configuration.getSubSystemLogger()){
 				if(filter.getComponent().name().equals(item.getName())){
 					error("Filter with name '" + item.getName() + "' is already defined.");
 					return null;
 				}
 			}
-			
+
 			configuration.getSubSystemLogger().add(((FilterLogger) item).toXmlType());
 		}
 
@@ -802,11 +789,6 @@ public class PageLogging extends PageAdminConfiguration {
             configuration.getClassLogger().add(type);
         }
 
-        if (dto.getMidPointLevel() != null && dto.getMidPointAppender() != null) {
-            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_MIDPOINT_ROOT,
-                    dto.getMidPointLevel(), dto.getMidPointAppender());
-            configuration.getClassLogger().add(type);
-        }
 		return configuration;
 	}
 
@@ -824,7 +806,7 @@ public class PageLogging extends PageAdminConfiguration {
 		AccordionItem item = (AccordionItem) accordion.getBodyContainer().get("loggers");
 		return (TablePanel) item.getBodyContainer().get("loggersTable");
 	}
-	
+
 	private TablePanel getFiltersTable() {
 		Accordion accordion = (Accordion) get("mainForm:accordion");
 		AccordionItem item = (AccordionItem) accordion.getBodyContainer().get("loggers");
@@ -844,7 +826,7 @@ public class PageLogging extends PageAdminConfiguration {
 		dto.getFilters().add(logger);
 		target.add(getFiltersTable());
 	}
-	
+
 	private void addComponentLoggerPerformed(AjaxRequestTarget target) {
 		LoggingDto dto = model.getObject();
 		ComponentLogger logger = new ComponentLogger(new ClassLoggerConfigurationType());
@@ -885,7 +867,7 @@ public class PageLogging extends PageAdminConfiguration {
 		}
 		target.add(getLoggersTable());
 	}
-	
+
 	private void deleteFilterPerformed(AjaxRequestTarget target) {
 		Iterator<FilterConfiguration> iterator = model.getObject().getFilters().iterator();
 		while (iterator.hasNext()) {
@@ -920,7 +902,7 @@ public class PageLogging extends PageAdminConfiguration {
 		config.setEditing(true);
 		target.add(getLoggersTable());
 	}
-	
+
 	private void filterEditPerformed(AjaxRequestTarget target, IModel<FilterConfiguration> rowModel) {
 		FilterConfiguration config = rowModel.getObject();
 		config.setEditing(true);
@@ -936,9 +918,9 @@ public class PageLogging extends PageAdminConfiguration {
 	private void savePerformed(AjaxRequestTarget target) {
 		OperationResult result = new OperationResult(OPERATION_UPDATE_LOGGING_CONFIGURATION);
 		String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-		try {			
+		try {
 			LoggingDto dto = model.getObject();
-			
+
 			LoggingConfigurationType config = createConfiguration(dto);
 			if(config == null){
 				target.add(getFeedbackPanel());
@@ -948,9 +930,9 @@ public class PageLogging extends PageAdminConfiguration {
 
 			Task task = createSimpleTask(OPERATION_UPDATE_LOGGING_CONFIGURATION);
 			PrismObject<SystemConfigurationType> newObject = dto.getOldConfiguration();
-			
+
 				newObject.asObjectable().setLogging(config);
-	
+
             PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
                     oid, null, task, result);
 

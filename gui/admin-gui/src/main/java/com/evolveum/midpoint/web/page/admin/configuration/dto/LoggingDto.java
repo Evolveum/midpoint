@@ -25,12 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -38,17 +33,16 @@ import java.util.Map;
 public class LoggingDto implements Serializable {
 
     public static final String LOGGER_PROFILING = "PROFILING";
-    public static final String LOGGER_MIDPOINT_ROOT = "com.evolveum.midpoint";   
     public static final Map<String, LoggingComponentType> componentMap = new HashMap<String, LoggingComponentType>();
-    
+
     static {
-    	componentMap.put("com.evolveum.midpoint", LoggingComponentType.ALL);
-    	componentMap.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
-    	componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
-    	componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
-    	componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.GUI);
-    	componentMap.put("com.evolveum.midpoint.taskmanager", LoggingComponentType.TASKMANAGER);
-    	componentMap.put("com.evolveum.midpoint.resourceobjectchangelistener", LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
+        componentMap.put("com.evolveum.midpoint", LoggingComponentType.ALL);
+        componentMap.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
+        componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
+        componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
+        componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.GUI);
+        componentMap.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
+        componentMap.put("com.evolveum.midpoint.model.sync", LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
     }
 
     private PrismObject<SystemConfigurationType> oldConfiguration;
@@ -56,12 +50,9 @@ public class LoggingDto implements Serializable {
     private LoggingLevelType rootLevel;
     private String rootAppender;
 
-    private LoggingLevelType midPointLevel;
-    private String midPointAppender;
-
     private List<LoggerConfiguration> loggers = new ArrayList<LoggerConfiguration>();
     private List<FilterConfiguration> filters = new ArrayList<FilterConfiguration>();
-   
+
 
     private ProfilingLevel profilingLevel;
     private String profilingAppender;
@@ -106,33 +97,29 @@ public class LoggingDto implements Serializable {
                 setProfilingAppender(logger.getAppender() != null && logger.getAppender().size() > 0 ? logger.getAppender().get(0) : null);
                 setProfilingLevel(ProfilingLevel.fromLoggerLevelType(logger.getLevel()));
                 continue;
-            } else if (LOGGER_MIDPOINT_ROOT.equals(logger.getPackage())) {
-                setMidPointAppender(logger.getAppender() != null && logger.getAppender().size() > 0 ? logger.getAppender().get(0) : null);
-                setMidPointLevel(logger.getLevel());
-                continue;
             }
-            
-            if(componentMap.containsKey(logger.getPackage())){
-            	loggers.add(new ComponentLogger(logger));
+
+            if (componentMap.containsKey(logger.getPackage())) {
+                loggers.add(new ComponentLogger(logger));
             } else {
-            	loggers.add(new ClassLogger(logger));
+                loggers.add(new ClassLogger(logger));
             }
         }
 
         Collections.sort(loggers, new Comparator<LoggerConfiguration>() {
 
-			@Override
-			public int compare(LoggerConfiguration l1, LoggerConfiguration l2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(l1.getName(), l2.getName());
-			}
-		});
+            @Override
+            public int compare(LoggerConfiguration l1, LoggerConfiguration l2) {
+                return String.CASE_INSENSITIVE_ORDER.compare(l1.getName(), l2.getName());
+            }
+        });
         Collections.sort(filters, new Comparator<FilterConfiguration>() {
-        	
-			@Override
-			public int compare(FilterConfiguration f1, FilterConfiguration f2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
-			}
-		});
+
+            @Override
+            public int compare(FilterConfiguration f1, FilterConfiguration f2) {
+                return String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
+            }
+        });
 
         for (AppenderConfigurationType appender : config.getAppender()) {
             if (appender instanceof FileAppenderConfigurationType) {
@@ -151,25 +138,9 @@ public class LoggingDto implements Serializable {
     public List<LoggerConfiguration> getLoggers() {
         return loggers;
     }
-    
+
     public List<FilterConfiguration> getFilters() {
         return filters;
-    }
-
-    public String getMidPointAppender() {
-        return midPointAppender;
-    }
-
-    public void setMidPointAppender(String midPointAppender) {
-        this.midPointAppender = midPointAppender;
-    }
-
-    public LoggingLevelType getMidPointLevel() {
-        return midPointLevel;
-    }
-
-    public void setMidPointLevel(LoggingLevelType midPointLevel) {
-        this.midPointLevel = midPointLevel;
     }
 
     public String getRootAppender() {
