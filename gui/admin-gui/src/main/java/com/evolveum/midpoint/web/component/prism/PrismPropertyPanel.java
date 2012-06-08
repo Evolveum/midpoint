@@ -21,8 +21,13 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -58,8 +63,39 @@ public class PrismPropertyPanel extends Panel {
         initLayout(model, form);
     }
 
-    private void initLayout(IModel<PropertyWrapper> model, final Form form) {
+    private void initLayout(final IModel<PropertyWrapper> model, final Form form) {
         add(new Label("label", createDisplayName(model)));
+
+        WebMarkupContainer required = new WebMarkupContainer("required");
+        required.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                PropertyWrapper wrapper = model.getObject();
+                PrismProperty property = wrapper.getItem();
+                PrismPropertyDefinition def = property.getDefinition();
+                return def.isMandatory();
+            }
+        });
+        add(required);
+
+        WebMarkupContainer hasOutbound = new WebMarkupContainer("hasOutbound");
+        hasOutbound.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                PropertyWrapper wrapper = model.getObject();
+                PrismProperty property = wrapper.getItem();
+                PrismPropertyDefinition def = property.getDefinition();
+                if (!(def instanceof RefinedAttributeDefinition)) {
+                    return false;
+                }
+
+                RefinedAttributeDefinition refinedDef = (RefinedAttributeDefinition) def;
+                return refinedDef.hasOutboundExpression();
+            }
+        });
+        add(hasOutbound);
 
         ListView<ValueWrapper> values = new ListView<ValueWrapper>("values",
                 new PropertyModel<List<ValueWrapper>>(model, "values")) {
