@@ -117,6 +117,9 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 	
 	public RefinedAccountDefinition findAccountDefinitionByObjectClass(QName objectClass) {
+		if (objectClass == null) {
+			return getDefaultAccountDefinition();
+		}
 		for (RefinedAccountDefinition acctDef: getAccountDefinitions()) {
 			if (acctDef.getObjectClassDefinition().getTypeName().equals(objectClass)) {
 				return acctDef;

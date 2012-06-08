@@ -172,6 +172,10 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     public void setOutboundValueConstructionType(ValueConstructionType outboundValueConstructionType) {
         this.outboundValueConstructionType = outboundValueConstructionType;
     }
+    
+    public boolean hasOutboundExpression() {
+    	return outboundValueConstructionType != null;
+    }
 
     public List<ValueAssignmentType> getInboundAssignmentTypes() {
         return inboundAssignmentTypes;

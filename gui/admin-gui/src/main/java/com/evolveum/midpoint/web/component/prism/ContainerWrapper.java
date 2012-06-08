@@ -113,7 +113,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
                     PrismProperty<QName> objectClassProp = parent.findProperty(AccountShadowType.F_OBJECT_CLASS);
                     QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
-
+                    
                     definition = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
                 } catch (Exception ex) {
                     throw new SystemException(ex.getMessage(), ex);
@@ -129,7 +129,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
             LOGGER.error("Couldn't get property list from null definition {}", new Object[]{container.getName()});
             return properties;
         }
-
+        
         Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
         for (PrismPropertyDefinition def : propertyDefinitions) {
             if (def.isIgnored() || skipProperty(def)) {
