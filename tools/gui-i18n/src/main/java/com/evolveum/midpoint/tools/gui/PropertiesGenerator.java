@@ -105,13 +105,18 @@ public class PropertiesGenerator {
             Collection<File> files = FileUtils.listFiles(realFolder, new String[]{"properties"}, recursive);
             for (File file : files) {
                 try {
+                    File targetPropertiesFile = createTargetFile(file, target, locale);
+                    actualTargetFiles.add(targetPropertiesFile);
+                    if (!FileUtils.isFileNewer(file, targetPropertiesFile)) {
+                        System.out.println("File was not modified: " + targetPropertiesFile.getName());
+                        continue;
+                    }
+
                     baseReader = new InputStreamReader(new FileInputStream(file), ENCODING);
                     baseProperties = new Properties();
                     baseProperties.load(baseReader);
 
                     targetProperties = new SortedProperties();
-                    File targetPropertiesFile = createTargetFile(file, target, locale);
-                    actualTargetFiles.add(targetPropertiesFile);
                     if (targetPropertiesFile.exists() && targetPropertiesFile.canRead()) {
                         targetReader = new InputStreamReader(new FileInputStream(targetPropertiesFile), ENCODING);
                         targetProperties.load(targetReader);
