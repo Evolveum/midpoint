@@ -52,7 +52,6 @@ public class AccountOperationButtons extends Panel {
 
         Image unlinkImg = new Image("unlinkImg", new PackageResourceReference(AccountOperationButtons.class,
                 "UnLink.png"));
-        unlinkImg.add(new AttributeModifier("title", getString("prismOperationButtonPanel.unlink")));
         unlink.add(unlinkImg);
 
         AjaxLink delete = new AjaxLink("delete") {
@@ -65,7 +64,6 @@ public class AccountOperationButtons extends Panel {
 
         Image deleteImg = new Image("deleteImg", new PackageResourceReference(AccountOperationButtons.class,
                 "Delete.png"));
-        deleteImg.add(new AttributeModifier("title", getString("prismOperationButtonPanel.delete")));
         delete.add(deleteImg);
     }
 
