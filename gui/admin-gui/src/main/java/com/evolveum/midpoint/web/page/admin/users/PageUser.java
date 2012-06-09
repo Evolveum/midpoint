@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -1018,7 +1019,11 @@ public class PageUser extends PageAdminUsers {
             try {
                 AccountShadowType shadow = new AccountShadowType();
                 shadow.setResource(resource);
-                shadow.setObjectClass(getDefaultAccountType(resource));
+
+                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject(),
+                        getPrismContext());
+                QName objectClass = refinedSchema.getDefaultAccountDefinition().getObjectClassDefinition().getTypeName();
+                shadow.setObjectClass(objectClass);
 
                 getPrismContext().adopt(shadow);
 
@@ -1034,22 +1039,6 @@ public class PageUser extends PageAdminUsers {
 
         target.add(getFeedbackPanel());
         target.add(getAccountsAccordionItem());
-    }
-
-    private QName getDefaultAccountType(ResourceType resource) {
-        SchemaHandlingType handling = resource.getSchemaHandling();
-        if (handling == null) {
-            return null;
-        }
-
-        List<ResourceAccountTypeDefinitionType> accounts = handling.getAccountType();
-        for (ResourceAccountTypeDefinitionType account : accounts) {
-            if (account.isDefault()) {
-                return account.getObjectClass();
-            }
-        }
-
-        return null;
     }
 
     private void addSelectedRolePerformed(AjaxRequestTarget target, List<UserRoleDto> newRoles) {
