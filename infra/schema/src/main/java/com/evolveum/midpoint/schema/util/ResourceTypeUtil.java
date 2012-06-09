@@ -217,6 +217,9 @@ public class ResourceTypeUtil {
 			throw new IllegalArgumentException("The resource is null");
 		}
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
+        if (schemaHandling == null || schemaHandling.getAccountType() == null) {
+            return null;
+        }
 		for (ResourceAccountTypeDefinitionType acct: schemaHandling.getAccountType()) {
 			if (accountType == null && acct.isDefault()) {
 				return acct;
