@@ -371,6 +371,8 @@ public class PageTasks extends PageAdminTasks {
             return getString("pageTasks.now");
         } else if (time == -1) {
             return getString("pageTasks.runsContinually");
+        } else if (time == -2) {
+            return getString("pageTasks.alreadyPassed");
         }
 
         //todo i18n

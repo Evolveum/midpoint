@@ -298,35 +298,24 @@ public class TaskDto extends Selectable {
     public Long getScheduledToStartAgain() {
         long current = System.currentTimeMillis();
 
-//        if (!TaskRecurrence.RECURRING.equals(recurrence)) {
-//            return null;
-//        } else
-
-//        if (rawExecutionStatus != TaskExecutionStatus.RUNNABLE) {
-//            return null;
-//        }
-
-//        else if (TaskBinding.TIGHT.equals(binding)) {
-//            return -1L;
-//        }
+        if (execution == TaskDtoExecutionStatus.RUNNING) {
+            if (!recurring) {
+                return null;
+            } else if (bound) {
+                return -1L;             // runs continually
+            }
+        }
 
         if (nextRunStartTimeLong == null || nextRunStartTimeLong == 0) {
-            if (execution == TaskDtoExecutionStatus.RUNNING) {
-                return -1L;
-            } else {
-                return null;
-            }
-        } else {
+            return null;
+        }
 
-            if (nextRunStartTimeLong > current + 1000) {
-                return nextRunStartTimeLong - System.currentTimeMillis();
-            } else {
-                if (execution == TaskDtoExecutionStatus.RUNNING) {
-                    return -1L;
-                } else {
-                    return 0L;
-                }
-            }
+        if (nextRunStartTimeLong > current + 1000) {
+            return nextRunStartTimeLong - System.currentTimeMillis();
+        } else if (nextRunStartTimeLong < current - 60000) {
+            return -2L;             // already passed
+        } else {
+            return 0L;              // now
         }
     }
 

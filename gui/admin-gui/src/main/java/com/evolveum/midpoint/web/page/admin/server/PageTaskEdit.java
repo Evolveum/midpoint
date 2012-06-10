@@ -415,7 +415,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			public String getObject() {
 				TaskDto dto = model.getObject();
-                if (dto.getBound() && isRunning()) {
+                if (dto.getRecurring() && dto.getBound() && isRunning()) {
                     return getString("pageTasks.runsContinually");
                 }
 				if (dto.getNextRunStartTimeLong() == null) {

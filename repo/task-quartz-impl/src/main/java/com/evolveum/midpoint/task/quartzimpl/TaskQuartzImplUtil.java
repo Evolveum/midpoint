@@ -6,6 +6,7 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
@@ -65,18 +66,29 @@ public class TaskQuartzImplUtil {
 
         if (task.getSchedule() != null) {
 
-            if (task.getSchedule().getEarliestStartTime() != null) {
-                tb.startAt(task.getSchedule().getEarliestStartTime().toGregorianCalendar().getTime());
+            Date est = task.getSchedule().getEarliestStartTime() != null ?
+                    task.getSchedule().getEarliestStartTime().toGregorianCalendar().getTime() :
+                    null;
+
+            Date lst = task.getSchedule().getLatestStartTime() != null ?
+                    task.getSchedule().getLatestStartTime().toGregorianCalendar().getTime() :
+                    null;
+
+            // endAt must not be sooner than startAt
+            if (lst != null && est == null) {
+                if (lst.getTime() < System.currentTimeMillis()) {
+                    est = lst;      // there's no point in setting est to current time
+                }
+            }
+
+            if (est != null) {
+                tb.startAt(est);
             } else {
-//                // endAt must not be sooner than startAt
-//                if (task.getSchedule().getLatestStartTime() != null) {
-//
-//                }
                 tb.startNow();
             }
 
-            if (task.getSchedule().getLatestStartTime() != null) {
-                tb.endAt(task.getSchedule().getLatestStartTime().toGregorianCalendar().getTime());
+            if (lst != null) {
+                tb.endAt(lst);
                 // LST is checked also within JobExecutor (needed mainly for tightly-bound recurrent tasks)
             }
 
