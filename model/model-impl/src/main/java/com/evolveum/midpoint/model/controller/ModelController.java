@@ -40,6 +40,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
@@ -54,6 +55,8 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -196,6 +199,7 @@ public class ModelController implements ModelService {
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
 			object = objectResolver.resolve(ref, clazz, "getObject", subResult);
+			updateDefinition(object.asPrismObject(), result);
 
 			// todo will be fixed after another interface cleanup
 			// fix for resolving object properties.
@@ -232,6 +236,7 @@ public class ModelController implements ModelService {
 			PrismObject<?> refObject = refVal.getObject();
 			if (refObject == null) {
 				refObject = objectResolver.resolve(refVal, object.toString(), result);
+				updateDefinition((PrismObject)refObject, result);
 				refVal.setObject(refObject);
 			}
 			if (!rest.isEmpty()) {
@@ -574,6 +579,8 @@ public class ModelController implements ModelService {
 			if (list == null) {
 				list = new ArrayList<PrismObject<T>>();
 			}
+			
+			updateDefinitions(list, result);
 
 		} finally {
 			RepositoryCache.exit();
@@ -1276,6 +1283,33 @@ public class ModelController implements ModelService {
         }
 
 		RepositoryCache.exit();
+	}
+	
+	private <T extends ObjectType> void updateDefinitions(Collection<PrismObject<T>> objects, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		// TODO: optimize resource resolution
+		for (PrismObject<T> object: objects) {
+			updateDefinition(object, result);
+		}
+	}
+	
+	private <T extends ObjectType>  void updateDefinition(PrismObject<T> object, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		if (object.canRepresent(AccountShadowType.class)) {
+			ResourceType resourceType = getResource((AccountShadowType)object.asObjectable(), result);
+			updateAccountShadowDefinition((PrismObject<? extends AccountShadowType>)object, resourceType);
+		}
+	}
+	
+	private ResourceType getResource(ResourceObjectShadowType shadowType, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		ObjectReferenceType resourceRef = shadowType.getResourceRef();
+		return objectResolver.resolve(resourceRef, ResourceType.class, "resource reference in "+shadowType, result);
+	}
+
+	private <T extends AccountShadowType> void updateAccountShadowDefinition(PrismObject<T> shadow, ResourceType resourceType) throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, prismContext);
+		QName objectClass = shadow.asObjectable().getObjectClass();
+		RefinedAccountDefinition rAccountDef = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(AccountShadowType.F_ATTRIBUTES);
+		attributesContainer.applyDefinition(rAccountDef, true);
 	}
 
 }

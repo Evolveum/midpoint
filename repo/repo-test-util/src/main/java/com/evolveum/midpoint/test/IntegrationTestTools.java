@@ -22,6 +22,7 @@ package com.evolveum.midpoint.test;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -29,6 +30,11 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -55,6 +61,7 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeDefinition;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -208,6 +215,42 @@ public class IntegrationTestTools {
 		Collection<String> values = getAttributeValues(repoShadow, name);
 		assertEquals(message, 1, values.size());
 		assertNotNull(message, values.iterator().next());
+	}
+	
+	public static void assertAttributeDefinition(ResourceAttribute<?> attr, QName expectedType, int minOccurs, int maxOccurs,
+			boolean canRead, boolean canCreate, boolean canUpdate, Class<?> expetcedAttributeDefinitionClass) {
+		ResourceAttributeDefinition definition = attr.getDefinition();
+		QName attrName = attr.getName();
+		assertNotNull("No definition for attribute "+attrName, definition);
+		assertEquals("Wrong class of definition for attribute"+attrName, expetcedAttributeDefinitionClass, definition.getClass());
+		assertEquals("Wrong type in definition for attribute"+attrName, expectedType, definition.getTypeName());
+		assertEquals("Wrong minOccurs in definition for attribute"+attrName, minOccurs, definition.getMinOccurs());
+		assertEquals("Wrong maxOccurs in definition for attribute"+attrName, maxOccurs, definition.getMaxOccurs());
+		assertEquals("Wrong canRead in definition for attribute"+attrName, canRead, definition.canRead());
+		assertEquals("Wrong canCreate in definition for attribute"+attrName, canCreate, definition.canCreate());
+		assertEquals("Wrong canUpdate in definition for attribute"+attrName, canUpdate, definition.canUpdate());
+	}
+	
+	public static void assertProvisioningAccountShadow(PrismObject<AccountShadowType> account, ResourceType resourceType,
+			Class<?> expetcedAttributeDefinitionClass) {
+		// Check attribute definition
+		PrismContainer attributesContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
+		assertEquals("Wrong attributes container class", ResourceAttributeContainer.class, attributesContainer.getClass());
+		ResourceAttributeContainer rAttributesContainer = (ResourceAttributeContainer)attributesContainer;
+		PrismContainerDefinition attrsDef = attributesContainer.getDefinition();
+		assertNotNull("No attributes container definition", attrsDef);				
+		assertTrue("Wrong attributes definition class "+attrsDef.getClass().getName(), attrsDef instanceof ResourceAttributeContainerDefinition);
+		ResourceAttributeContainerDefinition rAttrsDef = (ResourceAttributeContainerDefinition)attrsDef;
+		ObjectClassComplexTypeDefinition objectClassDef = rAttrsDef.getComplexTypeDefinition();
+		assertNotNull("No object class definition in attributes definition", objectClassDef);
+		assertEquals("Wrong object class in attributes definition", 
+				new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME), 
+				objectClassDef.getTypeName());
+		ResourceAttribute<?> icfsNameUid = rAttributesContainer.findAttribute(SchemaTestConstants.ICFS_UID);
+		assertAttributeDefinition(icfsNameUid, DOMUtil.XSD_STRING, 0, 1, true, false, false, expetcedAttributeDefinitionClass);
+		
+		ResourceAttribute<Object> icfsNameAttr = rAttributesContainer.findAttribute(SchemaTestConstants.ICFS_NAME);
+		assertAttributeDefinition(icfsNameAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true, expetcedAttributeDefinitionClass);
 	}
 
 	public static Collection<String> getAttributeValues(ResourceObjectShadowType shadowType, QName name) {

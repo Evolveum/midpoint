@@ -795,40 +795,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				assertNotNull("no activation/enabled",shadow.getActivation().isEnabled());
 				assertTrue("not enabled",shadow.getActivation().isEnabled());
 				
-				// Check attribute definition
-				PrismContainer attributesContainer = shadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
-				assertEquals("Wrong attributes container class", ResourceAttributeContainer.class, attributesContainer.getClass());
-				ResourceAttributeContainer rAttributesContainer = (ResourceAttributeContainer)attributesContainer;
-				PrismContainerDefinition attrsDef = attributesContainer.getDefinition();
-				assertNotNull("No attributes container definition", attrsDef);				
-				assertEquals("Wrong attributes definition class", ResourceAttributeContainerDefinition.class, attrsDef.getClass());
-				ResourceAttributeContainerDefinition rAttrsDef = (ResourceAttributeContainerDefinition)attrsDef;
-				ObjectClassComplexTypeDefinition objectClassDef = rAttrsDef.getComplexTypeDefinition();
-				assertEquals("Wrong object class in attributes definition", 
-						new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME), 
-						objectClassDef.getTypeName());
-				ResourceAttribute<?> icfsNameUid = rAttributesContainer.findAttribute(SchemaTestConstants.ICFS_UID);
-				assertAttrDef(icfsNameUid, DOMUtil.XSD_STRING, 0, 1, true, false, false);
-				
-				ResourceAttribute<Object> icfsNameAttr = rAttributesContainer.findAttribute(SchemaTestConstants.ICFS_NAME);
-				assertAttrDef(icfsNameAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true);
-				
+				assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, ResourceAttributeDefinition.class);				
 			}
 
 		};
-	}
-
-	private void assertAttrDef(ResourceAttribute<?> attr, QName expectedType, int minOccurs, int maxOccurs,
-			boolean canRead, boolean canCreate, boolean canUpdate) {
-		ResourceAttributeDefinition definition = attr.getDefinition();
-		QName attrName = attr.getName();
-		assertNotNull("No definition for attribute "+attrName, definition);
-		assertEquals("Wrong type in definition for attribute"+attrName, expectedType, definition.getTypeName());
-		assertEquals("Wrong minOccurs in definition for attribute"+attrName, minOccurs, definition.getMinOccurs());
-		assertEquals("Wrong maxOccurs in definition for attribute"+attrName, maxOccurs, definition.getMaxOccurs());
-		assertEquals("Wrong canRead in definition for attribute"+attrName, canRead, definition.canRead());
-		assertEquals("Wrong canCreate in definition for attribute"+attrName, canCreate, definition.canCreate());
-		assertEquals("Wrong canUpdate in definition for attribute"+attrName, canUpdate, definition.canUpdate());
 	}
 
 	@Test

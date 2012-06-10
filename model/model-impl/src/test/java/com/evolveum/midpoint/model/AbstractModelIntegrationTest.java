@@ -88,6 +88,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -467,7 +468,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		assertEquals(1, uidDef.getMaxOccurs());
-		assertEquals(1, uidDef.getMinOccurs());
+		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
 		assertFalse("UID has create", uidDef.canCreate());
 		assertFalse("UID has update",uidDef.canUpdate());
@@ -494,7 +495,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 		
 	}
-	
+		
 	protected void assertUserJack(PrismObject<UserType> user) {
 		assertEquals("Wrong jack OID (prism)", USER_JACK_OID, user.getOid());
 		UserType userType = user.asObjectable();
@@ -519,8 +520,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected void assertDummyShadowModel(PrismObject<AccountShadowType> accountShadow, String oid, String username, String fullname) {
 		assertDummyCommon(accountShadow, oid, username);
-		// TODO: assert full attribute schema
-		// TODO: assert fullname
+		IntegrationTestTools.assertProvisioningAccountShadow(accountShadow, resourceDummyType, RefinedAttributeDefinition.class);
 	}
 
 	private void assertDummyCommon(PrismObject<AccountShadowType> accountShadow, String oid, String username) {

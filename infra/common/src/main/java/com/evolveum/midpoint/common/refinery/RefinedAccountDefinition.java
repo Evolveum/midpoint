@@ -168,6 +168,11 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 	}
 
 	@Override
+	public ObjectClassComplexTypeDefinition getComplexTypeDefinition() {
+		return objectClassDefinition;
+	}
+
+	@Override
     public ResourceAttributeContainer instantiate() {
         return new ResourceAttributeContainer(getNameOrDefaultName(), this, getPrismContext());
     }

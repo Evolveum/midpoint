@@ -144,7 +144,7 @@
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
 					<xsd:element ref="icfs:name" />
-					<xsd:element ref="icfs:uid" />
+					<xsd:element ref="icfs:uid"  minOccurs="0"/>
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
 				</xsd:sequence>
@@ -208,7 +208,7 @@
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string" />
-					<xsd:element ref="icfs:uid" />
+					<xsd:element ref="icfs:uid" minOccurs="0"/>
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string" />

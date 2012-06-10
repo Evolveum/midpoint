@@ -77,7 +77,7 @@
                   </xsd:appinfo>
                </xsd:annotation>
                <xsd:sequence>
-                  <xsd:element ref="icfs:uid">
+                  <xsd:element ref="icfs:uid" minOccurs="0">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>ICF UID</a:displayName>
@@ -114,8 +114,6 @@
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
-				<access>create</access>
-				<access>read</access>
 				<outbound>
 				    <initial>true</initial>
 					<expression>

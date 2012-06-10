@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -125,10 +126,20 @@ public class TestRefinedSchema {
     private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, boolean hasSchemaHandling) {
         assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
         RefinedAccountDefinition rAccount = rSchema.getAccountDefinition(MidPointConstants.DEFAULT_ACCOUNT_NAME);
+        
+        RefinedAccountDefinition accountDefByNullObjectclass = rSchema.findAccountDefinitionByObjectClass(null);
+        assertTrue("findAccountDefinitionByObjectClass(null) returned wrong value", rAccount == accountDefByNullObjectclass);
+        
+        RefinedAccountDefinition accountDefByIcfAccountObjectclass = rSchema.findAccountDefinitionByObjectClass(
+        		new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+        assertTrue("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccount == accountDefByIcfAccountObjectclass);
 
         assertAttributeDefs(rAccount, resourceType, hasSchemaHandling);
         System.out.println("Refined account definitionn:");
         System.out.println(rAccount.dump());
+        
+        ObjectClassComplexTypeDefinition complexTypeDefinition = rAccount.getComplexTypeDefinition();
+        assertNotNull("No complexType definition", complexTypeDefinition);
         
         Collection<RefinedAttributeDefinition> attributeDefinitions = rAccount.getAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", attributeDefinitions);

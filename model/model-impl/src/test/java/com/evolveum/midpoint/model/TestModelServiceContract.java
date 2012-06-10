@@ -51,6 +51,7 @@ import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -111,12 +112,12 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 		
 	@Test
-    public void test050GetObjectUser() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    public void test050GetUser() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test050GetObjectUser");
+        displayTestTile(this, "test050GetUser");
 
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test050GetObjectUser");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test050GetUser");
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -176,13 +177,34 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test110GetAccountResolveAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    public void test101GetAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test110GetAccountResolveAccount");
+        displayTestTile(this, "test101GetAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test110GetAccountResolveAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test101GetAccount");
+        OperationResult result = task.getResult();
+        
+		// WHEN
+		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, null , task, result);
+		
+		display("Account", account);
+		display("Account def", account.getDefinition());
+		PrismContainer<Containerable> accountContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
+		display("Account attributes def", accountContainer.getDefinition());
+		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        assertDummyShadowModel(account, accountOid, "jack", "Jack Sparrow");
+	}
+	
+	@Test
+    public void test110GetUserResolveAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test110GetUserResolveAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test110GetUserResolveAccount");
         OperationResult result = task.getResult();
 
         Collection<PropertyPath> resolve = new ArrayList<PropertyPath>();
@@ -209,13 +231,13 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-    public void test111GetAccountResolveAccountResource() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    public void test111GetUserResolveAccountResource() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test111GetAccountResolveAccountResource");
+        displayTestTile(this, "test111GetUserResolveAccountResource");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test111GetAccountResolveAccountResource");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test111GetUserResolveAccountResource");
         OperationResult result = task.getResult();
 
         Collection<PropertyPath> resolve = MiscUtil.createCollection(
