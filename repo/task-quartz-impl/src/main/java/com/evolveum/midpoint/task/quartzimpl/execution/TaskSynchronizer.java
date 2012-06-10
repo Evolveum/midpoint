@@ -267,7 +267,7 @@ public class TaskSynchronizer {
                     }
                 }
             }
-        } catch (SchedulerException e) {
+        } catch (Exception e) {         // todo make this more specific (originally here was SchedulerException but e.g. for negative repeat intervals here we get unchecked IllegalArgumentException...)
             String message2 = "Cannot synchronize repository/Quartz Job Store information for task " + task;
             LoggingUtils.logException(LOGGER, message2, e);
             result.recordFatalError(message2, e);

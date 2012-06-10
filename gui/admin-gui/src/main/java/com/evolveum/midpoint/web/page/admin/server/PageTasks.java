@@ -256,6 +256,7 @@ public class PageTasks extends PageAdminTasks {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<TaskDto> rowModel) {
                 TaskDto task = rowModel.getObject();
+                //System.out.println("Task to be shown: oid = " + task.getOid());
                 taskDetailsPerformed(target, task.getOid());
             }
         };

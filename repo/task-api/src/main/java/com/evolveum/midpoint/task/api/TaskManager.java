@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -508,4 +509,8 @@ public interface TaskManager {
     void deleteNode(String nodeIdentifier, OperationResult result);
 
     void scheduleTaskNow(Task task, OperationResult parentResult);
+
+    String getHandlerUriForCategory(String category);
+
+    ParseException validateCronExpression(String cron);
 }

@@ -49,19 +49,17 @@ public class TsaValidator extends AbstractFormValidator {
 
 	@Override
 	public void validate(Form<?> form) {
-        if (threadStop == null)
-            return;
 
 		if (runUntilNodeDown.getConvertedInput()) {
 			if (ThreadStopActionType.RESTART.equals(threadStop.getConvertedInput())
 					|| ThreadStopActionType.RESCHEDULE.equals(threadStop.getConvertedInput())){
-				error(runUntilNodeDown, "runUntilNodeDown.error1");
+				error(runUntilNodeDown, "pageTask.runUntilNodeDown.error1");
 			}
 				
 		} else {
 			if (ThreadStopActionType.CLOSE.equals(threadStop.getConvertedInput())
 					|| ThreadStopActionType.SUSPEND.equals(threadStop.getConvertedInput())){
-				error(runUntilNodeDown, "runUntilNodeDown.error2");
+				error(runUntilNodeDown, "pageTask.runUntilNodeDown.error2");
 			}
 		}
 

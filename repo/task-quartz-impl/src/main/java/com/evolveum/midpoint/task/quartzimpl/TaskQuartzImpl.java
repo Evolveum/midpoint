@@ -663,6 +663,19 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public void makeSingle(ScheduleType schedule) {
+        setRecurrenceStatus(TaskRecurrence.SINGLE);
+        setSchedule(schedule);
+    }
+
+    @Override
+    public void makeRecurrent(ScheduleType schedule)
+    {
+        setRecurrenceStatus(TaskRecurrence.RECURRING);
+        setSchedule(schedule);
+    }
+
+    @Override
 	public void makeRecurrentSimple(int interval)
 	{
 		setRecurrenceStatus(TaskRecurrence.RECURRING);
@@ -719,6 +732,25 @@ public class TaskQuartzImpl implements Task {
     @Override
     public ThreadStopActionType getThreadStopAction() {
         return taskPrism.asObjectable().getThreadStopAction();
+    }
+
+    @Override
+    public void setThreadStopAction(ThreadStopActionType value) {
+        processModificationBatched(setThreadStopActionAndPrepareDelta(value));
+    }
+
+    public void setThreadStopActionImmediate(ThreadStopActionType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        processModificationNow(setThreadStopActionAndPrepareDelta(value), parentResult);
+    }
+
+    private void setThreadStopActionTransient(ThreadStopActionType value) {
+        taskPrism.asObjectable().setThreadStopAction(value);
+    }
+
+    private PropertyDelta<?> setThreadStopActionAndPrepareDelta(ThreadStopActionType value) {
+        setThreadStopActionTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_THREAD_STOP_ACTION, value) : null;
     }
 
     @Override
@@ -1292,7 +1324,7 @@ public class TaskQuartzImpl implements Task {
     public boolean stillCanStart() {
         if (getSchedule() != null && getSchedule().getLatestStartTime() != null) {
             long lst = getSchedule().getLatestStartTime().toGregorianCalendar().getTimeInMillis();
-            return lst <= System.currentTimeMillis();
+            return lst >= System.currentTimeMillis();
         } else {
             return true;
         }

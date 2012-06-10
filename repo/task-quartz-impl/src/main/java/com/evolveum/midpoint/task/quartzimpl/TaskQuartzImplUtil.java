@@ -68,6 +68,10 @@ public class TaskQuartzImplUtil {
             if (task.getSchedule().getEarliestStartTime() != null) {
                 tb.startAt(task.getSchedule().getEarliestStartTime().toGregorianCalendar().getTime());
             } else {
+//                // endAt must not be sooner than startAt
+//                if (task.getSchedule().getLatestStartTime() != null) {
+//
+//                }
                 tb.startNow();
             }
 
@@ -184,4 +188,15 @@ public class TaskQuartzImplUtil {
         }
         return retval;
     }
+
+    public static ParseException validateCronExpression(String cron) {
+
+        try {
+            cronScheduleNonvalidatedExpression(cron);			// may throw ParseException
+            return null;
+        } catch (ParseException pe) {
+            return pe;
+        }
+    }
+
 }

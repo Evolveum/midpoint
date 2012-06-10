@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import groovy.util.MapEntry;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -51,6 +52,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -700,9 +702,25 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return retval;
     }
 
+    @Override
+    public String getHandlerUriForCategory(String category) {
+        for (Map.Entry<String,TaskHandler> h : handlers.entrySet()) {
+            List<String> cats = h.getValue().getCategoryNames();
+            if (cats != null && cats.contains(category)) {
+                return h.getKey();
+            } else {
+                String cat = h.getValue().getCategoryName(null);
+                if (category.equals(cat)) {
+                    return h.getKey();
+                }
+            }
+        }
+        return null;
+    }
+
     /*
-     *  ********************* TASK CREATION/REMOVAL LISTENERS *********************
-     */
+    *  ********************* TASK CREATION/REMOVAL LISTENERS *********************
+    */
 
     @Override
     public void onTaskCreate(String oid, OperationResult parentResult) {
@@ -917,6 +935,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public void closeTaskWithoutSavingState(Task task, OperationResult parentResult) {
         ((TaskQuartzImpl) task).setExecutionStatus(TaskExecutionStatus.CLOSED);
         executionManager.removeTaskFromQuartz(task.getOid(), parentResult);
+    }
+
+    @Override
+    public ParseException validateCronExpression(String cron) {
+        return TaskQuartzImplUtil.validateCronExpression(cron);
     }
 
 }

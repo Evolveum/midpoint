@@ -25,28 +25,35 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.Validate;
-
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.ClusterStatusInformation;
-import com.evolveum.midpoint.task.api.Node;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRecurrence;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
+
+import org.apache.commons.lang.Validate;
 
 /**
  * @author lazyman
  */
 public class TaskDto extends Selectable {
+
+    public static final String CLASS_DOT = TaskDto.class.getName() + ".";
+    public static final String OPERATION_NEW = CLASS_DOT + "new";
+
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
 
     private String oid;
     private String name;
@@ -83,7 +90,9 @@ public class TaskDto extends Selectable {
         Validate.notNull(task, "Task must not be null.");
         Validate.notNull(clusterStatusInfo, "Cluster status info must not be null.");
         Validate.notNull(taskManager, "Task manager must not be null.");
-        
+
+        OperationResult thisOpResult = new OperationResult(OPERATION_NEW);
+
         oid = task.getOid();
         name = task.getName();
         category = task.getCategory();
@@ -110,27 +119,35 @@ public class TaskDto extends Selectable {
         	threadStop = task.getThreadStopAction();
         }
         
-        
         if(ThreadStopActionType.CLOSE.equals(threadStop) || ThreadStopActionType.SUSPEND.equals(threadStop)){
         	runUntilNodeDown = true;
         } else {
         	runUntilNodeDown = false;
         }
-        
-        
-        
+
+        Node n = clusterStatusInfo.findNodeInfoForTask(oid);
+        this.executingAt = n != null ? n.getNodeIdentifier() : null;
+
         rawExecutionStatus = task.getExecutionStatus();
-        execution = TaskDtoExecutionStatus.fromTaskExecutionStatus(rawExecutionStatus, task.currentlyExecutesAt() != null);
+        execution = TaskDtoExecutionStatus.fromTaskExecutionStatus(rawExecutionStatus, n != null);
         lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
         lastRunStartTimestampLong = task.getLastRunStartTimestamp();
         nextRunStartTimeLong = task.getNextRunStartTime(new OperationResult("dummy"));
 
-        Node n = task.currentlyExecutesAt();
-        this.executingAt = n != null ? n.getNodeIdentifier() : null;
-
         this.objectRef = task.getObjectRef();
         if (this.objectRef != null && task.getObjectRef().getType() != null) {
             this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(task.getObjectRef().getType());
+        }
+
+        if (this.objectRef != null) {
+            try {
+                PrismObject<? extends ObjectType> o = task.getObject(ObjectType.class, thisOpResult);
+                this.objectRefName = o.getValue().getValue().getName();
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't retrieve task's object because it does not exist; oid = " + task.getObjectOid(), e);
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't retrieve task's object because of schema exception; oid = " + task.getObjectOid(), e);
+            }
         }
 
         this.binding = task.getBinding();
@@ -293,16 +310,23 @@ public class TaskDto extends Selectable {
 //            return -1L;
 //        }
 
-        if (nextRunStartTimeLong != null && nextRunStartTimeLong > 0) {
+        if (nextRunStartTimeLong == null || nextRunStartTimeLong == 0) {
+            if (execution == TaskDtoExecutionStatus.RUNNING) {
+                return -1L;
+            } else {
+                return null;
+            }
+        } else {
+
             if (nextRunStartTimeLong > current + 1000) {
                 return nextRunStartTimeLong - System.currentTimeMillis();
             } else {
-                return 0L;
+                if (execution == TaskDtoExecutionStatus.RUNNING) {
+                    return -1L;
+                } else {
+                    return 0L;
+                }
             }
-        } else {
-            return null;
-            // either a task is not recurring, or the next run start time has not been determined yet
-            // TODO: if necessary, this could be made more clear in the future
         }
     }
 

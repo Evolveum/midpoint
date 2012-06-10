@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,11 +41,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -65,9 +63,6 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-import com.evolveum.midpoint.web.page.admin.server.dto.TsaValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
@@ -85,10 +80,11 @@ public class PageTaskEdit extends PageAdminTasks {
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
 	private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
+
 	private IModel<TaskDto> model;
 	private static boolean edit = false;
 
-	public PageTaskEdit() {
+    public PageTaskEdit() {
 		model = new LoadableModel<TaskDto>(false) {
 
 			@Override
@@ -96,16 +92,29 @@ public class PageTaskEdit extends PageAdminTasks {
 				return loadTask();
 			}
 		};
-		initLayout();
+
+        edit = false;
+        initLayout();
 	}
 
-	private TaskDto loadTask() {
+    private boolean isRunnableOrRunning() {
+        TaskDtoExecutionStatus exec = model.getObject().getExecution();
+        return TaskDtoExecutionStatus.RUNNABLE.equals(exec) || TaskDtoExecutionStatus.RUNNING.equals(exec);
+    }
+
+    private boolean isRunning() {
+        TaskDtoExecutionStatus exec = model.getObject().getExecution();
+        return TaskDtoExecutionStatus.RUNNING.equals(exec);
+    }
+
+    private TaskDto loadTask() {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 		Task loadedTask = null;
 		TaskManager manager = null;
 		try {
 			manager = getTaskManager();
 			StringValue taskOid = getPageParameters().get(PARAM_TASK_EDIT_ID);
+            //System.out.println("Task oid = " + taskOid);
 			loadedTask = manager.getTask(taskOid.toString(), result);
 			result.recordSuccess();
 		} catch (Exception ex) {
@@ -142,15 +151,15 @@ public class PageTaskEdit extends PageAdminTasks {
 		result.setOutputMarkupId(true);
 		mainForm.add(result);
 
-		CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model,
-				"runUntilNodeDown"));
-		runUntilNodeDown.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isEnabled() {
-				return edit;
-			}
-		});
-		mainForm.add(runUntilNodeDown);
+//		CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model,
+//				"runUntilNodeDown"));
+//		runUntilNodeDown.add(new VisibleEnableBehaviour() {
+//			@Override
+//			public boolean isEnabled() {
+//				return edit;
+//			}
+//		});
+//		mainForm.add(runUntilNodeDown);
 
 		DropDownChoice threadStop = new DropDownChoice("threadStop", new Model<ThreadStopActionType>() {
 
@@ -173,7 +182,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(threadStop);
 
-		mainForm.add(new TsaValidator(runUntilNodeDown, threadStop));
+		//mainForm.add(new TsaValidator(runUntilNodeDown, threadStop));
 
 		initButtons(mainForm);
 	}
@@ -205,7 +214,9 @@ public class PageTaskEdit extends PageAdminTasks {
 
 			@Override
 			public String getObject() {
-				return getString(TaskDtoExecutionStatus.class.getSimpleName() + "." + model.getObject().getExecution().name());
+                TaskDtoExecutionStatus executionStatus = model.getObject().getExecution();
+                //System.out.println("Task execution status = " + executionStatus);
+				return getString(TaskDtoExecutionStatus.class.getSimpleName() + "." + executionStatus.name());
 			}
 		});
 		mainForm.add(execution);
@@ -279,17 +290,12 @@ public class PageTaskEdit extends PageAdminTasks {
 
 			@Override
 			public boolean isEnabled() {
-				if (!edit) {
-					return false;
-				}
-				TaskDto dto = model.getObject();
-				return !TaskDtoExecutionStatus.RUNNABLE.equals(dto.getExecution())
-						&& !TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution());
+                return edit && !isRunnableOrRunning();
 			}
 		});
 		mainForm.add(recurring);
 
-		AjaxCheckBox bound = new AjaxCheckBox("bound", boundCheck) {
+		final AjaxCheckBox bound = new AjaxCheckBox("bound", boundCheck) {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -301,34 +307,30 @@ public class PageTaskEdit extends PageAdminTasks {
 
 			@Override
 			public boolean isEnabled() {
-				if (!edit) {
-					return false;
-				}
-				TaskDto dto = model.getObject();
-				return !TaskDtoExecutionStatus.RUNNABLE.equals(dto.getExecution())
-						&& !TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution());
+				return edit && !isRunnableOrRunning();
 			}
 		});
 		boundContainer.add(bound);
 
-		RequiredTextField<Integer> interval = new RequiredTextField<Integer>("interval",
+		TextField<Integer> interval = new TextField<Integer>("interval",
 				new PropertyModel<Integer>(model, "interval"));
 		interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		interval.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return edit;
+//                System.out.println("interval.isEnabled: isRunnableOrRunning = " + isRunnableOrRunning() + ", boundCheck: " + boundCheck.getObject());
+				return edit && (!isRunnableOrRunning() || !boundCheck.getObject());
 			}
 		});
 		intervalContainer.add(interval);
 
-		RequiredTextField<String> cron = new RequiredTextField<String>("cron", new PropertyModel<String>(
+		TextField<String> cron = new TextField<String>("cron", new PropertyModel<String>(
 				model, "cronSpecification"));
 		cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		cron.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return edit;
+                return edit && (!isRunnableOrRunning() || !boundCheck.getObject());
 			}
 		});
 		cronContainer.add(cron);
@@ -344,7 +346,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		notStartBefore.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return edit;
+				return edit && !isRunning();
 			}
 		});
 		mainForm.add(notStartBefore);
@@ -413,6 +415,9 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			public String getObject() {
 				TaskDto dto = model.getObject();
+                if (dto.getBound() && isRunning()) {
+                    return getString("pageTasks.runsContinually");
+                }
 				if (dto.getNextRunStartTimeLong() == null) {
 					return "-";
 				}
@@ -422,6 +427,9 @@ public class PageTaskEdit extends PageAdminTasks {
 			}
 		});
 		mainForm.add(nextRun);
+
+        mainForm.add(new StartEndDateValidator(notStartBefore, notStartAfter));
+        mainForm.add(new ScheduleValidator(getTaskManager(), recurring, bound, interval, cron));
 	}
 
 	private void initButtons(final Form mainForm) {
@@ -502,7 +510,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			task.savePendingModifications(result);
 			edit = false;
 			setResponsePage(PageTasks.class);
-			result.recordSuccess();
+			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't save task.", ex);
@@ -513,36 +521,42 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
 	private Task updateTask(TaskDto dto, Task loadedTask) {
-		loadedTask.setName(dto.getName());
+
+        if (!loadedTask.getName().equals(dto.getName())) {
+		    loadedTask.setName(dto.getName());
+        }   // if they are equal, modifyObject complains ... it's probably a bug in repo; we'll fix it later?
 
 		if (!dto.getRecurring()) {
 			loadedTask.makeSingle();
 		}
 		loadedTask.setBinding(dto.getBound() == true ? TaskBinding.TIGHT : TaskBinding.LOOSE);
 
-		if (dto.getCronSpecification() != null) {
-			loadedTask.makeRecurrentCron(dto.getCronSpecification());
-		}
+        ScheduleType schedule = new ScheduleType();
 
-		if (dto.getInterval() != null) {
-			loadedTask.makeRecurrentSimple(dto.getInterval());
-		}
+        schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartBefore()));
+        schedule.setLatestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartAfter()));
+        schedule.setMisfireAction(dto.getMisfire());
+        if (loadedTask.getSchedule() != null) {
+            schedule.setLatestFinishTime(loadedTask.getSchedule().getLatestFinishTime());
+        }
 
-		ScheduleType schedule = loadedTask.getSchedule();
-		/*
-		 * schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.
-		 * getNotStartBefore()));
-		 * schedule.setLatestStartTime(MiscUtil.asXMLGregorianCalendar
-		 * (dto.getNotStartAfter()));
-		 * schedule.setMisfireAction(dto.getMisfire()); TODO
-		 */
-		
-		if (dto.getRunUntilNodeDown() && dto.getThreadStop() == null) {
-			// TODO: set TSA to close
-		} else if (!dto.getRunUntilNodeDown() && dto.getThreadStop() == null) {
-			// TODO: set TSA to restart
-		}
+        if (dto.getRecurring() == true) {
 
+		    if (dto.getBound() == false && dto.getCronSpecification() != null) {
+                schedule.setCronLikePattern(dto.getCronSpecification());
+            } else {
+                schedule.setInterval(dto.getInterval());
+            }
+            loadedTask.makeRecurrent(schedule);
+        } else {
+            loadedTask.makeSingle(schedule);
+        }
+
+        ThreadStopActionType tsa = dto.getThreadStop();
+//        if (tsa == null) {
+//            tsa = dto.getRunUntilNodeDown() ? ThreadStopActionType.CLOSE : ThreadStopActionType.RESTART;
+//        }
+        loadedTask.setThreadStopAction(tsa);
 		return loadedTask;
 	}
 

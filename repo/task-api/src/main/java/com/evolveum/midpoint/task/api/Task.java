@@ -515,4 +515,10 @@ public interface Task extends Dumpable {
     void setModelOperationState(ModelOperationStateType state);
 
     void replaceCurrentHandlerUri(String newUri);
+
+    void setThreadStopAction(ThreadStopActionType value);
+
+    void makeRecurrent(ScheduleType schedule);
+
+    void makeSingle(ScheduleType schedule);
 }
