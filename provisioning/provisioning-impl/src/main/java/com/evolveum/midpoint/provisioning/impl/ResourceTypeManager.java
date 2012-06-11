@@ -603,12 +603,9 @@ public class ResourceTypeManager {
 
 								resultShadowType.setOid(oid);
 							} catch (ObjectAlreadyExistsException e) {
-								// This should not happen. We haven't supplied
-								// an
-								// OID so is should not conflict
-								LOGGER.error("Unexpected repository behavior: Object already exists: {}",
-										e.getMessage(), e);
-								// but still go on ...
+								// This should not happen. We haven't supplied an OID so is should not conflict
+								LOGGER.error("Unexpected repository behavior: Object already exists: {}", e.getMessage(), e);
+								throw new SystemException("Unexpected repository behavior: Object already exists: "+e.getMessage(),e);
 							}
 
 							// And notify about the change we have discovered

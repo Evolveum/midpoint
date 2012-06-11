@@ -81,8 +81,8 @@ public class DebugUtil implements ObjectFormatter {
 	public static String debugDump(Collection<?> dumpables, int indent) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getCollectionOpeningSymbol(dumpables));
-		sb.append("\n");
 		for (Object item : dumpables) {
+			sb.append("\n");
 			if (item == null) {
 				indentDebugDump(sb, indent + 1);
 				sb.append("null");
@@ -93,7 +93,9 @@ public class DebugUtil implements ObjectFormatter {
 				sb.append(item.toString());
 			}
 		}
-		sb.append("\n");
+		if (!dumpables.isEmpty()) {
+			sb.append("\n");
+		}
 		sb.append(getCollectionClosingSymbol(dumpables));
 		return sb.toString();
 	}

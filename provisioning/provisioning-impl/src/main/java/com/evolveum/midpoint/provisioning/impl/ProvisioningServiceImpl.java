@@ -976,7 +976,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			SecurityViolationException {
 
 		Validate.notNull(parentResult, "Operation result must not be null.");
-
+		Validate.notNull(handler, "Handler must not be null.");
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Start to search object. Query {}", QueryUtil.dump(query));
 		}
@@ -1093,6 +1094,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			@Override
 			public boolean handle(ResourceObjectShadowType shadowType) {
+				if (shadowType == null) {
+					throw new IllegalArgumentException("Null shadow in call to handler");
+				}
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("searchObjectsIterative: processing shadow: {}",
 							SchemaDebugUtil.prettyPrint(shadowType));

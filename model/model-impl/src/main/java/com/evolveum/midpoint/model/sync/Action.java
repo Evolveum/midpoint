@@ -34,6 +34,7 @@ import java.util.List;
  */
 public interface Action {
 
+	String ACTION_SYNCHRONIZE = Action.class.getName() + ".synchronizeAction";
     String ACTION_ADD_USER = Action.class.getName() + ".addUserAction";
     String ACTION_MODIFY_USER = Action.class.getName() + ".modifyUserAction";
     String ACTION_DISABLE_USER = Action.class.getName() + ".disableUserAction";

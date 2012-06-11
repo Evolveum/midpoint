@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
@@ -242,8 +244,32 @@ public class AssignmentProcessor {
 
         }
         
+        finishProplicyDecisions(context);
+        
     }
     
+	/**
+	 * Set policy decisions for the accounts that does not have it already
+	 */
+	private void finishProplicyDecisions(SyncContext context) {
+		for (AccountSyncContext accountContext: context.getAccountContexts()) {
+			if (accountContext.getPolicyDecision() != null) {
+				// already have decision
+				continue;
+			}
+			ObjectDelta<AccountShadowType> accountSyncDelta = accountContext.getAccountSyncDelta();
+			if (accountSyncDelta != null) {
+				if (accountSyncDelta.isDelete()) {
+					accountContext.setPolicyDecision(PolicyDecision.UNLINK);
+				} else {
+					accountContext.setPolicyDecision(PolicyDecision.DELETE);
+				}
+			}
+			// TODO: other cases?
+		}
+		
+	}
+
 	private boolean containsRealValue(Collection<PrismContainerValue<AssignmentType>> assignmentValuesCollection,
 			PrismContainerValue<AssignmentType> assignmentValue) {
 		for (PrismContainerValue<AssignmentType> colValue: assignmentValuesCollection) {
