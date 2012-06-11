@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
@@ -35,10 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -49,12 +47,15 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     private static final String OPERATION_LIST_RESOURCES = DOT_CLASS + "listResources";
     private static final String OPERATION_COUNT_RESOURCES = DOT_CLASS + "countResources";
 
+    private ObjectDataProvider resourceProvider;
     private IModel<List<UserAccountDto>> accountsModel;
 
     public SimpleUserResourceProvider(PageBase page, IModel<List<UserAccountDto>> accountsModel) {
         super(page);
         Validate.notNull(accountsModel, "Accounts model must not be null.");
         this.accountsModel = accountsModel;
+
+        resourceProvider = new ObjectDataProvider(page, ResourceType.class);
     }
 
     @Override
@@ -63,27 +64,18 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
 
         Set<String> alreadyUsedResources = createUsedResourceOidSet();
 
-        OperationResult result = new OperationResult(OPERATION_LIST_RESOURCES);
-        try {
-            PagingType paging = createPaging(first, count);
-            Task task = getPage().createSimpleTask(OPERATION_LIST_RESOURCES);
-
-            List<PrismObject<ResourceType>> list = getModel().searchObjects(ResourceType.class,
-                    getQuery(), paging, task, result);
-            for (PrismObject<ResourceType> object : list) {
-                if (alreadyUsedResources.contains(object.getOid())) {
-                    continue;
-                }
-                getAvailableData().add(new SelectableBean<ResourceType>(object.asObjectable()));
+        List<SelectableBean<ResourceType>> allData = new ArrayList<SelectableBean<ResourceType>>();
+        Iterator<SelectableBean<ResourceType>> iterator = resourceProvider.iterator(0, resourceProvider.size());
+        while (iterator.hasNext()) {
+            SelectableBean<ResourceType> bean = iterator.next();
+            if (alreadyUsedResources.contains(bean.getValue().getOid())) {
+                continue;
             }
-
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't list objects.", ex);
+            allData.add(bean);
         }
 
-        if (!result.isSuccess()) {
-            getPage().showResult(result);
+        for (int i = first; (i < first + count) && (allData.size() > i); i++) {
+            getAvailableData().add(allData.get(i));
         }
 
         return getAvailableData().iterator();
@@ -113,23 +105,9 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
 
     @Override
     protected int internalSize() {
-        int count = 0;
-        OperationResult result = new OperationResult(OPERATION_COUNT_RESOURCES);
-        try {
-            Task task = getPage().createSimpleTask(OPERATION_COUNT_RESOURCES);
-            count = getModel().countObjects(ResourceType.class, getQuery(), task, result);
-
-            Set<String> alreadyUsedResources = createUsedResourceOidSet();
-            count -= alreadyUsedResources.size();
-
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't list objects.", ex);
-        }
-
-        if (!result.isSuccess()) {
-            getPage().showResult(result);
-        }
+        int count = resourceProvider.size();
+        Set<String> alreadyUsedResources = createUsedResourceOidSet();
+        count -= alreadyUsedResources.size();
 
         return count;
     }

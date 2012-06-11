@@ -599,6 +599,9 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     private ResourceAccountTypeDefinitionType getAccountSchemaHandlingDefinition() {
+        if (resourceType.getSchemaHandling() == null) {
+            return null;
+        }
         List<ResourceAccountTypeDefinitionType> types = resourceType.getSchemaHandling().getAccountType();
         ResourceAccountTypeDefinitionType definition = null;
         for (ResourceAccountTypeDefinitionType account : types) {
