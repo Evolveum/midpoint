@@ -87,7 +87,8 @@ public class LogicalOp extends Op {
     private Junction updateJunction(List<Element> elements, boolean pushNot, Junction junction) throws QueryException {
         for (Element element : elements) {
             if (SchemaConstantsGenerated.Q_TYPE.equals(DOMUtil.getQNameWithoutPrefix(element))) {
-                LOGGER.warn("Unsupported (unused) element '" + SchemaConstantsGenerated.Q_TYPE + "' in logical filter in query.");
+                LOGGER.debug("Unsupported (unused) element '" + SchemaConstantsGenerated.Q_TYPE
+                        + "' in logical filter in query.");
                 continue;
             }
             junction.add(getInterpreter().interpret(element, pushNot));
