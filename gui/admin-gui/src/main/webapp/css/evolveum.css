@@ -775,3 +775,7 @@ div.wupb-uploadStatus {
     margin: 5px 0;
     width: 400px;
 }
+
+.reqMessage {
+	color: #F95523;
+}

@@ -241,6 +241,15 @@ public class PageTaskEdit extends PageAdminTasks {
 
 		final IModel<Boolean> recurringCheck = new PropertyModel<Boolean>(model, "recurring");
 		final IModel<Boolean> boundCheck = new PropertyModel<Boolean>(model, "bound");
+		
+		WebMarkupContainer suspendReqRecurring = new WebMarkupContainer("suspendReqRecurring");
+		suspendReqRecurring.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible() {
+				return edit && isRunnableOrRunning();
+			}
+		});
+		mainForm.add(suspendReqRecurring);
 
 		final WebMarkupContainer boundContainer = new WebMarkupContainer("boundContainer");
 		boundContainer.add(new VisibleEnableBehaviour() {
@@ -253,6 +262,15 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		boundContainer.setOutputMarkupId(true);
 		container.add(boundContainer);
+		
+		WebMarkupContainer suspendReqBound = new WebMarkupContainer("suspendReqBound");
+		suspendReqBound.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible() {
+				return edit && isRunnableOrRunning();
+			}
+		});
+		boundContainer.add(suspendReqBound);
 
 		final WebMarkupContainer intervalContainer = new WebMarkupContainer("intervalContainer");
 		intervalContainer.add(new VisibleEnableBehaviour() {

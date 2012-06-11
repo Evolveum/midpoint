@@ -60,34 +60,34 @@ a.button:active {
 
 a.button.positive {
 	color: #333;
-	background-image: linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
-	background-image: -o-linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
-	background-image: -moz-linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
-	background-image: -webkit-linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
-	background-image: -ms-linear-gradient(bottom, rgb(169,206,168) 0%, rgb(196,232,196) 100%);
+	background-image: linear-gradient(bottom, rgb(124,209,121) 0%, rgb(160,255,160) 100%);
+	background-image: -o-linear-gradient(bottom, rgb(124,209,121) 0%, rgb(160,255,160) 100%);
+	background-image: -moz-linear-gradient(bottom, rgb(124,209,121) 0%, rgb(160,255,160) 100%);
+	background-image: -webkit-linear-gradient(bottom, rgb(124,209,121) 0%, rgb(160,255,160) 100%);
+	background-image: -ms-linear-gradient(bottom, rgb(124,209,121) 0%, rgb(160,255,160) 100%);
 	
 	background-image: -webkit-gradient(
 		linear,
 		left bottom,
 		left top,
-		color-stop(0, rgb(169,206,168)),
-		color-stop(1, rgb(196,232,196))
+		color-stop(0, rgb(124,209,121)),
+		color-stop(1, rgb(160,255,160))
 	);
 }
 
 a.button.negative {
 	color: #333;
-	background-image: linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
-	background-image: -o-linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
-	background-image: -moz-linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
-	background-image: -webkit-linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
-	background-image: -ms-linear-gradient(bottom, rgb(206,168,168) 0%, rgb(232,196,196) 100%);
+	background-image: linear-gradient(bottom, rgb(224,102,102) 0%, rgb(253,162,162) 100%);
+	background-image: -o-linear-gradient(bottom, rgb(224,102,102) 0%, rgb(253,162,162) 100%);
+	background-image: -moz-linear-gradient(bottom, rgb(224,102,102) 0%, rgb(253,162,162) 100%);
+	background-image: -webkit-linear-gradient(bottom, rgb(224,102,102) 0%, rgb(253,162,162) 100%);
+	background-image: -ms-linear-gradient(bottom, rgb(224,102,102) 0%, rgb(253,162,162) 100%);
 	
 	background-image: -webkit-gradient(
 		linear,
 		left bottom,
 		left top,
-		color-stop(0, rgb(206,168,168)),
-		color-stop(1, rgb(232,196,196))
+		color-stop(0, rgb(224,102,102)),
+		color-stop(1, rgb(253,162,162))
 	);
 }

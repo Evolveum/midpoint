@@ -20,9 +20,8 @@
  */
 
 function initMessages() {
-	$(".messages-details-bold").disableTextSelection();
-	$(".messages-topPanel").disableTextSelection();
-	
+	//$(".messages-details-bold").disableTextSelection();
+	//$(".messages-topPanel").disableTextSelection();
 	
 	$("a").click(function(){
 		$(".messagesTop").remove();
