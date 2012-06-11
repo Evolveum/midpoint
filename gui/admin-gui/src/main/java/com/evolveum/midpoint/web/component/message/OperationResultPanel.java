@@ -92,7 +92,7 @@ public class OperationResultPanel extends Panel {
 
             @Override
             protected void populateItem(ListItem<OpResult> item) {
-                item.add(new AttributeAppender("class", createMessageLiClass(model), " "));
+                item.add(new AttributeAppender("class", createMessageLiClass(item.getModel()), " "));
                 item.add(new OperationResultPanel("subresult", item.getModel()));
             }
         };
