@@ -97,15 +97,22 @@
     </repositories>
     <dependencies>
         <!-- MIDPOINT LOCALIZATION -->
+        <!--<dependency>-->
+            <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
+            <!--<artifactId>admin-gui-en-US</artifactId>-->
+            <!--<version>2.0-SNAPSHOT</version>-->
+        <!--</dependency>-->
+	    <!--<dependency>-->
+            <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
+            <!--<artifactId>admin-gui-sk-SK</artifactId>-->
+            <!--<version>2.0-SNAPSHOT</version>-->
+        <!--</dependency>-->
+
+        <!-- JDBC DRIVERS -->
         <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-en-US</artifactId>
-            <version>2.0-SNAPSHOT</version>
-        </dependency>
-	    <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-sk-SK</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.1-901.jdbc4</version>
         </dependency>
 
         <!-- MIDPOINT -->

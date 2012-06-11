@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.NodeExecutionStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -618,7 +619,12 @@ public class PageTasks extends PageAdminTasks {
         try {
             for (TaskDto taskDto : taskTypeList) {
                 Task task = taskManager.getTask(taskDto.getOid(), result);
-                taskList.add(task);
+
+                if (TaskExecutionStatus.SUSPENDED.equals(task.getExecutionStatus())) {
+                    warn(getString("pageTasks.message.alreadySuspended", task.getName()));
+                } else {
+                    taskList.add(task);
+                }
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get information on tasks to be suspended.", ex);
@@ -665,7 +671,11 @@ public class PageTasks extends PageAdminTasks {
             OperationResult result = mainResult.createSubresult(OPERATION_RESUME_TASK);
             try {
                 Task task = taskManager.getTask(taskDto.getOid(), result);
-                taskManager.resumeTask(task, result);
+                if (!TaskExecutionStatus.SUSPENDED.equals(task.getExecutionStatus())) {
+                    warn(getString("pageTasks.message.alreadyResumed", task.getName()));
+                } else {
+                    taskManager.resumeTask(task, result);
+                }
                 result.recordSuccessIfUnknown();
             }
             // some situations (e.g. resume task that is not suspended) are recorded in OperationResult only (i.e. no exception)
