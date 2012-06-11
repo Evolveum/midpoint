@@ -220,7 +220,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
 				throw e;
 			} catch (CommunicationException e) {
-				logPartialError(LOGGER, result,
+				logWarning(LOGGER, result,
 						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
 				// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid,
 				// e);
@@ -284,9 +284,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		logger.error(message, ex);
 		opResult.recordFatalError(message, ex);
 	}
-	private void logPartialError(Trace logger, OperationResult opResult, String message, Exception ex) {
+	private void logWarning(Trace logger, OperationResult opResult, String message, Exception ex) {
 		logger.error(message, ex);
-		opResult.recordPartialError(message, ex);
+		opResult.recordWarning(message, ex);
 	}
 
 	@Override
@@ -840,7 +840,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (object.canRepresent(ResourceObjectShadowType.class)) {
 
 			try {
-				getShadowCache().deleteShadow(object.asObjectable(), scripts, null, parentResult);
+				getShadowCache().deleteShadow(object.asObjectable(), scripts, null, result);
 				result.recordSuccess();
 			} catch (CommunicationException e) {
 				logFatalError(LOGGER, result,
@@ -909,7 +909,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new IllegalArgumentException(ex.getMessage(), ex);
 		}
 		parentResult.computeStatus("Test resource has failed");
-
+		
+		
 		LOGGER.trace("Finished testing {}, result: {} ", ObjectTypeUtil.toShortString(resourceType),
 				parentResult.getStatus());
 		return parentResult;

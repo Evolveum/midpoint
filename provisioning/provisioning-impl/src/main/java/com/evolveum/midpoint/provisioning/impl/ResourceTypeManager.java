@@ -118,9 +118,13 @@ public class ResourceTypeManager {
 	 * @throws ConfigurationException
 	 */
 	public ResourceType completeResource(ResourceType resource, ResourceSchema resourceSchema,
-			OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
-			ConfigurationException {
-		
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			CommunicationException, ConfigurationException {
+
+		// do not add as a subresult..it will be added later, if the completing
+		// of resource will be successfull.if not, it will be only set as a
+		// fetch result in the resource..
+		OperationResult result = new OperationResult(ResourceTypeManager.class.getName() + ".testResource.");
 		applyConnectorSchemaToResource(resource, result);
 
 		// Check presence of a schema
@@ -232,30 +236,34 @@ public class ResourceTypeManager {
 		}
 
 		try {
-			
+
 			addNativeCapabilities(newResource, connector, result);
 		} catch (CommunicationException ex) {
-//			result.recordPartialError("Cannot add native capabilities to resource object because the end resource is unreachable. Resource object returned without native capabilities. Exception: "+ex.getMessage(), ex);
-			OperationResult capabilityResult = new OperationResult(ResourceTypeManager.class.getName() +".addNativeCapabilities()");
-			newResource.setFetchResult(capabilityResult.createOperationResultType());	
+			// HACK: to not show the error message in the GUI
+			 result.recordPartialError("Cannot add native capabilities to resource object because the end resource is unreachable. Resource object returned without native capabilities. Exception: "+ex.getMessage(),
+			 ex);
+			newResource.setFetchResult(result.createOperationResultType());
 		}
-		
-		result.recordSuccess();
+
+		parentResult.recordSuccess();
 		return newResource;
 	}
 
 	/**
 	 * Apply proper definition (connector schema) to the resource.
 	 */
-	private void applyConnectorSchemaToResource(ResourceType resource, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource, result);	  
-		PrismContainerDefinition<?> configurationContainerDefintion = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, prismContext);
+	private void applyConnectorSchemaToResource(ResourceType resource, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource, result);
+		PrismContainerDefinition<?> configurationContainerDefintion = ConnectorTypeUtil
+				.findConfigurationContainerDefintion(connectorType, prismContext);
 		if (configurationContainerDefintion == null) {
-			throw new SchemaException("No configuration container definition in "+connectorType);
+			throw new SchemaException("No configuration container definition in " + connectorType);
 		}
-		PrismContainer<Containerable> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resource);
+		PrismContainer<Containerable> configurationContainer = ResourceTypeUtil
+				.getConfigurationContainer(resource);
 		if (configurationContainer == null) {
-			throw new SchemaException("No configuration container in "+resource);
+			throw new SchemaException("No configuration container in " + resource);
 		}
 		configurationContainer.applyDefinition(configurationContainerDefintion, true);
 	}
@@ -733,8 +741,8 @@ public class ResourceTypeManager {
 	}
 
 	/**
-	 * Add native capabilities to the provided resource. The native capabilities are either
-	 * reused from the cache or retrieved from the resource.
+	 * Add native capabilities to the provided resource. The native capabilities
+	 * are either reused from the cache or retrieved from the resource.
 	 */
 	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector,
 			OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException {

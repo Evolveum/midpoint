@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
@@ -84,6 +85,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				shadow.setName(ShadowCacheUtil.determineShadowName(shadow));
 			}
 			shadow.setAttemptNumber(0);
+			
 			// String oid =
 			// getCacheRepositoryService().addObject(shadow.asPrismObject(),
 			// operationResult);

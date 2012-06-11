@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -267,6 +269,9 @@ public class ShadowCache {
 			shadow.setFailedOperationType(FailedOperationTypeType.ADD);
 			shadow.setResult(shadowConverterResult.createOperationResultType());
 			shadow.setResource(resource);
+			
+			
+			
 			if (handler != null) {
 				handler.handleError(shadow, ex);
 			} else {
@@ -274,6 +279,7 @@ public class ShadowCache {
 				parentResult.recordFatalError("Error without a handler. Reason: " + ex.getMessage(), ex);
 				throw new SystemException(ex.getMessage(), ex);
 			}
+			
 		}
 
 		if (shadow == null) {
@@ -429,6 +435,8 @@ public class ShadowCache {
 
 				if (shadow.getFailedOperationType() != null && FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
 					shadow.setFailedOperationType(FailedOperationTypeType.ADD);
+					ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+					ResourceObjectShadowUtil.fixShadow(shadow.asPrismObject(), resourceSchema);
 				} else{
 					shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
 				}
