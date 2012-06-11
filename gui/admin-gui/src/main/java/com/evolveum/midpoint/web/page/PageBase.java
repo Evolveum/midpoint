@@ -43,6 +43,8 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
+import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -50,6 +52,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -80,7 +83,22 @@ public abstract class PageBase extends WebPage {
     protected void onAfterRender() {
         super.onAfterRender();
 
-        getSession().getFeedbackMessages().clear();
+        //we try to remove messages (and operation results) that were stored in session, but only
+        //if all session messages were already rendered.
+        boolean allRendered = true;
+        FeedbackMessages messages = getSession().getFeedbackMessages();
+        Iterator<FeedbackMessage> iterator = messages.iterator();
+        while (iterator.hasNext()) {
+            FeedbackMessage message = iterator.next();
+            if (!message.isRendered()) {
+                allRendered = false;
+                break;
+            }
+        }
+
+        if (allRendered) {
+            getSession().getFeedbackMessages().clear();
+        }
     }
 
     private void initLayout() {

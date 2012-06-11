@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.component.message;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -29,6 +28,7 @@ import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -53,10 +53,10 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
     }
 
     private IModel<String> createModel(final IModel<FeedbackMessage> model) {
-        return new LoadableModel<String>(false) {
+        return new AbstractReadOnlyModel<String>() {
 
             @Override
-            protected String load() {
+            public String getObject() {
                 FeedbackMessage message = model.getObject();
                 switch (message.getLevel()) {
                     case FeedbackMessage.INFO:
