@@ -630,29 +630,28 @@ public class PageTasks extends PageAdminTasks {
             result.recordFatalError("Couldn't get information on tasks to be suspended.", ex);
         }
 
-        if (!taskList.isEmpty()) {       // a warning about already-suspended tasks has been issued in this case; so we do not have to display OperationResult or do anything else
-
-            boolean suspended = false;
-            if (!result.isError()) {
-                try {
-                    suspended = taskManager.suspendTasks(taskList, 2000L, result);
-                } catch (Exception e) {
-                    result.recordFatalError("Couldn't suspend tasks.", e);
-                }
+        boolean suspended = false;
+        if (!result.isError()) {
+            try {
+                suspended = taskManager.suspendTasks(taskList, 2000L, result);
+            } catch (Exception e) {
+                result.recordFatalError("Couldn't suspend tasks.", e);
             }
+        }
 
-            if (result.isUnknown()) {
-                result.recomputeStatus();
+        if (result.isUnknown()) {
+            result.recomputeStatus();
+        }
+
+        if (result.isSuccess()) {
+            if (suspended) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
+            } else {
+                result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
             }
+        }
 
-            if (result.isSuccess()) {
-                if (suspended) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
-                } else {
-                    result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
-                }
-            }
-
+        if (!result.isSuccess() || !taskList.isEmpty()) {
             showResult(result);
         }
 
@@ -703,9 +702,9 @@ public class PageTasks extends PageAdminTasks {
             mainResult.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
         }
 
-        if (atLeastOneToBeResumed) {
+        if (!mainResult.isSuccess() || atLeastOneToBeResumed) {
             showResult(mainResult);
-        } // otherwise, the warning has been issued
+        } // otherwise, the warning has been issued and there's no point in displaying info about success in resuming tasks
 
         //refresh feedback and table
         target.add(getFeedbackPanel());
