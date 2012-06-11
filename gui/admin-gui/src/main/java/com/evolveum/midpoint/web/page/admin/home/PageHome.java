@@ -102,6 +102,7 @@ public class PageHome extends PageAdmin {
 					prismUser = getModelService().getObject(UserType.class, userOid, null, task, result);
 				} catch (Exception ex) {
 					result.recordFatalError("pageHome.message.cantGetUser", ex);
+                    LoggingUtils.logException(LOGGER, "Couldn't get user", ex);
 				}
 
 				if (prismUser == null) {
@@ -199,6 +200,7 @@ public class PageHome extends PageAdmin {
 				subResult.recomputeStatus();
 			} catch (Exception ex) {
 				subResult.recordFatalError("Couldn't load account.", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
 			}
 		}
 		result.recomputeStatus();

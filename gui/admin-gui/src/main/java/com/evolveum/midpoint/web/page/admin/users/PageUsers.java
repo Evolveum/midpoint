@@ -426,6 +426,7 @@ public class PageUsers extends PageAdminUsers {
             } catch (Exception ex) {
                 subResult.recomputeStatus();
                 subResult.recordFatalError("Couldn't delete user.", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't delete user", ex);
             }
         }
         result.recomputeStatus();
@@ -472,7 +473,13 @@ public class PageUsers extends PageAdminUsers {
                 subResult.recordSuccess();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
-                subResult.recordFatalError("Couldn't disable user.", ex);
+                if (enabling) {
+                    subResult.recordFatalError("Couldn't enable user.", ex);
+                    LoggingUtils.logException(LOGGER, "Couldn't enable user", ex);
+                } else {
+                    subResult.recordFatalError("Couldn't disable user.", ex);
+                    LoggingUtils.logException(LOGGER, "Couldn't disable user", ex);
+                }
             }
         }
         result.recomputeStatus();

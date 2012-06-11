@@ -188,6 +188,7 @@ public class PageUser extends PageAdminUsers {
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get user.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
         }
 
         if (!result.isSuccess()) {
@@ -387,6 +388,7 @@ public class PageUser extends PageAdminUsers {
                 subResult.recomputeStatus();
             } catch (Exception ex) {
                 subResult.recordFatalError("Couldn't load account.", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
             }
         }
         result.recomputeStatus();
