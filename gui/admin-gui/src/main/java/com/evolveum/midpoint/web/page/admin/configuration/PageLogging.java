@@ -458,7 +458,7 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		};
 		loggers.getBodyContainer().add(deleteLogger);
-		initSubsystem(loggers);
+		initProfiling(loggers);
 	}
 
 	private void initFilters(AccordionItem loggers) {
@@ -494,16 +494,17 @@ public class PageLogging extends PageAdminConfiguration {
 
 	}
 
-	private void initSubsystem(AccordionItem loggers) {
-		DropDownChoice<ProfilingLevel> subsystemLevel = createComboBox("profilingLevel",
+	private void initProfiling(AccordionItem loggers) {
+		DropDownChoice<ProfilingLevel> profilingLevel = new DropDownChoice<ProfilingLevel>("profilingLevel",
 				new PropertyModel<ProfilingLevel>(model, "profilingLevel"),
-				WebMiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class), new EnumChoiceRenderer(
-						PageLogging.this));
-		loggers.getBodyContainer().add(subsystemLevel);
+				WebMiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class),
+                new EnumChoiceRenderer(PageLogging.this));
+        loggers.getBodyContainer().add(profilingLevel);
 
-		DropDownChoice<String> subsystemAppender = createComboBox("profilingAppender",
+		DropDownChoice<String> profilingAppender = new DropDownChoice<String>("profilingAppender",
 				new PropertyModel<String>(model, "profilingAppender"), createAppendersListModel());
-		loggers.getBodyContainer().add(subsystemAppender);
+        profilingAppender.setNullValid(true);
+		loggers.getBodyContainer().add(profilingAppender);
 	}
 
 	private List<IColumn<AppenderConfiguration>> initAppendersColumns() {
@@ -635,14 +636,15 @@ public class PageLogging extends PageAdminConfiguration {
 	}
 
 	private void initRoot(final AccordionItem loggers) {
-		DropDownChoice<LoggingLevelType> rootLevel = createComboBox("rootLevel",
+		DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<LoggingLevelType>("rootLevel",
 				new PropertyModel<LoggingLevelType>(model, "rootLevel"),
 				WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
 
 		loggers.getBodyContainer().add(rootLevel);
 
-		DropDownChoice<String> rootAppender = createComboBox("rootAppender", new PropertyModel<String>(model,
-				"rootAppender"), createAppendersListModel());
+		DropDownChoice<String> rootAppender = new DropDownChoice<String>("rootAppender",
+                new PropertyModel<String>(model,				"rootAppender"), createAppendersListModel());
+        rootAppender.setNullValid(true);
 		loggers.getBodyContainer().add(rootAppender);
 	}
 
@@ -692,30 +694,10 @@ public class PageLogging extends PageAdminConfiguration {
 				new PropertyModel<Boolean>(model, "auditDetails"));
 		audit.getBodyContainer().add(auditDetails);
 
-		DropDownChoice<String> auditAppender = createComboBox("auditAppender", new PropertyModel<String>(
+		DropDownChoice<String> auditAppender = new DropDownChoice<String>("auditAppender", new PropertyModel<String>(
 				model, "auditAppender"), createAppendersListModel());
+        auditAppender.setNullValid(true);
 		audit.getBodyContainer().add(auditAppender);
-	}
-
-	private <T> DropDownChoice<T> createComboBox(String id, IModel<T> choice, IModel<List<T>> choices) {
-		return new DropDownChoice<T>(id, choice, choices) {
-
-			@Override
-			protected CharSequence getDefaultChoice(String selectedValue) {
-				return "";
-			}
-		};
-	}
-
-	private <T> DropDownChoice<T> createComboBox(String id, IModel<T> choice, IModel<List<T>> choices,
-			IChoiceRenderer renderer) {
-		return new DropDownChoice<T>(id, choice, choices, renderer) {
-
-			@Override
-			protected CharSequence getDefaultChoice(String selectedValue) {
-				return "";
-			}
-		};
 	}
 
 	private IModel<List<String>> createAppendersListModel() {
@@ -740,7 +722,9 @@ public class PageLogging extends PageAdminConfiguration {
 		AuditingConfigurationType audit = new AuditingConfigurationType();
 		audit.setEnabled(dto.isAuditLog());
 		audit.setDetails(dto.isAuditDetails());
-		audit.getAppender().add(dto.getAuditAppender());
+        if (StringUtils.isNotEmpty(dto.getAuditAppender())) {
+		    audit.getAppender().add(dto.getAuditAppender());
+        }
 		configuration.setAuditing(audit);
 		configuration.setRootLoggerAppender(dto.getRootAppender());
 		configuration.setRootLoggerLevel(dto.getRootLevel());
@@ -784,7 +768,7 @@ public class PageLogging extends PageAdminConfiguration {
 			configuration.getSubSystemLogger().add(((FilterLogger) item).toXmlType());
 		}
 
-        if (dto.getProfilingLevel() != null && dto.getProfilingAppender() != null) {
+        if (dto.getProfilingLevel() != null) {
             ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
                     ProfilingLevel.toLoggerLevelType(dto.getProfilingLevel()), dto.getProfilingAppender());
             configuration.getClassLogger().add(type);
@@ -797,7 +781,9 @@ public class PageLogging extends PageAdminConfiguration {
         ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
         type.setPackage(name);
         type.setLevel(level);
-        type.getAppender().add(appender);
+        if (StringUtils.isNotEmpty(appender)) {
+            type.getAppender().add(appender);
+        }
 
         return type;
     }
