@@ -620,7 +620,7 @@ public class PageTasks extends PageAdminTasks {
             for (TaskDto taskDto : taskTypeList) {
                 Task task = taskManager.getTask(taskDto.getOid(), result);
 
-                if (TaskExecutionStatus.SUSPENDED.equals(task.getExecutionStatus())) {
+                if (TaskExecutionStatus.SUSPENDED.equals(task.getExecutionStatus()) || TaskExecutionStatus.CLOSED.equals(task.getExecutionStatus())) {
                     warn(getString("pageTasks.message.alreadySuspended", task.getName()));
                 } else {
                     taskList.add(task);
@@ -630,28 +630,31 @@ public class PageTasks extends PageAdminTasks {
             result.recordFatalError("Couldn't get information on tasks to be suspended.", ex);
         }
 
-        boolean suspended = false;
-        if (!result.isError()) {
-            try {
-                suspended = taskManager.suspendTasks(taskList, 2000L, result);
-            } catch (Exception e) {
-                result.recordFatalError("Couldn't suspend tasks.", e);
+        if (!taskList.isEmpty()) {       // a warning about already-suspended tasks has been issued in this case; so we do not have to display OperationResult or do anything else
+
+            boolean suspended = false;
+            if (!result.isError()) {
+                try {
+                    suspended = taskManager.suspendTasks(taskList, 2000L, result);
+                } catch (Exception e) {
+                    result.recordFatalError("Couldn't suspend tasks.", e);
+                }
             }
-        }
 
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-        }
-
-        if (result.isSuccess()) {
-            if (suspended) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
-            } else {
-                result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
+            if (result.isUnknown()) {
+                result.recomputeStatus();
             }
-        }
 
-        showResult(result);
+            if (result.isSuccess()) {
+                if (suspended) {
+                    result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
+                } else {
+                    result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
+                }
+            }
+
+            showResult(result);
+        }
 
         //refresh feedback and table
         target.add(getFeedbackPanel());
@@ -665,6 +668,8 @@ public class PageTasks extends PageAdminTasks {
             return;
         }
 
+        boolean atLeastOneToBeResumed = false;
+
         OperationResult mainResult = new OperationResult(OPERATION_RESUME_TASKS);
         TaskManager taskManager = getTaskManager();
         for (TaskDto taskDto : taskDtoList) {
@@ -674,6 +679,7 @@ public class PageTasks extends PageAdminTasks {
                 if (!TaskExecutionStatus.SUSPENDED.equals(task.getExecutionStatus())) {
                     warn(getString("pageTasks.message.alreadyResumed", task.getName()));
                 } else {
+                    atLeastOneToBeResumed = true;
                     taskManager.resumeTask(task, result);
                 }
                 result.recordSuccessIfUnknown();
@@ -697,7 +703,9 @@ public class PageTasks extends PageAdminTasks {
             mainResult.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
         }
 
-        showResult(mainResult);
+        if (atLeastOneToBeResumed) {
+            showResult(mainResult);
+        } // otherwise, the warning has been issued
 
         //refresh feedback and table
         target.add(getFeedbackPanel());
