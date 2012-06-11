@@ -82,7 +82,7 @@ public class LoggingDto implements Serializable {
         rootAppender = config.getRootLoggerAppender();
 
         for (SubSystemLoggerConfigurationType logger : config.getSubSystemLogger()) {
-            filters.add(new FilterLogger(logger));
+            filters.add(new FilterConfiguration(logger));
         }
 
         AuditingConfigurationType auditing = config.getAuditing();

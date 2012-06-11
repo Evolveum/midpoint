@@ -75,7 +75,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.FileAppenderConfig;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterLogger;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterValidator;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.InputStringValidator;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LevelValidator;
@@ -388,7 +387,7 @@ public class PageLogging extends PageAdminConfiguration {
 				if (StringUtils.isEmpty(name)) {
 					return null;
 				}
-				return LoggingComponentType.valueOf(name);
+				return LoggingComponentType.fromValue(name);
 			}
 
 			@Override
@@ -397,25 +396,6 @@ public class PageLogging extends PageAdminConfiguration {
 			}
 		};
 	}
-
-//	private IModel<LoggingComponentType> createComponentModel(final IModel<ComponentLogger> model) {
-//		return new Model<LoggingComponentType>() {
-//
-//			@Override
-//			public LoggingComponentType getObject() {
-//				String name = model.getObject().getName();
-//				if (StringUtils.isEmpty(name)) {
-//					return null;
-//				}
-//				return LoggingDto.componentMap.get(name);
-//			}
-//
-//			@Override
-//			public void setObject(LoggingComponentType object) {
-//				model.getObject().setName(object.name());
-//			}
-//		};
-//	}
 
 	private void initLoggers(AccordionItem loggers) {
 		initRoot(loggers);
@@ -765,7 +745,7 @@ public class PageLogging extends PageAdminConfiguration {
 				}
 			}
 
-			configuration.getSubSystemLogger().add(((FilterLogger) item).toXmlType());
+			configuration.getSubSystemLogger().add(item.toXmlType());
 		}
 
         if (dto.getProfilingLevel() != null) {
@@ -808,7 +788,7 @@ public class PageLogging extends PageAdminConfiguration {
 
 	private void addFilterLoggerPerformed(AjaxRequestTarget target) {
 		LoggingDto dto = model.getObject();
-		FilterLogger logger = new FilterLogger(new SubSystemLoggerConfigurationType());
+		FilterConfiguration logger = new FilterConfiguration(new SubSystemLoggerConfigurationType());
 		logger.setEditing(true);
 		dto.getFilters().add(logger);
 		target.add(getFiltersTable());

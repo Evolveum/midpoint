@@ -21,9 +21,12 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.Editable;
+import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SubSystemLoggerConfigurationType;
+import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +34,20 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public abstract class FilterConfiguration extends Selectable implements Editable {
-	
-	private boolean editing;
+public class FilterConfiguration extends Selectable implements Editable {
+
+    private boolean editing;
     private LoggingLevelType level;
     private List<String> appenders = new ArrayList<String>();
+    private LoggingComponentType component;
 
-    public abstract String getName();
-    public abstract void setName(String name);
+    public FilterConfiguration(SubSystemLoggerConfigurationType config) {
+        Validate.notNull(config, "Subsystem logger configuration must not be null.");
+
+        component = config.getComponent();
+        setLevel(config.getLevel());
+        setAppenders(config.getAppender());
+    }
 
     public List<String> getAppenders() {
         return appenders;
@@ -62,5 +71,28 @@ public abstract class FilterConfiguration extends Selectable implements Editable
 
     public void setEditing(boolean editing) {
         this.editing = editing;
+    }
+
+    public String getName() {
+        if (component == null) {
+            return null;
+        }
+        return component.value();
+    }
+
+    public LoggingComponentType getComponent() {
+        return component;
+    }
+
+    public void setName(String name) {
+        this.component = LoggingComponentType.valueOf(name);
+    }
+
+    public SubSystemLoggerConfigurationType toXmlType() {
+        SubSystemLoggerConfigurationType type = new SubSystemLoggerConfigurationType();
+        type.setComponent(component);
+        type.setLevel(getLevel());
+        type.getAppender().addAll(getAppenders());
+        return type;
     }
 }
