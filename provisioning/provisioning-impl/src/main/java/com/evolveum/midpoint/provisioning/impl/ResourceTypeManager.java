@@ -156,16 +156,30 @@ public class ResourceTypeManager {
 					resourceSchema = connector.getResourceSchema(result);
 
 				} catch (CommunicationException ex) {
-					throw new CommunicationException("Cannot fetch resource schema: " + ex.getMessage(), ex);
+					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+					// Ignore the error. The resource is not complete but the upper layer code should deal with that
+					// Throwing an error will effectively break any operation with the resource (including delete).
 				} catch (GenericFrameworkException ex) {
-					throw new GenericConnectorException("Generic error in connector " + connector + ": "
-							+ ex.getMessage(), ex);
+					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+					// Ignore the error. The resource is not complete but the upper layer code should deal with that
+					// Throwing an error will effectively break any operation with the resource (including delete).
 				} catch (ConfigurationException ex) {
-					throw new CommunicationException("Cannot fetch resource schema: " + ex.getMessage(), ex);
+					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+					// Ignore the error. The resource is not complete but the upper layer code should deal with that
+					// Throwing an error will effectively break any operation with the resource (including delete).
+				}
+				if (resourceSchema == null) {
+					LOGGER.warn("No resource schema generated for {}", resource);
+				} else {
+					LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
+						+ resourceSchema.getDefinitions().size() + " definitions");
 				}
 			}
-			LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
-					+ resourceSchema.getDefinitions().size() + " definitions");
+			
+			if (resourceSchema == null) {
+				// No not even bother to put this in the cache
+				return resource;
+			}
 
 			adjustSchemaForCapabilities(resource, resourceSchema);
 
