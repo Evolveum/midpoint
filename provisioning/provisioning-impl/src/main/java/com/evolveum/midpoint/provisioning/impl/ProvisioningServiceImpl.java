@@ -220,15 +220,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
 				throw e;
 			} catch (CommunicationException e) {
-				logWarning(LOGGER, result,
+				logFatalError(LOGGER, result,
 						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
 				// LOGGER.error("Can't get obejct with oid {}. Reason {}", oid,
 				// e);
 				// result.recordFatalError(e);
 
-//				throw e;
-				shadow.setFetchResult(result.createOperationResultType());
-				return shadow.asPrismObject();
+				throw e;
+//				shadow.setFetchResult(result.createOperationResultType());
+//				return shadow.asPrismObject();
 			} catch (SchemaException e) {
 				logFatalError(LOGGER, result,
 						"Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
@@ -257,7 +257,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			try {
 				ResourceType completeResource = getResourceTypeManager().completeResource(
 						(ResourceType) repositoryObject.asObjectable(), null, result);
-				result.computeStatus("Resource retrieval failed");
+				result.recordSuccess();
 				return completeResource.asPrismObject();
 			} catch (ObjectNotFoundException ex) {
 				logFatalError(LOGGER, result, "Resource object not found", ex);

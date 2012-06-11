@@ -124,8 +124,8 @@ public class ResourceTypeManager {
 		// do not add as a subresult..it will be added later, if the completing
 		// of resource will be successfull.if not, it will be only set as a
 		// fetch result in the resource..
-		OperationResult result = new OperationResult(ResourceTypeManager.class.getName() + ".testResource.");
-		applyConnectorSchemaToResource(resource, result);
+//		OperationResult result = new OperationResult(ResourceTypeManager.class.getName() + ".testResource.");
+		applyConnectorSchemaToResource(resource, parentResult);
 
 		// Check presence of a schema
 		XmlSchemaType xmlSchemaType = resource.getSchema();
@@ -144,7 +144,7 @@ public class ResourceTypeManager {
 			if (resourceSchema == null) { // unless it has been already pulled
 				LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
 				try {
-					connector = getConnectorInstance(resource, result);
+					connector = getConnectorInstance(resource, parentResult);
 				} catch (ObjectNotFoundException e) {
 					throw new ObjectNotFoundException("Error resolving connector reference in " + resource
 							+ ": Error creating connector instace: " + e.getMessage(), e);
@@ -153,7 +153,7 @@ public class ResourceTypeManager {
 					// Fetch schema from connector, UCF will convert it to
 					// Schema Processor format and add all
 					// necessary annotations
-					resourceSchema = connector.getResourceSchema(result);
+					resourceSchema = connector.getResourceSchema(parentResult);
 
 				} catch (CommunicationException ex) {
 					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
@@ -224,7 +224,7 @@ public class ResourceTypeManager {
 			Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
 			modifications.add(schemaContainerDelta);
 
-			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, parentResult);
 
 			// Store generated schema into the resource (this will be kept in
 			// the in-memory cache)
@@ -251,12 +251,11 @@ public class ResourceTypeManager {
 
 		try {
 
-			addNativeCapabilities(newResource, connector, result);
+			addNativeCapabilities(newResource, connector, parentResult);
 		} catch (CommunicationException ex) {
 			// HACK: to not show the error message in the GUI
-			 result.recordPartialError("Cannot add native capabilities to resource object because the end resource is unreachable. Resource object returned without native capabilities. Exception: "+ex.getMessage(),
-			 ex);
-			newResource.setFetchResult(result.createOperationResultType());
+			parentResult.recordWarning("Cannot add native capabilities to resource object because the resource is unreachable. Resource object returned without native capabilities.");
+			newResource.setFetchResult(parentResult.createOperationResultType());
 		}
 
 		parentResult.recordSuccess();
@@ -794,6 +793,7 @@ public class ResourceTypeManager {
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 		cachedCapType.setCachingMetadata(cachingMetadata);
 		resource.setNativeCapabilities(cachedCapType);
+		
 	}
 
 	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)

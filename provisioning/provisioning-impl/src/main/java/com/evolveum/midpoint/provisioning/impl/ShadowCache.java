@@ -180,10 +180,10 @@ public class ShadowCache {
 		LOGGER.trace("Getting fresh object from ucf.");
 
 		T resultShadow = null;
-		OperationResult fetchResult = parentResult.createSubresult("Fetch object result.");
+//		OperationResult fetchResult = parentResult.createSubresult("Fetch object result.");
 
 		try {
-			resultShadow = shadowConverter.getShadow(type, resource, repositoryShadow, fetchResult);
+			resultShadow = shadowConverter.getShadow(type, resource, repositoryShadow, parentResult);
 		} catch (ObjectNotFoundException ex) {
 			// TODO: Discovery
 			parentResult.recordFatalError("Object " + ObjectTypeUtil.toShortString(repositoryShadow)
@@ -194,9 +194,9 @@ public class ShadowCache {
 			// + ObjectTypeUtil.toShortString(resource), ex);
 			throw ex;
 		} catch (CommunicationException ex) {
-			repositoryShadow.setFetchResult(fetchResult.createOperationResultType());
-			parentResult
-					.recordWarning("Cannot get object from resource, because the resource is not reachable at the moment. The returned shadow is one from the repository.");
+			parentResult.recordWarning("Cannot get "+ObjectTypeUtil.toShortString(repositoryShadow)+" from resource "+resource.getName()+", because the resource is unreachable. The returned object is one from the repository.");
+			repositoryShadow.setFetchResult(parentResult.createOperationResultType());
+			
 			// parentResult.recordFatalError(
 			// "Error communicating with the connector. Reason: " +
 			// ex.getMessage(), ex);
@@ -433,10 +433,8 @@ public class ShadowCache {
 
 				ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
 
-				if (shadow.getFailedOperationType() != null && FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-					shadow.setFailedOperationType(FailedOperationTypeType.ADD);
-					ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-					ResourceObjectShadowUtil.fixShadow(shadow.asPrismObject(), resourceSchema);
+				if (shadow.getFailedOperationType() != null && FailedOperationTypeType.ADD == shadow.getFailedOperationType()){	
+				//nothing to do
 				} else{
 					shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
 				}
