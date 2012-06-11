@@ -251,7 +251,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
         SynchronizationSituationType state = null;
         LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of users based on correlation rule.");
-        List<PrismObject<UserType>> users = findUsersByCorrelationRule(resourceShadow.asObjectable(), synchronization.getCorrelation(), result);
+        List<PrismObject<UserType>> users = findUsersByCorrelationRule(resourceShadow.asObjectable(), synchronization.getCorrelation(), resource, result);
         if (users == null) {
             users = new ArrayList<PrismObject<UserType>>();
         }
@@ -418,23 +418,23 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     private List<PrismObject<UserType>> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
-            QueryType query, OperationResult result) throws SynchronizationException {
+            QueryType query, ResourceType resourceType, OperationResult result) throws SynchronizationException {
 
         if (query == null) {
-            LOGGER.error("Correlation rule for resource '{}' doesn't contain query, "
-                    + "returning empty list of users.", currentShadow.getName());
+            LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
+                    + "returning empty list of users.", resourceType);
             return null;
         }
 
         Element element = query.getFilter();
         if (element == null) {
-            LOGGER.error("Correlation rule for resource '{}' doesn't contain query, "
-                    + "returning empty list of users.", currentShadow.getName());
+            LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
+                    + "returning empty list of users.", resourceType);
             return null;
         }
         Element filter = updateFilterWithAccountValues(currentShadow, element, "Correlation expression", result);
         if (filter == null) {
-            LOGGER.error("Couldn't create search filter from correlation rule.");
+            // Null is OK here, it means that the value in the filter evaluated to null and the processing should be skipped
             return null;
         }
         List<PrismObject<UserType>> users = null;

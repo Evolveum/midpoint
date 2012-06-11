@@ -480,7 +480,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
 		assertTrue("No NAME create", nameDef.canCreate());
-		assertFalse("NAME has update",nameDef.canUpdate());
+		assertTrue("No NAME update",nameDef.canUpdate());
 		assertTrue("No NAME read",nameDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
