@@ -1033,7 +1033,8 @@ public class PageUser extends PageAdminUsers {
                 wrapper.setMinimalized(false);
                 accountsModel.getObject().add(new UserAccountDto(wrapper, UserDtoStatus.ADD));
             } catch (Exception ex) {
-                error(getString("pageUser.message.couldntCreateAccount", resource.getName()));
+                error(getString("pageUser.message.couldntCreateAccount", resource.getName(), ex.getMessage()));
+                LoggingUtils.logException(LOGGER, "Couldn't create account", ex);
             }
         }
 
@@ -1064,7 +1065,8 @@ public class PageUser extends PageAdminUsers {
                 assignments.add(new UserAssignmentDto(role.getName(), UserAssignmentDto.Type.ROLE,
                         UserDtoStatus.ADD, assignment));
             } catch (Exception ex) {
-                error(getString("pageUser.message.couldntAddRole", role.getName()));
+                error(getString("pageUser.message.couldntAddRole", role.getName(), ex.getMessage()));
+                LoggingUtils.logException(LOGGER, "Couldn't add role", ex);
             }
         }
 
