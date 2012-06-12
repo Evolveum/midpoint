@@ -703,12 +703,16 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return schema.findObjectDefinitionByCompileTimeClass(compileTimeClass);
 	}
 	
+	public void applyDefinition(PrismObject<? extends Objectable> prismObject, Class<? extends Objectable> type) throws SchemaException {
+		applyDefinition(prismObject, type, true);
+	}
+	
 	/**
 	 * This method will try to locate the appropriate object definition and apply it.
 	 */
-	public void applyDefinition(PrismObject<? extends Objectable> prismObject, Class<? extends Objectable> type) throws SchemaException {
+	public void applyDefinition(PrismObject<? extends Objectable> prismObject, Class<? extends Objectable> type, boolean force) throws SchemaException {
 		PrismObjectDefinition<? extends Objectable> objectDefinition = determineDefinitionFromClass(type);
-		prismObject.applyDefinition(objectDefinition);
+		prismObject.applyDefinition(objectDefinition, force);
 	}
 		
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName) {

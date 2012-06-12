@@ -151,7 +151,7 @@ public class PrismContext {
 	 */
 	public <T extends Objectable> void adopt(PrismObject<T> object, Class<T> declaredType) throws SchemaException {
 		object.revive(this);
-		getSchemaRegistry().applyDefinition(object, declaredType);
+		getSchemaRegistry().applyDefinition(object, declaredType, false);
 	}
 
 	public void adopt(Objectable objectable) throws SchemaException {

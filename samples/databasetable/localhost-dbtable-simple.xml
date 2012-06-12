@@ -17,7 +17,6 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
 
@@ -31,7 +30,7 @@ See the content of the SQL files in this directory to see the table strucutre.
 
 -->
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -41,54 +40,47 @@ See the content of the SQL files in this directory to see the table strucutre.
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
-
-	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
     
     	<!-- Resource name. It will be displayed in GUI.  -->
-		<c:name>Localhost DBTable</c:name>
+	<name>Localhost DBTable</name>
      
      	<!-- Reference to the ICF DatabaseTable connector. OID is "virtual" for now. -->
-		<connectorRef type="ConnectorType">
-			<filter>
-		        <q:equal>
-		          <q:value>
-		              <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
-		          </q:value>
-		        </q:equal>
-		      </filter>
-		</connectorRef>
-
-        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee</c:namespace>
+	<connectorRef type="ConnectorType">
+		<filter>
+	        <q:equal>
+	          <q:value>
+	              <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
+	          </q:value>
+	        </q:equal>
+	      </filter>
+	</connectorRef>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<c:configuration>
+	<configuration>
 
-            <!-- Configuration specific for the DBTable connector -->
-			<icfc:configurationProperties
-			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
-				<icscdbtable:port>3306</icscdbtable:port>
-				<icscdbtable:quoting></icscdbtable:quoting>
-				<icscdbtable:host>localhost</icscdbtable:host>
-				<icscdbtable:user>midpoint_tests</icscdbtable:user>
-				<icscdbtable:password><clearValue>secret</clearValue></icscdbtable:password>
-				<icscdbtable:database>midpoint_tests</icscdbtable:database>
-				<icscdbtable:table>idrepo</icscdbtable:table>
-				<icscdbtable:keyColumn>userId</icscdbtable:keyColumn>
-				<icscdbtable:passwordColumn>password</icscdbtable:passwordColumn>
-				<icscdbtable:jdbcDriver>com.mysql.jdbc.Driver</icscdbtable:jdbcDriver>
-				<icscdbtable:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d</icscdbtable:jdbcUrlTemplate>
-				<icscdbtable:enableEmptyString>false</icscdbtable:enableEmptyString>
-				<icscdbtable:rethrowAllSQLExceptions>true</icscdbtable:rethrowAllSQLExceptions>
-				<icscdbtable:nativeTimestamps>false</icscdbtable:nativeTimestamps>
-				<icscdbtable:allNative>false</icscdbtable:allNative>
-				<icscdbtable:changeLogColumn></icscdbtable:changeLogColumn>
-				<icscdbtable:datasource></icscdbtable:datasource>
-			</icfc:configurationProperties>
+	    <!-- Configuration specific for the DBTable connector -->
+		<icfc:configurationProperties
+		xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
+			<icscdbtable:port>3306</icscdbtable:port>
+			<icscdbtable:quoting></icscdbtable:quoting>
+			<icscdbtable:host>localhost</icscdbtable:host>
+			<icscdbtable:user>midpoint_tests</icscdbtable:user>
+			<icscdbtable:password><clearValue>secret</clearValue></icscdbtable:password>
+			<icscdbtable:database>midpoint_tests</icscdbtable:database>
+			<icscdbtable:table>idrepo</icscdbtable:table>
+			<icscdbtable:keyColumn>userId</icscdbtable:keyColumn>
+			<icscdbtable:passwordColumn>password</icscdbtable:passwordColumn>
+			<icscdbtable:jdbcDriver>com.mysql.jdbc.Driver</icscdbtable:jdbcDriver>
+			<icscdbtable:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d</icscdbtable:jdbcUrlTemplate>
+			<icscdbtable:enableEmptyString>false</icscdbtable:enableEmptyString>
+			<icscdbtable:rethrowAllSQLExceptions>true</icscdbtable:rethrowAllSQLExceptions>
+			<icscdbtable:nativeTimestamps>false</icscdbtable:nativeTimestamps>
+			<icscdbtable:allNative>false</icscdbtable:allNative>
+			<icscdbtable:changeLogColumn></icscdbtable:changeLogColumn>
+			<icscdbtable:datasource></icscdbtable:datasource>
+		</icfc:configurationProperties>
 
-		</c:configuration>
+	</configuration>
 
-	</c:resource>
-
-</c:objects>
+</resource>
