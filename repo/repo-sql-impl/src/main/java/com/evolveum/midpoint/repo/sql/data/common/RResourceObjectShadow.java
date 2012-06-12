@@ -50,6 +50,8 @@ import javax.xml.namespace.QName;
 public class RResourceObjectShadow extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResourceObjectShadow.class);
+    @QueryAttribute
+    private String name;
     private QName objectClass;
     private RActivation activation;
     private ROperationResult result;
@@ -116,6 +118,16 @@ public class RResourceObjectShadow extends RObject {
         return objectChange;
     }
 
+    @Index(name = "iResourceShadowName")
+    @Column(name = "objectName")
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setAttemptNumber(Integer attemptNumber) {
         this.attemptNumber = attemptNumber;
     }
@@ -159,6 +171,7 @@ public class RResourceObjectShadow extends RObject {
 
         RResourceObjectShadow that = (RResourceObjectShadow) o;
 
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
         if (attemptNumber != null ? !attemptNumber.equals(that.attemptNumber) : that.attemptNumber != null)
             return false;
@@ -175,6 +188,7 @@ public class RResourceObjectShadow extends RObject {
     @Override
     public int hashCode() {
         int result1 = super.hashCode();
+        result1 = 31 * result1 + (name != null ? name.hashCode() : 0);
         result1 = 31 * result1 + (objectClass != null ? objectClass.hashCode() : 0);
         result1 = 31 * result1 + (activation != null ? activation.hashCode() : 0);
         result1 = 31 * result1 + (objectChange != null ? objectChange.hashCode() : 0);
@@ -187,6 +201,7 @@ public class RResourceObjectShadow extends RObject {
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         jaxb.setObjectClass(repo.getObjectClass());
         if (repo.getActivation() != null) {
             jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
@@ -220,6 +235,7 @@ public class RResourceObjectShadow extends RObject {
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         repo.setObjectClass(jaxb.getObjectClass());
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();

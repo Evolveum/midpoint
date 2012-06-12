@@ -277,11 +277,13 @@ public interface RepositoryService {
 	 *             specified object does not exist
 	 * @throws SchemaException
 	 *             resulting object would violate the schema
+     * @throws ObjectAlreadyExistsException
+     *             if resulting object would have name which already exists in another object of the same type
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
 	/**
 	 * <p>Deletes object with specified OID.</p>

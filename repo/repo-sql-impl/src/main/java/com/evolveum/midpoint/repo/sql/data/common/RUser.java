@@ -54,6 +54,8 @@ import java.util.Set;
 @ForeignKey(name = "fk_user")
 public class RUser extends RObject {
 
+    @QueryAttribute
+    private String name;
     @QueryAttribute(polyString = true)
     private RPolyString fullName;
     @QueryAttribute
@@ -184,6 +186,17 @@ public class RUser extends RObject {
         return honorificSuffix;
     }
 
+
+    @Index(name = "iUserName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setActivation(RActivation activation) {
         this.activation = activation;
     }
@@ -256,6 +269,7 @@ public class RUser extends RObject {
 
         RUser rUser = (RUser) o;
 
+        if (name != null ? !name.equals(rUser.name) : rUser.name != null) return false;
         if (activation != null ? !activation.equals(rUser.activation) : rUser.activation != null) return false;
         if (additionalName != null ? !additionalName.equals(rUser.additionalName) : rUser.additionalName != null)
             return false;
@@ -285,6 +299,7 @@ public class RUser extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (fullName != null ? fullName.hashCode() : 0);
         result = 31 * result + (givenName != null ? givenName.hashCode() : 0);
         result = 31 * result + (familyName != null ? familyName.hashCode() : 0);
@@ -301,6 +316,7 @@ public class RUser extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         repo.setFullName(RPolyString.copyFromJAXB(jaxb.getFullName()));
         repo.setGivenName(RPolyString.copyFromJAXB(jaxb.getGivenName()));
         repo.setFamilyName(RPolyString.copyFromJAXB(jaxb.getFamilyName()));
@@ -351,6 +367,7 @@ public class RUser extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         jaxb.setFullName(RPolyString.copyToJAXB(repo.getFullName()));
         jaxb.setGivenName(RPolyString.copyToJAXB(repo.getGivenName()));
         jaxb.setFamilyName(RPolyString.copyToJAXB(repo.getFamilyName()));

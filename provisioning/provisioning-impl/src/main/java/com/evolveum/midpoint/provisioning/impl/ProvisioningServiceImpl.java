@@ -522,6 +522,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// result.recordFatalError("Error communicating with connector: " +
 			// e.getMessage(), e);
 			throw e;
+        } catch (ObjectAlreadyExistsException e) {
+            logFatalError(LOGGER, result, "Synchronization error: object already exists problem: " + e.getMessage(), e);
+            throw new SystemException(e);
 		} catch (GenericFrameworkException e) {
 			logFatalError(LOGGER, result,
 					"Synchronization error: generic connector framework error: " + e.getMessage(), e);
@@ -1120,6 +1123,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						result.recordFatalError(
 								"Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
 										+ " shadow failed: Not found: " + ex.getMessage(), ex);
+                    } catch (ObjectAlreadyExistsException ex) {
+                        result.recordFatalError(
+                                "Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
+                                        + " shadow failed: Already exists: " + ex.getMessage(), ex);
 					} catch (SchemaException ex) {
 						result.recordFatalError(
 								"Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
@@ -1269,7 +1276,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	private void saveAccountResult(ResourceObjectShadowChangeDescription shadowChangeDescription,
 			Change change, OperationResult notifyChangeResult, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
 		ObjectDelta<ResourceObjectShadowType> shadowModification = (ObjectDelta<ResourceObjectShadowType>) createShadowResultModification(
 				shadowChangeDescription, change, notifyChangeResult);

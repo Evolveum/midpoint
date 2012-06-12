@@ -53,11 +53,7 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
@@ -760,7 +756,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     @Test
     public void test013AddOpenDjAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException {
+            ObjectNotFoundException, SchemaException, DirectoryException, ObjectAlreadyExistsException {
         displayTestTile("test013AddOpenDjAccountToUser");
 
         // GIVEN
@@ -1619,7 +1615,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
     @Test
     public void test050AssignRolePirate() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
+            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException,
+            ObjectAlreadyExistsException {
         displayTestTile("test050AssignRolePirate");
 
         // GIVEN
@@ -3330,7 +3327,7 @@ public class TestSanity extends AbstractIntegrationTest {
     }
 
     private void applySyncSettings(AccountSynchronizationSettingsType syncSettings) throws ObjectNotFoundException,
-            SchemaException {
+            SchemaException, ObjectAlreadyExistsException {
         
         PrismObjectDefinition<SystemConfigurationType> objectDefinition = 
         	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);

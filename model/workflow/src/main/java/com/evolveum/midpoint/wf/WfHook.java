@@ -24,6 +24,7 @@ package com.evolveum.midpoint.wf;
 import java.util.*;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.activiti.Idm2Activiti;
@@ -201,7 +202,8 @@ public class WfHook implements ChangeHook {
     /**
      * Starts a process instance of WfMS.
      */
-    private void startProcessInstance(WfProcessStartCommand startCommand, WfProcessWrapper wrapper, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    private void startProcessInstance(WfProcessStartCommand startCommand, WfProcessWrapper wrapper, Task task,
+            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         LOGGER.trace(" === startProcessInstance starting ===");
 
         if (!task.isTransient()) {

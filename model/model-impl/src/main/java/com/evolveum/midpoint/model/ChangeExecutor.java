@@ -186,7 +186,11 @@ public class ChangeExecutor {
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationAddCollection(
         		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef); 
 
-        cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
+        try {
+            cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
     }
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
@@ -204,7 +208,11 @@ public class ChangeExecutor {
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
         		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef); 
 
-        cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
+        try {
+            cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
     }
 
     public <T extends ObjectType> void executeChange(ObjectDelta<T> objectDelta, OperationResult result) throws ObjectAlreadyExistsException,
@@ -285,8 +293,8 @@ public class ChangeExecutor {
         }
     }
 
-    private <T extends ObjectType> void executeModification(ObjectDelta<T> change, OperationResult result) throws ObjectNotFoundException,
-            SchemaException {
+    private <T extends ObjectType> void executeModification(ObjectDelta<T> change, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         if (change.isEmpty()) {
             // Nothing to do
             return;

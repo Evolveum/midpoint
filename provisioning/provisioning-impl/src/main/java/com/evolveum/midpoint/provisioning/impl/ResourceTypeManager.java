@@ -107,7 +107,7 @@ public class ResourceTypeManager {
 	 *            Resource to check
 	 * @param resourceSchema
 	 *            schema that was freshly pre-fetched (or null)
-	 * @param result
+	 * @param parentResult
 	 * 
 	 * @return completed resource
 	 * @throws ObjectNotFoundException
@@ -224,7 +224,11 @@ public class ResourceTypeManager {
 			Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
 			modifications.add(schemaContainerDelta);
 
-			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, parentResult);
+            try {
+    			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, parentResult);
+            } catch (ObjectAlreadyExistsException ex) {
+                throw new SystemException(ex);
+            }
 
 			// Store generated schema into the resource (this will be kept in
 			// the in-memory cache)

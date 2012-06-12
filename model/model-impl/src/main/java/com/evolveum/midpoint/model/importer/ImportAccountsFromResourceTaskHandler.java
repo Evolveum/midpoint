@@ -35,11 +35,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
@@ -147,6 +143,10 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
             result.recordFatalError("Task object not found", e);
             throw new IllegalStateException("Task object not found, expecting it to exist", e);
+        } catch (ObjectAlreadyExistsException e) {
+            LOGGER.error("Task object wasn't updated (task {})", task, e);
+            result.recordFatalError("Task object wasn't updated", e);
+            throw new IllegalStateException("Task object wasn't updated", e);
         } catch (SchemaException e) {
             LOGGER.error("Error dealing with schema (task {})", task, e);
             result.recordFatalError("Error dealing with schema", e);

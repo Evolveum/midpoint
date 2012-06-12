@@ -212,6 +212,9 @@ public class NodeRegistrar {
             LoggingUtils.logException(LOGGER, "Cannot register shutdown of this node (name {}, oid {}), because it does not exist.", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
             // we do not set error flag here, because we hope that on a node startup the registration would (perhaps) succeed
+        } catch (ObjectAlreadyExistsException e) {
+            LoggingUtils.logException(LOGGER, "Cannot register shutdown of this node (name {}, oid {}).", e,
+                    nodePrism.asObjectable().getName(), nodePrism.getOid());
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Cannot register shutdown of this node (name {}, oid {}) due to schema exception.", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
@@ -236,6 +239,12 @@ public class NodeRegistrar {
             LOGGER.trace("Node registration successfully updated.");
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}), because it does not exist in repository. It is probably caused by cluster misconfiguration (other node rewriting the Node object?) Stopping the scheduler.", e,
+                    nodePrism.asObjectable().getName(), nodePrism.getOid());
+            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatus.OK) {
+                registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            }
+        } catch (ObjectAlreadyExistsException e) {
+            LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}).", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
             if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatus.OK) {
                 registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);

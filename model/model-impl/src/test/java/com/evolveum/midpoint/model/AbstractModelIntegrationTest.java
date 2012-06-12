@@ -645,7 +645,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected void applySyncSettings(AccountSynchronizationSettingsType syncSettings)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
 		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);

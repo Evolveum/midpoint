@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -128,7 +129,8 @@ public class WfTaskUtil {
 	/**
 	 * Makes a task active, i.e. a task that actively queries wf process instance about its status.
 	 */
-	void prepareActiveTask(Task t, String taskName, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	void prepareActiveTask(Task t, String taskName, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 //		// shutdown the task if it is already running (i.e. a run from previous phase)
 //		t.shutdown();
 
@@ -152,7 +154,8 @@ public class WfTaskUtil {
 	 * @return
 	 */
 	
-	void preparePassiveTask(Task t, String taskName, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	void preparePassiveTask(Task t, String taskName, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 //		// shutdown the task if it is already running (i.e. a run from previous phase)
 //		t.shutdown();
 
@@ -350,6 +353,9 @@ public class WfTaskUtil {
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Cannot mark task " + task + " as closed.", e);
             throw e;
+        } catch (ObjectAlreadyExistsException e) {
+            LoggingUtils.logException(LOGGER, "Cannot mark task " + task + " as closed.", e);
+            throw new SystemException(e);
         }
 
     }
@@ -462,7 +468,11 @@ public class WfTaskUtil {
         ModelOperationStateType state = task.getModelOperationState();
         state.setStage(null);
         task.setModelOperationState(state);
-        task.savePendingModifications(result);
+        try {
+            task.savePendingModifications(result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 
         markTaskAsClosed(task, result);         // brutal hack
     }
@@ -480,7 +490,11 @@ public class WfTaskUtil {
         }
         state.setStage(stage);
         task.setModelOperationState(state);
-        task.savePendingModifications(result);
+        try {
+            task.savePendingModifications(result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 
         // todo continue with model operation
 

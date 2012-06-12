@@ -237,7 +237,7 @@ public class RepositoryCache implements RepositoryService {
 
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		repository.modifyObject(type, oid, modifications, parentResult);
 		// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 		// the object in cache

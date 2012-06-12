@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -44,6 +45,8 @@ import java.util.Set;
 public class RConnector extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
+    @QueryAttribute
+    private String name;
     @QueryAttribute
     private String framework;
     private RObjectReference connectorHostRef;
@@ -100,6 +103,16 @@ public class RConnector extends RObject {
         return framework;
     }
 
+    @Index(name = "iConnectorName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setFramework(String framework) {
         this.framework = framework;
     }
@@ -140,6 +153,7 @@ public class RConnector extends RObject {
 
         RConnector that = (RConnector) o;
 
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (connectorBundle != null ? !connectorBundle.equals(that.connectorBundle) : that.connectorBundle != null)
             return false;
         if (connectorHostRef != null ? !connectorHostRef.equals(that.connectorHostRef) : that.connectorHostRef != null)
@@ -160,6 +174,7 @@ public class RConnector extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (framework != null ? framework.hashCode() : 0);
         result = 31 * result + (connectorType != null ? connectorType.hashCode() : 0);
         result = 31 * result + (connectorVersion != null ? connectorVersion.hashCode() : 0);
@@ -173,6 +188,7 @@ public class RConnector extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         jaxb.setConnectorBundle(repo.getConnectorBundle());
         jaxb.setConnectorType(repo.getConnectorType());
         jaxb.setConnectorVersion(repo.getConnectorVersion());
@@ -197,6 +213,7 @@ public class RConnector extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         repo.setConnectorBundle(jaxb.getConnectorBundle());
         repo.setConnectorType(jaxb.getConnectorType());
         repo.setConnectorVersion(jaxb.getConnectorVersion());

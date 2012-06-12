@@ -24,12 +24,15 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -43,6 +46,8 @@ import java.util.Set;
 @ForeignKey(name = "fk_role")
 public class RRole extends RObject {
 
+    @QueryAttribute
+    private String name;
     private Set<RAssignment> assignments;
     private Set<RExclusion> exclusions;
 
@@ -66,6 +71,16 @@ public class RRole extends RObject {
         return exclusions;
     }
 
+    @Index(name = "iRoleName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setExclusions(Set<RExclusion> exclusions) {
         this.exclusions = exclusions;
     }
@@ -82,6 +97,7 @@ public class RRole extends RObject {
 
         RRole rRole = (RRole) o;
 
+        if (name != null ? !name.equals(rRole.name) : rRole.name != null) return false;
         if (assignments != null ? !assignments.equals(rRole.assignments) : rRole.assignments != null) return false;
         if (exclusions != null ? !exclusions.equals(rRole.exclusions) : rRole.exclusions != null) return false;
 
@@ -90,13 +106,16 @@ public class RRole extends RObject {
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        return result;
     }
 
     public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         if (repo.getAssignments() != null) {
             for (RAssignment rAssignment : repo.getAssignments()) {
                 jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
@@ -113,6 +132,7 @@ public class RRole extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
             repo.setAssignments(new HashSet<RAssignment>());
         }

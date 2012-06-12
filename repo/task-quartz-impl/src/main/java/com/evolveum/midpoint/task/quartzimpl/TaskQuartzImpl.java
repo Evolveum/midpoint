@@ -30,6 +30,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.StringUtils;
 
@@ -179,7 +180,8 @@ public class TaskQuartzImpl implements Task {
 	}
 	
 	@Override
-	public void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public void savePendingModifications(OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (pendingModifications != null) {
 			synchronized (pendingModifications) {		// perhaps we should put something like this at more places here...
 				if (!pendingModifications.isEmpty()) {
@@ -212,7 +214,8 @@ public class TaskQuartzImpl implements Task {
 		}
 	}
 
-	private void processModificationNow(PropertyDelta<?> delta, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	private void processModificationNow(PropertyDelta<?> delta, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (delta != null) {
 			Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>(1);
 			deltas.add(delta);
@@ -249,8 +252,13 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public void setProgressImmediate(long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setProgressAndPrepareDelta(value), result);
+	public void setProgressImmediate(long value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+		    processModificationNow(setProgressAndPrepareDelta(value), result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 
 	public void setProgressTransient(long value) {
@@ -286,9 +294,14 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public void setResultImmediate(OperationResult result, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setResultAndPrepareDelta(result), parentResult);
-        setResultStatusTypeImmediate(result != null ? result.getStatus().createStatusType() : null, parentResult);
+	public void setResultImmediate(OperationResult result, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setResultAndPrepareDelta(result), parentResult);
+            setResultStatusTypeImmediate(result != null ? result.getStatus().createStatusType() : null, parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 	
 	public void setResultTransient(OperationResult result) {
@@ -321,7 +334,8 @@ public class TaskQuartzImpl implements Task {
         processModificationBatched(setResultStatusTypeAndPrepareDelta(value));
     }
 
-    public void setResultStatusTypeImmediate(OperationResultStatusType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    public void setResultStatusTypeImmediate(OperationResultStatusType value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         processModificationNow(setResultStatusTypeAndPrepareDelta(value), parentResult);
     }
 
@@ -360,8 +374,13 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public void setHandlerUriImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setHandlerUriAndPrepareDelta(value), parentResult);
+	public void setHandlerUriImmediate(String value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+		    processModificationNow(setHandlerUriAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 	
 	@Override
@@ -396,9 +415,14 @@ public class TaskQuartzImpl implements Task {
 		checkHandlerUriConsistency();
 	}
 
-	public void setOtherHandlersUriStackImmediate(UriStack value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setOtherHandlersUriStackAndPrepareDelta(value), parentResult);
-		checkHandlerUriConsistency();
+	public void setOtherHandlersUriStackImmediate(UriStack value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setOtherHandlersUriStackAndPrepareDelta(value), parentResult);
+            checkHandlerUriConsistency();
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 
 	public void setOtherHandlersUriStack(UriStack value) {
@@ -453,7 +477,8 @@ public class TaskQuartzImpl implements Task {
         setHandlerUri(newUri);
     }
 	
-	public void finishHandler(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public void finishHandler(OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
 
 		// let us drop the current handler URI and nominate the top of the other
 		// handlers stack as the current one
@@ -465,7 +490,11 @@ public class TaskQuartzImpl implements Task {
 			setHandlerUri(null);
 			taskManager.closeTaskWithoutSavingState(this, parentResult);			// if there are no more handlers, let us close this task
 		}
-		savePendingModifications(parentResult);
+        try {
+		    savePendingModifications(parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 		
 		LOGGER.trace("finishHandler: new current handler uri = {}, new number of handlers = {}", getHandlerUri(), getHandlersCount());
 	}
@@ -580,8 +609,13 @@ public class TaskQuartzImpl implements Task {
         taskPrism.asObjectable().setExecutionStatus(value.toTaskType());
     }
 
-    public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setExecutionStatusAndPrepareDelta(value), parentResult);
+    public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+		    processModificationNow(setExecutionStatusAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 
 	public void setExecutionStatus(TaskExecutionStatus value) {
@@ -637,8 +671,13 @@ public class TaskQuartzImpl implements Task {
 		processModificationBatched(setRecurrenceStatusAndPrepareDelta(value));
 	}
 
-	public void setRecurrenceStatusImmediate(TaskRecurrence value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setRecurrenceStatusAndPrepareDelta(value), parentResult);
+	public void setRecurrenceStatusImmediate(TaskRecurrence value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+		    processModificationNow(setRecurrenceStatusAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 
 	public void setRecurrenceStatusTransient(TaskRecurrence value) {
@@ -711,8 +750,13 @@ public class TaskQuartzImpl implements Task {
 		processModificationBatched(setScheduleAndPrepareDelta(value));
 	}
 
-	public void setScheduleImmediate(ScheduleType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setScheduleAndPrepareDelta(value), parentResult);
+	public void setScheduleImmediate(ScheduleType value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+		    processModificationNow(setScheduleAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 
 	private void setScheduleTransient(ScheduleType schedule) {
@@ -739,8 +783,13 @@ public class TaskQuartzImpl implements Task {
         processModificationBatched(setThreadStopActionAndPrepareDelta(value));
     }
 
-    public void setThreadStopActionImmediate(ThreadStopActionType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        processModificationNow(setThreadStopActionAndPrepareDelta(value), parentResult);
+    public void setThreadStopActionImmediate(ThreadStopActionType value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setThreadStopActionAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
     }
 
     private void setThreadStopActionTransient(ThreadStopActionType value) {
@@ -788,8 +837,13 @@ public class TaskQuartzImpl implements Task {
 	}
 	
 	@Override
-	public void setBindingImmediate(TaskBinding value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setBindingAndPrepareDelta(value), parentResult);
+	public void setBindingImmediate(TaskBinding value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+		    processModificationNow(setBindingAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 	
 	public void setBindingTransient(TaskBinding value) {
@@ -951,8 +1005,9 @@ public class TaskQuartzImpl implements Task {
 	}
 	
 	@Override
-	public void setNameImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setNameAndPrepareDelta(value), parentResult);
+	public void setNameImmediate(String value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        processModificationNow(setNameAndPrepareDelta(value), parentResult);
 	}
 	
 	public void setNameTransient(String name) {
@@ -980,8 +1035,13 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void setDescriptionImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        processModificationNow(setDescriptionAndPrepareDelta(value), parentResult);
+    public void setDescriptionImmediate(String value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setDescriptionAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
     }
 
     public void setDescriptionTransient(String name) {
@@ -1024,8 +1084,13 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setExtensionPropertyAndPrepareDelta(property), parentResult);
+	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+		    processModificationNow(setExtensionPropertyAndPrepareDelta(property), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 	
 	public void setExtensionPropertyTransient(PrismProperty<?> property) throws SchemaException {
@@ -1081,8 +1146,13 @@ public class TaskQuartzImpl implements Task {
         processModificationBatched(setNodeAndPrepareDelta(value));
     }
 
-    public void setNodeImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        processModificationNow(setNodeAndPrepareDelta(value), parentResult);
+    public void setNodeImmediate(String value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setNodeAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
     }
 
     public void setNodeTransient(String value) {
@@ -1110,8 +1180,13 @@ public class TaskQuartzImpl implements Task {
 		processModificationBatched(setLastRunStartTimestampAndPrepareDelta(value));
 	}
 
-	public void setLastRunStartTimestampImmediate(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setLastRunStartTimestampAndPrepareDelta(value), parentResult);
+	public void setLastRunStartTimestampImmediate(Long value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+		    processModificationNow(setLastRunStartTimestampAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 
 	public void setLastRunStartTimestampTransient(Long value) {
@@ -1142,8 +1217,13 @@ public class TaskQuartzImpl implements Task {
 		processModificationBatched(setLastRunFinishTimestampAndPrepareDelta(value));
 	}
 
-	public void setLastRunFinishTimestampImmediate(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		processModificationNow(setLastRunFinishTimestampAndPrepareDelta(value), parentResult);
+	public void setLastRunFinishTimestampImmediate(Long value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+		    processModificationNow(setLastRunFinishTimestampAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 	}
 
 	public void setLastRunFinishTimestampTransient(Long value) {
@@ -1201,8 +1281,13 @@ public class TaskQuartzImpl implements Task {
         processModificationBatched(setCategoryAndPrepareDelta(value));
     }
 
-    public void setCategoryImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        processModificationNow(setCategoryAndPrepareDelta(value), result);
+    public void setCategoryImmediate(String value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setCategoryAndPrepareDelta(value), result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
     }
 
     public void setCategoryTransient(String value) {
@@ -1248,8 +1333,13 @@ public class TaskQuartzImpl implements Task {
         processModificationBatched(setModelOperationStateAndPrepareDelta(value));
     }
 
-    public void setModelOperationStateImmediate(ModelOperationStateType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        processModificationNow(setModelOperationStateAndPrepareDelta(value), result);
+    public void setModelOperationStateImmediate(ModelOperationStateType value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setModelOperationStateAndPrepareDelta(value), result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
     }
 
     public void setModelOperationStateTransient(ModelOperationStateType value) {

@@ -44,8 +44,6 @@ import javax.persistence.*;
 public abstract class RObject extends RContainer {
 
     @QueryAttribute
-    private String name;
-    @QueryAttribute
     private String description;
     @QueryEntity(any = true)
     private RAnyContainer extension;
@@ -68,18 +66,8 @@ public abstract class RObject extends RContainer {
         return description;
     }
 
-    @Index(name = "iName")
-    @Column(name = "objectName")
-    public String getName() {
-        return name;
-    }
-
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public void setExtension(RAnyContainer extension) {
@@ -107,7 +95,6 @@ public abstract class RObject extends RContainer {
 
         if (description != null ? !description.equals(rObject.description) : rObject.description != null) return false;
         if (extension != null ? !extension.equals(rObject.extension) : rObject.extension != null) return false;
-        if (name != null ? !name.equals(rObject.name) : rObject.name != null) return false;
 
         return true;
     }
@@ -115,7 +102,6 @@ public abstract class RObject extends RContainer {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;
     }
@@ -126,7 +112,6 @@ public abstract class RObject extends RContainer {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setDescription(repo.getDescription());
-        jaxb.setName(repo.getName());
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Long.toString(repo.getVersion()));
 
@@ -143,7 +128,6 @@ public abstract class RObject extends RContainer {
         Validate.notNull(repo, "Repo object must not be null.");
 
         repo.setDescription(jaxb.getDescription());
-        repo.setName(jaxb.getName());
         repo.setOid(jaxb.getOid());
         repo.setId(0L); //objects types have default id
 

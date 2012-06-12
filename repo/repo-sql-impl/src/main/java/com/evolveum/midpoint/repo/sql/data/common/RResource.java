@@ -24,14 +24,17 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -44,6 +47,8 @@ import javax.persistence.Table;
 public class RResource extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
+    @QueryAttribute
+    private String name;
     private RObjectReference connectorRef;
     private String namespace;
     private String configuration;
@@ -99,6 +104,16 @@ public class RResource extends RObject {
         return namespace;
     }
 
+    @Index(name = "iResourceName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
@@ -143,6 +158,7 @@ public class RResource extends RObject {
 
         RResource rResource = (RResource) o;
 
+        if (name != null ? !name.equals(rResource.name) : rResource.name != null) return false;
         if (capabilities != null ? !capabilities.equals(rResource.capabilities) : rResource.capabilities != null)
             return false;
         if (configuration != null ? !configuration.equals(rResource.configuration) : rResource.configuration != null)
@@ -165,6 +181,7 @@ public class RResource extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
         result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
         result = 31 * result + (xmlSchema != null ? xmlSchema.hashCode() : 0);
@@ -180,6 +197,7 @@ public class RResource extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         jaxb.setNamespace(repo.getNamespace());
 
         if (repo.getConnectorRef() != null) {
@@ -210,6 +228,7 @@ public class RResource extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         repo.setNamespace(ResourceTypeUtil.getResourceNamespace(jaxb));
         repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), repo, prismContext));
 

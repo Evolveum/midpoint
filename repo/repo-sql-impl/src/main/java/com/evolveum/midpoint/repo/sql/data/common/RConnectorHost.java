@@ -24,9 +24,11 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
@@ -40,6 +42,8 @@ import javax.persistence.Table;
 @ForeignKey(name = "fk_connector_host")
 public class RConnectorHost extends RObject {
 
+    @QueryAttribute
+    private String name;
     private String hostname;
     private String port;
     private String sharedSecret;
@@ -72,6 +76,16 @@ public class RConnectorHost extends RObject {
         return protectConnection;
     }
 
+    @Index(name = "iConnectorHostName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setProtectConnection(Boolean protectConnection) {
         this.protectConnection = protectConnection;
     }
@@ -97,6 +111,7 @@ public class RConnectorHost extends RObject {
 
         RConnectorHost that = (RConnectorHost) o;
 
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (hostname != null ? !hostname.equals(that.hostname) : that.hostname != null) return false;
         if (port != null ? !port.equals(that.port) : that.port != null) return false;
         if (protectConnection != null ? !protectConnection.equals(that.protectConnection) : that.protectConnection != null)
@@ -110,6 +125,7 @@ public class RConnectorHost extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (hostname != null ? hostname.hashCode() : 0);
         result = 31 * result + (port != null ? port.hashCode() : 0);
         result = 31 * result + (sharedSecret != null ? sharedSecret.hashCode() : 0);
@@ -122,6 +138,7 @@ public class RConnectorHost extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         jaxb.setHostname(repo.getHostname());
         jaxb.setPort(repo.getPort());
         jaxb.setProtectConnection(repo.isProtectConnection());
@@ -139,6 +156,7 @@ public class RConnectorHost extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());
         repo.setTimeout(jaxb.getTimeout());

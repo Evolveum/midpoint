@@ -24,12 +24,15 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -40,6 +43,8 @@ import javax.persistence.Table;
 @ForeignKey(name = "fk_password_policy")
 public class RPasswordPolicy extends RObject {
 
+    @QueryAttribute
+    private String name;
     private String lifetime;
     private String stringPolicy;
 
@@ -57,6 +62,16 @@ public class RPasswordPolicy extends RObject {
         return stringPolicy;
     }
 
+    @Index(name = "iPasswordPolicyName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setStringPolicy(String stringPolicy) {
         this.stringPolicy = stringPolicy;
     }
@@ -69,6 +84,7 @@ public class RPasswordPolicy extends RObject {
 
         RPasswordPolicy that = (RPasswordPolicy) o;
 
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (lifetime != null ? !lifetime.equals(that.lifetime) : that.lifetime != null) return false;
         if (stringPolicy != null ? !stringPolicy.equals(that.stringPolicy) : that.stringPolicy != null) return false;
 
@@ -78,6 +94,7 @@ public class RPasswordPolicy extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (lifetime != null ? lifetime.hashCode() : 0);
         result = 31 * result + (stringPolicy != null ? stringPolicy.hashCode() : 0);
         return result;
@@ -87,6 +104,7 @@ public class RPasswordPolicy extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         try {
             jaxb.setLifetime(RUtil.toJAXB(PasswordPolicyType.class, new PropertyPath(PasswordPolicyType.F_LIFETIME), repo.getLifetime(),
                     PasswordLifeTimeType.class, prismContext));
@@ -101,6 +119,7 @@ public class RPasswordPolicy extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         try {
             repo.setLifetime(RUtil.toRepo(jaxb.getLifetime(), prismContext));
             repo.setStringPolicy(RUtil.toRepo(jaxb.getStringPolicy(), prismContext));

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -43,6 +44,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 public class RTask extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RTask.class);
+    @QueryAttribute
+    private String name;
     private String taskIdentifier;
     @QueryAttribute(enumerated = true)
     private TaskExecutionStatusType executionStatus;
@@ -143,6 +146,16 @@ public class RTask extends RObject {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public ROperationResult getResult() {
         return result;
+    }
+
+    @Index(name = "iTaskName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setCanRunOnNode(String canRunOnNode) {
@@ -279,6 +292,7 @@ public class RTask extends RObject {
 
         RTask rTask = (RTask) o;
 
+        if (name != null ? !name.equals(rTask.name) : rTask.name != null) return false;
         if (binding != rTask.binding) return false;
         if (claimExpirationTimestamp != null ? !claimExpirationTimestamp.equals(rTask.claimExpirationTimestamp) : rTask.claimExpirationTimestamp != null)
             return false;
@@ -316,6 +330,7 @@ public class RTask extends RObject {
     @Override
     public int hashCode() {
         int result1 = super.hashCode();
+        result1 = 31 * result1 + (name != null ? name.hashCode() : 0);
         result1 = 31 * result1 + (taskIdentifier != null ? taskIdentifier.hashCode() : 0);
         result1 = 31 * result1 + (executionStatus != null ? executionStatus.hashCode() : 0);
         result1 = 31 * result1 + (exclusivityStatus != null ? exclusivityStatus.hashCode() : 0);
@@ -343,6 +358,7 @@ public class RTask extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         jaxb.setTaskIdentifier(repo.getTaskIdentifier());
         jaxb.setClaimExpirationTimestamp(repo.getClaimExpirationTimestamp());
         jaxb.setExclusivityStatus(repo.getExclusivityStatus());
@@ -387,6 +403,7 @@ public class RTask extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
         repo.setClaimExpirationTimestamp(jaxb.getClaimExpirationTimestamp());
         repo.setExclusivityStatus(jaxb.getExclusivityStatus());

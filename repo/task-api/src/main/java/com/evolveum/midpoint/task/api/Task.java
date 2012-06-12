@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
@@ -338,7 +339,8 @@ public interface Task extends Dumpable {
 	 */
 	public void setName(String value);
 	
-	public void setNameImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	public void setNameImmediate(String value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
 	/**
 	 * Returns task extension.
@@ -457,7 +459,7 @@ public interface Task extends Dumpable {
 	
 	// TODO
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException;
+			SchemaException, ObjectAlreadyExistsException;
 
     /**
      * Categories are treated in a special way. They can be set directly. But if not set directly, they

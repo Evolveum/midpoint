@@ -416,7 +416,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName()
 				+ ".modifyObject");
 		result.addParam(OperationResult.PARAM_OID, modifications);
@@ -596,7 +596,11 @@ public class XmlRepositoryService implements RepositoryService {
 				TaskExclusivityStatusType.CLAIMED.value());
 		modifications.add(delta);
 
-		modifyObject(TaskType.class, oid, modifications, result);
+        try {
+		    modifyObject(TaskType.class, oid, modifications, result);
+        } catch (ObjectAlreadyExistsException ex){
+            throw new SystemException(ex);
+        }
 
 	}
 
@@ -620,7 +624,11 @@ public class XmlRepositoryService implements RepositoryService {
 				TaskExclusivityStatusType.RELEASED.value());
 		modifications.add(delta);
 
-		modifyObject(TaskType.class, oid, modifications, result);
+        try {
+		    modifyObject(TaskType.class, oid, modifications, result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
 
 	}
 

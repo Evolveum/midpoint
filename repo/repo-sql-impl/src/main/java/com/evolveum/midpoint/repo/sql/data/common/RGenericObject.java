@@ -23,9 +23,12 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenericObjectType;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -36,10 +39,22 @@ import javax.persistence.Table;
 @ForeignKey(name = "fk_generic_object")
 public class RGenericObject extends RObject {
 
+    @QueryAttribute
+    private String name;
     private String objectType;
 
     public String getObjectType() {
         return objectType;
+    }
+
+    @Index(name = "iGenericObjectName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setObjectType(String objectType) {
@@ -54,6 +69,7 @@ public class RGenericObject extends RObject {
 
         RGenericObject that = (RGenericObject) o;
 
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (objectType != null ? !objectType.equals(that.objectType) : that.objectType != null) return false;
 
         return true;
@@ -62,6 +78,7 @@ public class RGenericObject extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (objectType != null ? objectType.hashCode() : 0);
         return result;
     }
@@ -70,6 +87,7 @@ public class RGenericObject extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         jaxb.setObjectType(repo.getObjectType());
     }
 
@@ -77,6 +95,7 @@ public class RGenericObject extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         repo.setObjectType(jaxb.getObjectType());
     }
 

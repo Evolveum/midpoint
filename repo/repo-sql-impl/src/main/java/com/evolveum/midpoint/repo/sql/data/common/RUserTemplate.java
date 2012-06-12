@@ -23,9 +23,11 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
@@ -38,6 +40,8 @@ import javax.persistence.Entity;
 @ForeignKey(name = "fk_user_template")
 public class RUserTemplate extends RObject {
 
+    @QueryAttribute
+    private String name;
     private String propertyConstruction;
     private String accountConstruction;
 
@@ -51,6 +55,16 @@ public class RUserTemplate extends RObject {
     @Column(nullable = true)
     public String getPropertyConstruction() {
         return propertyConstruction;
+    }
+
+    @Index(name = "iUserTemplateName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setAccountConstruction(String accountConstruction) {
@@ -69,6 +83,7 @@ public class RUserTemplate extends RObject {
 
         RUserTemplate that = (RUserTemplate) o;
 
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
             return false;
         if (propertyConstruction != null ? !propertyConstruction.equals(that.propertyConstruction) : that.propertyConstruction != null)
@@ -80,6 +95,7 @@ public class RUserTemplate extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (propertyConstruction != null ? propertyConstruction.hashCode() : 0);
         result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
         return result;
@@ -89,6 +105,7 @@ public class RUserTemplate extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         try {
             if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
                 UserTemplateType holder = RUtil.toJAXB(repo.getAccountConstruction(), UserTemplateType.class, prismContext);
@@ -108,6 +125,7 @@ public class RUserTemplate extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         try {
             if (!jaxb.getAccountConstruction().isEmpty()) {
                 UserTemplateType template = new UserTemplateType();

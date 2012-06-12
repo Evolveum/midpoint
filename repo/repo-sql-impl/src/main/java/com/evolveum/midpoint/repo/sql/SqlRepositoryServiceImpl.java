@@ -45,10 +45,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.GenericJDBCException;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.metadata.ClassMetadata;
@@ -323,26 +326,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
     }
 
-    private <T extends ObjectType> void checkNameUniqueness(Session session, Class<T> type, PrismObject object)
-            throws ObjectAlreadyExistsException {
-        LOGGER.debug("Checking name uniqueness.");
-
-        String name = null;
-        if (object.findProperty(ObjectType.F_NAME) != null) {
-            name = (String) object.findProperty(ObjectType.F_NAME).getRealValue();
-        }
-
-        Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type), "o");
-        criteria.add(Restrictions.eq("o.name", name));
-        criteria.setProjection(Projections.rowCount());
-
-        Long objectsCount = (Long) criteria.uniqueResult();
-        if (objectsCount == null || objectsCount != 0) {
-            throw new ObjectAlreadyExistsException("Object type '" + object.getCompileTimeClass()
-                    + "' with the same name '" + name + "' already exists.");
-        }
-    }
-
     private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, OperationResult result) throws
             ObjectAlreadyExistsException, SchemaException {
         LOGGER.debug("Adding object type '{}'", new Object[]{object.getCompileTimeClass().getSimpleName()});
@@ -370,8 +353,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 }
             }
 
-            checkNameUniqueness(session, object.getCompileTimeClass(), object);
-
             LOGGER.debug("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(objectType);
 
@@ -394,6 +375,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         } catch (ObjectAlreadyExistsException ex) {
             rollbackTransaction(session, ex, result);
             throw ex;
+        } catch (ConstraintViolationException ex) {
+            rollbackTransaction(session,  ex, result);
+            // we don't know if it's only name uniqueness violation, or something else,
+            // therefore we're throwing it always as ObjectAlreadyExistsException
+            throw new ObjectAlreadyExistsException(ex);
         } catch (Exception ex) {
             if (ex instanceof SchemaException) {
                 throw (SchemaException) ex;
@@ -639,7 +625,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     @Override
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
             Collection<? extends ItemDelta> modifications,
-            OperationResult result) throws ObjectNotFoundException, SchemaException {
+            OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         Validate.notNull(modifications, "Modifications must not be null.");
         Validate.notNull(type, "Object class in delta must not be null.");
         Validate.notEmpty(oid, "Oid must not null or empty.");
@@ -708,20 +694,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return ++attempt;
     }
 
-    private boolean hasNameChanged(Collection<? extends ItemDelta> modifications) {
-        for (ItemDelta delta : modifications) {
-            PropertyPath parent = delta.getParentPath();
-            if ((parent == null || parent.isEmpty()) && ObjectType.F_NAME.equals(delta.getName())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
             Collection<? extends ItemDelta> modifications, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Modifications: {}", new Object[]{DebugUtil.prettyPrint(modifications)});
@@ -740,10 +715,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             PropertyDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
-            }
-            //check name uniqueness if necessary
-            if (hasNameChanged(modifications)) {
-                checkNameUniqueness(session, type, prismObject);
             }
             //merge and update user
             LOGGER.debug("Translating JAXB to data type.");
@@ -764,6 +735,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session, ex, result);
             throw ex;
+        } catch (ConstraintViolationException ex) {
+            rollbackTransaction(session,  ex, result);
+            // we don't know if it's only name uniqueness violation, or something else,
+            // therefore we're throwing it always as ObjectAlreadyExistsException
+            throw new ObjectAlreadyExistsException(ex);
         } catch (Exception ex) {
             if (ex instanceof SchemaException) {
                 throw (SchemaException) ex;

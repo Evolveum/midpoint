@@ -430,6 +430,9 @@ mainCycle:
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Cannot record run finish for task {}", ex, task);
 			return false;
+        } catch (com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException ex) {
+            LoggingUtils.logException(LOGGER, "Cannot record run finish for task {}", ex, task);
+            return true;
 		} catch (SchemaException ex) {
 			LOGGER.error("Unable to record run finish and close the task: {}", ex.getMessage(), ex);
 			return true;

@@ -23,8 +23,10 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -38,6 +40,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @ForeignKey(name = "fk_node")
 public class RNode extends RObject {
 
+    @QueryAttribute
+    private String name;
     private String nodeIdentifier;
     private String hostname;
     private Integer jmxPort;
@@ -77,6 +81,16 @@ public class RNode extends RObject {
         return nodeIdentifier;
     }
 
+    @Index(name = "iNodeName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setNodeIdentifier(String nodeIdentifier) {
         this.nodeIdentifier = nodeIdentifier;
     }
@@ -113,6 +127,7 @@ public class RNode extends RObject {
 
         RNode rNode = (RNode) o;
 
+        if (name != null ? !name.equals(rNode.name) : rNode.name != null) return false;
         if (clustered != null ? !clustered.equals(rNode.clustered) : rNode.clustered != null) return false;
         if (hostname != null ? !hostname.equals(rNode.hostname) : rNode.hostname != null) return false;
         if (internalNodeIdentifier != null ? !internalNodeIdentifier.equals(rNode.internalNodeIdentifier) :
@@ -130,6 +145,7 @@ public class RNode extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (nodeIdentifier != null ? nodeIdentifier.hashCode() : 0);
         result = 31 * result + (hostname != null ? hostname.hashCode() : 0);
         result = 31 * result + (jmxPort != null ? jmxPort.hashCode() : 0);
@@ -144,6 +160,7 @@ public class RNode extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         jaxb.setHostname(repo.getHostname());
         jaxb.setNodeIdentifier(repo.getNodeIdentifier());
         jaxb.setJmxPort(repo.getJmxPort());
@@ -157,6 +174,7 @@ public class RNode extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         repo.setHostname(jaxb.getHostname());
         repo.setNodeIdentifier(jaxb.getNodeIdentifier());
         repo.setJmxPort(jaxb.getJmxPort());

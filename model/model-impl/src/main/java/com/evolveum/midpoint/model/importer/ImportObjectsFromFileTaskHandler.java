@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -127,6 +128,10 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
             result.recordFatalError("Task object not found", e);
             throw new IllegalStateException("Task object not found, expecting it to exist", e);
+        } catch (ObjectAlreadyExistsException e) {
+            LOGGER.error("Task object was not updated (task {})", task, e);
+            result.recordFatalError("Task object was not updated", e);
+            throw new IllegalStateException("Task object was not updated", e);
         } catch (SchemaException e) {
             LOGGER.error("Error dealing with schema (task {})", task, e);
             result.recordFatalError("Error dealing with schema", e);

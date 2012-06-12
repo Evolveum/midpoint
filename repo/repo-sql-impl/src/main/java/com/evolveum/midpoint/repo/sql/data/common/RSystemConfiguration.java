@@ -24,13 +24,16 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -43,6 +46,8 @@ import javax.persistence.Table;
 public class RSystemConfiguration extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RSystemConfiguration.class);
+    @QueryAttribute
+    private String name;
     private String globalAccountSynchronizationSettings;
     private String modelHooks;
     private String logging;
@@ -75,6 +80,16 @@ public class RSystemConfiguration extends RObject {
         return modelHooks;
     }
 
+    @Index(name = "iSystemConfigurationName")
+    @Column(name = "objectName", unique = true)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setConnectorFramework(String connectorFramework) {
         this.connectorFramework = connectorFramework;
     }
@@ -103,6 +118,7 @@ public class RSystemConfiguration extends RObject {
 
         RSystemConfiguration that = (RSystemConfiguration) o;
 
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (connectorFramework != null ? !connectorFramework.equals(that.connectorFramework) : that.connectorFramework != null)
             return false;
         if (defaultUserTemplateRef != null ? !defaultUserTemplateRef.equals(that.defaultUserTemplateRef) : that.defaultUserTemplateRef != null)
@@ -118,6 +134,7 @@ public class RSystemConfiguration extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (globalAccountSynchronizationSettings != null ? globalAccountSynchronizationSettings.hashCode() : 0);
         result = 31 * result + (modelHooks != null ? modelHooks.hashCode() : 0);
         result = 31 * result + (logging != null ? logging.hashCode() : 0);
@@ -129,6 +146,7 @@ public class RSystemConfiguration extends RObject {
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(repo.getName());
         if (repo.getDefaultUserTemplateRef() != null) {
             jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB(prismContext));
         }
@@ -153,6 +171,7 @@ public class RSystemConfiguration extends RObject {
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(jaxb.getName());
         if (jaxb.getDefaultUserTemplate() != null) {
             LOGGER.warn("Default user template from system configuration type won't be saved. It should be " +
                     "translated to user template reference.");
