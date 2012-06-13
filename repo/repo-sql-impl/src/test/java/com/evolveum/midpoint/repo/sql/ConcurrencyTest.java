@@ -70,7 +70,7 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
     PrismContext prismContext;
     @Autowired
     SessionFactory factory;
-    private static final long WAIT_TIME = 15000;
+    private static final long WAIT_TIME = 120000;
     private static final long WAIT_STEP =   500;
 
     @Test
@@ -96,44 +96,64 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
          *
          */
 
-        ModifierThread mt1 = new ModifierThread(oid, UserType.F_GIVEN_NAME);
-        ModifierThread mt2 = new ModifierThread(oid, UserType.F_FAMILY_NAME);
+        ModifierThread[] mts = new ModifierThread[] {
+                new ModifierThread(1, oid, UserType.F_PREFERRED_LANGUAGE),
+                new ModifierThread(2, oid, UserType.F_LOCALE),
+                new ModifierThread(3, oid, UserType.F_TIMEZONE),
+                new ModifierThread(4, oid, UserType.F_EMAIL_ADDRESS),
+                new ModifierThread(5, oid, UserType.F_TELEPHONE_NUMBER),
+                new ModifierThread(6, oid, UserType.F_EMPLOYEE_NUMBER)
+//                new ModifierThread(7, oid, UserType.F_DESCRIPTION),
+//                new ModifierThread(8, oid, UserType.F_EMAIL_ADDRESS),
+//                new ModifierThread(9, oid, UserType.F_EMPLOYEE_NUMBER)
+        };
 
         LOGGER.info("*** Starting modifier threads ***");
-        mt1.start();
-        mt2.start();
+        for (ModifierThread mt : mts) {
+            mt.start();
+        }
 
         LOGGER.info("*** Waiting " + WAIT_TIME + " ms ***");
+main:
         for (long time = 0; time < WAIT_TIME; time += WAIT_STEP) {
             Thread.sleep(WAIT_STEP);
-            if (!mt1.isAlive() || !mt2.isAlive()) {
-                LOGGER.error("At least one of threads died prematurely, finishing waiting.");
-                break;
+            for (ModifierThread mt : mts) {
+                if (!mt.isAlive()) {
+                    LOGGER.error("At least one of threads died prematurely, finishing waiting.");
+                    break main;
+                }
             }
         }
 
-        mt1.stop = true;            // stop the threads
-        mt2.stop = true;
+        for (ModifierThread mt : mts) {
+            mt.stop = true;             // stop the threads
+            System.out.println("Thread " + mt.id + " has done " + (mt.counter-1) + " iterations");
+            LOGGER.info("Thread " + mt.id + " has done " + (mt.counter-1) + " iterations");
+        }
 
         // we do not have to wait for the threads to be stopped, just examine their results
 
-        System.out.println("Thread 1 has done " + (mt1.counter-1) + " iterations, thread 2 has done " + (mt2.counter-1) + " iterations.");
-        LOGGER.info("*** Thread 1 has done " + (mt1.counter-1) + " iterations, thread 2 has done " + (mt2.counter-1) + " iterations. ***");
-
         Thread.sleep(1000);         // give the threads a chance to finish (before repo will be shut down)
 
-        AssertJUnit.assertTrue("Modifier thread 1 finished with an exception: " + mt1.threadResult, mt1.threadResult == null);
-        AssertJUnit.assertTrue("Modifier thread 2 finished with an exception: " + mt2.threadResult, mt2.threadResult == null);
+        for (ModifierThread mt : mts) {
+            LOGGER.info("Modifier thread " + mt.id + " finished with an exception: " + mt.threadResult);
+        }
+
+        for (ModifierThread mt : mts) {
+            AssertJUnit.assertTrue("Modifier thread " + mt.id + " finished with an exception: " + mt.threadResult, mt.threadResult == null);
+        }
     }
 
     class ModifierThread extends Thread {
 
+        int id;
         String oid;                 // object to modify
         QName attribute;           // attribute to modify
-        volatile Exception threadResult;
+        volatile Throwable threadResult;
         volatile int counter = 1;
 
-        ModifierThread(String oid, QName attribute) {
+        ModifierThread(int id, String oid, QName attribute) {
+            this.id = id;
             this.oid = oid;
             this.attribute = attribute;
             this.setName("Modifier for " + attribute.getLocalPart());
@@ -143,6 +163,15 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
 
         @Override
         public void run() {
+            try {
+                run1();
+            } catch(Throwable t) {
+                LoggingUtils.logException(LOGGER, "Unexpected exception: " + t, t);
+                threadResult = t;
+            }
+        }
+
+        public void run1() {
 
             PrismObjectDefinition<?> userPrismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
             OperationResult result = new OperationResult("run");
