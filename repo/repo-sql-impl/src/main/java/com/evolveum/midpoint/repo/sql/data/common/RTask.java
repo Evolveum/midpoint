@@ -149,7 +149,7 @@ public class RTask extends RObject {
     }
 
     @Index(name = "iTaskName")
-    @Column(name = "objectName", unique = true)
+    @Column(name = "objectName")
     public String getName() {
         return name;
     }

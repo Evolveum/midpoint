@@ -383,8 +383,6 @@ public class PageResource extends PageAdminResources {
         try {
             Task task = createSimpleTask(OPERATION_IMPORT_FROM_RESOURCE);
             getModelService().importAccountsFromResource(dto.getOid(), dto.getDefaultAccountObjectClass(), task, result);
-
-            info(getString("pageResource.message.importStarted"));
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Error occurred during accounts import from resource {} ({}), class {}",
                     ex, dto.getName(), dto.getOid(), dto.getDefaultAccountObjectClass());
@@ -393,6 +391,7 @@ public class PageResource extends PageAdminResources {
 
         result.recordSuccessIfUnknown();
 
+        showResult(result);
         target.add(getFeedbackPanel());
     }
 }
