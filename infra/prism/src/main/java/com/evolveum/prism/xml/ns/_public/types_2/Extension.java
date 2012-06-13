@@ -8,6 +8,7 @@
 
 package com.evolveum.prism.xml.ns._public.types_2;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -40,7 +41,7 @@ import org.w3c.dom.Element;
 @XmlType(name = "extension", propOrder = {
     "any"
 })
-public class Extension {
+public class Extension implements Serializable {
 
     @XmlAnyElement(lax = true)
     protected List<Object> any;

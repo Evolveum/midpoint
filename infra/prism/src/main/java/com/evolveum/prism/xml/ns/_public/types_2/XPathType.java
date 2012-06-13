@@ -8,6 +8,8 @@
 
 package com.evolveum.prism.xml.ns._public.types_2;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
@@ -55,7 +57,7 @@ import javax.xml.bind.annotation.XmlValue;
 @XmlType(name = "XPathType", propOrder = {
     "content"
 })
-public class XPathType {
+public class XPathType implements Serializable {
 
     @XmlValue
     protected String content;

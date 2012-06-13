@@ -8,6 +8,8 @@
 
 package com.evolveum.prism.xml.ns._public.types_2;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlType;
@@ -31,7 +33,7 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlType(name = "ModificationTypeType")
 @XmlEnum
-public enum ModificationTypeType {
+public enum ModificationTypeType implements Serializable {
 
     @XmlEnumValue("add")
     ADD("add"),

@@ -8,6 +8,7 @@
 
 package com.evolveum.prism.xml.ns._public.types_2;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -58,7 +59,7 @@ import com.evolveum.midpoint.util.Dumpable;
     "norm",
     "any"
 })
-public class PolyStringType implements Dumpable, DebugDumpable {
+public class PolyStringType implements Dumpable, DebugDumpable, Serializable {
 
     @XmlElement(required = true)
     protected String orig;

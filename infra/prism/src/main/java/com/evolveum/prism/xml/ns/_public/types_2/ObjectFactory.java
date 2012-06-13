@@ -8,6 +8,8 @@
 
 package com.evolveum.prism.xml.ns._public.types_2;
 
+import java.io.Serializable;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
@@ -29,7 +31,7 @@ import javax.xml.namespace.QName;
  * 
  */
 @XmlRegistry
-public class ObjectFactory {
+public class ObjectFactory implements Serializable {
 
     private final static QName _ObjectDelta_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "objectDelta");
 

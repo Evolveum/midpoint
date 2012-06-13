@@ -17,59 +17,48 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
 
 <!--
 
-This file is an example of Resource definition. It defines an Solaris resource
-using an Identity Connector Framework Solaris connector.
-
-This resource definition contains also definition to enable synchronization and
-especially an expression that is using a lookup of value from an configuration
-object.
+This file is an example of Resource definition. It defines a CSV file resource
+using an Identity Connector Framework connector.
 
 -->
 
-<c:objects 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+<resource 	oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"
-		xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
          	xmlns:my="http://whatever.com/my"
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-        	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-		xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
+        	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 
 
-	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe">
-    
     	<!-- Resource name. It will be displayed in GUI.  -->
-		<c:name>Localhost CSVfile</c:name>
+	<name>Localhost CSVfile</name>
      
-     	<!-- Reference to the ICF Flatfile connector. OID is "virtual" for now. -->
-		<connectorRef type="ConnectorType">
-			<filter>
-		        <q:equal>
-		          <q:value>
-		              <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
-		          </q:value>
-		        </q:equal>
-		      </filter>
-		</connectorRef>
-
-        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe</c:namespace>
+     	<!-- Reference to the ICF Flatfile connector. It contains a search filter that finds the right connector by connectorType. -->
+	<connectorRef type="ConnectorType">
+		<filter>
+	        <q:equal>
+	          <q:value>
+	              <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
+	          </q:value>
+	        </q:equal>
+	      </filter>
+	</connectorRef>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<c:configuration>
+	<configuration>
 	
             <!-- Configuration specific for the CSVfile connector -->
-			<icfc:configurationProperties
+		<icfc:configurationProperties
 		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector">
 
 				<icfccsvfile:filePath>/var/tmp/midpoint-flatfile.csv</icfccsvfile:filePath>
@@ -85,7 +74,7 @@ object.
 		
 			<!-- Generic ICF configuration -->
 
-		</c:configuration>
+	</configuration>
 
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
@@ -190,6 +179,8 @@ object.
 
 			</accountType>
 		</schemaHandling>
+
+		<!-- Resource capabilities. It defines a simulated enableDisable capability. -->
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
 			<cap:activation>
 				<cap:enableDisable>
@@ -203,7 +194,5 @@ object.
 			</cap:credentials>
 			<cap:testConnection/>
 		</capabilities>
-	</c:resource>
+</resource>
 
-
-</c:objects>

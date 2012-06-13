@@ -8,6 +8,7 @@
 
 package com.evolveum.prism.xml.ns._public.types_2;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -63,7 +64,7 @@ import org.w3c.dom.Element;
     "path",
     "value"
 })
-public class ItemDeltaType {
+public class ItemDeltaType implements Serializable {
 
     @XmlElement(required = true)
     protected ModificationTypeType modificationType;

@@ -432,6 +432,9 @@ object.
 				<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
+		<protected>
+                <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+            </protected>
 		</accountType>
 	</schemaHandling>
 
