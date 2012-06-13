@@ -70,7 +70,7 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
     PrismContext prismContext;
     @Autowired
     SessionFactory factory;
-    private static final long WAIT_TIME = 120000;
+    private static final long WAIT_TIME = 60000;
     private static final long WAIT_STEP =   500;
 
     @Test
@@ -97,13 +97,12 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
          */
 
         ModifierThread[] mts = new ModifierThread[] {
-                new ModifierThread(1, oid, UserType.F_PREFERRED_LANGUAGE),
-                new ModifierThread(2, oid, UserType.F_LOCALE),
-                new ModifierThread(3, oid, UserType.F_TIMEZONE),
-                new ModifierThread(4, oid, UserType.F_EMAIL_ADDRESS),
-                new ModifierThread(5, oid, UserType.F_TELEPHONE_NUMBER),
-                new ModifierThread(6, oid, UserType.F_EMPLOYEE_NUMBER)
-//                new ModifierThread(7, oid, UserType.F_DESCRIPTION),
+                new ModifierThread(1, oid, UserType.F_GIVEN_NAME, true),
+                new ModifierThread(2, oid, UserType.F_FAMILY_NAME, true),
+//                new ModifierThread(3, oid, UserType.F_DESCRIPTION, false),
+//                new ModifierThread(4, oid, UserType.F_EMAIL_ADDRESS, false),
+//                new ModifierThread(5, oid, UserType.F_TELEPHONE_NUMBER, false),
+//                new ModifierThread(6, oid, UserType.F_EMPLOYEE_NUMBER, false),
 //                new ModifierThread(8, oid, UserType.F_EMAIL_ADDRESS),
 //                new ModifierThread(9, oid, UserType.F_EMPLOYEE_NUMBER)
         };
@@ -128,7 +127,7 @@ main:
         for (ModifierThread mt : mts) {
             mt.stop = true;             // stop the threads
             System.out.println("Thread " + mt.id + " has done " + (mt.counter-1) + " iterations");
-            LOGGER.info("Thread " + mt.id + " has done " + (mt.counter-1) + " iterations");
+            LOGGER.info("Thread " + mt.id + " has done " + (mt.counter - 1) + " iterations");
         }
 
         // we do not have to wait for the threads to be stopped, just examine their results
@@ -149,13 +148,15 @@ main:
         int id;
         String oid;                 // object to modify
         QName attribute;           // attribute to modify
+        boolean poly;
         volatile Throwable threadResult;
         volatile int counter = 1;
 
-        ModifierThread(int id, String oid, QName attribute) {
+        ModifierThread(int id, String oid, QName attribute, boolean poly) {
             this.id = id;
             this.oid = oid;
             this.attribute = attribute;
+            this.poly = poly;
             this.setName("Modifier for " + attribute.getLocalPart());
         }
 
@@ -182,7 +183,7 @@ main:
 
                 String dataWritten = Integer.toString(counter++);
 
-                PropertyDelta<?> delta = PropertyDelta.createReplaceDeltaOrEmptyDelta(userPrismDefinition, attribute, new PolyString(dataWritten));
+                PropertyDelta<?> delta = PropertyDelta.createReplaceDeltaOrEmptyDelta(userPrismDefinition, attribute, poly ? new PolyString(dataWritten) : new String(dataWritten));
                 List<? extends PropertyDelta<?>> deltas = Arrays.asList(delta);
                 try {
                     repositoryService.modifyObject(UserType.class, oid, deltas, result);
@@ -210,7 +211,13 @@ main:
 
                 // check the attribute
 
-                String dataRead = user.getPropertyRealValue(attribute, String.class);
+                String dataRead;
+                if (poly) {
+                    dataRead = user.getPropertyRealValue(attribute, PolyString.class).getOrig();
+                } else {
+                    dataRead = user.getPropertyRealValue(attribute, String.class);
+                }
+
                 if (!dataWritten.equals(dataRead)) {
                     threadResult = new RuntimeException("Data read back (" + dataRead + ") does not match the data written (" + dataWritten + ") on attribute " + attribute.getLocalPart());
                     LOGGER.error("compare failed", threadResult);
