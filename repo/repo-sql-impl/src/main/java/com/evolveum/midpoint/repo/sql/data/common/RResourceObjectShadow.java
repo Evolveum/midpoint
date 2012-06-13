@@ -59,7 +59,7 @@ public class RResourceObjectShadow extends RObject {
     private RObjectReference resourceRef;
     private String objectChange;
     private Integer attemptNumber;
-    private FailedOperationTypeType failedOperationType;
+    private RFailedOperationTypeType failedOperationType;
     //attributes
     @QueryEntity(any = true)
     private RAnyContainer attributes;
@@ -108,7 +108,7 @@ public class RResourceObjectShadow extends RObject {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true)
-    public FailedOperationTypeType getFailedOperationType() {
+    public RFailedOperationTypeType getFailedOperationType() {
         return failedOperationType;
     }
 
@@ -132,7 +132,7 @@ public class RResourceObjectShadow extends RObject {
         this.attemptNumber = attemptNumber;
     }
 
-    public void setFailedOperationType(FailedOperationTypeType failedOperationType) {
+    public void setFailedOperationType(RFailedOperationTypeType failedOperationType) {
         this.failedOperationType = failedOperationType;
     }
 
@@ -216,7 +216,9 @@ public class RResourceObjectShadow extends RObject {
         }
 
         jaxb.setAttemptNumber(repo.getAttemptNumber());
-        jaxb.setFailedOperationType(repo.getFailedOperationType());
+        if (repo.getFailedOperationType() != null) {
+            jaxb.setFailedOperationType(repo.getFailedOperationType().getOperation());
+        }
 
         try {
             jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectDeltaType.class, prismContext));
@@ -252,7 +254,7 @@ public class RResourceObjectShadow extends RObject {
 
         repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), repo, prismContext));
         repo.setAttemptNumber(jaxb.getAttemptNumber());
-        repo.setFailedOperationType(jaxb.getFailedOperationType());
+        repo.setFailedOperationType(RFailedOperationTypeType.toRepoType(jaxb.getFailedOperationType()));
 
         if (jaxb.getResource() != null) {
             LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +

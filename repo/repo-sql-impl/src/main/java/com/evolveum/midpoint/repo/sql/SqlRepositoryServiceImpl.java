@@ -837,7 +837,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 throw new ObjectNotFoundException("Task with oid '" + oid + "' was not found.");
             }
             LOGGER.debug("Task found, updating exclusivity status.");
-            task.setExclusivityStatus(newStatus);
+            task.setExclusivityStatus(RTaskExclusivityStatusType.toRepoType(newStatus));
             session.save(task);
 
             session.getTransaction().commit();

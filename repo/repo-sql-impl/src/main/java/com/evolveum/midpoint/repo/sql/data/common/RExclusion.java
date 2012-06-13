@@ -22,9 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ExclusionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import org.apache.commons.lang.Validate;
@@ -48,7 +46,7 @@ public class RExclusion extends RContainer implements ROwnable  {
     //exclusion
     private String description;
     private RObjectReference targetRef;
-    private ExclusionPolicyType policy;
+    private RExclusionPolicyType policy;
 
     @ForeignKey(name = "fk_exclusion_owner")
     @MapsId("owner")
@@ -83,7 +81,7 @@ public class RExclusion extends RContainer implements ROwnable  {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    public ExclusionPolicyType getPolicy() {
+    public RExclusionPolicyType getPolicy() {
         return policy;
     }
 
@@ -97,7 +95,7 @@ public class RExclusion extends RContainer implements ROwnable  {
         this.description = description;
     }
 
-    public void setPolicy(ExclusionPolicyType policy) {
+    public void setPolicy(RExclusionPolicyType policy) {
         this.policy = policy;
     }
 
@@ -153,7 +151,9 @@ public class RExclusion extends RContainer implements ROwnable  {
 
         jaxb.setDescription(repo.getDescription());
         jaxb.setId(RUtil.getStringFromLong(repo.getId()));
-        jaxb.setPolicy(repo.getPolicy());
+        if (repo.getPolicy() != null) {
+            jaxb.setPolicy(repo.getPolicy().getPolicy());
+        }
 
         if (repo.getTargetRef() != null) {
             jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
@@ -169,7 +169,7 @@ public class RExclusion extends RContainer implements ROwnable  {
         repo.setId(RUtil.getLongWrappedFromString(jaxb.getId()));
 
         repo.setDescription(jaxb.getDescription());
-        repo.setPolicy(jaxb.getPolicy());
+        repo.setPolicy(RExclusionPolicyType.toRepoType(jaxb.getPolicy()));
         repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), repo, prismContext));
     }
 

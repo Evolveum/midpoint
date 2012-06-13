@@ -48,7 +48,7 @@ public class ROperationResult implements Serializable {
     private Long ownerId;
     //other fields
     private String operation;
-    private OperationResultStatusType status;
+    private ROperationResultStatusType status;
     private Long token;
     private String messageCode;
     private String message;
@@ -98,7 +98,7 @@ public class ROperationResult implements Serializable {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    public OperationResultStatusType getStatus() {
+    public ROperationResultStatusType getStatus() {
         return status;
     }
 
@@ -171,7 +171,7 @@ public class ROperationResult implements Serializable {
         this.partialResults = partialResults;
     }
 
-    public void setStatus(OperationResultStatusType status) {
+    public void setStatus(ROperationResultStatusType status) {
         this.status = status;
     }
 
@@ -224,7 +224,9 @@ public class ROperationResult implements Serializable {
         jaxb.setMessage(repo.getMessage());
         jaxb.setMessageCode(repo.getMessageCode());
         jaxb.setOperation(repo.getOperation());
-        jaxb.setStatus(repo.getStatus());
+        if (repo.getStatus() != null) {
+            jaxb.setStatus(repo.getStatus().getStatus());
+        }
         jaxb.setToken(repo.getToken());
 
         try {
@@ -252,7 +254,7 @@ public class ROperationResult implements Serializable {
         repo.setMessage(jaxb.getMessage());
         repo.setMessageCode(jaxb.getMessageCode());
         repo.setOperation(jaxb.getOperation());
-        repo.setStatus(jaxb.getStatus());
+        repo.setStatus(ROperationResultStatusType.toRepoType(jaxb.getStatus()));
         repo.setToken(jaxb.getToken());
 
         try {
