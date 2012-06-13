@@ -84,7 +84,9 @@ public class AceEditor<T> extends TextArea<T> {
         script.append(" } else {");
         script.append("$('.ace_scroller').css('background','#FFFFFF');");
         script.append(" }");
-        script.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");')");
+        script.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
+        script.append(setFocus(isReadonly()));
+        System.out.println(script.toString());
         return script.toString();
     }
 
@@ -122,6 +124,16 @@ public class AceEditor<T> extends TextArea<T> {
         Validate.notNull(readonly, "Readonly model must not be null.");
         this.readonly = readonly;
     }
+    
+    public String setFocus(boolean isReadonly) {
+    	StringBuilder builder = new StringBuilder();
+    	if(!isReadonly){
+            builder.append("window.");
+            builder.append(editorId);
+            builder.append(".focus();");
+    	}
+        return builder.toString();
+    }
 
     public String createJavascriptEditableRefresh() {
         StringBuilder builder = new StringBuilder();
@@ -138,8 +150,8 @@ public class AceEditor<T> extends TextArea<T> {
             builder.append("#FFFFFF");
         }
         builder.append("');");
-        builder.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");')");
-
+        builder.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
+        builder.append(setFocus(isReadonly()));
         return builder.toString();
     }
 }
