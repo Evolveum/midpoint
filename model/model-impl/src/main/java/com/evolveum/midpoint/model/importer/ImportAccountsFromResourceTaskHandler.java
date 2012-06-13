@@ -217,33 +217,39 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             return runResult;
         }
 
-        // Determine object class to import
-        PrismProperty<QName> objectclassProperty = (PrismProperty<QName>) task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
-        if (objectclassProperty == null) {
-            LOGGER.error("Import: No objectclass specified");
-            opResult.recordFatalError("No objectclass specified");
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
-        }
-
-        QName objectclass = objectclassProperty.getValue().getValue();
-        if (objectclass == null) {
-            LOGGER.error("Import: No objectclass specified");
-            opResult.recordFatalError("No objectclass specified");
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
-        }
-        
         RefinedResourceSchema refinedSchema;
-		try {
-			refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
-		} catch (SchemaException e) {
-			LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
+        try {
+            refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
+        } catch (SchemaException e) {
+            LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
             opResult.recordFatalError("Schema error during processing account definition: "+e.getMessage(),e);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
-		}
+        }
         RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
+
+        // Determine object class to import
+        QName objectclass = null;
+        PrismProperty<QName> objectclassProperty = (PrismProperty<QName>) task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
+        if (objectclassProperty != null) {
+            objectclass = objectclassProperty.getValue().getValue();
+        }
+
+        if (objectclass == null) {
+            if (refinedSchema.getDefaultAccountDefinition() != null) {
+                objectclass = refinedSchema.getDefaultAccountDefinition().getObjectClassDefinition().getTypeName();
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Import: No objectclass specified, using default value of " + objectclass + ".");
+                }
+            }
+        }
+
+        if (objectclass == null) {
+            LOGGER.error("Import: No objectclass specified and no default can be determined.");
+            opResult.recordFatalError("No objectclass specified and no default can be determined");
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+        }
 
         LOGGER.info("Start executing import from resource {}, importing object class {}", ObjectTypeUtil.toShortString(resource), objectclass);
 

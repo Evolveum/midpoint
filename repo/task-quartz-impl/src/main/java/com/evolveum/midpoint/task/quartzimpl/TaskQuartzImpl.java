@@ -71,7 +71,8 @@ public class TaskQuartzImpl implements Task {
 	private TaskPersistenceStatus persistenceStatus;
 	private TaskManagerQuartzImpl taskManager;
 	private RepositoryService repositoryService;
-	private OperationResult result;
+	private OperationResult taskResult;         // this is the live value of this task's result
+                                                // the one in taskPrism is updated when necessary (see code)
 	private volatile boolean canRun;
     private Node currentlyExecutesAt;
 
@@ -86,12 +87,10 @@ public class TaskQuartzImpl implements Task {
 		this.taskManager = taskManager;
 		this.repositoryService = null;
 		this.taskPrism = createPrism();
-		this.result = null;
 		this.canRun = true;
 		
 		setTaskIdentifier(taskIdentifier.toString());
 		setExecutionStatusTransient(TaskExecutionStatus.RUNNABLE);
-//		setExclusivityStatusTransient(TaskExclusivityStatus.CLAIMED);
 		setPersistenceStatusTransient(TaskPersistenceStatus.TRANSIENT);
 		setRecurrenceStatusTransient(TaskRecurrence.SINGLE);
 		setBindingTransient(DEFAULT_BINDING_TYPE);
@@ -130,11 +129,12 @@ public class TaskQuartzImpl implements Task {
 		}
 		
 		OperationResultType resultType = taskPrism.asObjectable().getResult();
-		if (resultType != null) {
-			result = OperationResult.createOperationResult(resultType);
-		} else {
-			result = null;
-		}
+		if (resultType == null) {
+            resultType = new OperationResult(Task.class.getName() + ".run").createOperationResultType();
+            taskPrism.asObjectable().setResult(resultType);
+        }
+
+		taskResult = OperationResult.createOperationResult(resultType);
 	}
 
 	void initialize(OperationResult initResult) throws SchemaException {
@@ -144,8 +144,9 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public PrismObject<TaskType> getTaskPrismObject() {
 				
-		if (result != null) {
-			taskPrism.asObjectable().setResult(result.createOperationResultType());
+		if (taskResult != null) {
+			taskPrism.asObjectable().setResult(taskResult.createOperationResultType());
+            taskPrism.asObjectable().setResultStatus(taskResult.getStatus().createStatusType());
 		}				
 		
 		return taskPrism;
@@ -255,7 +256,7 @@ public class TaskQuartzImpl implements Task {
 	public void setProgressImmediate(long value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         try {
-		    processModificationNow(setProgressAndPrepareDelta(value), result);
+		    processModificationNow(setProgressAndPrepareDelta(value), parentResult);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }
@@ -284,7 +285,7 @@ public class TaskQuartzImpl implements Task {
 	
 	@Override
 	public OperationResult getResult() {
-		return result;
+		return taskResult;
 	}
 
 	@Override
@@ -305,7 +306,8 @@ public class TaskQuartzImpl implements Task {
 	}
 	
 	public void setResultTransient(OperationResult result) {
-		this.result = result;
+		this.taskResult = result;
+        this.taskPrism.asObjectable().setResult(result.createOperationResultType());
         setResultStatusTypeTransient(result != null ? result.getStatus().createStatusType() : null);
 	}
 	
@@ -323,11 +325,18 @@ public class TaskQuartzImpl implements Task {
 
     /*
      *  Result status
+     *
+     *  We read the status from current 'taskResult', not from prism - to be sure to get the most current value.
+     *  However, when updating, we update the result in prism object in order for the result to be stored correctly in
+     *  the repo (useful for displaying the result in task list).
+     *
+     *  So, setting result type to a value that contradicts current taskResult leads to problems.
+     *  Anyway, result type should not be set directly, only when updating OperationResult.
      */
 
     @Override
     public OperationResultStatusType getResultStatus() {
-        return taskPrism.asObjectable().getResultStatus();
+        return taskResult == null ? null : taskResult.getStatus().createStatusType();
     }
 
     public void setResultStatusType(OperationResultStatusType value) {
@@ -1065,7 +1074,11 @@ public class TaskQuartzImpl implements Task {
 	
 	@Override
 	public PrismProperty<?> getExtension(QName propertyName) {
-		return getExtension().findProperty(propertyName);
+        if (getExtension() != null) {
+		    return getExtension().findProperty(propertyName);
+        } else {
+            return null;
+        }
 	}
 
 	@Override
@@ -1259,10 +1272,10 @@ public class TaskQuartzImpl implements Task {
 		sb.append("\n  persistenceStatus: ");
 		sb.append(persistenceStatus);
 		sb.append("\n  result: ");
-		if (result==null) {
+		if (taskResult ==null) {
 			sb.append("null");
 		} else {
-			sb.append(result.dump());
+			sb.append(taskResult.dump());
 		}
 		return sb.toString();
 	}
@@ -1284,7 +1297,7 @@ public class TaskQuartzImpl implements Task {
     public void setCategoryImmediate(String value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         try {
-            processModificationNow(setCategoryAndPrepareDelta(value), result);
+            processModificationNow(setCategoryAndPrepareDelta(value), parentResult);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }
@@ -1336,7 +1349,7 @@ public class TaskQuartzImpl implements Task {
     public void setModelOperationStateImmediate(ModelOperationStateType value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         try {
-            processModificationNow(setModelOperationStateAndPrepareDelta(value), result);
+            processModificationNow(setModelOperationStateAndPrepareDelta(value), parentResult);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }
@@ -1444,10 +1457,10 @@ public class TaskQuartzImpl implements Task {
 		TaskQuartzImpl other = (TaskQuartzImpl) obj;
 		if (persistenceStatus != other.persistenceStatus)
 			return false;
-		if (result == null) {
-			if (other.result != null)
+		if (taskResult == null) {
+			if (other.taskResult != null)
 				return false;
-		} else if (!result.equals(other.result))
+		} else if (!taskResult.equals(other.taskResult))
 			return false;
 		if (taskPrism == null) {
 			if (other.taskPrism != null)
