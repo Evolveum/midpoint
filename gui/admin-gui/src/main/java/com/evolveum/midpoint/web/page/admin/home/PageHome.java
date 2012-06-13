@@ -78,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
  * @author mserbak
  */
 public class PageHome extends PageAdmin {
+
 	private static final String DOT_CLASS = PageHome.class.getName() + ".";
 	private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
 	private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
@@ -93,6 +94,8 @@ public class PageHome extends PageAdmin {
 
 			@Override
 			protected AdminHomeDto load() {
+                LOGGER.trace("Started home page data loading.");
+
 				OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 				Task task = createSimpleTask(OPERATION_LOAD_USER);
 
@@ -110,9 +113,14 @@ public class PageHome extends PageAdmin {
 					showResult(result);
 				}
 				AdminHomeDto dto = new AdminHomeDto();
-				dto.getAccounts().addAll(loadAccountWrappers(prismUser));
+                LOGGER.trace("Loading accounts.");
+				dto.getAccounts().addAll(loadAccounts(prismUser));
+                LOGGER.trace("Loading role assignments.");
 				dto.getAssignments().addAll(loadRoleAssignments(prismUser));
+                LOGGER.trace("Loading resource assignments.");
 				dto.getResources().addAll(loadResourceAssignments(prismUser));
+
+                LOGGER.trace("Finished home page data loading.");
 				return dto;
 			}
 		};
@@ -169,7 +177,7 @@ public class PageHome extends PageAdmin {
 		initAccounts(accounts);
 	}
 
-	private List<SimpleAccountDto> loadAccountWrappers(PrismObject<UserType> prismUser) {
+	private List<SimpleAccountDto> loadAccounts(PrismObject<UserType> prismUser) {
 		List<SimpleAccountDto> list = new ArrayList<SimpleAccountDto>();
 		OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
 		Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
