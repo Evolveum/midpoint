@@ -82,6 +82,18 @@ public class RUser extends RObject {
     private RCredentials credentials;
     @QueryEntity(embedded = true)
     private RActivation activation;
+    @QueryAttribute
+    private String costCenter;
+    @QueryAttribute
+    private String locale;
+    @QueryAttribute
+    private String timezone;
+    @QueryAttribute
+    private RPolyString title;
+    @QueryAttribute
+    private RPolyString nickName;
+    @QueryAttribute
+    private String preferredLanguage;
 
     private Set<RObjectReference> accountRefs;
     private Set<RAssignment> assignments;
@@ -186,11 +198,60 @@ public class RUser extends RObject {
         return honorificSuffix;
     }
 
-
     @Index(name = "iUserName")
     @Column(name = "objectName", unique = true)
     public String getName() {
         return name;
+    }
+
+    public String getCostCenter() {
+        return costCenter;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    @Embedded
+    public RPolyString getNickName() {
+        return nickName;
+    }
+
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    @Embedded
+    public RPolyString getTitle() {
+        return title;
+    }
+
+    public void setCostCenter(String costCenter) {
+        this.costCenter = costCenter;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public void setNickName(RPolyString nickName) {
+        this.nickName = nickName;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
+
+    public void setTitle(RPolyString title) {
+        this.title = title;
     }
 
     public void setName(String name) {
@@ -292,6 +353,13 @@ public class RUser extends RObject {
             return false;
         if (assignments != null ? !assignments.equals(rUser.assignments) : rUser.assignments != null) return false;
         if (accountRefs != null ? !accountRefs.equals(rUser.accountRefs) : rUser.accountRefs != null) return false;
+        if (locale != null ? !locale.equals(rUser.locale) : rUser.locale != null) return false;
+        if (title != null ? !title.equals(rUser.title) : rUser.title != null) return false;
+        if (nickName != null ? !nickName.equals(rUser.nickName) : rUser.nickName != null) return false;
+        if (preferredLanguage != null ? !preferredLanguage.equals(rUser.preferredLanguage) :
+                rUser.preferredLanguage != null) return false;
+        if (timezone != null ? !timezone.equals(rUser.timezone) : rUser.timezone != null) return false;
+        if (costCenter != null ? !costCenter.equals(rUser.costCenter) : rUser.costCenter != null) return false;
 
         return true;
     }
@@ -309,6 +377,13 @@ public class RUser extends RObject {
         result = 31 * result + (locality != null ? locality.hashCode() : 0);
         result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
         result = 31 * result + (activation != null ? activation.hashCode() : 0);
+        result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
+        result = 31 * result + (locale != null ? locale.hashCode() : 0);
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        result = 31 * result + (nickName != null ? nickName.hashCode() : 0);
+        result = 31 * result + (preferredLanguage != null ? preferredLanguage.hashCode() : 0);
+        result = 31 * result + (timezone != null ? timezone.hashCode() : 0);
+
         return result;
     }
 
@@ -327,6 +402,13 @@ public class RUser extends RObject {
         repo.setAdditionalName(RPolyString.copyFromJAXB(jaxb.getAdditionalName()));
         repo.setEmailAddress(jaxb.getEmailAddress());
         repo.setTelephoneNumber(jaxb.getTelephoneNumber());
+
+        repo.setCostCenter(jaxb.getCostCenter());
+        repo.setLocale(jaxb.getLocale());
+        repo.setTimezone(jaxb.getTimezone());
+        repo.setPreferredLanguage(jaxb.getPreferredLanguage());
+        repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
+        repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
@@ -378,6 +460,13 @@ public class RUser extends RObject {
         jaxb.setAdditionalName(RPolyString.copyToJAXB(repo.getAdditionalName()));
         jaxb.setEmailAddress(repo.getEmailAddress());
         jaxb.setTelephoneNumber(repo.getTelephoneNumber());
+
+        jaxb.setCostCenter(repo.getCostCenter());
+        jaxb.setTimezone(repo.getTimezone());
+        jaxb.setLocale(repo.getLocale());
+        jaxb.setPreferredLanguage(repo.getPreferredLanguage());
+        jaxb.setTitle(RPolyString.copyToJAXB(repo.getTitle()));
+        jaxb.setNickName(RPolyString.copyToJAXB(repo.getNickName()));
 
         if (repo.getActivation() != null) {
             jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
