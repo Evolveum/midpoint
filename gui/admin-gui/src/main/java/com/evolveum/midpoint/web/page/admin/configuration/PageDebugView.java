@@ -45,9 +45,7 @@ public class PageDebugView extends PageAdminConfiguration {
             }
         };
         initLayout();
-    }
-
-    private ObjectViewDto loadObject() {
+    }    private ObjectViewDto loadObject() {
         StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
         if (objectOid == null || StringUtils.isEmpty(objectOid.toString())) {
             getSession().error(getString("pageDebugView.message.oidNotDefined"));
@@ -63,7 +61,6 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismObject<ObjectType> object = repository.getObject(ObjectType.class, objectOid.toString(), result);
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
-
             dto = new ObjectViewDto(object.getOid(), DtoUtils.getName(object), object, xml);
 
             result.recomputeStatus();
@@ -168,6 +165,7 @@ public class PageDebugView extends PageAdminConfiguration {
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
+            getSession().setAttribute("category", dto.getObject().getDefinition());
             setResponsePage(PageDebugList.class);
         }
     }

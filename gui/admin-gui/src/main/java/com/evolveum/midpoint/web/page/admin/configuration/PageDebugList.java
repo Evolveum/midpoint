@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -57,6 +58,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.ListChoice;
@@ -112,7 +114,14 @@ public class PageDebugList extends PageAdminConfiguration {
         });
     	
         //listed type
-        final IModel<ObjectTypes> choice = new Model<ObjectTypes>(ObjectTypes.SYSTEM_CONFIGURATION);
+    	IModel<ObjectTypes> sessionChoice = null;
+    	PrismObjectDefinition selectedCategory = (PrismObjectDefinition)getSession().getAttribute("category");
+    	if(selectedCategory != null) {
+    		sessionChoice = new Model<ObjectTypes>(ObjectTypes.getObjectTypeFromTypeQName(selectedCategory.getTypeName()));
+    	} else {
+    		sessionChoice = new Model<ObjectTypes>(ObjectTypes.SYSTEM_CONFIGURATION);
+    	}
+    	final IModel<ObjectTypes> choice = sessionChoice;
 
         List<IColumn<? extends ObjectType>> columns = new ArrayList<IColumn<? extends ObjectType>>();
 
@@ -157,8 +166,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OptionContent content = new OptionContent("optionContent");
         main.add(content);
+        
+        Class provider = selectedCategory == null ? SystemConfigurationType.class : selectedCategory.getCompileTimeClass();
         TablePanel table = new TablePanel("table", new RepositoryObjectDataProvider(PageDebugList.this,
-                SystemConfigurationType.class), columns);
+        		provider), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
 
