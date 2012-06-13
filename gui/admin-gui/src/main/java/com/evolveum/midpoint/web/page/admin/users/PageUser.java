@@ -721,6 +721,9 @@ public class PageUser extends PageAdminUsers {
             try {
                 ObjectWrapper accountWrapper = account.getObject();
                 ObjectDelta delta = accountWrapper.getObjectDelta();
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
+                }
                 if (!UserDtoStatus.MODIFY.equals(account.getStatus())
                         || delta.isEmpty()) {
                     continue;
@@ -867,6 +870,9 @@ public class PageUser extends PageAdminUsers {
         ObjectWrapper userWrapper = userModel.getObject();
         try {
             ObjectDelta delta = userWrapper.getObjectDelta();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
+            }
             Task task = createSimpleTask(OPERATION_SAVE_USER);
 
             switch (userWrapper.getStatus()) {
