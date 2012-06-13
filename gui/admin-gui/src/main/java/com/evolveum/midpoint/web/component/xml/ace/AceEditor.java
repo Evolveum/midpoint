@@ -86,7 +86,6 @@ public class AceEditor<T> extends TextArea<T> {
         script.append(" }");
         script.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
         script.append(setFocus(isReadonly()));
-        System.out.println(script.toString());
         return script.toString();
     }
 
