@@ -127,7 +127,7 @@ ul.messagesTop .messages-details-bold:hover {
 	text-decoration: underline;
 }
 
-ul.messagesTop .messages-error-details-section .messages-details-bold-arrow {
+ul.messagesTop .messages-error-details-bold-arrow {
 	background-image: url(messages-error-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -233,7 +233,7 @@ ul.messagesTop .messages-warn .selected-section {
 	background-color: #fdf4d5; 
 }
 
-ul.messagesTop .messages-warn-details-section .messages-details-bold-arrow {
+ul.messagesTop .messages-warn-details-bold-arrow {
 	background-image: url(messages-warn-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -316,7 +316,7 @@ ul.messagesTop .messages-succ .selected-section {
 	background-color: #ecfcd2; 
 }
 
-ul.messagesTop .messages-succ-details-section .messages-details-bold-arrow {
+ul.messagesTop .messages-succ-details-bold-arrow {
 	background-image: url(messages-succ-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;
@@ -400,7 +400,7 @@ ul.messagesTop .messages-info .selected-section {
 	background-color: #e8e4ff; 
 }
 
-ul.messagesTop .messages-info-details-section .messages-details-bold-arrow {
+ul.messagesTop .messages-info-details-bold-arrow {
 	background-image: url(messages-info-arrow.png);
 	background-repeat: no-repeat;
 	display: inline-block;

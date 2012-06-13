@@ -72,6 +72,7 @@ public class OperationResultPanel extends Panel {
         operationPanel.add(initCountPanel(model));
         
         WebMarkupContainer arrow = new WebMarkupContainer("arrow");
+        arrow.add(new AttributeAppender("class", createArrowClass(model), " "));
         arrow.setMarkupId(operationPanel.getMarkupId() + "_arrow");
         add(arrow);
         
@@ -199,6 +200,34 @@ public class OperationResultPanel extends Panel {
                     case WARNING:
                     default:
                         return "messages-warn-details-section";
+                }
+            }
+        };
+    }
+    
+    static IModel<String> createArrowClass(final IModel<OpResult> model) {
+        return new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                OpResult result = model.getObject();
+                if (result == null || result.getStatus() == null) {
+                    LOGGER.warn("Operation result on panel is null or has null status (will be rendered as warning).");
+                    return "messages-warn-details-bold-arrow";
+                }
+                switch (result.getStatus()) {
+                    case FATAL_ERROR:
+                    case PARTIAL_ERROR:
+                        return "messages-error-details-bold-arrow";
+                    case IN_PROGRESS:
+                    case NOT_APPLICABLE:
+                        return "messages-info-details-bold-arrow";
+                    case SUCCESS:
+                        return "messages-succ-details-bold-arrow";
+                    case UNKNOWN:
+                    case WARNING:
+                    default:
+                        return "messages-warn-details-bold-arrow";
                 }
             }
         };
