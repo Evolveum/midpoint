@@ -108,13 +108,6 @@
             <!--<version>2.0-SNAPSHOT</version>-->
         <!--</dependency>-->
 
-        <!-- JDBC DRIVERS -->
-        <dependency>
-            <groupId>postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>9.1-901.jdbc4</version>
-        </dependency>
-
         <!-- MIDPOINT -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
