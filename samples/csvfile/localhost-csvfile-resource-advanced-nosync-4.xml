@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines a CSV file resource
+using an Identity Connector Framework connector.
+
+-->
+
+<resource 	oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3faf4"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+         	xmlns:my="http://whatever.com/my"
+		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+        	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+
+
+    	<!-- Resource name. It will be displayed in GUI.  -->
+	<name>Localhost CSVfile 4</name>
+     
+     	<!-- Reference to the ICF Flatfile connector. It contains a search filter that finds the right connector by connectorType. -->
+	<connectorRef type="ConnectorType">
+		<filter>
+	        <q:equal>
+	          <q:value>
+	              <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
+	          </q:value>
+	        </q:equal>
+	      </filter>
+	</connectorRef>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+	<configuration>
+	
+            <!-- Configuration specific for the CSVfile connector -->
+		<icfc:configurationProperties
+		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector">
+
+				<icfccsvfile:filePath>/var/tmp/midpoint-flatfile-4.csv</icfccsvfile:filePath>
+				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+				<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
+				<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+				<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+				<icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
+				<icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
+	<!--			<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
+				<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
+			</icfc:configurationProperties>
+		
+			<!-- Generic ICF configuration -->
+
+	</configuration>
+
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+		<schemaHandling>
+
+            <!-- Definition of default account type.
+                 This is now the only account type that midPoint can work with. -->
+			<accountType>
+				<name>user</name>
+
+                <!-- Readable name for the account type -->
+				<displayName>Default Account</displayName>
+				<default>true</default>
+                <!-- Reference to the Resource Schema (see above) specifying
+                     object class for this account type -->
+				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute>
+					<ref>icfs:uid</ref>
+
+                    <!-- Readable name for the attribute. This will be used in GUI -->
+					<displayName>Entry UUID</displayName>
+
+                    <!-- Access limitation for this attribute.
+                         Entry UUID is created by the directory server itelf
+                         and it is immutable. We can only read it. -->
+					<access>read</access>
+<!--
+					<outbound default="true">
+						<expression>
+							<code>
+                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+							$i:user/c:name
+							</code>
+						</expression>
+					</outbound>-->
+				</attribute>
+				<attribute>
+					<ref>icfs:name</ref>
+
+                    <!-- Readable name for the attribute. This will be used in GUI -->
+					<displayName>Name</displayName>
+
+                    <!-- Access limitation for this attribute.
+                          -->
+					<access>create</access>
+					<access>read</access>
+					<outbound>
+						<initial>true</initial>
+						<path>$user/name</path>
+					</outbound>
+				</attribute>
+
+				<attribute>
+					<ref>ri:firstname</ref>
+					<displayName>First name</displayName>
+					<description>Definition of Firstname attribute handling.</description>
+					<outbound>
+						<initial>true</initial>
+						<path>$user/givenName</path>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:lastname</ref>
+					<displayName>Last name</displayName>
+					<description>Definition of Lastname attribute handling.</description>
+					<outbound>
+						<initial>true</initial>
+						<path>$user/familyName</path>
+					</outbound>
+				</attribute>
+<!--
+				<attribute ref="ri:disabled">
+					<c:name>disabled</c:name>
+					<c:description>Definition of disabled attribute handling. True = disabled, False = enabled.</c:description>
+					<access>read</access>
+					<outbound default="true">
+						<c:value>false</c:value>
+					</outbound>
+				</attribute>-->
+				<credentials>
+					<password>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</password>
+				</credentials>
+				<activation>
+					<enabled>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</enabled>
+				</activation>
+
+			</accountType>
+		</schemaHandling>
+
+		<!-- Resource capabilities. It defines a simulated enableDisable capability. -->
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+			<cap:activation>
+				<cap:enableDisable>
+					<cap:attribute>ri:disabled</cap:attribute>
+					<cap:enableValue>false</cap:enableValue>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:enableDisable>
+			</cap:activation>
+			<cap:credentials>
+				<cap:password/>
+			</cap:credentials>
+			<cap:testConnection/>
+		</capabilities>
+</resource>
+
