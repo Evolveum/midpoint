@@ -2342,55 +2342,6 @@
         <xsd:sequence>
             <xsd:element name="accountType" type="tns:ResourceAccountTypeDefinitionType" minOccurs="0"
                          maxOccurs="unbounded"/>
-            <xsd:element name="entitlementType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Type of entitlements such as groups, roles
-                        entitlements, organizatrions, etc.
-
-                        Not yet fully figured out. Please ignore for now.
-
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element ref="c:name" minOccurs="0" maxOccurs="1">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Human readable name for the object class.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="objectClass" type="xsd:QName">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    TODO
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="assignmentProperty">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    TODO
-                                </xsd:documentation>
-                            </xsd:annotation>
-                            <xsd:complexType>
-                                <xsd:attribute name="ref" type="xsd:QName"/>
-                                <xsd:attribute name="minOccurs" type="xsd:string" use="optional" default="1"/>
-                                <xsd:attribute name="maxOccurs" type="xsd:string" use="optional" default="1"/>
-                            </xsd:complexType>
-                        </xsd:element>
-                    </xsd:sequence>
-                    <xsd:attribute name="id" type="xsd:string">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:attribute>
-                </xsd:complexType>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
@@ -4242,70 +4193,10 @@
                         Account attribute values implied by this role.
                         When the role is assigned the attributes specified
                         below should be assigned values specified below.
-
-                        When the role is unassigned, the values specified below should be
-                        removed unless some other role is still specifying them.
-
-                        TODO: this is very simplistic now. Later we
-                        need flags for value removal, authoritativeness, 
-                        merging approach, etc.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="entitlement" type="tns:EntitlementConstructionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Assignments implied by this role. When the role
-                        is assigned the assignable types (groups, native
-                        roles) specified below should be assigned to the account.
-
-                        When the role is unassigned, the assignable types specified
-                        below should be unassigned unless some other role is still 
-                        specifying them.
-
-                        TODO: this is very simplistic now. Later we need flags for value
-                        removal, authoritativeness, merging approach, etc.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="EntitlementConstructionType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:ValueConstructionType">
-                <xsd:choice>
-                    <xsd:element name="type" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Type of entitlement that should be created on the resource.
-
-                                This must point to the a valid entitlementType
-                                definition in the resource object (in schemaHandling section).
-
-                                This element is optional. If not specified then the entitlement type
-                                marked as default in the resource definition should be used.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="typeExpression" type="c:ExpressionType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Expression that determines type of account that
-                                should be created on the resource.
-                                TODO
-
-                                The variables should be set as follows:
-                                $account - the account that this entitlement will be part of
-                                $user - the user that such account will belong to
-                                $assignment - an assignemt that is assigning the object in which
-                                context is this expression evaluated (e.g. assignment of role)
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:choice>
-            </xsd:extension>
-        </xsd:complexContent>
     </xsd:complexType>
 
 

@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.common;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -28,7 +29,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
  * @author semancik
  *
  */
-public class ResourceObjectPattern {
+public class ResourceObjectPattern implements Serializable {
 	
 	private Collection<ResourceAttribute<?>> identifiers;
 	
