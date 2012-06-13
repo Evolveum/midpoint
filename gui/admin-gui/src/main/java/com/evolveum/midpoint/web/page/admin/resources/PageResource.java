@@ -25,13 +25,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -55,30 +57,27 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.message.OpResult;
-import com.evolveum.midpoint.web.component.message.OperationResultPanel;
-import com.evolveum.midpoint.web.component.message.Param;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 
+/**
+ * @author lazyman
+ * @author Michal Serbak
+ */
 public class PageResource extends PageAdminResources {
 
 	public static final String PARAM_RESOURCE_ID = "resourceId";
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
 	private static final String DOT_CLASS = PageResource.class.getName() + ".";
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
-
+    private static final String OPERATION_IMPORT_FROM_RESOURCE = DOT_CLASS + "importFromResource";
 	private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
 
 	private IModel<ResourceDto> model;
@@ -125,7 +124,7 @@ public class PageResource extends PageAdminResources {
             }
             throw new RestartResponseException(PageResources.class);
         }
-		return new ResourceDto(resource, getMidpointApplication().getPrismContext(), resource.asObjectable().getConnector(),
+		return new ResourceDto(resource, getPrismContext(), resource.asObjectable().getConnector(),
 				initCapabilities(resource.asObjectable()));
 	}
 
@@ -327,54 +326,73 @@ public class PageResource extends PageAdminResources {
 		};
 		mainForm.add(back);
 
-		/*AjaxLinkButton save = new AjaxLinkButton("save", createStringResource("pageResource.button.save")) {
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				savePerform(target);
-			}
-		};
-		mainForm.add(save);*/
-
 		AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("pageResource.button.test")) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				testConnectionPerformed(target);
-				//add(PageResource.this);
 			}
 		};
 		mainForm.add(test);
-	}
 
-	private void savePerform(AjaxRequestTarget target){
-		//TODO: implement
+        AjaxLinkButton importAccounts = new AjaxLinkButton("importAccounts",
+                createStringResource("pageResource.button.importAccounts")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                importFromResourcePerformed(target);
+            }
+        };
+        mainForm.add(importAccounts);
 	}
 
 	private void testConnectionPerformed(AjaxRequestTarget target){
-        OperationResult result = null;
     	ResourceDto dto = model.getObject();
-    	if (StringUtils.isEmpty(dto.getOid())) {
-    		result.recordFatalError("Resource oid not defined in request");
-		}
+        if (dto == null || StringUtils.isEmpty(dto.getOid())) {
+            error(getString("pageResource.message.oidNotDefined"));
+            target.add(getFeedbackPanel());
+            return;
+        }
 
-    	try {
-    		result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_CONNECTION));
-    		ResourceController.updateResourceState(dto.getState(), result);
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Fail to test resource connection", ex);
-		}
+        OperationResult result = null;
+        try {
+            result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_CONNECTION));
+            ResourceController.updateResourceState(dto.getState(), result);
+        } catch (ObjectNotFoundException ex) {
+            if (result == null) {
+                result = new OperationResult(TEST_CONNECTION);
+            }
+            result.recordFatalError("Fail to test resource connection", ex);
+        }
 
-    	if(result == null) {
-    		result = new OperationResult(TEST_CONNECTION);
-    	}
+        WebMarkupContainer connectors = (WebMarkupContainer) get("mainForm:connectors");
+        target.add(connectors);
 
-    	WebMarkupContainer connectors = (WebMarkupContainer)get("mainForm:connectors");
-    	target.add(connectors);
-
-    	if(!result.isSuccess()){
-    		showResult(result);
-    		target.add(getFeedbackPanel());
-    	}
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
 	}
+
+    private void importFromResourcePerformed(AjaxRequestTarget target) {
+        ResourceDto dto = model.getObject();
+        LOGGER.debug("Import accounts from resource {} ({}), object class {}",
+                new Object[]{dto.getName(), dto.getOid(), dto.getDefaultAccountObjectClass()});
+
+        OperationResult result = new OperationResult(OPERATION_IMPORT_FROM_RESOURCE);
+        try {
+            Task task = createSimpleTask(OPERATION_IMPORT_FROM_RESOURCE);
+            getModelService().importAccountsFromResource(dto.getOid(), dto.getDefaultAccountObjectClass(), task, result);
+
+            info(getString("pageResource.message.importStarted"));
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Error occurred during accounts import from resource {} ({}), class {}",
+                    ex, dto.getName(), dto.getOid(), dto.getDefaultAccountObjectClass());
+            result.recordFatalError("Error occurred during importing accounts from resource.", ex);
+        }
+
+        result.recordSuccessIfUnknown();
+
+        target.add(getFeedbackPanel());
+    }
 }

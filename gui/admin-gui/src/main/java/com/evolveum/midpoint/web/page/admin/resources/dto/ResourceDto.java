@@ -38,6 +38,8 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author lazyman
  */
@@ -57,6 +59,7 @@ public class ResourceDto extends Selectable {
     private List<String> capabilities;
     private ResourceSync sync;
     private ResourceImport resImport;
+    private QName defaultAccountObjectClass;
 
     public ResourceDto() {
     }
@@ -93,9 +96,17 @@ public class ResourceDto extends Selectable {
     			}
     			objectTypes.add(new ResourceObjectTypeDto(definition));
     		}
+
+            //default account object class qname
+            ObjectClassComplexTypeDefinition def = resourceSchema.findDefaultAccountDefinition();
+            defaultAccountObjectClass = def.getTypeName();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't load resource attribute container definition.", ex);
 		}
+    }
+
+    public QName getDefaultAccountObjectClass() {
+        return defaultAccountObjectClass;
     }
 
     public String getBundle() {
