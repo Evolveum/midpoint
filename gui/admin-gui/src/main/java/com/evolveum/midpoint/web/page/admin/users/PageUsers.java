@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersAction;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
@@ -52,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -60,7 +59,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -72,7 +73,10 @@ import org.apache.wicket.request.resource.SharedResourceReference;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -113,10 +117,6 @@ public class PageUsers extends PageAdminUsers {
         option.getBodyContainer().add(item);
         initSearch(item);
 
-        item = new OptionItem("action", createStringResource("pageUsers.action"));
-        option.getBodyContainer().add(item);
-        initAction(item);
-
         OptionContent content = new OptionContent("optionContent");
         mainForm.add(content);
         initTable(content);
@@ -130,6 +130,55 @@ public class PageUsers extends PageAdminUsers {
                 deleteConfirmedPerformed(target);
             }
         });
+
+        initButtons(mainForm);
+    }
+
+    private void initButtons(Form mainForm) {
+        AjaxSubmitLinkButton enable = new AjaxSubmitLinkButton("enable",
+                createStringResource("pageUsers.button.enable")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                enablePerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(enable);
+
+        AjaxSubmitLinkButton disable = new AjaxSubmitLinkButton("disable",
+                createStringResource("pageUsers.button.disable")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                disablePerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(disable);
+
+        AjaxSubmitLinkButton delete = new AjaxSubmitLinkButton("delete", ButtonType.NEGATIVE,
+                createStringResource("pageUsers.button.delete")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                deletePerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(delete);
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -257,57 +306,6 @@ public class PageUsers extends PageAdminUsers {
             }
         };
         item.add(searchButton);
-    }
-
-    private IModel<List<UsersAction>> createChoiceModel() {
-        return new LoadableModel<List<UsersAction>>(false) {
-
-            @Override
-            protected List<UsersAction> load() {
-                List<UsersAction> choices = new ArrayList<UsersAction>();
-                Collections.addAll(choices, UsersAction.values());
-
-                return choices;
-            }
-        };
-    }
-
-    private void initAction(OptionItem item) {
-        final IModel<UsersAction> choice = new Model<UsersAction>();
-        final ListChoice listChoice = new ListChoice("choice", choice, createChoiceModel(),
-                new EnumChoiceRenderer(PageUsers.this), 5) {
-
-            @Override
-            protected CharSequence getDefaultChoice(String selectedValue) {
-                return "";
-            }
-        };
-        listChoice.setOutputMarkupId(true);
-        listChoice.add(new OnChangeAjaxBehavior() {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                target.add(listChoice);
-
-                UsersAction action = choice.getObject();
-                if (action == null) {
-                    return;
-                }
-                switch (action) {
-                    case DELETE:
-                        deletePerformed(target);
-                        break;
-                    case ENABLE:
-                        enablePerformed(target);
-                        break;
-                    case DISABLE:
-                        disablePerformed(target);
-                        break;
-                }
-                choice.setObject(null);
-            }
-        });
-        item.getBodyContainer().add(listChoice);
     }
 
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
