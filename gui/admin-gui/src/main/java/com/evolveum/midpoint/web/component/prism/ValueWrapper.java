@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
@@ -41,19 +42,27 @@ public class ValueWrapper<T> implements Serializable {
     }
 
     public ValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value, ValueStatus status) {
-        this(property, value, new PrismPropertyValue<T>(value.getValue(), value.getType(), value.getSource()), status);
+        this(property, value, null, status);
     }
 
     public ValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value, PrismPropertyValue<T> oldValue,
             ValueStatus status) {
         Validate.notNull(property, "Property wrapper must not be null.");
         Validate.notNull(value, "Property value must not be null.");
-        Validate.notNull(value, "Old property value must not be null.");
 
         this.property = property;
         this.value = value;
-        this.oldValue = oldValue;
         this.status = status;
+
+        if (oldValue == null) {
+            T val = value.getValue();
+            if (val instanceof PolyString) {
+                PolyString poly = (PolyString)val;
+                val = (T) new PolyString(poly.getOrig(), poly.getNorm());
+            }
+            oldValue = new PrismPropertyValue<T>(val, value.getType(), value.getSource());
+        }
+        this.oldValue = oldValue;
     }
 
     public PropertyWrapper getProperty() {
