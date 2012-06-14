@@ -682,7 +682,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	}
 
 	private OperationResultType modifyUserAddAccount(String modifyUserRequest) throws FileNotFoundException,
-			JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException {
+			JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException, ObjectAlreadyExistsException {
 		checkRepoOpenDjResource();
 		assertCache();
 
@@ -1569,7 +1569,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	}
 
 	private void applySyncSettings(AccountSynchronizationSettingsType syncSettings)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
 		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
