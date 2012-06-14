@@ -24,7 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowAttributesType;
 import org.apache.commons.lang.Validate;
@@ -87,7 +87,8 @@ public class RAnyContainer implements Serializable {
 
     @Id
     @GeneratedValue(generator = "ContainerTypeGenerator")
-    @GenericGenerator(name = "ContainerTypeGenerator", strategy = "com.evolveum.midpoint.repo.sql.ContainerTypeGenerator")
+    @GenericGenerator(name = "ContainerTypeGenerator",
+            strategy = "com.evolveum.midpoint.repo.sql.util.ContainerTypeGenerator")
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "ownerType")
     public RContainerType getOwnerType() {

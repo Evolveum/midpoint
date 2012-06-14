@@ -21,16 +21,17 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.task.api.Task;
+
 /**
  * @author lazyman
  */
-public class DtoTranslationException extends Exception {
+public class SqlAuditServiceImpl implements AuditService {
 
-    public DtoTranslationException(String message) {
-        super(message);
-    }
+    @Override
+    public void audit(AuditEventRecord record, Task task) {
 
-    public DtoTranslationException(String message, Throwable throwable) {
-        super(message, throwable);
     }
 }

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
-import com.evolveum.midpoint.repo.sql.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RUtil;
 import com.evolveum.midpoint.repo.sql.type.QNameType;

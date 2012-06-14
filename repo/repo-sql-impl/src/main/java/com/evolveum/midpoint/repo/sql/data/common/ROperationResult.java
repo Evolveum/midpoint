@@ -23,9 +23,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.LocalizedMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ParamsType;
 import org.apache.commons.lang.StringUtils;

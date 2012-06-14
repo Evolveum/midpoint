@@ -64,7 +64,7 @@
             </props>
         </property>
         <property name="namingStrategy">
-            <bean class="com.evolveum.midpoint.repo.sql.MidPointNamingStrategy"/>
+            <bean class="com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy"/>
         </property>
         <property name="annotatedPackages">
             <list>

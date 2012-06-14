@@ -41,7 +41,7 @@ public abstract class RContainer implements Serializable {
 
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
-    @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.ContainerIdGenerator")
+    @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
     public Long getId() {
         return id;
@@ -49,7 +49,7 @@ public abstract class RContainer implements Serializable {
 
     @Id
     @GeneratedValue(generator = "ContainerOidGenerator")
-    @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.ContainerOidGenerator")
+    @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerOidGenerator")
     @Column(name = "oid", nullable = false, updatable = false, length = 36)
     public String getOid() {
         return oid;

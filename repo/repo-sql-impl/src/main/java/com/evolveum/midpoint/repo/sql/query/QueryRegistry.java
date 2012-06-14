@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
-import com.evolveum.midpoint.repo.sql.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
