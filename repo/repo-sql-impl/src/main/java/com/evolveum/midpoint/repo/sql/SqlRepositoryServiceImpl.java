@@ -45,8 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
@@ -54,6 +52,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.GenericJDBCException;
 import org.hibernate.exception.LockAcquisitionException;
+import org.hibernate.jdbc.Work;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.tuple.IdentifierProperty;
@@ -64,6 +63,8 @@ import org.springframework.stereotype.Repository;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -376,7 +377,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             rollbackTransaction(session, ex, result);
             throw ex;
         } catch (ConstraintViolationException ex) {
-            rollbackTransaction(session,  ex, result);
+            rollbackTransaction(session, ex, result);
             // we don't know if it's only name uniqueness violation, or something else,
             // therefore we're throwing it always as ObjectAlreadyExistsException
             throw new ObjectAlreadyExistsException(ex);
@@ -736,7 +737,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             rollbackTransaction(session, ex, result);
             throw ex;
         } catch (ConstraintViolationException ex) {
-            rollbackTransaction(session,  ex, result);
+            rollbackTransaction(session, ex, result);
             // we don't know if it's only name uniqueness violation, or something else,
             // therefore we're throwing it always as ObjectAlreadyExistsException
             throw new ObjectAlreadyExistsException(ex);
@@ -928,6 +929,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private Session beginTransaction() {
         Session session = sessionFactory.openSession();
+        // we're forcing transaction isolation throught MidPointConnectionCustomizer
+        // session.doWork(new Work() {
+        //
+        //      @Override
+        //      public void execute(Connection connection) throws SQLException {
+        //          connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+        //      }
+        // });
         session.beginTransaction();
 
         return session;

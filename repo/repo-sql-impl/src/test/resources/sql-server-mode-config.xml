@@ -35,9 +35,17 @@
             <dropIfExists>true</dropIfExists>
 
             <!--<embedded>false</embedded>-->
+            <!--<driverClassName>org.postgresql.Driver</driverClassName>-->
+            <!--<hibernateHbm2ddl>update</hibernateHbm2ddl>-->
+            <!--<hibernateDialect>org.hibernate.dialect.PostgreSQLDialect</hibernateDialect>-->
+            <!--<jdbcPassword>midpoint</jdbcPassword>-->
+            <!--<jdbcUsername>midpoint</jdbcUsername>-->
+            <!--<jdbcUrl>jdbc:postgresql://localhost:5432/a</jdbcUrl>-->
+
+            <!--<embedded>false</embedded>-->
             <!--<driverClassName>com.mysql.jdbc.Driver</driverClassName>-->
             <!--<hibernateHbm2ddl>update</hibernateHbm2ddl>-->
-            <!--<hibernateDialect>org.hibernate.dialect.MySQLDialect</hibernateDialect>-->
+            <!--<hibernateDialect>org.hibernate.dialect.MySQL5InnoDBDialect</hibernateDialect>-->
             <!--<jdbcPassword>hKyN834cMR</jdbcPassword>-->
             <!--<jdbcUsername>midpoint</jdbcUsername>-->
             <!--<jdbcUrl>jdbc:mysql://localhost:3306/midpoint</jdbcUrl>-->

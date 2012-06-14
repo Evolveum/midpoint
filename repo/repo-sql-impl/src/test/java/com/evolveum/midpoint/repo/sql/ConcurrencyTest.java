@@ -37,7 +37,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -46,6 +48,8 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -75,6 +79,14 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void concurrency001() throws Exception {
+        Session session = factory.openSession();
+        session.doWork(new Work() {
+            @Override
+            public void execute(Connection connection) throws SQLException {
+                System.out.println(">>>>" + connection.getTransactionIsolation());
+            }
+        });
+        session.close();
 
         final File file = new File("src/test/resources/concurrency/user.xml");
         PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(file);
