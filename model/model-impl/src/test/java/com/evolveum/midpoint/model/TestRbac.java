@@ -26,12 +26,15 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -51,8 +54,11 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -65,6 +71,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
@@ -86,12 +95,12 @@ public class TestRbac extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test001AssignRolePirate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    public void test001JackAssignRolePirate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test001AssignRolePirate");
+        displayTestTile(this, "test001JackAssignRolePirate");
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test001AssignRolePirate");
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test001JackAssignRolePirate");
         OperationResult result = task.getResult();
         
         // WHEN
@@ -109,12 +118,12 @@ public class TestRbac extends AbstractModelIntegrationTest {
 	 * be updated as well. 
 	 */
 	@Test
-    public void test002ModifyUserLocality() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    public void test002JackModifyUserLocality() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test002ModifyUserLocality");
+        displayTestTile(this, "test002JackModifyUserLocality");
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test002ModifyUserLocality");
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test002JackModifyUserLocality");
         OperationResult result = task.getResult();
         
         // WHEN
@@ -142,6 +151,41 @@ public class TestRbac extends AbstractModelIntegrationTest {
         // THEN
         assertHasNoRole(USER_JACK_OID, task, result);
         assertNoDummyAccount("jack");
+	}
+
+	
+	@Test
+    public void test100JackAssignRolePirateWhileAlreadyHasAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test100JackAssignRolePirateWhileAlreadyHasAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100JackAssignRolePirateWhileAlreadyHasAccount");
+        OperationResult result = task.getResult();
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		modifications.add(accountDelta);
+        
+		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		        
+        // Precondition (simplified)
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        // WHEN
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        assertHasRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDummyAccountAttribute("jack", "location", "Tortuga");
+        
 	}
 
 }

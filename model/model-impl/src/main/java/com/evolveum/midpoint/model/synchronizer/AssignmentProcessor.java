@@ -225,7 +225,11 @@ public class AssignmentProcessor {
 
             } else if (plusAccountMap.containsKey(rat)) {
                 // Account added
-            	markPolicyDecision(context, rat, PolicyDecision.ADD);
+            	if (accountExists(context,rat)) {
+            		markPolicyDecision(context, rat, PolicyDecision.KEEP);
+            	} else {
+            		markPolicyDecision(context, rat, PolicyDecision.ADD);
+            	}
                 context.getAccountSyncContext(rat).setAssigned(true);
 
             } else if (minusAccountMap.containsKey(rat)) {
@@ -320,6 +324,17 @@ public class AssignmentProcessor {
         return sb.toString();
     }
 
+    private boolean accountExists(SyncContext context, ResourceAccountType rat) {
+    	AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+    	if (accountSyncContext == null) {
+    		return false;
+    	}
+    	if (accountSyncContext.getAccountOld() == null) {
+    		return false;
+    	}
+    	return true;
+    }
+    
     private void markPolicyDecision(SyncContext context, ResourceAccountType rat, PolicyDecision decision) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
         AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
