@@ -201,32 +201,33 @@ public class PageResources extends PageAdminResources {
         };
         columns.add(column);*/
 
-        column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.import")) {
-
-            @Override
-            protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
-                return new AbstractReadOnlyModel<ResourceReference>() {
-
-                    @Override
-                    public ResourceReference getObject() {
-                        ResourceDto dto = rowModel.getObject();
-                        ResourceImportStatus status = dto.getResImport();
-                        if (status == null) {
-                            status = ResourceImportStatus.DISABLE;
-                        }
-                        return new PackageResourceReference(PageResources.class, status.getIcon());
-                    }
-                };
-            }
-
-            @Override
-            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
-                ResourceDto resource = rowModel.getObject();
-                resourceImportPerformed(target, resource.getOid());
-                target.add(link);
-            }
-        };
-        columns.add(column);
+        //todo import
+//        column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.import")) {
+//
+//            @Override
+//            protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
+//                return new AbstractReadOnlyModel<ResourceReference>() {
+//
+//                    @Override
+//                    public ResourceReference getObject() {
+//                        ResourceDto dto = rowModel.getObject();
+//                        ResourceImportStatus status = dto.getResImport();
+//                        if (status == null) {
+//                            status = ResourceImportStatus.DISABLE;
+//                        }
+//                        return new PackageResourceReference(PageResources.class, status.getIcon());
+//                    }
+//                };
+//            }
+//
+//            @Override
+//            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
+//                ResourceDto resource = rowModel.getObject();
+//                resourceImportPerformed(target, resource.getOid());
+//                target.add(link);
+//            }
+//        };
+//        columns.add(column);
 
         //todo sync import progress
 //        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
