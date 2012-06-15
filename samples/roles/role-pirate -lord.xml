@@ -1,0 +1,51 @@
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 lazyman                       -->
+<!-- Portions Copyrighted 2011 Radovan Semancik              -->
+<!--                                                         -->
+
+<role oid="12345678-d34d-b33f-f00d-988888888889"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+    <name>Pirate Lord</name>
+    <description>
+     A role that "extends" pirate role. Used to test role hierarchies.
+    </description>
+    <assignment>
+        <targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="RoleType"/>
+    </assignment>
+    <assignment>
+    	<accountConstruction>
+    		<!-- The c: prefix in type must be there due to a JAXB bug -->
+    		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+    		<attribute>
+                    <ref>ri:title</ref>
+                    <value>His Bloodthirstyness</value>
+                </attribute>    		
+		<!-- Example of specification of several values for a multi-valued attribute -->
+    		<attribute>
+                    <ref>ri:businessCategory</ref>
+                    <value>
+                        <ri:businessCategory>politics</ri:businessCategory>
+                    </value>
+            </attribute>
+    	</accountConstruction>
+    </assignment>  
+</role>
