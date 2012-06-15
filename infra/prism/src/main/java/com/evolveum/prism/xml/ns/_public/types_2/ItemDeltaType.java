@@ -169,7 +169,7 @@ public class ItemDeltaType implements Serializable {
     @XmlType(name = "", propOrder = {
         "any"
     })
-    public static class Value {
+    public static class Value implements Serializable {
 
         @XmlAnyElement(lax = true)
         protected List<Object> any;
