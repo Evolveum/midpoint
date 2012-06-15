@@ -149,7 +149,7 @@ div.objectForm .tableForm .tableFormBody .objectFormLabel {
 	font-weight: bold;
 	font-size: 13px;
 	padding: 0px;
-	text-transform: capitalize;
+	/*text-transform: capitalize;*/
 	position: relative;
 	float: left;
 }

@@ -30,14 +30,18 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AbstractAjaxBehavior;
+import org.apache.wicket.behavior.AbstractBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -688,6 +692,15 @@ public class PageUser extends PageAdminUsers {
                 addSelectedAccountPerformed(target, newResources);
             }
         });
+        window.add(new AbstractAjaxBehavior() {
+			@Override
+			public void onRequest() {}
+
+			@Override
+			public void renderHead(Component component, IHeaderResponse response) {
+				response.renderOnDomReadyJavaScript("Wicket.Window.unloadConfirmation = false;");
+			}
+		});
         add(window);
     }
 
@@ -700,6 +713,16 @@ public class PageUser extends PageAdminUsers {
                 addSelectedRolePerformed(target, roles);
             }
         });
+        
+        window.add(new AbstractAjaxBehavior() {
+			@Override
+			public void onRequest() {}
+
+			@Override
+			public void renderHead(Component component, IHeaderResponse response) {
+				response.renderOnDomReadyJavaScript("Wicket.Window.unloadConfirmation = false;");
+			}
+		});
         add(window);
     }
 
@@ -1040,6 +1063,7 @@ public class PageUser extends PageAdminUsers {
                 wrapper.setShowEmpty(true);
                 wrapper.setMinimalized(false);
                 accountsModel.getObject().add(new UserAccountDto(wrapper, UserDtoStatus.ADD));
+                setResponsePage(getPage());
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntCreateAccount", resource.getName(), ex.getMessage()));
                 LoggingUtils.logException(LOGGER, "Couldn't create account", ex);
@@ -1072,6 +1096,7 @@ public class PageUser extends PageAdminUsers {
 
                 assignments.add(new UserAssignmentDto(role.getName(), UserAssignmentDto.Type.ROLE,
                         UserDtoStatus.ADD, assignment));
+                setResponsePage(getPage());
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntAddRole", role.getName(), ex.getMessage()));
                 LoggingUtils.logException(LOGGER, "Couldn't add role", ex);
