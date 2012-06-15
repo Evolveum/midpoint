@@ -16,20 +16,32 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2011 lazyman                       -->
+<!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-987987cccccc"
+
+<role oid="12345678-d34d-b33f-f00d-987955553535"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
-    <name>Captain Role</name>
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+    <name>Sailor</name>
+    <description>
+     A basic role for an example hierarchy of roles that also contains
+     roles "Pirate" and "Captain". It specifies account on OpenDJ resource
+     and also sets "employeeType" attribute to a fixed value and it sets "destinationIndicator"
+     as a copy of a user property.
+    </description>
     <assignment>
-        <accountConstruction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-        	<!-- The c: prefix in type must be there due to a JAXB bug -->
-            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-            <attribute>
-                <ref>ri:title</ref>
-                <value>Honorable Captain</value>
-            </attribute>
-        </accountConstruction>
+    	<accountConstruction>
+    		<!-- The c: prefix in type must be there due to a JAXB bug -->
+    		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+    		<attribute>
+                	<ref>ri:employeeType</ref>
+                	<value>sailor</value>
+                </attribute>
+                <attribute> 
+                    <ref>ri:destinationIndicator</ref>
+                    <path>$user/employeeNumber</path>
+                </attribute>
+    	</accountConstruction>
     </assignment>    
 </role>

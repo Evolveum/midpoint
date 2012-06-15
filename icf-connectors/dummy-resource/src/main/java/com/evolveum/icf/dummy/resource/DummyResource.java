@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.springframework.core.task.SyncTaskExecutor;
-
 /**
  * Resource for use with dummy ICF connector.
  * 
@@ -68,6 +66,7 @@ public class DummyResource {
 	private DummySyncStyle syncStyle;
 	private List<DummyDelta> deltas;
 	private int latestSyncToken;
+	private boolean tolerateDuplicateValues = false;
 	
 	private static DummyResource instance = null;
 	
@@ -99,6 +98,14 @@ public class DummyResource {
 		return instance;
 	}
 	
+	public boolean isTolerateDuplicateValues() {
+		return tolerateDuplicateValues;
+	}
+
+	public void setTolerateDuplicateValues(boolean tolerateDuplicateValues) {
+		this.tolerateDuplicateValues = tolerateDuplicateValues;
+	}
+
 	public DummyObjectClass getAccountObjectClass() {
 		return accountObjectClass;
 	}

@@ -126,26 +126,39 @@ public class DummyAccount {
 		recordModify();
 	}
 
-	public void addAttributeValues(String name, Collection<Object> values) {
+	public void addAttributeValues(String name, Collection<Object> valuesToAdd) {
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
 			attributes.put(name, currentValues);
 		}
-		currentValues.addAll(values);
+		for(Object valueToAdd: valuesToAdd) {
+			addAttributeValue(currentValues, valueToAdd);
+		}
 		recordModify();
 	}
 	
-	public void addAttributeValues(String name, String... values) {
+	public void addAttributeValues(String name, String... valuesToAdd) {
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
 			attributes.put(name, currentValues);
 		}
-		for (Object value: values) {
-			currentValues.add(value);
+		for (Object valueToAdd: valuesToAdd) {
+			addAttributeValue(currentValues, valueToAdd);
 		}
 		recordModify();
+	}
+	
+	private void addAttributeValue(Set<Object> currentValues, Object valueToAdd) {
+		if (resource != null && !resource.isTolerateDuplicateValues()) {
+			for (Object currentValue: currentValues) {
+				if (currentValue.equals(valueToAdd)) {
+					throw new IllegalArgumentException("The value '"+valueToAdd+"' conflicts with existing value");
+				}
+			}
+		}
+		currentValues.add(valueToAdd);
 	}
 
 	public void removeAttributeValues(String name, Collection<Object> values) {

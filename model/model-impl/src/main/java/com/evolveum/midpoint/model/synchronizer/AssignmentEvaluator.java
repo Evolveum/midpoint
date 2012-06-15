@@ -40,6 +40,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
@@ -51,6 +53,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
  *
  */
 public class AssignmentEvaluator {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentEvaluator.class);
 
 	private RepositoryService repository;
 	private ObjectDeltaObject<UserType> userOdo;
@@ -195,10 +199,16 @@ public class AssignmentEvaluator {
 				throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
 			}
 		} catch (ObjectNotFoundException ex) {
-			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
+			// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
+			// an exception would prohibit any operations with the users that have the role, including removal of the reference.
+			// The failure is recorded in the result and we will log it. It should be enough.
+			LOGGER.error(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
+//			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
 		}
 		
-		evaluateTarget(assignment, assignmentPathSegment, target.asObjectable(), source, sourceDescription, assignmentPath, result);
+		if (target != null) {
+			evaluateTarget(assignment, assignmentPathSegment, target.asObjectable(), source, sourceDescription, assignmentPath, result);
+		}
 	}
 
 

@@ -61,8 +61,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -165,6 +166,11 @@ public class TestRbac extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        
+        // FIXME: MID-784
+        // Make sure that the existing account has the same value as is set by the role
+//        TestUtil.setAttribute(account, new QName(resourceDummyType.getNamespace(), "title"), DOMUtil.XSD_STRING,
+//        		prismContext, "Bloody Pirate");
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();

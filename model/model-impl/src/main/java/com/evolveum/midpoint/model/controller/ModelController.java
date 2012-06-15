@@ -729,7 +729,7 @@ public class ModelController implements ModelService {
                     // todo: is objectDelta the correct holder of the modifications?
                     executePostChange(objectDelta, task, result);
 
-                    result.computeStatus();
+                    result.recordSuccessIfUnknown();
 				} catch (ObjectAlreadyExistsException e) {
 					// This should not happen
 					// TODO Better handling

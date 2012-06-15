@@ -16,17 +16,23 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2011 lazyman                       -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-987987987988" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+<!-- A role that specifies account on OpenDJ resource and also sets the
+     "title" attribute to a fixed value. -->
+
+<role oid="12345678-d34d-b33f-f00d-987987555555"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
-    <name>simple role</name>    
+    <name>Smith</name>
     <assignment>
-    	<accountConstruction>
-    		<!-- The c: prefix in type must be there due to a JAXB bug -->
-    		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-            <type>user</type>
-    	</accountConstruction>
+        <accountConstruction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+        	<!-- The c: prefix in type must be there due to a JAXB bug -->
+            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+            <attribute>
+                <ref>ri:title</ref>
+                <value>Master Blacksmith</value>
+            </attribute>
+        </accountConstruction>
     </assignment>    
 </role>

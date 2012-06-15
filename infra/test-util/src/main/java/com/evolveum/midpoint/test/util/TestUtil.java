@@ -21,13 +21,23 @@
 
 package com.evolveum.midpoint.test.util;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Node;
@@ -76,4 +86,14 @@ public class TestUtil {
 		String oid = oidNode.getNodeValue();
 		return oid;
 	}
+    
+    public static void setAttribute(PrismObject<AccountShadowType> account, QName attrName, QName typeName, 
+			PrismContext prismContext, String value) throws SchemaException {
+		PrismContainer<Containerable> attributesContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
+		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(attrName, attrName, typeName, prismContext);
+		ResourceAttribute attribute = attrDef.instantiate();
+		attribute.setRealValue(value);
+		attributesContainer.add(attribute);
+	}
+
 }
