@@ -677,6 +677,16 @@ public class PageUser extends PageAdminUsers {
                 modal.close(target);
             }
         });
+        
+        modal.add(new AbstractAjaxBehavior() {
+			@Override
+			public void onRequest() {}
+
+			@Override
+			public void renderHead(Component component, IHeaderResponse response) {
+				response.renderOnDomReadyJavaScript("Wicket.Window.unloadConfirmation = false;");
+			}
+		});
 
         return modal;
     }
@@ -692,15 +702,6 @@ public class PageUser extends PageAdminUsers {
                 addSelectedAccountPerformed(target, newResources);
             }
         });
-        window.add(new AbstractAjaxBehavior() {
-			@Override
-			public void onRequest() {}
-
-			@Override
-			public void renderHead(Component component, IHeaderResponse response) {
-				response.renderOnDomReadyJavaScript("Wicket.Window.unloadConfirmation = false;");
-			}
-		});
         add(window);
     }
 
@@ -713,16 +714,6 @@ public class PageUser extends PageAdminUsers {
                 addSelectedRolePerformed(target, roles);
             }
         });
-        
-        window.add(new AbstractAjaxBehavior() {
-			@Override
-			public void onRequest() {}
-
-			@Override
-			public void renderHead(Component component, IHeaderResponse response) {
-				response.renderOnDomReadyJavaScript("Wicket.Window.unloadConfirmation = false;");
-			}
-		});
         add(window);
     }
 
