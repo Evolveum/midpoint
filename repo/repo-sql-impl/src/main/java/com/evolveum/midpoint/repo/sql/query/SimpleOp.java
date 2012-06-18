@@ -83,6 +83,7 @@ public class SimpleOp extends Op {
         Element path = DOMUtil.getChildElement(filter, SchemaConstantsGenerated.Q_PATH);
         PropertyPath propertyPath = getInterpreter().createPropertyPath(path);
         if (path != null) {
+            //at first we build criterions with aliases
             updateQueryContext(propertyPath);
         }
 
@@ -97,13 +98,17 @@ public class SimpleOp extends Op {
         LOGGER.trace("Condition item updated, updating value type.");
         Criterion criterion = null;
         if (!conditionItem.isReference) {
+            //we're trying to create simple item condition
             try {
                 Object testedValue = null;
                 if (!conditionItem.isEnum) {
+                    //if it's not an enum, we're just convert condition element from query type to real value
+                    //for example <c:name>foo<c:name> to String "foo"
                     QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
                     testedValue = RAnyConverter.getRealRepoValue(getInterpreter().findDefinition(path, condQName),
                             condition);
                 } else {
+                    //if it's enum, we convert text content from condition to enum object
                     Class<?> type = conditionItem.enumType;
                     if (type == null || !type.isEnum()) {
                         throw new IllegalStateException("Type '" + type + "' was marked as enum but it is not enum.");
@@ -176,6 +181,8 @@ public class SimpleOp extends Op {
             throw new QueryException("Couldn't get name or type for queried item '" + condQName + "'");
         }
 
+        //when we're interpreting any we have to use base criterion (criteria based on condition element) and
+        //add also QName name and type condition
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(baseCriterion);
         conjunction.add(Restrictions.eq(conditionItem.alias + ".name", QNameType.optimizeQName(name)));
@@ -196,6 +203,7 @@ public class SimpleOp extends Op {
         QName type = refValue.getTargetType();
         Criterion criterion = createBaseCriteria(filter, pushNot, conditionItem.getQueryableItem(), targetOid);
 
+        //if reference type is available for reference, we're add another QName criterion for object type
         if (type != null) {
             Conjunction conjunction = Restrictions.conjunction();
             conjunction.add(criterion);
@@ -213,6 +221,7 @@ public class SimpleOp extends Op {
         LOGGER.debug("Updating condition item '{}' on property path\n{}",
                 new Object[]{conditionItem, propertyPath});
         SimpleItem item = new SimpleItem();
+        //fetch definition from repository schema registry (not prism schema registry)
         EntityDefinition definition = findDefinition(getInterpreter().getType(), propertyPath);
 
         if (propertyPath != null) {
@@ -220,6 +229,7 @@ public class SimpleOp extends Op {
                 try {
                     item.isAny = true;
                     List<PropertyPathSegment> segments = propertyPath.getSegments();
+                    //get any type name (e.g. clobs, strings, dates,...) based on definition
                     String anyTypeName = RAnyConverter.getAnySetType(getInterpreter().findDefinition(path, conditionItem),
                             condition);
                     segments.add(new PropertyPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
@@ -307,6 +317,12 @@ public class SimpleOp extends Op {
         return definition;
     }
 
+    /**
+     * Method creates hibernate criteria with aliases based on path which represents hibernate relationships
+     *
+     * @param path
+     * @throws QueryException
+     */
     private void updateQueryContext(PropertyPath path) throws QueryException {
         LOGGER.debug("Updating query context based on path\n{}", new Object[]{path.toString()});
         Class<? extends ObjectType> type = getInterpreter().getType();
@@ -360,12 +376,16 @@ public class SimpleOp extends Op {
 
     private static class SimpleItem {
 
+        //property for querying
         String item;
+        //alias for entity if available
         String alias;
+        //condition item type (any, reference, enum, poly string)
         boolean isAny;
         boolean isReference;
         boolean isEnum;
         boolean isPolyString;
+        //if condition item is enum type, then this is enum class
         Class<?> enumType;
 
         String getQueryableItem() {

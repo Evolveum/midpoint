@@ -44,6 +44,9 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
+ * This registry provides mapping from QName names to real property names in entity classes.
+ * This translation is used during query building.
+ *
  * @author lazyman
  */
 public class QueryRegistry {
