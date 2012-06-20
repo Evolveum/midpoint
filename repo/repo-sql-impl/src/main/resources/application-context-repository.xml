@@ -33,6 +33,8 @@
     <bean id="sqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.SqlRepositoryFactory"
           depends-on="repositoryFactory"/>
 
+    <!--<bean id="auditService" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceImpl" />-->
+
     <bean id="sqlDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
         <property name="driverClass" value="#{sqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
         <property name="jdbcUrl" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
@@ -74,6 +76,7 @@
         <property name="packagesToScan">
             <list>
                 <value>com.evolveum.midpoint.repo.sql.data.common</value>
+                <value>com.evolveum.midpoint.repo.sql.data.audit</value>
             </list>
         </property>
     </bean>

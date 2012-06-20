@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.query.*;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
@@ -47,22 +45,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.*;
+import org.hibernate.Criteria;
+import org.hibernate.PessimisticLockException;
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.exception.GenericJDBCException;
 import org.hibernate.exception.LockAcquisitionException;
-import org.hibernate.metadata.ClassMetadata;
-import org.hibernate.persister.entity.AbstractEntityPersister;
-import org.hibernate.tuple.IdentifierProperty;
-import org.hibernate.tuple.entity.EntityMetamodel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,67 +66,9 @@ import java.util.List;
  * @author lazyman
  */
 @Repository
-public class SqlRepositoryServiceImpl implements RepositoryService {
+public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
-    // how many times we want to repeat operation after lock aquisition,
-    // pessimistic, optimistic exception
-    private static final int LOCKING_MAX_ATTEMPTS = 10;
-    // time in ms to wait before next operation attempt. it seems that 0
-    // works best here (i.e. it is best to repeat operation immediately)
-    private static final long LOCKING_TIMEOUT = 0;
-    @Autowired(required = true)
-    private PrismContext prismContext;
-    @Autowired(required = true)
-    private SessionFactory sessionFactory;
-
-    public PrismContext getPrismContext() {
-        return prismContext;
-    }
-
-    public void setPrismContext(PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
-
-    public SessionFactory getSessionFactory() {
-        return sessionFactory;
-    }
-
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        // !!! HACK !!! https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
-        // problem with composite keys and object merging
-        fixCompositeIdentifierInMetaModel(RAnyContainer.class);
-
-        fixCompositeIdentifierInMetaModel(RObjectReference.class);
-
-        fixCompositeIdentifierInMetaModel(RAssignment.class);
-        fixCompositeIdentifierInMetaModel(RExclusion.class);
-        for (RContainerType type : ClassMapper.getKnownTypes()) {
-            fixCompositeIdentifierInMetaModel(type.getClazz());
-        }
-        // END HAC
-
-        this.sessionFactory = sessionFactory;
-    }
-
-    private void fixCompositeIdentifierInMetaModel(Class clazz) {
-        ClassMetadata classMetadata = sessionFactory.getClassMetadata(clazz);
-        if (classMetadata instanceof AbstractEntityPersister) {
-            AbstractEntityPersister persister = (AbstractEntityPersister) classMetadata;
-            EntityMetamodel model = persister.getEntityMetamodel();
-            IdentifierProperty identifier = model.getIdentifierProperty();
-
-            try {
-                Field field = IdentifierProperty.class.getDeclaredField("hasIdentifierMapper");
-                field.setAccessible(true);
-                field.set(identifier, true);
-                field.setAccessible(false);
-            } catch (Exception ex) {
-                throw new SystemException("Attempt to fix entity meta model with hack failed, reason: "
-                        + ex.getMessage(), ex);
-            }
-        }
-    }
 
     private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid)
             throws ObjectNotFoundException, SchemaException, DtoTranslationException {
@@ -147,7 +83,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
 
         LOGGER.debug("Transforming data to JAXB type.");
-        PrismObject<T> objectType = object.toJAXB(prismContext).asPrismObject();
+        PrismObject<T> objectType = object.toJAXB(getPrismContext()).asPrismObject();
         validateObjectType(objectType, type);
 
         return objectType;
@@ -275,7 +211,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             RUser user = users.get(0);
-            userType = user.toJAXB(prismContext);
+            userType = user.toJAXB(getPrismContext());
 
             session.getTransaction().commit();
         } catch (PessimisticLockException ex) {
@@ -335,7 +271,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             ObjectType objectType = object.asObjectable();
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Object\n{}", new Object[]{prismContext.silentMarshalObject(objectType)});
+                LOGGER.trace("Object\n{}", new Object[]{getPrismContext().silentMarshalObject(objectType)});
             }
 
             //check name uniqueness (by type)
@@ -483,7 +419,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 new Object[]{type});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Full query\n{}", new Object[]{
-                    (query == null ? "undefined" : prismContext.silentMarshalObject(query))});
+                    (query == null ? "undefined" : getPrismContext().silentMarshalObject(query))});
         }
 
         OperationResult subResult = result.createSubresult(COUNT_OBJECTS);
@@ -511,7 +447,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.debug("Updating query criteria.");
             Criteria criteria;
             if (query != null && query.getFilter() != null) {
-                QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
+                QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
                 criteria = interpreter.interpret(query.getFilter());
             } else {
                 criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
@@ -551,8 +487,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 (paging == null ? "undefined" : paging.getMaxSize())});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[]{
-                    (query == null ? "undefined" : prismContext.silentMarshalObject(query)),
-                    (paging == null ? "undefined" : prismContext.silentMarshalObject(paging))});
+                    (query == null ? "undefined" : getPrismContext().silentMarshalObject(query)),
+                    (paging == null ? "undefined" : getPrismContext().silentMarshalObject(paging))});
         }
 
         OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
@@ -581,7 +517,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.debug("Updating query criteria.");
             Criteria criteria;
             if (query != null && query.getFilter() != null) {
-                QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
+                QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
                 criteria = interpreter.interpret(query.getFilter());
             } else {
                 criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
@@ -594,7 +530,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     new Object[]{(objects != null ? objects.size() : 0)});
 
             for (RObject object : objects) {
-                ObjectType objectType = object.toJAXB(prismContext);
+                ObjectType objectType = object.toJAXB(getPrismContext());
                 PrismObject<T> prismObject = objectType.asPrismObject();
                 validateObjectType(prismObject, type);
                 list.add(prismObject);
@@ -652,46 +588,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
         }
-    }
-
-    private int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
-            OperationResult result) {
-        if (!(ex instanceof PessimisticLockException) && !(ex instanceof LockAcquisitionException)
-                && !(ex instanceof HibernateOptimisticLockingFailureException)) {
-            //it's not locking exception (optimistic, pesimistic lock or simple lock acquisition)
-
-            if (ex instanceof GenericJDBCException) {
-                //fix for table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code
-                GenericJDBCException jdbcEx = (GenericJDBCException) ex;
-                if (jdbcEx.getErrorCode() != 50200) {
-                    throw new SystemException(ex);
-                }
-            } else {
-                throw ex;
-            }
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("A locking-related problem occurred when {} object with oid '{}', retrying after "
-                    + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, LOCKING_TIMEOUT,
-                    attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
-        }
-
-        if (attempt >= LOCKING_MAX_ATTEMPTS) {
-            if (ex != null && result != null) {
-                result.recordFatalError("A locking-related problem occurred.", ex);
-            }
-            throw new SystemException(ex.getMessage(), ex);
-        }
-
-        if (LOCKING_TIMEOUT > 0) {
-            try {
-                Thread.sleep(LOCKING_TIMEOUT);
-            } catch (InterruptedException ex1) {
-                // ignore this
-            }
-        }
-        return ++attempt;
     }
 
     private <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
@@ -792,7 +688,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             if (shadows != null) {
                 for (RResourceObjectShadow shadow : shadows) {
-                    ResourceObjectShadowType jaxb = shadow.toJAXB(prismContext);
+                    ResourceObjectShadowType jaxb = shadow.toJAXB(getPrismContext());
                     PrismObject<T> prismObject = jaxb.asPrismObject();
                     validateObjectType(prismObject, resourceObjectShadowType);
 
@@ -869,7 +765,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             rObject = clazz.newInstance();
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
-            method.invoke(clazz, object, rObject, prismContext);
+            method.invoke(clazz, object, rObject, getPrismContext());
         } catch (Exception ex) {
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {
@@ -924,59 +820,5 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
 
         return query;
-    }
-
-    private Session beginTransaction() {
-        Session session = sessionFactory.openSession();
-        // we're forcing transaction isolation throught MidPointConnectionCustomizer
-        // session.doWork(new Work() {
-        //
-        //      @Override
-        //      public void execute(Connection connection) throws SQLException {
-        //          connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        //      }
-        // });
-        session.beginTransaction();
-
-        return session;
-    }
-
-    private void rollbackTransaction(Session session) {
-        rollbackTransaction(session, null, null);
-    }
-
-    private void rollbackTransaction(Session session, Exception ex, OperationResult result) {
-        if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
-            return;
-        }
-
-        session.getTransaction().rollback();
-
-        if (ex != null && result != null) {
-            result.recordFatalError(ex.getMessage(), ex);
-        }
-    }
-
-    private void cleanupSessionAndResult(Session session, OperationResult result) {
-        if (session != null && session.isOpen()) {
-            session.close();
-        }
-
-        if (result.isUnknown()) {
-            result.computeStatus();
-        }
-    }
-
-    private void handleGeneralException(Exception ex, Session session, OperationResult result) {
-        rollbackTransaction(session, ex, result);
-        if (ex instanceof GenericJDBCException) {
-            //fix for table timeout lock in H2, this exception will be wrapped as system exception
-            //in SqlRepositoryServiceImpl#logOperationAttempt if necessary
-            throw (GenericJDBCException) ex;
-        }
-        if (ex instanceof SystemException) {
-            throw (SystemException) ex;
-        }
-        throw new SystemException(ex.getMessage(), ex);
     }
 }
