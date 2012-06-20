@@ -40,10 +40,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.ListMultipleChoice;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.*;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
@@ -311,6 +308,18 @@ public class PageLogging extends PageAdminConfiguration {
             	input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             	input.add(new FilterValidator());
             	return dropDownChoicePanel;
+            }
+
+            @Override
+            protected IModel<String> createLinkModel(final IModel<FilterConfiguration> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        FilterConfiguration config = rowModel.getObject();
+                        return PageLogging.this.getString("pageLogging.filter." + config.getComponent());
+                    }
+                };
             }
 
             @Override

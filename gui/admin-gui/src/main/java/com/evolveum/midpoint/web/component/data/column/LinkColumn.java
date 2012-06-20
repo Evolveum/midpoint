@@ -52,10 +52,15 @@ public class LinkColumn<T> extends AbstractColumn<T> {
         return propertyExpression;
     }
 
+    protected IModel<String> createLinkModel(IModel<T> rowModel) {
+        return new PropertyModel<String>(rowModel, propertyExpression);
+    }
+
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
             final IModel<T> rowModel) {
-        cellItem.add(new LinkPanel(componentId, new PropertyModel<String>(rowModel, propertyExpression)) {
+        cellItem.add(new LinkPanel(componentId,
+                createLinkModel(rowModel) ) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

@@ -58,6 +58,16 @@
     </listener>
 
     <filter>
+        <filter-name>MidPointProfilingServletFilter</filter-name>
+        <filter-class>com.evolveum.midpoint.web.util.MidPointProfilingServletFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>MidPointProfilingServletFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
         <filter-name>wicket</filter-name>
         <filter-class>org.apache.wicket.protocol.http.WicketFilter</filter-class>
         <init-param>
