@@ -241,10 +241,10 @@ public class OpenDJController {
 		// /C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
 		//
 		// beware that in the URL there can be spaces encoded as %20, e.g.
-		// file:/C:/Documents%20and%20Settings/user/.m2/repository/com/evolveum/midpoint/infra/test-util/2.0-SNAPSHOT/test-util-2.0-SNAPSHOT.jar!/test-data/opendj.template
+		// file:/C:/Documents%20and%20Settings/user/.m2/repository/com/evolveum/midpoint/infra/test-util/2.1-SNAPSHOT/test-util-2.1-SNAPSHOT.jar!/test-data/opendj.template
 		//
 		if (srcUrl.getPath().contains("!/")) {
-			URI srcFileUri = new URI(srcUrl.getPath().split("!/")[0]);		// e.g. file:/C:/Documents%20and%20Settings/user/.m2/repository/com/evolveum/midpoint/infra/test-util/2.0-SNAPSHOT/test-util-2.0-SNAPSHOT.jar 
+			URI srcFileUri = new URI(srcUrl.getPath().split("!/")[0]);		// e.g. file:/C:/Documents%20and%20Settings/user/.m2/repository/com/evolveum/midpoint/infra/test-util/2.1-SNAPSHOT/test-util-2.1-SNAPSHOT.jar
 			File srcFile = new File(srcFileUri);
 			JarFile jar = new JarFile(srcFile);
 			LOGGER.debug("Extracting OpenDJ from JAR file {} to {}", srcFile.getPath(), dst.getPath());
