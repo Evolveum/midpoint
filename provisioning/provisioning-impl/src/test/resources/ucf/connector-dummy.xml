@@ -29,7 +29,7 @@
 	<name>com.evolveum.icf.dummy.connector.DummyConnector</name>
 	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
 	<connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
-	<connectorVersion>2.0-SNAPSHOT</connectorVersion>
+	<connectorVersion>2.0</connectorVersion>
 	<connectorBundle>com.evolveum.icf.dummy</connectorBundle>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector</namespace>
 	<schema>
