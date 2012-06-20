@@ -271,11 +271,7 @@ public class MidpointAspect {
 	public void entriesIntoModel() {
 	}
 
-	@Pointcut("execution(* com.evolveum.midpoint.web.page..*.*(..)) " +
-            "&& !execution(protected * com.evolveum.midpoint.web.page..*.createStringResource(..)) " +
-            "&& !execution(public * com.evolveum.midpoint.web.page..*.get*(..)) " +
-            "&& !execution(public * com.evolveum.midpoint.web.page..*.set*(..))" +
-            "&& !execution(public * com.evolveum.midpoint.web.page..*.is*(..))")
+    @Pointcut("execution(public void com.evolveum.midpoint.web.util.MidPointProfilingServletFilter.doFilter(..))")
 	public void entriesIntoWeb() {
 	}
 
