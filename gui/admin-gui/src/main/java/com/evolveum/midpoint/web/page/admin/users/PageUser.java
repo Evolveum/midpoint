@@ -649,6 +649,16 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(deleteAccount);
+
+        AjaxLinkButton unlockAccount = new AjaxLinkButton("unlockAccount",
+                createStringResource("pageUser.button.unlock")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                unlockAccountPerformed(target, getSelectedAccounts());
+            }
+        };
+        mainForm.add(unlockAccount);
     }
 
     private ModalWindow createModalWindow(String id, IModel<String> title) {
@@ -1220,5 +1230,15 @@ public class PageUser extends PageAdminUsers {
             account.setStatus(UserDtoStatus.DELETE);
         }
         target.add(getAccountsAccordionItem());
+    }
+
+    private void unlockAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
+        if (!isAnyAccountSelected(target)) {
+            return;
+        }
+
+        for (UserAccountDto account : selected) {
+            //todo implement unlock
+        }
     }
 }
