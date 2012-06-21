@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
@@ -65,17 +66,17 @@ public class PrismValuePanel extends Panel {
 
     private IModel<ValueWrapper> model;
 
-    public PrismValuePanel(String id, IModel<ValueWrapper> model, Form form) {
+    public PrismValuePanel(String id, IModel<ValueWrapper> model, IModel<String> label, Form form) {
         super(id);
         Validate.notNull(model, "Property value model must not be null.");
         this.model = model;
 
         add(new AttributeAppender("class", new Model<String>("objectFormValue"), " "));
 
-        initLayout(form);
+        initLayout(label, form);
     }
 
-    private void initLayout(Form form) {
+    private void initLayout(IModel<String> label, Form form) {
         //feedback
         FeedbackPanel feedback = new FeedbackPanel("feedback");
         feedback.setOutputMarkupId(true);
@@ -92,7 +93,7 @@ public class PrismValuePanel extends Panel {
 //        add(labelHelpContent);
 
         //input
-        InputPanel input = createInputComponent("input", feedback, form);
+        InputPanel input = createInputComponent("input", label, form);
         initAccessBehaviour(input);
         add(input);
 
@@ -241,11 +242,13 @@ public class PrismValuePanel extends Panel {
         return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
     }
 
-    private InputPanel createInputComponent(String id, final FeedbackPanel feedback, Form form) {
+    private InputPanel createInputComponent(String id, IModel<String> label, Form form) {
         InputPanel component = createTypedInputComponent(id, form);
 
         final List<FormComponent> formComponents = component.getFormComponents();
         for (FormComponent formComponent : formComponents) {
+            formComponent.setLabel(label);
+
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
@@ -279,6 +282,11 @@ public class PrismValuePanel extends Panel {
             }
             panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression),
                     type);
+
+            PrismPropertyDefinition def = property.getDefinition();
+            if (SchemaConstantsGenerated.C_NAME.equals(def.getName())) {
+                panel.getBaseFormComponent().setRequired(true);
+            }
         }
 
         return panel;

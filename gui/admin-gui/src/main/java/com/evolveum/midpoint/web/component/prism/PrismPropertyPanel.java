@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -64,7 +65,8 @@ public class PrismPropertyPanel extends Panel {
     }
 
     private void initLayout(final IModel<PropertyWrapper> model, final Form form) {
-        add(new Label("label", createDisplayName(model)));
+        final IModel<String> label = createDisplayName(model);
+        add(new Label("label", label));
 
         WebMarkupContainer required = new WebMarkupContainer("required");
         required.add(new VisibleEnableBehaviour() {
@@ -74,6 +76,12 @@ public class PrismPropertyPanel extends Panel {
                 PropertyWrapper wrapper = model.getObject();
                 PrismProperty property = wrapper.getItem();
                 PrismPropertyDefinition def = property.getDefinition();
+
+                if (SchemaConstantsGenerated.C_NAME.equals(def.getName())) {
+                    //fix for "name as required" MID-789
+                    return true;
+                }
+
                 return def.isMandatory();
             }
         });
@@ -102,7 +110,7 @@ public class PrismPropertyPanel extends Panel {
 
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
-                item.add(new PrismValuePanel("value", item.getModel(), form));
+                item.add(new PrismValuePanel("value", item.getModel(), label, form));
                 item.add(new VisibleEnableBehaviour() {
 
                     @Override
