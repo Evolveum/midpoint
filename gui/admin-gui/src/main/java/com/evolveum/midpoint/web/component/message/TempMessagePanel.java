@@ -23,9 +23,6 @@ package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -33,52 +30,30 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.IRequestCycle;
-import org.apache.wicket.request.IRequestHandler;
-import org.apache.wicket.request.http.WebResponse;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * @author lazyman
  */
-public class FeedbackMessagePanel extends Panel {
+public class TempMessagePanel extends Panel {
 
-    public FeedbackMessagePanel(String id, IModel<FeedbackMessage> message) {
+    public TempMessagePanel(String id, IModel<FeedbackMessage> message) {
         super(id);
 
         initLayout(message);
     }
 
     private void initLayout(final IModel<FeedbackMessage> message) {
-    	WebMarkupContainer messageContainer = new WebMarkupContainer("messageContainer");
-    	messageContainer.setOutputMarkupId(true);
-    	messageContainer.add(new AttributeAppender("class", new LoadableModel<String>() {
-            @Override
-            protected String load() {
-                return getLabelCss(message);
-            }
-        }, " "));
-    	messageContainer.add(new AttributeModifier("title", new LoadableModel<String>() {
-
-			@Override
-			protected String load() {
-				return getString("feedbackMessagePanel.message." + createMessageTooltip(message));
-			}
-		}));
-    	add(messageContainer);
         Label label = new Label("message", new LoadableModel<String>(false) {
 
             @Override
@@ -86,28 +61,25 @@ public class FeedbackMessagePanel extends Panel {
                 return getTopMessage(message);
             }
         });
-        messageContainer.add(label);
-        WebMarkupContainer topExceptionContainer = new WebMarkupContainer("topExceptionContainer");
-        messageContainer.add(topExceptionContainer);
+
+        label.add(new AttributeAppender("class", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return getLabelCss(message);
+            }
+        }, " "));
+        label.setOutputMarkupId(true);
+        label.add(new AttributeModifier("title", new LoadableModel<String>() {
+
+			@Override
+			protected String load() {
+				return getString("tempMessagePanel.message." + FeedbackMessagePanel.createMessageTooltip(message));
+			}
+		}));
+        add(label);
+
         WebMarkupContainer content = new WebMarkupContainer("content");
         if (message.getObject().getMessage() instanceof OpResult) {
-            ListView<OpResult> subresults = new ListView<OpResult>("subresults", createSubresultsModel(message)) {
-
-                @Override
-                protected void populateItem(final ListItem<OpResult> item) {
-                    item.add(new AttributeAppender("class",
-                            OperationResultPanel.createMessageLiClass(item.getModel()), " "));
-                    item.add(new AttributeModifier("title", new LoadableModel<String>() {
-
-						@Override
-						protected String load() {
-							return getString("feedbackMessagePanel.message." + OperationResultPanel.createMessageTooltip(item.getModel()).getObject());
-						}
-					}));
-                    item.add(new OperationResultPanel("subresult", item.getModel()));
-                }
-            };
-            content.add(subresults);
             content.add(new AttributeAppender("class", new LoadableModel<String>(false) {
 
                 @Override
@@ -117,13 +89,19 @@ public class FeedbackMessagePanel extends Panel {
             }, " "));
         } else {
             content.setVisible(false);
-            topExceptionContainer.setVisibilityAllowed(false);
         }
-        content.setMarkupId(messageContainer.getMarkupId() + "_content");
+        content.setMarkupId(label.getMarkupId() + "_content");
+        content.add(new AttributeModifier("title", new LoadableModel<String>() {
+
+			@Override
+			protected String load() {
+				return getString("tempMessagePanel.message." + FeedbackMessagePanel.createMessageTooltip(message));
+			}
+		}));
         add(content);
         
         WebMarkupContainer operationPanel = new WebMarkupContainer("operationPanel");
-        topExceptionContainer.add(operationPanel);
+        content.add(operationPanel);
         
         operationPanel.add(new Label("operation", new LoadableModel<String>() {
 
@@ -157,7 +135,7 @@ public class FeedbackMessagePanel extends Panel {
                 item.add(new Label("paramValue", new PropertyModel<Object>(item.getModel(), "value")));
             }
         };
-        topExceptionContainer.add(params);
+        content.add(params);
         
         ListView<Context> contexts = new ListView<Context>("contexts",
        		 OperationResultPanel.createContextsModel(new PropertyModel<OpResult>(message, "message"))) {
@@ -167,67 +145,27 @@ public class FeedbackMessagePanel extends Panel {
                item.add(new Label("contextValue", new PropertyModel<Object>(item.getModel(), "value")));
 			}
        };
-       topExceptionContainer.add(contexts);
-
-        /*WebMarkupContainer countLi = new WebMarkupContainer("countLi");
-        countLi.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                OpResult result = (OpResult) message.getObject().getMessage();
-                return result.getCount() > 1;
-            }
-        });
-        content.add(countLi);
-        countLi.add(new Label("count", new PropertyModel<String>(message, "message.count")));*/
-
-        initExceptionLayout(content, topExceptionContainer, message);
-        
-        content.add(new Label("collapseAll",getString("feedbackMessagePanel.collapseAll")));
-        content.add(new Label("expandAll",getString("feedbackMessagePanel.expandAll")));
+       content.add(contexts);
+       
+       initExceptionLayout(content, message);
     }
-
-    private void initExceptionLayout(WebMarkupContainer content, WebMarkupContainer topExceptionContainer, final IModel<FeedbackMessage> message) {
+    
+    private void initExceptionLayout(WebMarkupContainer content, final IModel<FeedbackMessage> message) {
         WebMarkupContainer exception = new WebMarkupContainer("exception") {
 
             @Override
             public boolean isVisible() {
-            	return isExceptionVisible(message);
+                FeedbackMessage fMessage = message.getObject();
+                if (!(fMessage.getMessage() instanceof OpResult)) {
+                    return false;
+                }
+                OpResult result = (OpResult) fMessage.getMessage();
+                return StringUtils.isNotEmpty(result.getExceptionMessage())
+                        || StringUtils.isNotEmpty(result.getExceptionsStackTrace());
             }
         };
-        topExceptionContainer.add(exception);
+        content.add(exception);
         exception.add(new MultiLineLabel("exceptionMessage", new PropertyModel<String>(message, "message.exceptionMessage")));
-        
-        WebMarkupContainer errorStackContainer = new WebMarkupContainer("errorStackContainer") {
-        	@Override
-            public boolean isVisible() {
-            	return isExceptionVisible(message);
-            }
-        };
-        content.add(errorStackContainer);
-        
-        WebMarkupContainer errorStack = new WebMarkupContainer("errorStack");
-        errorStack.setOutputMarkupId(true);
-        errorStackContainer.add(errorStack);
-        
-        //export(errorStackContainer, new PropertyModel<String>(message, "message.exceptionsStackTrace"));
-
-        WebMarkupContainer errorStackContent = new WebMarkupContainer("errorStackContent");
-        errorStackContent.setMarkupId(errorStack.getMarkupId() + "_content");
-        errorStackContainer.add(errorStackContent);
-
-        errorStackContent.add(new MultiLineLabel("exceptionStack",
-                new PropertyModel<String>(message, "message.exceptionsStackTrace")));
-    }
-    
-    private boolean isExceptionVisible(final IModel<FeedbackMessage> message) {
-    	FeedbackMessage fMessage = message.getObject();
-        if (!(fMessage.getMessage() instanceof OpResult)) {
-            return false;
-        }
-        OpResult result = (OpResult) fMessage.getMessage();
-        return StringUtils.isNotEmpty(result.getExceptionMessage())
-                || StringUtils.isNotEmpty(result.getExceptionsStackTrace());
     }
 
     private String getDetailsCss(final IModel<OpResult> model) {
@@ -284,26 +222,26 @@ public class FeedbackMessagePanel extends Panel {
         String resourceKey;
         switch (result.getStatus()) {
             case FATAL_ERROR:
-                resourceKey = "feedbackMessagePanel.message.fatalError";
+                resourceKey = "tempMessagePanel.message.fatalError";
                 break;
             case IN_PROGRESS:
-                resourceKey = "feedbackMessagePanel.message.inProgress";
+                resourceKey = "tempMessagePanel.message.inProgress";
                 break;
             case NOT_APPLICABLE:
-                resourceKey = "feedbackMessagePanel.message.notApplicable";
+                resourceKey = "tempMessagePanel.message.notApplicable";
                 break;
             case WARNING:
-                resourceKey = "feedbackMessagePanel.message.warn";
+                resourceKey = "tempMessagePanel.message.warn";
                 break;
             case PARTIAL_ERROR:
-                resourceKey = "feedbackMessagePanel.message.partialError";
+                resourceKey = "tempMessagePanel.message.partialError";
                 break;
             case SUCCESS:
-                resourceKey = "feedbackMessagePanel.message.success";
+                resourceKey = "tempMessagePanel.message.success";
                 break;
             case UNKNOWN:
             default:
-                resourceKey = "feedbackMessagePanel.message.unknown";
+                resourceKey = "tempMessagePanel.message.unknown";
         }
 
         return new StringResourceModel(resourceKey, this, null).getString();
@@ -326,43 +264,4 @@ public class FeedbackMessagePanel extends Panel {
                 return "messages-topWarn";
         }
     }
-    
-    static String createMessageTooltip(final IModel<FeedbackMessage> model){
-    	FeedbackMessage message = model.getObject();
-        switch (message.getLevel()) {
-            case FeedbackMessage.INFO:
-            	return "info";
-            case FeedbackMessage.SUCCESS:
-            	return "success";
-            case FeedbackMessage.ERROR:
-            	return "partialError";
-            case FeedbackMessage.FATAL:
-            	return "fatalError";
-            case FeedbackMessage.UNDEFINED:
-            	return "undefined";
-            case FeedbackMessage.DEBUG:
-            	return "debug";
-            case FeedbackMessage.WARNING:
-            default:
-            	return "warn";
-        }
-    }
-
-    public void export(WebMarkupContainer errorStackContainer, final IModel<String> model){ 
-    	final Link lnkExport = new Link("export") {
-    		
-			@Override
-			public void onClick() {
-				System.out.println("aaaa");
-				
-				WebResponse response = (WebResponse)getResponse(); 
-                response.setAttachmentHeader("export.txt"); 
-                response.setContentType("text/plain"); 
-                response.write(model.getObject());
-			} 
-    		
-    	};
-    	lnkExport.setOutputMarkupId(true);
-    	errorStackContainer.add(lnkExport); 
-    } 
 }

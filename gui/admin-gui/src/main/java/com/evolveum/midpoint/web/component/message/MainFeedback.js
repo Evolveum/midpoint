@@ -19,12 +19,20 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
+var offside;
+window.onresize = setWidthForTempMessage;
 function initMessages() {
+	if($(window).scrollTop() < offside){
+		$(".tempMessage").css("opacity", 0);
+		$(".tempMessage").hide();
+	}
+	
 	//$(".messages-details-bold").disableTextSelection();
 	//$(".messages-topPanel").disableTextSelection();
 	
 	$("a").click(function(){
 		$(".messagesTop").remove();
+		$(".tempMessagesTop").remove();
 	});
 	
 	$(".messagesTop").find(".messages-topPanel").each(function(index){
@@ -44,15 +52,17 @@ function initMessages() {
 		if(blockContent.length > 0){
 			if(blockContent.find("ul:first").children().size() > 0){
 				$(this).append("<span class='"+ arrow +"-arrow arrow-down'></span>");
-				if($(this).height() <= 16){
-					$("." + arrow +"-arrow").css("marginTop", 0);
-				}
+				var exceptionHeight = $(this).find(".messages-topException").height();
+				var arrowPosition = $(this).height() / 2 - exceptionHeight + 3;
+				$("." + arrow +"-arrow").css("marginTop", - arrowPosition);
 			}
 		}
 	});
 	
+	setTempMessagePositionWhileScroll();
+	
 	//$(document).find("messages-topError");
-	$(".messages-topError").mouseenter(function(){
+	$(".messagePanel .messages-topError").mouseenter(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.length > 0){
@@ -67,7 +77,7 @@ function initMessages() {
 		}
 	});
 	
-	$(".messages-topSucc").mouseenter(function(){
+	$(".messagePanel .messages-topSucc").mouseenter(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.length > 0){
@@ -82,7 +92,7 @@ function initMessages() {
 		}
 	});
 	
-	$(".messages-topWarn").mouseenter(function(){
+	$(".messagePanel .messages-topWarn").mouseenter(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.length > 0){
@@ -97,7 +107,7 @@ function initMessages() {
 		}
 	});
 	
-	$(".messages-topInfo").mouseenter(function(){
+	$(".messagePanel .messages-topInfo").mouseenter(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.length > 0){
@@ -113,7 +123,7 @@ function initMessages() {
 	});
 	
 	
-	$(".messages-topError").click(function(){
+	$(".messagePanel .messages-topError").click(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.find("ul:first").children().size() > 0){
@@ -129,7 +139,7 @@ function initMessages() {
 		}
 	});
 	
-	$(".messages-topSucc").click(function(){
+	$(".messagePanel .messages-topSucc").click(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.find("ul:first").children().size() > 0){
@@ -145,7 +155,7 @@ function initMessages() {
 		}
 	});
 	
-	$(".messages-topWarn").click(function(){
+	$(".messagePanel .messages-topWarn").click(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.find("ul:first").children().size() > 0){
@@ -161,7 +171,7 @@ function initMessages() {
 		}
 	});
 	
-	$(".messages-topInfo").click(function(){
+	$(".messagePanel .messages-topInfo").click(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.find("ul:first").children().size() > 0){
@@ -177,7 +187,7 @@ function initMessages() {
 		}
 	});
 
-	$(".messages-details-bold").click(function(){
+	$(".messagePanel .messages-details-bold").click(function(){
 		var idBlock = $(this).attr("id");
 		if($(this).parent().find(".messages-details-content").css("display") === "none"){
 			$(this).parent().parent().addClass("selected-section");
@@ -190,7 +200,7 @@ function initMessages() {
 		}
 	});
 
-	$(".errorStack").click(function(){
+	$(".messagePanel .errorStack").click(function(){
 		var idBlock = $(this).attr("id");
 		var text = "";
 		if($("#"+idBlock+"_content").css("display") === "none"){
@@ -201,6 +211,23 @@ function initMessages() {
 			text = $(this).text().replace("HIDE","SHOW");
 		}
 		$(this).text(text);
+	});
+	
+	$(".tempMessage .messages-succ").css("opacity", .95);
+	$(".tempMessage .messages-error").css("opacity", .95);
+	$(".tempMessage .messages-warn").css("opacity", .95);
+	$(".tempMessage .messages-info").css("opacity", .95);
+	
+	setWidthForTempMessage();
+	
+	$("ul.messages-topException").find("li:first").css("marginTop", "5px");
+	
+	$(".collapseAll").click(function(){
+		collapseAll();
+	});
+	
+	$(".expandAll").click(function(){
+		expandAll();
 	});
 }
 
@@ -218,3 +245,79 @@ jQuery.fn.disableTextSelection = function(){
     });
 };
 
+function setTempMessagePositionWhileScroll() {
+	offside = $(".feedbackContainer").height() + 135;
+	if (($.browser.msie && $.browser.version >= 9.0) || (!$.browser.msie)) {
+		var scroll;
+		var isSelected;
+		$(window).scroll(function() {
+			isSelected = false;
+			$(".messagePanel").find(".messages-topPanel").each(function(index){
+				if($(this).hasClass("selected")){
+					isSelected = true;
+				}
+			});
+			offside = $(".feedbackContainer").height() + 135;
+			scroll = $(window).scrollTop();
+			if (scroll >= offside) {
+				if(!isSelected) {
+					if($(".tempMessage").css("display") == "none") {
+						$(".tempMessage").stop();
+						$(".tempMessage").css("opacity", 0);
+						$(".tempMessage").show();
+						$(".tempMessage").animate({opacity : 1}, 400);
+					}
+				} else {
+					$(".tempMessage").hide();
+				}
+			} else {
+				$(".tempMessage").stop();
+				$(".tempMessage").animate({opacity : 0}, 400, function(){
+					$(".tempMessage").hide();
+				});
+			}
+		}); 
+	}
+}
+
+function scrollToReadMessage() {
+	$('body,html').animate({
+		scrollTop: 60
+	}, 600);
+	$(".tempMessage").animate({opacity : 0}, 400);
+	return false;
+}
+
+function setWidthForTempMessage() {
+	$(".tempMessage").width($(".messagePanel").width());
+}
+
+function expandAll(){
+	$("ul.messages-details div").each(function(index){
+	    if($(this).attr('id') != undefined){
+	        var divId = $(this).attr('id');
+	    	var selectedComponent;
+	    	if(divId.indexOf("_content") >= 0){
+	    		selectedComponent = $("#" + divId.replace("_content",""));
+	    		if($("#" + divId).css("display","none") && !$("#" + divId).hasClass("errorStack-content")){
+	    			selectedComponent.click();
+	    		}
+	    	}
+	    } 
+	});
+}
+
+function collapseAll(){
+	$("ul.messages-details div").each(function(index){
+	    if($(this).attr('id') != undefined){
+	        var divId = $(this).attr('id');
+	    	var selectedComponent;
+	    	if(divId.indexOf("_content") >= 0){
+	    		selectedComponent = $("#" + divId.replace("_content",""));
+	    		if($("#" + divId).css("display","block") && !$("#" + divId).hasClass("errorStack-content")){
+	    			selectedComponent.click();
+	    		}
+	    	}
+	    } 
+	});
+}

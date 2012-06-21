@@ -21,52 +21,61 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div wicket:id="message" class="messages-topPanel" />
+    <div wicket:id="messageContainer" class="messages-topPanel">
+    	<div class="messages-topMessage"><span wicket:id="message" /></div><br />
+    	<div wicket:id="topExceptionContainer" class="messages-topException">
+	    	<ul>
+			    <li>
+			    	<div wicket:id="operationPanel" class="message-info">
+				    	<span wicket:id="operation"/>
+				    	<span wicket:id="countPanel">
+				    		&nbsp;(<span wicket:id="count"/>&nbsp;
+				    		<wicket:message key="feedbackMessagePanel.times"/>)
+				    	</span>
+				    </div>
+			    </li>
+			    <li wicket:id="params">
+			        <span class="message-info">
+			            <u><wicket:message key="feedbackMessagePanel.param"/></u>
+			            <span wicket:id="paramName"/>:&nbsp;<span wicket:id="paramValue"/>
+			        </span>
+			    </li>
+			    <li wicket:id="contexts">
+	                <span class="message-info">
+	                    <u><wicket:message key="feedbackMessagePanel.context"/></u>
+	                    <span wicket:id="contextName"/>:&nbsp;<span wicket:id="contextValue"/>
+	                </span>
+	            </li>
+			    <li wicket:id="exception">
+			        <span class="message-info">
+			            <u><wicket:message key="feedbackMessagePanel.cause"/></u>
+			            <span wicket:id="exceptionMessage"/>
+			        </span>
+			    </li>
+			</ul>
+		</div>
+    </div>
     <div wicket:id="content" class="messages-content">
-		<ul class="messages-topException">
-		    <li>
-		    	<div wicket:id="operationPanel" class="message-info">
-			    	<span wicket:id="operation"/>
-			    	<span wicket:id="countPanel">
-			    		&nbsp;(<span wicket:id="count"/>&nbsp;
-			    		<wicket:message key="feedbackMessagePanel.times"/>)
-			    	</span>
-			    </div>
-		    </li>
-		    <li wicket:id="params">
-		        <span class="message-info">
-		            <u><wicket:message key="feedbackMessagePanel.param"/></u>
-		            <span wicket:id="paramName"/>:&nbsp;<span wicket:id="paramValue"/>
-		        </span>
-		    </li>
-		    <li wicket:id="contexts">
-                <span class="message-info">
-                    <u><wicket:message key="feedbackMessagePanel.context"/></u>
-                    <span wicket:id="contextName"/>:&nbsp;<span wicket:id="contextValue"/>
-                </span>
-            </li>
-<!--             <li wicket:id="countLi">
-                <span class="message-info">
-                    <u><wicket:message key="feedbackMessagePanel.count"/></u>
-                    <span wicket:id="count"/>
-                </span>
-            </li> -->
-		    <li wicket:id="exception">
-		        <span class="message-info">
-		            <u><wicket:message key="feedbackMessagePanel.cause"/></u>
-		            <span wicket:id="exceptionMessage"/>
-		            <span wicket:id="errorStack" class="errorStack">
-		                <wicket:message key="feedbackMessagePanel.showStack"/>
-		            </span>
-		        </span>
-		
-		        <div wicket:id="errorStackContent" class="errorStack-content">
-		            <code wicket:id="exceptionStack"/>
-		            <br />
+    	<ul style="margin-top: 5px; min-height: 20px;">
+	    	<li>
+	    		<div wicket:id="errorStackContainer" style="display:inline-block;">
+		    		<span class="message-info">
+			            <span wicket:id="errorStack" class="errorStack">
+			                <wicket:message key="feedbackMessagePanel.showStack"/>
+			            </span>
+			            <!-- <a wicket:id="export">export</a> -->
+			        </span>
+			        <div wicket:id="errorStackContent" class="errorStack-content">
+			            <code wicket:id="exceptionStack"/>
+			            <br />
+			        </div>
 		        </div>
-		    </li>
-		</ul>
-
+		        <div class="collapseExpand">
+		        	<span wicket:id="collapseAll" class="collapseAll" />
+		        	<span wicket:id="expandAll" class="expandAll" />
+		        </div>
+	    	</li>
+	    </ul>
         <ul class="messages-details">
             <li wicket:id="subresults">
                 <div wicket:id="subresult"/>

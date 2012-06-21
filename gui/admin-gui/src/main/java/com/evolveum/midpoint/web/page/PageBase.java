@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenu;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
+import com.evolveum.midpoint.web.component.message.TempFeedback;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.WorkflowManager;
@@ -46,6 +47,7 @@ import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -116,14 +118,22 @@ public abstract class PageBase extends WebPage {
 
         LoginPanel loginPanel = new LoginPanel("loginPanel");
         add(loginPanel);
-
+        
         add(new Label("pageTitle", createPageTitleModel()));
+        
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer("feedbackContainer");
+        feedbackContainer.setOutputMarkupId(true);
+        add(feedbackContainer);
+        
         MainFeedback feedback = new MainFeedback("feedback");
-        add(feedback);
+        feedbackContainer.add(feedback);
+        
+        TempFeedback tempFeedback = new TempFeedback("tempFeedback");
+        feedbackContainer.add(tempFeedback);
     }
 
-    public MainFeedback getFeedbackPanel() {
-        return (MainFeedback) get("feedback");
+    public WebMarkupContainer getFeedbackPanel() {
+        return (WebMarkupContainer) get("feedbackContainer");
     }
 
     private void validateInjection(Object object, String message) {

@@ -36,9 +36,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class MainFeedback extends Panel implements IFeedback {
+public class TempFeedback extends Panel implements IFeedback {
 
-    public MainFeedback(String id) {
+    public TempFeedback(String id) {
         super(id);
         setOutputMarkupId(true);
 
@@ -55,7 +55,7 @@ public class MainFeedback extends Panel implements IFeedback {
         };
         add(ul);
 
-        FeedbackListView li = new FeedbackListView("li", this, false);
+        FeedbackListView li = new FeedbackListView("li", this, true);
         ul.add(li);
     }
 
@@ -76,19 +76,5 @@ public class MainFeedback extends Panel implements IFeedback {
         }
 
         return false;
-    }
-
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.renderCSSReference(new CssResourceReference(MainFeedback.class, "MainFeedback.css"));
-        response.renderJavaScriptReference(new PackageResourceReference(MainFeedback.class, "MainFeedback.js"));
-        response.renderOnLoadJavaScript("initMessages()");
-    }
-
-    public final void setFilter(IFeedbackMessageFilter filter) {
-        FeedbackMessagesModel model = (FeedbackMessagesModel) getFeedbackListView().getDefaultModel();
-        model.setFilter(filter);
     }
 }

@@ -26,13 +26,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -92,8 +95,15 @@ public class OperationResultPanel extends Panel {
                 createSubresultsModel(model)) {
 
             @Override
-            protected void populateItem(ListItem<OpResult> item) {
+            protected void populateItem(final ListItem<OpResult> item) {
                 item.add(new AttributeAppender("class", createMessageLiClass(item.getModel()), " "));
+                item.add(new AttributeModifier("title", new LoadableModel<String>() {
+
+					@Override
+					protected String load() {
+						return getString("operationResultPanel.title." + createMessageTooltip(item.getModel()).getObject());
+					}
+				}));
                 item.add(new OperationResultPanel("subresult", item.getModel()));
             }
         };
@@ -202,6 +212,33 @@ public class OperationResultPanel extends Panel {
                         return "messages-warn-details-section";
                 }
             }
+        };
+    }
+    
+    static IModel<String> createMessageTooltip(final IModel<OpResult> model){
+        return new LoadableModel<String>() {
+
+			@Override
+			protected String load() {
+            	OpResult result = model.getObject();
+                switch (result.getStatus()) {        	
+                    case FATAL_ERROR:
+                    	return "fatalError";
+                    case PARTIAL_ERROR:
+                    	return "partialError";
+                    case IN_PROGRESS:
+                    	return "inProgress";
+                    case NOT_APPLICABLE:
+                    	return "info";
+                    case SUCCESS:
+                    	return "success";
+                    case UNKNOWN:
+                    	return "unknown";
+                    case WARNING:
+                    default:
+                    	return "warn";
+                }
+			}
         };
     }
     

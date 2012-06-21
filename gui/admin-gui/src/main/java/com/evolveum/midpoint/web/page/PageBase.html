@@ -36,6 +36,9 @@
     <!--[if lt IE 7]>
     <link rel="stylesheet" type="text/css" href="css/css-fixed-IE.css?444"/>
     <![endif]-->
+    <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
     <script type="text/javascript" src="js/jquery.js"></script>
 
     <script type="text/javascript" src="js/evolveum.js"></script>
@@ -52,7 +55,10 @@
 <div id="body">
     <div class="content">
         <h1 wicket:id="pageTitle"/>
-        <div wicket:id="feedback"/>
+        <div wicket:id="feedbackContainer" class="feedbackContainer">
+	        <div wicket:id="feedback" class="messagePanel"/>
+	        <div wicket:id="tempFeedback" class="tempMessage"/>
+        </div>
         <wicket:child/>
     </div>
 </div>

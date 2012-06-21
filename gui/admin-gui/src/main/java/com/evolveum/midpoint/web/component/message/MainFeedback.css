@@ -18,6 +18,16 @@
  *
  * Portions Copyrighted 2012 [name of copyright owner]
  */
+.tempMessage {
+	position: fixed;
+	top: 90px;
+	z-index: 1;
+}
+
+ul.tempMessagesTop {
+	margin: 0px;
+	padding: 0px;
+}
 
 ul.messagesTop {
 	margin: 0px;
@@ -25,20 +35,23 @@ ul.messagesTop {
 	padding: 0px;
 }
 
-ul.messagesTop ul {
+ul.messagesTop ul, ul.tempMessagesTop ul {
 	list-style: none outside none;
 	margin: 0px;
 	padding: 0px;
 }
 
+.messages-topPanel-text {
+	padding-right: 20px;
+}
 
-ul.messagesTop li {
+ul.messagesTop li, ul.tempMessagesTop li {
 	padding-bottom: 5px;
 	list-style: none outside none;
 	margin: 0px;
 }
 
-ul.messagesTop ul li{
+ul.messagesTop ul li, ul.tempMessagesTop ul li {
 	padding: 1px 0px;
 }
 
@@ -46,7 +59,7 @@ ul.messagesTop .messages-details {
 	margin-top: 0px;
 }
 
-ul.messagesTop .messages-error {
+ul.messagesTop .messages-error{
 	color: #cc0a0c;
 	border: 1px solid #d21f1e;
 	padding: 0px;
@@ -58,10 +71,14 @@ ul.messagesTop .messages-error {
 	display: block;
 }
 
-ul.messagesTop .messages-error .messages-error-content, ul.messagesTop .messages-succ .messages-succ-content, ul.messagesTop .messages-warn .messages-warn-content, ul.messagesTop .messages-info .messages-info-content {
+ul.messagesTop .messages-error .messages-error-content, 
+ul.messagesTop .messages-succ .messages-succ-content, 
+ul.messagesTop .messages-warn .messages-warn-content, 
+ul.messagesTop .messages-info .messages-info-content {
 	display: none;
 	padding-left: 20px;
 	padding-bottom: 5px;
+	padding-right: 10px;
 }
 
 ul.messagesTop .messages-topError {
@@ -92,7 +109,6 @@ ul.messagesTop .messages-topError-arrow {
     width: 16px;
     float: right;
     top: 50%;
-    margin-top: -8px;
 }
 
 ul.messagesTop .messages-topError .arrow-down {
@@ -208,7 +224,6 @@ ul.messagesTop .messages-topWarn-arrow {
     width: 16px;
     float: right;
     top: 50%;
-    margin-top: -8px;
 }
 
 ul.messagesTop .messages-topWarn .arrow-down {
@@ -291,7 +306,6 @@ ul.messagesTop .messages-topSucc-arrow {
     width: 16px;
     float: right;
     top: 50%;
-    margin-top: -8px;
 }
 
 ul.messagesTop .messages-topSucc .arrow-down {
@@ -375,7 +389,6 @@ ul.messagesTop .messages-topInfo-arrow {
     width: 16px;
     float: right;
     top: 50%;
-    margin-top: -8px;
 }
 
 ul.messagesTop .messages-topInfo .arrow-down {
@@ -418,14 +431,113 @@ ul.messagesTop .messages-info-details-section .arrow-down {
 	background-position: 0px -32px;
 }
 
-ul.messages-topException {
+div.messages-topException {
 	font-size: 12px;
-}
-ul.messages-topException li {
-	margin-top: 5px;
+	display: inline-block;
+    padding-right: 15px;
+    padding-top: 5px;
+    clear: both;
+    font-weight: normal;
 }
 
-ul.messagesTop p {
+ul.messagesTop .messages-topMessage {
+	display: inline-block;
+    padding-right: 15px;	
+}
+
+ul.messagesTop p, ul.tempMessagesTop p {
 	margin: 0px;
 	display: inline;
+}
+
+ul.tempMessagesTop .messages-error .messages-error-content, 
+ul.tempMessagesTop .messages-succ .messages-succ-content, 
+ul.tempMessagesTop .messages-warn .messages-warn-content, 
+ul.tempMessagesTop .messages-info .messages-info-content {
+	padding: 0 5px 10px 20px;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+ul.tempMessagesTop .messages-topError,
+ul.tempMessagesTop .messages-topWarn,
+ul.tempMessagesTop .messages-topSucc,
+ul.tempMessagesTop .messages-topInfo {
+	padding: 10px 5px 10px 20px;
+	font-weight: bold;
+}
+
+ul.tempMessagesTop .messages-error {
+	color: #cc0a0c;
+	border: 1px solid #d21f1e;
+	padding: 0px;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+	display: block;
+	background-color: #ffc2ae;
+}
+
+ul.tempMessagesTop .messages-warn {
+	color: #9F6000;
+	border: 1px solid #9F6000;
+	padding: 0px;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+	display: block;
+	background-color: #fce48d;
+}
+
+ul.tempMessagesTop .messages-succ {
+	color: #4F8A10;
+	border: 1px solid #4F8A10;
+	padding: 0px;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+	display: block;
+	background-color: #D1EBA6;
+}
+
+ul.tempMessagesTop .messages-info {
+	color: #6966f2;
+	border: 1px solid #6966f2;
+	padding: 0px;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+	display: block;
+	background-color: #d1eba6;
+}
+
+ul.tempMessagesTop .messages-error,
+ul.tempMessagesTop .messages-warn,
+ul.tempMessagesTop .messages-succ,
+ul.tempMessagesTop .messages-info {
+	-webkit-box-shadow: 0 3px 7px -3px #000000;
+	-moz-box-shadow: 0 3px 7px -3px #000000;
+	box-shadow: 0 3px 7px -3px #000000;	
+}
+	
+.collapseExpand {
+	float: right;
+	font-size: 12px;3
+	font-weight: bold;
+}
+
+.collapseExpand span {
+	padding: 0 5px;
+}
+
+.collapseExpand span:hover {
+	text-decoration: underline;
+	cursor: pointer;
 }
