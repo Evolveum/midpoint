@@ -274,14 +274,6 @@ public class QueryUtil {
         return query;
     }
 
-	/**
-	 * Returns query that returns all objects.
-	 */
-	public static QueryType createAllObjectsQuery() {
-		// Create empty filter. This returns all objects of a type given as an argument to searchObjects.
-		return new QueryType();
-	}
-
 	public static QueryType createResourceAndAccountQuery(ResourceType resource, QName objectClass, String accountType) throws SchemaException {
 		Document doc = DOMUtil.getDocument();
         Element filter =
