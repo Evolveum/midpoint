@@ -109,7 +109,8 @@ public class PageUsers extends PageAdminUsers {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        OptionPanel option = new OptionPanel("option", createStringResource("pageUsers.optionsTitle"));
+        OptionPanel option = new OptionPanel("option", createStringResource("pageUsers.optionsTitle"),
+        		getPage(), false);
         option.setOutputMarkupId(true);
         mainForm.add(option);
 

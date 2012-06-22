@@ -152,7 +152,7 @@ public class PageDebugList extends PageAdminConfiguration {
         Form main = new Form("mainForm");
         add(main);
         
-        OptionPanel option = new OptionPanel("option", createStringResource("pageDebugList.optionsTitle"));
+        OptionPanel option = new OptionPanel("option", createStringResource("pageDebugList.optionsTitle"), getPage(), false);
         option.setOutputMarkupId(true);
         main.add(option);
 

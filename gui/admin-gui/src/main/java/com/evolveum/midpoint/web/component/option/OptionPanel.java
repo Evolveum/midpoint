@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.web.component.option;
 
+import org.apache.wicket.Page;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -28,33 +31,52 @@ import org.apache.wicket.markup.html.border.Border;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
-import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
-
 /**
  * @author lazyman
  */
 public class OptionPanel extends Border {
-	private Boolean hidden = false;
-
-	public OptionPanel(String id, IModel<String> title) {
+	private OptionPanelHidde optionHide;
+	private boolean hidden; 
+	private Page page;
+	public OptionPanel(String id, IModel<String> title, final Page page, final Boolean hidden) {
 		super(id);
-
+		this.hidden = hidden;
+		this.page = page;
 		WebMarkupContainer parent = new WebMarkupContainer("parent");
 		parent.setOutputMarkupId(true);
 		addToBorder(parent);
-
 		parent.add(new Label("title", title));
+		WebMarkupContainer bar = new WebMarkupContainer("bar");
+		bar.setOutputMarkupId(true);
+		bar.add(new AjaxEventBehavior("onClick") {
+			
+			@Override
+			protected void onEvent(AjaxRequestTarget target) {
+				
+				setHidden(page, !getHiddenFromSession());
+			}
+		});
+		addToBorder(bar);
 	}
 
-	public void setHidden(Boolean hidden) {
-		this.hidden = hidden;
+	public void setHidden(Page page, Boolean hidden) {
+		getSession().setAttribute("optionHide_" + page.getClass().getName(), new OptionPanelHidde(page, hidden));
 	}
 
 	@Override
 	public void renderHead(IHeaderResponse response) {
 		super.renderHead(response);
-
+		
 		response.renderJavaScriptReference(new PackageResourceReference(OptionPanel.class, "OptionPanel.js"));
-		response.renderOnLoadJavaScript("initOptionPanel(" + hidden + ")");
+		response.renderOnLoadJavaScript("initOptionPanel(" + getHiddenFromSession() + ")");
+		
+	}
+	
+	private Boolean getHiddenFromSession(){
+		OptionPanelHidde optionHide = (OptionPanelHidde)getSession().getAttribute("optionHide_" + page.getClass().getName());
+		if(optionHide != null){
+			return optionHide.isHidden();	
+		}
+		return hidden;
 	}
 }
