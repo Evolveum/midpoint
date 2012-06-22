@@ -164,6 +164,7 @@ public class PageResource extends PageAdminResources {
 			public void onClick(AjaxRequestTarget target) {
 				PageParameters parameters = new PageParameters();
 				parameters.add(PageDebugView.PARAM_OBJECT_ID, model.getObject().getOid());
+				getSession().setAttribute("requestPage", getPage());
 				setResponsePage(PageDebugView.class, parameters);
 			}
 		};

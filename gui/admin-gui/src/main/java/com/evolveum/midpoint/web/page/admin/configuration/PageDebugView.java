@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -122,9 +124,17 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript("history.go(-1)");
-
-                //setResponsePage(PageDebugList.class);
+                //target.appendJavaScript("history.go(-1)");
+                Page requestPage = (Page)getSession().getAttribute("requestPage");
+                
+                if(requestPage != null){
+                	setResponsePage(requestPage);
+                	getSession().setAttribute("requestPage", null);
+                } else {
+                	ObjectViewDto dto = model.getObject();
+                	getSession().setAttribute("category", dto.getObject().getDefinition());
+                	setResponsePage(PageDebugList.class);
+                } 
             }
         };
         mainForm.add(backButton);
