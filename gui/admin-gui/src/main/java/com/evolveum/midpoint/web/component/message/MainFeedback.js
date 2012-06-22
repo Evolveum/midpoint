@@ -22,6 +22,7 @@
 var offside;
 window.onresize = setWidthForTempMessage;
 function initMessages() {
+	offside = $(".feedbackContainer").height() + 135;
 	if($(window).scrollTop() < offside){
 		$(".tempMessage").css("opacity", 0);
 		$(".tempMessage").hide();
@@ -246,7 +247,6 @@ jQuery.fn.disableTextSelection = function(){
 };
 
 function setTempMessagePositionWhileScroll() {
-	offside = $(".feedbackContainer").height() + 135;
 	if (($.browser.msie && $.browser.version >= 9.0) || (!$.browser.msie)) {
 		var scroll;
 		var isSelected;

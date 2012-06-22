@@ -183,8 +183,20 @@ public class FeedbackMessagePanel extends Panel {
 
         initExceptionLayout(content, topExceptionContainer, message);
         
-        content.add(new Label("collapseAll",getString("feedbackMessagePanel.collapseAll")));
-        content.add(new Label("expandAll",getString("feedbackMessagePanel.expandAll")));
+        content.add(new Label("collapseAll", new LoadableModel<String>() {
+
+			@Override
+			protected String load() {
+				return getString("feedbackMessagePanel.collapseAll");
+			}
+		}));
+        content.add(new Label("expandAll", new LoadableModel<String>(){
+
+			@Override
+			protected String load() {
+				return getString("feedbackMessagePanel.expandAll");
+			}
+        }));
     }
 
     private void initExceptionLayout(WebMarkupContainer content, WebMarkupContainer topExceptionContainer, final IModel<FeedbackMessage> message) {
