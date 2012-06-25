@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -266,23 +267,28 @@ public class DeltaConvertor {
         return mods;
     }
 
-    private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismPropertyValue<Object>> values,
+    private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values,
             Document document) throws SchemaException {
     	QName elementName = delta.getName();
     	ItemDeltaType.Value modValue = new ItemDeltaType.Value();
         mod.setValue(modValue);
-        for (PrismPropertyValue<Object> value : values) {
-        	Object realValue = value.getValue();
-        	Object xmlValue = realValue;
-        	if (XmlTypeConverter.canConvert(realValue.getClass())) {
-        		// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
-        		xmlValue = XmlTypeConverter.toXsdElement(realValue, delta.getName(), document, true);
-        	}
-        	if (!(xmlValue instanceof Element) && !(xmlValue instanceof JAXBElement)) {
-        		xmlValue = new JAXBElement(elementName, xmlValue.getClass(), xmlValue);
-        	}
+        for (PrismValue value : values) {
+        	Object xmlValue = toAny(delta, value, document);
             modValue.getAny().add(xmlValue);
         }
     }
+
+	private static Object toAny(ItemDelta delta, PrismValue value, Document document) throws SchemaException {
+		PrismContext prismContext = delta.getPrismContext();
+		if (prismContext != null) {
+			return delta.getPrismContext().getPrismJaxbProcessor().toAny(value, document);
+		}
+		if (value instanceof PrismPropertyValue<?>) {
+			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)value;
+			return pval.getRawElement();
+		} else {
+			throw new SystemException("Null prism context in "+value+" in "+delta);
+		}
+	}
 
 }

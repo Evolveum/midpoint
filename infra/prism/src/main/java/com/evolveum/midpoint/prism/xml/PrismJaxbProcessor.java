@@ -48,9 +48,14 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -82,6 +87,10 @@ public class PrismJaxbProcessor {
 
 	private SchemaRegistry getSchemaRegistry() {
 		return prismContext.getSchemaRegistry();
+	}
+	
+	private PrismDomProcessor getPrismDomProcessor() {
+		return prismContext.getPrismDomProcessor();
 	}
 	
 	public void initialize() {
@@ -563,77 +572,34 @@ public class PrismJaxbProcessor {
 		throw new IllegalArgumentException("Unknown element type "+element.getClass().getName());
 	}
 	
-//	public <T extends Objectable> ObjectDefinition<T> findObjectDefinition(ObjectTypes objectType, Class<T> type) {
-//		return findContainerDefinitionByType(objectType.getTypeQName(),ObjectDefinition.class);
-//	}
-//	
-//	public <T extends Objectable> ObjectDefinition<T> findObjectDefinition(Class<T> type) {
-//		return findContainerDefinitionByType(ObjectTypes.getObjectType(type).getTypeQName(),ObjectDefinition.class);
-//	}
-//
-//	public PropertyContainerDefinition findContainerDefinition(Class<? extends Objectable> type, PropertyPath path) {
-//		ObjectTypes objectType = ObjectTypes.getObjectType(type);
-//		ObjectDefinition objectDefinition = findObjectDefinitionByType(objectType.getTypeQName());
-//		if (objectDefinition == null) {
-//			throw new IllegalArgumentException("The definition of object type "+type.getSimpleName()+" not found in the schema");
-//		}
-//		return objectDefinition.findItemDefinition(path, PropertyContainerDefinition.class);
-//	}
-//
-//	
-//	public <T extends Objectable> MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
-//		ObjectDefinition<T> objectDefinition = (ObjectDefinition<T>) findObjectDefinition(objectType.getClass());
-//		if (objectDefinition == null) {
-//			throw new IllegalArgumentException("No definition for object type "+objectType);
-//		}
-//		return objectDefinition.parseObjectType(objectType);
-//	}
-//	
-//	public <T extends ObjectType> MidPointObject<T> parseObject(String stringXml, Class<T> type) throws SchemaException {
-//		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
-//		JAXBElement<T> jaxbElement;
-//		try {
-//			jaxbElement = JAXBUtil.unmarshal(type, stringXml);
-//		} catch (JAXBException e) {
-//			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
-//		}
-//        T objectType = jaxbElement.getValue();
-//        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
-//        return object;
-//	}
-//
-//	public <T extends ObjectType> MidPointObject<T> parseObject(File xmlFile, Class<T> type) throws SchemaException {
-//		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
-//		JAXBElement<T> jaxbElement;
-//		try {
-//			jaxbElement = JAXBUtil.unmarshal(xmlFile, type);
-//		} catch (JAXBException e) {
-//			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
-//		}
-//        T objectType = jaxbElement.getValue();
-//        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
-//        return object;
-//	}
-
-//	public <T extends Objectable> PrismObject<T> parseJaxb(T jaxbObject) throws SchemaException {
-//		Class<? extends Objectable> jaxbClass = jaxbObject.getClass();
-//		// Locate object definition
-//		Schema schema = schemaRegistry.findSchemaByCompileTimeClass(jaxbClass);
-//		if (schema == null) {
-//			throw new SchemaException("Cannot find schema that contains definition of compile-time class "+jaxbClass);
-//		}
-//		QName typeQName = JAXBUtil.getTypeQName(jaxbClass);
-//		ObjectDefinition<? extends Objectable> objectDefinition = schema.findObjectDefinitionByType(typeQName, jaxbClass);
-//		if (objectDefinition == null) {
-//			throw new SchemaException("Cannot find object definition of "+typeQName+" in schema "+schema);
-//		}
-//		return parseJaxbObject(jaxbObject, objectDefinition);
-//	}
+	public Object toAny(PrismValue value, Document document) throws SchemaException {
+		if (value == null) {
+			return value;
+		}
+		QName elementName = value.getParent().getName();
+		Object xmlValue;
+		if (value instanceof PrismPropertyValue) {
+			PrismPropertyValue<Object> pval = (PrismPropertyValue)value;
+			Object realValue = pval.getValue();
+        	xmlValue = realValue;
+        	if (XmlTypeConverter.canConvert(realValue.getClass())) {
+        		// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
+        		xmlValue = XmlTypeConverter.toXsdElement(realValue, elementName, document, true);
+        	}
+		} else if (value instanceof PrismReferenceValue) {
+			PrismReferenceValue rval = (PrismReferenceValue)value;
+			xmlValue =  getPrismDomProcessor().serializeValueToDom(rval, elementName, document);
+		} else if (value instanceof PrismContainerValue<?>) {
+			xmlValue = ((PrismContainerValue)value).asContainerable();
+		} else {
+			throw new IllegalArgumentException("Unknown type "+value);
+		}
+		if (!(xmlValue instanceof Element) && !(xmlValue instanceof JAXBElement)) {
+    		xmlValue = new JAXBElement(elementName, xmlValue.getClass(), xmlValue);
+    	}
+        return xmlValue;
+	}
 	
-//	private <T extends Objectable> PrismObject<T> parseJaxbObject(T jaxbObject, ObjectDefinition<? extends Objectable> objectDefinition) throws SchemaException {
-//		
-//	}
-
 	private QName determineElementQName(Objectable objectable) {
 		PrismObject<?> prismObject = objectable.asPrismObject();
 		if (prismObject.getName() != null) {

@@ -30,10 +30,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Document;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -50,16 +53,18 @@ import javax.xml.namespace.QName;
 public class AnyArrayList<T extends Containerable> extends AbstractList<Object> {
 
     private PrismContainerValue<T> containerValue;
+    private Document document;
 
     public AnyArrayList(PrismContainerValue<T> containerValue) {
         Validate.notNull(containerValue, "Container value must not be null.");
         this.containerValue = containerValue;
+        this.document = DOMUtil.getDocument();
     }
 
     @Override
     public int size() {
     	if (isSchemaless()) {
-    		return getElements().size();
+    		return getRawElements().size();
     	} else {
 	    	// Each item and each value are presented as one list entry
 	    	int size = 0;
@@ -73,7 +78,7 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     @Override
     public Object get(int index) {
     	if (isSchemaless()) {
-    		return getElements().get(index);
+    		return getRawElements().get(index);
     	} else {
 	    	for (Item<?> item: containerValue.getItems()) {
 	    		if (index < item.getValues().size()) {
@@ -109,7 +114,7 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     @Override
     public boolean add(Object element) {
     	if (isSchemaless()) {
-    		return getElements().add(element);
+    		return getRawElements().add(element);
     	} else {
 	    	QName elementName = JAXBUtil.getElementQName(element);
 	    	Item<?> item;
@@ -135,7 +140,7 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     @Override
     public Object remove(int index) {
     	if (isSchemaless()) {
-    		return getElements().remove(index);
+    		return getRawElements().remove(index);
     	} else {
     		for (Item<?> item: containerValue.getItems()) {
 	    		if (index < item.getValues().size()) {
@@ -151,7 +156,7 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     @Override
     public boolean remove(Object element) {
     	if (isSchemaless()) {
-    		return getElements().remove(element);
+    		return getRawElements().remove(element);
     	} else {
     		QName elementName = JAXBUtil.getElementQName(element);
         	Item<?> item = containerValue.findItem(elementName);
@@ -188,7 +193,7 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     	return getDefinition() == null;
     }
     
-    private List<Object> getElements() {
+    private List<Object> getRawElements() {
     	return containerValue.getRawElements();
     }
     
@@ -201,7 +206,13 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     }
         
 	private Object asElement(PrismValue itemValue) {
-		return itemValue.asDomElement();
+		PrismContext prismContext = containerValue.getPrismContext();
+		try {
+			return prismContext.getPrismJaxbProcessor().toAny(itemValue, document);
+		} catch (SchemaException e) {
+			throw new SystemException("Unexpected schema proble: "+e.getMessage(),e);
+		}
+		// return itemValue.asDomElement();
 	}
 	
 

@@ -192,13 +192,6 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		return asContainerable();
 	}
 	
-	public List<Object> getRawElements() {
-		if (rawElements == null) {
-			rawElements = createElement();
-		}
-		return rawElements;
-	}
-	
 	private List<Object> createElement() {
 		return new ArrayList<Object>();
 	}
@@ -718,7 +711,14 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	public boolean isRaw() {
 		return rawElements != null;
 	}
-
+	
+	public List<Object> getRawElements() {
+		if (rawElements == null) {
+			rawElements = createElement();
+		}
+		return rawElements;
+	}
+	
 	private PrismContainerValue<T> parseRawElementsToNewValue(PrismContainerValue<T> origCVal, PrismContainerValue<T> definitionSource) throws SchemaException {
 		List<Object> rawElements = origCVal.rawElements;
 		if (definitionSource.getParent() == null || definitionSource.getParent().getDefinition() == null) {

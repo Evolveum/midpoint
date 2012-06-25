@@ -1467,11 +1467,12 @@
     <xsd:complexType name="UserType">
         <xsd:annotation>
             <xsd:documentation>
-                User object type. Represents physical user of the system.
-
-                TODO: More details
-
-                Inspired by FOAF, but still quite LDAP-ish.
+            	User object represents a physical user of the system.
+            	It differs from the account, as account represents a data structure in a target system. One user
+            	will typically have many accounts. Properties of User object describe the user as a person. 
+            	User object will usually be extended with employee details or customer details, but we define
+            	only a handful of the most common properties now. Other properties vary from implementation to
+            	implementation can be defined in the schema extension (the in the "extension" element).
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1644,7 +1645,7 @@
                     <xsd:element name="locale" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Defines user's preferrence in displaying currency, dates and other items
+                                Defines user's preference in displaying currency, dates and other items
                                 related to location and culture. The format ISO 639-1 two letter language code and the 
                                 ISO 3166-1 two letter country code separated by underscore. If not specified
                                 then system default locale is assumed.
@@ -1694,10 +1695,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Primary telephone number of the user.
-
-                                This is multi-valued attribute. In case more than
-                                one telephone number is specified, all telephone
-                                numbers are considered equivalent.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Telephone Number</a:displayName>
