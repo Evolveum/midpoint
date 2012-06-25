@@ -37,6 +37,11 @@
             <!--<jdbcUsername>midpoint</jdbcUsername>-->
             <!--<jdbcUrl>jdbc:mysql://localhost:3306/midpoint</jdbcUrl>-->
         </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
         <icf>
             <scanClasspath>true</scanClasspath>
             <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>

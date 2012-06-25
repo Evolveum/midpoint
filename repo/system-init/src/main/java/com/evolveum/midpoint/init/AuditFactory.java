@@ -1,0 +1,140 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+
+package com.evolveum.midpoint.init;
+
+import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.audit.api.AuditServiceFactory;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.configuration.*;
+import org.apache.cxf.common.util.StringUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author lazyman
+ */
+public class AuditFactory implements ApplicationContextAware, RuntimeConfiguration {
+
+    private static final String AUDIT_CONFIGURATION = "midpoint.audit";
+    private static final String CONF_AUDIT_SERVICE = "auditService";
+    private static final String CONF_AUDIT_SERVICE_FACTORY = "auditServiceFactoryClass";
+    private static final Trace LOGGER = TraceManager.getTrace(AuditFactory.class);
+    private ApplicationContext applicationContext;
+    @Autowired
+    MidpointConfiguration midpointConfiguration;
+    private List<AuditServiceFactory> serviceFactories = new ArrayList<AuditServiceFactory>();
+    private AuditService auditService;
+
+    public void init() {
+        Configuration config = getCurrentConfiguration();
+        //TODO FIX CONFIGURATION, CLEANUP REALLY NEEDED
+        List<SubnodeConfiguration> auditServices = ((XMLConfiguration) ((CompositeConfiguration)
+                ((SubsetConfiguration) config).getParent()).getConfiguration(0))
+                .configurationsAt(AUDIT_CONFIGURATION + "." + CONF_AUDIT_SERVICE);
+
+        for (SubnodeConfiguration serviceConfig : auditServices) {
+            try {
+                String factoryClass = getFactoryClassName(serviceConfig);
+                Class<AuditServiceFactory> clazz = (Class<AuditServiceFactory>) Class.forName(factoryClass);
+                AuditServiceFactory factory = getFactory(clazz);
+                factory.init(serviceConfig);
+
+                serviceFactories.add(factory);
+
+            } catch (Exception ex) {
+                LoggingUtils.logException(LOGGER, "AuditServiceFactory implementation class {} failed to " +
+                        "initialize.", ex, getFactoryClassName(serviceConfig));
+                throw new SystemException("AuditServiceFactory implementation class "
+                        + getFactoryClassName(serviceConfig) + " failed to initialize: " + ex.getMessage(), ex);
+            }
+        }
+    }
+
+    private AuditServiceFactory getFactory(Class<AuditServiceFactory> clazz) {
+        LOGGER.info("Getting factory '{}'", new Object[]{clazz.getName()});
+        return applicationContext.getBean(clazz);
+    }
+
+    private String getFactoryClassName(Configuration config) {
+        String className = config.getString(CONF_AUDIT_SERVICE_FACTORY);
+        if (StringUtils.isEmpty(className)) {
+            LOGGER.error("AuditServiceFactory implementation class name ({}) not found in configuration. " +
+                    "Provided configuration:\n{}", new Object[]{CONF_AUDIT_SERVICE_FACTORY, config});
+            throw new SystemException("AuditServiceFactory implementation class name ("
+                    + CONF_AUDIT_SERVICE_FACTORY + ") not found in configuration. Provided configuration:\n"
+                    + config);
+        }
+
+        return className;
+    }
+
+    public void destroy() {
+
+    }
+
+    public AuditService getAuditService() {
+        if (auditService == null) {
+            AuditServiceProxy proxy = new AuditServiceProxy();
+            for (AuditServiceFactory factory : serviceFactories) {
+                try {
+                    AuditService service = factory.getAuditService();
+                    //todo check this autowiring (check logs) how it's done
+                    applicationContext.getAutowireCapableBeanFactory().autowireBean(service);
+
+                    proxy.registerService(service);
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't get audit service from factory '{}'", ex, factory);
+                    throw new SystemException(ex.getMessage(), ex);
+                }
+            }
+
+            auditService = proxy;
+        }
+
+        return auditService;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public String getComponentId() {
+        return AUDIT_CONFIGURATION;
+    }
+
+    @Override
+    public Configuration getCurrentConfiguration() {
+        return midpointConfiguration.getConfiguration(AUDIT_CONFIGURATION);
+    }
+}

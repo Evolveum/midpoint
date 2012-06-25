@@ -68,7 +68,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
             LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} failed to " +
                     "initialize.", ex, config.getString(REPOSITORY_FACTORY_CLASS));
             throw new SystemException("RepositoryServiceFactory implementation class " +
-                    config.getString(REPOSITORY_FACTORY_CLASS) + " failed to initialize: "+ex.getMessage(), ex);
+                    config.getString(REPOSITORY_FACTORY_CLASS) + " failed to initialize: " + ex.getMessage(), ex);
         }
     }
 
@@ -103,7 +103,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
 
     @Override
     public String getComponentId() {
-        return "midpoint.repository";
+        return REPOSITORY_CONFIGURATION;
     }
 
     @Override

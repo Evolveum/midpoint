@@ -48,6 +48,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
     private static final String USER_HOME_VARIABLE = "user.home";
     private static final String MIDPOINT_HOME_VARIABLE = "midpoint.home";
+    private boolean initialized;
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
 
@@ -57,7 +58,12 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     @Override
-    public void destroy() throws RepositoryServiceFactoryException {
+    public synchronized void destroy() throws RepositoryServiceFactoryException {
+        if (!initialized) {
+            LOGGER.info("SQL repository was not initialized, nothing to destroy.");
+            return;
+        }
+
         if (!getSqlConfiguration().isEmbedded()) {
             LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
             return;
@@ -71,6 +77,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             LOGGER.info("H2 running as local instance (from file).");
         }
         LOGGER.info("Shutdown complete.");
+
+        initialized = false;
     }
 
     @Override
@@ -79,7 +87,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     @Override
-    public void init(Configuration configuration) throws RepositoryServiceFactoryException {
+    public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
+        if (initialized) {
+            LOGGER.info("SQL repository already initialized.");
+            return;
+        }
         Validate.notNull(configuration, "Configuration must not be null.");
 
         LOGGER.info("Initializing SQL repository factory");
@@ -109,6 +121,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
                     + ex.getMessage(), ex);
         }
         LOGGER.info("Repository initialization finished.");
+
+        initialized = true;
     }
 
     @Override

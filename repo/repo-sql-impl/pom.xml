@@ -167,6 +167,7 @@
             <version>2.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+
         <!-- OTHER -->
         <dependency>
             <groupId>org.slf4j</groupId>

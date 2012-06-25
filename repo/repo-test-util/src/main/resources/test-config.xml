@@ -31,6 +31,14 @@
             <!--<baseDir>target</baseDir>-->
             <dropIfExists>true</dropIfExists>
         </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
         <taskManager>
             <jdbcJobStore>false</jdbcJobStore>
         </taskManager>

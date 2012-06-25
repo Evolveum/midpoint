@@ -33,7 +33,7 @@
     <bean id="sqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.SqlRepositoryFactory"
           depends-on="repositoryFactory"/>
 
-    <!--<bean id="auditService" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceImpl" />-->
+    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>
 
     <bean id="sqlDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
         <property name="driverClass" value="#{sqlRepositoryFactory.sqlConfiguration.driverClassName}"/>

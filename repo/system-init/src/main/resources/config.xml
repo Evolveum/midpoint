@@ -29,6 +29,14 @@
             <baseDir>${midpoint.home}</baseDir>
             <asServer>true</asServer>
         </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
         <icf>
             <scanClasspath>true</scanClasspath>
             <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>

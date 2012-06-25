@@ -40,6 +40,7 @@
     </appender>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="PROFILING" level="TRACE"/>
+    <logger name="com.evolveum.midpoint" level="INFO" />
     <root level="WARN">
         <appender-ref ref="IDM_LOG"/>
     </root>
