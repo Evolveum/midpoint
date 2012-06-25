@@ -200,6 +200,54 @@ public class RAuditEventRecord implements Serializable {
         this.timestamp = timestamp;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RAuditEventRecord that = (RAuditEventRecord) o;
+
+        if (channel != null ? !channel.equals(that.channel) : that.channel != null) return false;
+        if (deltas != null ? !deltas.equals(that.deltas) : that.deltas != null) return false;
+        if (eventIdentifier != null ? !eventIdentifier.equals(that.eventIdentifier) : that.eventIdentifier != null)
+            return false;
+        if (eventStage != that.eventStage) return false;
+        if (eventType != that.eventType) return false;
+        if (hostIdentifier != null ? !hostIdentifier.equals(that.hostIdentifier) : that.hostIdentifier != null)
+            return false;
+        if (initiator != null ? !initiator.equals(that.initiator) : that.initiator != null) return false;
+        if (outcome != that.outcome) return false;
+        if (sessionIdentifier != null ? !sessionIdentifier.equals(that.sessionIdentifier) : that.sessionIdentifier != null)
+            return false;
+        if (target != null ? !target.equals(that.target) : that.target != null) return false;
+        if (targetOwner != null ? !targetOwner.equals(that.targetOwner) : that.targetOwner != null) return false;
+        if (taskIdentifier != null ? !taskIdentifier.equals(that.taskIdentifier) : that.taskIdentifier != null)
+            return false;
+        if (taskOID != null ? !taskOID.equals(that.taskOID) : that.taskOID != null) return false;
+        if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = timestamp != null ? timestamp.hashCode() : 0;
+        result = 31 * result + (eventIdentifier != null ? eventIdentifier.hashCode() : 0);
+        result = 31 * result + (sessionIdentifier != null ? sessionIdentifier.hashCode() : 0);
+        result = 31 * result + (taskIdentifier != null ? taskIdentifier.hashCode() : 0);
+        result = 31 * result + (taskOID != null ? taskOID.hashCode() : 0);
+        result = 31 * result + (hostIdentifier != null ? hostIdentifier.hashCode() : 0);
+        result = 31 * result + (initiator != null ? initiator.hashCode() : 0);
+        result = 31 * result + (target != null ? target.hashCode() : 0);
+        result = 31 * result + (targetOwner != null ? targetOwner.hashCode() : 0);
+        result = 31 * result + (eventType != null ? eventType.hashCode() : 0);
+        result = 31 * result + (eventStage != null ? eventStage.hashCode() : 0);
+        result = 31 * result + (deltas != null ? deltas.hashCode() : 0);
+        result = 31 * result + (channel != null ? channel.hashCode() : 0);
+        result = 31 * result + (outcome != null ? outcome.hashCode() : 0);
+        return result;
+    }
+
     public static RAuditEventRecord toRepo(AuditEventRecord record, PrismContext prismContext)
             throws DtoTranslationException {
 
