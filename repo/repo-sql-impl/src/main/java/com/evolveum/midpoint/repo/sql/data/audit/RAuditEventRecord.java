@@ -286,9 +286,8 @@ public class RAuditEventRecord implements Serializable {
 
             if (!record.getDeltas().isEmpty()) {
                 repo.setDeltas(new HashSet<String>());
-            } else {
-                repo.getDeltas().clear();
             }
+
             for (ObjectDelta<?> delta : record.getDeltas()) {
                 ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
                 xml = RUtil.toRepo(xmlDelta, prismContext);
