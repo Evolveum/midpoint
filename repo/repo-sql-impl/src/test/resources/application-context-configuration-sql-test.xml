@@ -43,7 +43,7 @@
           init-method="init" destroy-method="destroy" />
 
     <bean name="auditService" factory-bean="auditFactory" factory-method="getAuditService"
-          class="com.evolveum.midpoint.audit.api.AuditService" depends-on="auditFactory" />
+          class="com.evolveum.midpoint.repo.sql.SqlAuditServiceImpl" depends-on="auditFactory" />
 
     <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
@@ -60,6 +60,9 @@
 
     <bean name="protector" class="com.evolveum.midpoint.common.crypto.Protector" factory-bean="keyStoreFactory"
           factory-method="getProtector" />
+
+    <bean name="lightweightIdentifierGenerator"
+          class="com.evolveum.midpoint.test.LightweightIdentifierGeneratorMock"/>
 
 </beans>
 

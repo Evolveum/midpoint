@@ -85,6 +85,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UriStack;
         "classpath:application-context-task-test.xml",
         "classpath:application-context-repo-cache.xml",
         "classpath:application-context-repository.xml",
+        "classpath:application-context-audit.xml",
         "classpath:application-context-configuration-test.xml"})
 public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTests {
 

@@ -60,59 +60,7 @@ public class LoggerAuditServiceImpl implements AuditService {
 	 */
 	@Override
 	public void audit(AuditEventRecord record, Task task) {
-		
-		assertCorrectness(record, task);
-		completeRecord(record, task);
 		recordRecord(record);
-
-	}
-
-	private void assertCorrectness(AuditEventRecord record, Task task) {
-		if (task == null) {
-			LOGGER.warn("Task is null in a call to audit service");
-		} else {
-			if (task.getOwner() == null) {
-				LOGGER.warn("Task '{}' has no owner in a call to audit service", new Object[]{task.getName()});
-			}
-		}
-	}
-
-	/**
-	 * Complete the record with data that can be computed or discovered from the environment
-	 */
-	private void completeRecord(AuditEventRecord record, Task task) {
-		LightweightIdentifier id = null;
-		if (record.getEventIdentifier() == null) {
-			id = lightweightIdentifierGenerator.generate();
-			record.setEventIdentifier(id.toString());
-		}
-		if (record.getTimestamp() == null) {
-			if (id == null) {
-				record.setTimestamp(System.currentTimeMillis());
-			} else {
-				// To be consistent with the ID
-				record.setTimestamp(id.getTimestamp());
-			}
-		}
-		if (record.getTaskIdentifier() == null && task != null) {
-			record.setTaskIdentifier(task.getTaskIdentifier());
-		}
-		if (record.getTaskOID() == null && task != null) {
-			record.setTaskOID(task.getOid());
-		}
-		if (record.getTaskOID() == null && task != null) {
-			record.setTaskOID(task.getOid());
-		}
-		if (record.getSessionIdentifier() == null && task != null) {
-			// TODO
-		}
-		if (record.getInitiator() == null && task != null) {
-			record.setInitiator(task.getOwner());
-		}
-
-		if (record.getHostIdentifier() == null) {
-			// TODO
-		}
 	}
 	
 	private void recordRecord(AuditEventRecord record) {
