@@ -107,6 +107,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
  */
 @ContextConfiguration(locations = { 
 		"classpath:application-context-provisioning-test.xml",
+        "classpath:application-context-audit.xml",
 		"classpath:application-context-configuration-test-no-repo.xml" })
 public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 

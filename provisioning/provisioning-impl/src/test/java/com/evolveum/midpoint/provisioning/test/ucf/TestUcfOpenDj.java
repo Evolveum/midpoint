@@ -106,6 +106,7 @@ import static org.testng.AssertJUnit.*;
  *         a lesser evil for now (MID-392)
  */
 @ContextConfiguration(locations = { "classpath:application-context-provisioning-test.xml",
+        "classpath:application-context-audit.xml",
 		"classpath:application-context-configuration-test-no-repo.xml" })
 public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 

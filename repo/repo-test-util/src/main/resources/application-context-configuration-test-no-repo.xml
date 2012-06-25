@@ -30,7 +30,7 @@
 	default-lazy-init="false" default-autowire="byName">
 	
 	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
-		<constructor-arg value="test-config.xml" />
+		<constructor-arg value="test-config-no-repo.xml" />
 	</bean>
 
     <!-- protector initialization -->

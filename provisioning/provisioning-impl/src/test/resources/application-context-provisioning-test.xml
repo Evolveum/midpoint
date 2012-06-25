@@ -44,4 +44,6 @@
 	<context:component-scan base-package="com.evolveum.midpoint.provisioning.ucf.impl" />
 	<context:component-scan base-package="com.evolveum.midpoint.provisioning.test.impl" />
 
+    <bean name="lightweightIdentifierGenerator"
+          class="com.evolveum.midpoint.test.LightweightIdentifierGeneratorMock"/>
 </beans>
