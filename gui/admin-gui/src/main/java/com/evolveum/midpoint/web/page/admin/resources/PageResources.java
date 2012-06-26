@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -335,9 +336,17 @@ public class PageResources extends PageAdminResources {
                 LoggingUtils.logException(LOGGER, "Couldn't delete resource", ex);
             }
         }
-        result.recomputeStatus("Error occurred during resource deleting.");
-        showResult(result);
+        
+        if (result.isUnknown()) {
+        	result.recomputeStatus("Error occurred during resource deleting.");
+        }
 
+        if (result.isSuccess()) {
+            result.recordStatus(OperationResultStatus.SUCCESS, "The resource(s) have been successfully deleted.");
+        }
+        
+        showResult(result);
+        target.add(getFeedbackPanel());
         target.add(getResourceTable());
     }
 

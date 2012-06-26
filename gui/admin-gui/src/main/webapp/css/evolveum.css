@@ -245,6 +245,10 @@ input:focus, .button:focus, select:focus, option:focus {
     padding: 2px 0 0 0;
 }
 
+.sortedTable table thead th a div .sortableLabel {
+    padding-right: 20px;
+}
+
 .sortedTable table thead .sortable:hover {
 	background: #f2f2f2;
 	-moz-border-radius: 0px; 

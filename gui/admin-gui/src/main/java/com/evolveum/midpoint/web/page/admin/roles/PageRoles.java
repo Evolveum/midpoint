@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -164,9 +165,17 @@ public class PageRoles extends PageAdminRoles {
                 LoggingUtils.logException(LOGGER, "Couldn't delete role", ex);
             }
         }
-        result.recomputeStatus("Error occurred during role deleting.");
-        showResult(result);
+        
+        if (result.isUnknown()) {
+        	result.recomputeStatus("Error occurred during role deleting.");
+        }
 
+        if (result.isSuccess()) {
+            result.recordStatus(OperationResultStatus.SUCCESS, "The role(s) have been successfully deleted.");
+        }
+        
+        showResult(result);
+        target.add(getFeedbackPanel());
         target.add(getRoleTable());
     }
 
