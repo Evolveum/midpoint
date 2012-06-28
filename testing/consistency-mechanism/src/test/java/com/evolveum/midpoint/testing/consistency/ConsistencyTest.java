@@ -50,6 +50,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -253,7 +255,10 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private PrismContext prismContext;
-
+	@Autowired(required = true)
+	private TaskManager taskManager;
+	
+	
 	public ConsistencyTest() throws JAXBException {
 		super();
 		// TODO: fix this
@@ -640,8 +645,9 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		display("Adding user object", userType);
 
+		Task task = taskManager.createTaskInstance();
 		// WHEN
-		String oid = modelService.addObject(user, null, result);
+		String oid = modelService.addObject(user, task, result);
 
 		// THEN
 
@@ -859,7 +865,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	}
 
-//	@Test
+	@Test
 	public void test014addAccountAlreadyExistLinked() throws Exception {
 		displayTestTile("test014addAccountAlreadyExistLinked");
 		OperationResult parentResult = new OperationResult("Add account already exist linked");
@@ -880,16 +886,18 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
 		applySyncSettings(syncSettings);
 
-		modelService.modifyObject(UserType.class, USER_JACK2_OID, delta.getModifications(), null,
+		Task task = taskManager.createTaskInstance();
+		modelService.modifyObject(UserType.class, USER_JACK2_OID, delta.getModifications(), task,
 				parentResult);
 
 		// modifyUserAddAccount(REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_LINKED_OPENDJ_FILENAME);
 
-		user = modelService.getObject(UserType.class, USER_JACK2_OID, null, null, parentResult);
+		
+		user = modelService.getObject(UserType.class, USER_JACK2_OID, null, task, parentResult);
 		assertEquals(1, user.asObjectable().getAccountRef().size());
 
 		PrismObject<AccountShadowType> newAccount = modelService.getObject(AccountShadowType.class, user
-				.asObjectable().getAccountRef().get(0).getOid(), null, null, parentResult);
+				.asObjectable().getAccountRef().get(0).getOid(), null, task, parentResult);
 		AccountShadowType createdShadow = newAccount.asObjectable();
 		display("Created account: ", createdShadow);
 
@@ -937,8 +945,9 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
 				PrismTestUtil.getPrismContext());
 
+		Task task = taskManager.createTaskInstance();
 		modelService
-				.modifyObject(UserType.class, USER_WILL_OID, delta.getModifications(), null, parentResult);
+				.modifyObject(UserType.class, USER_WILL_OID, delta.getModifications(), task, parentResult);
 
 		user = repositoryService.getObject(UserType.class, USER_WILL_OID, parentResult);
 		assertNotNull(user);
@@ -977,10 +986,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
 				PrismTestUtil.getPrismContext());
 
-		modelService.modifyObject(UserType.class, USER_GUYBRUSH_OID, delta.getModifications(), null,
+		Task task = taskManager.createTaskInstance();
+		modelService.modifyObject(UserType.class, USER_GUYBRUSH_OID, delta.getModifications(), task,
 				parentResult);
 
-		modelService.deleteObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, null, parentResult);
+		modelService.deleteObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, task, parentResult);
 
 		try {
 			repositoryService.getObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
@@ -1023,8 +1033,9 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
 				PrismTestUtil.getPrismContext());
 
+		Task task = taskManager.createTaskInstance();
 		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
-				null, parentResult);
+				task, parentResult);
 
 		try {
 			repositoryService.getObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
@@ -1072,8 +1083,9 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
 				PrismTestUtil.getPrismContext());
 
+		Task task = taskManager.createTaskInstance();
 		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
-				null, parentResult);
+				task, parentResult);
 
 		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
 				USER_GUYBRUSH_OID, parentResult);
@@ -1127,7 +1139,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
 				PrismTestUtil.getPrismContext());
 
-		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), null, result);
+		Task task = taskManager.createTaskInstance();
+		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
 
 		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
 				USER_E_OID, result);
@@ -1173,8 +1186,9 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
 				PrismTestUtil.getPrismContext());
 
+		Task task = taskManager.createTaskInstance();
 		modelService.modifyObject(AccountShadowType.class, accountRefs.get(0).getOid(),
-				delta.getModifications(), null, result);
+				delta.getModifications(), task, result);
 
 		String accountOid = accountRefs.get(0).getOid();
 		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
@@ -1213,7 +1227,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class,
 				PrismTestUtil.getPrismContext());
 
-		modelService.modifyObject(AccountShadowType.class, accountRefOid, delta.getModifications(), null,
+		Task task = taskManager.createTaskInstance();
+		modelService.modifyObject(AccountShadowType.class, accountRefOid, delta.getModifications(), task,
 				parentResult);
 
 		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountRefOid,
@@ -1246,15 +1261,16 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
 				PrismTestUtil.getPrismContext());
 
-		modelService.modifyObject(UserType.class, USER_DENIELS_OID, delta.getModifications(), null,
+		Task task = taskManager.createTaskInstance();
+		modelService.modifyObject(UserType.class, USER_DENIELS_OID, delta.getModifications(), task,
 				parentResult);
 
 		UserType userJackAftermodify = repositoryService.getObject(UserType.class, USER_DENIELS_OID,
 				parentResult).asObjectable();
 		assertNotNull(userJack);
-		// assertEquals(0, userJack.getAccountRef().size());
+		 assertEquals(0, userJack.getAccountRef().size());
 
-		modelService.deleteObject(AccountShadowType.class, ACCOUNT_DENIELS_OID, null, parentResult);
+		modelService.deleteObject(AccountShadowType.class, ACCOUNT_DENIELS_OID, task, parentResult);
 
 		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class,
 				ACCOUNT_DENIELS_OID, parentResult).asObjectable();
