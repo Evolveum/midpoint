@@ -886,6 +886,13 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
 		applySyncSettings(syncSettings);
 
+		//check if the jackie account already exists on the resource
+		UserType jackUser = repositoryService.getObject(UserType.class, USER_JACK_OID, parentResult).asObjectable();
+		assertNotNull(jackUser);
+		assertEquals(1, jackUser.getAccountRef().size());
+		PrismObject<AccountShadowType> jackUserAccount = repositoryService.getObject(AccountShadowType.class, jackUser.getAccountRef().get(0).getOid(), parentResult);
+		display("Jack's account: ", jackUserAccount.dump());
+		
 		Task task = taskManager.createTaskInstance();
 		modelService.modifyObject(UserType.class, USER_JACK2_OID, delta.getModifications(), task,
 				parentResult);

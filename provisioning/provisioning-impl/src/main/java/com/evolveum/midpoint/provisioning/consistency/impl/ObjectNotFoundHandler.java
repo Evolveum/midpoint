@@ -45,6 +45,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -64,6 +66,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
+	@Autowired(required = true)
+	private TaskManager taskManager;
 
 	private String oid = null;
 
@@ -132,7 +136,9 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			// resource..(the change form resource is therefore deleted) and let
 			// the model to decide, if the account will be revived or unlinked
 			// form the user
-			changeNotificationDispatcher.notifyChange(change, null, handleErrorResult);
+			//TODO: task initialication
+			Task task = taskManager.createTaskInstance();
+			changeNotificationDispatcher.notifyChange(change, task, handleErrorResult);
 			// String oid = (String)
 			// handleErrorResult.getReturn("createdAccountOid");
 			String oidVal = null;

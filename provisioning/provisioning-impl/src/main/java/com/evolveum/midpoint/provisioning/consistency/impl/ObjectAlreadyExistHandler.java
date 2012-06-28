@@ -18,10 +18,11 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
@@ -48,6 +49,8 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private PrismContext prismContext;
+	@Autowired(required = true)
+	private TaskManager taskManager;
 
 	@Override
 	public void handleError(ResourceObjectShadowType shadow, Exception ex) throws SchemaException,
@@ -82,8 +85,9 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 		if (!foundAccount.isEmpty() && foundAccount.size() == 1) {
 			change.setCurrentShadow(foundAccount.get(0));
-			
-			changeNotificationDispatcher.notifyChange(change, null, handleErrorResult);
+			//TODO: task initialization
+			Task task = taskManager.createTaskInstance();
+			changeNotificationDispatcher.notifyChange(change, task, handleErrorResult);
 		}
 
 //		parentResult.recordSuccess();
