@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.web.component.submit;
+package com.evolveum.midpoint.web.page.admin.users;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
