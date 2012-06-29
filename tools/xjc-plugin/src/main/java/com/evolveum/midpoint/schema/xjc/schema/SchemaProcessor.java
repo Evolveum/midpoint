@@ -216,16 +216,9 @@ public class SchemaProcessor implements Processor {
         updateObjectReferenceOid(definedClass, getReference);
         //update for type methods
         updateObjectReferenceType(definedClass, getReference);
+        updateObjectReferenceRelation(definedClass, getReference);
         updateObjectReferenceDescription(definedClass, getReference);
         updateObjectReferenceFilter(definedClass, getReference);
-
-        //add xml element annotation to description getter, these methods will be fixed later
-//        JFieldVar filter = definedClass.fields().get("filter");
-//        copyAnnotations(findMethod(definedClass, "getFilter"), filter);
-//        List<JAnnotationUse> existingAnnotations = getAnnotations(filter, false);
-//        if (existingAnnotations != null) {
-//        	existingAnnotations.clear();
-//        }
     }
 
     private void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference) {
@@ -239,6 +232,20 @@ public class SchemaProcessor implements Processor {
         JMethod setType = recreateMethod(findMethod(definedClass, "setType"), definedClass);
         body = setType.body();
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setTargetType");
+        invocation.arg(setType.listParams()[0]);
+    }
+
+    private void updateObjectReferenceRelation(JDefinedClass definedClass, JMethod getReference) {
+        JFieldVar typeField = definedClass.fields().get("relation");
+        JMethod getType = recreateMethod(findMethod(definedClass, "getRelation"), definedClass);
+        copyAnnotations(getType, typeField);
+        JBlock body = getType.body();
+        body._return(JExpr.invoke(JExpr.invoke(getReference), "getRelation"));
+
+        definedClass.removeField(typeField);
+        JMethod setType = recreateMethod(findMethod(definedClass, "setRelation"), definedClass);
+        body = setType.body();
+        JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setRelation");
         invocation.arg(setType.listParams()[0]);
     }
 

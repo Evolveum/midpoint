@@ -43,6 +43,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
     private String oid = null;
     private PrismObject<?> object = null;
     private QName targetType = null;
+    private QName relation = null;
     private String description = null;
     private Element filter = null;
     
@@ -117,7 +118,15 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		this.targetType = targetType;
 	}
 
-    public String getDescription() {
+    public QName getRelation() {
+		return relation;
+	}
+
+	public void setRelation(QName relation) {
+		this.relation = relation;
+	}
+
+	public String getDescription() {
 		return description;
 	}
 

@@ -620,10 +620,10 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
     
     public void checkConsistence() {
-    	checkConsistence(true);
+    	checkConsistence(true, false);
     }
     
-    public void checkConsistence(boolean requireOid) {
+    public void checkConsistence(boolean requireOid, boolean requireDefinition) {
     	if (getChangeType() == ChangeType.ADD) {
 			if (getModifications() != null && !getModifications().isEmpty()) {
 				throw new IllegalStateException("Modifications present in ADD delta "+this);
@@ -643,7 +643,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 			if (getModifications() == null) {
 				throw new IllegalStateException("Null modification in MODIFY delta "+this);
 			}
-			ItemDelta.checkConsistence(getModifications());
+			ItemDelta.checkConsistence(getModifications(), requireDefinition);
 		} else if (getChangeType() == ChangeType.DELETE) {
 	    	if (requireOid && getOid() == null) {
 	    		throw new IllegalStateException("Null oid in delta "+this);

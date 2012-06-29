@@ -115,7 +115,7 @@ public class ShadowConstraintsChecker {
 		LOGGER.trace("Secondary IDs {}", accountDefinition.getSecondaryIdentifiers());
 		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {
 			PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
-			LOGGER.trace("Attempt to check uniquness of {} (def {})", attr, attrDef);
+			LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
 			if (attr == null) {
 				continue;
 			}
@@ -139,7 +139,7 @@ public class ShadowConstraintsChecker {
 		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 				resourceType, prismContext);
 		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, null, result);
-		LOGGER.trace("Uniquness check of {} resulted in {} results, using query:\n{}",
+		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
 				new Object[]{identifier, foundObjects.size(), DOMUtil.serializeDOMToString(query.getFilter())});
 		if (foundObjects.isEmpty()) {
 			return true;

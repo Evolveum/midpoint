@@ -332,18 +332,26 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
+		checkConsistence(deltas, false);
+	}
+	
+	public static void checkConsistence(Collection<? extends ItemDelta> deltas, boolean requireDefinition) {
 		for (ItemDelta<?> delta : deltas) {
-			delta.checkConsistence();
+			delta.checkConsistence(requireDefinition);
 		}
 	}
-
+	
 	public void checkConsistence() {
+		checkConsistence(false);
+	}
+
+	public void checkConsistence(boolean requireDefinition) {
 		if (parentPath == null) {
 			throw new IllegalStateException("Null parent path in " + this);
 		}
-		// if (definition == null) {
-		// throw new IllegalStateException("Null definition in "+this);
-		// }
+		if (requireDefinition && definition == null) {
+			throw new IllegalStateException("Null definition in "+this);
+		}
 		if (valuesToReplace != null && (valuesToAdd != null || valuesToDelete != null)) {
 			throw new IllegalStateException(
 					"The delta cannot be both 'replace' and 'add/delete' at the same time");

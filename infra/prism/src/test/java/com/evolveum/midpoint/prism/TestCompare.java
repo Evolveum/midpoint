@@ -110,7 +110,7 @@ public class TestCompare {
 		System.out.println(jackDelta.dump());
 		
 		jackDelta.assertDefinitions();
-		jackDelta.checkConsistence(true);
+		jackDelta.checkConsistence(true, true);
 		
 		assertEquals("Wrong delta type", ChangeType.MODIFY, jackDelta.getChangeType());
 		assertEquals("Wrong delta OID", USER_JACK_OID, jackDelta.getOid());
@@ -159,7 +159,7 @@ public class TestCompare {
 		
 		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
 		jackDelta.assertDefinitions();
-		jackDelta.checkConsistence(true);
+		jackDelta.checkConsistence(true, true);
 		
 		// WHEN
 		jackDelta.applyTo(jackOriginal);

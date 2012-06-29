@@ -474,7 +474,7 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
     		try {
 	    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
 	    		boolean requireOid = userPrimaryDelta == null;
-	    		userSecondaryDelta.checkConsistence(requireOid);
+	    		userSecondaryDelta.checkConsistence(requireOid, true);
     		} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in user secondary delta in SyncContext", e);
 			} catch (IllegalStateException e) {

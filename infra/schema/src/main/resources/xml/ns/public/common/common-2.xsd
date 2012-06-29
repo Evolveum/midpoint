@@ -46,7 +46,7 @@
 
             See https://wiki.evolveum.com/display/midPoint/Data+Model for more details.
             
-            Version: 2.0
+            Version: 2.1-SNAPSHOT
             Recommended namespace prefix: (default), c
         </xsd:documentation>
         <xsd:appinfo>
@@ -410,6 +410,33 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            
+	        <xsd:element name="org" type="tns:AccountShadowType" minOccurs="0" maxOccurs="unbounded">
+	            <xsd:annotation>
+	                <xsd:documentation>
+	                    Set of the orgs (organizational units, projects, teams) that the object relates to.
+	                    This usually means that the object belongs to them but it may have other meanings as well
+	                    (e.g. user manages an organizational unit).
+	                </xsd:documentation>
+	                <xsd:appinfo>
+	        			<a:objectReference>tns:orgRef</a:objectReference>
+	        		</xsd:appinfo>
+	            </xsd:annotation>
+	        </xsd:element>
+	
+	        <xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+	            <xsd:annotation>
+	                <xsd:documentation>
+	                    Set of the orgs (organizational units, projects, teams) that the object relates to.
+	                    This usually means that the object belongs to them but it may have other meanings as well
+	                    (e.g. user manages an organizational unit).
+	                </xsd:documentation>
+	                <xsd:appinfo>
+	        			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+	        		</xsd:appinfo>
+	            </xsd:annotation>
+	        </xsd:element>
+            
         </xsd:sequence>
 
         <xsd:attribute name="oid" type="xsd:string" use="optional">
@@ -538,6 +565,13 @@
                     The primary reason for this is to have some kind of
                     type safety but especially to be able to use
                     this in the XPaths that specify what references to resolve.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="relation" type="xsd:QName" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
@@ -4236,6 +4270,93 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="userTemplate" type="tns:UserTemplateType" substitutionGroup="c:object"/>
+    
+    <xsd:complexType name="OrgType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	Organizational unit, division, section, object gropup, team or any other form of
+            	organizing things and/or people.
+            	
+            	TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="displayName" type="t:PolyStringType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	Human-readable name of the org. It may be quite long, container national characters
+                            	and there is no uniqueness requirement.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Display Name</a:displayName>
+		                    	<a:displayOrder>100</a:displayOrder>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="identifier" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifier of the org. It should be a structured information usually used for
+                                refering to the org or correlating it in various systems. E.g. numeric organizational
+                                unit identifier. It should be unique in its "own" scope. E.g. an organizational unit identifier
+                                should be unique in the scope of all organizational units but it may conflict with an
+                                identifier of a project.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Identifier</a:displayName>
+		                    	<a:displayOrder>110</a:displayOrder>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="orgType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of the org. This may specify whether it is department, division, project, team, ...
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Type</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The name of the cost center that applies to this org.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Cost Center</a:displayName>
+                                <a:displayOrder>200</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Primary locality of the org, the place where
+                                the org is usually placed, the country, city or
+                                building that it belongs to. The specific meaning
+                                and form of this property is deployment-specific.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Locality</a:displayName>
+                                <a:displayOrder>210</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="org" type="tns:OrgType" substitutionGroup="c:object"/>
+    
 
     <!-- OPERATIONAL SCHEMA -->
 

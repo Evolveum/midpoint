@@ -466,7 +466,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     		try {
 	    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
 	    		boolean requireOid = accountPrimaryDelta == null;
-	    		accountSecondaryDelta.checkConsistence(requireOid);
+	    		accountSecondaryDelta.checkConsistence(requireOid, true);
     		} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in account secondary delta in "+this, e);
 			} catch (IllegalStateException e) {

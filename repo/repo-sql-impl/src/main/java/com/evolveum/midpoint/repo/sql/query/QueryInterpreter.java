@@ -136,7 +136,9 @@ public class QueryInterpreter {
         }
 
         LOGGER.trace("Definition not found, checking global definitions.");
-        return registry.findItemDefinitionByElementName(name);
+        ItemDefinition definition = registry.findItemDefinitionByElementName(name);
+        LOGGER.trace("Found definition {}",definition);
+        return definition;
     }
 
     public PropertyPath createPropertyPath(Element path) {

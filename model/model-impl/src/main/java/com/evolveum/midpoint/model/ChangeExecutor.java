@@ -299,7 +299,7 @@ public class ChangeExecutor {
             // Nothing to do
             return;
         }
-        String oid = change.getOid();
+        change.checkConsistence(true, true);
         Class<T> objectTypeClass = change.getObjectTypeClass();
 
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
