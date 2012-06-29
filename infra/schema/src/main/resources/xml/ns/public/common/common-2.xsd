@@ -2124,8 +2124,8 @@
                 IDM system connects to it to create accounts, assign
                 accounts to groups, etc. But it also may be an authoritative source of
                 data, system that maintains lookup tables, database that
-                contains organizational structure, etc. The {{Resource}} will
-                most likely provide a combination of several functions (e.g.
+                contains organizational structure, etc. The {{Resource}} 
+                provides a combination of several functions (e.g.
                 both provisioning and authoritative data for some attributes).
             </xsd:documentation>
         </xsd:annotation>
@@ -2164,10 +2164,7 @@
                                 that is private for a specific resource INSTANCE.
                                 It may be used by the connector e.g. to generate
                                 instance-specific resource schema or for other
-                                purposes. It should be set by the system
-                                administrator to a unique value for each resource
-                                instance. The configuration tools (e.g. admin GUI)
-                                should provide a reasonable default value.
+                                purposes. If not set a default namespace is assumed.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2184,7 +2181,7 @@
                                 related to identity management that the resource
                                 supports.
 
-                                Resource schema will be only available at run-time
+                                Resource schema is only available at run-time
                                 and can be diffrent for every resource instance,
                                 even for resource instances of the same type.
                                 It is supposed to be dynamically interpreted in
@@ -2193,19 +2190,8 @@
                                 Schema defines data types (XSD types), but it
                                 does NOT define how these types are handled.
                                 E.g. it defines attributes and object class for
-                                inetOrgPerson, it defines that inetOrgPerson
-                                extends organizationalPerson and persona, that
-                                cn is multi-valued string attributed of Person,  
-                                etc. But it does NOT define that inetOrgPerson
-                                object class should be used as account and that
-                                modifyTimestamp attribute is read-only. Such
-                                additional details are specified 
-                                in schemaHandling element defined below.
-
-                                Resource schema is read-only. Changing resource
-                                schema is not supported.
-
-                                TODO: annotations in the schema
+                                inetOrgPerson, that it has "cn" attribute which
+                                is multi-valued string, etc.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2327,8 +2313,6 @@
                 Specification of handling details for resource
                 schema. E.g. read-only or read-write attributes,
                 account object classes, etc.
-
-                TODO: more details
 
                 This element belongs to ResourceType and should
                 not be used elsewhere. This is a top-level
@@ -3400,11 +3384,7 @@
                 The
                 actual implementation, connector framework or protocol does not matter.
 
-                More specific types derived from this type may
-                exists. E.g. a
-                connector framework may create a derived type and return that instead of this type.
-
-                The values of "framework", "connectorType" and "connectorVersion" (if present) together form a unique
+                The values of "framework", "connectorType", "connectorVersion" and "connectorHost" (if present) together form a unique
                 identification of the connector. That means that two ConnectorType objects that have these values same
                 represent the same connector. Only one such instance of ConnectorType should exist in the repository.
 
@@ -3500,11 +3480,10 @@
 
                                 This element contains the XSD-formatted definition of connector
                                 configuration schema. It defines connector configuration variables and data types such
-                                as host names, ports,
-                                administrator names and so on.
+                                as host names, ports, administrator names and so on.
 
-                                Connector schema will most likely be only
-                                available at run-time and will be diffrent
+                                Connector schema is only
+                                available at run-time and may be diffrent
                                 for every connector. It is supposed to be
                                 dynamically interpreted in run-time.
 
