@@ -256,8 +256,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 			}
 		}
 		return null;
-	}
-
+	}	
 	
 	/**
 	 * Finds complex type definition by type name.

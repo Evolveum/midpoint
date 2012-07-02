@@ -334,8 +334,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
      * This is not the real thing. It is just for the tests. 
      */
     protected void applyResourceSchema(AccountShadowType accountType, ResourceType resourceType) throws SchemaException {
-    	ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
-    	ResourceObjectShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
+    	IntegrationTestTools.applyResourceSchema(accountType, resourceType, prismContext);
     }
 
 	protected ObjectDelta<UserType> addModificationToContext(SyncContext context, String filename) throws JAXBException,

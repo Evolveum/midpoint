@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.test;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -555,5 +557,10 @@ public class IntegrationTestTools {
 		return query;
 		
 	}
+	
+    public static void applyResourceSchema(AccountShadowType accountType, ResourceType resourceType, PrismContext prismContext) throws SchemaException {
+    	ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+    	ResourceObjectShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
+    }
 
 }

@@ -85,6 +85,11 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return originalResourceSchema;
 	}
 
+	
+	public RefinedAccountDefinition getAccountDefinition(AccountShadowType shadow) {
+		return getAccountDefinition(shadow.getAccountType());
+	}
+	
 	/**
 	 * if null accountType is provided, default account definition is returned.
 	 */
@@ -101,7 +106,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 	
 	public RefinedAccountDefinition getDefaultAccountDefinition() {
-		return getAccountDefinition(null);
+		return getAccountDefinition((String)null);
 	}
 	
 	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(String accountType) {

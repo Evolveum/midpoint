@@ -41,6 +41,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandle
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -71,6 +73,9 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -700,20 +705,37 @@ public class ModelController implements ModelService {
 				}
 
 			} else {
-				if (AccountShadowType.class.isAssignableFrom(type)) {
-					// Need to read the shadow to get reference to resource and
-					// account type
-					AccountShadowType shadow = (AccountShadowType) cacheRepositoryService.getObject(type,
+				if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
+					Collection<? extends ResourceAttributeDefinition> attributeDefinitions = null;
+					ResourceObjectShadowType shadow = (ResourceObjectShadowType) cacheRepositoryService.getObject(type,
 							oid, result).asObjectable();
 					String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
 					ResourceType resource = provisioning.getObject(ResourceType.class, resourceOid,
 							result).asObjectable();
-					RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-							prismContext);
-					PrismObjectDefinition<AccountShadowType> accountDefinition = refinedSchema
-							.getObjectDefinition(shadow);
-
-					// This creates a better delta than the one above
+					if (AccountShadowType.class.isAssignableFrom(type)) {
+						// Need to read the shadow to get reference to resource and
+						// account type
+						RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+								prismContext);
+//						PrismObjectDefinition<AccountShadowType> accountDefinition = refinedSchema
+//								.getObjectDefinition(shadow);
+						RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition((AccountShadowType)shadow);
+						attributeDefinitions = accountDefinition.getAttributeDefinitions();
+					} else {
+						ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+						ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(shadow);
+						attributeDefinitions = objectClassDefinition.getAttributeDefinitions();
+					}
+					for (ItemDelta itemDelta: modifications) {
+						ItemDefinition definition = itemDelta.getDefinition();
+						if (definition == null) {
+							if (itemDelta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
+								applyAttributeDefinition(itemDelta, attributeDefinitions);
+							} else {
+								throw new SchemaException("Missing definition of "+itemDelta);
+							}
+						}
+					}
 				}
 				objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type);
 
@@ -782,6 +804,18 @@ public class ModelController implements ModelService {
 			auditRecord.clearTimestamp();
 			auditService.audit(auditRecord, task);
 		}
+	}
+
+	private void applyAttributeDefinition(ItemDelta itemDelta,
+			Collection<? extends ResourceAttributeDefinition> attributeDefinitions) throws SchemaException {
+		QName attributeName = itemDelta.getPath().last().getName();
+		for (ResourceAttributeDefinition attrDef: attributeDefinitions) {
+			if (attrDef.getName().equals(attributeName)) {
+				itemDelta.applyDefinition(attrDef);
+				return;
+			}
+		}
+		throw new SchemaException("No definition for attribute "+attributeName);
 	}
 
 	private void logDebugChange(Class<?> type, String oid, Collection<? extends ItemDelta> modifications) {
