@@ -213,9 +213,9 @@ public class TestParseUser {
 		assertPropertyValue(user, "fullName", new PolyString("Jack Sparrow", "jack sparrow"));
 		assertPropertyDefinition(user, "fullName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
 		assertPropertyValue(user, "givenName", new PolyString("Jack", "jack"));
-		assertPropertyDefinition(user, "givenName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
+		assertPropertyDefinition(user, "givenName", SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
 		assertPropertyValue(user, "familyName", new PolyString("Sparrow", "sparrow"));
-		assertPropertyDefinition(user, "familyName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
+		assertPropertyDefinition(user, "familyName", SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
 	
 		assertPropertyDefinition(user, "organizationalUnit", SchemaConstants.T_POLY_STRING_TYPE, 0, -1);
 		assertPropertyValues(user, "organizationalUnit", 

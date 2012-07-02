@@ -50,8 +50,7 @@ File that contains three simple valid objects
 
     <i:user oid="c0c010c0-d34d-b33f-f00d-111111111113">
         <c:name>barbossa</c:name>
-        <i:fullName>Captain Barbossa</i:fullName>
-        <!-- Missing given name -->
+        <!-- Missing full name -->
         <i:familyName>Barbossa</i:familyName>
         <i:honorificPrefix>Cpt.</i:honorificPrefix>
     </i:user>

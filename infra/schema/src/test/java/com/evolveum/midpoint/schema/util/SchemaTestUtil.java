@@ -67,8 +67,8 @@ public class SchemaTestUtil {
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FULL_NAME, SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
 		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, UserType.F_FULL_NAME, "Full Name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, UserType.F_FULL_NAME, 100);
-		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_GIVEN_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 1, 1);
-		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 1, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_GIVEN_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
 		assertFalse("User definition is marked as runtime", userDefinition.isRuntimeSchema());
 		
@@ -89,7 +89,7 @@ public class SchemaTestUtil {
 		PrismContainerDefinition assignmentContainer = userDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
 		PrismAsserts.assertDefinition(assignmentContainer, UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
-		assertEquals("Assignment size", 4, assignmentContainer.getDefinitions().size());
+		assertEquals("Assignment size", 5, assignmentContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(assignmentContainer, AssignmentType.F_ACCOUNT_CONSTRUCTION, AccountConstructionType.COMPLEX_TYPE, 0, 1);
 		
 		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(UserType.F_ACCOUNT_REF, PrismReferenceDefinition.class);
