@@ -24,18 +24,34 @@
 <body>
 <wicket:extend>
 	<form wicket:id="mainForm">
-		<h1 wicket:id="confirmText"/>
-        <wicket:message key="submitPage.confirmText"> <b><wicket:message key="submitPage.save"></b>.<br /><br />
+		<h2 wicket:id="confirmText"/>
+        <wicket:message key="submitPage.selectText" /> <b><wicket:message key="submitPage.save" /></b>.<br /><br />
         <div wicket:id="accordion">
             <li wicket:id="accountsList">
-            	<wicket:message key="submitPage.selectAccount"><
-            	<!-- <div wicket:id="accountsTable"/> -->
+            	<p>
+            		<wicket:message key="submitPage.selectAccount" />
+            	</p>
+            	asdasd
+            	<wicket:remove>
+            		<!-- <div wicket:id="accountsTable"/> -->
+            	</wicket:remove>
             </li>
             <li wicket:id="changesList">
-            	<wicket:message key="submitPage.changesOccured">
+            	<p>
+            		<wicket:message key="submitPage.changesOccured" />
+            	</p>
             	<div wicket:id="changeType">
-            		<li wicket:id="accountsList">
-            			<div wicket:id="change"/>
+            		<li wicket:id="userInfoAccordion">
+            			asdasd
+            			<wicket:remove>
+            				<!-- <div wicket:id="userInfo"/> -->
+            			</wicket:remove>
+            		</li>
+            		<li wicket:id="accountsAccordion">
+            			asdasd
+            			<wicket:remove>
+            				<!-- <div wicket:id="account"/> -->
+            			</wicket:remove>
             		</li>
                	</div>
             </li>

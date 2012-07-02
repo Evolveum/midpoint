@@ -542,7 +542,17 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(save);
-
+        
+        AjaxLinkButton submit = new AjaxLinkButton("submit",
+        		createStringResource("pageUser.button.submit")) {
+			
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				setResponsePage(SubmitPage.class);
+			}
+		};
+		mainForm.add(submit);
+		
 //        AjaxLinkButton recalculate = new AjaxLinkButton("recalculate",
 //                createStringResource("pageUser.button.recalculate")) {
 //

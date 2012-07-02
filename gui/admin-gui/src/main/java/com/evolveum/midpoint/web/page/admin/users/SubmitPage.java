@@ -21,6 +21,7 @@ public class SubmitPage extends PageAdmin {
 	}
 
 	private void initLayout() {
+		
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
@@ -50,9 +51,41 @@ public class SubmitPage extends PageAdmin {
 		});
 		changesList.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(changesList);
+		
+		Accordion changeType = new Accordion("changeType");
+		changeType.setMultipleSelect(true);
+		changeType.setOpenedPanel(-1);
+		changesList.getBodyContainer().add(changeType);
+		
+		initUserInfo(changeType);
+		initAccounts(changeType);
 
 		initButtons(mainForm);
 
+	}
+	
+	private void initUserInfo(Accordion changeType) {
+		AccordionItem userInfoAccordion = new AccordionItem("userInfoAccordion", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				return getString("submitPage.userInfoAccordion");
+			}
+		});
+		userInfoAccordion.setOutputMarkupId(true);
+		changeType.getBodyContainer().add(userInfoAccordion);
+	}
+	
+	private void initAccounts(Accordion changeType) {
+		AccordionItem accountsAccordion = new AccordionItem("accountsAccordion", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				return getString("submitPage.accountsAccordion");
+			}
+		});
+		accountsAccordion.setOutputMarkupId(true);
+		changeType.getBodyContainer().add(accountsAccordion);
 	}
 
 	private void initButtons(Form mainForm) {
@@ -71,7 +104,7 @@ public class SubmitPage extends PageAdmin {
 		};
 		mainForm.add(saveButton);
 		
-		AjaxLinkButton returnButton = new AjaxLinkButton("saveButton",
+		AjaxLinkButton returnButton = new AjaxLinkButton("returnButton",
 				createStringResource("submitPage.button.return")) {
 			
 			@Override
@@ -79,6 +112,17 @@ public class SubmitPage extends PageAdmin {
 				// TODO setResponsePage(PageUser.class);
 			}
 		};
+		mainForm.add(returnButton);
+		
+		AjaxLinkButton cancelButton = new AjaxLinkButton("cancelButton",
+				createStringResource("submitPage.button.cancel")) {
+			
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				setResponsePage(PageUsers.class);
+			}
+		};
+		mainForm.add(cancelButton);
 	}
 	
 	private void savePerformed(AjaxRequestTarget target) {
