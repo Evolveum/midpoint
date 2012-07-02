@@ -95,6 +95,7 @@
 
 	<org oid="00000000-8888-6666-0000-200000000001">
 		<name>P0001</name>
+		<orgRef oid="00000000-8888-6666-0000-200000000000"/>
 		<displayName>Save Elaine</displayName>
 		<identifier>0001</identifier>
 		<orgType>project</orgType>
@@ -102,6 +103,7 @@
 
 	<org oid="00000000-8888-6666-0000-200000000002">
 		<name>P0002</name>
+		<orgRef oid="00000000-8888-6666-0000-200000000000"/>
 		<displayName>Kidnap and marry Elaine</displayName>
 		<identifier>0002</identifier>
 		<orgType>project</orgType>
