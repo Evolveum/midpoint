@@ -22,10 +22,11 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -34,6 +35,8 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -47,6 +50,18 @@ public abstract class RObject extends RContainer {
     @QueryEntity(any = true)
     private RAnyContainer extension;
     private long version;
+    private Set<REmbeddedReference> orgRefs;
+
+    @ElementCollection
+    @ForeignKey(name = "fk_object_org_ref")
+    @CollectionTable(name = "m_object_org_ref", joinColumns = {
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "user_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<REmbeddedReference> getOrgRefs() {
+        return orgRefs;
+    }
 
     @OneToOne(optional = true, orphanRemoval = true)
     @ForeignKey(name = "none")
@@ -84,6 +99,10 @@ public abstract class RObject extends RContainer {
         this.version = version;
     }
 
+    public void setOrgRefs(Set<REmbeddedReference> orgRefs) {
+        this.orgRefs = orgRefs;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -119,6 +138,12 @@ public abstract class RObject extends RContainer {
             jaxb.setExtension(extension);
             RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
         }
+
+        if (repo.getOrgRefs() != null) {
+            for (REmbeddedReference orgRef : repo.getOrgRefs()) {
+                jaxb.getOrgRef().add(orgRef.toJAXB(prismContext));
+            }
+        }
     }
 
     public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext)
@@ -141,6 +166,13 @@ public abstract class RObject extends RContainer {
 
             repo.setExtension(extension);
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+        }
+
+        if (!jaxb.getOrgRef().isEmpty()) {
+            repo.setOrgRefs(new HashSet<REmbeddedReference>());
+        }
+        for (ObjectReferenceType orgRef : jaxb.getOrgRef()) {
+            repo.getOrgRefs().add(RUtil.jaxbRefToEmbeddedRepoRef(orgRef, prismContext));
         }
     }
 
