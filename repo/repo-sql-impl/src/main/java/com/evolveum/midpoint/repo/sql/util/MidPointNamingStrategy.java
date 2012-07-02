@@ -36,7 +36,7 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
     @Override
     public String classToTableName(String className) {
         String name = className.substring(1);
-        //change cammel case to underscore delimited
+        //change camel case to underscore delimited
         name = name.replaceAll(String.format("%s|%s|%s",
                 "(?<=[A-Z])(?=[A-Z][a-z])",
                 "(?<=[^A-Z])(?=[A-Z])",
@@ -77,31 +77,6 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
 
         LOGGER.trace("propertyToColumnName {} to {} (original: {})",
                 new Object[]{propertyName, result, super.propertyToColumnName(propertyName)});
-        return result;
-    }
-
-    @Override
-    public String joinKeyColumnName(String joinedColumn, String joinedTable) {
-        String result = super.joinKeyColumnName(joinedColumn, joinedTable);
-        LOGGER.trace("joinKeyColumnName {} {} to {}", new Object[]{joinedColumn, joinedTable, result});
-        return result;
-    }
-
-    @Override
-    public String columnName(String columnName) {
-        String result = super.columnName(columnName);
-        LOGGER.trace("columnName {} to {}", new Object[]{columnName, result});
-        return result;
-    }
-
-    @Override
-    public String foreignKeyColumnName(String propertyName, String propertyEntityName,
-            String propertyTableName, String referencedColumnName) {
-
-        String result = super.foreignKeyColumnName(propertyName, propertyEntityName,
-                propertyTableName, referencedColumnName);
-        LOGGER.trace("foreignKeyColumnName {} {} {} {} to {}", new Object[]{propertyName,
-                propertyEntityName, propertyTableName, referencedColumnName, result});
         return result;
     }
 }

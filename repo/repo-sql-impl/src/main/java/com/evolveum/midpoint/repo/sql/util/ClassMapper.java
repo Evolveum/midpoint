@@ -57,6 +57,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.USER, RContainerType.USER);
         types.put(ObjectTypes.USER_TEMPLATE, RContainerType.USER_TEMPLATE);
         types.put(ObjectTypes.NODE, RContainerType.NODE);
+        types.put(ObjectTypes.ORG, RContainerType.ORG);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {

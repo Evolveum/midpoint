@@ -72,7 +72,9 @@ public enum ObjectTypes {
     PASSWORD_POLICY("schema.objectTypes.passwordPolicy", PasswordPolicyType.COMPLEX_TYPE,
             SchemaConstantsGenerated.C_PASSWORD_POLICY, PasswordPolicyType.class, false),
 
-    NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, false);
+    NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, false),
+
+    ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, false);
 
     private String localizationKey;
     private QName type;

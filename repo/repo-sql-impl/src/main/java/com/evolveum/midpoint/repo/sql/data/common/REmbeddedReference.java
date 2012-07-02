@@ -29,15 +29,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.Type;
 import org.w3c.dom.Element;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.xml.namespace.QName;
+import javax.persistence.*;
 import java.io.Serializable;
 
 /**
@@ -52,15 +47,12 @@ public class REmbeddedReference implements Serializable {
     private String description;
     private String filter;
     private RContainerType type;
-//    private QName relation;
+    private RQName relation;
 
-//    @Columns(columns = {
-//            @Column(name = "relation_namespace"),
-//            @Column(name = "relation_localPart")
-//    })
-//    public QName getRelation() {
-//        return relation;
-//    }
+    @Embedded
+    public RQName getRelation() {
+        return relation;
+    }
 
     @Column(length = 36, insertable = true, updatable = true, nullable = true)
     public String getTargetOid() {
@@ -82,9 +74,9 @@ public class REmbeddedReference implements Serializable {
         return filter;
     }
 
-//    public void setRelation(QName relation) {
-//        this.relation = relation;
-//    }
+    public void setRelation(RQName relation) {
+        this.relation = relation;
+    }
 
     public void setDescription(String description) {
         this.description = description;
@@ -114,7 +106,7 @@ public class REmbeddedReference implements Serializable {
         if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null)
             return false;
         if (type != that.type) return false;
-//        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
+        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
 
         return true;
     }
@@ -124,7 +116,7 @@ public class REmbeddedReference implements Serializable {
         int result = description != null ? description.hashCode() : 0;
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
-//        result = 31 * result + (relation != null ? relation.hashCode() : 0);
+        result = 31 * result + (relation != null ? relation.hashCode() : 0);
         return result;
     }
 
@@ -139,7 +131,9 @@ public class REmbeddedReference implements Serializable {
 
         jaxb.setDescription(repo.getDescription());
         jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
-//        jaxb.setRelation(repo.getRelation());
+        if (repo.getRelation() != null) {
+            jaxb.setRelation(repo.getRelation().toQName());
+        }
         if (StringUtils.isNotEmpty(repo.getTargetOid())) {
             jaxb.setOid(repo.getTargetOid());
         }
@@ -159,7 +153,9 @@ public class REmbeddedReference implements Serializable {
 
         repo.setDescription(jaxb.getDescription());
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-//        repo.setRelation(jaxb.getRelation());
+        if (jaxb.getRelation() != null) {
+            repo.setRelation(new RQName(jaxb.getRelation()));
+        }
 
         repo.setTargetOid(jaxb.getOid());
 

@@ -93,7 +93,9 @@ public class RObjectReference implements Serializable {
             @AttributeOverride(name = "targetOid", column = @Column(name = "targetOid",
                     insertable = false, updatable = false)),
             @AttributeOverride(name = "description", column = @Column(name = "description")),
-            @AttributeOverride(name = "filter", column = @Column(name = "filter"))
+            @AttributeOverride(name = "filter", column = @Column(name = "filter")),
+            @AttributeOverride(name = "relation.namespace", column = @Column(name = "namespace")),
+            @AttributeOverride(name = "relation.localPart", column = @Column(name = "localPart"))
     })
     @Embedded
     public REmbeddedReference getReference() {

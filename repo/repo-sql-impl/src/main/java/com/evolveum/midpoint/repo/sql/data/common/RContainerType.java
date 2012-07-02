@@ -42,7 +42,8 @@ public enum RContainerType {
     TASK(RTask.class),
     USER(RUser.class),
     USER_TEMPLATE(RUserTemplate.class),
-    NODE(RNode.class);
+    NODE(RNode.class),
+    ORG(ROrg.class);
 
     private Class<? extends RContainer> clazz;
 
