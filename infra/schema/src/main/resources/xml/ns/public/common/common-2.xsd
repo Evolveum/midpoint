@@ -571,7 +571,9 @@
         <xsd:attribute name="relation" type="xsd:QName" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    
+                    The relation or a "role" of this reference. It may further specify
+                    the meaning of the reference. E.g. it may specify whether the objects
+                    linked by the reference are analogous, form a composition, aggregation, etc.
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
@@ -1536,7 +1538,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="givenName" type="t:PolyStringType">
+                    <xsd:element name="givenName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Given name of the user. It is usually the first
@@ -1555,7 +1557,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="familyName" type="t:PolyStringType">
+                    <xsd:element name="familyName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Family name of the user. It is usually the last
@@ -2027,6 +2029,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+        
+        	<xsd:element ref="tns:description" minOccurs="0"/>
         
         	<xsd:element ref="tns:extension" minOccurs="0">
         		<xsd:annotation>
