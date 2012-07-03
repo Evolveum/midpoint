@@ -19,12 +19,63 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-
 package com.evolveum.midpoint.web.component.delta;
+
+import java.io.Serializable;
+
+import org.apache.commons.lang.Validate;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 
 /**
  * @author mserbak
  */
-public class ObjectDeltaPanel {
+public class ObjectDeltaPanel implements Serializable {
+	private ReferenceDelta accountsDelta;
+	private ContainerDelta assignmentsDelta;
+	private PrismObject oldObject;
+	private ObjectDelta delta;
+
+	public ObjectDeltaPanel(PrismObject oldObject) {
+		Validate.notNull(oldObject, "OldObject must not be null.");
+		this.oldObject = oldObject;
+	}
 	
+	public PrismObject getOldObject() {
+		return oldObject;
+	}
+
+	public ReferenceDelta getAccountsDelta() {
+		if (accountsDelta != null) {
+			return accountsDelta;
+		}
+		return null;
+	}
+
+	public void setAccountsDelta(ReferenceDelta accountsDelta) {
+		this.accountsDelta = accountsDelta;
+	}
+
+	public ContainerDelta getAssignmentsDelta() {
+		if (assignmentsDelta != null) {
+			return assignmentsDelta;
+		}
+		return null;
+	}
+
+	public void setAssignmentsDelta(ContainerDelta assignmentsDelta) {
+		this.assignmentsDelta = assignmentsDelta;
+	}
+
+	public ObjectDelta getDelta() {
+		return delta;
+	}
+
+	public void setDelta(ObjectDelta delta) {
+		this.delta = delta;
+	}
+
 }

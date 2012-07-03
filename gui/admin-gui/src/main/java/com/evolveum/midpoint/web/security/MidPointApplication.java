@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.users.PageSubmit;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.css.CssResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -121,6 +122,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin", PageHome.class, encoder));
         mount(new MountedMapper("/admin/home", PageHome.class, encoder));
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
+        mount(new MountedMapper("/admin/submit", PageSubmit.class, encoder));
         mount(new MountedMapper("/admin/tasks", PageTasks.class, encoder));
         mount(new MountedMapper("/admin/addTask", PageTaskAdd.class, encoder));
         mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));

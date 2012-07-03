@@ -13,9 +13,9 @@ import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 
-public class SubmitPage extends PageAdmin {
+public class PageSubmit extends PageAdmin {
 
-	public SubmitPage() {
+	public PageSubmit() {
 
 		initLayout();
 	}
@@ -59,6 +59,7 @@ public class SubmitPage extends PageAdmin {
 		
 		initUserInfo(changeType);
 		initAccounts(changeType);
+		initAssignments(changeType);
 
 		initButtons(mainForm);
 
@@ -86,6 +87,18 @@ public class SubmitPage extends PageAdmin {
 		});
 		accountsAccordion.setOutputMarkupId(true);
 		changeType.getBodyContainer().add(accountsAccordion);
+	}
+	
+	private void initAssignments(Accordion changeType) {
+		AccordionItem assignmentsAccordion = new AccordionItem("assignmentsAccordion", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				return getString("submitPage.assignmentsAccordion");
+			}
+		});
+		assignmentsAccordion.setOutputMarkupId(true);
+		changeType.getBodyContainer().add(assignmentsAccordion);
 	}
 
 	private void initButtons(Form mainForm) {

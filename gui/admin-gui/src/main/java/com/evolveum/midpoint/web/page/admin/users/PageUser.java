@@ -27,14 +27,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.web.component.button.ButtonType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
-import org.apache.wicket.behavior.AbstractBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -58,6 +55,7 @@ import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -86,9 +84,11 @@ import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.delta.ObjectDeltaPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
@@ -117,11 +117,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
@@ -149,6 +147,7 @@ public class PageUser extends PageAdminUsers {
     private IModel<ObjectWrapper> userModel;
     private IModel<List<UserAccountDto>> accountsModel;
     private IModel<List<UserAssignmentDto>> assignmentsModel;
+    private ObjectDeltaPanel deltaPanel;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -211,7 +210,8 @@ public class PageUser extends PageAdminUsers {
         ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, user, status);
         wrapper.setShowEmpty(!isEditingUser());
-
+        deltaPanel = new ObjectDeltaPanel(user.clone());
+        
         return wrapper;
     }
 
@@ -548,7 +548,11 @@ public class PageUser extends PageAdminUsers {
 			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				setResponsePage(SubmitPage.class);
+				if(deltaPanel != null) {
+					getSession().setAttribute("deltaPanel", deltaPanel);
+					setResponsePage(PageSubmit.class);
+				}
+				
 			}
 		};
 		mainForm.add(submit);
@@ -884,6 +888,7 @@ public class PageUser extends PageAdminUsers {
         PrismReferenceDefinition refDef = objectDefinition.findReferenceDefinition(UserType.F_ACCOUNT_REF);
         ReferenceDelta refDelta = prepareUserAccountsDeltaForModify(refDef);
         if (!refDelta.isEmpty()) {
+        	deltaPanel.setAccountsDelta(refDelta);
             userDelta.addModification(refDelta);
         }
 
@@ -891,6 +896,7 @@ public class PageUser extends PageAdminUsers {
         PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
         ContainerDelta assDelta = prepareUserAssignmentsDeltaForModify(def);
         if (!assDelta.isEmpty()) {
+        	deltaPanel.setAssignmentsDelta(assDelta);
             userDelta.addModification(assDelta);
         }
     }
@@ -908,7 +914,6 @@ public class PageUser extends PageAdminUsers {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
             Task task = createSimpleTask(OPERATION_SAVE_USER);
-
             switch (userWrapper.getStatus()) {
                 case ADDING:
                     PrismObject<UserType> user = delta.getObjectToAdd();
@@ -927,6 +932,12 @@ public class PageUser extends PageAdminUsers {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
                     }
+                    
+                    if(deltaPanel != null) {
+                    	deltaPanel.setDelta(delta);
+    					getSession().setAttribute("deltaPanel", deltaPanel);
+    					setResponsePage(PageSubmit.class);
+    				}
 
                     if (!delta.isEmpty()) {
                         getModelService().modifyObject(UserType.class, delta.getOid(), delta.getModifications(), task, result);
