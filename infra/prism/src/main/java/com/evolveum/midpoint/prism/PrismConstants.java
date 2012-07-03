@@ -35,6 +35,7 @@ public class PrismConstants {
 	public static final String ATTRIBUTE_OID_LOCAL_NAME = "oid";
 	public static final String ATTRIBUTE_VERSION_LOCAL_NAME = "version";
 	public static final String ATTRIBUTE_REF_TYPE_LOCAL_NAME = "type";
+	public static final String ATTRIBUTE_RELATION_LOCAL_NAME = "relation";
 	
 	public static final String ELEMENT_DESCRIPTION_LOCAL_NAME = "description";
 	public static final String ELEMENT_FILTER_LOCAL_NAME = "filter";

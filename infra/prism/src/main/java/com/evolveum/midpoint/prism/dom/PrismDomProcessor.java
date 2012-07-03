@@ -659,6 +659,13 @@ public class PrismDomProcessor {
 		}
 		PrismReferenceValue refVal = new PrismReferenceValue(oid);
 		refVal.setTargetType(type);
+		
+		QName relationAttribute = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME);
+		if (relationAttribute != null) {
+			DOMUtil.validateNonEmptyQName(relationAttribute, " in reference type in "+DOMUtil.getQName(element));
+		}
+		refVal.setRelation(relationAttribute);
+		
 		Element descriptionElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
 		if (descriptionElement != null) {
 			refVal.setDescription(descriptionElement.getTextContent());
@@ -667,6 +674,8 @@ public class PrismDomProcessor {
 		if (filterElement != null) {
 			refVal.setFilter(DOMUtil.getFirstChildElement(filterElement));
 		}
+		
+		
 		return refVal;
 	}
 	

@@ -21,11 +21,15 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,6 +38,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -207,6 +213,70 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertNotNull(delta);
         LOGGER.info("delta\n{}", new Object[]{delta.debugDump(3)});
         AssertJUnit.assertTrue(delta.isEmpty());
+    }
+    
+    @Test
+    public void addOrgStriuctObjects() throws Exception{
+    	
+    	String orgF0001oid = "00000000-8888-6666-0000-100000000001";
+    	String pRootOid = "00000000-8888-6666-0000-200000000000";
+    	String userElaineName = "elaine";
+    	
+    	LOGGER.info("===[ addOrgStruct ]===");
+    	File file = new File("./../../samples/objects/org-monkey-island.xml");
+    	List<PrismObject<? extends Objectable>> orgStruct = prismContext.getPrismDomProcessor().parseObjects(file);
+    	
+    	OperationResult opResult = new OperationResult("ADD (org struct)");
+    	
+    	for (PrismObject o : orgStruct){
+    		repositoryService.addObject(o, opResult);
+    	}
+    	
+    	List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, null, null, opResult);
+    	AssertJUnit.assertNotNull(orgTypes);
+    	AssertJUnit.assertEquals(9, orgTypes.size());
+    	
+    		
+    	OrgType orgF001 = repositoryService.getObject(OrgType.class, orgF0001oid, opResult).asObjectable();
+    	AssertJUnit.assertNotNull(orgF001);
+    	AssertJUnit.assertEquals("F0001", orgF001.getName());
+    	AssertJUnit.assertEquals("The office of the most respectful Governor.", orgF001.getDescription());
+   
+    	PrismAsserts.assertEqualsPolyString("Governor Office", "Governor Office", orgF001.getDisplayName());
+//    	AssertJUnit.assertEquals("Governor Office", orgF001.getDisplayName());
+    	AssertJUnit.assertEquals("0001", orgF001.getIdentifier());
+    	AssertJUnit.assertEquals(1, orgF001.getOrgType().size());
+    	AssertJUnit.assertEquals("functional", orgF001.getOrgType().get(0));
+    	AssertJUnit.assertEquals("CC0", orgF001.getCostCenter());
+    	PrismAsserts.assertEqualsPolyString("The Governor's Mansion", "The Governor's Mansion", orgF001.getLocality());
+    	
+		
+    	OrgType pRoot = repositoryService.getObject(OrgType.class, pRootOid, opResult).asObjectable();
+    	AssertJUnit.assertEquals("PRoot", pRoot.getName());
+    	AssertJUnit.assertEquals("Project organizational structure root", pRoot.getDescription());
+    	PrismAsserts.assertEqualsPolyString("Projects", "Projects", pRoot.getDisplayName());
+    	AssertJUnit.assertEquals(1, pRoot.getOrgType().size());
+    	AssertJUnit.assertEquals("project", pRoot.getOrgType().get(0));
+	
+    	QueryType query = QueryUtil.createNameQuery(userElaineName);
+    	
+    	List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
+    	
+    	AssertJUnit.assertNotNull(users);
+    	AssertJUnit.assertEquals(1, users.size());
+    	UserType elaine = users.get(0).asObjectable();
+    	LOGGER.info("elaine");
+    	LOGGER.info(prismContext.silentMarshalObject(elaine));
+    	AssertJUnit.assertEquals("elaine", elaine.getName());
+    	AssertJUnit.assertEquals(1, elaine.getOrgRef().size());
+    	AssertJUnit.assertEquals("00000000-8888-6666-0000-100000000001", elaine.getOrgRef().get(0).getOid());
+    	AssertJUnit.assertEquals("manager", elaine.getOrgRef().get(0).getRelation().getLocalPart());
+    	PrismAsserts.assertEqualsPolyString("Elaine Marley", "Elaine Marley", elaine.getFullName());
+    	PrismAsserts.assertEqualsPolyString("Marley", "Marley", elaine.getFamilyName());
+    	PrismAsserts.assertEqualsPolyString("Elaine", "Elaine", elaine.getGivenName());
+    	PrismAsserts.assertEqualsPolyString("Governor", "Governor", elaine.getTitle());
+    	
+    	
     }
     
 

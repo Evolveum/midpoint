@@ -321,6 +321,7 @@ public class RUser extends RObject {
     public void setFullName(RPolyString fullName) {
         this.fullName = fullName;
     }
+   
 
     @Override
     public boolean equals(Object o) {
