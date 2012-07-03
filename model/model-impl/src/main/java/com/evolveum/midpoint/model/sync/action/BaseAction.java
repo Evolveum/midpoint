@@ -185,8 +185,9 @@ public abstract class BaseAction implements Action {
         ResourceType resource = change.getResource().asObjectable();
 
         String accountType = getAccountTypeFromChange(change);
-        ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), accountType);
-        AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
+        boolean thombstone = isThombstone(change);
+		ResourceAccountType resourceAccountType = new ResourceAccountType(resource.getOid(), accountType, thombstone);
+        AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccountType);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));
 
@@ -212,7 +213,15 @@ public abstract class BaseAction implements Action {
         return accountContext;
     }
 
-    private void updateAccountActivation(AccountSyncContext accContext, ActivationDecision activationDecision) throws SchemaException {
+	private boolean isThombstone(ResourceObjectShadowChangeDescription change) {
+		ObjectDelta<? extends ResourceObjectShadowType> objectDelta = change.getObjectDelta();
+		if (objectDelta == null) {
+			return false;
+		}
+		return objectDelta.isDelete();
+	}
+
+	private void updateAccountActivation(AccountSyncContext accContext, ActivationDecision activationDecision) throws SchemaException {
         PrismObject<AccountShadowType> object = accContext.getAccountOld();
         if (object == null) {
             LOGGER.debug("Account object is null, skipping activation property check/update.");

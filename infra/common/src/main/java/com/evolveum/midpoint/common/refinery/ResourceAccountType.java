@@ -22,16 +22,27 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 /**
- * @author semancik
- *
+ * Aggregate bean containing resource OID, accountType and thombstone flag.
+ * It uniquely identifies an account for a specific user regardless whether it has OID, does not have
+ * OID yet, it exists of was deleted.
+ * 
+ * This is used mostly as a key in hashes and for searches.
+ * 
+ * @author Radovan Semancik
  */
 public class ResourceAccountType {
 
 	private String resourceOid;
 	private String accountType;
+	private boolean thombstone;
 	
 	public ResourceAccountType(String resourceOid, String accountType) {
+		this(resourceOid, accountType, false);
+	}
+	
+	public ResourceAccountType(String resourceOid, String accountType, boolean thombstone) {
 		this.resourceOid = resourceOid;
+		this.thombstone = thombstone;
 		setAccountType(accountType);
 	}
 	
@@ -52,9 +63,20 @@ public class ResourceAccountType {
 		}
 	}
 
+	/**
+	 * Thumbstone flag is true: the account no longer exists. The data we have are the latest metadata we were able to get. 
+	 */
+	public boolean isThombstone() {
+		return thombstone;
+	}
+
+	public void setThombstone(boolean thombstone) {
+		this.thombstone = thombstone;
+	}
+
 	@Override
 	public String toString() {
-		return "RAT(" + resourceOid + ": " + accountType + ")";
+		return "RAT(" + resourceOid + ": " + accountType + ( thombstone ? ", THOMBSTONE" : "" ) + ")";
 	}
 
 	@Override
@@ -63,9 +85,10 @@ public class ResourceAccountType {
 		int result = 1;
 		result = prime * result + ((accountType == null) ? 0 : accountType.hashCode());
 		result = prime * result + ((resourceOid == null) ? 0 : resourceOid.hashCode());
+		result = prime * result + (thombstone ? 1231 : 1237);
 		return result;
 	}
-
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -85,9 +108,11 @@ public class ResourceAccountType {
 				return false;
 		} else if (!resourceOid.equals(other.resourceOid))
 			return false;
+		if (thombstone != other.thombstone)
+			return false;
 		return true;
 	}
-	
+
 	public boolean equivalent(Object obj) {
 		if (this == obj)
 			return true;
@@ -105,6 +130,8 @@ public class ResourceAccountType {
 			if (other.resourceOid != null)
 				return false;
 		} else if (!resourceOid.equals(other.resourceOid))
+			return false;
+		if (thombstone != other.thombstone)
 			return false;
 		return true;
 	}
