@@ -25,20 +25,17 @@
 <wicket:extend>
 	<form wicket:id="mainForm">
 		<h2 wicket:id="confirmText"/>
-        <wicket:message key="submitPage.selectText" /> <b><wicket:message key="submitPage.save" /></b>.<br /><br />
+        <wicket:message key="pageSubmit.selectText" /> <b><wicket:message key="pageSubmit.save" /></b>.<br /><br />
         <div wicket:id="accordion">
             <li wicket:id="accountsList">
             	<p>
-            		<wicket:message key="submitPage.selectAccount" />
+            		<wicket:message key="pageSubmit.selectAccount" />
             	</p>
-            	asdasd
-            	<wicket:remove>
-            		<!-- <div wicket:id="accountsTable"/> -->
-            	</wicket:remove>
+            	<div wicket:id="accountsTable"/>
             </li>
             <li wicket:id="changesList">
             	<p>
-            		<wicket:message key="submitPage.changesOccured" />
+            		<wicket:message key="pageSubmit.changesOccured" />
             	</p>
             	<div wicket:id="changeType">
             		<li wicket:id="userInfoAccordion">
