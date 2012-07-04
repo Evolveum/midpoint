@@ -54,6 +54,8 @@ import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -64,6 +66,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 
 /**
@@ -98,13 +101,13 @@ public class PageResource extends PageAdminResources {
 		PrismObject<ResourceType> resource = null;
 
 		try {
-			Collection<PropertyPath> resolve = MiscUtil.createCollection(new PropertyPath(
-					ResourceType.F_CONNECTOR));
+			Collection<ObjectOperationOptions> options = 
+				ObjectOperationOptions.createCollection(ResourceType.F_CONNECTOR, ObjectOperationOption.RESOLVE);
 
 			Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
 
 			StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
-			resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), resolve, task,
+			resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), options, task,
 					result);
 
 			result.recordSuccess();

@@ -93,18 +93,20 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public void getObject(String objectTypeUri, String oid, PropertyReferenceListType resolve,
+	public void getObject(String objectTypeUri, String oid, OperationOptionsType options,
 			Holder<ObjectType> objectHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
-		notNullArgument(resolve, "Property reference list  must not be null.");
+		notNullArgument(options, "options  must not be null.");
 
 		OperationResult operationResult = null;
 		try {
 			Task task = createTaskInstance(GET_OBJECT);
 			setTaskOwner(task);
 			operationResult = task.getResult();
-			PrismObject<? extends ObjectType> object = model.getObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri)
-					.getClassDefinition(), oid, MiscSchemaUtil.itemReferenceListTypeToItemPathList(resolve), task, operationResult);
+			
+			PrismObject<? extends ObjectType> object = model.getObject(
+					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid, 
+					MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);
 			handleOperationResult(operationResult, resultHolder);
 			objectHolder.value = object.asObjectable();
 			return;

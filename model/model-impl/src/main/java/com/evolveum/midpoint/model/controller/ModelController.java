@@ -72,6 +72,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -188,7 +191,7 @@ public class ModelController implements ModelService {
 
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
-			Collection<PropertyPath> resolve, Task task, OperationResult result) throws ObjectNotFoundException,
+			Collection<ObjectOperationOptions> options, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -198,7 +201,7 @@ public class ModelController implements ModelService {
 		T object = null;
 		try {
 			OperationResult subResult = result.createSubresult(GET_OBJECT);
-			subResult.addParams(new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
+			subResult.addParams(new String[] { "oid", "options", "class" }, oid, options, clazz);
 
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
@@ -208,26 +211,38 @@ public class ModelController implements ModelService {
 
 			// todo will be fixed after another interface cleanup
 			// fix for resolving object properties.
-			resolve(object.asPrismObject(), resolve, task, subResult);
+			resolve(object.asPrismObject(), options, task, subResult);
 		} finally {
 			RepositoryCache.exit();
 		}
 		return object.asPrismObject();
 	}
 
-	protected void resolve(PrismObject<?> object, Collection<PropertyPath> resolve,
+	protected void resolve(PrismObject<?> object, Collection<ObjectOperationOptions> options,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		if (object == null || resolve == null) {
+		if (object == null || options == null) {
 			return;
 		}
 
-		for (PropertyPath path: resolve) {
-			resolve(object, path, task, result);
+		for (ObjectOperationOptions option: options) {
+			resolve(object, option, task, result);
 		}
 	}
 	
+	private void resolve(PrismObject<?> object, ObjectOperationOptions option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		if (!option.hasOption(ObjectOperationOption.RESOLVE)) {
+			return;
+		}
+		ObjectSelector selector = option.getSelector();
+		if (selector == null) {
+			return;
+		}
+		PropertyPath path = selector.getPath();
+		resolve (object, path, task, result);
+	}
+		
 	private void resolve(PrismObject<?> object, PropertyPath path, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		if (path.isEmpty()) {
+		if (path == null || path.isEmpty()) {
 			return;
 		}
 		PropertyPathSegment first = path.first();

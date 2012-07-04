@@ -32,9 +32,16 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
@@ -116,6 +123,53 @@ public class MiscSchemaUtil {
 			itemPathList.add(itemXPath.toPropertyPath());
 		}
 		return itemPathList;
+	}
+
+	public static Collection<ObjectOperationOptions> optionsTypeToOptions(OperationOptionsType optionsType) {
+		if (optionsType == null) {
+			return null;
+		}
+		List<ObjectOperationOptionsType> objectOptionsTypeList = optionsType.getObjectOption();
+		Collection<ObjectOperationOptions> optionsList = new ArrayList<ObjectOperationOptions>(objectOptionsTypeList.size());
+		for (ObjectOperationOptionsType objectOptionsType: objectOptionsTypeList) {
+			optionsList.add(objectOptionsTypeToOptions(objectOptionsType));
+		}
+		return optionsList;
+	}
+
+	private static ObjectOperationOptions objectOptionsTypeToOptions(ObjectOperationOptionsType objectOptionsType) {
+		ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector());
+		Collection<ObjectOperationOption> options = optionsTypeToOptions(objectOptionsType.getOption());
+		return new ObjectOperationOptions(selector, options );
+	}
+
+	private static Collection<ObjectOperationOption> optionsTypeToOptions(List<ObjectOperationOptionType> optionTypeList) {
+		Collection<ObjectOperationOption> options = new ArrayList<ObjectOperationOption>(optionTypeList.size());
+		for (ObjectOperationOptionType optionType: optionTypeList) {
+			options.add(optionTypeToOption(optionType));
+		}
+		return options;
+	}
+
+	private static ObjectOperationOption optionTypeToOption(ObjectOperationOptionType optionType) {
+		if (optionType == ObjectOperationOptionType.RESOLVE) {
+			return ObjectOperationOption.RESOLVE;
+		}
+		if (optionType == ObjectOperationOptionType.NO_FETCH) {
+			return ObjectOperationOption.NO_FETCH;
+		}
+		if (optionType == ObjectOperationOptionType.FORCE) {
+			return ObjectOperationOption.FORCE;
+		}
+		throw new IllegalArgumentException("Unknown value "+optionType);
+	}
+
+	private static ObjectSelector selectorTypeToSelector(ObjectSelectorType selectorType) {
+		if (selectorType == null) {
+			return null;
+		}
+		XPathHolder itemXPath = new XPathHolder(selectorType.getPath());
+		return new ObjectSelector(itemXPath.toPropertyPath());
 	}
 
 }

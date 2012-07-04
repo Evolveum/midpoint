@@ -63,6 +63,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -207,12 +209,11 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test110GetUserResolveAccount");
         OperationResult result = task.getResult();
 
-        Collection<PropertyPath> resolve = new ArrayList<PropertyPath>();
-        PropertyPath accountPath = new PropertyPath(UserType.F_ACCOUNT);
-        resolve.add(accountPath);
+        Collection<ObjectOperationOptions> options = 
+        	ObjectOperationOptions.createCollection(UserType.F_ACCOUNT, ObjectOperationOption.RESOLVE);
         
 		// WHEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, resolve , task, result);
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
 		
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
@@ -240,13 +241,14 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test111GetUserResolveAccountResource");
         OperationResult result = task.getResult();
 
-        Collection<PropertyPath> resolve = MiscUtil.createCollection(
-				new PropertyPath(UserType.F_ACCOUNT),
-				new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
-			);
+        Collection<ObjectOperationOptions> options = 
+        	ObjectOperationOptions.createCollection(ObjectOperationOption.RESOLVE,
+        			new PropertyPath(UserType.F_ACCOUNT),
+    				new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
+        	);
         
 		// WHEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, resolve , task, result);
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
 		
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();

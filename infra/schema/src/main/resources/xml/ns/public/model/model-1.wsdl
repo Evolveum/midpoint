@@ -91,7 +91,7 @@
     <message name="getObjectRequest">
     	<part name="objectType" type="xsd:anyURI"/>
         <part name="oid" type="xsd:string"/>
-        <part name="resolve" type="apit:PropertyReferenceListType"/>
+        <part name="options" type="apit:OperationOptionsType"/>
     </message>
     <message name="getObjectResponse">
         <part name="object" type="c:ObjectType"/>

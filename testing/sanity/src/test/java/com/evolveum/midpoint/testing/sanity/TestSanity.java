@@ -58,6 +58,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
@@ -651,11 +652,11 @@ public class TestSanity extends AbstractIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
-
-        // WHEN
+        OperationOptionsType options = new OperationOptionsType();
+        
+		// WHEN
         modelWeb.getObject(ObjectTypes.RESOURCE.getObjectTypeUri(), RESOURCE_OPENDJ_OID,
-                resolve, objectHolder, resultHolder);
+                options , objectHolder, resultHolder);
 
         ResourceType resource = (ResourceType) objectHolder.value;
 
@@ -843,11 +844,11 @@ public class TestSanity extends AbstractIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
+        OperationOptionsType options = new OperationOptionsType();
 
         // WHEN
         modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
-                resolve, objectHolder, resultHolder);
+                options, objectHolder, resultHolder);
 
         // THEN
         assertCache();
@@ -967,11 +968,11 @@ public class TestSanity extends AbstractIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
+        OperationOptionsType options = new OperationOptionsType();
 
         // WHEN
         modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidDerby,
-                resolve, objectHolder, resultHolder);
+                options, objectHolder, resultHolder);
 
         // THEN
         assertCache();
@@ -1307,12 +1308,12 @@ public class TestSanity extends AbstractIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
+        OperationOptionsType options = new OperationOptionsType();
         assertCache();
 
         // WHEN
         modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
-                resolve, objectHolder, resultHolder);
+                options, objectHolder, resultHolder);
 
         // THEN
         assertCache();
@@ -1420,12 +1421,12 @@ public class TestSanity extends AbstractIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
+        OperationOptionsType options = new OperationOptionsType();
         assertCache();
 
         // WHEN
         modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
-                resolve, objectHolder, resultHolder);
+                options, objectHolder, resultHolder);
 
         // THEN
         assertCache();
@@ -2635,8 +2636,9 @@ public class TestSanity extends AbstractIntegrationTest {
                 Holder<ObjectType> objectHolder = new Holder<ObjectType>();
                 OperationResult opResult = new OperationResult("import check");
                 assertCache();
+                OperationOptionsType options = new OperationOptionsType();
                 modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
-                        new PropertyReferenceListType(), objectHolder, resultHolder);
+                        options, objectHolder, resultHolder);
                 assertCache();
                 //				display("getObject result (wait loop)",resultHolder.value);
                 assertSuccess("getObject has failed", resultHolder.value);
@@ -2663,10 +2665,11 @@ public class TestSanity extends AbstractIntegrationTest {
         
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        OperationOptionsType options = new OperationOptionsType();
         assertCache();
 
         modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),
-                new PropertyReferenceListType(), objectHolder, resultHolder);
+                options, objectHolder, resultHolder);
 
         assertCache();
         assertSuccess("getObject has failed", resultHolder.value);
@@ -3234,7 +3237,8 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
         Holder<ObjectType> accountHolder = new Holder<ObjectType>();
-        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, new PropertyReferenceListType(), accountHolder, resultHolder);
+        OperationOptionsType options = new OperationOptionsType();
+        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, options, accountHolder, resultHolder);
         ObjectType object = accountHolder.value;
         assertSuccess("searchObjects has failed", resultHolder.value);
         assertNotNull("Account is null", object);

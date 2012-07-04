@@ -133,7 +133,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void testGetNullOid() throws FaultMessage {
         try {
-            modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), null, new PropertyReferenceListType(),
+            modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), null, new OperationOptionsType(),
                     new Holder<ObjectType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
@@ -145,7 +145,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void testGetEmptyOid() throws FaultMessage {
         try {
-            modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), "", new PropertyReferenceListType(),
+            modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), "", new OperationOptionsType(),
                     new Holder<ObjectType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
@@ -190,7 +190,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                             any(OperationResult.class))).thenThrow(
                     new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
-            modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), oid, new PropertyReferenceListType(),
+            modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), oid, new OperationOptionsType(),
                     new Holder<ObjectType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
