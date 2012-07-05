@@ -203,7 +203,7 @@ public class UserSynchronizer {
                 }
 
                 PrismObject<AccountShadowType> account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
-                        subResult);
+                        null, subResult);
                 accContext.setAccountOld(account);
                 accContext.fixAccounts();
                 accContext.setFullAccount(true);
@@ -471,7 +471,7 @@ public class UserSynchronizer {
 					if (resourceOid == null) {
 						throw new IllegalArgumentException("No resource OID in "+account);
 					}
-					ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, result).asObjectable();
+					ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
 	                context.rememberResource(resourceType);
 	                accountCtx.setResource(resourceType);
 				}
@@ -508,7 +508,7 @@ public class UserSynchronizer {
             ResourceType resource = context.getResource(rat);
             if (resource == null) {
                 // Fetching from provisioning to take advantage of caching and pre-parsed schema
-                resource = provisioningService.getObject(ResourceType.class, resourceOid, result).asObjectable();
+                resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
                 context.rememberResource(resource);
             }
             accountSyncContext = context.createAccountSyncContext(rat);

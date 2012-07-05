@@ -206,7 +206,8 @@ public class ModelController implements ModelService {
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
-			object = objectResolver.resolve(ref, clazz, "getObject", subResult);
+			Collection<ObjectOperationOption> rootOptions = ObjectOperationOptions.findRootOptions(options);
+			object = objectResolver.getObject(clazz, oid, rootOptions, subResult);
 			updateDefinition(object.asPrismObject(), result);
 
 			// todo will be fixed after another interface cleanup
@@ -725,7 +726,7 @@ public class ModelController implements ModelService {
 					ResourceObjectShadowType shadow = (ResourceObjectShadowType) cacheRepositoryService.getObject(type,
 							oid, result).asObjectable();
 					String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
-					ResourceType resource = provisioning.getObject(ResourceType.class, resourceOid,
+					ResourceType resource = provisioning.getObject(ResourceType.class, resourceOid, null,
 							result).asObjectable();
 					if (AccountShadowType.class.isAssignableFrom(type)) {
 						// Need to read the shadow to get reference to resource and
@@ -882,7 +883,7 @@ public class ModelController implements ModelService {
 		// This is pure XML and does not contain
 		// parsed schema. Fetching cached resource from provisioning is much
 		// more efficient
-		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, result)
+		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, null, result)
 				.asObjectable();
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType,
 				prismContext);

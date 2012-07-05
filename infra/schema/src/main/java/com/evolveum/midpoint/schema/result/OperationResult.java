@@ -90,6 +90,7 @@ public class OperationResult implements Serializable, Dumpable {
 	
 	public static final String PARAM_OID = "oid";
 	public static final String PARAM_TYPE = "type";
+	public static final String PARAM_OPTIONS = "options";
 	public static final String PARAM_TASK = "task";
 	public static final String PARAM_OBJECT = "object";
 	

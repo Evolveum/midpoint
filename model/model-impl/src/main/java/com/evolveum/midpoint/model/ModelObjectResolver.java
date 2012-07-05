@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.model;
 
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -77,7 +80,7 @@ public class ModelObjectResolver implements ObjectResolver {
 				if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
 					expectedType = (Class<T>) typeClass;
 				}
-				return getObject(expectedType, oid, result);
+				return getObject(expectedType, oid, null, result);
 	}
 
 	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, OperationResult result) throws ObjectNotFoundException {
@@ -91,16 +94,15 @@ public class ModelObjectResolver implements ObjectResolver {
 		if (typeQName != null) {
 			typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
 		}
-		return ((ObjectType) getObject((Class)typeClass, oid, result)).asPrismObject();
+		return ((ObjectType) getObject((Class)typeClass, oid, null, result)).asPrismObject();
 	}
-
 	
-	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, OperationResult result) throws ObjectNotFoundException {
+	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, Collection<ObjectOperationOption> options, OperationResult result) throws ObjectNotFoundException {
 		T objectType = null;
 		try {
 			PrismObject<T> object = null;
 			if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
-				object = provisioning.getObject(clazz, oid, result);
+				object = provisioning.getObject(clazz, oid, options, result);
 				if (object == null) {
 					throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
 							+" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());

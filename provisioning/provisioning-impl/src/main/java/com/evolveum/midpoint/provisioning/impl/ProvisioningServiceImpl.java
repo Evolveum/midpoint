@@ -58,6 +58,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -170,8 +171,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
-			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException, ConfigurationException, SecurityViolationException {
+			Collection<ObjectOperationOption> options, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -183,6 +184,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				+ ".getObject");
 		result.addParam(OperationResult.PARAM_OID, oid);
 		result.addParam(OperationResult.PARAM_TYPE, type);
+		result.addParam(OperationResult.PARAM_OPTIONS, options);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		PrismObject<T> repositoryObject = null;
@@ -203,6 +205,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// result.recordFatalError("Can't get object with oid " + oid +
 			// ". Reason: " + ex.getMessage(), ex);
 			throw ex;
+		}
+		
+		if (ObjectOperationOption.hasOption(options, ObjectOperationOption.NO_FETCH)) {
+			return repositoryObject;
 		}
 
 		if (repositoryObject.canRepresent(ResourceObjectShadowType.class)) {
@@ -381,7 +387,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			// Resolve resource
-			PrismObject<ResourceType> resourceObject = getObject(ResourceType.class, resourceOid, result);
+			PrismObject<ResourceType> resourceObject = getObject(ResourceType.class, resourceOid, null, result);
 
 			ResourceType resourceType = resourceObject.asObjectable();
 
@@ -1056,7 +1062,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			// Don't use repository. Repository resource will not have properly
 			// set capabilities
-			resource = getObject(ResourceType.class, resourceOid, result);
+			resource = getObject(ResourceType.class, resourceOid, null, result);
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError("Resource with oid " + resourceOid + "not found. Reason: " + e);

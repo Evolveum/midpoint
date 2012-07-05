@@ -322,7 +322,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test004Configuration");
 
 		// WHEN
-		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		resourceType = resource.asObjectable();
 
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
@@ -434,7 +434,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test006Capabilities");
 
 		// WHEN
-		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result).asObjectable();
+		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result).asObjectable();
 
 		// THEN
 
@@ -489,7 +489,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No resource schema", resourceSchema);
 		
 		// WHEN
-		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_DUMMY_OID, result);
+		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_DUMMY_OID, null, result);
 		
 		//THEN
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
@@ -542,7 +542,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals("will", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_WILL_OID, result).asObjectable();
+				ACCOUNT_WILL_OID, null, result).asObjectable();
 		display("account from provisioning",provisioningAccountType);
 		assertEquals("will", provisioningAccountType.getName());
 		
@@ -592,7 +592,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_MORGAN_OID, result).asObjectable();
+				ACCOUNT_MORGAN_OID, null, result).asObjectable();
 		display("account from provisioning",provisioningAccountType);
 		assertEquals("Account name was not generated (provisioning)", ACCOUNT_MORGAN_NAME, provisioningAccountType.getName());
 		
@@ -626,7 +626,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		AccountShadowType shadow = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_WILL_OID, result).asObjectable();
+				ACCOUNT_WILL_OID, null, result).asObjectable();
 
 		// THEN
 		display("Retrieved account shadow", shadow);
@@ -812,7 +812,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test021EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_WILL_OID, result).asObjectable();
+				ACCOUNT_WILL_OID, null, result).asObjectable();
 		assertNotNull(accountType);
 
 		// THEN
@@ -846,7 +846,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test022EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_WILL_OID, result).asObjectable();
+				ACCOUNT_WILL_OID, null, result).asObjectable();
 		assertNotNull(accountType);
 
 		// THEN
@@ -903,7 +903,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals("william", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_SCRIPT_OID, result).asObjectable();
+				ACCOUNT_NEW_SCRIPT_OID, null, result).asObjectable();
 		assertEquals("william", provisioningAccountType.getName());
 
 		
@@ -976,7 +976,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// WHEN
 		try {
 			provisioningService.getObject(AccountShadowType.class,
-					ACCOUNT_DAEMON_OID, result);
+					ACCOUNT_DAEMON_OID, null, result);
 			AssertJUnit.fail("Expected security exception while reading 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
@@ -1236,7 +1236,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	
 		// WHEN
 		try {
-			PrismObject<ResourceType> object = provisioningService.getObject(ResourceType.class, NOT_PRESENT_OID, result);
+			PrismObject<ResourceType> object = provisioningService.getObject(ResourceType.class, NOT_PRESENT_OID, null, result);
 			AssertJUnit.fail("Expected ObjectNotFoundException to be thrown, but getObject returned "+object+" instead");
 		} catch (ObjectNotFoundException e) {
 			// This is expected

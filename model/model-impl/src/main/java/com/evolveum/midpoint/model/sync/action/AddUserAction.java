@@ -146,6 +146,6 @@ public class AddUserAction extends BaseAction {
             return null;
         }
 
-        return getModel().getObjectResolver().getObject(UserTemplateType.class, oid, result);
+        return getModel().getObjectResolver().getObject(UserTemplateType.class, oid, null, result);
     }
 }

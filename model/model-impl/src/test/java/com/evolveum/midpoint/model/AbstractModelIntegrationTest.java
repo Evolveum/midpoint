@@ -313,7 +313,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	AccountShadowType accountType = account.asObjectable();
         String resourceOid = accountType.getResourceRef().getOid();
-        ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, result).asObjectable();
+        ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
         applyResourceSchema(accountType, resourceType);
         ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
         AccountSyncContext accountSyncContext = context.createAccountSyncContext(rat);

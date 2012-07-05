@@ -44,7 +44,7 @@ public enum ObjectOperationOption {
 	 * that no longer exists on resource may fail without a FORCE option. If FORCE option is used then the operation is
 	 * finished even if the account does not exist (e.g. at least shadow is removed from midPoint repository).
 	 */
-	FORCE
+	FORCE;
 	
 	// TODO:
 	// SYNC option: always perform synchronous operation. If it would go to async or delayed then throw an error

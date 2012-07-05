@@ -67,6 +67,6 @@ public final class Utils {
         }
 
         ObjectReferenceType resourceRef = shadow.getResourceRef();
-        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), result).asObjectable();
+        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, result).asObjectable();
     }
 }

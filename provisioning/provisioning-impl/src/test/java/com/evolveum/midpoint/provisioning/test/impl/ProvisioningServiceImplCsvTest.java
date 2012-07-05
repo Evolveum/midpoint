@@ -216,7 +216,7 @@ public class ProvisioningServiceImplCsvTest extends AbstractIntegrationTest {
 				+ ".test004Configuration");
 
 		// WHEN
-		resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, result);
+		resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, result);
 		resourceType = resource.asObjectable();
 
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);

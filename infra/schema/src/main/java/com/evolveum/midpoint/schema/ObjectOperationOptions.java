@@ -119,6 +119,16 @@ public class ObjectOperationOptions {
 		return objectOptions;
 	}
 
+	private boolean isRoot() {
+		if (selector == null) {
+			return true;
+		}
+		if (selector.getPath() == null || selector.getPath().isEmpty()) {
+			return true;
+		}
+		return false;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

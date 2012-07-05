@@ -137,7 +137,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, result).asObjectable();
 		assertEquals("will", accountType.getName());
 
-		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, result).asObjectable();
+		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, null, result).asObjectable();
 		assertEquals("will", provisioningAccountType.getName());
 		
 		// Check database content

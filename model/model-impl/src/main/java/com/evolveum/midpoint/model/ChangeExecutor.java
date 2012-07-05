@@ -390,7 +390,7 @@ public class ChangeExecutor {
                 scripts = resourceObject.getResource().getScripts();
             } else {
                 String resourceOid = ResourceObjectShadowUtil.getResourceOid(resourceObject);
-                ResourceType resObject = provisioning.getObject(ResourceType.class, resourceOid, result).asObjectable();
+                ResourceType resObject = provisioning.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
                 scripts = resObject.getScripts();
             }
         }

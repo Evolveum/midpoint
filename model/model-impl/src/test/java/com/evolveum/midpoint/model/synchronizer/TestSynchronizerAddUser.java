@@ -49,6 +49,7 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.mockito.Matchers.any;
@@ -111,7 +112,7 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 		final String accountOid = "10000000-0000-0000-0000-000000000004";
 
 		when(
-				provisioning.getObject(eq(ResourceType.class), eq(resourceOid),
+				provisioning.getObject(eq(ResourceType.class), eq(resourceOid), any(Collection.class),
 						any(OperationResult.class))).thenReturn(
 				resourceType.asPrismObject());
 		when(
