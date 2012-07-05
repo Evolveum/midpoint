@@ -110,6 +110,9 @@ public class ObjectOperationOptions {
 	 * Returns options that apply to the "root" object. I.e. options that have null selector, null path, empty path, ...
 	 */
 	public static Collection<ObjectOperationOption> findRootOptions(Collection<ObjectOperationOptions> options) {
+		if (options == null) {
+			return null;
+		}
 		Collection<ObjectOperationOption> objectOptions = new ArrayList<ObjectOperationOption>();
 		for (ObjectOperationOptions oooption: options) {
 			if (oooption.isRoot()) {
