@@ -543,20 +543,6 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(save);
-        
-        AjaxLinkButton submit = new AjaxLinkButton("submit",
-        		createStringResource("pageUser.button.submit")) {
-			
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				if(deltaPanel != null) {
-					getSession().setAttribute("deltaPanel", deltaPanel);
-					setResponsePage(PageSubmit.class);
-				}
-				
-			}
-		};
-		mainForm.add(submit);
 		
 //        AjaxLinkButton recalculate = new AjaxLinkButton("recalculate",
 //                createStringResource("pageUser.button.recalculate")) {
@@ -889,7 +875,6 @@ public class PageUser extends PageAdminUsers {
         PrismReferenceDefinition refDef = objectDefinition.findReferenceDefinition(UserType.F_ACCOUNT_REF);
         ReferenceDelta refDelta = prepareUserAccountsDeltaForModify(refDef);
         if (!refDelta.isEmpty()) {
-        	deltaPanel.setAccountsDelta(refDelta);
             userDelta.addModification(refDelta);
         }
 
@@ -897,7 +882,6 @@ public class PageUser extends PageAdminUsers {
         PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
         ContainerDelta assDelta = prepareUserAssignmentsDeltaForModify(def);
         if (!assDelta.isEmpty()) {
-        	deltaPanel.setAssignmentsDelta(assDelta);
             userDelta.addModification(assDelta);
         }
     }
@@ -936,15 +920,13 @@ public class PageUser extends PageAdminUsers {
                     
                     if(deltaPanel != null) {
                     	deltaPanel.setDelta(delta);
-    					getSession().setAttribute("deltaPanel", deltaPanel);
-    					setResponsePage(PageSubmit.class);
     				}
 
-                    if (!delta.isEmpty()) {
+                    /*if (!delta.isEmpty()) {
                         getModelService().modifyObject(UserType.class, delta.getOid(), delta.getModifications(), task, result);
                     } else {
                         result.recordSuccessIfUnknown();
-                    }
+                    }*/
 
                     break;
                 // delete state is where? wtf?? in next release add there delete state as well as
@@ -958,14 +940,18 @@ public class PageUser extends PageAdminUsers {
             result.recordFatalError("Couldn't save user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
         }
+        
+        PageSubmit page = new PageSubmit(deltaPanel);
+		setResponsePage(page);
 
-        if (!result.isSuccess()) {
+		/*if (!result.isSuccess()) {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
             setResponsePage(PageUsers.class);
-        }
+        	
+        }*/
     }
 
     private void encryptCredentials(ObjectDelta delta, boolean encrypt) {

@@ -34,48 +34,24 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
  * @author mserbak
  */
 public class ObjectDeltaPanel implements Serializable {
-	private ReferenceDelta accountsDelta;
-	private ContainerDelta assignmentsDelta;
-	private PrismObject oldObject;
-	private ObjectDelta delta;
+	private PrismObject oldDelta;
+	private ObjectDelta newDelta;
 
-	public ObjectDeltaPanel(PrismObject oldObject) {
-		Validate.notNull(oldObject, "OldObject must not be null.");
-		this.oldObject = oldObject;
+	public ObjectDeltaPanel(PrismObject oldDelta) {
+		Validate.notNull(oldDelta, "OldObject must not be null.");
+		this.oldDelta = oldDelta;
 	}
 	
-	public PrismObject getOldObject() {
-		return oldObject;
+	public PrismObject getOldDelta() {
+		return oldDelta;
 	}
 
-	public ReferenceDelta getAccountsDelta() {
-		if (accountsDelta != null) {
-			return accountsDelta;
-		}
-		return null;
+	public ObjectDelta getNewDelta() {
+		return newDelta;
 	}
 
-	public void setAccountsDelta(ReferenceDelta accountsDelta) {
-		this.accountsDelta = accountsDelta;
-	}
-
-	public ContainerDelta getAssignmentsDelta() {
-		if (assignmentsDelta != null) {
-			return assignmentsDelta;
-		}
-		return null;
-	}
-
-	public void setAssignmentsDelta(ContainerDelta assignmentsDelta) {
-		this.assignmentsDelta = assignmentsDelta;
-	}
-
-	public ObjectDelta getDelta() {
-		return delta;
-	}
-
-	public void setDelta(ObjectDelta delta) {
-		this.delta = delta;
+	public void setDelta(ObjectDelta newDelta) {
+		this.newDelta =newDelta;
 	}
 
 }
