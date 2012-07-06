@@ -239,10 +239,10 @@ public class ModelController implements ModelService {
 			return;
 		}
 		PropertyPath path = selector.getPath();
-		resolve (object, path, task, result);
+		resolve (object, path, option, task, result);
 	}
 		
-	private void resolve(PrismObject<?> object, PropertyPath path, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void resolve(PrismObject<?> object, PropertyPath path, ObjectOperationOptions option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (path == null || path.isEmpty()) {
 			return;
 		}
@@ -256,12 +256,12 @@ public class ModelController implements ModelService {
 		for (PrismReferenceValue refVal: reference.getValues()) {
 			PrismObject<?> refObject = refVal.getObject();
 			if (refObject == null) {
-				refObject = objectResolver.resolve(refVal, object.toString(), result);
+				refObject = objectResolver.resolve(refVal, object.toString(), option.getOptions(), result);
 				updateDefinition((PrismObject)refObject, result);
 				refVal.setObject(refObject);
 			}
 			if (!rest.isEmpty()) {
-				resolve(refObject, rest, task, result);
+				resolve(refObject, rest, option, task, result);
 			}
 		}
 	}

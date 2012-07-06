@@ -198,7 +198,29 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyShadowModel(account, accountOid, "jack", "Jack Sparrow");
 	}
-	
+
+	@Test
+    public void test102GetAccountNoFetch() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test102GetAccountNoFetch");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test102GetAccountNoFetch");
+        OperationResult result = task.getResult();
+		Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.NO_FETCH);
+		
+		// WHEN
+		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, options , task, result);
+		
+		display("Account", account);
+		display("Account def", account.getDefinition());
+		PrismContainer<Containerable> accountContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
+		display("Account attributes def", accountContainer.getDefinition());
+		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        assertDummyShadowRepo(account, accountOid, "jack");
+	}
+
 	@Test
     public void test110GetUserResolveAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
@@ -230,6 +252,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         AccountShadowType accountShadowType = userJackType.getAccount().get(0);
         assertDummyShadowModel(accountShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
 	}
+
 
 	@Test
     public void test111GetUserResolveAccountResource() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
@@ -267,6 +290,39 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         assertNotNull("Resource in account was not resolved", accountShadowType.getResource());
 	}
+
+	@Test
+    public void test112GetUserResolveAccountNoFetch() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test112GetUserResolveAccountNoFetch");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test112GetUserResolveAccountNoFetch");
+        OperationResult result = task.getResult();
+
+        Collection<ObjectOperationOptions> options = 
+        	ObjectOperationOptions.createCollection(UserType.F_ACCOUNT, ObjectOperationOption.RESOLVE, ObjectOperationOption.NO_FETCH);
+        
+		// WHEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
+		
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
+
+        assertEquals("Unexpected number of accounts", 1, userJackType.getAccount().size());
+        AccountShadowType accountShadowType = userJackType.getAccount().get(0);
+        assertDummyShadowRepo(accountShadowType.asPrismObject(), accountOid, "jack");
+	}
+
 	
 	@Test
     public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 

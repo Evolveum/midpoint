@@ -83,6 +83,10 @@ public class ObjectOperationOptions {
 		optionsCollection.add(create(pathQName, options));
 		return optionsCollection;
 	}
+	
+	public static Collection<ObjectOperationOptions> createCollectionRoot(ObjectOperationOption... options) {
+		return createCollection((ObjectSelector)null, options);
+	}
 
 	public static Collection<ObjectOperationOptions> createCollection(ObjectSelector selector, ObjectOperationOption... options) {
 		Collection<ObjectOperationOptions> optionsCollection = new ArrayList<ObjectOperationOptions>(1);

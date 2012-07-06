@@ -32,6 +32,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
@@ -515,6 +516,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected void assertDummyShadowRepo(PrismObject<AccountShadowType> accountShadow, String oid, String username) {
 		assertDummyCommon(accountShadow, oid, username);
+		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
+		List<Item<?>> attributes = attributesContainer.getValue().getItems();
+		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
 	}	
 	
 	protected void assertDummyShadowModel(PrismObject<AccountShadowType> accountShadow, String oid, String username, String fullname) {
