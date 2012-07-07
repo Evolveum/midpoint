@@ -18,6 +18,17 @@ public class ROrgClosure implements Serializable {
     private String ancestor;
     private String descendant;
     private int depth;
+    
+    
+    public ROrgClosure(){
+    	
+    }
+    
+    public ROrgClosure(String ancestor, String descendant, int depth){
+    	this.ancestor = ancestor;
+    	this.descendant = descendant;
+    	this.depth = depth;
+    }
 
     @Id
     @Index(name = "iAncestor")
@@ -68,4 +79,6 @@ public class ROrgClosure implements Serializable {
         result = 31 * result + depth;
         return result;
     }
+    
+   
 }

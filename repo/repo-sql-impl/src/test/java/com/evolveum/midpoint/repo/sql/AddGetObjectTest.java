@@ -29,17 +29,22 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -242,6 +247,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     	AssertJUnit.assertEquals("F0001", orgF001.getName());
     	AssertJUnit.assertEquals("The office of the most respectful Governor.", orgF001.getDescription());
    
+    	
     	PrismAsserts.assertEqualsPolyString("Governor Office", "Governor Office", orgF001.getDisplayName());
 //    	AssertJUnit.assertEquals("Governor Office", orgF001.getDisplayName());
     	AssertJUnit.assertEquals("0001", orgF001.getIdentifier());
@@ -276,7 +282,79 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     	PrismAsserts.assertEqualsPolyString("Elaine", "Elaine", elaine.getGivenName());
     	PrismAsserts.assertEqualsPolyString("Governor", "Governor", elaine.getTitle());
     	
+    	LOGGER.info("==>after add<==");
+    	Session session = factory.openSession();
+    	List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
+    	LOGGER.info("==============CLOSURE TABLE==========");
+    	for (ROrgClosure o : results){
+    		LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor(), o.getDescendant(), o.getDepth()});
+    	}
     	
+    	session.close();
+    	
+    	LOGGER.info("===[ modifyOrgStruct ]===");
+    	//test modification of org ref in another org type..
+    	String orgModifyAddOid = "00000000-8888-6666-0000-100000000005";
+    	ObjectModificationType modification = PrismTestUtil.unmarshalObject(new File(TEST_DIR+"/modify/modify-orgStruct-add-orgref.xml"), ObjectModificationType.class);
+    	ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+    	
+    	repositoryService.modifyObject(OrgType.class, orgModifyAddOid, delta.getModifications(), opResult);
+    	
+    	session = factory.openSession();
+    	LOGGER.info("==>after modify - add<==");
+      	results = session.createQuery("from ROrgClosure").list();
+    	LOGGER.info("==============CLOSURE TABLE==========");
+    	for (ROrgClosure o : results){
+    		LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor(), o.getDescendant(), o.getDepth()});
+    	}
+    	session.close();
+//    	
+    	//test modification of org ref - delete org ref
+    	LOGGER.info("===[ modify delete org ref ]===");
+    	String orgModifyDeleteOid = "00000000-8888-6666-0000-100000000006";
+    	modification = PrismTestUtil.unmarshalObject(new File(TEST_DIR+"/modify/modify-orgStruct-replace.xml"), ObjectModificationType.class);
+    	delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+    	
+    	repositoryService.modifyObject(OrgType.class, orgModifyDeleteOid, delta.getModifications(), opResult);
+    	
+    	session = factory.openSession();
+    	LOGGER.info("==>after modify - delete<==");
+      	results = session.createQuery("from ROrgClosure").list();
+    	LOGGER.info("==============CLOSURE TABLE==========");
+    	for (ROrgClosure o : results){
+    		LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor(), o.getDescendant(), o.getDepth()});
+    	}
+    	session.close();
+    	
+    	
+    	LOGGER.info("===[ modify add user to orgStruct ]===");
+    	//test modification of org ref in another org type..
+    	String modifyAddUserToOrgOid = elaine.getOid();
+    	modification = PrismTestUtil.unmarshalObject(new File(TEST_DIR+"/modify/modify-orgStruct-add-user.xml"), ObjectModificationType.class);
+    	delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+    	
+    	repositoryService.modifyObject(UserType.class, modifyAddUserToOrgOid, delta.getModifications(), opResult);
+    	
+    	session = factory.openSession();
+    	LOGGER.info("==>after modify - add user to org<==");
+      	results = session.createQuery("from ROrgClosure").list();
+    	LOGGER.info("==============CLOSURE TABLE==========");
+    	for (ROrgClosure o : results){
+    		LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor(), o.getDescendant(), o.getDepth()});
+    	}
+    	session.close();
+    	
+    	String orgOidToDelete = "00000000-8888-6666-0000-100000000004";
+    	repositoryService.deleteObject(OrgType.class, orgOidToDelete, opResult);
+    	
+    	session = factory.openSession();
+    	LOGGER.info("==>after delete<==");
+      	results = session.createQuery("from ROrgClosure").list();
+    	LOGGER.info("==============CLOSURE TABLE==========");
+    	for (ROrgClosure o : results){
+    		LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor(), o.getDescendant(), o.getDepth()});
+    	}
+    	session.close();
     }
     
 
