@@ -150,7 +150,7 @@ public class IntegrationTestTools {
 		} else if (warningOk && result.getStatus() == OperationResultStatus.WARNING) {
 			// OK
 		} else {
-			assert false : message + ": " + result.getMessage();	
+			assert false : message + ": " + result.getStatus() + ": " + result.getMessage();	
 		}
 		
 		if (stopLevel == currentLevel) {

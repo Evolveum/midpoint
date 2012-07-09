@@ -381,6 +381,7 @@ public class OperationResult implements Serializable, Dumpable {
 		OperationResultStatus newStatus = OperationResultStatus.UNKNOWN;
 		boolean allSuccess = true;
 		boolean allNotApplicable = true;
+		String newMessage = null;
 		for (OperationResult sub : getSubresults()) {
 			if (sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allNotApplicable = false;
@@ -389,6 +390,8 @@ public class OperationResult implements Serializable, Dumpable {
 				status = OperationResultStatus.FATAL_ERROR;
 				if (message == null) {
 					message = sub.getMessage();
+				} else {
+					message = message + ": " + sub.getMessage();
 				}
 				return;
 			}
@@ -396,6 +399,8 @@ public class OperationResult implements Serializable, Dumpable {
 				status = OperationResultStatus.IN_PROGRESS;
 				if (message == null) {
 					message = sub.getMessage();
+				} else {
+					message = message + ": " + sub.getMessage();
 				}
 				return;
 			}
@@ -405,20 +410,16 @@ public class OperationResult implements Serializable, Dumpable {
 			}
 			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
 				newStatus = OperationResultStatus.PARTIAL_ERROR;
-				if (message == null) {
-					message = sub.getMessage();
-				}
+				newMessage = sub.getMessage();
 			}
 			if (newStatus != OperationResultStatus.PARTIAL_ERROR) {
 				if (sub.getStatus() == OperationResultStatus.WARNING) {
 					newStatus = OperationResultStatus.WARNING;
-					if (message == null) {
-						message = sub.getMessage();
-					}
+					newMessage = sub.getMessage();
 				}
 			}
 		}
-
+		
 		if (allNotApplicable && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		}
@@ -426,6 +427,11 @@ public class OperationResult implements Serializable, Dumpable {
 			status = OperationResultStatus.SUCCESS;
 		} else {
 			status = newStatus;
+			if (message == null) {
+				message = newMessage;
+			} else {
+				message = message + ": " + newMessage;
+			}
 		}
 	}
 
