@@ -23,8 +23,7 @@
 
 <!--
 
-This file is an example of Resource definition. It defines an Solaris resource
-using an Identity Connector Framework Solaris connector.
+This file is an example of Resource definition. It defines CSV resource.
 
 This resource definition contains also definition to enable synchronization and
 especially an expression that is using a lookup of value from an configuration
@@ -37,7 +36,7 @@ object.
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
            xmlns:my="http://myself.me/schemas/whatever"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
@@ -58,9 +57,6 @@ object.
                 </q:equal>
             </filter>
         </connectorRef>
-
-        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-        <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe</c:namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
