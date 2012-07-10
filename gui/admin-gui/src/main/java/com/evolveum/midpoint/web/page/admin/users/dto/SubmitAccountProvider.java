@@ -23,8 +23,6 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import java.io.Serializable;
 
-import org.hibernate.engine.jdbc.SerializableBlobProxy;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
