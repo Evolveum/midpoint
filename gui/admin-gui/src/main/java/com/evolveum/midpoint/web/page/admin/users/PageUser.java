@@ -544,6 +544,16 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(save);
+        
+        AjaxLinkButton submit = new AjaxLinkButton("submit", createStringResource("pageUser.button.submit")) {
+			
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				PageSubmit page = new PageSubmit(deltaPanel, accountsList);
+				setResponsePage(page);
+			}
+		};
+		mainForm.add(submit);
 		
 //        AjaxLinkButton recalculate = new AjaxLinkButton("recalculate",
 //                createStringResource("pageUser.button.recalculate")) {
@@ -925,11 +935,11 @@ public class PageUser extends PageAdminUsers {
                     	deltaPanel.setNewDelta(delta);
     				}
 
-                    /*if (!delta.isEmpty()) {
+                    if (!delta.isEmpty()) {
                         getModelService().modifyObject(UserType.class, delta.getOid(), delta.getModifications(), task, result);
                     } else {
                         result.recordSuccessIfUnknown();
-                    }*/
+                    }
 
                     break;
                 // delete state is where? wtf?? in next release add there delete state as well as
@@ -943,18 +953,15 @@ public class PageUser extends PageAdminUsers {
             result.recordFatalError("Couldn't save user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
         }
-        
-        PageSubmit page = new PageSubmit(deltaPanel, accountsList);
-		setResponsePage(page);
 
-		/*if (!result.isSuccess()) {
+		if (!result.isSuccess()) {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
             setResponsePage(PageUsers.class);
         	
-        }*/
+        }
     }
 
     private void encryptCredentials(ObjectDelta delta, boolean encrypt) {
