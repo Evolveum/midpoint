@@ -90,7 +90,7 @@ import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.delta.ObjectDeltaPanel;
+import com.evolveum.midpoint.web.component.delta.ObjectDeltaComponent;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
@@ -149,7 +149,8 @@ public class PageUser extends PageAdminUsers {
     private IModel<ObjectWrapper> userModel;
     private IModel<List<UserAccountDto>> accountsModel;
     private IModel<List<UserAssignmentDto>> assignmentsModel;
-    private ObjectDeltaPanel deltaPanel;
+    private ObjectDeltaComponent deltaPanel;
+    private List<ObjectDeltaComponent> accountsList;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -212,7 +213,7 @@ public class PageUser extends PageAdminUsers {
         ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, user, status);
         wrapper.setShowEmpty(!isEditingUser());
-        deltaPanel = new ObjectDeltaPanel(user.clone());
+        deltaPanel = new ObjectDeltaComponent(user.clone());
         
         return wrapper;
     }
@@ -739,7 +740,8 @@ public class PageUser extends PageAdminUsers {
 
     private void modifyAccounts(OperationResult result) {
         LOGGER.debug("Modifying existing accounts.");
-
+        
+        accountsList = new ArrayList<ObjectDeltaComponent>();
         List<UserAccountDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
         for (UserAccountDto account : accounts) {
@@ -749,6 +751,7 @@ public class PageUser extends PageAdminUsers {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
                 }
+                accountsList.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta));
                 if (!UserDtoStatus.MODIFY.equals(account.getStatus())
                         || delta.isEmpty()) {
                     continue;
@@ -919,7 +922,7 @@ public class PageUser extends PageAdminUsers {
                     }
                     
                     if(deltaPanel != null) {
-                    	deltaPanel.setDelta(delta);
+                    	deltaPanel.setNewDelta(delta);
     				}
 
                     /*if (!delta.isEmpty()) {
@@ -941,7 +944,7 @@ public class PageUser extends PageAdminUsers {
             LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
         }
         
-        PageSubmit page = new PageSubmit(deltaPanel);
+        PageSubmit page = new PageSubmit(deltaPanel, accountsList);
 		setResponsePage(page);
 
 		/*if (!result.isSuccess()) {

@@ -242,7 +242,7 @@ public class PageHome extends PageAdmin {
 			} else if (accountConstruction.getResourceRef() != null) {
 				ObjectReferenceType ref = accountConstruction.getResourceRef();
 				OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-				subResult.addParam("resourceRef", ref.getOid());
+				subResult.addParam("resourceName", ref.getOid());
 				PrismObject resource = null;
 				try {
 					Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);

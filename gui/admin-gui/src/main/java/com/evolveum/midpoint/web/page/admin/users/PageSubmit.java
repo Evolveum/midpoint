@@ -15,6 +15,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.springframework.web.util.WebUtils;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -35,34 +36,36 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.delta.ObjectDeltaPanel;
+import com.evolveum.midpoint.web.component.delta.ObjectDeltaComponent;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountProvider;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 
 public class PageSubmit extends PageAdmin {
-	private ObjectDeltaPanel objectDelta;
-	private List<ReferenceDelta> accounts = new ArrayList<ReferenceDelta>();
+	private ObjectDeltaComponent user;
+	List<ObjectDeltaComponent> accounts;
+	//private List<ReferenceDelta> accounts = new ArrayList<ReferenceDelta>();
 	private List<ContainerDelta> assignments = new ArrayList<ContainerDelta>();
 	private List<PropertyDelta> credentials = new ArrayList<PropertyDelta>();
 
-	public PageSubmit(ObjectDeltaPanel deltaPanel) {
-		if (deltaPanel != null) {
-			objectDelta = deltaPanel;
+	public PageSubmit(ObjectDeltaComponent user, List<ObjectDeltaComponent> accounts) {
+		if (user != null) {
+			this.user = user;
+			this.accounts = accounts;
 			PropertyPath account = new PropertyPath(SchemaConstants.I_ACCOUNT_REF);
 			PropertyPath assignment = new PropertyPath(SchemaConstantsGenerated.C_ASSIGNMENT);
-
-			ObjectDelta newObject = objectDelta.getNewDelta();
+			ObjectDelta newObject = user.getNewDelta();
 			for (Object item : newObject.getModifications()) {
 				ItemDelta itemDelta = (ItemDelta) item;
 
 				if (itemDelta.getPath().equals(account)) {
-					accounts.add((ReferenceDelta) itemDelta);
+					//accounts.add((ReferenceDelta) itemDelta);
 				} else if (itemDelta.getPath().equals(assignment)) {
 					assignments.add((ContainerDelta) itemDelta);
 				} else {
@@ -86,7 +89,7 @@ public class PageSubmit extends PageAdmin {
 
 					@Override
 					public String getObject() {
-						return objectDelta.getOldDelta().getDisplayName();
+						return WebMiscUtil.getName(user.getOldObject());
 					}
 
 				})));
@@ -106,28 +109,23 @@ public class PageSubmit extends PageAdmin {
 		accountsList.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(accountsList);
 
-		List<IColumn<PrismReferenceValue>> columns = new ArrayList<IColumn<PrismReferenceValue>>();
-		columns.add(new PropertyColumn(createStringResource("aaaaa"), "object"));
-		/*
-		 * columns.add(new
-		 * PropertyColumn(createStringResource("pageTaskEdit.opResult.token"),
-		 * "token")); columns.add(new
-		 * PropertyColumn(createStringResource("pageTaskEdit.opResult.operation"
-		 * ), "operation")); columns.add(new
-		 * PropertyColumn(createStringResource("pageTaskEdit.opResult.status"),
-		 * "status")); columns.add(new
-		 * PropertyColumn(createStringResource("pageTaskEdit.opResult.message"),
-		 * "message"));
-		 */
-		SortableDataProvider<PrismReferenceValue> provider = new ListDataProvider<PrismReferenceValue>(this,
-				new AbstractReadOnlyModel<List<PrismReferenceValue>>() {
+		List<IColumn<SubmitAccountProvider>> columns = new ArrayList<IColumn<SubmitAccountProvider>>();
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.accountList.resourceName"), "resourceName"));
+		//columns.add(new PropertyColumn(createStringResource("pageSubmit.accountList.name"), "name"));
+
+		ListDataProvider<SubmitAccountProvider> provider = new ListDataProvider<SubmitAccountProvider>(this,
+				new AbstractReadOnlyModel<List<SubmitAccountProvider>>() {
 
 					@Override
-					public List<PrismReferenceValue> getObject() {
-						return loadAccountsList();
+					public List<SubmitAccountProvider> getObject() {
+						List<SubmitAccountProvider> list = new ArrayList<SubmitAccountProvider>();
+						for (PrismObject item : loadAccountsList()) {
+							list.add(new SubmitAccountProvider(item));
+						}
+						return list;
 					}
 				});
-		TablePanel accountsTable = new TablePanel<PrismReferenceValue>("accountsTable", provider, columns);
+		TablePanel accountsTable = new TablePanel<SubmitAccountProvider>("accountsTable", provider, columns);
 		accountsTable.setShowPaging(false);
 		accountsTable.setOutputMarkupId(true);
 		accountsList.getBodyContainer().add(accountsTable);
@@ -235,18 +233,26 @@ public class PageSubmit extends PageAdmin {
 		// TODO
 	}
 
-	private List<PrismReferenceValue> loadAccountsList() {
-		List<PrismReferenceValue> list = new ArrayList<PrismReferenceValue>();
+	private List<PrismObject> loadAccountsList() {
+		List<PrismObject> list = new ArrayList<PrismObject>();
 		if (accounts != null) {
-			for (ReferenceDelta account : accounts) {
-				for (Object values : account.getValuesToAdd()) {
-					PrismReferenceValue accountInfo = (PrismReferenceValue) values;
-					WebMiscUtil.getName(accountInfo.getObject());
-					Object aa = accountInfo.getObject().getPropertyRealValue(SchemaConstants.I_RESOURCE_REF,
-							Object.class);
-					/* accountInfo.getObject().get */
-					list.add(accountInfo);
-				}
+			for (ObjectDeltaComponent account : accounts) {
+				/*Collection modification = account.getNewDelta().getModifications();
+				if(modification != null){
+					for (Object item : modification) {
+						ReferenceDelta itemDelta = (ReferenceDelta) item;
+
+						for (Object item : newObject.getModifications()) {
+							ItemDelta itemDelta = (ItemDelta) item;
+						PrismReferenceValue accountInfo = (PrismReferenceValue) values;
+						WebMiscUtil.getName(accountInfo.getObject());
+						Object aa = accountInfo.getObject().getPropertyRealValue(SchemaConstants.I_RESOURCE_REF,
+								Object.class);
+						 accountInfo.getObject().get 
+						list.add(accountInfo);
+					}
+				}*/
+				list.add(account.getNewDelta().getObjectToAdd());
 			}
 		}
 		return list;
