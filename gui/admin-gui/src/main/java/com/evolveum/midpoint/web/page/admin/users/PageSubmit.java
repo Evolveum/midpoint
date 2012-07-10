@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.delta.ObjectDeltaComponent;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountProvider;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 
 public class PageSubmit extends PageAdmin {
 	private ObjectDeltaComponent user;
@@ -110,6 +112,10 @@ public class PageSubmit extends PageAdmin {
 		accordion.getBodyContainer().add(accountsList);
 
 		List<IColumn<SubmitAccountProvider>> columns = new ArrayList<IColumn<SubmitAccountProvider>>();
+		
+		IColumn column = new CheckBoxHeaderColumn<SubmitAccountProvider>();
+		columns.add(column);
+		
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.accountList.resourceName"), "resourceName"));
 		//columns.add(new PropertyColumn(createStringResource("pageSubmit.accountList.name"), "name"));
 
@@ -120,7 +126,7 @@ public class PageSubmit extends PageAdmin {
 					public List<SubmitAccountProvider> getObject() {
 						List<SubmitAccountProvider> list = new ArrayList<SubmitAccountProvider>();
 						for (PrismObject item : loadAccountsList()) {
-							list.add(new SubmitAccountProvider(item));
+							list.add(new SubmitAccountProvider(item, true));
 						}
 						return list;
 					}

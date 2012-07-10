@@ -51,11 +51,6 @@ function init() {
 	$(".optionPanel").css("height",$(".optionRightBar").height());
 	$(".optionLeftBar").css("height",$(".optionRightBar").height());
 	
-	$(".submitTable tbody input[type='checkbox']:checked").parent().parent().find("td").css("background","#d8f4d8");
-	$(".submitTable tbody input[type='checkbox']:checked").parent().parent().find("td").css("border-color","#FFFFFF");
-	
-	
-	
 	//$(".sortedTable table thead").find(".sortable").find("a").find("div").append("<span class='sortableArrowIcon'></span>");
 	
 	$(".left-menu ul").mouseenter(function(){

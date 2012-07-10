@@ -20,6 +20,14 @@
  */
 
 function initTable(){
+	var cssSelectedRow = {
+      'background' : '#d8f4d8',
+      'border-color' : '#FFFFFF'
+    }
+	var row =  $(".sortedTable table tbody tr");
+	row.find(".tableCheckbox").find("input[type='checkbox']:checked").parents(row).find("td").css(cssSelectedRow);
+	checkAllChecked($(".sortedTable"));
+	
 	$("thead input[type='checkbox']").click(function(){
 		if($(this).is(":checked")){
 			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);

@@ -35,9 +35,11 @@ public class SubmitAccountProvider implements Serializable {
 	private PrismObject account;
 	private String name;
 	private String resourceName;
+	private boolean selected;
 
-	public SubmitAccountProvider(PrismObject account) {
+	public SubmitAccountProvider(PrismObject account, boolean selected) {
 		this.account = account;
+		this.selected = selected;
 	}
 
 	public String getName() {
@@ -53,4 +55,7 @@ public class SubmitAccountProvider implements Serializable {
 		return WebMiscUtil.getName(reference.getValue().getObject());		
 	}
 
+	public boolean isSelected() {
+		return selected;
+	}
 }
