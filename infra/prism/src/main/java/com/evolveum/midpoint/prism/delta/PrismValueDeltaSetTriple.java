@@ -53,7 +53,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
     /**
      * Compares two (unordered) collections and creates a triple describing the differences.
      */
-    public static <V extends PrismValue> PrismValueDeltaSetTriple<V> diff(Collection<V> valuesOld, Collection<V> valuesNew) {
+    public static <V extends PrismValue> PrismValueDeltaSetTriple<V> diffPrismValueDeltaSetTriple(Collection<V> valuesOld, Collection<V> valuesNew) {
     	PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTriple<V>();
         diff(valuesOld, valuesNew, triple);
         return triple;

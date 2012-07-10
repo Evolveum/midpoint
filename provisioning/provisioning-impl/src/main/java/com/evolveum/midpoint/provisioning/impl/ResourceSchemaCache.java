@@ -80,8 +80,8 @@ public class ResourceSchemaCache {
 		if (cache.containsKey(oid)) {
 			// There is already an entry in the cache. Check serial number
 			ResourceSchemaCacheEntry entry = cache.get(oid);
-			if (serial.equals(entry.serialNumber)) {
-				// Same serial number. We have a hit
+			if (serial.equals(entry.serialNumber) && compareVersion(resourceType.getVersion(), entry.version)) {
+				// Same serial number and version. We have a hit
 				RefinedResourceSchema.setParsedResourceSchemaConditional(resourceType, entry.parsedSchema);
 				return resourceType;
 			} else {
@@ -98,13 +98,23 @@ public class ResourceSchemaCache {
 		}
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceType.toString(), prismContext);
 		// Put it into cache
-		ResourceSchemaCacheEntry entry = new ResourceSchemaCacheEntry(serial, xsdElement, parsedSchema);
+		ResourceSchemaCacheEntry entry = new ResourceSchemaCacheEntry(serial, resourceType.getVersion(), xsdElement, parsedSchema);
 		cache.put(oid,entry);
 		
 		RefinedResourceSchema.setParsedResourceSchemaConditional(resourceType,parsedSchema);
 		return resourceType;
 	}
 	
+	private boolean compareVersion(String version1, String version2) {
+		if (version1 == null && version2 == null) {
+			return true;
+		}
+		if (version1 == null || version2 == null) {
+			return false;
+		}
+		return version1.equals(version2);
+	}
+
 	public synchronized ResourceType get(ResourceType resourceType) throws SchemaException {
 		if (resourceType.getSchema() == null) {
 			// nothing to cache
@@ -146,12 +156,14 @@ public class ResourceSchemaCache {
 
 	private class ResourceSchemaCacheEntry {
 		public String serialNumber;
+		public String version;
 		public Element xsdElement;
 		public ResourceSchema parsedSchema;
 		
-		private ResourceSchemaCacheEntry(String serialNumber, Element xsdElement, ResourceSchema parsedSchema) {
+		private ResourceSchemaCacheEntry(String serialNumber, String version, Element xsdElement, ResourceSchema parsedSchema) {
 			super();
 			this.serialNumber = serialNumber;
+			this.version = version;
 			this.xsdElement = xsdElement;
 			this.parsedSchema = parsedSchema;
 		}
