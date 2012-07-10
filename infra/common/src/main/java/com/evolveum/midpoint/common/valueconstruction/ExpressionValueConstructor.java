@@ -109,7 +109,7 @@ public class ExpressionValueConstructor implements ValueConstructor {
         	outputZeroValuesNew = evaluateExpressionAtLeastOnce(constructorType, outputDefinition, inputZeroValues, variables, false, contextDescription, result);
         }
 
-        PrismValueDeltaSetTriple<V> outputZeroDeltaTriple = PrismValueDeltaSetTriple.diff(outputZeroValuesOld, outputZeroValuesNew);
+        PrismValueDeltaSetTriple<V> outputZeroDeltaTriple = PrismValueDeltaSetTriple.diffPrismValueDeltaSetTriple(outputZeroValuesOld, outputZeroValuesNew);
         outputTriple.merge(outputZeroDeltaTriple);
         
         return outputTriple;        

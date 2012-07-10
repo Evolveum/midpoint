@@ -29,6 +29,7 @@
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>2.1-SNAPSHOT</version>
+        <relativePath>../build-system/pom.xml</relativePath>
     </parent>
     <organization>
         <name>Evolveum</name>
