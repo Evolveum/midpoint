@@ -422,7 +422,9 @@ mainCycle:
 		try {
             task.setProgress(runResult.getProgress());
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
-            task.setResult(runResult.getOperationResult());
+            if (runResult.getOperationResult() != null) {
+                task.setResult(runResult.getOperationResult());
+            }
             task.setNode(null);
             task.savePendingModifications(result);
 
