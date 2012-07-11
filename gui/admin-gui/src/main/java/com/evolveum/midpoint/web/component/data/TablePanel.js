@@ -23,10 +23,17 @@ function initTable(){
 	var cssSelectedRow = {
       'background' : '#d8f4d8',
       'border-color' : '#FFFFFF'
-    }
-	var row =  $(".sortedTable table tbody tr");
-	row.find(".tableCheckbox").find("input[type='checkbox']:checked").parents(row).find("td").css(cssSelectedRow);
-	checkAllChecked($(".sortedTable"));
+    };
+	
+	$(document).find(".sortedTable").each(function(index){
+		var row =  $(this).find("table tbody tr");
+		if(row.find(".tableCheckbox").length > 0) {
+			row.find(".tableCheckbox").find("input[type='checkbox']:checked").parents(row).find("td").css(cssSelectedRow);
+			checkAllChecked($(this));
+		}
+	});
+	
+	
 	
 	$("thead input[type='checkbox']").click(function(){
 		if($(this).is(":checked")){
@@ -41,19 +48,23 @@ function initTable(){
 	});
 	
 	function checkAllChecked(parent) {
-		var isAllChecked = false;
-		parent.find("tbody tr").find(".tableCheckbox").find("input[type='checkbox']").each(function(index){
-			if($(this).is(":checked")){
-				isAllChecked = true;
+		if(parent.find("tbody tr").find(".tableCheckbox").length > 0) {
+			alert(parent.parent().attr("id"));
+			var isAllChecked = false;
+			
+			parent.find("tbody tr").find(".tableCheckbox").find("input[type='checkbox']").each(function(index){
+				if($(this).is(":checked")){
+					isAllChecked = true;
+				} else {
+					isAllChecked = false;
+					return false;
+				}
+			});
+			if(isAllChecked) {
+				parent.find("thead").find("input[type='checkbox']").attr("checked", true);
 			} else {
-				isAllChecked = false;
-				return false;
+				parent.find("thead").find("input[type='checkbox']").attr("checked", false);
 			}
-		});
-		if(isAllChecked) {
-			parent.find("thead").find("input[type='checkbox']").attr("checked", true);
-		} else {
-			parent.find("thead").find("input[type='checkbox']").attr("checked", false);
 		}
 	}
 	

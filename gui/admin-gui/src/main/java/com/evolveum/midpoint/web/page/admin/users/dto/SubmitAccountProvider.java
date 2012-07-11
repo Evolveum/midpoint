@@ -52,7 +52,7 @@ public class SubmitAccountProvider implements Serializable {
 		if (reference == null || reference.isEmpty()) {
             return "unknown";
         }
-		return WebMiscUtil.getName(reference.getValue().getObject());		
+		return WebMiscUtil.getName(reference.getValue().getObject());
 	}
 
 	public boolean isSelected() {
