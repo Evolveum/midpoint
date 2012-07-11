@@ -41,10 +41,6 @@
                         <name>repo</name>
                         <url>http://repo.evolveum.com/repo</url>
                 </repository>
-<!--        <repository>
-            <id>alfresco</id>
-            <url>http://maven.alfresco.com/nexus/content/repositories/activiti-releases</url>
-        </repository-->
     </repositories>
     <licenses>
         <license>
