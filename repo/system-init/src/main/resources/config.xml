@@ -34,7 +34,7 @@
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
             <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</auditServiceFactoryClass>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
         </audit>
         <icf>
