@@ -28,7 +28,7 @@ function initTable(){
 	$(document).find(".sortedTable").each(function(index){
 		var row =  $(this).find("table tbody tr");
 		if(row.find(".tableCheckbox").length > 0) {
-			row.find(".tableCheckbox").find("input[type='checkbox']:checked").parents(row).find("td").css(cssSelectedRow);
+			row.find(".tableCheckbox").find("input[type='checkbox']:checked").parents("tr").find("td").css(cssSelectedRow);
 			checkAllChecked($(this));
 		}
 	});
@@ -49,7 +49,6 @@ function initTable(){
 	
 	function checkAllChecked(parent) {
 		if(parent.find("tbody tr").find(".tableCheckbox").length > 0) {
-			alert(parent.parent().attr("id"));
 			var isAllChecked = false;
 			
 			parent.find("tbody tr").find(".tableCheckbox").find("input[type='checkbox']").each(function(index){
