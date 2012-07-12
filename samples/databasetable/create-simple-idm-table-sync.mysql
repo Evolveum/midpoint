@@ -1,0 +1,19 @@
+/*!40101 SET NAMES utf8 */;
+/*!40101 SET character_set_client = utf8 */;
+
+CREATE DATABASE IF NOT EXISTS midpoint_tests CHARACTER SET utf8 COLLATE utf8_bin;
+
+CREATE TABLE midpoint_tests.idrepo (
+	userId	VARCHAR(16) NOT NULL,
+	password	VARCHAR(16) NOT NULL,
+	firstName	VARCHAR(16),
+	lastName	VARCHAR(16),
+	fullName	VARCHAR(32),
+	disabled	BOOL,
+	change_timestamp	TIMESTAMP,
+	PRIMARY KEY (userId)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+GRANT ALL PRIVILEGES on midpoint_tests.* TO midpoint_tests@'%' IDENTIFIED BY 'secret';
+GRANT ALL PRIVILEGES on midpoint_tests.* TO midpoint_tests@localhost IDENTIFIED BY 'secret';
+
