@@ -213,7 +213,7 @@ public class PageUser extends PageAdminUsers {
         ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, user, status);
         wrapper.setShowEmpty(!isEditingUser());
-        deltaPanel = new ObjectDeltaComponent(user.clone());
+//        deltaPanel = new ObjectDeltaComponent(user.clone());    //todo uncomment [miso]
         
         return wrapper;
     }
@@ -932,7 +932,7 @@ public class PageUser extends PageAdminUsers {
                     }
                     
                     if(deltaPanel != null) {
-                    	deltaPanel.setNewDelta(delta);
+//                    	deltaPanel.setNewDelta(delta);  //todo uncomment [miso]
     				}
 
                     if (!delta.isEmpty()) {
