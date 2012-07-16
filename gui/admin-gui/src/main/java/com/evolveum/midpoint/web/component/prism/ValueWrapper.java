@@ -51,8 +51,18 @@ public class ValueWrapper<T> implements Serializable {
         Validate.notNull(value, "Property value must not be null.");
 
         this.property = property;
-        this.value = value;
         this.status = status;
+        
+        if (value != null) {
+            T val = value.getValue();
+            if (val instanceof PolyString) {    
+                PolyString poly = (PolyString)val;
+                this.value = new PrismPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()), 
+                        value.getType(), value.getSource());
+            } else {
+                this.value = value.clone();
+            }
+        }
 
         if (oldValue == null) {
             T val = value.getValue();

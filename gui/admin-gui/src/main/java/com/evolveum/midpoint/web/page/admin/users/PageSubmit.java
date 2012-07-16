@@ -1,45 +1,32 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.springframework.web.util.WebUtils;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -48,20 +35,16 @@ import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.delta.ObjectDeltaComponent;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAssignmentProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitObjectStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitPersonalProvider;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 public class PageSubmit extends PageAdmin {
 	private ObjectDeltaComponent userDelta;
@@ -74,12 +57,21 @@ public class PageSubmit extends PageAdmin {
 			getSession().error(getString("pageSubmit.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
 		}
-
 		this.userDelta = userDelta;
 		this.accountsDeltas = accountsDeltas;
+
 		PropertyPath account = new PropertyPath(SchemaConstants.I_ACCOUNT_REF);
 		PropertyPath assignment = new PropertyPath(SchemaConstantsGenerated.C_ASSIGNMENT);
 		ObjectDelta newObject = userDelta.getNewDelta();
+
+		if (newObject.getObjectToAdd() != null) {
+			
+			for (Object item : newObject.getObjectToAdd().getValues()) {
+				PrismContainerValue itemDelta = (PrismContainerValue) item;
+				//if(itemDelta.getPath(new PropertyPath()))
+			}
+		}
+
 		for (Object item : newObject.getModifications()) {
 			ItemDelta itemDelta = (ItemDelta) item;
 
@@ -91,7 +83,6 @@ public class PageSubmit extends PageAdmin {
 				userPropertiesDeltas.add((PropertyDelta) itemDelta);
 			}
 		}
-
 		initLayout();
 	}
 
@@ -105,6 +96,9 @@ public class PageSubmit extends PageAdmin {
 
 					@Override
 					public String getObject() {
+						if (userDelta.getNewDelta().getChangeType().equals(ChangeType.ADD)) {
+							return WebMiscUtil.getName(userDelta.getNewDelta().getObjectToAdd());
+						}
 						return WebMiscUtil.getName(userDelta.getOldObject());
 					}
 
@@ -115,13 +109,40 @@ public class PageSubmit extends PageAdmin {
 		accordion.setOpenedPanel(0);
 		mainForm.add(accordion);
 
-		AccordionItem accountsList = new AccordionItem("accountsDeltas", new AbstractReadOnlyModel<String>() {
+		AccordionItem changesList = new AccordionItem("changesList", new AbstractReadOnlyModel<String>() {
 
 			@Override
 			public String getObject() {
-				return getString("pageSubmit.accountsList");
+				return getString("pageSubmit.changesList");
 			}
 		});
+		changesList.setOutputMarkupId(true);
+		accordion.getBodyContainer().add(changesList);
+
+		Accordion changeType = new Accordion("changeType");
+		changeType.setExpanded(true);
+		changeType.setMultipleSelect(true);
+		changesList.getBodyContainer().add(changeType);
+
+		initResources(accordion);
+
+		initUserInfo(changeType);
+		initAccounts(changeType);
+		initAssignments(changeType);
+
+		initButtons(mainForm);
+
+	}
+
+	private void initResources(Accordion accordion) {
+		AccordionItem accountsList = new AccordionItem("resourcesDeltas",
+				new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						return getString("pageSubmit.resourceList");
+					}
+				});
 		accountsList.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(accountsList);
 
@@ -130,11 +151,8 @@ public class PageSubmit extends PageAdmin {
 		IColumn column = new CheckBoxHeaderColumn<SubmitAccountProvider>();
 		columns.add(column);
 
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.accountList.resourceName"),
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.resourceName"),
 				"resourceName"));
-		// columns.add(new
-		// PropertyColumn(createStringResource("pageSubmit.accountList.name"),
-		// "name"));
 
 		ListDataProvider<SubmitAccountProvider> provider = new ListDataProvider<SubmitAccountProvider>(this,
 				new AbstractReadOnlyModel<List<SubmitAccountProvider>>() {
@@ -150,33 +168,10 @@ public class PageSubmit extends PageAdmin {
 						return list;
 					}
 				});
-		TablePanel accountsTable = new TablePanel<SubmitAccountProvider>("accountsTable", provider, columns);
-		accountsTable.setShowPaging(false);
-		accountsTable.setOutputMarkupId(true);
-		accountsList.getBodyContainer().add(accountsTable);
-
-		AccordionItem changesList = new AccordionItem("changesList", new AbstractReadOnlyModel<String>() {
-
-			@Override
-			public String getObject() {
-				return getString("pageSubmit.changesList");
-			}
-		});
-		changesList.setOutputMarkupId(true);
-		accordion.getBodyContainer().add(changesList);
-
-		Accordion changeType = new Accordion("changeType");
-		changeType.setExpanded(true);
-		changeType.setMultipleSelect(true);
-		// changeType.setOpenedPanel(-1);
-		changesList.getBodyContainer().add(changeType);
-
-		initUserInfo(changeType);
-		initAccounts(changeType);
-		initAssignments(changeType);
-
-		initButtons(mainForm);
-
+		TablePanel resourcesTable = new TablePanel<SubmitAccountProvider>("resourcesTable", provider, columns);
+		resourcesTable.setShowPaging(false);
+		resourcesTable.setOutputMarkupId(true);
+		accountsList.getBodyContainer().add(resourcesTable);
 	}
 
 	private void initUserInfo(Accordion changeType) {
@@ -388,9 +383,14 @@ public class PageSubmit extends PageAdmin {
 		PrismProperty attributeProperty = oldUser.findProperty(propertyDelta.getName());
 		if (attributeProperty != null) {
 			attribute = attributeProperty.getDefinition().getDisplayName();
-			oldValue = attributeProperty.getValue().getValue().toString();
+			if (attributeProperty.getValue() != null) {
+				oldValue = attributeProperty.getValue().getValue().toString();
+			}
 		}
 		newValue = prismValue.getValue().toString();
+		if (propertyDelta.getParentPath().equals(new PropertyPath(UserType.F_ACTIVATION))) {
+			return new SubmitPersonalProvider(getString("pageSubmit.activation"), oldValue, newValue);
+		}
 
 		return new SubmitPersonalProvider(attribute, oldValue, newValue);
 	}
