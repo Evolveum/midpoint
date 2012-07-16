@@ -65,12 +65,12 @@ public class ValueWrapper<T> implements Serializable {
         }
 
         if (oldValue == null) {
-            T val = value.getValue();
+            T val = this.value.getValue();
             if (val instanceof PolyString) {
                 PolyString poly = (PolyString)val;
                 val = (T) new PolyString(poly.getOrig(), poly.getNorm());
             }
-            oldValue = new PrismPropertyValue<T>(val, value.getType(), value.getSource());
+            oldValue = new PrismPropertyValue<T>(val, this.value.getType(), this.value.getSource());
         }
         this.oldValue = oldValue;
     }
