@@ -34,8 +34,8 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
  * @author mserbak
  */
 public class ObjectDeltaComponent implements Serializable {
-	private PrismObject oldObject;
-	private ObjectDelta newDelta;
+	private static PrismObject oldObject;
+	private static ObjectDelta newDelta;
 
 	public ObjectDeltaComponent(PrismObject oldObject) {
 		Validate.notNull(oldObject, "OldObject must not be null.");

@@ -26,21 +26,28 @@ import java.io.Serializable;
 /**
  * @author mserbak
  */
-public class SubmitAssignmentProvider implements Serializable {
-	private String assignment;
-	private String status;
+public class SubmitPersonalProvider implements Serializable {
+	private String attribute;
+	private String oldValue;
+	private String newValue;
 
-	public SubmitAssignmentProvider(String assignment, String status) {
-		this.assignment = assignment;
-		this.status = status;
+	public SubmitPersonalProvider(String attribute, String oldValue, String newValue) {
+		this.attribute = attribute;
+		this.oldValue = oldValue;
+		this.newValue = newValue;
 	}
 
-	public String getAssignment() {
-		return assignment;
+	public String getAttribute() {
+		return attribute;
 	}
 
-	public String getStatus() {
-		return status;
+	public String getOldValue() {
+		return oldValue;
 	}
 
+	public String getNewValue() {
+		return newValue;
+	}
+
+	
 }
