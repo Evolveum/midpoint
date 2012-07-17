@@ -99,9 +99,7 @@ public class DeleteUserAction extends BaseAction {
         }
 
         try {
-            synchronizeUser(context, subResult);
-            executeChanges(context, subResult);
-
+            synchronizeUser(context, task, subResult);
             userOid = null;
         } finally {
             subResult.recomputeStatus("Couldn't delete user '" + userType.getName() + "'.");

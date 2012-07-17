@@ -200,7 +200,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 			for (PrismObject<UserType> user : users) {
 				OperationResult subResult = result.createSubresult(OperationConstants.RECOMPUTE_USER);
 				subResult.addContext(OperationResult.CONTEXT_OBJECT, user);
-				recomputeUser(user, subResult);
+				recomputeUser(user, task, subResult);
 			}
 			offset += SEARCH_MAX_SIZE;
 		}
@@ -209,7 +209,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 		
 	}
 
-	private void recomputeUser(PrismObject<UserType> user, OperationResult result) throws SchemaException, 
+	private void recomputeUser(PrismObject<UserType> user, Task task, OperationResult result) throws SchemaException, 
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Reconciling user {}", user);
@@ -221,7 +221,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 		syncContext.setDoReconciliationForAllAccounts(true);
 		
-		userSynchronizer.synchronizeUser(syncContext, result);
+		userSynchronizer.synchronizeUser(syncContext, task, result);
 		
 		LOGGER.trace("Reconciling of user {}: context:\n{}", user,syncContext.dump());
 		

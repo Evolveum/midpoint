@@ -62,6 +62,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -104,6 +106,9 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 	@Autowired(required = true)
 	private UserSynchronizer userSynchronizer;
 	
+	@Autowired(required = true)
+	private TaskManager taskManager;
+	
 	public TestUserSynchronizer() throws JAXBException {
 		super();
 	}
@@ -125,9 +130,11 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test010AddAccountToJackDirect");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test010AddAccountToJackDirect");
+        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test010AddAccountToJackDirect");
+        OperationResult result = task.getResult();
         
         SyncContext context = new SyncContext(prismContext);
+        context.setNoExecute(true);
         fillContextWithUser(context, USER_JACK_OID, result);
         // We want "shadow" so the fullname will be computed by outbound expression 
         addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILENAME);
@@ -137,7 +144,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        userSynchronizer.synchronizeUser(context, result);
+        userSynchronizer.synchronizeUser(context, task, result);
         
         // THEN
         display("Output context", context);
@@ -180,9 +187,11 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test020AssignAccountToJack");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test020AssignAccountToJack");
+        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test020AssignAccountToJack");
+        OperationResult result = task.getResult();
         
         SyncContext context = new SyncContext(prismContext);
+        context.setNoExecute(true);
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
 
@@ -191,7 +200,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        userSynchronizer.synchronizeUser(context, result);
+        userSynchronizer.synchronizeUser(context, task, result);
         
         // THEN
         display("Output context", context);
@@ -228,9 +237,11 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test050ModifyUserBarbossaLocality");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test050ModifyUserBarbossaLocality");
+        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test050ModifyUserBarbossaLocality");
+        OperationResult result = task.getResult();
 
         SyncContext context = new SyncContext(prismContext);
+        context.setNoExecute(true);
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Tortuga"));
@@ -241,7 +252,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, result);
+        userSynchronizer.synchronizeUser(context, task, result);
         
         // THEN
         display("Output context", context);
@@ -270,12 +281,14 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test101AssignConflictingAccountToJack");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test101AssignConflictingAccountToJack");
+        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test101AssignConflictingAccountToJack");
+        OperationResult result = task.getResult();
         
         // Make sure there is a shadow with conflicting account
         addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, AccountShadowType.class, result);
         
         SyncContext context = new SyncContext(prismContext);
+        context.setNoExecute(true);
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
 
@@ -284,7 +297,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        userSynchronizer.synchronizeUser(context, result);
+        userSynchronizer.synchronizeUser(context, task, result);
         
         // THEN
         display("Output context", context);
@@ -323,9 +336,11 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test200ImportHermanDummy");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test200ImportHermanDummy");
+        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test200ImportHermanDummy");
+        OperationResult result = task.getResult();
 
         SyncContext context = new SyncContext(prismContext);
+        context.setNoExecute(true);
         fillContextWithEmtptyAddUserDelta(context, result);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILENAME, result);
         makeImportSyncDelta(context.getAccountContexts().iterator().next());
@@ -336,7 +351,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, result);
+        userSynchronizer.synchronizeUser(context, task, result);
         
         // THEN
         display("Output context", context);
@@ -365,9 +380,11 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test201ImportHermanOpenDj");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test201ImportHermanOpenDj");
+        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test201ImportHermanOpenDj");
+        OperationResult result = task.getResult();
 
         SyncContext context = new SyncContext(prismContext);
+        context.setNoExecute(true);
         fillContextWithEmtptyAddUserDelta(context, result);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_OPENDJ_FILENAME, result);
         makeImportSyncDelta(context.getAccountContexts().iterator().next());
@@ -378,7 +395,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, result);
+        userSynchronizer.synchronizeUser(context, task, result);
         
         // THEN
         display("Output context", context);
@@ -406,9 +423,11 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test250GuybrushInboundFromDelta");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test250GuybrushInboundFromDelta");
+        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test250GuybrushInboundFromDelta");
+        OperationResult result = task.getResult();
 
         SyncContext context = new SyncContext(prismContext);
+        context.setNoExecute(true);
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         fillContextWithAccount(context, ACCOUNT_SHADOW_GUYBRUSH_OID, result);
         addSyncModificationToContextReplaceAccountAttribute(context, ACCOUNT_SHADOW_GUYBRUSH_OID, "ship", "Black Pearl");
@@ -419,7 +438,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, result);
+        userSynchronizer.synchronizeUser(context, task, result);
         
         // THEN
         display("Output context", context);
@@ -438,9 +457,11 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test251GuybrushInboundFromAbsolute");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test251GuybrushInboundFromAbsolute");
+        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test251GuybrushInboundFromAbsolute");
+        OperationResult result = task.getResult();
 
         SyncContext context = new SyncContext(prismContext);
+        context.setNoExecute(true);
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         fillContextWithAccountFromFile(context, ACCOUNT_GUYBRUSH_DUMMY_FILENAME, result);
         AccountSyncContext guybrushAccountContext = context.findAccountSyncContextByOid(ACCOUNT_SHADOW_GUYBRUSH_OID);
@@ -453,7 +474,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, result);
+        userSynchronizer.synchronizeUser(context, task, result);
         
         // THEN
         display("Output context", context);
@@ -473,13 +494,15 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test300ReconcileGuybrushDummy");
 
         // GIVEN
-        OperationResult result = new OperationResult(TestUserSynchronizer.class.getName() + ".test300ReconcileGuybrushDummy");
+        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test300ReconcileGuybrushDummy");
+        OperationResult result = task.getResult();
         
         // Change the guybrush account on dummy resource directly. This creates inconsistency.
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         dummyAccount.replaceAttributeValue("location", "Phatt Island");
         
         SyncContext context = new SyncContext(prismContext);
+        context.setNoExecute(true);
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         context.setDoReconciliationForAllAccounts(true);
 
@@ -488,7 +511,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, result);
+        userSynchronizer.synchronizeUser(context, task, result);
         
         // THEN
         display("Output context", context);

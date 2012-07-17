@@ -66,7 +66,7 @@ public class CredentialsProcessor {
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
 
-    public void processCredentials(SyncContext context, OperationResult result) 
+    public void processCredentials(SyncContext context, AccountSyncContext accCtx, OperationResult result) 
     		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	
         ObjectDelta<UserType> userDelta = context.getUserDelta();
@@ -93,61 +93,59 @@ public class CredentialsProcessor {
         PrismObjectDefinition<AccountShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
         PrismPropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
-        for (AccountSyncContext accCtx : context.getAccountContexts()) {
-            ResourceAccountType rat = accCtx.getResourceAccountType();
+        ResourceAccountType rat = accCtx.getResourceAccountType();
 
-            ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
-            if (accountDelta != null && accountDelta.getChangeType() == ChangeType.MODIFY) {
-            	PropertyDelta<PasswordType> accountPasswordDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-            	if (accountPasswordDelta != null && (accountPasswordDelta.isAdd() || accountDelta.isDelete())) {
-            		throw new SchemaException("Password for account "+rat+" cannot be added or deleted, it can only be replaced");
-            	}
-            }
-            if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
-                // adding new account, synchronize password regardless whether the password was changed or not.
-            } else if (passwordValueDelta != null) {
-                // user password was changed. synchronize it regardless of the account change.
-            } else {
-                LOGGER.trace("No change in password and the account is not added, skipping credentials processing for account " + rat);
-                continue;
-            }
-
-            ResourceAccountTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
-            if (resourceAccountDefType == null) {
-                LOGGER.trace("No ResourceAccountTypeDefinition, therefore also no password outbound definition, skipping credentials processing for account " + rat);
-                continue;
-            }
-            ResourceCredentialsDefinitionType credentialsType = resourceAccountDefType.getCredentials();
-            if (credentialsType == null) {
-                LOGGER.trace("No credentials definition in account type {}, skipping credentials processing", rat);
-                continue;
-            }
-            ResourcePasswordDefinitionType passwordType = credentialsType.getPassword();
-            if (passwordType == null) {
-                LOGGER.trace("No password definition in credentials in account type {}, skipping credentials processing", rat);
-                continue;
-            }
-            ValueConstructionType outbound = passwordType.getOutbound();
-            if (outbound == null) {
-                LOGGER.trace("No outbound definition in password definition in credentials in account type {}, skipping credentials processing", rat);
-                continue;
-            }
-            
-            // TODO: is the parentPath correct (null)?
-            ValueConstruction passwordConstruction = valueConstructionFactory.createValueConstruction(outbound, 
-            		accountPasswordPropertyDefinition, "outbound password in account type " + rat);
-            passwordConstruction.setInput(userPasswordNew);
-            passwordConstruction.evaluate(result);
-            PrismProperty accountPasswordNew = (PrismProperty) passwordConstruction.getOutput();
-            if (accountPasswordNew == null) {
-                LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
-                continue;
-            }
-            PropertyDelta accountPasswordDelta = new PropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
-            accountPasswordDelta.setValuesToReplace(accountPasswordNew.getClonedValues());
-            LOGGER.trace("Adding new password delta for account {}", rat);
-            accCtx.addToSecondaryDelta(accountPasswordDelta);
+        ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+        if (accountDelta != null && accountDelta.getChangeType() == ChangeType.MODIFY) {
+        	PropertyDelta<PasswordType> accountPasswordDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+        	if (accountPasswordDelta != null && (accountPasswordDelta.isAdd() || accountDelta.isDelete())) {
+        		throw new SchemaException("Password for account "+rat+" cannot be added or deleted, it can only be replaced");
+        	}
         }
+        if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
+            // adding new account, synchronize password regardless whether the password was changed or not.
+        } else if (passwordValueDelta != null) {
+            // user password was changed. synchronize it regardless of the account change.
+        } else {
+            LOGGER.trace("No change in password and the account is not added, skipping credentials processing for account " + rat);
+            return;
+        }
+
+        ResourceAccountTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
+        if (resourceAccountDefType == null) {
+            LOGGER.trace("No ResourceAccountTypeDefinition, therefore also no password outbound definition, skipping credentials processing for account " + rat);
+            return;
+        }
+        ResourceCredentialsDefinitionType credentialsType = resourceAccountDefType.getCredentials();
+        if (credentialsType == null) {
+            LOGGER.trace("No credentials definition in account type {}, skipping credentials processing", rat);
+            return;
+        }
+        ResourcePasswordDefinitionType passwordType = credentialsType.getPassword();
+        if (passwordType == null) {
+            LOGGER.trace("No password definition in credentials in account type {}, skipping credentials processing", rat);
+            return;
+        }
+        ValueConstructionType outbound = passwordType.getOutbound();
+        if (outbound == null) {
+            LOGGER.trace("No outbound definition in password definition in credentials in account type {}, skipping credentials processing", rat);
+            return;
+        }
+        
+        // TODO: is the parentPath correct (null)?
+        ValueConstruction passwordConstruction = valueConstructionFactory.createValueConstruction(outbound, 
+        		accountPasswordPropertyDefinition, "outbound password in account type " + rat);
+        passwordConstruction.setInput(userPasswordNew);
+        passwordConstruction.evaluate(result);
+        PrismProperty accountPasswordNew = (PrismProperty) passwordConstruction.getOutput();
+        if (accountPasswordNew == null) {
+            LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
+            return;
+        }
+        PropertyDelta accountPasswordDelta = new PropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
+        accountPasswordDelta.setValuesToReplace(accountPasswordNew.getClonedValues());
+        LOGGER.trace("Adding new password delta for account {}", rat);
+        accCtx.addToSecondaryDelta(accountPasswordDelta);
 
     }
 

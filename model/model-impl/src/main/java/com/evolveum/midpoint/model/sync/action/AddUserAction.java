@@ -115,8 +115,7 @@ public class AddUserAction extends BaseAction {
         }
 
         try {
-            synchronizeUser(context, subResult);
-            executeChanges(context, subResult);
+            synchronizeUser(context, task, subResult);
 
             userOid = context.getUserSecondaryDelta().getOid();
         } finally {

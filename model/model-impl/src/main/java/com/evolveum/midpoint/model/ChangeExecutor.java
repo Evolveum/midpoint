@@ -146,6 +146,9 @@ public class ChangeExecutor {
      */
     private void updateAccountLinks(PrismObject<UserType> userNew, AccountSyncContext accCtx,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
+    	if (userNew == null) {
+    		return;
+    	}
         UserType userTypeNew = userNew.asObjectable();
         String accountOid = accCtx.getOid();
         if (accountOid == null) {

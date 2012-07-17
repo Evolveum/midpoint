@@ -40,7 +40,6 @@
     <telephoneNumber>555-1234</telephoneNumber>
     <employeeNumber>emp1234</employeeNumber>
     <employeeType>CAPTAIN</employeeType>
-    <organizationalUnit>Leaders</organizationalUnit>
     <locality>Caribbean</locality>
 
     <credentials>

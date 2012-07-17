@@ -62,7 +62,7 @@ public class ActivationProcessor {
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
 
-    public void processActivation(SyncContext context, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void processActivation(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         ObjectDelta<UserType> userDelta = context.getUserDelta();
         if (userDelta == null) {
@@ -85,62 +85,59 @@ public class ActivationProcessor {
         PrismPropertyDefinition accountEnabledPropertyDefinition = 
         	accountDefinition.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
-        for (AccountSyncContext accCtx : context.getAccountContexts()) {
-            ResourceAccountType rat = accCtx.getResourceAccountType();
-            
-            PolicyDecision policyDecision = accCtx.getPolicyDecision();
-            if (policyDecision != null && (policyDecision == PolicyDecision.DELETE || policyDecision == PolicyDecision.UNLINK)) {
-                LOGGER.trace("Activation processing skipped for " + rat + ", account is being deleted or unlinked");
-                continue;
-            }
-
-            ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
-            if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
-                // adding new account, synchronize activation regardless whether the user activation was changed or not.
-            } else if (enabledValueDelta != null) {
-                // user activation was changed. synchronize it regardless of the account change.
-            } else {
-                LOGGER.trace("No change in activation and the account is not added, skipping activation processing for account " + rat);
-                continue;
-            }
-
-            ResourceAccountTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
-            if (resourceAccountDefType == null) {
-                LOGGER.trace("No ResourceAccountTypeDefinition, therefore also no activation outbound definition, skipping activation processing for account " + rat);
-                continue;
-            }
-            ResourceActivationDefinitionType activationType = resourceAccountDefType.getActivation();
-            if (activationType == null) {
-                LOGGER.trace("No activation definition in account type {}, skipping activation processing", rat);
-                continue;
-            }
-            ResourceActivationEnableDefinitionType enabledType = activationType.getEnabled();
-            if (enabledType == null) {
-                LOGGER.trace("No 'enabled' definition in activation in account type {}, skipping activation processing", rat);
-                continue;
-            }
-            ValueConstructionType outbound = enabledType.getOutbound();
-            if (outbound == null) {
-                LOGGER.trace("No outbound definition in 'enabled' definition in activation in account type {}, skipping activation processing", rat);
-                continue;
-            }
-            
-            ValueConstruction<PrismPropertyValue<Boolean>> enabledConstruction =
-            	valueConstructionFactory.createValueConstruction(outbound, accountEnabledPropertyDefinition, 
-            		"outbound activation in account type " + rat);
-            enabledConstruction.setInput(userEnabledNew);
-            enabledConstruction.evaluate(result);
-            PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledConstruction.getOutput();
-            if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
-                LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
-                continue;
-            }
-            PropertyDelta accountEnabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, AccountShadowType.class, prismContext);
-            accountEnabledDelta.setValuesToReplace(accountEnabledNew.getValues());
-            LOGGER.trace("Adding new 'enabled' delta for account {}: {}", rat, accountEnabledNew.getValues());
-            accCtx.addToSecondaryDelta(accountEnabledDelta);
-
+        ResourceAccountType rat = accCtx.getResourceAccountType();
+        
+        PolicyDecision policyDecision = accCtx.getPolicyDecision();
+        if (policyDecision != null && (policyDecision == PolicyDecision.DELETE || policyDecision == PolicyDecision.UNLINK)) {
+            LOGGER.trace("Activation processing skipped for " + rat + ", account is being deleted or unlinked");
+            return;
         }
+
+        ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+        if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
+            // adding new account, synchronize activation regardless whether the user activation was changed or not.
+        } else if (enabledValueDelta != null) {
+            // user activation was changed. synchronize it regardless of the account change.
+        } else {
+            LOGGER.trace("No change in activation and the account is not added, skipping activation processing for account " + rat);
+            return;
+        }
+
+        ResourceAccountTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
+        if (resourceAccountDefType == null) {
+            LOGGER.trace("No ResourceAccountTypeDefinition, therefore also no activation outbound definition, skipping activation processing for account " + rat);
+            return;
+        }
+        ResourceActivationDefinitionType activationType = resourceAccountDefType.getActivation();
+        if (activationType == null) {
+            LOGGER.trace("No activation definition in account type {}, skipping activation processing", rat);
+            return;
+        }
+        ResourceActivationEnableDefinitionType enabledType = activationType.getEnabled();
+        if (enabledType == null) {
+            LOGGER.trace("No 'enabled' definition in activation in account type {}, skipping activation processing", rat);
+            return;
+        }
+        ValueConstructionType outbound = enabledType.getOutbound();
+        if (outbound == null) {
+            LOGGER.trace("No outbound definition in 'enabled' definition in activation in account type {}, skipping activation processing", rat);
+            return;
+        }
+        
+        ValueConstruction<PrismPropertyValue<Boolean>> enabledConstruction =
+        	valueConstructionFactory.createValueConstruction(outbound, accountEnabledPropertyDefinition, 
+        		"outbound activation in account type " + rat);
+        enabledConstruction.setInput(userEnabledNew);
+        enabledConstruction.evaluate(result);
+        PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledConstruction.getOutput();
+        if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
+            LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
+            return;
+        }
+        PropertyDelta accountEnabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, AccountShadowType.class, prismContext);
+        accountEnabledDelta.setValuesToReplace(accountEnabledNew.getValues());
+        LOGGER.trace("Adding new 'enabled' delta for account {}: {}", rat, accountEnabledNew.getValues());
+        accCtx.addToSecondaryDelta(accountEnabledDelta);
 
     }
 

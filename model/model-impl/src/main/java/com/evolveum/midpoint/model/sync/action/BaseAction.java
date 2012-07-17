@@ -314,12 +314,12 @@ public abstract class BaseAction implements Action {
         return change.getCurrentShadow().getOid();
     }
 
-    protected void synchronizeUser(SyncContext context, OperationResult result) throws SynchronizationException {
+    protected void synchronizeUser(SyncContext context, Task task, OperationResult result) throws SynchronizationException {
         try {
             Validate.notNull(context, "Sync context must not be null.");
             Validate.notNull(result, "Operation result must not be null.");
 
-            synchronizer.synchronizeUser(context, result);
+            synchronizer.synchronizeUser(context, task, result);
         } catch (Exception ex) {
             throw new SynchronizationException("Couldn't synchronize user, reason: " + ex.getMessage(), ex);
         }

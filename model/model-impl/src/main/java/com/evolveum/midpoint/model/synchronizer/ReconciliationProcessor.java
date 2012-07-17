@@ -88,41 +88,39 @@ public class ReconciliationProcessor {
      * @param result
      * @throws SchemaException 
      */
-    void processReconciliation(SyncContext context, OperationResult result) throws SchemaException {
+    void processReconciliation(SyncContext context, AccountSyncContext accContext, OperationResult result) throws SchemaException {
         OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);
 
         try {
-            for (AccountSyncContext accContext : context.getAccountContexts()) {
-                if (!accContext.isDoReconciliation()) {
-                    continue;
-                }
-                
-                PolicyDecision policyDecision = accContext.getPolicyDecision();
-                if (policyDecision != null && 
-                		(policyDecision == PolicyDecision.DELETE || policyDecision == PolicyDecision.UNLINK)) {
-                	continue;
-                }
-
-                if (accContext.getAccountOld() == null) {
-                    LOGGER.warn("Can't do reconciliation. Account context doesn't contain old version of account.");
-                    continue;
-                }
-                
-                LOGGER.trace("Attribute reconciliation processing ACCOUNT {}",accContext.getResourceAccountType());
-
-                Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes = accContext.getSqueezedAttributes();
-                
-//                Map<QName, PrismValueDeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
-                
-                if (squeezedAttributes.isEmpty()) {
-                	continue;
-                }
-
-                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), prismContext);
-                RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceAccountType().getAccountType());
-                
-                reconcileAccount(accContext, squeezedAttributes, accountDefinition);
+            if (!accContext.isDoReconciliation()) {
+            	return;
             }
+            
+            PolicyDecision policyDecision = accContext.getPolicyDecision();
+            if (policyDecision != null && 
+            		(policyDecision == PolicyDecision.DELETE || policyDecision == PolicyDecision.UNLINK)) {
+            	return;
+            }
+
+            if (accContext.getAccountOld() == null) {
+                LOGGER.warn("Can't do reconciliation. Account context doesn't contain old version of account.");
+                return;
+            }
+            
+            LOGGER.trace("Attribute reconciliation processing ACCOUNT {}",accContext.getResourceAccountType());
+
+            Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes = accContext.getSqueezedAttributes();
+            
+//                Map<QName, PrismValueDeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
+            
+            if (squeezedAttributes.isEmpty()) {
+            	return;
+            }
+
+            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), prismContext);
+            RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceAccountType().getAccountType());
+            
+            reconcileAccount(accContext, squeezedAttributes, accountDefinition);
         } catch (RuntimeException e) {
         	subResult.recordFatalError(e);
         	throw e;

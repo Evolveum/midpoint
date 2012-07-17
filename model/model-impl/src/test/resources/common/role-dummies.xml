@@ -1,0 +1,46 @@
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 lazyman                       -->
+<!-- Portions Copyrighted 2011 Radovan Semancik              -->
+<!--                                                         -->
+<role oid="12345678-d34d-b33f-f00d-55555555dddd"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+    <name>Dummies</name>    
+    <assignment>
+    	<accountConstruction>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+    		<attribute>
+                <ref>ri:title</ref>
+				<value>The Great Voodoo Master</value>
+            </attribute>
+    		<attribute>
+                <ref>ri:ship</ref>
+				<value>The Lost Souls</value>
+            </attribute>
+    	</accountConstruction>
+    </assignment>    
+    <assignment>
+    	<accountConstruction>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000104" type="c:ResourceType"/>
+    	</accountConstruction>
+    </assignment>    
+</role>

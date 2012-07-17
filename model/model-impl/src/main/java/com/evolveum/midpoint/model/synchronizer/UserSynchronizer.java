@@ -21,15 +21,20 @@
 
 package com.evolveum.midpoint.model.synchronizer;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
+import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.hooks.ChangeHook;
+import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,6 +53,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -100,6 +106,12 @@ public class UserSynchronizer {
 
     @Autowired(required = true)
     private ActivationProcessor activationProcessor;
+    
+	@Autowired(required = false)
+	private HookRegistry hookRegistry;
+    
+    @Autowired(required = true)
+	private ChangeExecutor changeExecutor;
 
     @Autowired(required = true)
     private PrismContext prismContext;
@@ -115,7 +127,7 @@ public class UserSynchronizer {
 		this.syncContextListener = syncContextListener;
 	}
 
-	public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
+	public HookOperationMode synchronizeUser(SyncContext context, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, 
             ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 
@@ -142,44 +154,93 @@ public class UserSynchronizer {
         // Check reconcile flag in account sync context and set accountOld
         // variable if it's not set (from provisioning)
         checkAccountContextReconciliation(context, result);
-
-        // Loop through the account changes, apply inbound expressions
-        inboundProcessor.processInbound(context, result);
-        context.recomputeUserNew();
-        SynchronizerUtil.traceContext("inbound", context, false);
-        if (consistenceChecks) context.checkConsistence();
-
-        userPolicyProcessor.processUserPolicy(context, result);
-        context.recomputeUserNew();
-        SynchronizerUtil.traceContext("user policy", context, false);
-        if (consistenceChecks) context.checkConsistence();
-
-        assignmentProcessor.processAssignmentsAccounts(context, result);
-        context.recomputeNew();
-        SynchronizerUtil.traceContext("assignments", context, true);
-        if (consistenceChecks) context.checkConsistence();
-
-        accountValuesProcessor.process(context, result);
         
-        credentialsProcessor.processCredentials(context, result);
-        context.recomputeNew();
-        SynchronizerUtil.traceContext("credentials", context, false);
-        if (consistenceChecks) context.checkConsistence();
-
-        activationProcessor.processActivation(context, result);
-        context.recomputeNew();
-        SynchronizerUtil.traceContext("activation", context, false);
-        if (consistenceChecks) context.checkConsistence();
-
-        reconciliationProcessor.processReconciliation(context, result);
-        context.recomputeNew();
-        SynchronizerUtil.traceContext("reconciliation", context, false);
-        if (consistenceChecks) context.checkConsistence();
+        int maxWaves = 1;
+        int currentWave = 1;
+        int attempt = 1;
+        int maxAttempt = 2;
         
-        if (syncContextListener != null) {
-        	syncContextListener.afterSync(context);
+        // START A WAVE
+        while (currentWave <= maxWaves) {
+        	if (attempt > maxAttempt) {
+        		throw new PolicyViolationException("Too many attempts to synchronize user (wave "+currentWave+")");
+        	}
+        	
+	        // Loop through the account changes, apply inbound expressions
+	        inboundProcessor.processInbound(context, result);
+	        context.recomputeUserNew();
+	        SynchronizerUtil.traceContext("inbound", context, false);
+	        if (consistenceChecks) context.checkConsistence();
+	
+	        userPolicyProcessor.processUserPolicy(context, result);
+	        context.recomputeUserNew();
+	        SynchronizerUtil.traceContext("user policy", context, false);
+	        if (consistenceChecks) context.checkConsistence();
+	
+	        assignmentProcessor.processAssignmentsAccounts(context, result);
+	        context.recomputeNew();
+	        SynchronizerUtil.traceContext("assignments", context, true);
+	        if (consistenceChecks) context.checkConsistence();
+	
+	        for (AccountSyncContext accountContext: context.getAccountContexts()) {
+	        	accountValuesProcessor.process(context, accountContext, result);
+	        	
+	        	accountContext.recomputeAccountNew();
+	        	//SynchronizerUtil.traceContext("values", context, false);
+	        	if (consistenceChecks) context.checkConsistence();
+	        	
+	        	credentialsProcessor.processCredentials(context, accountContext, result);
+	        	
+	        	accountContext.recomputeAccountNew();
+	        	//SynchronizerUtil.traceContext("credentials", context, false);
+	        	if (consistenceChecks) context.checkConsistence();
+	        	
+	        	activationProcessor.processActivation(context, accountContext, result);
+		        context.recomputeNew();
+		        SynchronizerUtil.traceContext("activation", context, false);
+		        if (consistenceChecks) context.checkConsistence();
+		
+		        reconciliationProcessor.processReconciliation(context, accountContext, result);
+		        context.recomputeNew();
+		        SynchronizerUtil.traceContext("reconciliation", context, false);
+		        if (consistenceChecks) context.checkConsistence();
+	        }
+	        
+	        if (syncContextListener != null) {
+	        	syncContextListener.afterSync(context);
+	        }
+	        
+	        if (!context.isNoExecute()) {
+	        	HookOperationMode hookOperationMode = executePreChangeSecondary(context.getAllChanges(), task, result);
+				if (hookOperationMode != HookOperationMode.FOREGROUND) {
+					return hookOperationMode;
+				}
+	
+				try {
+					changeExecutor.executeChanges(context, result);
+					result.computeStatus();
+				} catch (ObjectAlreadyExistsException e) {
+					LOGGER.debug("Restarting user synchronizer wave as a reaction to ObjectAlreadyExistsException", e);
+					// Make sure that recon is done this time. This will lower the chance of yet another conflict. 
+					context.setDoReconciliationForAllAccounts(true);
+					attempt++;
+					// keep the wave number
+					continue;
+	
+				}
+	        	
+	        	hookOperationMode = executePostChange(context.getAllChanges(), task, result);
+	        	if (hookOperationMode != HookOperationMode.FOREGROUND) {
+					return hookOperationMode;
+				}
+	        	
+	        	// Reset attempt number for the next wave
+	        	attempt = 1;
+	        }
+	        currentWave++;
         }
 
+        return HookOperationMode.FOREGROUND;
     }
 
     private void checkAccountContextReconciliation(SyncContext context, OperationResult result)
@@ -552,5 +613,73 @@ public class UserSynchronizer {
             context.setAccountSynchronizationSettings(globalAccountSynchronizationSettings);
         }
     }
+    
+    /**
+	 * Executes preChangePrimary on all registered hooks. Parameters (delta,
+	 * task, result) are simply passed to these hooks.
+	 * 
+	 * @return FOREGROUND, if all hooks returns FOREGROUND; BACKGROUND if not.
+	 * 
+	 *         TODO in the future, maybe some error status returned from hooks
+	 *         should be considered here.
+	 */
+	private HookOperationMode executePreChangePrimary(
+			Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task, OperationResult result) {
+
+		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
+		if (hookRegistry != null) {
+			for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+				HookOperationMode mode = hook.preChangePrimary(objectDeltas, task, result);
+				if (mode == HookOperationMode.BACKGROUND)
+					resultMode = HookOperationMode.BACKGROUND;
+			}
+		}
+		return resultMode;
+	}
+    
+	/**
+	 * A convenience method when there is only one delta.
+	 */
+	private HookOperationMode executePreChangePrimary(ObjectDelta<? extends ObjectType> objectDelta,
+			Task task, OperationResult result) {
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		deltas.add(objectDelta);
+		return executePreChangePrimary(deltas, task, result);
+	}
+
+	/**
+	 * Executes preChangeSecondary. See above for comments.
+	 */
+	private HookOperationMode executePreChangeSecondary(
+			Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task, OperationResult result) {
+
+		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
+		if (hookRegistry != null) {
+			for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+				HookOperationMode mode = hook.preChangeSecondary(objectDeltas, task, result);
+				if (mode == HookOperationMode.BACKGROUND)
+					resultMode = HookOperationMode.BACKGROUND;
+			}
+		}
+		return resultMode;
+	}
+
+	/**
+	 * Executes postChange. See above for comments.
+	 */
+	private HookOperationMode executePostChange(Collection<ObjectDelta<? extends ObjectType>> objectDeltas,
+			Task task, OperationResult result) {
+
+		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
+		if (hookRegistry != null) {
+			for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+				HookOperationMode mode = hook.postChange(objectDeltas, task, result);
+				if (mode == HookOperationMode.BACKGROUND)
+					resultMode = HookOperationMode.BACKGROUND;
+			}
+		}
+		return resultMode;
+	}
+
 
 }

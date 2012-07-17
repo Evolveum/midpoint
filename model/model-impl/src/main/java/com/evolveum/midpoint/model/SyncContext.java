@@ -104,6 +104,8 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
      * Global synchronization settings that should be applied during processing of this context.
      */
     private AccountSynchronizationSettingsType accountSynchronizationSettings;
+    
+    private boolean noExecute = false;
 
     /**
      * Map of account synchronizations contexts. All the accounts in the map somehow "belong" to the user specified in this context.
@@ -213,7 +215,15 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         return accountSynchronizationSettings.getAssignmentPolicyEnforcement();
     }
 
-    public Collection<AccountSyncContext> getAccountContexts() {
+    public boolean isNoExecute() {
+		return noExecute;
+	}
+
+	public void setNoExecute(boolean noExecute) {
+		this.noExecute = noExecute;
+	}
+
+	public Collection<AccountSyncContext> getAccountContexts() {
         return accountContextMap.values();
     }
 

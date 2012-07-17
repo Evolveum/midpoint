@@ -164,9 +164,6 @@ public class ModelController implements ModelService {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	@Autowired
-	private ChangeExecutor changeExecutor;
-
 	@Autowired(required = true)
 	private transient ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
 
@@ -178,6 +175,9 @@ public class ModelController implements ModelService {
 
 	@Autowired(required = true)
 	private TaskManager taskManager;
+	
+	@Autowired(required = true)
+	private ChangeExecutor changeExecutor;
 
 	@Autowired(required = true)
 	private AuditService auditService;
@@ -315,18 +315,11 @@ public class ModelController implements ModelService {
 				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
 					return null;
 
-				userSynchronizer.synchronizeUser(syncContext, result);
-
-				if (executePreChangeSecondary(syncContext.getAllChanges(), task, result) != HookOperationMode.FOREGROUND)
+				if (userSynchronizer.synchronizeUser(syncContext, task, result) != HookOperationMode.FOREGROUND)
 					return null;
 
 				auditRecord.clearDeltas();
 				auditRecord.addDeltas(syncContext.getAllChanges());
-
-				changeExecutor.executeChanges(syncContext, result);
-
-				executePostChange(syncContext.getAllChanges(), task, result);
-				// here we don't care about the result (FOREGROUND/BACKGROUND)
 
 			} else {
 
@@ -694,31 +687,11 @@ public class ModelController implements ModelService {
 
 				}
 				
-				userSynchronizer.synchronizeUser(syncContext, result);
+				userSynchronizer.synchronizeUser(syncContext, task, result);
 
 				// Deltas after sync will be different
 				auditRecord.clearDeltas();
 				auditRecord.addDeltas(syncContext.getAllChanges());
-
-				try {
-					changeExecutor.executeChanges(syncContext, result);
-					result.computeStatus();
-				} catch (ObjectAlreadyExistsException e) {
-					LOGGER.debug("Restarting user synchronizer as a reaction to ObjectAlreadyExistsException", e);
-					syncContext = userTypeModifyToContextAssertRecon(oid, modificationsCloned, result);
-					result = parentResult.createSubresult(MODIFY_OBJECT);
-					result.addParam("syncContext", syncContext);
-					userSynchronizer.synchronizeUser(syncContext, result);
-					try {
-						changeExecutor.executeChanges(syncContext, parentResult);
-
-                        // todo: call executePostChange with correct collection of modifications
-
-					} catch (ObjectAlreadyExistsException ex) {
-						throw new SystemException(ex.getMessage(), ex);
-					}
-
-				}
 
 			} else {
 				if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
@@ -952,7 +925,7 @@ public class ModelController implements ModelService {
 				syncContext.setUserPrimaryDelta((ObjectDelta<UserType>) objectDelta);
 
 				try {
-					userSynchronizer.synchronizeUser(syncContext, result);
+					userSynchronizer.synchronizeUser(syncContext, task, result);
 				} catch (SchemaException e) {
 					// TODO Better handling
 					throw new SystemException(e.getMessage(), e);
@@ -971,24 +944,24 @@ public class ModelController implements ModelService {
 			} else {
 				changes = new HashSet<ObjectDelta<? extends ObjectType>>();
 				changes.add(objectDelta);
+    			try {
+    				changeExecutor.executeChanges(changes, result);
+                    executePostChange(changes, task, result);
+
+    				auditRecord.clearDeltas();
+    				auditRecord.addDeltas(changes);
+
+                    result.computeStatus();
+    			} catch (ObjectAlreadyExistsException e) {
+    				// TODO Better handling
+    				throw new SystemException(e.getMessage(), e);
+    			} catch (SchemaException e) {
+    				// TODO Better handling
+    				throw new SystemException(e.getMessage(), e);
+    			}
+
 			}
 
-			try {
-				changeExecutor.executeChanges(changes, result);
-
-                executePostChange(changes, task, result);
-
-				auditRecord.clearDeltas();
-				auditRecord.addDeltas(changes);
-
-                result.computeStatus();
-			} catch (ObjectAlreadyExistsException e) {
-				// TODO Better handling
-				throw new SystemException(e.getMessage(), e);
-			} catch (SchemaException e) {
-				// TODO Better handling
-				throw new SystemException(e.getMessage(), e);
-			}
 
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);

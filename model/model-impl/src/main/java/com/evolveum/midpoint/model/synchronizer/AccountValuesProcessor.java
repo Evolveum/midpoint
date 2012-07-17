@@ -80,67 +80,62 @@ public class AccountValuesProcessor {
 	private PrismContext prismContext;
 
 	
-	public void process(SyncContext context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	public void process(SyncContext context, AccountSyncContext accountContext, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		
-		
-		for (AccountSyncContext accountContext: context.getAccountContexts()) {
-			
-			PolicyDecision policyDecision = accountContext.getPolicyDecision();
-			if (policyDecision != null && policyDecision == PolicyDecision.UNLINK) {
-				// We will not update accounts that are being unlinked.
-				// we cannot skip deleted accounts here as the delete delta will be skipped as well
-				continue;
-			}
-			
-			int maxIterations = determineMaxIterations(accountContext);
-			int iteration = 0;
-			while (true) {
-				
-				accountContext.setIteration(iteration);
-				String iterationToken = formatIterationToken(iteration);
-				accountContext.setIterationToken(iterationToken);
-				
-				assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
-				context.recomputeNew();
-				outboundProcessor.processOutbound(context, accountContext, result);
-				context.recomputeNew();
-				consolidationProcessor.consolidateValues(context, accountContext, result);
-		        context.recomputeNew();
-		 
-		        SynchronizerUtil.traceContext("values", context, true);
-		        
-		        // Check constraints
-		        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);
-		        checker.setPrismContext(prismContext);
-		        checker.setRepositoryService(repositoryService);
-		        checker.check(result);
-		        if (checker.isSatisfiesConstraints()) {
-		        	break;
-		        }
-		        
-		        iteration++;
-		        if (iteration > maxIterations) {
-		        	StringBuilder sb = new StringBuilder();
-		        	if (iteration == 1) {
-		        		sb.append("Error processing ");
-		        	} else {
-		        		sb.append("Too many iterations ("+iteration+") for ");
-		        	}
-		        	sb.append(accountContext.getHumanReadableAccountName());
-		        	if (iteration == 1) {
-		        		sb.append(": constraint violation: ");
-		        	} else {
-		        		sb.append(": cannot determine valuest that satisfy constraints: ");
-		        	}
-		        	sb.append(checker.getMessages());
-		        	throw new ObjectAlreadyExistsException(sb.toString());
-		        }
-		        
-		        cleanupContext(accountContext);
-			} 
-			
+		PolicyDecision policyDecision = accountContext.getPolicyDecision();
+		if (policyDecision != null && policyDecision == PolicyDecision.UNLINK) {
+			// We will not update accounts that are being unlinked.
+			// we cannot skip deleted accounts here as the delete delta will be skipped as well
+			return;
 		}
 		
+		int maxIterations = determineMaxIterations(accountContext);
+		int iteration = 0;
+		while (true) {
+			
+			accountContext.setIteration(iteration);
+			String iterationToken = formatIterationToken(iteration);
+			accountContext.setIterationToken(iterationToken);
+			
+			assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
+			context.recomputeNew();
+			outboundProcessor.processOutbound(context, accountContext, result);
+			context.recomputeNew();
+			consolidationProcessor.consolidateValues(context, accountContext, result);
+	        context.recomputeNew();
+	 
+	        SynchronizerUtil.traceContext("values", context, true);
+	        
+	        // Check constraints
+	        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);
+	        checker.setPrismContext(prismContext);
+	        checker.setRepositoryService(repositoryService);
+	        checker.check(result);
+	        if (checker.isSatisfiesConstraints()) {
+	        	break;
+	        }
+	        
+	        iteration++;
+	        if (iteration > maxIterations) {
+	        	StringBuilder sb = new StringBuilder();
+	        	if (iteration == 1) {
+	        		sb.append("Error processing ");
+	        	} else {
+	        		sb.append("Too many iterations ("+iteration+") for ");
+	        	}
+	        	sb.append(accountContext.getHumanReadableAccountName());
+	        	if (iteration == 1) {
+	        		sb.append(": constraint violation: ");
+	        	} else {
+	        		sb.append(": cannot determine valuest that satisfy constraints: ");
+	        	}
+	        	sb.append(checker.getMessages());
+	        	throw new ObjectAlreadyExistsException(sb.toString());
+	        }
+	        
+	        cleanupContext(accountContext);
+		} 
+					
 	}
 	
 	private int determineMaxIterations(AccountSyncContext accountContext) {

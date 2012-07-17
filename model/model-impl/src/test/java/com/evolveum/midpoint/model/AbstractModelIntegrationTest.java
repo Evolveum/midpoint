@@ -60,6 +60,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -157,6 +158,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
 	
+	protected static final String ROLE_DUMMIES_FILENAME = COMMON_DIR_NAME + "/role-dummies.xml";
+	protected static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
+
 	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
@@ -281,6 +285,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		// Roles
 		addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
 		addObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
+		addObjectFromFile(ROLE_DUMMIES_FILENAME, RoleType.class, initResult);
 
 	}
 	
@@ -530,8 +535,19 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertEquals("Wrong jack telephoneNumber", "555-1234", userType.getTelephoneNumber());
 		assertEquals("Wrong jack employeeNumber", "emp1234", userType.getEmployeeNumber());
 		assertEquals("Wrong jack employeeType", "CAPTAIN", userType.getEmployeeType().get(0));
-		PrismAsserts.assertEqualsPolyString("Wrong jack organizationalUnit", "Leaders", userType.getOrganizationalUnit().get(0));
 		PrismAsserts.assertEqualsPolyString("Wrong jack locality", "Caribbean", userType.getLocality());
+	}
+	
+	protected void assertUserProperty(String userOid, QName propertyName, Object... expectedPropValues) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("getObject");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		assertUserProperty(user, propertyName, expectedPropValues);
+	}
+	
+	protected void assertUserProperty(PrismObject<UserType> user, QName propertyName, Object... expectedPropValues) {
+		PrismProperty<Object> property = user.findProperty(propertyName);
+		assert property != null : "No property "+propertyName+" in "+user;  
+		PrismAsserts.assertPropertyValue(property, expectedPropValues);
 	}
 	
 	protected void assertDummyShadowRepo(PrismObject<AccountShadowType> accountShadow, String oid, String username) {

@@ -146,8 +146,7 @@ public class ModifyUserAction extends BaseAction {
         }
 
         try {
-            synchronizeUser(context, subResult);
-            executeChanges(context, subResult);
+            synchronizeUser(context, task, subResult);
         } finally {
             subResult.recomputeStatus();
             result.recomputeStatus();

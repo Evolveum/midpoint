@@ -29,6 +29,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -75,6 +77,9 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 	
 	@Autowired(required = true)
 	private UserSynchronizer userSynchronizer;
+	
+	@Autowired(required = true)
+	private TaskManager taskManager;
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
@@ -136,7 +141,8 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 					}
 				});
 
-		OperationResult result = new OperationResult("Add User With Template");
+		Task task = taskManager.createTaskInstance("Add User With Template");
+		OperationResult result = task.getResult();
 		
 		SyncContext syncContext = new SyncContext(PrismTestUtil.getPrismContext());
 
@@ -148,13 +154,14 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 		syncContext.setUserPrimaryDelta(objectDelta);
 		
 		syncContext.setUserTemplate(userTemplateType);
+		syncContext.setNoExecute(true);
 
 		try {
 			LOGGER.info("provisioning: " + provisioning.getClass());
 			LOGGER.info("repo" + repository.getClass());
 						
 			// WHEN
-			userSynchronizer.synchronizeUser(syncContext, result);
+			userSynchronizer.synchronizeUser(syncContext, task, result);
 			
 		} finally {
 			LOGGER.info(result.dump());
