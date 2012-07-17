@@ -78,6 +78,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -138,6 +139,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+	
+	protected static final String RESOURCE_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/resource-dummy-red.xml";
+	protected static final String RESOURCE_DUMMY_RED_OID = "10000000-0000-0000-0000-000000000104";
+	protected static final String RESOURCE_DUMMY_RED_NAME = "red";
+	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;
 	
 	protected static final String ROLE_ALPHA_FILENAME = COMMON_DIR_NAME + "/role-alpha.xml";
 	protected static final String ROLE_ALPHA_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
@@ -204,8 +210,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected PrismObject<ResourceType> resourceOpenDj;
 	protected ResourceType resourceDummyType;
 	protected PrismObject<ResourceType> resourceDummy;
+	protected ResourceType resourceDummyRedType;
+	protected PrismObject<ResourceType> resourceDummyRed;
 	
 	protected static DummyResource dummyResource;
+	protected static DummyResource dummyResourceRed;
 	
 	public AbstractModelIntegrationTest() throws JAXBException {
 		super();
@@ -218,15 +227,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
-		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
-		DummyAttributeDefinition titleAttrDef = new DummyAttributeDefinition("title", String.class, false, true);
-		accountObjectClass.add(titleAttrDef);
-		DummyAttributeDefinition shipAttrDef = new DummyAttributeDefinition("ship", String.class, false, false);
-		accountObjectClass.add(shipAttrDef);
-		DummyAttributeDefinition locationAttrDef = new DummyAttributeDefinition("location", String.class, false, false);
-		accountObjectClass.add(locationAttrDef);
-		DummyAttributeDefinition lootAttrDef = new DummyAttributeDefinition("loot", Integer.class, false, false);
-		accountObjectClass.add(lootAttrDef);
+		extendDummySchema(dummyResource);
 		
 		DummyAccount hermanDummyAccount = new DummyAccount(ACCOUNT_HERMAN_DUMMY_USERNAME);
 		hermanDummyAccount.setEnabled(true);
@@ -239,6 +240,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		guybrushDummyAccount.addAttributeValues("fullname", "Guybrush Threepwood");
 		guybrushDummyAccount.addAttributeValues("location", "Melee Island");
 		dummyResource.addAccount(guybrushDummyAccount);
+		
+		dummyResourceRed = DummyResource.getInstance(RESOURCE_DUMMY_RED_NAME);
+		dummyResourceRed.reset();
+		dummyResourceRed.populateWithDefaultSchema();
+		extendDummySchema(dummyResourceRed);
 		
 		postInitDummyResouce();
 		
@@ -260,6 +266,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		resourceDummy = addObjectFromFile(RESOURCE_DUMMY_FILENAME, ResourceType.class, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
+		resourceDummyRed = addObjectFromFile(RESOURCE_DUMMY_RED_FILENAME, ResourceType.class, initResult);
+		resourceDummyRedType = resourceDummyRed.asObjectable();
 
 		// Accounts
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, initResult);
@@ -276,6 +284,18 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	}
 	
+	private void extendDummySchema(DummyResource dummyResource) {
+		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
+		DummyAttributeDefinition titleAttrDef = new DummyAttributeDefinition("title", String.class, false, true);
+		accountObjectClass.add(titleAttrDef);
+		DummyAttributeDefinition shipAttrDef = new DummyAttributeDefinition("ship", String.class, false, false);
+		accountObjectClass.add(shipAttrDef);
+		DummyAttributeDefinition locationAttrDef = new DummyAttributeDefinition("location", String.class, false, false);
+		accountObjectClass.add(locationAttrDef);
+		DummyAttributeDefinition lootAttrDef = new DummyAttributeDefinition("loot", Integer.class, false, false);
+		accountObjectClass.add(lootAttrDef);
+	}
+
 	protected void postInitDummyResouce() {
 		// Do nothing be default. Concrete tests may override this.
 	}

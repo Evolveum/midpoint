@@ -2405,8 +2405,36 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="dependency" type="tns:ResourceAccountReferenceType" minOccurs="0" />
          	<xsd:element name="entitlementAssociation" type="tns:ResourceEntitlementAssociationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ResourceAccountReferenceType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			TODO
+    		</xsd:documentation>
+    	</xsd:annotation>
+    	<xsd:sequence>
+			<xsd:element name="resourceRef" type="c:ObjectReferenceType">
+            	<xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to a resource that is the target of reference.
+	                </xsd:documentation>
+	                <xsd:appinfo>
+	            		<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+	            	</xsd:appinfo>
+	            </xsd:annotation>
+	       	</xsd:element>
+            <xsd:element name="type" type="xsd:string" minOccurs="0" default="user">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of account that is the target of reference.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+    	</xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceAccountTypeDefinitionType">

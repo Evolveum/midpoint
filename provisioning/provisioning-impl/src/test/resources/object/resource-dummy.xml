@@ -35,7 +35,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>foobar</icfi:instanceId>
+			<icfi:instanceId></icfi:instanceId> <!-- Default instance -->
 		</icfc:configurationProperties>
 
 	</configuration>

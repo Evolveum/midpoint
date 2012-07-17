@@ -114,8 +114,12 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     public void init(Configuration configuration) {
         notNullArgument(configuration, "configuration");
         this.configuration = (DummyConfiguration) configuration;
-
-        resource = DummyResource.getInstance();
+        
+        String instanceName = this.configuration.getInstanceId();
+        if (instanceName == null || instanceName.isEmpty()) {
+        	instanceName = null;
+        }
+        resource = DummyResource.getInstance(instanceName);
         
         log.info("Dummy resource instance {0}", resource);
     }

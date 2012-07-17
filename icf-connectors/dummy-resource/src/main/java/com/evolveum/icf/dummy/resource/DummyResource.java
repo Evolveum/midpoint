@@ -68,7 +68,7 @@ public class DummyResource {
 	private int latestSyncToken;
 	private boolean tolerateDuplicateValues = false;
 	
-	private static DummyResource instance = null;
+	private static Map<String, DummyResource> instances = new HashMap<String, DummyResource>();
 	
 	DummyResource() {
 		accounts = new HashMap<String, DummyAccount>();
@@ -92,8 +92,14 @@ public class DummyResource {
 	}
 	
 	public static DummyResource getInstance() {
+		return getInstance(null);
+	}
+	
+	public static DummyResource getInstance(String instanceName) {
+		DummyResource instance = instances.get(instanceName);
 		if (instance == null) {
 			instance = new DummyResource();
+			instances.put(instanceName, instance);
 		}
 		return instance;
 	}

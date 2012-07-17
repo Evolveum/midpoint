@@ -19,16 +19,16 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<resource oid="10000000-0000-0000-0000-000000000004"
+<resource oid="10000000-0000-0000-0000-000000000104"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
-	<name>Dummy Resource</name>
+	<name>Dummy Resource Red</name>
 	<connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004" type="c:ConnectorType">
 		<filter>
 			<and>
@@ -40,12 +40,11 @@
 			</and>
 		</filter>
 	</connectorRef>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004</namespace>
 	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId></icfi:instanceId> <!-- Default instance. -->
+			<icfi:instanceId>red</icfi:instanceId>
 		</icfc:configurationProperties>
 
 	</configuration>
@@ -151,71 +150,24 @@
 				</inbound>
 			</attribute>
 			<attribute>
-				<ref>ri:location</ref>
-				<displayName>Location</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
-				<outbound>
-					<path>
-						$c:user/c:locality
-					</path>
-				</outbound>
-			</attribute>
-			<attribute>
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
 				<access>create</access>
 				<access>read</access>
 				<access>update</access>
-				<inbound>
-					<source>
-						<expression>
-							<returnType>scalar</returnType>
-							<code>concat('The crew of ',$c:input)</code>
-						</expression>
-					</source>
-					<target>
+				<outbound>
+					<path>
 						$c:user/c:organizationalUnit
-					</target>
-				</inbound>
+					</path>
+				</outbound>
 			</attribute>
+			<dependency>
+				<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+			</dependency>
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
 		</accountType>
 	</schemaHandling>
 	
-	<synchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<correlation>
-				<q:equal>
-					<q:path>.</q:path>
-					<valueExpression>
-						<ref>c:name</ref>
-						<code>
-							$c:account/c:attributes/icfs:name
-						</code>
-					</valueExpression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	        </reaction>
-        </objectSynchronization>
-	</synchronization>
-
 </resource>
