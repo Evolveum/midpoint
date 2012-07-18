@@ -45,136 +45,164 @@ import java.util.Set;
 @ForeignKey(name = "fk_container")
 public abstract class RObject extends RContainer {
 
-    @QueryAttribute
-    private String description;
-    @QueryEntity(any = true)
-    private RAnyContainer extension;
-    private long version;
-    private Set<REmbeddedReference> orgRefs;
+	@QueryAttribute
+	private String description;
+	@QueryEntity(any = true)
+	private RAnyContainer extension;
+	private long version;
+	private Set<REmbeddedReference> orgRefs;
+	private Set<ROrgClosure> descendants;
+	private Set<ROrgClosure> ancestors;
 
-    @ElementCollection
-    @ForeignKey(name = "fk_object_org_ref")
-    @CollectionTable(name = "m_object_org_ref", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
-    })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<REmbeddedReference> getOrgRefs() {
-        return orgRefs;
-    }
+	@ElementCollection
+	@ForeignKey(name = "fk_object_org_ref")
+	@CollectionTable(name = "m_object_org_ref", joinColumns = {
+			@JoinColumn(name = "user_oid", referencedColumnName = "oid"),
+			@JoinColumn(name = "user_id", referencedColumnName = "id") })
+	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
+	public Set<REmbeddedReference> getOrgRefs() {
+		return orgRefs;
+	}
 
-    @OneToOne(optional = true, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    @JoinColumns({
-            @JoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
-            @JoinColumn(name = "extId", referencedColumnName = "owner_id"),
-            @JoinColumn(name = "extType", referencedColumnName = "ownerType")
-    })
-    public RAnyContainer getExtension() {
-        return extension;
-    }
+	@OneToOne(optional = true, orphanRemoval = true)
+	@ForeignKey(name = "none")
+	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
+	@JoinColumns({ @JoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
+			@JoinColumn(name = "extId", referencedColumnName = "owner_id"),
+			@JoinColumn(name = "extType", referencedColumnName = "ownerType") })
+	public RAnyContainer getExtension() {
+		return extension;
+	}
 
-    @Type(type = "org.hibernate.type.TextType")
-    public String getDescription() {
-        return description;
-    }
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "descendant")
+	public Set<ROrgClosure> getDescendants() {
+		return descendants;
+	}
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "ancestor")
+	public Set<ROrgClosure> getAncestors() {
+		return ancestors;
+	}
 
-    public void setExtension(RAnyContainer extension) {
-        this.extension = extension;
-        if (this.extension != null) {
-            this.extension.setOwnerType(RContainerType.OBJECT);
-        }
-    }
+	public void setDescendants(Set<ROrgClosure> descendants) {
+		this.descendants = descendants;
+	}
 
-    public long getVersion() {
-        return version;
-    }
+	public void setAncestors(Set<ROrgClosure> ancestors) {
+		this.ancestors = ancestors;
+	}
 
-    public void setVersion(long version) {
-        this.version = version;
-    }
+	@Type(type = "org.hibernate.type.TextType")
+	public String getDescription() {
+		return description;
+	}
 
-    public void setOrgRefs(Set<REmbeddedReference> orgRefs) {
-        this.orgRefs = orgRefs;
-    }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+	public void setExtension(RAnyContainer extension) {
+		this.extension = extension;
+		if (this.extension != null) {
+			this.extension.setOwnerType(RContainerType.OBJECT);
+		}
+	}
 
-        RObject rObject = (RObject) o;
+	public long getVersion() {
+		return version;
+	}
 
-        if (description != null ? !description.equals(rObject.description) : rObject.description != null) return false;
-        if (extension != null ? !extension.equals(rObject.extension) : rObject.extension != null) return false;
+	public void setVersion(long version) {
+		this.version = version;
+	}
 
-        return true;
-    }
+	public void setOrgRefs(Set<REmbeddedReference> orgRefs) {
+		this.orgRefs = orgRefs;
+	}
 
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        return result;
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		if (!super.equals(o))
+			return false;
 
-    public static void copyToJAXB(RObject repo, ObjectType jaxb, PrismContext prismContext) throws
-            DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+		RObject rObject = (RObject) o;
 
-        jaxb.setDescription(repo.getDescription());
-        jaxb.setOid(repo.getOid());
-        jaxb.setVersion(Long.toString(repo.getVersion()));
+		if (description != null ? !description.equals(rObject.description) : rObject.description != null)
+			return false;
+		if (extension != null ? !extension.equals(rObject.extension) : rObject.extension != null)
+			return false;
+		if (descendants != null ? !descendants.equals(rObject.descendants) : rObject.descendants != null)
+			return false;
+		if (ancestors != null ? !ancestors.equals(rObject.ancestors) : rObject.ancestors != null)
+			return false;
 
-        if (repo.getExtension() != null) {
-            ExtensionType extension = new ExtensionType();
-            jaxb.setExtension(extension);
-            RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
-        }
+		return true;
+	}
 
-        if (repo.getOrgRefs() != null) {
-            for (REmbeddedReference orgRef : repo.getOrgRefs()) {
-                jaxb.getOrgRef().add(orgRef.toJAXB(prismContext));
-            }
-        }
-    }
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + (description != null ? description.hashCode() : 0);
+		return result;
+	}
 
-    public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext)
-            throws DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notNull(repo, "Repo object must not be null.");
+	public static void copyToJAXB(RObject repo, ObjectType jaxb, PrismContext prismContext)
+			throws DtoTranslationException {
+		Validate.notNull(repo, "Repo object must not be null.");
+		Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setDescription(jaxb.getDescription());
-        repo.setOid(jaxb.getOid());
-        repo.setId(0L); //objects types have default id
+		jaxb.setDescription(repo.getDescription());
+		jaxb.setOid(repo.getOid());
+		jaxb.setVersion(Long.toString(repo.getVersion()));
 
-        String strVersion = jaxb.getVersion();
-        long version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*")
-                ? Long.parseLong(jaxb.getVersion()) : 0;
-        repo.setVersion(version);
+		if (repo.getExtension() != null) {
+			ExtensionType extension = new ExtensionType();
+			jaxb.setExtension(extension);
+			RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
+		}
 
-        if (jaxb.getExtension() != null) {
-            RAnyContainer extension = new RAnyContainer();
-            extension.setOwner(repo);
+		if (repo.getOrgRefs() != null) {
+			for (REmbeddedReference orgRef : repo.getOrgRefs()) {
+				jaxb.getOrgRef().add(orgRef.toJAXB(prismContext));
+			}
+		}
+		
+	}
 
-            repo.setExtension(extension);
-            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
-        }
+	public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext)
+			throws DtoTranslationException {
+		Validate.notNull(jaxb, "JAXB object must not be null.");
+		Validate.notNull(repo, "Repo object must not be null.");
 
-        if (!jaxb.getOrgRef().isEmpty()) {
-            repo.setOrgRefs(new HashSet<REmbeddedReference>());
-        }
-        for (ObjectReferenceType orgRef : jaxb.getOrgRef()) {
-            repo.getOrgRefs().add(RUtil.jaxbRefToEmbeddedRepoRef(orgRef, prismContext));
-        }
-    }
+		repo.setDescription(jaxb.getDescription());
+		repo.setOid(jaxb.getOid());
+		repo.setId(0L); // objects types have default id
 
-    public abstract <T extends ObjectType> T toJAXB(PrismContext prismContext) throws DtoTranslationException;
+		String strVersion = jaxb.getVersion();
+		long version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Long.parseLong(jaxb
+				.getVersion()) : 0;
+		repo.setVersion(version);
+
+		if (jaxb.getExtension() != null) {
+			RAnyContainer extension = new RAnyContainer();
+			extension.setOwner(repo);
+
+			repo.setExtension(extension);
+			RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+		}
+
+		if (!jaxb.getOrgRef().isEmpty()) {
+			repo.setOrgRefs(new HashSet<REmbeddedReference>());
+		}
+		for (ObjectReferenceType orgRef : jaxb.getOrgRef()) {
+			repo.getOrgRefs().add(RUtil.jaxbRefToEmbeddedRepoRef(orgRef, prismContext));
+		}
+		
+	}
+
+	public abstract <T extends ObjectType> T toJAXB(PrismContext prismContext) throws DtoTranslationException;
 }

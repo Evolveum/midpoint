@@ -47,11 +47,13 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.PessimisticLockException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.LockAcquisitionException;
@@ -67,39 +69,32 @@ import java.util.List;
  * @author lazyman
  */
 @Repository
-public class SqlRepositoryServiceImpl extends SqlBaseService implements
-		RepositoryService {
+public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
-	private static final Trace LOGGER = TraceManager
-			.getTrace(SqlRepositoryServiceImpl.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
-	private <T extends ObjectType> PrismObject<T> getObject(Session session,
-			Class<T> type, String oid) throws ObjectNotFoundException,
-			SchemaException, DtoTranslationException {
-		Criteria query = session.createCriteria(ClassMapper
-				.getHQLTypeClass(type));
+	private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid)
+			throws ObjectNotFoundException, SchemaException, DtoTranslationException {
+		Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 		query.add(Restrictions.eq("oid", oid));
 		query.add(Restrictions.eq("id", 0L));
 
 		RObject object = (RObject) query.uniqueResult();
 		if (object == null) {
-			throw new ObjectNotFoundException("Object of type '"
-					+ type.getSimpleName() + "' with oid '" + oid
+			throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
 					+ "' was not found.", null, oid);
 		}
 
 		LOGGER.debug("Transforming data to JAXB type.");
-		PrismObject<T> objectType = object.toJAXB(getPrismContext())
-				.asPrismObject();
+		PrismObject<T> objectType = object.toJAXB(getPrismContext()).asPrismObject();
 		validateObjectType(objectType, type);
 
 		return objectType;
 	}
 
 	@Override
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,
-			String oid, OperationResult result) throws ObjectNotFoundException,
-			SchemaException {
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, OperationResult result)
+			throws ObjectNotFoundException, SchemaException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -115,17 +110,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			try {
 				return getObjectAttempt(type, oid, subResult);
 			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(oid, operation, attempt, ex,
-						subResult);
+				attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
 			}
 		}
 	}
 
-	private <T extends ObjectType> PrismObject<T> getObjectAttempt(
-			Class<T> type, String oid, OperationResult result)
+	private <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		LOGGER.debug("Getting object '{}' with oid '{}'.",
-				new Object[] { type.getSimpleName(), oid });
+		LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[] { type.getSimpleName(), oid });
 
 		PrismObject<T> objectType = null;
 
@@ -158,10 +150,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 		}
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(
-					"Get object:\n{}",
-					new Object[] { (objectType != null ? objectType
-							.debugDump(3) : null) });
+			LOGGER.trace("Get object:\n{}", new Object[] { (objectType != null ? objectType.debugDump(3) : null) });
 		}
 
 		return objectType;
@@ -169,8 +158,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 
 	@Deprecated
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> listObjects(
-			Class<T> type, PagingType paging, OperationResult result) {
+	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
+			OperationResult result) {
 		try {
 			return searchObjects(type, null, paging, result);
 		} catch (SchemaException ex) {
@@ -179,8 +168,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 	}
 
 	@Override
-	public PrismObject<UserType> listAccountShadowOwner(String accountOid,
-			OperationResult result) throws ObjectNotFoundException {
+	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
 
@@ -194,25 +183,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			try {
 				return listAccountShadowOwnerAttempt(accountOid, subResult);
 			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(accountOid, operation, attempt,
-						ex, subResult);
+				attempt = logOperationAttempt(accountOid, operation, attempt, ex, subResult);
 			}
 		}
 	}
 
-	private PrismObject<UserType> listAccountShadowOwnerAttempt(
-			String accountOid, OperationResult result)
+	private PrismObject<UserType> listAccountShadowOwnerAttempt(String accountOid, OperationResult result)
 			throws ObjectNotFoundException {
 		UserType userType = null;
 		Session session = null;
 		try {
 			session = beginTransaction();
-			LOGGER.debug("Selecting account shadow owner for account {}.",
-					new Object[] { accountOid });
-			Query query = session
-					.createQuery("select user from "
-							+ ClassMapper.getHQLType(UserType.class)
-							+ " as user left join user.accountRefs as ref where ref.targetOid = :oid");
+			LOGGER.debug("Selecting account shadow owner for account {}.", new Object[] { accountOid });
+			Query query = session.createQuery("select user from " + ClassMapper.getHQLType(UserType.class)
+					+ " as user left join user.accountRefs as ref where ref.targetOid = :oid");
 			query.setString("oid", accountOid);
 
 			List<RUser> users = query.list();
@@ -225,8 +209,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			}
 
 			if (users.size() > 1) {
-				LOGGER.warn(
-						"Found {} users for account oid {}, returning first user. [interface change needed]",
+				LOGGER.warn("Found {} users for account oid {}, returning first user. [interface change needed]",
 						new Object[] { users.size(), accountOid });
 			}
 
@@ -260,9 +243,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 	}
 
 	@Override
-	public <T extends ObjectType> String addObject(PrismObject<T> object,
-			OperationResult result) throws ObjectAlreadyExistsException,
-			SchemaException {
+	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationResult result)
+			throws ObjectAlreadyExistsException, SchemaException {
 		Validate.notNull(object, "Object must not be null.");
 		validateName(object);
 		Validate.notNull(result, "Operation result must not be null.");
@@ -278,42 +260,35 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			try {
 				return addObjectAttempt(object, subResult);
 			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(oid, operation, attempt, ex,
-						subResult);
+				attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
 			}
 		}
 	}
 
-	private <T extends ObjectType> String addObjectAttempt(
-			PrismObject<T> object, OperationResult result)
+	private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, OperationResult result)
 			throws ObjectAlreadyExistsException, SchemaException {
-		LOGGER.debug("Adding object type '{}'", new Object[] { object
-				.getCompileTimeClass().getSimpleName() });
+		LOGGER.debug("Adding object type '{}'", new Object[] { object.getCompileTimeClass().getSimpleName() });
 
 		String oid = null;
 		Session session = null;
 		try {
 			ObjectType objectType = object.asObjectable();
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Object\n{}", new Object[] { getPrismContext()
-						.silentMarshalObject(objectType) });
+				LOGGER.trace("Object\n{}", new Object[] { getPrismContext().silentMarshalObject(objectType) });
 			}
 
 			// check name uniqueness (by type)
 			session = beginTransaction();
 			if (StringUtils.isNotEmpty(objectType.getOid())) {
 				LOGGER.debug("Checking oid uniqueness.");
-				Criteria criteria = session.createCriteria(ClassMapper
-						.getHQLTypeClass(object.getCompileTimeClass()));
+				Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
 				criteria.add(Restrictions.eq("oid", object.getOid()));
 				criteria.setProjection(Projections.rowCount());
 
 				Long count = (Long) criteria.uniqueResult();
 				if (count != null && count > 0) {
-					throw new ObjectAlreadyExistsException("Object '"
-							+ object.getCompileTimeClass().getSimpleName()
-							+ "' with oid '" + object.getOid()
-							+ "' already exists.");
+					throw new ObjectAlreadyExistsException("Object '" + object.getCompileTimeClass().getSimpleName()
+							+ "' with oid '" + object.getOid() + "' already exists.");
 				}
 			}
 
@@ -324,8 +299,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			RContainerId containerId = (RContainerId) session.save(rObject);
 			oid = containerId.getOid();
 
-			if (objectType instanceof OrgType
-					|| !objectType.getOrgRef().isEmpty()) {
+			if (objectType instanceof OrgType || !objectType.getOrgRef().isEmpty()) {
 				objectType.setOid(oid);
 				fillHierarchy(objectType, session);
 			}
@@ -365,78 +339,118 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 		return oid;
 	}
 
-	private void fillHierarchy(ObjectType orgType, Session session)
-			throws SchemaException {
+	private <T extends ObjectType> void fillHierarchy(T orgType, Session session) throws SchemaException {
 
 		int depth = 0;
 
-		ROrgClosure closure = new ROrgClosure(orgType.getOid(),
-				orgType.getOid(), depth);
+		RObject rOrg = createDataObjectFromJAXB(orgType);
 
-		if (checkClosureUniqueness(closure.getAncestor(),
-				closure.getDescendant(), session)) {
-			session.save(closure);
-		}
+		ROrgClosure closure = new ROrgClosure(rOrg, rOrg, depth);
 
-		if (!orgType.getOrgRef().isEmpty()) {
-			fillTransitiveHierarchy(orgType.getOid(), orgType, session, depth);
-		}
+		// if (checkClosureUniqueness(closure, session)) {
+		session.save(closure);
+		// }
 
-	}
-
-	private boolean checkClosureUniqueness(String ancestor, String descendant,
-			Session session) {
-		Criteria criteria = session.createCriteria(ROrgClosure.class);
-		criteria.add(Restrictions.eq("ancestor", ancestor));
-		criteria.add(Restrictions.eq("descendant", descendant));
-		criteria.setProjection(Projections.rowCount());
-
-		Long count = (Long) criteria.uniqueResult();
-		if (count == null || count == 0) {
-			return true;
-		}
-		return false;
-	}
-
-	private <T extends ObjectType> void fillTransitiveHierarchy(
-			String descendantOid, T orgType, Session session, int depth)
-			throws SchemaException {
-
-		if (descendantOid == null) {
-			descendantOid = orgType.getOid();
-		}
-
-		depth++;
-
+		// if (!orgType.getOrgRef().isEmpty()) {
+		// fillTransitiveHierarchy(orgType, orgType, session, depth);
 		for (ObjectReferenceType orgRef : orgType.getOrgRef()) {
-			ROrgClosure closure = new ROrgClosure(orgType.getOid(),
-					orgType.getOid(), depth);
-
-			if (checkClosureUniqueness(closure.getAncestor(),
-					closure.getDescendant(), session)) {
-				session.save(closure);
-			}
-
-			PrismObject<T> ancestorOrgType = null;
-			try {
-				ancestorOrgType = getObject(session, orgType.asPrismObject()
-						.getCompileTimeClass(), orgRef.getOid());
-			} catch (ObjectNotFoundException ex) {
-				// TODO: error handling
-			} catch (DtoTranslationException ex) {
-				// TODO: error handling
-			}
-			if (ancestorOrgType != null
-					&& !ancestorOrgType.asObjectable().getOrgRef().isEmpty()) {
-				fillTransitiveHierarchy(descendantOid,
-						ancestorOrgType.asObjectable(), session, depth);
-			}
+			fillTransitiveHierarchy(rOrg, orgRef.getOid(), session);
 		}
+
+	}
+
+	// private boolean checkClosureUniqueness(ROrgClosure orgClosure,
+	// Session session) {
+	// Criteria criteria = session.createCriteria(ROrgClosure.class);
+	// criteria.add(Restrictions.eq("ancestor", orgClosure.getAncestor()));
+	// criteria.add(Restrictions.eq("descendant", orgClosure.getDescendant()));
+	// criteria.setProjection(Projections.rowCount());
+	//
+	// Long count = (Long) criteria.uniqueResult();
+	// if (count != null && count > 0) {
+	// return false;
+	// }
+	// // if (count == null){
+	// // return true;
+	// // }
+	//
+	// // if (count.getAncestor().equals(
+	// // orgClosure.getAncestor())
+	// // && count.getDescendant().equals(
+	// // orgClosure.getDescendant())) {
+	// // return false;
+	// // }
+	// return true;
+	// }
+
+//	private <T extends ObjectType> void fillTransitiveHierarchy(T descendant, T orgType, Session session, int depth)
+//			throws SchemaException {
+//
+//		if (descendant == null) {
+//			descendant = orgType;
+//		}
+//
+//		depth++;
+//
+//		RObject rDescendant = createDataObjectFromJAXB(descendant);
+//
+//		for (ObjectReferenceType orgRef : orgType.getOrgRef()) {
+//
+//			PrismObject<T> ancestorOrgType = null;
+//			try {
+//				ancestorOrgType = getObject(session, orgType.asPrismObject().getCompileTimeClass(), orgRef.getOid());
+//				RObject rAncestor = createDataObjectFromJAXB(ancestorOrgType.asObjectable());
+//				ROrgClosure closure = new ROrgClosure(rAncestor, rDescendant, depth);
+//
+//				// Property desc = Property.forName("descendant");
+//				Criteria query = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
+//						.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", orgRef.getOid()));
+//				// query.add(desc.getProperty("oid").eq(orgRef.getOid()));
+//				// Criteria descentandQuery = query.createAlias("descendant",
+//				// "desc");
+//				// descentandQuery.add(Restrictions.eq("desc.oid",
+//				// orgRef.getOid()));
+//
+//				// query.
+//				List<ROrgClosure> results = query.list();
+//				for (ROrgClosure o : results) {
+//					LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(getPrismContext()),
+//							o.getDescendant().toJAXB(getPrismContext()), o.getDepth() });
+//					// LOGGER.info("=> A: {}, D: {}, depth: {}", new
+//					// Object[]{o.getAncestor(), o.getDescendant(),
+//					// o.getDepth()});
+//				}
+//				// if (checkClosureUniqueness(closure, session)) {
+//				session.save(closure);
+//				// }
+//			} catch (ObjectNotFoundException ex) {
+//				// TODO: error handling
+//			} catch (DtoTranslationException ex) {
+//				// TODO: error handling
+//			}
+//			if (ancestorOrgType != null && !ancestorOrgType.asObjectable().getOrgRef().isEmpty()) {
+//				fillTransitiveHierarchy(descendant, ancestorOrgType.asObjectable(), session, depth);
+//			}
+//		}
+//	}
+
+	private <T extends ObjectType> void fillTransitiveHierarchy(RObject newDescendant, String descendantOid,
+			Session session) throws SchemaException {
+
+		Criteria query = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
+				.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+
+		// query.
+		List<ROrgClosure> results = query.list();
+		for (ROrgClosure o : results) {
+			session.save(new ROrgClosure(o.getAncestor(), newDescendant, o.getDepth()+1));
+		}
+
 	}
 
 	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid,
-			OperationResult result) throws ObjectNotFoundException {
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -453,35 +467,31 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 				deleteObjectAttempt(type, oid, subResult);
 				return;
 			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(oid, operation, attempt, ex,
-						subResult);
+				attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
 			}
 		}
 	}
 
-	private <T extends ObjectType> void deleteObjectAttempt(Class<T> type,
-			String oid, OperationResult result) throws ObjectNotFoundException {
-		LOGGER.debug("Deleting object type '{}' with oid '{}'", new Object[] {
-				type.getSimpleName(), oid });
+	private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
+			throws ObjectNotFoundException {
+		LOGGER.debug("Deleting object type '{}' with oid '{}'", new Object[] { type.getSimpleName(), oid });
 
 		Session session = null;
 		try {
 			session = beginTransaction();
 
-			Criteria query = session.createCriteria(ClassMapper
-					.getHQLTypeClass(type));
+			Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 			query.add(Restrictions.eq("oid", oid));
 			query.add(Restrictions.eq("id", 0L));
 			RObject object = (RObject) query.uniqueResult();
 			if (object == null) {
-				throw new ObjectNotFoundException("Object of type '"
-						+ type.getSimpleName() + "' with oid '" + oid
+				throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
 						+ "' was not found.", null, oid);
 			}
 			session.delete(object);
 
 			if (type.isAssignableFrom(OrgType.class)) {
-				deleteFromHierarchy(oid, session);
+				deleteFromHierarchy(object, session);
 			}
 
 			session.getTransaction().commit();
@@ -506,8 +516,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 
 	@Deprecated
 	@Override
-	public void claimTask(String oid, OperationResult result)
-			throws ObjectNotFoundException, ConcurrencyException,
+	public void claimTask(String oid, OperationResult result) throws ObjectNotFoundException, ConcurrencyException,
 			SchemaException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -518,28 +527,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 
 	@Deprecated
 	@Override
-	public void releaseTask(String oid, OperationResult result)
-			throws ObjectNotFoundException, SchemaException {
+	public void releaseTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
 
 		OperationResult subResult = result.createSubresult(RELEASE_TASK);
-		updateTaskExclusivity(oid, TaskExclusivityStatusType.RELEASED,
-				subResult);
+		updateTaskExclusivity(oid, TaskExclusivityStatusType.RELEASED, subResult);
 	}
 
 	@Override
-	public <T extends ObjectType> int countObjects(Class<T> type,
-			QueryType query, OperationResult result) {
+	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult result) {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		LOGGER.debug("Counting objects of type '{}', query (on trace level).",
-				new Object[] { type });
+		LOGGER.debug("Counting objects of type '{}', query (on trace level).", new Object[] { type });
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Full query\n{}",
-					new Object[] { (query == null ? "undefined"
-							: getPrismContext().silentMarshalObject(query)) });
+			LOGGER.trace("Full query\n{}", new Object[] { (query == null ? "undefined" : getPrismContext()
+					.silentMarshalObject(query)) });
 		}
 
 		OperationResult subResult = result.createSubresult(COUNT_OBJECTS);
@@ -553,14 +557,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			try {
 				return countObjectsAttempt(type, query, subResult);
 			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(null, operation, attempt, ex,
-						subResult);
+				attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
 			}
 		}
 	}
 
-	private <T extends ObjectType> int countObjectsAttempt(Class<T> type,
-			QueryType query, OperationResult result) {
+	private <T extends ObjectType> int countObjectsAttempt(Class<T> type, QueryType query, OperationResult result) {
 		int count = 0;
 
 		Session session = null;
@@ -569,12 +571,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			LOGGER.debug("Updating query criteria.");
 			Criteria criteria;
 			if (query != null && query.getFilter() != null) {
-				QueryInterpreter interpreter = new QueryInterpreter(session,
-						type, getPrismContext());
+				QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
 				criteria = interpreter.interpret(query.getFilter());
 			} else {
-				criteria = session.createCriteria(ClassMapper
-						.getHQLTypeClass(type));
+				criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 			}
 			criteria.setProjection(Projections.rowCount());
 
@@ -600,24 +600,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 	}
 
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(
-			Class<T> type, QueryType query, PagingType paging,
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
 			OperationResult result) throws SchemaException {
 
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		LOGGER.debug(
-				"Searching objects of type '{}', query (on trace level), offset {}, count {}.",
-				new Object[] { type.getSimpleName(),
-						(paging == null ? "undefined" : paging.getOffset()),
-						(paging == null ? "undefined" : paging.getMaxSize()) });
+		LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}.", new Object[] {
+				type.getSimpleName(), (paging == null ? "undefined" : paging.getOffset()),
+				(paging == null ? "undefined" : paging.getMaxSize()) });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[] {
-					(query == null ? "undefined" : getPrismContext()
-							.silentMarshalObject(query)),
-					(paging == null ? "undefined" : getPrismContext()
-							.silentMarshalObject(paging)) });
+					(query == null ? "undefined" : getPrismContext().silentMarshalObject(query)),
+					(paging == null ? "undefined" : getPrismContext().silentMarshalObject(paging)) });
 		}
 
 		OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
@@ -631,15 +626,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			try {
 				return searchObjectsAttempt(type, query, paging, subResult);
 			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(null, operation, attempt, ex,
-						subResult);
+				attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
 			}
 		}
 	}
 
-	private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(
-			Class<T> type, QueryType query, PagingType paging,
-			OperationResult result) throws SchemaException {
+	private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, QueryType query,
+			PagingType paging, OperationResult result) throws SchemaException {
 
 		List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
 		Session session = null;
@@ -648,12 +641,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			LOGGER.debug("Updating query criteria.");
 			Criteria criteria;
 			if (query != null && query.getFilter() != null) {
-				QueryInterpreter interpreter = new QueryInterpreter(session,
-						type, getPrismContext());
+				QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
 				criteria = interpreter.interpret(query.getFilter());
 			} else {
-				criteria = session.createCriteria(ClassMapper
-						.getHQLTypeClass(type));
+				criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 			}
 
 			criteria = updatePagingAndSorting(criteria, type, paging);
@@ -693,8 +684,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications,
-			OperationResult result) throws ObjectNotFoundException,
+			Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ObjectAlreadyExistsException {
 		Validate.notNull(modifications, "Modifications must not be null.");
 		Validate.notNull(type, "Object class in delta must not be null.");
@@ -707,8 +697,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 		subResult.addParam("modifications", modifications);
 
 		if (modifications.isEmpty()) {
-			subResult.recordStatus(OperationResultStatus.SUCCESS,
-					"Modification list is empty, nothing was modified.");
+			subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
 			return;
 		}
 
@@ -720,21 +709,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 				modifyObjectAttempt(type, oid, modifications, subResult);
 				return;
 			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(oid, operation, attempt, ex,
-						subResult);
+				attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
 			}
 		}
 	}
 
-	private <T extends ObjectType> void modifyObjectAttempt(Class<T> type,
-			String oid, Collection<? extends ItemDelta> modifications,
-			OperationResult result) throws ObjectNotFoundException,
+	private <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
+			Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ObjectAlreadyExistsException {
-		LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[] {
-				type.getSimpleName(), oid });
+		LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[] { type.getSimpleName(), oid });
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Modifications: {}",
-					new Object[] { DebugUtil.prettyPrint(modifications) });
+			LOGGER.trace("Modifications: {}", new Object[] { DebugUtil.prettyPrint(modifications) });
 		}
 
 		Session session = null;
@@ -745,8 +730,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			PrismObject<T> prismObject = getObject(session, type, oid);
 			// apply diff
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("OBJECT before:\n{}",
-						new Object[] { prismObject.dump() });
+				LOGGER.trace("OBJECT before:\n{}", new Object[] { prismObject.dump() });
 			}
 			PropertyDelta.applyTo(modifications, prismObject);
 			if (LOGGER.isTraceEnabled()) {
@@ -754,14 +738,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 			}
 			// merge and update user
 			LOGGER.debug("Translating JAXB to data type.");
-			RObject rObject = createDataObjectFromJAXB(prismObject
-					.asObjectable());
+			RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
 			rObject.setVersion(rObject.getVersion() + 1);
 
 			session.merge(rObject);
 
-			recomputeHierarchy(prismObject.asObjectable(), session,
-					modifications);
+			recomputeHierarchy(prismObject.asObjectable(), session, modifications);
 
 			session.getTransaction().commit();
 		} catch (PessimisticLockException ex) {
@@ -794,114 +776,96 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 
 	}
 
-	private void recomputeHierarchy(ObjectType orgType, Session session,
-			Collection<? extends ItemDelta> modifications)
-			throws SchemaException {
+	private <T extends ObjectType> void recomputeHierarchy(T orgType, Session session,
+			Collection<? extends ItemDelta> modifications) throws SchemaException, DtoTranslationException {
 
 		for (ItemDelta delta : modifications) {
 			if (delta.getName().equals(OrgType.F_ORG_REF)) {
 				if (delta.isReplace() || delta.isDelete()) {
 					LOGGER.trace("Org ref modification: {}", delta.dump());
-					Collection<PrismReferenceValue> deleteValues = delta
-							.getValuesToDelete();
+					Collection<PrismReferenceValue> deleteValues = delta.getValuesToDelete();
 					for (PrismReferenceValue s : deleteValues) {
 						LOGGER.trace("values to delete: {}", s.getOid());
 					}
 
-					deleteHierarchy(orgType.getOid(), session);
+					deleteHierarchy(orgType, session);
 				}
 
 				LOGGER.trace("Org ref modification: {}", delta.dump());
-				fillTransitiveHierarchy(null, orgType, session, 0);
+				fillHierarchy(orgType, session);
 
 			}
 		}
 	}
 
-	private void deleteHierarchy(String descendantOid, Session session) {
+	private <T extends ObjectType> void deleteHierarchy(T descendant, Session session) throws SchemaException, DtoTranslationException {
 		Criteria criteria = session.createCriteria(ROrgClosure.class);
-		criteria.add(Restrictions.eq("descendant", descendantOid));
+		RObject rDescendant = createDataObjectFromJAXB(descendant);
+		criteria.add(Restrictions.eq("descendant", rDescendant));
 
 		List<ROrgClosure> orgClosure = criteria.list();
 		for (ROrgClosure o : orgClosure) {
-			LOGGER.trace(
-					"deleting from hierarchy: A: {} D:{} depth:{}",
-					new Object[] { o.getAncestor(), o.getDescendant(),
-							o.getDepth() });
+			LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
+					new Object[] { o.getAncestor().toJAXB(getPrismContext()), o.getDescendant().toJAXB(getPrismContext()), o.getDepth() });
 			session.delete(o);
 		}
 	}
 
-	private void deleteFromHierarchy(String oid, Session session) {
+	private void deleteFromHierarchy(RObject object, Session session) {
 		Criteria criteria = session.createCriteria(ROrgClosure.class);
-		criteria.add(Restrictions.or(Restrictions.eq("ancestor", oid),
-				Restrictions.eq("descendant", oid)));
+		criteria.add(Restrictions.or(Restrictions.eq("ancestor", object), Restrictions.eq("descendant", object)));
 
 		List<ROrgClosure> orgClosure = criteria.list();
 		for (ROrgClosure o : orgClosure) {
-			LOGGER.trace(
-					"deleting from hierarchy: A: {} D:{} depth:{}",
-					new Object[] { o.getAncestor(), o.getDescendant(),
-							o.getDepth() });
+			LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
+					new Object[] { o.getAncestor(), o.getDescendant(), o.getDepth() });
 			session.delete(o);
 		}
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(
-			String resourceOid, Class<T> resourceObjectShadowType,
-			OperationResult result) throws ObjectNotFoundException {
-		Validate.notEmpty(resourceOid,
-				"Resource oid must not be null or empty.");
-		Validate.notNull(resourceObjectShadowType,
-				"Resource object shadow type must not be null.");
+	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		Validate.notNull(resourceObjectShadowType, "Resource object shadow type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
 		LOGGER.debug("Listing resource object shadows '{}' for resource '{}'.",
-				new Object[] { resourceObjectShadowType.getSimpleName(),
-						resourceOid });
-		OperationResult subResult = result
-				.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
+				new Object[] { resourceObjectShadowType.getSimpleName(), resourceOid });
+		OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
 		subResult.addParam("oid", resourceOid);
-		subResult
-				.addParam("resourceObjectShadowType", resourceObjectShadowType);
+		subResult.addParam("resourceObjectShadowType", resourceObjectShadowType);
 
 		final String operation = "listing resource object shadows";
 		int attempt = 1;
 		while (true) {
 			try {
-				return listResourceObjectShadowsAttempt(resourceOid,
-						resourceObjectShadowType, subResult);
+				return listResourceObjectShadowsAttempt(resourceOid, resourceObjectShadowType, subResult);
 			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(resourceOid, operation, attempt,
-						ex, subResult);
+				attempt = logOperationAttempt(resourceOid, operation, attempt, ex, subResult);
 			}
 		}
 	}
 
 	private <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadowsAttempt(
-			String resourceOid, Class<T> resourceObjectShadowType,
-			OperationResult result) throws ObjectNotFoundException {
+			String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
+			throws ObjectNotFoundException {
 
 		List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
 		Session session = null;
 		try {
 			session = beginTransaction();
-			Query query = session
-					.createQuery("select shadow from "
-							+ ClassMapper.getHQLType(resourceObjectShadowType)
-							+ " as shadow left join shadow.resourceRef as ref where ref.oid = :oid");
+			Query query = session.createQuery("select shadow from " + ClassMapper.getHQLType(resourceObjectShadowType)
+					+ " as shadow left join shadow.resourceRef as ref where ref.oid = :oid");
 			query.setString("oid", resourceOid);
 
 			List<RResourceObjectShadow> shadows = query.list();
-			LOGGER.debug(
-					"Query returned {} shadows, transforming to JAXB types.",
+			LOGGER.debug("Query returned {} shadows, transforming to JAXB types.",
 					new Object[] { (shadows != null ? shadows.size() : 0) });
 
 			if (shadows != null) {
 				for (RResourceObjectShadow shadow : shadows) {
-					ResourceObjectShadowType jaxb = shadow
-							.toJAXB(getPrismContext());
+					ResourceObjectShadowType jaxb = shadow.toJAXB(getPrismContext());
 					PrismObject<T> prismObject = jaxb.asPrismObject();
 					validateObjectType(prismObject, resourceObjectShadowType);
 
@@ -929,29 +893,24 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 	}
 
 	@Deprecated
-	private void updateTaskExclusivity(String oid,
-			TaskExclusivityStatusType newStatus, OperationResult result)
+	private void updateTaskExclusivity(String oid, TaskExclusivityStatusType newStatus, OperationResult result)
 			throws ObjectNotFoundException {
 
-		LOGGER.debug("Updating task '{}' exclusivity to '{}'", new Object[] {
-				oid, newStatus });
+		LOGGER.debug("Updating task '{}' exclusivity to '{}'", new Object[] { oid, newStatus });
 		Session session = null;
 		try {
 			LOGGER.debug("Looking for task.");
 			session = beginTransaction();
-			Query query = session.createQuery("from "
-					+ ClassMapper.getHQLType(TaskType.class)
+			Query query = session.createQuery("from " + ClassMapper.getHQLType(TaskType.class)
 					+ " as task where task.oid = :oid and task.id = 0");
 			query.setString("oid", oid);
 
 			RTask task = (RTask) query.uniqueResult();
 			if (task == null) {
-				throw new ObjectNotFoundException("Task with oid '" + oid
-						+ "' was not found.");
+				throw new ObjectNotFoundException("Task with oid '" + oid + "' was not found.");
 			}
 			LOGGER.debug("Task found, updating exclusivity status.");
-			task.setExclusivityStatus(RTaskExclusivityStatusType
-					.toRepoType(newStatus));
+			task.setExclusivityStatus(RTaskExclusivityStatusType.toRepoType(newStatus));
 			session.save(task);
 
 			session.getTransaction().commit();
@@ -969,26 +928,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 		}
 	}
 
-	private <T extends ObjectType> void validateObjectType(
-			PrismObject<T> prismObject, Class<T> type) {
-		if (prismObject == null
-				|| !type.isAssignableFrom(prismObject.getCompileTimeClass())) {
-			throw new SystemException("Result ('" + prismObject.toDebugName()
-					+ "') is not assignable to '" + type.getSimpleName()
-					+ "' [really should not happen].");
+	private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type) {
+		if (prismObject == null || !type.isAssignableFrom(prismObject.getCompileTimeClass())) {
+			throw new SystemException("Result ('" + prismObject.toDebugName() + "') is not assignable to '"
+					+ type.getSimpleName() + "' [really should not happen].");
 		}
 	}
 
-	private <T extends ObjectType> RObject createDataObjectFromJAXB(T object)
-			throws SchemaException {
+	private <T extends ObjectType> RObject createDataObjectFromJAXB(T object) throws SchemaException {
 
 		RObject rObject;
-		Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object
-				.getClass());
+		Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
 		try {
 			rObject = clazz.newInstance();
-			Method method = clazz.getMethod("copyFromJAXB", object.getClass(),
-					clazz, PrismContext.class);
+			Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
 			method.invoke(clazz, object, rObject, getPrismContext());
 		} catch (Exception ex) {
 			String message = ex.getMessage();
@@ -1001,8 +954,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 		return rObject;
 	}
 
-	private <T extends ObjectType> Criteria updatePagingAndSorting(
-			Criteria query, Class<T> type, PagingType paging) {
+	private <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, PagingType paging) {
 		if (paging == null) {
 			return query;
 		}
@@ -1019,19 +971,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements
 
 		try {
 			QueryRegistry registry = QueryRegistry.getInstance();
-			PropertyPath path = new XPathHolder(paging.getOrderBy())
-					.toPropertyPath();
+			PropertyPath path = new XPathHolder(paging.getOrderBy()).toPropertyPath();
 			if (path == null || path.size() != 1) {
-				LOGGER.warn("Ordering by property path with size not equal 1 is not supported '"
-						+ path + "'.");
+				LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + path + "'.");
 				return query;
 			}
-			EntityDefinition definition = registry.findDefinition(ObjectTypes
-					.getObjectType(type).getQName());
+			EntityDefinition definition = registry.findDefinition(ObjectTypes.getObjectType(type).getQName());
 			Definition def = definition.findDefinition(path.first().getName());
 			if (def == null) {
-				LOGGER.warn("Unknown path '" + path
-						+ "', couldn't find definition for it, "
+				LOGGER.warn("Unknown path '" + path + "', couldn't find definition for it, "
 						+ "list will not be ordered by it.");
 				return query;
 			}

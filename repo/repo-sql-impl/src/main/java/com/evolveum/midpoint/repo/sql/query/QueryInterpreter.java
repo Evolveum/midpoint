@@ -101,6 +101,11 @@ public class QueryInterpreter {
         if (operation.canHandle(filter)) {
             return operation.interpret(filter, pushNot);
         }
+        
+        operation = new TreeOp(this);
+        if (operation.canHandle(filter)) {
+            return operation.interpret(filter, pushNot);
+        }
 
         throw new QueryException("Unsupported query filter '"
                 + DOMUtil.getQNameWithoutPrefix(filter) + "'.");
