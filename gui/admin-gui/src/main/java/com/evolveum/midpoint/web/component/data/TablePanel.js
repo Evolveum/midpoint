@@ -28,7 +28,7 @@ function initTable(){
 	$(document).find(".sortedTable").each(function(index){
 		var row =  $(this).find("table tbody tr");
 		if(row.find(".tableCheckbox").length > 0) {
-			row.find(".tableCheckbox").find("input[type='checkbox']:checked").parents("tr").find("td").css(cssSelectedRow);
+			row.find(".tableCheckbox").find("input[type='checkbox']:checked").parents("tr:first").find("td").css(cssSelectedRow);
 			checkAllChecked($(this));
 		}
 	});

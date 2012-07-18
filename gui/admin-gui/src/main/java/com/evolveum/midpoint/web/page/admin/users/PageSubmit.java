@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+
 package com.evolveum.midpoint.web.page.admin.users;
 
 import java.util.ArrayList;
@@ -11,18 +32,19 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,20 +61,26 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAssignmentProvider;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitChangesProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitObjectStatus;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitPersonalProvider;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
+/**
+ * @author mserbak
+ */
 public class PageSubmit extends PageAdmin {
 	private ObjectDeltaComponent userDelta;
 	List<ObjectDeltaComponent> accountsDeltas;
+	private List<ReferenceDelta> accounts = new ArrayList<ReferenceDelta>();
 	private List<ContainerDelta> assignments = new ArrayList<ContainerDelta>();
 	private List<PropertyDelta> userPropertiesDeltas = new ArrayList<PropertyDelta>();
 
 	public PageSubmit(ObjectDeltaComponent userDelta, List<ObjectDeltaComponent> accountsDeltas) {
+
 		if (userDelta == null || accountsDeltas == null) {
 			getSession().error(getString("pageSubmit.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
@@ -64,25 +92,27 @@ public class PageSubmit extends PageAdmin {
 		PropertyPath assignment = new PropertyPath(SchemaConstantsGenerated.C_ASSIGNMENT);
 		ObjectDelta newObject = userDelta.getNewDelta();
 
-		if (newObject.getObjectToAdd() != null) {
-			
+		if (newObject.getChangeType().equals(ChangeType.ADD)) {
+
 			for (Object item : newObject.getObjectToAdd().getValues()) {
 				PrismContainerValue itemDelta = (PrismContainerValue) item;
-				//if(itemDelta.getPath(new PropertyPath()))
+				// itemDelta.f
+				// if(itemDelta.getPath(new PropertyPath()))
+			}
+		} else {
+			for (Object item : newObject.getModifications()) {
+				ItemDelta itemDelta = (ItemDelta) item;
+
+				if (itemDelta.getPath().equals(account)) {
+					continue;
+				} else if (itemDelta.getPath().equals(assignment)) {
+					assignments.add((ContainerDelta) itemDelta);
+				} else {
+					userPropertiesDeltas.add((PropertyDelta) itemDelta);
+				}
 			}
 		}
 
-		for (Object item : newObject.getModifications()) {
-			ItemDelta itemDelta = (ItemDelta) item;
-
-			if (itemDelta.getPath().equals(account)) {
-				continue;
-			} else if (itemDelta.getPath().equals(assignment)) {
-				assignments.add((ContainerDelta) itemDelta);
-			} else {
-				userPropertiesDeltas.add((PropertyDelta) itemDelta);
-			}
-		}
 		initLayout();
 	}
 
@@ -186,21 +216,21 @@ public class PageSubmit extends PageAdmin {
 		userInfoAccordion.setOutputMarkupId(true);
 		changeType.getBodyContainer().add(userInfoAccordion);
 
-		List<IColumn<SubmitPersonalProvider>> columns = new ArrayList<IColumn<SubmitPersonalProvider>>();
+		List<IColumn<SubmitChangesProvider>> columns = new ArrayList<IColumn<SubmitChangesProvider>>();
 
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.userList.attribute"), "attribute"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.userList.oldValue"), "oldValue"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.userList.newValue"), "newValue"));
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
 
-		ListDataProvider<SubmitPersonalProvider> provider = new ListDataProvider<SubmitPersonalProvider>(
-				this, new AbstractReadOnlyModel<List<SubmitPersonalProvider>>() {
+		ListDataProvider<SubmitChangesProvider> provider = new ListDataProvider<SubmitChangesProvider>(this,
+				new AbstractReadOnlyModel<List<SubmitChangesProvider>>() {
 
 					@Override
-					public List<SubmitPersonalProvider> getObject() {
+					public List<SubmitChangesProvider> getObject() {
 						return loadUserProperties();
 					}
 				});
-		TablePanel userTable = new TablePanel<SubmitPersonalProvider>("userTable", provider, columns);
+		TablePanel userTable = new TablePanel<SubmitChangesProvider>("userTable", provider, columns);
 		userTable.setShowPaging(false);
 		userTable.setOutputMarkupId(true);
 		userInfoAccordion.getBodyContainer().add(userTable);
@@ -217,6 +247,24 @@ public class PageSubmit extends PageAdmin {
 				});
 		accountsAccordion.setOutputMarkupId(true);
 		changeType.getBodyContainer().add(accountsAccordion);
+
+		List<IColumn<SubmitChangesProvider>> columns = new ArrayList<IColumn<SubmitChangesProvider>>();
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
+
+		ListDataProvider<SubmitChangesProvider> provider = new ListDataProvider<SubmitChangesProvider>(this,
+				new AbstractReadOnlyModel<List<SubmitChangesProvider>>() {
+
+					@Override
+					public List<SubmitChangesProvider> getObject() {
+						return loadAccountsList();
+					}
+				});
+		TablePanel accountsTable = new TablePanel<SubmitChangesProvider>("accountsTable", provider, columns);
+		accountsTable.setShowPaging(false);
+		accountsTable.setOutputMarkupId(true);
+		accountsAccordion.getBodyContainer().add(accountsTable);
 	}
 
 	private void initAssignments(Accordion changeType) {
@@ -249,8 +297,6 @@ public class PageSubmit extends PageAdmin {
 		assignmentsTable.setShowPaging(false);
 		assignmentsTable.setOutputMarkupId(true);
 		assignmentsAccordion.getBodyContainer().add(assignmentsTable);
-
-		loadAssignmentsList();
 	}
 
 	private void initButtons(Form mainForm) {
@@ -294,26 +340,67 @@ public class PageSubmit extends PageAdmin {
 		// TODO
 	}
 
+	private List<SubmitChangesProvider> loadAccountsList() {
+		List<SubmitChangesProvider> list = new ArrayList<SubmitChangesProvider>();
+		if (accountsDeltas != null) {
+			for (ObjectDeltaComponent account : accountsDeltas) {
+				ObjectDelta delta = account.getNewDelta();
+				if (delta.getChangeType().equals(ChangeType.MODIFY)) {
+					for (Object modification : account.getNewDelta().getModifications()) {
+						ItemDelta modifyDelta = (ItemDelta) modification;
+						String oldValue = "";
+						String newValue = "";
+						
+						ItemDefinition def = modifyDelta.getDefinition();
+						String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName()
+								.getLocalPart();
+
+						if (modifyDelta.getValuesToDelete() != null) {
+							for (Object valueObject : modifyDelta.getValuesToDelete()) {
+								PrismPropertyValue value = (PrismPropertyValue) valueObject;
+								oldValue = value == null ? "" : value.getValue().toString();
+								// TODO multivalue
+							}
+						}
+
+						if (modifyDelta.getValuesToAdd() != null) {
+							for (Object valueObject : modifyDelta.getValuesToAdd()) {
+								PrismPropertyValue value = (PrismPropertyValue) valueObject;
+								newValue = value == null ? "" : value.getValue().toString();
+								// TODO multivalue
+							}
+						}
+						list.add(new SubmitChangesProvider(attribute, oldValue, newValue));
+					}
+				}
+			}
+		}
+
+		return list;
+
+	}
+
 	private List<PrismObject> loadResourceList() {
 		List<PrismObject> list = new ArrayList<PrismObject>();
 		if (accountsDeltas != null) {
 			for (ObjectDeltaComponent account : accountsDeltas) {
-				/*
-				 * Collection modification =
-				 * account.getNewDelta().getModifications(); if(modification !=
-				 * null){ for (Object item : modification) { ReferenceDelta
-				 * itemDelta = (ReferenceDelta) item;
-				 * 
-				 * for (Object item : newObject.getModifications()) { ItemDelta
-				 * itemDelta = (ItemDelta) item; PrismReferenceValue accountInfo
-				 * = (PrismReferenceValue) values;
-				 * WebMiscUtil.getName(accountInfo.getObject()); Object aa =
-				 * accountInfo
-				 * .getObject().getPropertyRealValue(SchemaConstants.
-				 * I_RESOURCE_REF , Object.class); accountInfo.getObject().get
-				 * list.add(accountInfo); } }
-				 */
-				list.add(account.getNewDelta().getObjectToAdd());
+				ObjectDelta delta = account.getNewDelta();
+				if (delta.getChangeType().equals(ChangeType.ADD)) {
+					list.add(delta.getObjectToAdd());
+				} else {
+					Task task = createSimpleTask("loadResourceList: Load account");
+					OperationResult result = new OperationResult("loadResourceList: Load account");
+					PrismObject<AccountShadowType> accountObject = null;
+					try {
+						accountObject = getModelService().getObject(AccountShadowType.class, delta.getOid(),
+								null, task, result);
+					} catch (Exception ex) {
+						result.recordFatalError("Unable to get account object", ex);
+						showResultInSession(result);
+						throw new RestartResponseException(PageUsers.class);
+					}
+					list.add(accountObject);
+				}
 			}
 		}
 		return list;
@@ -342,8 +429,8 @@ public class PageSubmit extends PageAdmin {
 		return list;
 	}
 
-	private List<SubmitPersonalProvider> loadUserProperties() {
-		List<SubmitPersonalProvider> list = new ArrayList<SubmitPersonalProvider>();
+	private List<SubmitChangesProvider> loadUserProperties() {
+		List<SubmitChangesProvider> list = new ArrayList<SubmitChangesProvider>();
 		if (userPropertiesDeltas != null && !userPropertiesDeltas.isEmpty()) {
 			PrismObject oldUser = userDelta.getOldObject();
 			ObjectDelta newUserDelta = userDelta.getNewDelta();
@@ -374,7 +461,7 @@ public class PageSubmit extends PageAdmin {
 		return list;
 	}
 
-	private SubmitPersonalProvider getDeltasFromUserProperties(PrismObject oldUser, ObjectDelta newUserDelta,
+	private SubmitChangesProvider getDeltasFromUserProperties(PrismObject oldUser, ObjectDelta newUserDelta,
 			PrismPropertyValue prismValue, PropertyDelta propertyDelta) {
 		String attribute = "";
 		String oldValue = "";
@@ -389,10 +476,10 @@ public class PageSubmit extends PageAdmin {
 		}
 		newValue = prismValue.getValue().toString();
 		if (propertyDelta.getParentPath().equals(new PropertyPath(UserType.F_ACTIVATION))) {
-			return new SubmitPersonalProvider(getString("pageSubmit.activation"), oldValue, newValue);
+			return new SubmitChangesProvider(getString("pageSubmit.activation"), oldValue, newValue);
 		}
 
-		return new SubmitPersonalProvider(attribute, oldValue, newValue);
+		return new SubmitChangesProvider(attribute, oldValue, newValue);
 	}
 
 	private String getReferenceFromAssignment(PrismContainerValue assignment) {

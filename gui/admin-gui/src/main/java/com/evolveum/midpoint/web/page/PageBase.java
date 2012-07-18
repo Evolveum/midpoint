@@ -77,7 +77,6 @@ public abstract class PageBase extends WebPage {
         validateInjection(modelService, "Model service was not injected.");
         validateInjection(cacheRepositoryService, "Cache repository service was not injected.");
         validateInjection(taskManager, "Task manager was not injected.");
-
         initLayout();
     }
 
