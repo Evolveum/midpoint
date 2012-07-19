@@ -154,7 +154,7 @@ public class SimpleOp extends Op {
                 if (pushNot) {
                     return Restrictions.not(Restrictions.like(name, "%" + testedValue + "%"));
                 } else {
-                    return Restrictions.like(name, "%" + testedValue + "%");
+                    return Restrictions.ilike(name, "%" + testedValue + "%");
                 }
         }
 

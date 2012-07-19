@@ -24,6 +24,9 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -71,6 +74,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -94,7 +99,7 @@ public class PageUsers extends PageAdminUsers {
     private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
     private LoadableModel<UsersDto> model;
-
+   
     public PageUsers() {
         model = new LoadableModel<UsersDto>(false) {
 
@@ -345,17 +350,22 @@ public class PageUsers extends PageAdminUsers {
         try {
             Document document = DOMUtil.getDocument();
             List<Element> elements = new ArrayList<Element>();
+            
             if (dto.isName()) {
                 elements.add(QueryUtil.createSubstringFilter(document, null, ObjectType.F_NAME, dto.getSearchText()));
-            }
+            }       
+            
+            PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer(); 
+            String normalizedString = normalizer.normalize(dto.getSearchText());   
+            
             if (dto.isFamilyName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FAMILY_NAME, dto.getSearchText()));
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FAMILY_NAME, normalizedString));
             }
             if (dto.isFullName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FULL_NAME, dto.getSearchText()));
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FULL_NAME, normalizedString));
             }
             if (dto.isGivenName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_GIVEN_NAME, dto.getSearchText()));
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_GIVEN_NAME, normalizedString));
             }
 
             if (!elements.isEmpty()) {
@@ -488,4 +498,5 @@ public class PageUsers extends PageAdminUsers {
         target.add(getFeedbackPanel());
         target.add(getTable());
     }
+    
 }
