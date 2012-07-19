@@ -166,7 +166,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Session session = open();
 
         Criteria main = session.createCriteria(RUser.class, "u");
-        main.add(Restrictions.like("fullName.norm", "%cpt jack sparrow%"));
+        main.add(Restrictions.like("fullName.norm", "%cpt jack sparrow%").ignoreCase());
         String expected = HibernateToSqlTranslator.toSql(main);
 
         String real = getInterpretedQuery(session, UserType.class,
