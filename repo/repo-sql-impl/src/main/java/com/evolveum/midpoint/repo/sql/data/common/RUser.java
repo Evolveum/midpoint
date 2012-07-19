@@ -58,15 +58,15 @@ public class RUser extends RObject {
     private String name;
     @QueryAttribute(polyString = true)
     private RPolyString fullName;
-    @QueryAttribute
+    @QueryAttribute(polyString = true)
     private RPolyString givenName;
-    @QueryAttribute
+    @QueryAttribute(polyString = true)
     private RPolyString familyName;
-    @QueryAttribute
+    @QueryAttribute(polyString = true)
     private RPolyString additionalName;
-    @QueryAttribute
+    @QueryAttribute(polyString = true)
     private RPolyString honorificPrefix;
-    @QueryAttribute
+    @QueryAttribute(polyString = true)
     private RPolyString honorificSuffix;
     @QueryAttribute
     private String emailAddress;
@@ -88,9 +88,9 @@ public class RUser extends RObject {
     private String locale;
     @QueryAttribute
     private String timezone;
-    @QueryAttribute
+    @QueryAttribute(polyString = true)
     private RPolyString title;
-    @QueryAttribute
+    @QueryAttribute(polyString = true)
     private RPolyString nickName;
     @QueryAttribute
     private String preferredLanguage;
