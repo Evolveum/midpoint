@@ -26,12 +26,12 @@ import java.io.Serializable;
 /**
  * @author mserbak
  */
-public class SubmitChangesProvider implements Serializable {
+public class SubmitUserProvider implements Serializable {
 	private String attribute;
 	private String oldValue;
 	private String newValue;
 
-	public SubmitChangesProvider(String attribute, String oldValue, String newValue) {
+	public SubmitUserProvider(String attribute, String oldValue, String newValue) {
 		this.attribute = attribute;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
