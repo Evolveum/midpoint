@@ -102,6 +102,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitObjectStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -135,6 +136,7 @@ public class PageUser extends PageAdminUsers {
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
+    private static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "SendToSubmit";
     private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
@@ -149,8 +151,7 @@ public class PageUser extends PageAdminUsers {
     private IModel<ObjectWrapper> userModel;
     private IModel<List<UserAccountDto>> accountsModel;
     private IModel<List<UserAssignmentDto>> assignmentsModel;
-    private ObjectDeltaComponent deltaPanel;
-    private List<ObjectDeltaComponent> accountsList;
+    private List<ObjectDeltaComponent> accountsDeltas;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -212,9 +213,7 @@ public class PageUser extends PageAdminUsers {
 
         ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, user, status);
-        wrapper.setShowEmpty(!isEditingUser());
-//        deltaPanel = new ObjectDeltaComponent(user.clone());    //todo uncomment [miso]
-        
+        wrapper.setShowEmpty(!isEditingUser());   
         return wrapper;
     }
 
@@ -237,7 +236,7 @@ public class PageUser extends PageAdminUsers {
         accordion.setOpenedPanel(0);
         mainForm.add(accordion);
 
-        AccordionItem accounts = new AccordionItem("accounts", new AbstractReadOnlyModel<String>() {
+        AccordionItem accounts = new AccordionItem("accountsDeltas", new AbstractReadOnlyModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -248,7 +247,7 @@ public class PageUser extends PageAdminUsers {
         accordion.getBodyContainer().add(accounts);
         initAccounts(accounts);
 
-        AccordionItem assignments = new AccordionItem("assignments", new AbstractReadOnlyModel<String>() {
+        AccordionItem assignments = new AccordionItem("assignmentsDeltas", new AbstractReadOnlyModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -349,12 +348,12 @@ public class PageUser extends PageAdminUsers {
 
     private AccordionItem getAssignmentAccordionItem() {
         Accordion accordion = (Accordion) get("mainForm:accordion");
-        return (AccordionItem) accordion.getBodyContainer().get("assignments");
+        return (AccordionItem) accordion.getBodyContainer().get("assignmentsDeltas");
     }
 
     private AccordionItem getAccountsAccordionItem() {
         Accordion accordion = (Accordion) get("mainForm:accordion");
-        return (AccordionItem) accordion.getBodyContainer().get("accounts");
+        return (AccordionItem) accordion.getBodyContainer().get("accountsDeltas");
     }
 
     private List<UserAccountDto> loadAccountWrappers() {
@@ -535,7 +534,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                savePerformed(target);
+                submitPerformed(target);
             }
 
             @Override
@@ -544,16 +543,6 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(save);
-        
-        AjaxLinkButton submit = new AjaxLinkButton("submit", createStringResource("pageUser.button.submit")) {
-			
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				PageSubmit page = new PageSubmit(deltaPanel, accountsList);
-				setResponsePage(page);
-			}
-		};
-		mainForm.add(submit);
 		
 //        AjaxLinkButton recalculate = new AjaxLinkButton("recalculate",
 //                createStringResource("pageUser.button.recalculate")) {
@@ -751,7 +740,7 @@ public class PageUser extends PageAdminUsers {
     private void modifyAccounts(OperationResult result) {
         LOGGER.debug("Modifying existing accounts.");
         
-        accountsList = new ArrayList<ObjectDeltaComponent>();
+        accountsDeltas = new ArrayList<ObjectDeltaComponent>();
         List<UserAccountDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
         for (UserAccountDto account : accounts) {
@@ -761,9 +750,10 @@ public class PageUser extends PageAdminUsers {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
                 }
-                accountsList.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta));
+                
                 if (!UserDtoStatus.MODIFY.equals(account.getStatus())
                         || delta.isEmpty()) {
+                	accountsDeltas.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta, SubmitObjectStatus.ADDING));
                     continue;
                 }
                 encryptCredentials(delta, true);
@@ -774,8 +764,7 @@ public class PageUser extends PageAdminUsers {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Modifying account:\n{}", new Object[]{delta.debugDump(3)});
                 }
-                getModelService().modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(),
-                        task, subResult);
+                accountsDeltas.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta, SubmitObjectStatus.MODIFYING));
                 subResult.recomputeStatus();
             } catch (Exception ex) {
                 if (subResult != null) {
@@ -873,6 +862,7 @@ public class PageUser extends PageAdminUsers {
                     break;
                 case MODIFY:
                     // will be implemented later
+                	break;
                 default:
                     warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
             }
@@ -899,10 +889,11 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
-    private void savePerformed(AjaxRequestTarget target) {
-        LOGGER.debug("Saving user changes.");
+    private void submitPerformed(AjaxRequestTarget target) {
+        LOGGER.debug("Submit user.");
+        ObjectDeltaComponent deltaComponent = null;
 
-        OperationResult result = new OperationResult(OPERATION_SAVE_USER);
+        OperationResult result = new OperationResult(OPERATION_SEND_TO_SUBMIT);
         modifyAccounts(result);
 
         ObjectWrapper userWrapper = userModel.getObject();
@@ -911,36 +902,21 @@ public class PageUser extends PageAdminUsers {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
-            Task task = createSimpleTask(OPERATION_SAVE_USER);
+            Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
             switch (userWrapper.getStatus()) {
                 case ADDING:
                     PrismObject<UserType> user = delta.getObjectToAdd();
                     encryptCredentials(user, true);
                     prepareUserForAdd(user);
                     getPrismContext().adopt(user, UserType.class);
-
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Delta before add user:\n{}", new Object[]{delta.debugDump(3)});
-                    }
-                    getModelService().addObject(user, task, result);
+                    deltaComponent = new ObjectDeltaComponent(user, userWrapper.getObject().clone(), delta);
+                    result.recordSuccess();
                     break;
                 case MODIFYING:
                     encryptCredentials(delta, true);
                     prepareUserDeltaForModify(delta);
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
-                    }
-                    
-                    if(deltaPanel != null) {
-//                    	deltaPanel.setNewDelta(delta);  //todo uncomment [miso]
-    				}
-
-                    if (!delta.isEmpty()) {
-                        getModelService().modifyObject(UserType.class, delta.getOid(), delta.getModifications(), task, result);
-                    } else {
-                        result.recordSuccessIfUnknown();
-                    }
-
+                    deltaComponent = new ObjectDeltaComponent(userWrapper.getObject().clone(), delta);
+                    result.recordSuccess();
                     break;
                 // delete state is where? wtf?? in next release add there delete state as well as
                 // support for add/delete containers (e.g. delete credentials)
@@ -950,17 +926,15 @@ public class PageUser extends PageAdminUsers {
 
             result.recomputeStatus();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't save user.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
+            result.recordFatalError("Couldn't submit user.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
-
-		if (!result.isSuccess()) {
+        if (!result.isSuccess()) {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
-            showResultInSession(result);
-            setResponsePage(PageUsers.class);
-        	
+        	PageSubmit page = new PageSubmit(deltaComponent, accountsDeltas);
+    		setResponsePage(page);
         }
     }
 

@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitObjectStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * @author mserbak
@@ -36,7 +38,19 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 public class ObjectDeltaComponent implements Serializable {
 	private PrismObject oldObject;
 	private ObjectDelta newDelta;
-	
+	private PrismObject<UserType> newUser;
+	private SubmitObjectStatus status;
+
+	public ObjectDeltaComponent(PrismObject oldObject, ObjectDelta newDelta, SubmitObjectStatus status) {
+		this(oldObject, newDelta);
+		this.status = status;
+	}
+
+	public ObjectDeltaComponent(PrismObject<UserType> newUser, PrismObject oldObject, ObjectDelta newDelta) {
+		this(oldObject, newDelta);
+		this.newUser = newUser;
+	}
+
 	public ObjectDeltaComponent(PrismObject oldObject, ObjectDelta newDelta) {
 		Validate.notNull(oldObject, "OldObject must not be null.");
 		Validate.notNull(newDelta, "NewDelta must not be null.");
@@ -50,5 +64,13 @@ public class ObjectDeltaComponent implements Serializable {
 
 	public ObjectDelta getNewDelta() {
 		return newDelta;
+	}
+
+	public PrismObject<UserType> getNewUser() {
+		return newUser;
+	}
+	
+	public SubmitObjectStatus getStatus() {
+		return status;
 	}
 }

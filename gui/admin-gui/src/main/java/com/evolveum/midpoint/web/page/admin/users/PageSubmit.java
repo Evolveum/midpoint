@@ -54,6 +54,9 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -80,6 +83,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
  * @author mserbak
  */
 public class PageSubmit extends PageAdmin {
+	private static final String DOT_CLASS = PageSubmit.class.getName() + ".";
+	private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
+	private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "saveUser - modifyAccount";
+	private static final Trace LOGGER = TraceManager.getTrace(PageSubmit.class);
+
 	private ObjectDeltaComponent userDelta;
 	List<ObjectDeltaComponent> accountsDeltas;
 	private List<ContainerDelta> assignmentsDeltas = new ArrayList<ContainerDelta>();
@@ -352,15 +360,13 @@ public class PageSubmit extends PageAdmin {
 		};
 		mainForm.add(saveButton);
 
-		AjaxLinkButton returnButton = new AjaxLinkButton("returnButton",
-				createStringResource("pageSubmit.button.return")) {
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				// TODO setResponsePage(PageUser.class);
-			}
-		};
-		mainForm.add(returnButton);
+		/*
+		 * AjaxLinkButton returnButton = new AjaxLinkButton("returnButton",
+		 * createStringResource("pageSubmit.button.return")) {
+		 * 
+		 * @Override public void onClick(AjaxRequestTarget target) { // TODO
+		 * setResponsePage(PageUser.class); } }; mainForm.add(returnButton);
+		 */
 
 		AjaxLinkButton cancelButton = new AjaxLinkButton("cancelButton",
 				createStringResource("pageSubmit.button.cancel")) {
@@ -374,7 +380,72 @@ public class PageSubmit extends PageAdmin {
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
-		// TODO
+		LOGGER.debug("Saving user changes.");
+		OperationResult result = new OperationResult(OPERATION_SAVE_USER);
+		OperationResult subResult = null;
+		try {
+			for (ObjectDeltaComponent account : accountsDeltas) {
+				if (account.getStatus().equals(SubmitObjectStatus.MODIFYING)) {
+					subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
+					Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
+
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Modifying account:\n{}", new Object[] { account.getNewDelta()
+								.debugDump(3) });
+					}
+					getModelService().modifyObject(account.getNewDelta().getObjectTypeClass(),
+							account.getNewDelta().getOid(), account.getNewDelta().getModifications(), task,
+							subResult);
+				}
+				continue;
+			}
+			subResult.recomputeStatus();
+		} catch (Exception ex) {
+			if (subResult != null) {
+				subResult.recomputeStatus();
+				subResult.recordFatalError("Modify account failed.", ex);
+			}
+			LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
+		}
+
+		try {
+			ObjectDelta userDeltaObject = userDelta.getNewDelta();
+			Task task = createSimpleTask(OPERATION_SAVE_USER);
+			switch (userDeltaObject.getChangeType()) {
+				case ADD:
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Delta before add user:\n{}", new Object[] { userDelta.getNewDelta()
+								.debugDump(3) });
+					}
+					getModelService().addObject(userDelta.getNewUser(), task, result);
+					break;
+				case MODIFY:
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Delta before modify user:\n{}", new Object[] { userDeltaObject.debugDump(3) });
+					}
+					if (!userDeltaObject.isEmpty()) {
+						getModelService().modifyObject(UserType.class, userDeltaObject.getOid(),
+								userDeltaObject.getModifications(), task, result);
+					} else {
+						result.recordSuccessIfUnknown();
+					}
+					break;
+				default:
+					error(getString("pageSubmit.message.unsupportedState", userDeltaObject.getChangeType()));
+			}
+			result.recomputeStatus();
+		} catch (Exception ex) {
+			result.recordFatalError("Couldn't save user.", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
+		}
+
+		if (!result.isSuccess()) {
+			showResult(result);
+			target.add(getFeedbackPanel());
+		} else {
+			showResultInSession(result);
+			setResponsePage(PageUsers.class);
+		}
 	}
 
 	private List<SubmitAccountProvider> loadAccountsList() {
@@ -473,11 +544,14 @@ public class PageSubmit extends PageAdmin {
 			for (PropertyDelta propertyDelta : userPropertiesDeltas) {
 				if (propertyDelta.getValuesToAdd() != null) {
 					for (Object value : propertyDelta.getValuesToAdd()) {
-						if(value instanceof PrismContainerValue) {
-							PrismContainerValue containerValue = (PrismContainerValue) value;
-							PrismPropertyValue propertyValue = new PrismPropertyValue(containerValue.getValue());
-							list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
-									propertyValue, propertyDelta));
+						if (value instanceof PrismContainerValue) {
+							PrismContainerValue containerValues = (PrismContainerValue) value;
+							for (Object containerValue : containerValues.getItems()) {
+								PrismProperty propertyValue = (PrismProperty) containerValue;
+								PropertyDelta delta = new PropertyDelta(propertyValue.getDefinition());
+								list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
+										(PrismPropertyValue) propertyValue.getValue(), delta));
+							}
 							continue;
 						}
 						list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
