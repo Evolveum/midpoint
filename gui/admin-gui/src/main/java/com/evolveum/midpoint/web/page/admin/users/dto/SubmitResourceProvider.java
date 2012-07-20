@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.users.PageSubmit;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
@@ -43,6 +44,7 @@ public class SubmitResourceProvider extends PageAdmin implements Serializable {
 	private String name;
 	private String resourceName;
 	private boolean selected;
+	private String exist;
 
 	public SubmitResourceProvider(PrismObject account, boolean selected) {
 		this.account = account;
@@ -78,5 +80,12 @@ public class SubmitResourceProvider extends PageAdmin implements Serializable {
 
 	public boolean isSelected() {
 		return selected;
+	}
+	
+	public String isExist() {
+		if(WebMiscUtil.getName(account) != null) {
+			return getString("existing.yes");
+		}
+		return getString("existing.no");
 	}
 }

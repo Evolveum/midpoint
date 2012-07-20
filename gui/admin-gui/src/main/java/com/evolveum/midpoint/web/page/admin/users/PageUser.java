@@ -929,7 +929,7 @@ public class PageUser extends PageAdminUsers {
             result.recordFatalError("Couldn't submit user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
-        if (!result.isSuccess()) {
+        if (result.isError()) {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {

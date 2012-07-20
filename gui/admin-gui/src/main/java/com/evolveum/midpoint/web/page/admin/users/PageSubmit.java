@@ -221,8 +221,10 @@ public class PageSubmit extends PageAdmin {
 		IColumn column = new CheckBoxHeaderColumn<SubmitResourceProvider>();
 		columns.add(column);
 
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.name"), "name"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.resourceName"),
 				"resourceName"));
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.exist"), "exist"));
 
 		ListDataProvider<SubmitResourceProvider> provider = new ListDataProvider<SubmitResourceProvider>(
 				this, new AbstractReadOnlyModel<List<SubmitResourceProvider>>() {
@@ -382,13 +384,18 @@ public class PageSubmit extends PageAdmin {
 	private void savePerformed(AjaxRequestTarget target) {
 		LOGGER.debug("Saving user changes.");
 		OperationResult result = new OperationResult(OPERATION_SAVE_USER);
-		OperationResult subResult = null;
-		try {
+
+		if (!accountsDeltas.isEmpty() && accountsDeltas != null) {
+			OperationResult subResult = null;
 			for (ObjectDeltaComponent account : accountsDeltas) {
-				if (account.getStatus().equals(SubmitObjectStatus.MODIFYING)) {
+				try {
+					if (!(SubmitObjectStatus.MODIFYING.equals(account.getStatus()))
+							|| account.getNewDelta().isEmpty()) {
+						continue;
+					}
+
 					subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
 					Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
-
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Modifying account:\n{}", new Object[] { account.getNewDelta()
 								.debugDump(3) });
@@ -396,16 +403,15 @@ public class PageSubmit extends PageAdmin {
 					getModelService().modifyObject(account.getNewDelta().getObjectTypeClass(),
 							account.getNewDelta().getOid(), account.getNewDelta().getModifications(), task,
 							subResult);
+					subResult.recomputeStatus();
+				} catch (Exception ex) {
+					if (subResult != null) {
+						subResult.recomputeStatus();
+						subResult.recordFatalError("Modify account failed.", ex);
+					}
+					LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
 				}
-				continue;
 			}
-			subResult.recomputeStatus();
-		} catch (Exception ex) {
-			if (subResult != null) {
-				subResult.recomputeStatus();
-				subResult.recordFatalError("Modify account failed.", ex);
-			}
-			LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
 		}
 
 		try {
@@ -421,7 +427,8 @@ public class PageSubmit extends PageAdmin {
 					break;
 				case MODIFY:
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before modify user:\n{}", new Object[] { userDeltaObject.debugDump(3) });
+						LOGGER.trace("Delta before modify user:\n{}",
+								new Object[] { userDeltaObject.debugDump(3) });
 					}
 					if (!userDeltaObject.isEmpty()) {
 						getModelService().modifyObject(UserType.class, userDeltaObject.getOid(),
@@ -489,6 +496,7 @@ public class PageSubmit extends PageAdmin {
 								}
 							}
 						}
+
 						SubmitResourceProvider resourceProvider = new SubmitResourceProvider(
 								getResource(account.getNewDelta()), false);
 						list.add(new SubmitAccountProvider(resourceProvider.getResourceName(), attribute,
