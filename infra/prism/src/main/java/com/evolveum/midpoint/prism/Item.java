@@ -478,6 +478,14 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
         clone.prismContext = this.prismContext;
     }
     
+    public static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
+    	Collection<T> clones = new ArrayList<T>(items.size());
+    	for (T item: items) {
+    		clones.add((T)item.clone());
+    	}
+    	return clones;
+    }
+    
     public static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type) {
     	T item = null;
 		try {

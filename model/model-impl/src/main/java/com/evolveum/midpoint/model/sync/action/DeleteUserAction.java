@@ -36,6 +36,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -53,7 +54,7 @@ public class DeleteUserAction extends BaseAction {
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
-            OperationResult result) throws SynchronizationException {
+            OperationResult result) throws SynchronizationException, SchemaException {
         super.executeChanges(userOid, change, situation, auditRecord, task, result);
 
         OperationResult subResult = result.createSubresult(ACTION_DELETE_USER);
@@ -82,7 +83,7 @@ public class DeleteUserAction extends BaseAction {
             //set object delta with delete
             ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.DELETE);
             userDelta.setOid(oldUser.getOid());
-            context.setUserSecondaryDelta(userDelta);
+            context.setUserSecondaryDelta(userDelta, 0);
 
             //create account context for this change
             AccountSyncContext accContext = createAccountSyncContext(context, change, null, null);

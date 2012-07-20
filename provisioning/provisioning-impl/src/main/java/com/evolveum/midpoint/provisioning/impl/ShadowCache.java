@@ -260,7 +260,6 @@ public class ShadowCache {
 //		boolean isReconciled = shadow.getFailedOperationType() != null ? true : false;
 
 		try {
-
 			shadow = shadowConverter.addShadow(resource, shadow, additionalOperations, isReconciled,
 					shadowConverterResult);
 		} catch (Exception ex) {
@@ -379,7 +378,7 @@ public class ShadowCache {
 		Validate.notNull(objectType, "Object to modify must not be null.");
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
-
+		
 		if (objectType instanceof ResourceObjectShadowType) {
 			ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
 			if (resource == null) {
@@ -391,13 +390,11 @@ public class ShadowCache {
 
 			}
 
-	
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow
 						.asPrismObject().dump());
 			}
 
-	
 			Set<Operation> changes = new HashSet<Operation>();
 			addExecuteScriptOperation(changes, OperationTypeType.MODIFY, scripts, parentResult);
 

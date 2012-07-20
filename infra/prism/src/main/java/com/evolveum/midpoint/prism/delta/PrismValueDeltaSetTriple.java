@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -113,6 +115,37 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 		}
 		return null;
 	}
+	
+	public boolean isRaw() {
+		return (isRaw(zeroSet) || isRaw(plusSet) || isRaw(minusSet));
+	}
+
+	private boolean isRaw(Collection<V> set) {
+		if (set == null) {
+			return false;
+		}
+		for (V item: set) {
+			if (item.isRaw()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void applyDefinition(ItemDefinition itemDefinition) throws SchemaException {
+		applyDefinition(zeroSet, itemDefinition);
+		applyDefinition(plusSet, itemDefinition);
+		applyDefinition(minusSet, itemDefinition);
+	}
+
+	private void applyDefinition(Collection<V> set, ItemDefinition itemDefinition) throws SchemaException {
+		if (set == null) {
+			return;
+		}
+		for (V item: set) {
+			item.applyDefinition(itemDefinition);
+		}
+	}
 
 	public PrismValueDeltaSetTriple<V> clone() {
 		PrismValueDeltaSetTriple<V> clone = new PrismValueDeltaSetTriple<V>();
@@ -152,5 +185,6 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 	protected String debugName() {
     	return "PVDeltaSetTriple";
     }
+
 
 }

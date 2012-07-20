@@ -91,8 +91,9 @@ public class ChangeExecutor {
 
     public void executeChanges(SyncContext syncContext, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ObjectDelta<UserType> userDelta = syncContext.getUserDelta();
+        ObjectDelta<UserType> userDelta = syncContext.getWaveUserDelta();
         if (userDelta != null) {
+
             executeChange(userDelta, result);
 
             // userDelta is composite, mixed from primary and secondary. The OID set into
@@ -103,6 +104,9 @@ public class ChangeExecutor {
         }
 
         for (AccountSyncContext accCtx : syncContext.getAccountContexts()) {
+        	if (accCtx.getWave() != syncContext.getWave()) {
+        		continue;
+        	}
             ObjectDelta<AccountShadowType> accDelta = accCtx.getAccountDelta();
             if (accDelta == null || accDelta.isEmpty()) {
                 if (LOGGER.isTraceEnabled()) {
@@ -113,16 +117,18 @@ public class ChangeExecutor {
                 updateAccountLinks(syncContext.getUserNew(), accCtx, result);
                 continue;
             }
-
+            
             executeChange(accDelta, result);
+            
             // To make sure that the OID is set (e.g. after ADD operation)
             accCtx.setOid(accDelta.getOid());
             updateAccountLinks(syncContext.getUserNew(), accCtx, result);
         }
-
+        
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Context after change execution:\n{}", syncContext.dump(false));
         }
+        
     }
 
     private String getOidFromContext(AccountSyncContext context) throws SchemaException {
@@ -229,7 +235,7 @@ public class ChangeExecutor {
         if (UserType.class.isAssignableFrom(objectDelta.getObjectTypeClass())) {
         	objectDelta.assertDefinitions();
         }
-
+        
     	if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("\n---[ EXECUTE delta of {} {} ]---------------------\n{}" +
     				"\n--------------------------------------------------", new Object[]{
@@ -246,6 +252,7 @@ public class ChangeExecutor {
         } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
             executeDeletion(objectDelta, result);
         }
+        
     }
 
     private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,
@@ -278,7 +285,6 @@ public class ChangeExecutor {
             }
         }
         change.setOid(oid);
-
     }
 
     private <T extends ObjectType> void executeDeletion(ObjectDelta<T> change, OperationResult result) throws
@@ -302,7 +308,6 @@ public class ChangeExecutor {
             // Nothing to do
             return;
         }
-        change.checkConsistence(true, true);
         Class<T> objectTypeClass = change.getObjectTypeClass();
 
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
@@ -340,7 +345,8 @@ public class ChangeExecutor {
 
         try {
             ScriptsType scripts = getScripts(object.asObjectable(), result);
-            return provisioning.addObject(object, scripts, result);
+            String oid = provisioning.addObject(object, scripts, result);
+            return oid;
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (ObjectAlreadyExistsException ex) {

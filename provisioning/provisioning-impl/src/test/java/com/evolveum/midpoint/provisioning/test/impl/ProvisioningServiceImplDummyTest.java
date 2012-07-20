@@ -39,6 +39,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnectionCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
+import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -63,6 +65,8 @@ import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,29 +91,32 @@ import static org.testng.AssertJUnit.*;
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext
 public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
+	
+	private static final String TEST_DIR = "src/test/resources/impl/dummy/";
 
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/object/resource-dummy.xml";
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	
-	private static final String ACCOUNT_WILL_FILENAME = "src/test/resources/impl/account-dummy.xml";
+	private static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
 	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	private static final String ACCOUNT_WILL_ICF_UID = "will";
 	
 	private static final String ACCOUNT_DAEMON_USERNAME = "daemon";
 	private static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
-	private static final String ACCOUNT_DAEMON_FILENAME = "src/test/resources/impl/account-dummy-daemon.xml";
+	private static final String ACCOUNT_DAEMON_FILENAME = TEST_DIR + "account-daemon.xml";
 	
 	private static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
 	
-	private static final String ACCOUNT_MORGAN_FILENAME = "src/test/resources/impl/account-dummy-noname.xml";
+	private static final String ACCOUNT_MORGAN_FILENAME = TEST_DIR + "account-morgan.xml";
 	private static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	private static final String ACCOUNT_MORGAN_NAME = "morgan";
 	
-	private static final String FILENAME_ACCOUNT_SCRIPT = "src/test/resources/impl/account-dummy-script.xml";
+	private static final String FILENAME_ACCOUNT_SCRIPT = TEST_DIR + "account-script.xml";
 	private static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
-	private static final String FILENAME_ENABLE_ACCOUNT = "src/test/resources/impl/enable-account.xml";
-	private static final String FILENAME_DISABLE_ACCOUNT = "src/test/resources/impl/disable-account.xml";
-	private static final String FILENAME_SCRIPT_ADD = "src/test/resources/impl/script-add.xml";
+	private static final String FILENAME_ENABLE_ACCOUNT = TEST_DIR + "modify-will-enable.xml";
+	private static final String FILENAME_DISABLE_ACCOUNT = TEST_DIR + "modify-will-disable.xml";
+	private static final String FILENAME_MODIFY_ACCOUNT = TEST_DIR + "modify-will-fullname.xml";
+	private static final String FILENAME_SCRIPT_ADD = TEST_DIR + "script-add.xml";
 	private static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 
 	private static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
@@ -525,6 +532,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test010AddAccount");
 
 		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
+		account.asPrismObject().checkConsistence();
 
 		display("Adding shadow", account.asPrismObject());
 
@@ -536,6 +544,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("add object result", result);
 		assertSuccess("addObject has failed (result)", result);
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
+		
+		account.asPrismObject().checkConsistence();
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID,
 				result).asObjectable();
@@ -815,7 +825,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				ACCOUNT_WILL_OID, null, result).asObjectable();
 		assertNotNull(accountType);
 
-		// THEN
 		display("Retrieved account shadow", accountType);
 
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
@@ -825,12 +834,15 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				ObjectModificationType.class);
 		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectModification, 
 				AccountShadowType.class, PrismTestUtil.getPrismContext());		
-		System.out.println("ObjectDelta:");
-		System.out.println(delta.dump());
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
 
+		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, objectModification.getOid(), delta.getModifications(),
 				new ScriptsType(), result);
 
+		// THEN
+		delta.checkConsistence();
 		// check if activation was changed
 		dummyAccount = dummyResource.getAccountByUsername("will");
 		assertFalse(dummyAccount.isEnabled());
@@ -848,8 +860,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_WILL_OID, null, result).asObjectable();
 		assertNotNull(accountType);
-
-		// THEN
 		display("Retrieved account shadow", accountType);
 
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
@@ -859,16 +869,44 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				ObjectModificationType.class);
 		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectModification, 
 				AccountShadowType.class, PrismTestUtil.getPrismContext());
-		System.out.println(SchemaDebugUtil.prettyPrint(objectModification));
-		System.out.println("ObjectDelta:");
-		System.out.println(delta.dump());
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
 
+		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(), new ScriptsType(),
 				result);
 
+		// THEN
+		delta.checkConsistence();
 		// check if activation was changed
 		dummyAccount = dummyResource.getAccountByUsername("will");
 		assertTrue(dummyAccount.isEnabled());
+	}
+	
+	@Test
+	public void test023ModifyObject() throws Exception {
+		displayTestTile("test023ModifyObject");
+		
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test023ModifyObject");
+
+		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_MODIFY_ACCOUNT,
+				ObjectModificationType.class);
+		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectModification, 
+				AccountShadowType.class, PrismTestUtil.getPrismContext());
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(), new ScriptsType(),
+				result);
+
+		// THEN
+		delta.checkConsistence();
+		// check if activation was changed
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
+		assertEquals("Wrong fullname", "Pirate Will Turner", dummyAccount.getAttributeValue("fullname"));
+
 	}
 
 	@Test

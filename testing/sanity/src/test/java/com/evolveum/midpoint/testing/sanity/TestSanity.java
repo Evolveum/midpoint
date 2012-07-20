@@ -1112,7 +1112,7 @@ public class TestSanity extends AbstractIntegrationTest {
         List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
-            assertTrue(
+            assertTrue("No OID in "+accountRef+" in "+repoUserType,
                     accountRef.getOid().equals(accountShadowOidOpendj) ||
                             accountRef.getOid().equals(accountShadowOidDerby));
 
@@ -1190,7 +1190,7 @@ public class TestSanity extends AbstractIntegrationTest {
         List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
-            assertTrue(
+            assertTrue("No OID in "+accountRef+" in "+repoUserType,
                     accountRef.getOid().equals(accountShadowOidOpendj) ||
                             accountRef.getOid().equals(accountShadowOidDerby));
 
@@ -1284,7 +1284,7 @@ public class TestSanity extends AbstractIntegrationTest {
         List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
-            assertTrue(
+            assertTrue("No OID in "+accountRef+" in "+repoUserType,
                     accountRef.getOid().equals(accountShadowOidOpendj) ||
                             accountRef.getOid().equals(accountShadowOidDerby));
         }
@@ -1396,7 +1396,7 @@ public class TestSanity extends AbstractIntegrationTest {
         List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
-            assertTrue(
+            assertTrue("No OID in "+accountRef+" in "+repoUser,
                     accountRef.getOid().equals(accountShadowOidOpendj) ||
                             accountRef.getOid().equals(accountShadowOidDerby));
         }
@@ -1517,7 +1517,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // only OpenDJ account should be left now
         assertEquals(1, accountRefs.size());
         ObjectReferenceType ref = accountRefs.get(0);
-        assertEquals(accountShadowOidOpendj, ref.getOid());
+        assertEquals("Wrong OID in accountRef in "+repoUser, accountShadowOidOpendj, ref.getOid());
 
     }
 
@@ -3298,6 +3298,9 @@ public class TestSanity extends AbstractIntegrationTest {
             public boolean check() throws Exception {
                 syncCycle.refresh(result);
                 display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
+                if (syncCycle.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+                	throw new IllegalStateException("Task not runnable: "+syncCycle.getExecutionStatus()+"; "+syncCycle);
+                }
                 int tokenNow = findSyncToken(syncCycle);
                 display("tokenNow = " + tokenNow);
                 if (tokenNow >= tokenBefore + increment) {

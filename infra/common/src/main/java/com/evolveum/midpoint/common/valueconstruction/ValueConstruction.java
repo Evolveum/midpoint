@@ -271,9 +271,22 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		}
 		// TODO: input filter
 		evaluateValueConstructors(result, conditionResultOld, conditionResultNew);
+		fixDefinition();
 		// TODO: output filter
 	}
 	
+	/**
+	 * Applies definition to the output if needed.
+	 */
+	private void fixDefinition() throws SchemaException {
+		if (outputTriple == null) {
+			return;
+		}
+		if (outputTriple.isRaw()) {
+			outputTriple.applyDefinition(outputDefinition);
+		}
+	}
+
 	private boolean evaluateConditionOld(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (valueConstructionType == null) {
 			return true;

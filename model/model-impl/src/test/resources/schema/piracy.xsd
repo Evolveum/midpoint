@@ -36,6 +36,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ship" type="xsd:string"/>
+            <xsd:element name="tales" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

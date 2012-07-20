@@ -920,40 +920,36 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<Operation> additionalOperations = new HashSet<Operation>();
 		PasswordChangeOperation passwordChangeOperation = null;
 		Collection<PropertyDelta> activationDeltas = new HashSet<PropertyDelta>();
-		PropertyDelta passwordDelta = null;
+		PropertyDelta<?> passwordDelta = null;
 
 		for (Operation operation : changes) {
 			if (operation instanceof PropertyModificationOperation) {
 				PropertyModificationOperation change = (PropertyModificationOperation) operation;
-				PropertyDelta delta = change.getPropertyDelta();
+				PropertyDelta<?> delta = change.getPropertyDelta();
 
 				if (delta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
 					if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
-						//
 						ResourceAttributeDefinition def = objectClass
 								.findAttributeDefinition(delta.getName());
-						//
 						delta.applyDefinition(def);
-						//
 					}
 					// Change in (ordinary) attributes. Transform to the ICF
 					// attributes.
 					if (delta.isAdd()) {
-
 						ResourceAttribute addAttribute = (ResourceAttribute) delta.instantiateEmptyProperty();
-						addAttribute.addValues(delta.getValuesToAdd());
+						addAttribute.addValues(PrismValue.cloneCollection(delta.getValuesToAdd()));
 						addValues.add(addAttribute);
 					}
 					if (delta.isDelete()) {
 						ResourceAttribute deleteAttribute = (ResourceAttribute) delta
 								.instantiateEmptyProperty();
-						deleteAttribute.addValues(delta.getValuesToDelete());
+						deleteAttribute.addValues(PrismValue.cloneCollection(delta.getValuesToDelete()));
 						valuesToRemove.add(deleteAttribute);
 					}
 					if (delta.isReplace()) {
 						ResourceAttribute updateAttribute = (ResourceAttribute) delta
 								.instantiateEmptyProperty();
-						updateAttribute.addValues(delta.getValuesToReplace());
+						updateAttribute.addValues(PrismValue.cloneCollection(delta.getValuesToReplace()));
 						updateValues.add(updateAttribute);
 					}
 				} else if (delta.getParentPath().equals(new PropertyPath(AccountShadowType.F_ACTIVATION))) {

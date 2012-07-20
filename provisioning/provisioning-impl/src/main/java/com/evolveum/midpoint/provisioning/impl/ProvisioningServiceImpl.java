@@ -774,7 +774,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		try {
-
+			
 			// calling shadow cache to modify object
 			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled,
 					scripts, parentResult);

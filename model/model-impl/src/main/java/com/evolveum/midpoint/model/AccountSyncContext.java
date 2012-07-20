@@ -72,6 +72,11 @@ import java.util.Map.Entry;
  * @see SyncContext
  */
 public class AccountSyncContext implements Dumpable, DebugDumpable {
+	
+	/**
+	 * The wave in which this resource should be processed.
+	 */
+	private int wave = 0;
 
     /**
      * Definition of account type. This is the same value as the key in SyncContext. It is duplicated
@@ -169,7 +174,15 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         this.prismContext = prismContext;
     }
 
-    public ObjectDelta<AccountShadowType> getAccountSyncDelta() {
+    public int getWave() {
+		return wave;
+	}
+
+    public void setWave(int wave) {
+		this.wave = wave;
+	}
+
+	public ObjectDelta<AccountShadowType> getAccountSyncDelta() {
         return accountSyncDelta;
     }
 
@@ -577,6 +590,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         StringBuilder sb = new StringBuilder();
         SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("OID: ").append(oid);
+        sb.append(", wave ").append(wave);
         if (fullAccount) {
         	sb.append(", full");
         } else {

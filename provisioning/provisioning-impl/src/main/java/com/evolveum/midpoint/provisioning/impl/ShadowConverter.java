@@ -229,7 +229,7 @@ public class ShadowConverter {
 			parentResult.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
 		}
-
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow being stored:\n{}", shadowType.asPrismObject().dump());
 		}
@@ -359,7 +359,6 @@ public class ShadowConverter {
 		ResourceObjectShadowUtil.fixShadow(shadow.asPrismObject(), schema);
 		ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil
 				.getObjectClassDefinition(shadow);
-		;
 
 		if (shadow instanceof AccountShadowType) {
 
@@ -428,6 +427,7 @@ public class ShadowConverter {
 			throw new CommunicationException("Error comminicationg with connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		}
+		
 		parentResult.recordSuccess();
 		return sideEffectChanges;
 	}

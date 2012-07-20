@@ -348,8 +348,8 @@
 						</f:replace>
 					</c:valueFilter>  -->
 					<target>
-						declare namespace my="http://whatever.com/my";
-						$c:user/c:extension/my:description
+						declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
+						$c:user/c:extension/piracy:tales
                     </target>
 				</inbound>
 			</attribute>

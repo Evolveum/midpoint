@@ -71,7 +71,7 @@ public class SynchronizeAction extends BaseAction {
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
-            OperationResult result) throws SynchronizationException {
+            OperationResult result) throws SynchronizationException, SchemaException {
         super.executeChanges(userOid, change, situation, auditRecord, task, result);
 
         Class<? extends ResourceObjectShadowType> clazz = getClassFromChange(change);

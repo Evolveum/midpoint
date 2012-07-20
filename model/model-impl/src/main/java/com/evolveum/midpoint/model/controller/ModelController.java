@@ -675,6 +675,8 @@ public class ModelController implements ModelService {
 			if (UserType.class.isAssignableFrom(type)) {
 
 				SyncContext syncContext = userTypeModifyToContext(oid, modifications, result);
+				
+				Collection<ObjectDelta<? extends ObjectType>> allChanges = syncContext.getAllChanges();
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
@@ -691,7 +693,8 @@ public class ModelController implements ModelService {
 
 				// Deltas after sync will be different
 				auditRecord.clearDeltas();
-				auditRecord.addDeltas(syncContext.getAllChanges());
+				allChanges = syncContext.getAllChanges();
+				auditRecord.addDeltas(allChanges);
 
 			} else {
 				if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
@@ -726,7 +729,9 @@ public class ModelController implements ModelService {
 						}
 					}
 				}
+				
 				objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type);
+				objectDelta.checkConsistence();
 
 				auditRecord.addDelta(objectDelta);
 				auditService.audit(auditRecord, task);
@@ -751,8 +756,7 @@ public class ModelController implements ModelService {
 				// parentResult);
 				// }
             }
-
-
+			
         } catch (ExpressionEvaluationException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);

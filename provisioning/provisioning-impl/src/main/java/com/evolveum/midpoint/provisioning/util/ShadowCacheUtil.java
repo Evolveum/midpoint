@@ -124,8 +124,6 @@ public class ShadowCacheUtil {
 			repoAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
 		}
 
-		repoShadow.asPrismObject().checkConsistence();
-
 		return repoShadow;
 	}
 
@@ -408,7 +406,7 @@ public class ShadowCacheUtil {
 	 */
 	public static <T extends ResourceObjectShadowType> T createRepositoryShadow(T shadowType,
 			ResourceType resource) throws SchemaException {
-
+		
 		PrismObject<T> shadow = shadowType.asPrismObject();
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(shadow);
@@ -416,17 +414,18 @@ public class ShadowCacheUtil {
 		PrismObject<T> repoShadow = shadow.clone();
 		ResourceAttributeContainer repoAttributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(repoShadow);
-
+		
 		// Clean all repoShadow attributes and add only those that should be
 		// there
-		repoAttributesContainer.getValue().clear();
+		repoAttributesContainer.clear();
 		Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
 		for (PrismProperty<?> p : identifiers) {
-			repoAttributesContainer.getValue().add(p);
+			repoAttributesContainer.add(p.clone());
 		}
+		
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = attributesContainer.getSecondaryIdentifiers();
 		for (PrismProperty<?> p : secondaryIdentifiers) {
-			repoAttributesContainer.getValue().add(p);
+			repoAttributesContainer.add(p.clone());
 		}
 
 		// We don't want to store credentials in the repo

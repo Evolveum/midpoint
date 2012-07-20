@@ -454,7 +454,7 @@ public class PrismAsserts {
 				}
 			}
 			if (!found) {
-				fail("Unexpected value "+actualPValue+" in " + inMessage);
+				fail("Unexpected value "+actualPValue+" in " + inMessage + "; has "+actualPValues);
 			}
 		}
 	}

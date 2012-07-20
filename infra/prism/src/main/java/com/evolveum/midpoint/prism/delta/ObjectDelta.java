@@ -340,8 +340,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             if (deltaToMerge.changeType == ChangeType.ADD) {
                 throw new IllegalArgumentException("Cannot merge 'add' delta to a 'modify' object delta");
             } else if (deltaToMerge.changeType == ChangeType.MODIFY) {
-                // TODO: merge changes to the object to create
-                throw new UnsupportedOperationException();
+            	mergeModifications(deltaToMerge.modifications);
             } else if (deltaToMerge.changeType == ChangeType.DELETE) {
                 this.changeType = ChangeType.DELETE;
             }
@@ -431,7 +430,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             } else if (changeType == ChangeType.MODIFY) {
             	ItemDelta myDelta = findModification(propDelta.getPath(), ItemDelta.class);
                 if (myDelta == null) {
-                    ((Collection)modifications).add(propDelta);
+                    ((Collection)modifications).add(propDelta.clone());
                 } else {
                     myDelta.merge(propDelta);
                 }
@@ -659,6 +658,12 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 		}
     }
     
+	public static void checkConsistence(Collection<? extends ObjectDelta<?>> deltas) {
+		for (ObjectDelta<?> delta: deltas) {
+			delta.checkConsistence();
+		}
+	}
+    
     public void assertDefinitions() throws SchemaException {
     	assertDefinitions("");
     }
@@ -746,5 +751,6 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     public String dump() {
         return debugDump(0);
     }
+
 
 }

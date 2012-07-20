@@ -60,7 +60,7 @@ public class AddUserAction extends BaseAction {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
-            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) throws SynchronizationException {
+            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) throws SynchronizationException, SchemaException {
         super.executeChanges(userOid, change, situation, auditRecord, task, result);
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
@@ -94,7 +94,7 @@ public class AddUserAction extends BaseAction {
                 //we set secondary delta to create user when executing changes
                 ObjectDelta<UserType> delta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
                 delta.setObjectToAdd(oldUser);
-                context.setUserSecondaryDelta(delta);
+                context.setUserSecondaryDelta(delta, 0);
 
                 context.rememberResource(change.getResource().asObjectable());
             } else {
@@ -118,6 +118,7 @@ public class AddUserAction extends BaseAction {
             synchronizeUser(context, task, subResult);
 
             userOid = context.getUserSecondaryDelta().getOid();
+        
         } finally {
             subResult.recomputeStatus();
             result.recomputeStatus();

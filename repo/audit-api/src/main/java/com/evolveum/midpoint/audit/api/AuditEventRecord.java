@@ -230,6 +230,21 @@ public class AuditEventRecord {
 	public void setResult(OperationResult result) {
 		outcome = result.getStatus();
 	}
+	
+	public void checkConsistence() {
+		if (initiator != null) {
+			initiator.checkConsistence();
+		}
+		if (target != null) {
+			target.checkConsistence();
+		}
+		if (targetOwner != null) {
+			targetOwner.checkConsistence();
+		}
+		if (deltas != null) {
+			ObjectDelta.checkConsistence(deltas);
+		}
+	}
 
 	@Override
 	public String toString() {

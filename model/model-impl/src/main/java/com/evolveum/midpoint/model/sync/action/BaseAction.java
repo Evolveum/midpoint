@@ -149,7 +149,8 @@ public abstract class BaseAction implements Action {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
-            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) throws SynchronizationException {
+            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
+    		throws SynchronizationException, SchemaException {
         Validate.notNull(change, "Resource object change description must not be null.");
         Validate.notNull(situation, "Synchronization situation must not be null.");
         Validate.notNull(result, "Operation result must not be null.");

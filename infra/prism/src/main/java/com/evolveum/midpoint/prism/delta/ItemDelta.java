@@ -374,6 +374,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			if (val == null) {
 				throw new IllegalStateException("Null value in the " + type + " values set in " + this);
 			}
+			if (val.getParent() != this) {
+				throw new IllegalStateException("Wrong parent for " + val + " in " + type + " values set in " + this + ": " + val.getParent());
+			}
 			val.checkConsistenceInternal(this, parentPath);
 		}
 	}
@@ -425,16 +428,16 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (deltaToMerge.valuesToReplace != null) {
 			if (this.valuesToReplace != null) {
 				this.valuesToReplace.clear();
-				this.valuesToReplace.addAll(deltaToMerge.valuesToReplace);
+				this.valuesToReplace.addAll(PrismValue.cloneValues(deltaToMerge.valuesToReplace));
 			}
 			this.valuesToReplace = newValueCollection();
-			this.valuesToReplace.addAll(deltaToMerge.valuesToReplace);
+			this.valuesToReplace.addAll(PrismValue.cloneValues(deltaToMerge.valuesToReplace));
 		} else {
 			if (deltaToMerge.valuesToAdd != null) {
-				addValuesToAdd(deltaToMerge.valuesToAdd);
+				addValuesToAdd(PrismValue.cloneValues(deltaToMerge.valuesToAdd));
 			}
 			if (deltaToMerge.valuesToDelete != null) {
-				addValuesToDelete(deltaToMerge.valuesToDelete);
+				addValuesToDelete(PrismValue.cloneValues(deltaToMerge.valuesToDelete));
 			}
 		}
 	}
@@ -478,14 +481,14 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 */
 	public void applyTo(Item item) throws SchemaException {
 		if (valuesToReplace != null) {
-			item.replaceAll(valuesToReplace);
+			item.replaceAll(PrismValue.cloneCollection(valuesToReplace));
 			return;
 		}
 		if (valuesToAdd != null) {
 			if (item.getDefinition() != null && item.getDefinition().isSingleValue()) {
-				item.replaceAll(valuesToAdd);
+				item.replaceAll(PrismValue.cloneCollection(valuesToAdd));
 			} else {
-				item.addAll(valuesToAdd);
+				item.addAll(PrismValue.cloneCollection(valuesToAdd));
 			}
 		}
 		if (valuesToDelete != null) {

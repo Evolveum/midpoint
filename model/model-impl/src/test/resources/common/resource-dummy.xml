@@ -123,6 +123,11 @@
 					</expression>
 				</outbound>
 				<inbound>
+					<source>
+						<!-- This avoids "kickback" of a name from account to a user. -->
+						<initial>true</initial>
+						<asIs/>
+					</source>
 					<target>
 						$c:user/c:name
 					</target>

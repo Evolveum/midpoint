@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -39,7 +40,7 @@ public class SynchronizerUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizerUtil.class);
 	
-	public static void traceContext(String phase, SyncContext context, boolean showTriples) {
+	public static void traceContext(String phase, SyncContext context, boolean showTriples) throws SchemaException {
     	if (LOGGER.isDebugEnabled()) {
     		StringBuilder sb = new StringBuilder("Synchronization context changes after ");
     		sb.append(phase);

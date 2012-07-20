@@ -89,16 +89,9 @@ public class InboundProcessor {
     void processInbound(SyncContext context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
         OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
 
-        ObjectDelta<UserType> userDelta = context.getUserSecondaryDelta();
-        if (userDelta == null) {
-            userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
-            if (context.getUserOld() != null) {
-                userDelta.setOid(context.getUserOld().getOid());
-            }
-            context.setUserSecondaryDelta(userDelta);
-        }
+        ObjectDelta<UserType> userSecondaryDelta = context.getWaveUserSecondaryDelta();
 
-        if (ChangeType.DELETE.equals(userDelta.getChangeType())) {
+        if (userSecondaryDelta != null && ChangeType.DELETE.equals(userSecondaryDelta.getChangeType())) {
             //we don't need to do inbound if we are deleting this user
             return;
         }
@@ -107,8 +100,10 @@ public class InboundProcessor {
             for (AccountSyncContext accountContext : context.getAccountContexts()) {
             	ResourceAccountType rat = accountContext.getResourceAccountType();
             	
-            	if (!accountContext.isDoReconciliation() && accountContext.getAccountSyncDelta() == null) {
-            		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no sync delta", rat);
+            	ObjectDelta<AccountShadowType> aPrioriDelta = getAPrioriDelta(context, accountContext);
+            	
+            	if (!accountContext.isDoReconciliation() && aPrioriDelta == null) {
+            		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no a priori delta", rat);
             		continue;
             	}
 //                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
@@ -127,35 +122,32 @@ public class InboundProcessor {
                     continue;
                 }
 
-                processInboundExpressionsForAccount(context, accountContext, accountDefinition, result);
+                processInboundExpressionsForAccount(context, accountContext, accountDefinition, aPrioriDelta, result);
             }
 
-            if (userDelta.isEmpty()) {
-                context.setUserSecondaryDelta(null);
-            }
         } finally {
             subResult.computeStatus();
         }
     }
 
     private void processInboundExpressionsForAccount(SyncContext context, AccountSyncContext accContext,
-            RefinedAccountDefinition accountDefinition, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-
-        if (accContext.getAccountSyncDelta() == null && accContext.getAccountOld() == null) {
-            LOGGER.debug("Nothing to process in inbound, account sync delta and account old was null.");
+            RefinedAccountDefinition accountDefinition, ObjectDelta<AccountShadowType> aPrioriDelta, OperationResult result)
+    		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    	
+        if (aPrioriDelta == null && accContext.getAccountOld() == null) {
+            LOGGER.debug("Nothing to process in inbound, both a priori delta and account old were null.");
             return;
         }
 
-        ObjectDelta<UserType> userDelta = context.getUserSecondaryDelta();
-
-        ObjectDelta<AccountShadowType> syncDelta = accContext.getAccountSyncDelta();
+        ObjectDelta<UserType> userSecondaryDelta = context.getWaveUserSecondaryDelta();
+        
         PrismObject<AccountShadowType> oldAccount = accContext.getAccountOld();
         for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             PropertyDelta<?> accountAttributeDelta = null;
-            if (syncDelta != null) {
-                accountAttributeDelta = syncDelta.findPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
+            if (aPrioriDelta != null) {
+                accountAttributeDelta = aPrioriDelta.findPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                 if (accountAttributeDelta == null) {
-                    LOGGER.trace("Skipping inbound for {} in {}: Account sync delta exists, but doesn't have change for processed property.",
+                    LOGGER.trace("Skipping inbound for {} in {}: Account a priori delta exists, but doesn't have change for processed property.",
                     		name, accContext.getResourceAccountType());
                     continue;
                 }
@@ -173,9 +165,10 @@ public class InboundProcessor {
                 }
 
                 PropertyDelta<?> userPropertyDelta = null;
-                if (syncDelta != null) {
-                    LOGGER.debug("Processing inbound from account sync delta.");
-                    userPropertyDelta = evaluateInboundExpressionFromDelta(inboundJaxbType, accountAttributeDelta, context.getUserNew(), result);
+                if (aPrioriDelta != null) {
+                    LOGGER.debug("Processing inbound from a priori delta.");
+                    userPropertyDelta = evaluateInboundExpressionFromDelta(inboundJaxbType, accountAttributeDelta, 
+                    		context.getUserNew(), accContext.getResource(), result);
                 } else if (oldAccount != null) {
                 	if (!accContext.isFullAccount()) {
                 		throw new SystemException("Attept to execute inbound expression on account shadow (not full account)");
@@ -183,25 +176,41 @@ public class InboundProcessor {
                     LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
                     PrismProperty<?> oldAccountProperty = oldAccount.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, name));
                     userPropertyDelta = evaluateInboundExpressionFromAbsolute(inboundJaxbType, oldAccountProperty, context.getUserNew(),
-                    		result);
+                    		accContext.getResource(), result);
                 }
 
                 if (userPropertyDelta != null && !userPropertyDelta.isEmpty()) {
                     LOGGER.trace("Created delta (from inbound expression) \n{}", new Object[]{userPropertyDelta.debugDump(3)});
-                    userDelta.swallow(userPropertyDelta);
+                    context.swallowToWaveUserSecondaryDelta(userPropertyDelta);
                     context.recomputeUserNew();
                 } else {
                     LOGGER.trace("Created delta (from inbound expression) was null or empty.");
                 }
             }
         }
-        processCustomPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
+        processSpecialPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
                 context.getUserNew(), accContext, accountDefinition, context, result);
-        processCustomPropertyInbound(accountDefinition.getActivationInbound(), SchemaConstants.PATH_ACTIVATION_ENABLE,
+        processSpecialPropertyInbound(accountDefinition.getActivationInbound(), SchemaConstants.PATH_ACTIVATION_ENABLE,
                 context.getUserNew(), accContext, accountDefinition, context, result);
     }
 
-    private boolean checkInitialSkip(ValueAssignmentType inbound, PrismObject<UserType> newUser) {
+    /**
+	 * A priori delta is a delta that was executed in a previous "step". That means it is either delta from a previous
+	 * wave or a sync delta (in wave 0).
+	 */
+	private ObjectDelta<AccountShadowType> getAPrioriDelta(SyncContext context, AccountSyncContext accContext) throws SchemaException {
+		int wave = context.getWave();
+		if (wave == 0) {
+			return accContext.getAccountSyncDelta();
+		}
+		if (wave == accContext.getWave() + 1) {
+			// If this resource was processed in a previous wave ....
+			return accContext.getAccountDelta();
+		}
+		return null;
+	}
+
+	private boolean checkInitialSkip(ValueAssignmentType inbound, PrismObject<UserType> newUser) {
         ValueConstructionType valueConstruction = inbound.getSource();
         if (valueConstruction == null) {
             return false;
@@ -209,7 +218,7 @@ public class InboundProcessor {
 
         boolean initial = valueConstruction.isInitial() == null ? false : valueConstruction.isInitial();
         PrismProperty<?> property = newUser.findProperty(createUserPropertyPath(inbound));
-        if (initial && (property == null || property.isEmpty())) {
+        if (initial && property != null && !property.isEmpty()) {
             return true;
         }
 
@@ -217,7 +226,7 @@ public class InboundProcessor {
     }
 
     private <T> PropertyDelta<T> evaluateInboundExpressionFromAbsolute(ValueAssignmentType inbound, PrismProperty<T> oldAccountProperty,
-            PrismObject<UserType> newUser, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+            PrismObject<UserType> newUser, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<ValueFilterType> filters = inbound.getValueFilter();
         
         if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
@@ -231,6 +240,9 @@ public class InboundProcessor {
         	targetUserProperty = newUser.findProperty(targetUserPropertyPath);
         }
         PrismPropertyDefinition targetPropertyDef = newUser.getDefinition().findPropertyDefinition(targetUserPropertyPath);
+        if (targetPropertyDef == null) {
+        	throw new SchemaException("No definition for user property "+targetUserPropertyPath+", cannot process inbound expression in "+resource);
+        }
         
         PrismProperty<T> sourceProperty = null;
         // Try to process source
@@ -279,13 +291,17 @@ public class InboundProcessor {
     }
     
     private <T> PropertyDelta<T> evaluateInboundExpressionFromDelta(ValueAssignmentType inbound, PropertyDelta<T> accountAttributeDelta,
-            PrismObject<UserType> newUser, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+            PrismObject<UserType> newUser, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
         PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
         PrismProperty<T> targetUserProperty = (PrismProperty<T>) newUser.findProperty(targetUserPropertyPath);        
         PrismPropertyDefinition targetPropertyDef = newUser.getDefinition().findPropertyDefinition(targetUserPropertyPath);
+        if (targetPropertyDef == null) {
+        	throw new SchemaException("No definition for user property "+targetUserPropertyPath+", cannot process inbound expression in "+resource);
+        }
         PropertyDelta<T> delta = new PropertyDelta<T>(targetUserPropertyPath, targetPropertyDef);
+        delta.checkConsistence();
         
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> triple = null;
         
@@ -320,8 +336,10 @@ public class InboundProcessor {
                     Collection<PrismPropertyValue<T>> replace = new ArrayList<PrismPropertyValue<T>>();
                     replace.add(filteredValue);
                     delta.setValuesToReplace(replace);
+                    delta.checkConsistence();
                 } else {
                     delta.addValueToAdd(filteredValue);
+                    delta.checkConsistence();
                 }
             }
         }
@@ -332,6 +350,7 @@ public class InboundProcessor {
 
                 if (targetUserProperty == null || targetUserProperty.hasRealValue(filteredValue)) {
                     delta.addValueToDelete(filteredValue);
+                    delta.checkConsistence();
                 }
             }
         }
@@ -366,7 +385,10 @@ public class InboundProcessor {
         return filteredValue;
     }
 
-    private void processCustomPropertyInbound(ValueAssignmentType inbound, PropertyPath path,
+    /**
+     * Processing for special (fixed-schema) properties such as credentials and activation. 
+     */
+    private void processSpecialPropertyInbound(ValueAssignmentType inbound, PropertyPath path,
             PrismObject<UserType> newUser, AccountSyncContext accContext, RefinedAccountDefinition accountDefinition,
             SyncContext context, OperationResult opResult) throws SchemaException {
         if (inbound == null || newUser == null) {
@@ -391,11 +413,13 @@ public class InboundProcessor {
         	}
         }
 
-        ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
-        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(path);
-        if (delta != null) {
-            //remove delta if exists, it will be handled by inbound
-            userSecondaryDelta.getModifications().remove(delta);
+        ObjectDelta<UserType> userSecondaryDelta = context.getWaveUserSecondaryDelta();
+        if (userSecondaryDelta != null) {
+	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(path);
+	        if (delta != null) {
+	            //remove delta if exists, it will be handled by inbound
+	            userSecondaryDelta.getModifications().remove(delta);
+	        }
         }
 
         if (accContext.getAccountNew() == null) {
@@ -427,10 +451,10 @@ public class InboundProcessor {
             throw new SchemaException(ex.getMessage(), ex);
         }
 
-        delta = property.diff(result, path);
+        PropertyDelta<?> delta = property.diff(result, path);
         if (delta != null && !delta.isEmpty()) {
         	delta.setParentPath(path.allExceptLast());
-            userSecondaryDelta.swallow(delta);
+        	context.swallowToWaveUserSecondaryDelta(delta);
         }
     }
 }

@@ -433,7 +433,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertFalse("User primary delta is empty", userPrimaryDelta.isEmpty());
 	}
 	
-	protected void assertNoUserSecondaryDelta(SyncContext context) {
+	protected void assertNoUserSecondaryDelta(SyncContext context) throws SchemaException {
 		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
 		if (userSecondaryDelta == null) {
 			return;
@@ -441,7 +441,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertTrue("User secondary delta is not empty", userSecondaryDelta.isEmpty());
 	}
 
-	protected void assertUserSecondaryDelta(SyncContext context) {
+	protected void assertUserSecondaryDelta(SyncContext context) throws SchemaException {
 		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
 		assertNotNull("User secondary delta is null", userSecondaryDelta);
 		assertFalse("User secondary delta is empty", userSecondaryDelta.isEmpty());

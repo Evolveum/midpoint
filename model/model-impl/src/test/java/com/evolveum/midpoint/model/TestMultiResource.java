@@ -110,7 +110,7 @@ public class TestMultiResource extends AbstractModelIntegrationTest {
 		super();
 	}
 		
-	@Test(enabled=false)
+	@Test
     public void test001JackAssignRoleDummies() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
@@ -128,7 +128,7 @@ public class TestMultiResource extends AbstractModelIntegrationTest {
         assertDummyAccountAttribute("jack", "title", "The Great Voodoo Master");
         assertDummyAccountAttribute("jack", "ship", "The Lost Souls");
         
-        assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, "The crew of The Lost Souls");
+        assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
 	}
 	
 }

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
+import com.evolveum.midpoint.model.synchronizer.ObjectDeltaWaves;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -65,6 +67,11 @@ import java.util.Map.Entry;
  * @author Radovan Semancik
  */
 public class SyncContext implements Dumpable, DebugDumpable, Serializable {
+	
+	/**
+	 * Current wave of computation and execution.
+	 */
+	int wave = 0;
 
     /**
      * User as midPointObject before any change (at the time when context was created)
@@ -87,7 +94,7 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
     /**
      * Secondary change of the user object - the change caused as a side-effect of the primary change.
      */
-    private ObjectDelta<UserType> userSecondaryDelta;
+    private ObjectDeltaWaves<UserType> userSecondaryDeltas = new ObjectDeltaWaves<UserType>();
 
     /**
      * User template that should be applied during the processing of user policy. If it is null,
@@ -134,7 +141,19 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         this.prismContext = prismContext;
     }
 
-    public PrismObject<UserType> getUserOld() {
+    public int getWave() {
+		return wave;
+	}
+
+	public void setWave(int wave) {
+		this.wave = wave;
+	}
+	
+	public void incrementWave() {
+		wave++;
+	}
+
+	public PrismObject<UserType> getUserOld() {
         return userOld;
     }
 
@@ -153,17 +172,37 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
     public ObjectDelta<UserType> getUserPrimaryDelta() {
         return userPrimaryDelta;
     }
+    
+    public ObjectDelta<UserType> getWaveUserPrimaryDelta() throws SchemaException {
+    	if (wave == 0) {
+    		return userPrimaryDelta;
+    	} else {
+    		return userSecondaryDeltas.getMergedDeltas(userPrimaryDelta, wave);
+    	}
+    }
 
     public void setUserPrimaryDelta(ObjectDelta<UserType> userPrimaryDelta) {
         this.userPrimaryDelta = userPrimaryDelta;
     }
 
-    public ObjectDelta<UserType> getUserSecondaryDelta() {
-        return userSecondaryDelta;
+    public ObjectDelta<UserType> getUserSecondaryDelta() throws SchemaException {
+        return userSecondaryDeltas.getMergedDeltas();
+    }
+    
+    public ObjectDelta<UserType> getUserSecondaryDelta(int wave) {
+    	return userSecondaryDeltas.get(wave);
+    }
+    
+    public ObjectDelta<UserType> getWaveUserSecondaryDelta() throws SchemaException {
+        return userSecondaryDeltas.get(wave);
     }
 
-    public void setUserSecondaryDelta(ObjectDelta<UserType> userSecondaryDelta) {
-        this.userSecondaryDelta = userSecondaryDelta;
+    public void setUserSecondaryDelta(ObjectDelta<UserType> userSecondaryDelta, int wave) {
+        this.userSecondaryDeltas.set(wave, userSecondaryDelta);
+    }
+    
+    public void setWaveUserSecondaryDelta(ObjectDelta<UserType> userSecondaryDelta) {
+        this.userSecondaryDeltas.set(wave, userSecondaryDelta);
     }
     
 	public ObjectDeltaObject<UserType> getUserOdo() throws SchemaException {
@@ -266,7 +305,20 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */
     public ObjectDelta<UserType> getUserDelta() throws SchemaException {
-        return ObjectDelta.union(userPrimaryDelta, userSecondaryDelta);
+        return ObjectDelta.union(userPrimaryDelta, getUserSecondaryDelta());
+    }
+    
+    /**
+     * Returns user delta, both primary and secondary (merged together) for a current wave.
+     * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
+     */
+    public ObjectDelta<UserType> getWaveUserDelta() throws SchemaException {
+    	if (wave == 0) {
+    		// Primary delta is executed only in the first wave (wave 0)
+    		return ObjectDelta.union(userPrimaryDelta, getWaveUserSecondaryDelta());
+    	} else {
+    		return getWaveUserSecondaryDelta();
+    	}
     }
     
 	public ObjectDeltaObject<UserType> getUserObjectDeltaObject() {
@@ -283,9 +335,7 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         if (getUserPrimaryDelta() != null) {
             getUserPrimaryDelta().setOid(oid);
         }
-        if (getUserSecondaryDelta() != null) {
-            getUserSecondaryDelta().setOid(oid);
-        }
+        userSecondaryDeltas.setOid(oid);
         if (userNew != null) {
             userNew.setOid(oid);
         }
@@ -322,7 +372,7 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
             accCtx.recomputeAccountNew();
         }
     }
-
+    
     /**
      * Returns delta of user assignments, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
@@ -428,11 +478,11 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
      * these are not merged.
      * TODO: maybe it would be better to merge them.
      */
-    public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() {
+    public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException {
         Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
         addChangeIfNotNull(allChanges, userPrimaryDelta);
-        addChangeIfNotNull(allChanges, userSecondaryDelta);
+        addChangeIfNotNull(allChanges, userSecondaryDeltas.getMergedDeltas());
 
         for (AccountSyncContext accSyncCtx : accountContextMap.values()) {
             addChangeIfNotNull(allChanges, accSyncCtx.getAccountPrimaryDelta());
@@ -480,17 +530,11 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
 				throw new IllegalStateException(e.getMessage()+"; in user primary delta in SyncContext", e);
 			}
     	}
-    	if (userSecondaryDelta != null) {
-    		try {
-	    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
-	    		boolean requireOid = userPrimaryDelta == null;
-	    		userSecondaryDelta.checkConsistence(requireOid, true);
-    		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+"; in user secondary delta in SyncContext", e);
-			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+"; in user secondary delta in SyncContext", e);
-			}
-    	}
+    	
+    	// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
+		boolean requireOid = userPrimaryDelta == null;
+    	userSecondaryDeltas.checkConsistence(requireOid, "user secondary delta in SyncContext");
+    	
     	if (userNew != null) {
     		try {
     			userNew.checkConsistence();
@@ -530,10 +574,10 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
     
     public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
-        indent(sb, indent);
-        sb.append("SyncContext\n");
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("SyncContext: wave ").append(wave).append("\n");
 
-        indent(sb, indent + 1);
+        DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("Settings: ");
         if (accountSynchronizationSettings != null) {
             sb.append("assignments:");
@@ -543,7 +587,7 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         }
         sb.append("\n");
 
-        indent(sb, indent + 1);
+        DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("USER old:");
         if (userOld == null) {
             sb.append(" null");
@@ -553,7 +597,7 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         }
 
         sb.append("\n");
-        indent(sb, indent + 1);
+        DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("USER new:");
         if (userNew == null) {
             sb.append(" null");
@@ -563,7 +607,7 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         }
 
         sb.append("\n");
-        indent(sb, indent + 1);
+        DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("USER primary delta:");
         if (userPrimaryDelta == null) {
             sb.append(" null");
@@ -573,17 +617,17 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         }
 
         sb.append("\n");
-        indent(sb, indent + 1);
+        DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("USER secondary delta:");
-        if (userSecondaryDelta == null) {
-            sb.append(" null");
+        if (userSecondaryDeltas.isEmpty()) {
+            sb.append(" empty");
         } else {
             sb.append("\n");
-            sb.append(userSecondaryDelta.debugDump(indent + 2));
+            sb.append(userSecondaryDeltas.debugDump(indent + 2));
         }
 
         sb.append("\n");
-        indent(sb, indent + 1);
+        DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("ACCOUNTS:");
         if (accountContextMap.isEmpty()) {
             sb.append(" none");
@@ -591,7 +635,7 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         	sb.append(" (").append(accountContextMap.size()).append(")");
             for (Entry<ResourceAccountType, AccountSyncContext> entry : accountContextMap.entrySet()) {
                 sb.append("\n");
-                indent(sb, indent + 2);
+                DebugUtil.indentDebugDump(sb, indent + 2);
                 sb.append("ACCOUNT ");
                 sb.append(entry.getKey()).append(":\n");
                 sb.append(entry.getValue().debugDump(indent + 3, showTriples));
@@ -603,10 +647,16 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         return sb.toString();
     }
 
-    private void indent(StringBuilder sb, int indent) {
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
+	public void swallowToWaveUserSecondaryDelta(PropertyDelta<?> propDelta) throws SchemaException {
+		ObjectDelta<UserType> userSecondaryDelta = getWaveUserSecondaryDelta();
+		if (userSecondaryDelta == null) {
+            userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
+            if (getUserOld() != null) {
+                userSecondaryDelta.setOid(getUserOld().getOid());
+            }
+            setWaveUserSecondaryDelta(userSecondaryDelta);
         }
-    }
+        userSecondaryDelta.swallow(propDelta);
+	}
 
 }

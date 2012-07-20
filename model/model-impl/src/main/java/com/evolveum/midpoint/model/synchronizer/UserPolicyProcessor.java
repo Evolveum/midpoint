@@ -86,7 +86,7 @@ public class UserPolicyProcessor {
 
 		LOGGER.trace("Applying "+ObjectTypeUtil.toShortString(userTemplate)+" to "+context.getUserNew());
 
-		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
+		ObjectDelta<UserType> userSecondaryDelta = context.getWaveUserSecondaryDelta();
 		for (PropertyConstructionType propConstr: userTemplate.getPropertyConstruction()) {
 			XPathHolder propertyXPath = new XPathHolder(propConstr.getProperty());
 			PropertyPath itemPath = propertyXPath.toPropertyPath();
@@ -124,7 +124,7 @@ public class UserPolicyProcessor {
 
 			if (userSecondaryDelta == null) {
 				userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
-				context.setUserSecondaryDelta(userSecondaryDelta);
+				context.setWaveUserSecondaryDelta(userSecondaryDelta);
 			}
 			userSecondaryDelta.addModification(itemDelta);
 		}
