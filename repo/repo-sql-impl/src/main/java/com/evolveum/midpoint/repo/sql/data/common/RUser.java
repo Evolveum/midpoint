@@ -440,7 +440,7 @@ public class RUser extends RObject {
             rAssignment.setOwner(repo);
 
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
-            gen.generate(null, rAssignment);
+            rAssignment.setId((Long)gen.generate(null, rAssignment));
 
             repo.getAssignments().add(rAssignment);
         }

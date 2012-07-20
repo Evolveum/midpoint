@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -59,7 +60,7 @@ import java.util.Collection;
 public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);
-    private static final File TEST_DIR = new File("./src/test/resources/modify");
+    private static final File TEST_DIR = new File("src/test/resources/modify");
 
     @Autowired(required = true)
     RepositoryService repositoryService;
@@ -273,5 +274,42 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 //            session.close();
 //            AssertJUnit.fail(ex.getMessage());
 //        }
+    }
+    
+    @Test
+    public void testModifyUserAddRole() throws Exception{
+    	OperationResult parentResult = new OperationResult("Modify user -> add roles");
+    	PrismObject<ResourceType> csvResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/resource-csv.xml"));
+    	repositoryService.addObject(csvResource, parentResult);
+    	
+    	PrismObject<ResourceType> openDjResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/resource-opendj.xml"));
+    	repositoryService.addObject(openDjResource, parentResult);
+    	
+    	PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/user.xml"));
+    	repositoryService.addObject(user, parentResult);
+    	
+    	PrismObject<RoleType> roleCsv = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/role-csv.xml"));
+    	repositoryService.addObject(roleCsv, parentResult);
+    	
+    	PrismObject<RoleType> roleLdap = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/role-ldap.xml"));
+    	repositoryService.addObject(roleLdap, parentResult);
+    	
+    	ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(TEST_DIR+"/modify-user-add-roles.xml"),
+				ObjectModificationType.class);
+    	
+    	
+    	ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+    	
+    	String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
+    	
+    	repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), parentResult);
+    	
+    	UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, parentResult).asObjectable();
+    	AssertJUnit.assertEquals(3, modifiedUser.getAssignment().size());
+    	
+    	
+    	
+    	
+    	
     }
 }
