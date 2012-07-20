@@ -357,8 +357,6 @@ public class ShadowConverter {
 				.getObjectClass());
 
 		ResourceObjectShadowUtil.fixShadow(shadow.asPrismObject(), schema);
-		// ResourceAttributeContainerDefinition resourceAttributeDefinition =
-		// objectClassDefinition.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil
 				.getObjectClassDefinition(shadow);
 		;
@@ -393,9 +391,7 @@ public class ShadowConverter {
 
 		getAttributeChanges(objectChanges, operations, objectClassDefinition);
 
-		// if (attributeChanges != null) {
-		// operations.addAll(attributeChanges);
-		// }
+	
 		Set<PropertyModificationOperation> sideEffectChanges = null;
 		try {
 

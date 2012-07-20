@@ -39,6 +39,8 @@ import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -72,6 +74,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
@@ -455,11 +459,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
 		PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(
-				ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
+				ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
 		display("Initialized OpenDJ resource resource (provisioning)", openDjResourceProvisioninig);
 
 		PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class,
-				RESOURCE_OPENDJ_OID, opResult);
+				RESOURCE_OPENDJ_OID, null, opResult);
 		display("Initialized OpenDJ resource OpenDJ resource (model)", openDjResourceModel);
 
 		checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
@@ -749,7 +753,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		// Check if user object was modified in the repo
 
 		OperationResult repoResult = new OperationResult("getObject");
-		PropertyReferenceListType resolve = new PropertyReferenceListType();
+
 
 		PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID,
 				repoResult);
@@ -815,7 +819,10 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 
 		// WHEN
-		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj, resolve,
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+//		List<ObjectOperationOptions> options = new ArrayList<ObjectOperationOptions>();
+		OperationOptionsType oot = new OperationOptionsType();
+		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj, oot,
 				objectHolder, resultHolder);
 
 		// THEN
@@ -962,7 +969,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertEquals(1, accountRefs.size());
 
 		PrismObject<AccountShadowType> account = provisioningService.getObject(AccountShadowType.class,
-				accountRefs.get(0).getOid(), parentResult);
+				accountRefs.get(0).getOid(),null,  parentResult);
 
 		ResourceAttributeContainer attributes = ResourceObjectShadowUtil.getAttributesContainer(account);
 
@@ -1102,7 +1109,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				+ " reference", 1, referenceList.size());
 
 		PrismObject<AccountShadowType> modifiedAccount = provisioningService.getObject(
-				AccountShadowType.class, referenceList.get(0).getOid(), parentResult);
+				AccountShadowType.class, referenceList.get(0).getOid(), null, parentResult);
 		assertNotNull(modifiedAccount);
 		ResourceAttributeContainer attributeContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(modifiedAccount);
@@ -1503,7 +1510,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
 		Holder<ObjectType> accountHolder = new Holder<ObjectType>();
 		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid,
-				new PropertyReferenceListType(), accountHolder, resultHolder);
+				null, accountHolder, resultHolder);
 		ObjectType object = accountHolder.value;
 		assertSuccess("searchObjects has failed", resultHolder.value);
 		assertNotNull("Account is null", object);

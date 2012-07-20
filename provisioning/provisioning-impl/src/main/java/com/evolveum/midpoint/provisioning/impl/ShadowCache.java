@@ -391,31 +391,13 @@ public class ShadowCache {
 
 			}
 
-			// ResourceAttributeContainerDefinition objectClassDefinition =
-			// ResourceObjectShadowUtil.getObjectClassDefinition(shadow);;
-
+	
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow
 						.asPrismObject().dump());
 			}
 
-			// if (shadow instanceof AccountShadowType) {
-			//
-			// // Look for password change
-			// PasswordChangeOperation passwordChangeOp =
-			// determinePasswordChange(modifications, shadow);
-			// if (passwordChangeOp != null) {
-			// changes.add(passwordChangeOp);
-			// }
-			//
-			// // look for activation change
-			// Operation activationOperation =
-			// determineActivationChange(modifications, resource,
-			// objectClassDefinition);
-			// if (activationOperation != null) {
-			// changes.add(activationOperation);
-			// }
-			// }
+	
 			Set<Operation> changes = new HashSet<Operation>();
 			addExecuteScriptOperation(changes, OperationTypeType.MODIFY, scripts, parentResult);
 
@@ -424,7 +406,6 @@ public class ShadowCache {
 			}
 
 			Set<PropertyModificationOperation> sideEffectChanges = null;
-//			boolean isReconciled = shadow.getFailedOperationType() != null ? true : false;
 
 			try {
 				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid,
