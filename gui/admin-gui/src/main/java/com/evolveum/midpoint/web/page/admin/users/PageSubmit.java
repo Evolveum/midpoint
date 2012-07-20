@@ -423,6 +423,7 @@ public class PageSubmit extends PageAdmin {
 						LOGGER.trace("Delta before add user:\n{}", new Object[] { userDelta.getNewDelta()
 								.debugDump(3) });
 					}
+					
 					getModelService().addObject(userDelta.getNewUser(), task, result);
 					break;
 				case MODIFY:
@@ -555,10 +556,15 @@ public class PageSubmit extends PageAdmin {
 						if (value instanceof PrismContainerValue) {
 							PrismContainerValue containerValues = (PrismContainerValue) value;
 							for (Object containerValue : containerValues.getItems()) {
-								PrismProperty propertyValue = (PrismProperty) containerValue;
-								PropertyDelta delta = new PropertyDelta(propertyValue.getDefinition());
-								list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
-										(PrismPropertyValue) propertyValue.getValue(), delta));
+								if(containerValue instanceof PrismProperty) {
+									PrismProperty propertyValue = (PrismProperty) containerValue;
+									PropertyDelta delta = new PropertyDelta(propertyValue.getDefinition());
+									list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
+											(PrismPropertyValue) propertyValue.getValue(), delta));
+								} else if(containerValue instanceof PrismContainer) {
+									continue;
+								}
+								
 							}
 							continue;
 						}
