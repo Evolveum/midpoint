@@ -423,7 +423,6 @@ public class PageSubmit extends PageAdmin {
 						LOGGER.trace("Delta before add user:\n{}", new Object[] { userDelta.getNewDelta()
 								.debugDump(3) });
 					}
-					
 					getModelService().addObject(userDelta.getNewUser(), task, result);
 					break;
 				case MODIFY:
