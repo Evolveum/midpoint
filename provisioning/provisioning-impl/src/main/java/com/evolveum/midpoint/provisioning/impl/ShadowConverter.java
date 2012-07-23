@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -46,12 +47,14 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
@@ -61,8 +64,12 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCa
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -74,8 +81,8 @@ public class ShadowConverter {
 
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
-	@Autowired
-	private ResourceTypeManager resourceTypeManager;
+//	@Autowired
+//	private ResourceTypeManager resourceTypeManager;
 	@Autowired(required = true)
 	private PrismContext prismContext;
 
@@ -90,13 +97,13 @@ public class ShadowConverter {
 		this.connectorTypeManager = connectorTypeManager;
 	}
 
-	public ResourceTypeManager getResourceTypeManager() {
-		return resourceTypeManager;
-	}
-
-	public void setResourceTypeManager(ResourceTypeManager resourceTypeManager) {
-		this.resourceTypeManager = resourceTypeManager;
-	}
+//	public ResourceTypeManager getResourceTypeManager() {
+//		return resourceTypeManager;
+//	}
+//
+//	public void setResourceTypeManager(ResourceTypeManager resourceTypeManager) {
+//		this.resourceTypeManager = resourceTypeManager;
+//	}
 
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConverter.class);
 
@@ -106,7 +113,7 @@ public class ShadowConverter {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 
 		QName objectClass = repoShadow.getObjectClass();
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema
@@ -172,11 +179,11 @@ public class ShadowConverter {
 
 	}
 
-	public ResourceType completeResource(ResourceType resource, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-
-		return resourceTypeManager.completeResource(resource, null, parentResult);
-	}
+//	public ResourceType completeResource(ResourceType resource, OperationResult parentResult)
+//			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+//
+//		return resourceTypeManager.completeResource(resource, null, parentResult);
+//	}
 
 	public ResourceObjectShadowType addShadow(ResourceType resource, ResourceObjectShadowType shadowType,
 			Set<Operation> additionalOperations, boolean isReconciled, OperationResult parentResult)
@@ -184,8 +191,9 @@ public class ShadowConverter {
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-		ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resource, connector,
-				parentResult);
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+//		ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resource, connector,
+//				parentResult);
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 		PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
 
@@ -241,6 +249,46 @@ public class ShadowConverter {
 		parentResult.recordSuccess();
 		return shadowType;
 	}
+	
+	public ResourceSchema getResourceSchema(ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
+		// unless it has been already pulled
+			LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
+			
+//			try {
+				ConnectorInstance connector = getConnectorInstance(resource, parentResult);
+//			} catch (ObjectNotFoundException e) {
+//				throw new ObjectNotFoundException("Error resolving connector reference in " + resource
+//						+ ": Error creating connector instace: " + e.getMessage(), e);
+//			}
+				ResourceSchema resourceSchema = null;
+			try {
+				// Fetch schema from connector, UCF will convert it to
+				// Schema Processor format and add all
+				// necessary annotations
+				resourceSchema = connector.getResourceSchema(parentResult);
+
+			} catch (CommunicationException ex) {
+				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+				// Ignore the error. The resource is not complete but the upper layer code should deal with that
+				// Throwing an error will effectively break any operation with the resource (including delete).
+			} catch (GenericFrameworkException ex) {
+				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+				// Ignore the error. The resource is not complete but the upper layer code should deal with that
+				// Throwing an error will effectively break any operation with the resource (including delete).
+			} catch (ConfigurationException ex) {
+				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+				// Ignore the error. The resource is not complete but the upper layer code should deal with that
+				// Throwing an error will effectively break any operation with the resource (including delete).
+			}
+			if (resourceSchema == null) {
+				LOGGER.warn("No resource schema generated for {}", resource);
+			} else {
+				LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
+					+ resourceSchema.getDefinitions().size() + " definitions");
+			}
+		
+		return resourceSchema;
+	}
 
 	// /**
 	// * Make sure that the shadow is UCF-ready. That means that is has
@@ -293,8 +341,8 @@ public class ShadowConverter {
 			SecurityViolationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
-
+//		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow
 				.getObjectClass());
 
@@ -351,7 +399,8 @@ public class ShadowConverter {
 			SecurityViolationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+//		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow
 				.getObjectClass());
@@ -523,7 +572,8 @@ public class ShadowConverter {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+//		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition rod = schema.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resource),
 				"AccountObjectClass"));
 
@@ -552,6 +602,9 @@ public class ShadowConverter {
 		parentResult.recordSuccess();
 		return shadow;
 	}
+	
+	
+
 
 	private <T extends ResourceObjectShadowType> T fetchResourceObject(Class<T> type,
 			ObjectClassComplexTypeDefinition objectClassDefinition,
