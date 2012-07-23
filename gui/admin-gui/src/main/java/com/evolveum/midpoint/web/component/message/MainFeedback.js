@@ -51,7 +51,7 @@ function initMessages() {
 		
 		var blockContent = $("#" + $(this).attr('id') + "_content");
 		if(blockContent.length > 0){
-			if(blockContent.find(".messages-details").first().children().size() > 0){
+			if(blockContent.find("ul").first().find("li").children().size() > 1){
 				$(this).append("<span class='"+ arrow +"-arrow arrow-down'></span>");
 				var exceptionHeight = $(this).find(".messages-topException").height();
 				var arrowPosition = $(this).height() / 2 - exceptionHeight + 3;
@@ -67,7 +67,7 @@ function initMessages() {
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.length > 0){
-			if(blockContent.find(".messages-details").first().children().size() > 0){
+			if(blockContent.find("ul").first().find("li").children().size() > 1){
 				$(this).css("backgroundColor","#FFC2AE");
 				$(this).css("cursor","pointer");
 			}
@@ -82,7 +82,7 @@ function initMessages() {
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.length > 0){
-			if(blockContent.find(".messages-details").first().children().size() > 0){
+			if(blockContent.find("ul").first().find("li").children().size() > 1){
 				$(this).css("backgroundColor","#d1eba6");
 				$(this).css("cursor","pointer");
 			}
@@ -97,7 +97,7 @@ function initMessages() {
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
 		if(blockContent.length > 0){
-			if(blockContent.find(".messages-details").first().children().size() > 0){
+			if(blockContent.find("ul").first().find("li").children().size() > 1){
 				$(this).css("backgroundColor","#fce48d");
 				$(this).css("cursor","pointer");
 			}
@@ -127,7 +127,7 @@ function initMessages() {
 	$(".messagePanel .messages-topError").click(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
-		if(blockContent.find(".messages-details").first().children().size() > 0){
+		if(blockContent.find("ul").first().find("li").children().size() > 1){
 			if(blockContent.css("display") === "none"){
 				blockContent.show();
 				$(this).find(".messages-topError-arrow").addClass("arrow-up");
@@ -143,7 +143,7 @@ function initMessages() {
 	$(".messagePanel .messages-topSucc").click(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
-		if(blockContent.find(".messages-details").first().children().size() > 0){
+		if(blockContent.find("ul").first().find("li").children().size() > 1){
 			if(blockContent.css("display") === "none"){
 				blockContent.show();
 				$(this).find(".messages-topSucc-arrow").addClass("arrow-up");
@@ -159,7 +159,7 @@ function initMessages() {
 	$(".messagePanel .messages-topWarn").click(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
-		if(blockContent.find(".messages-details").first().children().size() > 0){
+		if(blockContent.find("ul").first().find("li").children().size() > 1){
 			if(blockContent.css("display") === "none"){
 				blockContent.show();
 				$(this).find(".messages-topWarn-arrow").addClass("arrow-up");
@@ -175,7 +175,7 @@ function initMessages() {
 	$(".messagePanel .messages-topInfo").click(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
-		if(blockContent.find(".messages-details").first().children().size() > 0){
+		if(blockContent.find("ul").first().find("li").children().size() > 1){
 			if(blockContent.css("display") === "none"){
 				blockContent.show();
 				$(this).find(".messages-topInfo-arrow").addClass("arrow-up");
