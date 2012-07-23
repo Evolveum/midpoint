@@ -119,7 +119,8 @@ public class PageSubmit extends PageAdmin {
 					if (item instanceof PrismProperty) {
 						PrismProperty property = (PrismProperty) item;
 						PropertyDelta propertyDelta = new PropertyDelta(property.getDefinition());
-						propertyDelta.addValuesToAdd(property.getValues());
+						propertyDelta
+								.addValuesToAdd(PrismPropertyValue.cloneCollection(property.getValues()));
 						userPropertiesDeltas.add(propertyDelta);
 					} else if (item instanceof PrismContainer) {
 						if (!(item.getDefinition().getTypeName().equals(AssignmentType.COMPLEX_TYPE))) {
@@ -128,13 +129,14 @@ public class PageSubmit extends PageAdmin {
 							PrismPropertyDefinition propertyDef = new PrismPropertyDefinition(def.getName(),
 									def.getDefaultName(), def.getTypeName(), def.getPrismContext());
 							PropertyDelta propertyDelta = new PropertyDelta(propertyDef);
-							propertyDelta.addValuesToAdd(property.getValues());
+							propertyDelta.addValuesToAdd(PrismContainerValue.cloneCollection(property
+									.getValues()));
 							userPropertiesDeltas.add(propertyDelta);
 							continue;
 						}
 						PrismContainer assign = (PrismContainer) item;
 						ContainerDelta assignDelta = new ContainerDelta(assign.getDefinition());
-						assignDelta.addValuesToAdd(assign.getValues());
+						assignDelta.addValuesToAdd(PrismContainerValue.cloneCollection(assign.getValues()));
 						assignmentsDeltas.add(assignDelta);
 					}
 				}
@@ -385,7 +387,7 @@ public class PageSubmit extends PageAdmin {
 		LOGGER.debug("Saving user changes.");
 		OperationResult result = new OperationResult(OPERATION_SAVE_USER);
 
-		if (!accountsDeltas.isEmpty() && accountsDeltas != null) {
+		if (accountsDeltas != null && !accountsDeltas.isEmpty()) {
 			OperationResult subResult = null;
 			for (ObjectDeltaComponent account : accountsDeltas) {
 				try {
@@ -555,15 +557,15 @@ public class PageSubmit extends PageAdmin {
 						if (value instanceof PrismContainerValue) {
 							PrismContainerValue containerValues = (PrismContainerValue) value;
 							for (Object containerValue : containerValues.getItems()) {
-								if(containerValue instanceof PrismProperty) {
+								if (containerValue instanceof PrismProperty) {
 									PrismProperty propertyValue = (PrismProperty) containerValue;
 									PropertyDelta delta = new PropertyDelta(propertyValue.getDefinition());
 									list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
 											(PrismPropertyValue) propertyValue.getValue(), delta));
-								} else if(containerValue instanceof PrismContainer) {
+								} else if (containerValue instanceof PrismContainer) {
 									continue;
 								}
-								
+
 							}
 							continue;
 						}
