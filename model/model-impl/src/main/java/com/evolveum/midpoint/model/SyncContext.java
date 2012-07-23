@@ -650,13 +650,21 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
 	public void swallowToWaveUserSecondaryDelta(PropertyDelta<?> propDelta) throws SchemaException {
 		ObjectDelta<UserType> userSecondaryDelta = getWaveUserSecondaryDelta();
 		if (userSecondaryDelta == null) {
-            userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
-            if (getUserOld() != null) {
-                userSecondaryDelta.setOid(getUserOld().getOid());
-            }
+            userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);        
+            userSecondaryDelta.setOid(determineUserOid());
             setWaveUserSecondaryDelta(userSecondaryDelta);
         }
         userSecondaryDelta.swallow(propDelta);
+	}
+
+	private String determineUserOid() {
+		if (getUserOld() != null && getUserOld().getOid() != null) {
+			return getUserOld().getOid();
+		}
+		if (getUserNew() != null && getUserNew().getOid() != null) {
+			return getUserNew().getOid();
+		}
+		return null;
 	}
 
 }
