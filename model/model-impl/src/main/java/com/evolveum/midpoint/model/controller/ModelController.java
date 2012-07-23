@@ -274,6 +274,8 @@ public class ModelController implements ModelService {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
+		object.checkConsistence();
+		
 		T objectType = object.asObjectable();
 		// FIXME??
 		prismContext.adopt(objectType);
