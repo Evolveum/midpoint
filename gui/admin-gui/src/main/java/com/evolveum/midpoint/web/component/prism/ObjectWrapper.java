@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -35,6 +37,9 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -294,10 +299,13 @@ public class ObjectWrapper implements Serializable {
 
 					//TODO: need to check if the resource has defined capabilities
 					if (SchemaConstants.PATH_ACTIVATION.equals(path)) {
+						
 						if (object.asObjectable() instanceof AccountShadowType	&& (((ResourceObjectShadowType) object.asObjectable()).getActivation() == null || ((ResourceObjectShadowType) object
 										.asObjectable()).getActivation().isEnabled() == null)) {
-							continue;
-
+							
+							if (!hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource())){
+								continue;
+							}
 						}
 					}
 
@@ -340,6 +348,14 @@ public class ObjectWrapper implements Serializable {
 		}
 
 		return delta;
+	}
+	
+	private boolean hasResourceCapability(ResourceType resource){
+		if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)){
+			return (ResourceTypeUtil.getEffectiveCapability(resource,  ActivationCapabilityType.class) == null) ? false : true; 
+		} 
+		
+		return true;
 	}
 
 	private ObjectDelta createAddingObjectDelta() throws SchemaException {
