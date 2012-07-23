@@ -79,7 +79,7 @@ object.
 				<icscdbtable:keyColumn>userId</icscdbtable:keyColumn>
 				<icscdbtable:passwordColumn>password</icscdbtable:passwordColumn>
 				<icscdbtable:jdbcDriver>com.mysql.jdbc.Driver</icscdbtable:jdbcDriver>
-				<icscdbtable:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d</icscdbtable:jdbcUrlTemplate>
+				<icscdbtable:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d?useUnicode=true&amp;characterEncoding=utf8&amp;connectionCollation=utf8_bin</icscdbtable:jdbcUrlTemplate>
 				<icscdbtable:enableEmptyString>false</icscdbtable:enableEmptyString>
 				<icscdbtable:rethrowAllSQLExceptions>true</icscdbtable:rethrowAllSQLExceptions>
 				<icscdbtable:nativeTimestamps>false</icscdbtable:nativeTimestamps>
