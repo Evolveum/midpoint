@@ -110,8 +110,8 @@ public class TestRbac extends AbstractModelIntegrationTest {
         // THEN
         assertHasRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDummyAccountAttribute("jack", "location", "Caribbean");
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Caribbean");
 	}
 	
 	/**
@@ -133,8 +133,8 @@ public class TestRbac extends AbstractModelIntegrationTest {
         // THEN
         assertHasRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
 	}
 	
 	@Test
@@ -189,8 +189,8 @@ public class TestRbac extends AbstractModelIntegrationTest {
         // THEN
         assertHasRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
         
 	}
 

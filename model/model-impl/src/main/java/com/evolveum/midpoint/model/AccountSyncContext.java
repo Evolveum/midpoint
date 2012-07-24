@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.synchronizer.AccountConstruction;
 import com.evolveum.midpoint.model.synchronizer.PropertyValueWithOrigin;
 import com.evolveum.midpoint.prism.Containerable;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 
@@ -54,9 +56,11 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -74,9 +78,9 @@ import java.util.Map.Entry;
 public class AccountSyncContext implements Dumpable, DebugDumpable {
 	
 	/**
-	 * The wave in which this resource should be processed.
+	 * The wave in which this resource should be processed. Initial value of -1 means "undetermined".
 	 */
-	private int wave = 0;
+	private int wave = -1;
 
     /**
      * Definition of account type. This is the same value as the key in SyncContext. It is duplicated
@@ -131,6 +135,8 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     private PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple;
     
     private AccountConstruction outboundAccountConstruction;
+    
+    private Collection<ResourceAccountReferenceType> dependencies = null;
     
     private Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes;
 
@@ -398,6 +404,19 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	private ResourceSchema getResourceSchema() throws SchemaException {
 		return RefinedResourceSchema.getResourceSchema(resource, prismContext);
 	}
+	
+	public Collection<ResourceAccountReferenceType> getDependencies() {
+		if (dependencies == null) {
+			ResourceAccountTypeDefinitionType resourceAccountTypeDefinitionType = getResourceAccountTypeDefinitionType();
+			if (resourceAccountTypeDefinitionType == null) {
+				// No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
+				dependencies = new ArrayList<ResourceAccountReferenceType>();
+			} else {
+				dependencies = resourceAccountTypeDefinitionType.getDependency();
+			}
+		}
+		return dependencies;
+	}
 
 
     /**
@@ -452,7 +471,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		outboundAccountConstruction = null;
 		squeezedAttributes = null;
 	}
-    
+	    
     public void checkConsistence() {
     	if (resource == null) {
     		throw new IllegalStateException("Null resource in "+this);
@@ -627,6 +646,12 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	        
 	        sb.append("\n");
 	        DebugUtil.debugDumpWithLabel(sb, "ACCOUNT squeezed attributes", squeezedAttributes, indent);
+
+	        // This is just a debug thing
+//	        sb.append("\n");
+//	        DebugUtil.indentDebugDump(sb, indent);
+//	        sb.append("ACCOUNT dependencies\n");
+//	        sb.append(DebugUtil.debugDump(dependencies, indent + 1));
         }
 
         return sb.toString();

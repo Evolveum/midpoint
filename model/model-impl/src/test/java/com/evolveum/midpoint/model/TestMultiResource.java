@@ -110,6 +110,10 @@ public class TestMultiResource extends AbstractModelIntegrationTest {
 		super();
 	}
 		
+	/**
+	 * The "dummies" role assigns two dummy resources that are in a dependency. The value of "ship" is propagated from one
+	 * resource through the user to the other resource. If dependency does not work then no value is propagated.
+	 */
 	@Test
     public void test001JackAssignRoleDummies() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
@@ -124,11 +128,18 @@ public class TestMultiResource extends AbstractModelIntegrationTest {
         
         // THEN
         assertHasRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDummyAccountAttribute("jack", "title", "The Great Voodoo Master");
-        assertDummyAccountAttribute("jack", "ship", "The Lost Souls");
         
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "The Great Voodoo Master");
+        assertDefaultDummyAccountAttribute("jack", "ship", "The Lost Souls");
+        
+        // This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
+        // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
+        // after user's organizationUnit is set and it will have the same value as above.
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, "jack", "ship", "The crew of The Lost Souls");
 	}
 	
 }

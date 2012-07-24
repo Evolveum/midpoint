@@ -20,6 +20,8 @@
 package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountReferenceType;
 
 /**
  * Aggregate bean containing resource OID, accountType and thombstone flag.
@@ -46,6 +48,10 @@ public class ResourceAccountType {
 		setAccountType(accountType);
 	}
 	
+	public ResourceAccountType(ResourceAccountReferenceType accRefType) {
+		this(accRefType.getResourceRef().getOid(), accRefType.getType());
+	}
+
 	public String getResourceOid() {
 		return resourceOid;
 	}

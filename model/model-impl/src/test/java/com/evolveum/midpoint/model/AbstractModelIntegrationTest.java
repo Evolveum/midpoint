@@ -572,16 +572,29 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
 		// TODO: assert name and UID
 	}
+
+	protected DummyAccount getDummyAccount(String dummyInstanceName, String username) {
+		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		return dummyResource.getAccountByUsername(username);
+	}
 	
 	protected void assertDummyAccount(String username, String fullname, boolean active) {
-		DummyAccount account = dummyResource.getAccountByUsername(username);
-		assertNotNull("No dummy account for username "+username, account);
-		assertEquals("Wrong fullname for dummy account "+username, fullname, account.getAttributeValue("fullname"));
-		assertEquals("Wrong activation for dummy account "+username, active, account.isEnabled());
+		assertDummyAccount(null, username, fullname, active);
+	}
+	
+	protected void assertDummyAccount(String dummyInstanceName, String username, String fullname, boolean active) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
+		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
+		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
 	}
 
 	protected void assertNoDummyAccount(String username) {
-		DummyAccount account = dummyResource.getAccountByUsername(username);
+		assertNoDummyAccount(null, username);
+	}
+	
+	protected void assertNoDummyAccount(String dummyInstanceName, String username) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNull("Dummy account for username "+username+" exists while not expecting it", account);
 	}
 	
@@ -598,10 +611,15 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertTrue("User "+userOid+" has not linked to account "+accountOid, found);
 	}
 	
-	protected void assertDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) {
-		DummyAccount account = dummyResource.getAccountByUsername(username);
+	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) {
+		assertDummyAccountAttribute(null, username, attributeName, expectedAttributeValues);
+	}
+	
+	protected void assertDummyAccountAttribute(String dummyInstanceName, String username, String attributeName, Object... expectedAttributeValues) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
+		assertNotNull("No values for attribute "+attributeName+" of dummy account "+username, values);
 		assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy account "+username, expectedAttributeValues.length, values.size());
 		for (Object expectedValue: expectedAttributeValues) {
 			if (!values.contains(expectedValue)) {

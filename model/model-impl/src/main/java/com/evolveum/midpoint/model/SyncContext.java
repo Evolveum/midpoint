@@ -25,7 +25,9 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.synchronizer.ObjectDeltaWaves;
+import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -44,6 +46,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 
 import java.io.Serializable;
@@ -67,6 +71,8 @@ import java.util.Map.Entry;
  * @author Radovan Semancik
  */
 public class SyncContext implements Dumpable, DebugDumpable, Serializable {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(SyncContext.class);
 	
 	/**
 	 * Current wave of computation and execution.
@@ -508,6 +514,70 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
         return accountSyncContext;
     }
     
+	public void swallowToWaveUserSecondaryDelta(PropertyDelta<?> propDelta) throws SchemaException {
+		ObjectDelta<UserType> userSecondaryDelta = getWaveUserSecondaryDelta();
+		if (userSecondaryDelta == null) {
+            userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);        
+            userSecondaryDelta.setOid(determineUserOid());
+            setWaveUserSecondaryDelta(userSecondaryDelta);
+        }
+        userSecondaryDelta.swallow(propDelta);
+	}
+
+	private String determineUserOid() {
+		if (getUserOld() != null && getUserOld().getOid() != null) {
+			return getUserOld().getOid();
+		}
+		if (getUserNew() != null && getUserNew().getOid() != null) {
+			return getUserNew().getOid();
+		}
+		return null;
+	}
+	
+	/**
+	 * Sort accounts in the sync context to waves according to dependencies. Returns the number
+	 * of waves. 
+	 */
+	public void sortAccountsToWaves() throws PolicyViolationException {
+		for (AccountSyncContext accountContext: getAccountContexts()) {
+			determineAccountWave(accountContext);
+		}
+	}
+
+	// TODO: check for circular dependencies
+	private void determineAccountWave(AccountSyncContext accountContext) throws PolicyViolationException {
+		if (accountContext.getWave() >= 0) {
+			// This was already processed
+			return;
+		}
+		int wave = 0;
+		for (ResourceAccountReferenceType dependency :accountContext.getDependencies()) {
+			ResourceAccountType refRat = new ResourceAccountType(dependency);
+			AccountSyncContext dependencyAccountContext = getAccountSyncContext(refRat);
+			if (dependencyAccountContext == null) {
+				throw new PolicyViolationException("Unsatisdied dependency of account "+accountContext.getResourceAccountType()+
+						" dependent on "+refRat+": Account not provisioned");
+			}
+			determineAccountWave(dependencyAccountContext);
+			if (dependencyAccountContext.getWave() + 1 > wave) {
+				wave = dependencyAccountContext.getWave() + 1;
+			}
+		}
+//		LOGGER.trace("Wave for {}: {}", accountContext.getResourceAccountType(), wave);
+		accountContext.setWave(wave);
+	}
+	
+	public int getMaxWave() {
+		int maxWave = 0;
+		for (AccountSyncContext accountContext: getAccountContexts()) {
+			if (accountContext.getWave() > maxWave) {
+				maxWave = accountContext.getWave();
+			}
+		}
+		return maxWave;
+	}
+
+    
     public void checkConsistence() {
     	if (userOld != null) {
     		try {
@@ -646,25 +716,5 @@ public class SyncContext implements Dumpable, DebugDumpable, Serializable {
 
         return sb.toString();
     }
-
-	public void swallowToWaveUserSecondaryDelta(PropertyDelta<?> propDelta) throws SchemaException {
-		ObjectDelta<UserType> userSecondaryDelta = getWaveUserSecondaryDelta();
-		if (userSecondaryDelta == null) {
-            userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);        
-            userSecondaryDelta.setOid(determineUserOid());
-            setWaveUserSecondaryDelta(userSecondaryDelta);
-        }
-        userSecondaryDelta.swallow(propDelta);
-	}
-
-	private String determineUserOid() {
-		if (getUserOld() != null && getUserOld().getOid() != null) {
-			return getUserOld().getOid();
-		}
-		if (getUserNew() != null && getUserNew().getOid() != null) {
-			return getUserNew().getOid();
-		}
-		return null;
-	}
 
 }

@@ -2405,7 +2405,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="dependency" type="tns:ResourceAccountReferenceType" minOccurs="0" />
+            <xsd:element name="dependency" type="tns:ResourceAccountReferenceType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="entitlementAssociation" type="tns:ResourceEntitlementAssociationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
