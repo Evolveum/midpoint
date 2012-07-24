@@ -298,6 +298,7 @@ public class ObjectWrapper implements Serializable {
 					}
 
 					//TODO: need to check if the resource has defined capabilities
+                    //todo this is bad hack because now we have not tri-state checkbox
 					if (SchemaConstants.PATH_ACTIVATION.equals(path)) {
 						
 						if (object.asObjectable() instanceof AccountShadowType	&& (((ResourceObjectShadowType) object.asObjectable()).getActivation() == null || ((ResourceObjectShadowType) object

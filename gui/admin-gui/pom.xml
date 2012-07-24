@@ -42,12 +42,17 @@
             <resource>
                 <filtering>false</filtering>
                 <directory>src/main/java</directory>
-                <includes>
-                    <include>**</include>
-                </includes>
                 <excludes>
                     <exclude>**/*.java</exclude>
+                    <exclude>**/*.properties</exclude>
                 </excludes>
+            </resource>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
             </resource>
         </resources>
         <testResources>
@@ -58,12 +63,17 @@
             <testResource>
                 <filtering>false</filtering>
                 <directory>src/test/java</directory>
-                <includes>
-                    <include>**</include>
-                </includes>
                 <excludes>
                     <exclude>**/*.java</exclude>
+                    <exclude>**/*.properties</exclude>
                 </excludes>
+            </testResource>
+            <testResource>
+                <filtering>true</filtering>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
             </testResource>
         </testResources>
     </build>
@@ -106,6 +116,13 @@
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui-sk-SK</artifactId>
             <version>2.1-SNAPSHOT</version>
+        </dependency>
+
+        <!-- JDBC DRIVERS -->
+        <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.1-901.jdbc4</version>
         </dependency>
 
         <!-- MIDPOINT -->
