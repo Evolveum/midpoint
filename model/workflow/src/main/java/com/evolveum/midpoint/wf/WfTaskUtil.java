@@ -137,7 +137,7 @@ public class WfTaskUtil {
         if (StringUtils.isEmpty(t.getName())) {
 		    t.setName(taskName);
         }
-		t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI);
+		t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI, new ScheduleType(), null);
         t.setCategory(TaskCategory.WORKFLOW);
         t.setBinding(TaskBinding.LOOSE);
 		t.makeRecurrentSimple(workflowManager.getWfConfiguration().getProcessCheckInterval());
@@ -162,7 +162,7 @@ public class WfTaskUtil {
         if (StringUtils.isEmpty(t.getName())) {
             t.setName(taskName);
         }
-        t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI);		// note that this handler will not be used (at least for now)
+        t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI, new ScheduleType(), null);		// note that this handler will not be used (at least for now)
         t.setCategory(TaskCategory.WORKFLOW);
 		t.makeSingle();
         t.makeWaiting();

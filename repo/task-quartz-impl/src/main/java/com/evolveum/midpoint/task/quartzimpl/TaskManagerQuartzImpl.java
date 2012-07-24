@@ -453,7 +453,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	@Override
 	public void switchToBackground(final Task task, OperationResult parentResult) {
-		
+
 		parentResult.recordStatus(OperationResultStatus.IN_PROGRESS, "Task switched to background");
 		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "switchToBackground");
 		// Kind of hack. We want success to be persisted. In case that the persist fails, we will switch it back
@@ -476,8 +476,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 
         TaskQuartzImpl taskImpl = (TaskQuartzImpl) task;
-		
-		if (taskImpl.getOid() != null) {
+
+        if (task.getName() == null) {
+            taskImpl.setNameTransient("Task " + task.getTaskIdentifier());
+        }
+
+        if (taskImpl.getOid() != null) {
 			// We don't support user-specified OIDs
 			throw new IllegalArgumentException("Transient task must not have OID (task:"+task+")");
 		}

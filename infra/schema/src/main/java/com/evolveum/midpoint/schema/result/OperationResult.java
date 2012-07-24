@@ -317,6 +317,10 @@ public class OperationResult implements Serializable, Dumpable {
 	public boolean isUnknown() {
 		return (status == OperationResultStatus.UNKNOWN);
 	}
+
+    public boolean isInProgress() {
+        return (status == OperationResultStatus.IN_PROGRESS);
+    }
 	
 	public boolean isError() {
 		return (status == OperationResultStatus.FATAL_ERROR) ||

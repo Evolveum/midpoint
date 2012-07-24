@@ -193,7 +193,9 @@ main:
 
                 LOGGER.info(" --- Iteration number " + counter + " for " + attribute.getLocalPart() + " ---");
 
-                String dataWritten = Integer.toString(counter++);
+                String prefix = attribute.getLocalPart();
+
+                String dataWritten = "[" + prefix + ":" + Integer.toString(counter++) + "]";
 
                 PropertyDelta<?> delta = PropertyDelta.createReplaceDeltaOrEmptyDelta(userPrismDefinition, attribute, poly ? new PolyString(dataWritten) : new String(dataWritten));
                 List<? extends PropertyDelta<?>> deltas = Arrays.asList(delta);

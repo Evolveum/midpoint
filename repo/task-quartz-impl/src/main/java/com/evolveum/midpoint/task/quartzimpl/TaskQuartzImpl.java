@@ -20,28 +20,20 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksTaskHandler;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -52,6 +44,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.Validate;
 
 /**
  * Implementation of a Task.
@@ -66,8 +59,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class TaskQuartzImpl implements Task {
 	
 	private TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
-	
-	private PrismObject<TaskType> taskPrism;
+    private static final Integer DEFAULT_SUBTASKS_WAIT_INTERVAL = 30;
+    private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
+
+    private PrismObject<TaskType> taskPrism;
+
+    // private Set<Task> subtasks = new HashSet<Task>();          // relevant only for transient tasks, currently not used
 	
 	private TaskPersistenceStatus persistenceStatus;
 	private TaskManagerQuartzImpl taskManager;
@@ -78,6 +75,7 @@ public class TaskQuartzImpl implements Task {
     private Node currentlyExecutesAt;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
+
 
     /**
 	 * Note: This constructor assumes that the task is transient.
@@ -170,14 +168,22 @@ public class TaskQuartzImpl implements Task {
 		// This is very simple now. It may complicate later.
 		return (persistenceStatus==TaskPersistenceStatus.PERSISTENT);
 	}
+
+	private boolean recreateQuartzTrigger = false;          // whether to recreate quartz trigger on next savePendingModifications and/or synchronizeWithQuartz
+
+    public boolean isRecreateQuartzTrigger() {
+        return recreateQuartzTrigger;
+    }
+
+    public void setRecreateQuartzTrigger(boolean recreateQuartzTrigger) {
+        this.recreateQuartzTrigger = recreateQuartzTrigger;
+    }
+
+    private Collection<ItemDelta<?>> pendingModifications = null;
 	
-	
-	
-	private Collection<PropertyDelta<?>> pendingModifications = null;
-	
-	public void addPendingModification(PropertyDelta<?> delta) {
+	public void addPendingModification(ItemDelta<?> delta) {
 		if (pendingModifications == null)
-			pendingModifications = new Vector<PropertyDelta<?>>();
+			pendingModifications = new ArrayList<ItemDelta<?>>();
 		pendingModifications.add(delta);
 	}
 	
@@ -194,10 +200,14 @@ public class TaskQuartzImpl implements Task {
 				}
 			}
 		}
+        if (isRecreateQuartzTrigger()) {
+            synchronizeWithQuartz(parentResult);
+        }
 	}
 
     public void synchronizeWithQuartz(OperationResult parentResult) {
         taskManager.synchronizeTaskWithQuartz(this, parentResult);
+        setRecreateQuartzTrigger(false);
     }
 	
 	private static Set<QName> quartzRelatedProperties = new HashSet<QName>();
@@ -205,10 +215,15 @@ public class TaskQuartzImpl implements Task {
 		quartzRelatedProperties.add(TaskType.F_BINDING);
 		quartzRelatedProperties.add(TaskType.F_RECURRENCE);
 		quartzRelatedProperties.add(TaskType.F_SCHEDULE);
+        quartzRelatedProperties.add(TaskType.F_HANDLER_URI);
 	}
 	
-	private void synchronizeWithQuartzIfNeeded(Collection<PropertyDelta<?>> deltas, OperationResult parentResult) {
-		for (PropertyDelta<?> delta : deltas) {
+	private void synchronizeWithQuartzIfNeeded(Collection<ItemDelta<?>> deltas, OperationResult parentResult) {
+        if (isRecreateQuartzTrigger()) {
+            synchronizeWithQuartz(parentResult);
+            return;
+        }
+        for (ItemDelta<?> delta : deltas) {
 			if (delta.getParentPath().isEmpty() && quartzRelatedProperties.contains(delta.getName())) {
 				synchronizeWithQuartz(parentResult);
 				return;
@@ -219,14 +234,14 @@ public class TaskQuartzImpl implements Task {
 	private void processModificationNow(PropertyDelta<?> delta, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (delta != null) {
-			Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>(1);
+			Collection<ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>(1);
 			deltas.add(delta);
 			repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
 			synchronizeWithQuartzIfNeeded(deltas, parentResult);
 		}
 	}
 
-	private void processModificationBatched(PropertyDelta<?> delta) {
+	private void processModificationBatched(ItemDelta<?> delta) {
 		if (delta != null) {
 			addPendingModification(delta);
 		}
@@ -446,56 +461,194 @@ public class TaskQuartzImpl implements Task {
 					taskManager.getTaskObjectDefinition(), TaskType.F_OTHER_HANDLERS_URI_STACK, value) : null;
 	}
 	
-	private String popFromOtherHandlersUriStack() {
+	private UriStackEntry popFromOtherHandlersUriStack() {
 		
 		checkHandlerUriConsistency();
 		
 		UriStack stack = taskPrism.getPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, UriStack.class);
-		if (stack == null || stack.getUri().isEmpty())
-			throw new IllegalStateException("Couldn't pop from OtherHandlersUriStack, becaus it is null or empty");
-		int last = stack.getUri().size() - 1;
-		String retval = stack.getUri().get(last);
-		stack.getUri().remove(last);
+        // is this a live value or a copy? (should be live)
+
+		if (stack == null || stack.getUriStackEntry().isEmpty())
+			throw new IllegalStateException("Couldn't pop from OtherHandlersUriStack, because it is null or empty");
+		int last = stack.getUriStackEntry().size() - 1;
+		UriStackEntry retval = stack.getUriStackEntry().get(last);
+		stack.getUriStackEntry().remove(last);
+
+//        UriStack stack2 = taskPrism.getPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, UriStack.class);
+//        LOGGER.info("Stack size after popping: " + stack.getUriStackEntry().size()
+//                + ", freshly got stack size: " + stack2.getUriStackEntry().size());
+
 		setOtherHandlersUriStack(stack);
 		
 		return retval;
 	}
 
+//    @Override
+//    public void pushHandlerUri(String uri) {
+//        pushHandlerUri(uri, null, null);
+//    }
+//
+//    @Override
+//    public void pushHandlerUri(String uri, ScheduleType schedule) {
+//        pushHandlerUri(uri, schedule, null);
+//    }
+
     @Override
-	public void pushHandlerUri(String uri) {
-		
+    public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding) {
+        pushHandlerUri(uri, schedule, binding, (Collection<ItemDelta<?>>) null);
+    }
+
+    @Override
+    public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?> delta) {
+        Collection<ItemDelta<?>> deltas = null;
+        if (delta != null) {
+            deltas = new ArrayList<ItemDelta<?>>();
+            deltas.add(delta);
+        }
+        pushHandlerUri(uri, schedule, binding, deltas);
+    }
+
+    /**
+     * Makes (uri, schedule, binding) the current task properties, and pushes current (uri, schedule, binding, extensionChange)
+     * onto the stack.
+     *
+     * @param uri New Handler URI
+     * @param schedule New schedule
+     * @param binding New binding
+     */
+    @Override
+	public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, Collection<ItemDelta<?>> extensionDeltas) {
+
+        Validate.notNull(uri);
+        if (binding == null) {
+            binding = bindingFromSchedule(schedule);
+        }
+
 		checkHandlerUriConsistency();
-		
-		if (getHandlerUri() == null) {
+
+//        if (binding == null) {
+//            if (schedule != null) {
+//                binding = bindingFromSchedule(schedule);
+//            } else {
+//                binding = this.getBinding();
+//            }
+//        }
+//
+//        if (schedule == null) {
+//            schedule = this.getSchedule();
+//        }
+
+		if (this.getHandlerUri() == null) {
 			setHandlerUri(uri);
+            setSchedule(schedule);
+            setRecurrenceStatus(recurrenceFromSchedule(schedule));
+            setBinding(binding);
 		} else {
 		
 			UriStack stack = taskPrism.getPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, UriStack.class);
 			if (stack == null)
 				stack = new UriStack();
-			
-			stack.getUri().add(getHandlerUri());
+
+            UriStackEntry use = new UriStackEntry();
+            use.setHandlerUri(getHandlerUri());
+            use.setSchedule(getSchedule());
+            use.setBinding(getBinding().toTaskType());
+            if (extensionDeltas != null) {
+                storeExtensionDeltas(use.getExtensionDelta(), extensionDeltas);
+            }
+			stack.getUriStackEntry().add(use);
+            setOtherHandlersUriStack(stack);
+
 			setHandlerUri(uri);
-			setOtherHandlersUriStack(stack);
+            setSchedule(schedule);
+            setRecurrenceStatus(recurrenceFromSchedule(schedule));
+            setBinding(binding);
 		}
+
+        this.setRecreateQuartzTrigger(true);            // will be applied on modifications save
 	}
 
     @Override
-    public void replaceCurrentHandlerUri(String newUri) {
-
-        checkHandlerUriConsistency();
-        setHandlerUri(newUri);
+    public ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
+        PrismProperty<?> property = (PrismProperty<?>) definition.instantiate();
+        property.setRealValue(realValue);
+        PropertyDelta propertyDelta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), definition);
+        propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
+        return propertyDelta;
     }
+
+    private void storeExtensionDeltas(List<ItemDeltaType> result, Collection<ItemDelta<?>> extensionDeltas) {
+
+        for (ItemDelta itemDelta : extensionDeltas) {
+            Collection<ItemDeltaType> deltaTypes = null;
+            try {
+                deltaTypes = DeltaConvertor.toPropertyModificationTypes(itemDelta);
+            } catch (SchemaException e) {
+                throw new SystemException("Unexpected SchemaException when converting extension ItemDelta to ItemDeltaType", e);
+            }
+            result.addAll(deltaTypes);
+        }
+    }
+
+    // derives default binding form schedule
+    private TaskBinding bindingFromSchedule(ScheduleType schedule) {
+        if (schedule == null) {
+            return DEFAULT_BINDING_TYPE;
+        } else if (schedule.getInterval() != null && schedule.getInterval() != 0) {
+            return schedule.getInterval() <= TIGHT_BINDING_INTERVAL_LIMIT ? TaskBinding.TIGHT : TaskBinding.LOOSE;
+        } else if (StringUtils.isNotEmpty(schedule.getCronLikePattern())) {
+            return TaskBinding.LOOSE;
+        } else {
+            return DEFAULT_BINDING_TYPE;
+        }
+    }
+
+    private TaskRecurrence recurrenceFromSchedule(ScheduleType schedule) {
+        if (schedule == null) {
+            return TaskRecurrence.SINGLE;
+        } else if (schedule.getInterval() != null && schedule.getInterval() != 0) {
+            return TaskRecurrence.RECURRING;
+        } else if (StringUtils.isNotEmpty(schedule.getCronLikePattern())) {
+            return TaskRecurrence.RECURRING;
+        } else {
+            return TaskRecurrence.SINGLE;
+        }
+
+    }
+
+//    @Override
+//    public void replaceCurrentHandlerUri(String newUri, ScheduleType schedule) {
+//
+//        checkHandlerUriConsistency();
+//        setHandlerUri(newUri);
+//        setSchedule(schedule);
+//    }
 	
 	public void finishHandler(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
 
 		// let us drop the current handler URI and nominate the top of the other
 		// handlers stack as the current one
-		
+
+        LOGGER.trace("finishHandler called for handler URI {}, task {}", this.getHandlerUri(), this);
+
 		UriStack otherHandlersUriStack = getOtherHandlersUriStack();
-		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUri().isEmpty()) {
-			setHandlerUri(popFromOtherHandlersUriStack());
+		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUriStackEntry().isEmpty()) {
+            UriStackEntry use = popFromOtherHandlersUriStack();
+			setHandlerUri(use.getHandlerUri());
+            setRecurrenceStatus(recurrenceFromSchedule(use.getSchedule()));
+            setSchedule(use.getSchedule());
+            if (use.getBinding() != null) {
+                setBinding(TaskBinding.fromTaskType(use.getBinding()));
+            } else {
+                setBinding(bindingFromSchedule(use.getSchedule()));
+            }
+            for (ItemDeltaType itemDeltaType : use.getExtensionDelta()) {
+                ItemDelta itemDelta = DeltaConvertor.createItemDelta(itemDeltaType, TaskType.class, taskManager.getPrismContext());
+                LOGGER.trace("Applying ItemDelta to task extension; task = {}; itemDelta = {}", this, itemDelta.debugDump());
+                this.modifyExtension(itemDelta);
+            }
+            this.setRecreateQuartzTrigger(true);
 		} else {
 			setHandlerUri(null);
 			taskManager.closeTaskWithoutSavingState(this, parentResult);			// if there are no more handlers, let us close this task
@@ -513,19 +666,19 @@ public class TaskQuartzImpl implements Task {
 	public int getHandlersCount() {
 		checkHandlerUriConsistency();
 		int main = getHandlerUri() != null ? 1 : 0;
-		int others = getOtherHandlersUriStack() != null ? getOtherHandlersUriStack().getUri().size() : 0;
+		int others = getOtherHandlersUriStack() != null ? getOtherHandlersUriStack().getUriStackEntry().size() : 0;
 		return main + others;
 	}
 	
 	private boolean isOtherHandlersUriStackEmpty() {
 		UriStack stack = taskPrism.asObjectable().getOtherHandlersUriStack();
-		return stack == null || stack.getUri().isEmpty();
+		return stack == null || stack.getUriStackEntry().isEmpty();
 	}
 	
 	
 	private void checkHandlerUriConsistency() {
 		if (getHandlerUri() == null && !isOtherHandlersUriStackEmpty())
-			throw new IllegalStateException("Handler URI is null but there is at least one 'other' handler (otherHandlerUriStack size = " + getOtherHandlersUriStack().getUri().size() + ")");
+			throw new IllegalStateException("Handler URI is null but there is at least one 'other' handler (otherHandlerUriStack size = " + getOtherHandlersUriStack().getUriStackEntry().size() + ")");
 	}
 
 	
@@ -902,7 +1055,9 @@ public class TaskQuartzImpl implements Task {
 			throw new SchemaException("Task "+getOid()+" does not have an owner (missing ownerRef)");
 		}
 		try {
-			return repositoryService.getObject(UserType.class, ownerRef.getOid(), result);
+			PrismObject<UserType> owner = repositoryService.getObject(UserType.class, ownerRef.getOid(), result);
+            ownerRef.getValue().setObject(owner);
+            return owner;
 		} catch (ObjectNotFoundException e) {
 			throw new SystemException("The owner of task "+getOid()+" cannot be found (owner OID: "+ownerRef.getOid()+")",e);
 		}
@@ -1065,6 +1220,38 @@ public class TaskQuartzImpl implements Task {
     }
 
     /*
+    * Parent
+    */
+
+    @Override
+    public String getParent() {
+        return taskPrism.asObjectable().getParent();
+    }
+
+    public void setParent(String value) {
+        processModificationBatched(setParentAndPrepareDelta(value));
+    }
+
+    public void setParentImmediate(String value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setParentAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
+    }
+
+    public void setParentTransient(String name) {
+        taskPrism.asObjectable().setParent(name);
+    }
+
+    private PropertyDelta<?> setParentAndPrepareDelta(String value) {
+        setParentTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_PARENT, value) : null;
+    }
+
+    /*
       * Extension
       */
 
@@ -1098,6 +1285,16 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public void modifyExtension(ItemDelta itemDelta) throws SchemaException {
+        if (itemDelta.getPath() == null ||
+                itemDelta.getPath().first() == null ||
+                !TaskType.F_EXTENSION.equals(itemDelta.getPath().first().getName())) {
+            throw new IllegalArgumentException("modifyExtension must modify the Task extension element; however, the path is " + itemDelta.getPath());
+        }
+        processModificationBatched(modifyExtensionAndPrepareDelta(itemDelta));
+    }
+
+    @Override
 	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         try {
@@ -1123,10 +1320,19 @@ public class TaskQuartzImpl implements Task {
 		return isPersistent() ? delta : null;
 	}
 
+    private ItemDelta<?> modifyExtensionAndPrepareDelta(ItemDelta<?> delta) throws SchemaException {
+
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+        modifications.add(delta);
+        PropertyDelta.applyTo(modifications, taskPrism);		// i.e. here we apply changes only locally (in memory)
+
+        return isPersistent() ? delta : null;
+    }
+
     private PropertyDelta<?> addExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
 
         PropertyDelta delta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
-        delta.addValuesToAdd(property.getValues());
+        delta.addValuesToAdd(PrismValue.cloneCollection(property.getValues()));
 
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
         modifications.add(delta);
@@ -1138,7 +1344,7 @@ public class TaskQuartzImpl implements Task {
     private PropertyDelta<?> deleteExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
 
         PropertyDelta delta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
-        delta.addValuesToDelete(property.getValues());
+        delta.addValuesToDelete(PrismValue.cloneCollection(property.getValues()));
 
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
         modifications.add(delta);
@@ -1486,4 +1692,47 @@ public class TaskQuartzImpl implements Task {
         currentlyExecutesAt = node;
     }
 
+    @Override
+    public Task createSubtask() {
+
+        if (isTransient()) {
+            throw new IllegalStateException("Only persistent tasks can have subtasks (as for now)");
+        }
+        TaskQuartzImpl sub = (TaskQuartzImpl) taskManager.createTaskInstance();
+        sub.setParent(this.getTaskIdentifier());
+        sub.setOwner(this.getOwner());
+
+        LOGGER.trace("New subtask " + sub.getTaskIdentifier() + " has been created.");
+        return sub;
+    }
+
+    @Override
+    public TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        return waitForSubtasks(interval, null, parentResult);
+    }
+
+    @Override
+    public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
+        OperationResult result = parentResult.createSubresult(Task.class.getName()+".waitForSubtasks");
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+
+        TaskRunResult trr = new TaskRunResult();
+        trr.setProgress(this.getProgress());
+        trr.setRunResultStatus(TaskRunResult.TaskRunResultStatus.RESTART_REQUESTED);
+        trr.setOperationResult(null);
+
+        ScheduleType schedule = new ScheduleType();
+        if (interval != null) {
+            schedule.setInterval(interval);
+        } else {
+            schedule.setInterval(DEFAULT_SUBTASKS_WAIT_INTERVAL);
+        }
+        pushHandlerUri(WaitForSubtasksTaskHandler.HANDLER_URI, schedule, null, extensionDeltas);
+        setBinding(TaskBinding.LOOSE);
+        savePendingModifications(result);
+
+        return trr;
+    }
 }

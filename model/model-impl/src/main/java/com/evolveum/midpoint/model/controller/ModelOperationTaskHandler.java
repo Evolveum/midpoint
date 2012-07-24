@@ -50,14 +50,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationKindTy
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStateType;
 
 /**
- * CURRENTLY OBSOLETE!
+ * Handles a "ModelOperation task" - executes a given model operation in a context
+ * of the task (i.e., in most cases, asynchronously).
+ * 
+ * The operation and its state is described in ModelOperationState element. When sent to this handler,
+ * the current state of operation is unwrapped and processed by the ModelController.
  *
- * Handles a "ModelOperation task".
- * 
- * These tasks contain ModelOperationState element. When sent to this handler,
- * the current state of operation is unwrapped and processed by the
- * ModelController.
- * 
+ * ModelOperationState consists of:
+ *  - ModelOperationKindType: add, modify, delete,
+ *  - ModelOperationStageType: primary, secondary, execute,
+ *  - OperationData (base64-encoded serialized data structure, specific to MOKT/MOST)
+ *
  * @author mederly
  */
 
@@ -82,10 +85,10 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		OperationResult result = new OperationResult("ModelOperationTaskHandler.run");
 		TaskRunResult runResult = new TaskRunResult();
 
-		/*
-		 * First, we delete ourselves from the handler stack, in order not to be invoked indefinitely.
-		 * (asynchronous model operation will add us again, if necessary)
-		 */
+//		/*
+//		 * First, we delete ourselves from the handler stack. Normally
+//		 * (asynchronous model operation will add us again, if necessary)
+//		 */
 //		try {
 //			task.finishHandler(result);
 //		} catch (ObjectNotFoundException e) {

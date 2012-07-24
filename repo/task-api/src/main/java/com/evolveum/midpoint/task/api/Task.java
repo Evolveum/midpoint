@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
@@ -493,7 +494,7 @@ public interface Task extends Dumpable {
 
     ModelOperationStateType getModelOperationState();
 
-    void pushHandlerUri(String uri);
+    //void pushHandlerUri(String uri, ScheduleType scheduleType);
 
     void setCategory(String category);
 
@@ -506,6 +507,8 @@ public interface Task extends Dumpable {
 
     void addExtensionProperty(PrismProperty<?> property) throws SchemaException;
 
+    void modifyExtension(ItemDelta itemDelta) throws SchemaException;
+
     /**
      * Removes specified VALUES of this extension property (not all of its values).
      *
@@ -516,11 +519,43 @@ public interface Task extends Dumpable {
 
     void setModelOperationState(ModelOperationStateType state);
 
-    void replaceCurrentHandlerUri(String newUri);
+//    void replaceCurrentHandlerUri(String newUri, ScheduleType scheduleType);
 
     void setThreadStopAction(ThreadStopActionType value);
 
     void makeRecurrent(ScheduleType schedule);
 
     void makeSingle(ScheduleType schedule);
+
+    /**
+     * Creates a subtask
+     *
+     * @return
+     */
+
+    Task createSubtask();
+
+    /**
+     * Waits for subtasks to finish. Executes a special task handler which periodically tests for the completion
+     * of this tasks' children.
+     *
+     * SHOULD BE USED ONLY FROM A TASK HANDLER.
+     *
+     * Returns a TaskRunResult that should the task handler immediately return (in order to activate newly created 'waiting' task handler).
+     */
+    TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+    TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+    String getParent();
+
+    //void pushHandlerUri(String uri);
+
+    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding);
+
+    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, Collection<ItemDelta<?>> extensionDeltas);
+
+    ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue);
+
+    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?> delta);
 }

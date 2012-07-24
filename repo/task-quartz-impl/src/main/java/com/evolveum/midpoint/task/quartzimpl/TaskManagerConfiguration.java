@@ -65,6 +65,7 @@ public class TaskManagerConfiguration {
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
     private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
     private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
+    private static final String TEST_MODE_CONFIG_ENTRY = "testMode";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
@@ -122,6 +123,9 @@ public class TaskManagerConfiguration {
       *
       * If not run in test mode (i.e. within Tomcat), we do not, because pausing
       * the scheduler does NOT stop the execution threads.
+      *
+      * We determine whether in test mode by examining testMode property and, if not present,
+      * by looking for SUREFIRE_PRESENCE_PROPERTY.
       */
     private boolean midPointTestMode = false;
 
@@ -153,11 +157,20 @@ public class TaskManagerConfiguration {
 
         jmxConnectTimeout = c.getInt(JMX_CONNECT_TIMEOUT_CONFIG_ENTRY, JMX_CONNECT_TIMEOUT_DEFAULT);
 
-        Properties sp = System.getProperties();
-        if (sp.containsKey(SUREFIRE_PRESENCE_PROPERTY)) {
-            LOGGER.info("Determined to run in a test environment, setting midPointTestMode to 'true'.");
-            midPointTestMode = true;
+        if (c.containsKey(TEST_MODE_CONFIG_ENTRY)) {
+            midPointTestMode = c.getBoolean(TEST_MODE_CONFIG_ENTRY);
+            LOGGER.trace(TEST_MODE_CONFIG_ENTRY + " present, its value = " + midPointTestMode);
+        } else {
+            LOGGER.trace(TEST_MODE_CONFIG_ENTRY + " NOT present");
+            Properties sp = System.getProperties();
+            if (sp.containsKey(SUREFIRE_PRESENCE_PROPERTY)) {
+                LOGGER.info("Determined to run in a test environment, setting midPointTestMode to 'true'.");
+                midPointTestMode = true;
+            } else {
+                midPointTestMode = false;
+            }
         }
+        LOGGER.trace("midPointTestMode = " + midPointTestMode);
 
         String useTI = c.getString(USE_THREAD_INTERRUPT_CONFIG_ENTRY, USE_THREAD_INTERRUPT_DEFAULT);
         try {

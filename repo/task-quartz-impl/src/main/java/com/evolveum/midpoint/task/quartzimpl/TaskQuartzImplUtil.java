@@ -144,6 +144,7 @@ public class TaskQuartzImplUtil {
 
         tb.usingJobData("schedule", scheduleFingerprint(task.getSchedule()));
         tb.usingJobData("looselyBoundRecurrent", looselyBoundRecurrent);
+        tb.usingJobData("handlerUri", task.getHandlerUri());
 
 		return tb.build();
 	}
@@ -182,6 +183,10 @@ public class TaskQuartzImplUtil {
 
         boolean scheduleDiffer = !toBe.getString("schedule").equals(asIs.getString("schedule"));
         boolean lbrDiffer = toBe.getBoolean("looselyBoundRecurrent") != asIs.getBoolean("looselyBoundRecurrent");
+        String tbh = toBe.getString("handlerUri");
+        String aih = asIs.getString("handlerUri");
+        //LOGGER.trace("handlerUri: asIs = " + aih + ", toBe = " + tbh);
+        boolean handlersDiffer = tbh != null ? !tbh.equals(aih) : aih == null;
 
         if (scheduleDiffer) {
             LOGGER.trace("trigger data maps differ in schedule: triggerAsIs.schedule = " + asIs.getString("schedule") + ", triggerToBe.schedule = " + toBe.getString("schedule"));
@@ -189,7 +194,10 @@ public class TaskQuartzImplUtil {
         if (lbrDiffer) {
             LOGGER.trace("trigger data maps differ in looselyBoundRecurrent: triggerAsIs = " + asIs.getString("looselyBoundRecurrent") + ", triggerToBe = " + toBe.getString("looselyBoundRecurrent"));
         }
-        return scheduleDiffer || lbrDiffer;
+        if (handlersDiffer) {
+            LOGGER.trace("trigger data maps differ in handlerUri: triggerAsIs = " + aih + ", triggerToBe = " + tbh);
+        }
+        return scheduleDiffer || lbrDiffer || handlersDiffer;
     }
 
 

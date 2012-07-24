@@ -49,6 +49,7 @@ public class RTask extends RObject {
     private static final Trace LOGGER = TraceManager.getTrace(RTask.class);
     @QueryAttribute
     private String name;
+    @QueryAttribute
     private String taskIdentifier;
     @QueryAttribute(enumerated = true)
     private RTaskExecutionStatusType executionStatus;
@@ -71,6 +72,8 @@ public class RTask extends RObject {
 
     private REmbeddedReference objectRef;
     private REmbeddedReference ownerRef;
+    @QueryAttribute
+    private String parent;
 
     private ROperationResultStatusType resultStatus;
     private String canRunOnNode;
@@ -105,6 +108,10 @@ public class RTask extends RObject {
     @Embedded
     public REmbeddedReference getOwnerRef() {
         return ownerRef;
+    }
+
+    public String getParent() {
+        return parent;
     }
 
     @Type(type = "org.hibernate.type.TextType")
@@ -179,6 +186,10 @@ public class RTask extends RObject {
 
     public void setOwnerRef(REmbeddedReference ownerRef) {
         this.ownerRef = ownerRef;
+    }
+
+    public void setParent(String parent) {
+        this.parent = parent;
     }
 
     public XMLGregorianCalendar getClaimExpirationTimestamp() {
@@ -326,6 +337,7 @@ public class RTask extends RObject {
         if (threadStopAction != null ? !threadStopAction.equals(rTask.threadStopAction) :
                 rTask.threadStopAction != null) return false;
         if (category != null ? !category.equals(rTask.category) : rTask.category != null) return false;
+        if (parent != null ? !parent.equals(rTask.parent) : rTask.parent != null) return false;
 
         return true;
     }
@@ -353,6 +365,7 @@ public class RTask extends RObject {
         result1 = 31 * result1 + (canRunOnNode != null ? canRunOnNode.hashCode() : 0);
         result1 = 31 * result1 + (threadStopAction != null ? threadStopAction.hashCode() : 0);
         result1 = 31 * result1 + (category != null ? category.hashCode() : 0);
+        result1 = 31 * result1 + (parent != null ? parent.hashCode() : 0);
 
         return result1;
     }
@@ -390,6 +403,7 @@ public class RTask extends RObject {
             jaxb.setThreadStopAction(repo.getThreadStopAction().getAction());
         }
         jaxb.setCategory(repo.getCategory());
+        jaxb.setParent(repo.getParent());
 
         if (repo.getObjectRef() != null) {
             jaxb.setObjectRef(repo.getObjectRef().toJAXB(prismContext));
@@ -435,6 +449,7 @@ public class RTask extends RObject {
         repo.setCanRunOnNode(jaxb.getCanRunOnNode());
         repo.setThreadStopAction(RThreadStopActionType.toRepoType(jaxb.getThreadStopAction()));
         repo.setCategory(jaxb.getCategory());
+        repo.setParent(jaxb.getParent());
 
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), prismContext));
         repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));

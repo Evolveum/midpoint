@@ -5,6 +5,7 @@ import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
+import org.apache.commons.lang.Validate;
 import org.quartz.*;
 
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -96,17 +97,12 @@ public class JobExecutor implements InterruptableJob {
 			TaskHandler handler = taskManagerImpl.getHandler(task.getHandlerUri());
 		
 			if (handler==null) {
-				LOGGER.error("No handler for URI {}, task {} - closing it.",task.getHandlerUri(),task);
+				LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
                 closeFlawedTask(task, executionResult);
-				throw new JobExecutionException("No handler for URI "+task.getHandlerUri());
+				throw new JobExecutionException("No handler for URI '" + task.getHandlerUri() + "'");
 			}
 		
 			if (task.isCycle()) {
-				if (task.getHandlersCount() > 1) {
-					LOGGER.error("Recurrent tasks cannot have more than one task handler; task = {} - closing it.", task);
-                    closeFlawedTask(task, executionResult);
-					throw new JobExecutionException("Recurrent tasks cannot have more than one task handler; task = " + task);
-				}
 				executeRecurrentTask(handler, executionResult);
 			} else if (task.isSingle()) {
 				executeSingleTask(handler, executionResult);
@@ -212,36 +208,45 @@ public class JobExecutor implements InterruptableJob {
 
 	private void executeSingleTask(TaskHandler handler, OperationResult executionResult) throws JobExecutionException {
 
+        Validate.notNull(handler, "Task handler is null");
+
 		try {
 			
 			RepositoryCache.enter();
-			
 			TaskRunResult runResult = null;
 
 			recordCycleRunStart(executionResult);
-			
-			// here we execute the whole handler stack
-			// FIXME do a better run result reporting! (currently only the last runResult gets reported)
-			
-			while (handler != null && task.canRun()) {
-				runResult = executeHandler(handler);
+            runResult = executeHandler(handler);        // exceptions thrown by handler are handled in this method
 
-                task.refresh(executionResult);
-                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-                    LOGGER.info("Task not in the RUNNABLE state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
-                    break;
-                }
-				
-				if (task.canRun())
-					task.finishHandler(executionResult);			// closes the task, if there are no remaining handlers
-				else
-					break;											// in case of suspension/shutdown, we expect that the task will be restarted in the future, so we will not close it
-				
-				if (runResult.getOperationResult().isError())
-					break;
-				
-				handler = taskManagerImpl.getHandler(task.getHandlerUri());
-			}
+            task.refresh(executionResult);
+
+//            if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+//                LOGGER.info("Task not in the RUNNABLE state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
+//                break;
+//            }
+
+            // let us treat various exit situations here...
+
+            if (!task.canRun() || runResult.getRunResultStatus() == TaskRunResultStatus.INTERRUPTED) {
+                // first, if a task was interrupted, we do not want to change its status
+                LOGGER.trace("Task was interrupted, exiting the execution routine. Task = {}", task);
+            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.TEMPORARY_ERROR) {
+                // in case of temporary error, we want to suspend the task and exit
+                LOGGER.info("Task encountered temporary error, suspending it. Task = {}", task);
+                taskManagerImpl.suspendTask(task, -1L, true, executionResult);
+            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.RESTART_REQUESTED) {
+                // in case of RESTART_REQUESTED we have to get (new) current handler and restart it
+                // this is implemented by pushHandler and by Quartz
+            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
+                // PERMANENT ERROR means we do not continue executing other handlers, we just close this task
+                taskManagerImpl.closeTask(task, executionResult);
+            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED) {
+                // FINISHED means we continue with other handlers, if there are any
+                task.finishHandler(executionResult);			// this also closes the task, if there are no remaining handlers
+                // if there are remaining handlers, task will be re-executed by Quartz
+            } else {
+                throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);
+            }
 
 			recordCycleRunFinish(runResult, executionResult);
 
@@ -269,25 +274,46 @@ mainCycle:
 
 				RepositoryCache.enter();
 
-				recordCycleRunStart(executionResult);
-				TaskRunResult runResult = executeHandler(handler);
-				boolean canContinue = recordCycleRunFinish(runResult, executionResult);
-					
-				RepositoryCache.exit();
+                TaskRunResult runResult;
+                try {
+				    recordCycleRunStart(executionResult);
+				    runResult = executeHandler(handler);
+				    boolean canContinue = recordCycleRunFinish(runResult, executionResult);
+                    if (!canContinue) { // in case of task disappeared
+                        break;
+                    }
+                } finally {
+    				RepositoryCache.exit();
+                }
 
-				// in case of task disappeared
-				if (!canContinue)
-					break;
-				
-				// if the task is loosely-bound, exit the loop here
+                // let us treat various exit situations here...
+
+                if (!task.canRun() || runResult.getRunResultStatus() == TaskRunResultStatus.INTERRUPTED) {
+                    // first, if a task was interrupted, we do not want to change its status
+                    LOGGER.trace("Task was interrupted, exiting the execution cycle. Task = {}", task);
+                    break;
+                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.TEMPORARY_ERROR) {
+                    LOGGER.trace("Task encountered temporary error, continuing with the execution cycle. Task = {}", task);
+                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.RESTART_REQUESTED) {
+                    // in case of RESTART_REQUESTED we have to get (new) current handler and restart it
+                    // this is implemented by pushHandler and by Quartz
+                    LOGGER.trace("Task returned RESTART_REQUESTED state, exiting the execution cycle. Task = {}", task);
+                    break;
+                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
+                    LOGGER.info("Task encountered permanent error, suspending the task. Task = {}", task);
+                    taskManagerImpl.suspendTask(task, -1L, true, executionResult);
+                    break;
+                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED) {
+                    LOGGER.trace("Task handler finished, continuing with the execution cycle. Task = {}", task);
+                } else {
+                    throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);
+                }
+
+                // if the task is loosely-bound, exit the loop here
 				if (task.isLooselyBound()) {
 					LOGGER.trace("CycleRunner loop: task is loosely bound, exiting the execution cycle");
 					break;
 				}
-
-				// in case the task thread was shut down (e.g. in case of task suspension) while processing...
-				if (!task.canRun())			
-					break;
 
                 // or, was the task suspended (closed, ...) remotely?
                 LOGGER.trace("CycleRunner loop: refreshing task after one iteration, task = {}", task);
@@ -303,9 +329,7 @@ mainCycle:
                     break;
                 }
 
-
                 // Determine how long we need to sleep and hit the bed
-				// TODO: consider the PERMANENT_ERROR state of the last run. in this case we should "suspend" the task
 
 				Integer interval = task.getSchedule() != null ? task.getSchedule().getInterval() : null;
 				if (interval == null) {
@@ -359,7 +383,6 @@ mainCycle:
 			throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		}
 	}
-
 	
     private TaskRunResult executeHandler(TaskHandler handler) {
 

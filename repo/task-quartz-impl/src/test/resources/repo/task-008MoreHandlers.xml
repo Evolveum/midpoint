@@ -41,8 +41,12 @@
 	<exclusivityStatus>released</exclusivityStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
 	<otherHandlersUriStack>
-		<c:uri>http://midpoint.evolveum.com/test/single-task-handler-2</c:uri>
-		<c:uri>http://midpoint.evolveum.com/test/single-task-handler-3</c:uri>
+        <uriStackEntry>
+            <handlerUri>http://midpoint.evolveum.com/test/single-task-handler-2</handlerUri>
+        </uriStackEntry>
+        <uriStackEntry>
+            <handlerUri>http://midpoint.evolveum.com/test/single-task-handler-3</handlerUri>
+        </uriStackEntry>
 	</otherHandlersUriStack>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
 	<recurrence>single</recurrence>

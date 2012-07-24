@@ -289,8 +289,12 @@ public class IntegrationTestTools {
 		System.out.println(TEST_OUT_PREFIX + testCase.getClass().getSimpleName() + "." + title + TEST_OUT_SUFFIX);
 		LOGGER.info(TEST_LOG_PREFIX + testCase.getClass().getSimpleName() + "." + title + TEST_LOG_SUFFIX);
 	}
-	
-	public static void waitFor(String message, Checker checker, int timeoutInterval) throws Exception {
+
+    public static void waitFor(String message, Checker checker, int timeoutInterval) throws Exception {
+        waitFor(message, checker, timeoutInterval, WAIT_FOR_LOOP_SLEEP_MILIS);
+    }
+
+	public static void waitFor(String message, Checker checker, int timeoutInterval, long sleepInterval) throws Exception {
 		System.out.println(message);
 		LOGGER.debug(LOG_MESSAGE_PREFIX + message);
 		long startTime = System.currentTimeMillis();
@@ -301,7 +305,7 @@ public class IntegrationTestTools {
 				LOGGER.debug(LOG_MESSAGE_PREFIX + "... done " + message);
 				return;
 			}
-			Thread.sleep(WAIT_FOR_LOOP_SLEEP_MILIS);
+			Thread.sleep(sleepInterval);
 		}
 		// we have timeout
 		System.out.println("Timeout while "+message);

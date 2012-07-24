@@ -826,6 +826,17 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="parent" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parent task, used to implement task hierarchies. A task can have a number of
+                                children (subtasks) that carry out some of the work. For example, a parent task
+                                can contain a complex model operation, and its subtasks contain individual
+                                approvals and/or elementary model operations. If null, this task is a "root-level"
+                                task that has no parent.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -994,8 +1005,6 @@
                             <xsd:documentation>
                                 What is to be done when the thread allocated to this task stops
                                 (e.g. via node shutdown or node crash).
-
-                                NOTE: This attribute is currently not used; its use is planned.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1286,8 +1295,6 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Earliest time when the task is allowed to start.
-
-                        NOTE: This attribute is currently not used; its use is planned.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1295,8 +1302,6 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Latest time when the task is allowed to start.
-
-                        NOTE: This attribute is currently not used; its use is planned.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1355,8 +1360,6 @@
                     <xsd:documentation>
                         What is to be done when the planned start time arrives without
                         the task actually starting.
-
-                        NOTE: This attribute is currently not used; its use is planned.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1371,15 +1374,55 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="uri" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="uriStackEntry" type="tns:UriStackEntry" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A URI that is a part of the stack.
+                        An entry of the URI stack.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="UriStackEntry">
+        <xsd:annotation>
+            <xsd:documentation>
+                An entry of the URI stack. It contains the handler URI as well as the schedule under which the handler should be run.
+                This allows e.g. to run a "main" handler once, and then run a subhandler under a different schedule (e.g. cyclically).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="handlerUri" type="xsd:anyURI">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URI of the task handler.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="schedule" type="tns:ScheduleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Schedule under which this handler should be executed (may be null).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="binding" type="tns:TaskBindingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Binding with which this handler should be executed (default = derived from schedule)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="extensionDelta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        List of deltas that should be put into extension when starting this handler.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
 
     <xsd:complexType name="ModelOperationStateType">
         <xsd:annotation>

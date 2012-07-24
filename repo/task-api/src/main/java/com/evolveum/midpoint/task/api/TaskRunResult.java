@@ -36,34 +36,49 @@ public final class TaskRunResult {
 	public enum TaskRunResultStatus {
 		/**
 		 * The task run has finished.
-		 * This does not necessarily mean that the task itself is finished. For single tasks this means that the task is finished, but it is different for reccurent tasks. 
-		 * The task may be a cycle and it will run again after it sleeps for a while.
-		 * Or it may be other type of recurrent task.
+         *
+		 * This does not necessarily mean that the task itself is finished. For single tasks this means that
+         * the task is finished, but it is different for recurrent tasks. Such a task will run again after
+         * it sleeps for a while (or after the scheduler will start it again).
 		 */
 		FINISHED, 
-		
-		/**
-		 * Task run haven't finished. It is executed in a different thread or on a different system.
-		 * TODO: do we need it? Is it correct?
-		 */
-		IN_PROGRESS, 
 		
 		/**
 		 * The run has failed.
 		 * 
 		 * The error is permanent. Unless the administrator does something to recover from the situation, there is no point in
-		 * re-trying the run. Usual case of this error is task miscofiguration.
+		 * re-trying the run. Usual case of this error is task misconfiguration.
 		 */
 		PERMANENT_ERROR,
 		
 		/**
 		 * Temporary failure during the run.
 		 * 
-		 * The error is temporary. The situation may change later when the conditions will be more "favorable". It makes sense to
-		 * retry the run. Usual cases of this error are network timeouts.
+		 * The error is temporary. The situation may change later when the conditions will be more "favorable".
+         * It makes sense to retry the run. Usual cases of this error are network timeouts.
+         *
+         * For single-run tasks we SUSPEND them on such occasion. So the administrator can release them after
+         * correcting the problem.
 		 */
-		TEMPORARY_ERROR
-	}
+		TEMPORARY_ERROR,
+
+        /**
+         * Task run hasn't finished but nevertheless it must end (for now). An example of such a situation is
+         * when the long-living task run execution is requested to stop (e.g. when suspending the task or
+         * shutting down the node).
+         *
+         * For single-run tasks this state means that the task SHOULD NOT be closed, nor the handler should
+         * be removed from the handler stack.
+         */
+        INTERRUPTED,
+
+        /**
+         * Task has to be restarted, typically because a new handler was put onto the handler stack during
+         * the task run.
+         */
+        RESTART_REQUESTED
+
+    }
 	
 	private long progress;
 	private TaskRunResultStatus runResultStatus;

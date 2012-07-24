@@ -134,6 +134,7 @@ public class WorkflowManager implements BeanFactoryAware {
         TaskService taskService = activitiEngine.getTaskService();
         TaskQuery tq = taskService.createTaskQuery();
         tq.taskAssignee(user);
+        LOGGER.info("countWorkItemsAssignedToUser, user=" + user + ": " + tq.count());
         return (int) tq.count();
     }
 
@@ -142,6 +143,7 @@ public class WorkflowManager implements BeanFactoryAware {
         TaskQuery tq = taskService.createTaskQuery();
         tq.taskAssignee(user);
         List<Task> tasks = tq.listPage(first, count);
+        LOGGER.info("listWorkItemsAssignedToUser, user=" + user + ", first/count=" + first + "/" + count + ": " + tasks);
         return tasksToWorkItems(tasks);
     }
 
@@ -166,12 +168,14 @@ public class WorkflowManager implements BeanFactoryAware {
     public int countWorkItemsAssignableToUser(String user, OperationResult parentResult) {
 
         List<String> groups = groupsForUser(user);
+        LOGGER.info("countWorkItemsAssignableToUser, user=" + user + ", groups: " + groups);
         if (groups.isEmpty()) {
             return 0;
         } else {
             TaskService taskService = activitiEngine.getTaskService();
             TaskQuery tq = taskService.createTaskQuery();
             tq.taskCandidateGroupIn(groups);
+            LOGGER.info("countWorkItemsAssignableToUser, user=" + user + ": " + tq.count());
             return (int) tq.count();
         }
     }
@@ -189,7 +193,7 @@ public class WorkflowManager implements BeanFactoryAware {
             tasks = tq.listPage(first, count);
         }
 
-        LOGGER.trace("Activiti tasks assignable to " + user + ": " + tasks);
+        LOGGER.info("Activiti tasks assignable to " + user + ": " + tasks);
         return tasksToWorkItems(tasks);
     }
 

@@ -41,6 +41,7 @@
         </audit>
         <taskManager>
             <jdbcJobStore>false</jdbcJobStore>
+            <testMode>true</testMode>
         </taskManager>
         <icf>
             <scanClasspath>true</scanClasspath>
