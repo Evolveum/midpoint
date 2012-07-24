@@ -254,7 +254,7 @@ public class PrismDomProcessor {
 				containerValue.add(newItem);
 			} else {
 				for (PrismValue newPVal: newItem.getValues()) {
-					existingItem.add(newPVal);
+					existingItem.add(newPVal.clone());
 				}
 			}
 		}

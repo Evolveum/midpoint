@@ -95,11 +95,11 @@ public class ShadowCacheUtil {
 		if (repoShadow != resourceShadow) {
 			repoAttributesContainer.getValue().clear();
 			for (ResourceAttribute resourceAttribute : resourceAttributesContainer.getAttributes()) {
-				// do not copy simulated activation attrbute
+				// do not copy simulated activation attribute
 				if (isSimulatedActivationAttribute(resourceAttribute, resourceShadow, resource)) {
 					continue;
 				}
-				repoAttributesContainer.add(resourceAttribute);
+				repoAttributesContainer.add(resourceAttribute.clone());
 			}
 		}
 

@@ -683,14 +683,6 @@ public class ModelController implements ModelService {
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
-
-				Collection<ItemDelta> modificationsCloned = new ArrayList<ItemDelta>();
-
-				for (ItemDelta delta : modifications) {
-					ItemDelta deltaNew = delta.clone();
-					modificationsCloned.add(deltaNew);
-
-				}
 				
 				userSynchronizer.synchronizeUser(syncContext, task, result);
 
@@ -802,7 +794,7 @@ public class ModelController implements ModelService {
 		}
 	}
 
-	private void applyAttributeDefinition(ItemDelta itemDelta,
+	private void applyAttributeDefinition(ItemDelta<?> itemDelta,
 			Collection<? extends ResourceAttributeDefinition> attributeDefinitions) throws SchemaException {
 		QName attributeName = itemDelta.getPath().last().getName();
 		for (ResourceAttributeDefinition attrDef: attributeDefinitions) {
@@ -832,53 +824,6 @@ public class ModelController implements ModelService {
 		syncContext.setUserPrimaryDelta(userDelta);
 
 		return syncContext;
-	}
-
-	private SyncContext userTypeModifyToContextAssertRecon(String oid, Collection<? extends ItemDelta> modifications,
-			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
-		
-		SyncContext syncContext = new SyncContext(prismContext);
-		syncContext.setDoReconciliationForAllAccounts(true);
-
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class);
-
-		// TODO? userOld?
-
-		syncContext.setUserOld(null);
-		syncContext.setUserNew(null);
-		syncContext.setUserPrimaryDelta(userDelta);
-
-		return syncContext;
-	}
-	
-	private void addAccountToContext(SyncContext syncContext, AccountShadowType accountType,
-			ChangeType changeType, OperationResult result) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, ConfigurationException, SecurityViolationException {
-
-		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
-		if (resourceOid == null) {
-			throw new SchemaException("Account shadow does not contain resource OID");
-		}
-		// We don't try to use resource that may be embedded in the account.
-		// This is pure XML and does not contain
-		// parsed schema. Fetching cached resource from provisioning is much
-		// more efficient
-		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, null, result)
-				.asObjectable();
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType,
-				prismContext);
-		syncContext.rememberResource(resourceType);
-
-		// Chances are that the account is already "refined", but let's make
-		// sure
-		PrismObject<AccountShadowType> refinedAccount = refinedSchema.refine(accountType.asPrismObject());
-		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(
-				AccountShadowType.class, changeType);
-		accountDelta.setObjectToAdd(refinedAccount);
-		ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
-		AccountSyncContext accountSyncContext = syncContext.createAccountSyncContext(rat);
-		accountSyncContext.setAccountPrimaryDelta(accountDelta);
-
 	}
 
 	@Override

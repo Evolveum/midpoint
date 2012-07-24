@@ -208,12 +208,12 @@ public class ConsolidationProcessor {
                         }
                     }
                     LOGGER.trace("Value {} added", value);
-                    propDelta.addValueToAdd((PrismPropertyValue)value);
+                    propDelta.addValueToAdd((PrismPropertyValue)value.clone());
                 }
 
                 if (!minusPvwos.isEmpty()) {
                     LOGGER.trace("Value {} deleted", value);
-                    propDelta.addValueToDelete((PrismPropertyValue)value);
+                    propDelta.addValueToDelete((PrismPropertyValue)value.clone());
                 }
             }
 

@@ -398,7 +398,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		for (V replaceVal : origValuesToReplace) {
 			if (!isIn(existingValues, replaceVal) && !isIn(getValuesToAdd(), replaceVal)) {
-				addValueToAdd(replaceVal);
+				addValueToAdd((V) replaceVal.clone());
 			}
 		}
 	}

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -1113,7 +1114,7 @@ public class TaskQuartzImpl implements Task {
 	private PropertyDelta<?> setExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
 		
         PropertyDelta delta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
-        delta.setValuesToReplace(property.getValues());
+        delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
         
 		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
 		modifications.add(delta);

@@ -80,6 +80,9 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 	}
 
 	public void setParent(Itemable parent) {
+		if (this.parent != null && parent != null && this.parent != parent) {
+			throw new IllegalStateException("Attempt to reset value parent from "+this.parent+" to "+parent);
+		}
 		this.parent = parent;
 	}
 	
@@ -186,7 +189,9 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 	protected void copyValues(PrismValue clone) {
 		clone.type = this.type;
 		clone.source = this.source;
-		clone.parent = this.parent;
+		// Do not clone parent. The clone will most likely go to a different prism
+		// and setting the parent will make it difficult to add it there.
+		clone.parent = null;
 	}
 	
 	public static <T extends PrismValue> Collection<T> cloneCollection(Collection<T> values) {
@@ -195,6 +200,17 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 			clones.add((T)value.clone());
 		}
 		return clones;
+	}
+	
+	/**
+     * Sets all parents to null. This is good if the items are to be "transplanted" into a
+     * different Containerable.
+     */
+	public static <T extends PrismValue> Collection<T> resetParentCollection(Collection<T> values) {
+    	for (T value: values) {
+    		value.setParent(null);
+    	}
+    	return values;
 	}
 	
 	@Override

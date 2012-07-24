@@ -168,7 +168,8 @@ public final class PrismForJAXBUtil {
         }
     }
 
-    public static <T extends Containerable> boolean setFieldContainerValue(PrismContainerValue<?> parent, QName fieldName, PrismContainerValue<T> fieldContainerValue) {
+    public static <T extends Containerable> boolean setFieldContainerValue(PrismContainerValue<?> parent, QName fieldName, 
+    		PrismContainerValue<T> fieldContainerValue) {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(fieldName, "QName must not be null.");
 
@@ -180,6 +181,10 @@ public final class PrismForJAXBUtil {
 	                fieldContainer.clear();
 	            }
 	        } else {
+	        	if (fieldContainerValue.getParent() != null && fieldContainerValue.getParent() != parent) {
+	        		// This value is already part of another prism. We need to clone it to add it here.
+	        		fieldContainerValue = fieldContainerValue.clone();
+	        	}
 	            fieldContainer = new PrismContainer<T>(fieldName);
 	            fieldContainer.add(fieldContainerValue);
 	            if (parent.getContainer() == null) {
@@ -256,6 +261,9 @@ public final class PrismForJAXBUtil {
         	throw new IllegalArgumentException("No reference "+referenceName+" in "+parentValue);
         }
     	if (reference.isEmpty()) {
+    		if (value.getParent() != null) {
+    			value = value.clone();
+    		}
     		reference.add(value);
     	} else {
             if (value == null) {

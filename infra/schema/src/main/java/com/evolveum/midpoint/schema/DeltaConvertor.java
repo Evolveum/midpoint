@@ -212,11 +212,11 @@ public class DeltaConvertor {
         Item<?> item = items.iterator().next();
         ItemDelta itemDelta = item.createDelta(parentPath.subPath(item.getName()));
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
-        	itemDelta.addValuesToAdd(item.getValues());
+        	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(item.getValues()));
         } else if (propMod.getModificationType() == ModificationTypeType.DELETE) {
-        	itemDelta.addValuesToDelete(item.getValues());
+        	itemDelta.addValuesToDelete(PrismValue.resetParentCollection(item.getValues()));
         } else if (propMod.getModificationType() == ModificationTypeType.REPLACE) {
-        	itemDelta.setValuesToReplace(item.getValues());
+        	itemDelta.setValuesToReplace(PrismValue.resetParentCollection(item.getValues()));
         }
 
         return itemDelta;

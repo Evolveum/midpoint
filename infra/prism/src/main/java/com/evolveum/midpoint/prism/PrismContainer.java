@@ -258,11 +258,11 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 				iterator.remove();
 			}
 		}
-		otherValue.setParent(this);
+		PrismContainerValue<V> clonedOtherValue = otherValue.clone();
 		if (getDefinition() != null) {
-			otherValue.applyDefinition(getDefinition());
+			clonedOtherValue.applyDefinition(getDefinition());
 		}
-		add(otherValue);
+		add(clonedOtherValue);
 	}
 
 	/**

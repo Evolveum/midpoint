@@ -383,7 +383,7 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 			throw new IllegalStateException("Cannot create output from "+this+" as it is not zero-only");
 		}
 		Item<V> output = outputDefinition.instantiate();
-		output.addAll(outputTriple.getZeroSet());
+		output.addAll(PrismValue.cloneCollection(outputTriple.getZeroSet()));
 		return output;
 	}
 	

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -117,9 +118,9 @@ public class UserPolicyProcessor {
 			ItemDelta itemDelta = output.createDelta(itemPath);
 
 			if (itemDefinition.isMultiValue()) {
-				itemDelta.addValuesToAdd(output.getValues());
+				itemDelta.addValuesToAdd(PrismValue.cloneCollection(output.getValues()));
 			} else {
-				itemDelta.setValuesToReplace(output.getValues());
+				itemDelta.setValuesToReplace(PrismValue.cloneCollection(output.getValues()));
 			}
 
 			if (userSecondaryDelta == null) {

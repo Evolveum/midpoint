@@ -187,6 +187,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     }
     
     public void setParent(PrismValue parentValue) {
+    	if (this.parent != null && parentValue != null && this.parent != parentValue) {
+    		throw new IllegalStateException("Attempt to reset parent of item "+this+" from "+this.parent+" to "+parentValue);
+    	}
     	this.parent = parentValue;
     }
     
@@ -476,6 +479,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
         clone.name = this.name;
         clone.definition = this.definition;
         clone.prismContext = this.prismContext;
+        // Do not clone parent so the cloned item can be safely placed to
+        // another item
+        clone.parent = null;
     }
     
     public static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
@@ -485,6 +491,17 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	}
     	return clones;
     }
+    
+    /**
+     * Sets all parents to null. This is good if the items are to be "transplanted" into a
+     * different Containerable.
+     */
+	public static <T extends Item> Collection<T> resetParentCollection(Collection<T> items) {
+    	for (T item: items) {
+    		item.setParent(null);
+    	}
+    	return items;
+	}
     
     public static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type) {
     	T item = null;

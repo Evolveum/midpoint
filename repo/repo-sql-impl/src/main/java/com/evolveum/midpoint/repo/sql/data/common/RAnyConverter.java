@@ -304,7 +304,7 @@ public class RAnyConverter {
 
         Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), value.getName(), item.getDefinition());
 
-        item.addAll(parsedItem.getValues());
+        item.addAll(PrismValue.resetParentCollection(parsedItem.getValues()));
     }
 
     private void addValueToItem(RValue value, Item item) throws SchemaException {
