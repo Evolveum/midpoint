@@ -92,8 +92,8 @@ public class ShadowCache {
 	private PrismContext prismContext;
 	@Autowired(required = true)
 	private ErrorHandlerFactory errorHandlerFactory;
-	@Autowired(required = true)
-	private ResourceTypeManager resourceTypeManager;
+//	@Autowired(required = true)
+//	private ResourceTypeManager resourceTypeManager;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
@@ -226,8 +226,6 @@ public class ShadowCache {
 				throw new SchemaException("Shadow " + shadow + " does not have an resource OID, cannot add it.");
 			}
 			resource = getResource(resourceOid, parentResult);
-		} else {
-			completeResource(resource, parentResult);
 		}
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
@@ -278,9 +276,7 @@ public class ShadowCache {
 
 			if (resource == null) {
 				resource = getResource(ResourceObjectShadowUtil.getResourceOid(accountShadow), parentResult);
-			} else{
-				completeResource(resource, parentResult);
-			}
+			} 
 
 			LOGGER.trace("Deleting obeject {} from the resource {}.", ObjectTypeUtil.toShortString(objectType),
 					ObjectTypeUtil.toShortString(resource));
@@ -336,9 +332,7 @@ public class ShadowCache {
 				}
 				resource = getResource(resourceOid, parentResult);
 
-			} else {
-				completeResource(resource, parentResult);
-			}
+			} 
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow.asPrismObject()
@@ -659,13 +653,10 @@ public class ShadowCache {
 		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, parentResult);
 		// return resource;
 
-		return completeResource(resource.asObjectable(), parentResult);
+		return shadowConverter.completeResource(resource.asObjectable(), parentResult);
 	}
 	
-	private ResourceType completeResource(ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
-		return resourceTypeManager.completeResource(resource, null, parentResult);
-	}
-
+	
 	private void addOrReplaceShadowToRepository(ResourceObjectShadowType shadow, boolean isReconciled, boolean error,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 

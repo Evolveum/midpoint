@@ -142,41 +142,39 @@ public class ResourceTypeManager {
 			// There is no schema, we need to pull it from the resource
 
 			if (resourceSchema == null) { // unless it has been already pulled
-				shadowConverter.getResourceSchema(resource, parentResult);
+				LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
+				try {
+					connector = getConnectorInstance(resource, parentResult);
+				} catch (ObjectNotFoundException e) {
+					throw new ObjectNotFoundException("Error resolving connector reference in " + resource
+							+ ": Error creating connector instace: " + e.getMessage(), e);
+				}
+				try {
+					// Fetch schema from connector, UCF will convert it to
+					// Schema Processor format and add all
+					// necessary annotations
+					resourceSchema = connector.getResourceSchema(parentResult);
+
+				} catch (CommunicationException ex) {
+					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+					// Ignore the error. The resource is not complete but the upper layer code should deal with that
+					// Throwing an error will effectively break any operation with the resource (including delete).
+				} catch (GenericFrameworkException ex) {
+					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+					// Ignore the error. The resource is not complete but the upper layer code should deal with that
+					// Throwing an error will effectively break any operation with the resource (including delete).
+				} catch (ConfigurationException ex) {
+					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+					// Ignore the error. The resource is not complete but the upper layer code should deal with that
+					// Throwing an error will effectively break any operation with the resource (including delete).
+				}
+				if (resourceSchema == null) {
+					LOGGER.warn("No resource schema generated for {}", resource);
+				} else {
+					LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
+						+ resourceSchema.getDefinitions().size() + " definitions");
+				}
 			}
-//				LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
-//				try {
-//					connector = getConnectorInstance(resource, parentResult);
-//				} catch (ObjectNotFoundException e) {
-//					throw new ObjectNotFoundException("Error resolving connector reference in " + resource
-//							+ ": Error creating connector instace: " + e.getMessage(), e);
-//				}
-//				try {
-//					// Fetch schema from connector, UCF will convert it to
-//					// Schema Processor format and add all
-//					// necessary annotations
-//					resourceSchema = connector.getResourceSchema(parentResult);
-//
-//				} catch (CommunicationException ex) {
-//					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
-//					// Ignore the error. The resource is not complete but the upper layer code should deal with that
-//					// Throwing an error will effectively break any operation with the resource (including delete).
-//				} catch (GenericFrameworkException ex) {
-//					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
-//					// Ignore the error. The resource is not complete but the upper layer code should deal with that
-//					// Throwing an error will effectively break any operation with the resource (including delete).
-//				} catch (ConfigurationException ex) {
-//					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
-//					// Ignore the error. The resource is not complete but the upper layer code should deal with that
-//					// Throwing an error will effectively break any operation with the resource (including delete).
-//				}
-//				if (resourceSchema == null) {
-//					LOGGER.warn("No resource schema generated for {}", resource);
-//				} else {
-//					LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
-//						+ resourceSchema.getDefinitions().size() + " definitions");
-//				}
-//			}
 			
 			if (resourceSchema == null) {
 				// No not even bother to put this in the cache
@@ -273,6 +271,7 @@ public class ResourceTypeManager {
 	 */
 	private void applyConnectorSchemaToResource(ResourceType resource, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
+		
 		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource, result);
 		PrismContainerDefinition<?> configurationContainerDefintion = ConnectorTypeUtil
 				.findConfigurationContainerDefintion(connectorType, prismContext);
@@ -488,8 +487,7 @@ public class ResourceTypeManager {
 		} catch (SchemaException e) {
 			parentResult.recordFatalError("Unable to parse resource schema: " + e.getMessage(), e);
 			throw new SchemaException("Unable to parse resource schema: " + e.getMessage(), e);
-		} 
-		catch (ObjectNotFoundException e) {
+		} catch (ObjectNotFoundException e) {
 			// this really should not happen
 			parentResult.recordFatalError("Unexpected ObjectNotFoundException: " + e.getMessage(), e);
 			throw new SystemException("Unexpected ObjectNotFoundException: " + e.getMessage(), e);
