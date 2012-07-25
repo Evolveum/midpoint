@@ -55,6 +55,8 @@ function initMessages() {
 				$(this).append("<span class='"+ arrow +"-arrow arrow-down'></span>");
 				var exceptionHeight = $(this).find(".messages-topException").height();
 				var arrowPosition = $(this).height() / 2 - exceptionHeight + 3;
+				alert($(this).height());
+				//var arrowPosition = $(this).height() / 2 + 4;
 				$("." + arrow +"-arrow").css("marginTop", - arrowPosition);
 			}
 		}
@@ -143,7 +145,7 @@ function initMessages() {
 	$(".messagePanel .messages-topSucc").click(function(){
 		var idBlock = $(this).attr("id");
 		var blockContent = $("#" + idBlock + "_content");
-		if(blockContent.find("ul").first().find("li").children().size() > 1){
+		if(isFilled(blockContent)){
 			if(blockContent.css("display") === "none"){
 				blockContent.show();
 				$(this).find(".messages-topSucc-arrow").addClass("arrow-up");

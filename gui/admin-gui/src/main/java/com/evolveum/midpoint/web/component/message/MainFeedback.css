@@ -107,8 +107,8 @@ ul.messagesTop .messages-topError-arrow {
 	display: inline-block;
     height: 16px;
     width: 16px;
-    float: right;
-    top: 50%;
+    position: absolute;
+    right: 60px;
 }
 
 ul.messagesTop .messages-topError .arrow-down {
@@ -528,7 +528,9 @@ ul.tempMessagesTop .messages-info {
 }
 	
 .collapseExpand {
-	float: right;
+	display: inline-block;
+	position: absolute;
+	right: 65px;
 	font-size: 12px;3
 	font-weight: bold;
 }
