@@ -33,25 +33,6 @@
     </parent>
     <build>
         <finalName>midpoint</finalName>
-        <plugins>
-	      <plugin>
-	        <groupId>org.codehaus.mojo</groupId>
-	        <artifactId>buildnumber-maven-plugin</artifactId>
-	        <version>1.1</version>
-	        <executions>
-	          <execution>
-	            <phase>validate</phase>
-	            <goals>
-	              <goal>create</goal>
-	            </goals>
-	          </execution>
-	        </executions>
-	        <configuration>
-	          <doCheck>true</doCheck>
-	          <doUpdate>true</doUpdate>
-	        </configuration>
-	      </plugin>
-	    </plugins>
         <resources>
             <resource>
                 <filtering>false</filtering>
@@ -93,7 +74,7 @@
                     <include>**/*.properties</include>
                 </includes>
             </testResource>
-        </testResources>
+        </testResources>        
     </build>
     <organization>
         <name>Evolveum</name>
