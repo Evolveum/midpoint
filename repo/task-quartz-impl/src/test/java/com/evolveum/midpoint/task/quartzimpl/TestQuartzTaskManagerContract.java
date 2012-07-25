@@ -1015,7 +1015,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
             @Override
             public void timeout() {
             }
-        }, 20000, 2000);
+        }, 30000, 3000);
 
         Task task = taskManager.getTask(taskOid(test), result);
         AssertJUnit.assertTrue("Progress is too low", task.getProgress() >= 2);
