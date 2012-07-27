@@ -50,6 +50,7 @@
         <icefaces.version>2.0.1</icefaces.version>
         <icepush.version>2.0.1</icepush.version>
         <jaxb.version>2.2.3</jaxb.version>
+        <jaxb-xjc.version>2.2.4-1</jaxb-xjc.version>
         <jsf.version>2.1.0</jsf.version>
         <junit.version>4.8.2</junit.version>
         <mysql.connector.version>5.1.17</mysql.connector.version>
@@ -154,8 +155,8 @@
             <dependency>
                 <groupId>com.sun.xsom</groupId>
                 <artifactId>xsom</artifactId>
-                <version>20100725</version>
-                <!-- <version>20110809</version> -->
+                <!-- <version>20100725</version> -->
+                <version>20110809</version>
             </dependency>
             <dependency>
                 <groupId>commons-beanutils</groupId>
