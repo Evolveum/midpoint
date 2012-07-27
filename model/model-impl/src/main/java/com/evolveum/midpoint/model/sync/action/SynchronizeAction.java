@@ -24,9 +24,10 @@ package com.evolveum.midpoint.model.sync.action;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -94,11 +96,11 @@ public class SynchronizeAction extends BaseAction {
             throw new SynchronizationException(message);
         }
 
-        SyncContext context = null;
+        LensContext<UserType, AccountShadowType> context = null;
         try {
             context = createSyncContext(userType, change.getResource().asObjectable());
 
-            AccountSyncContext accountContext = createAccountSyncContext(context, change,
+            LensProjectionContext<AccountShadowType> accountContext = createAccountSyncContext(context, change,
                     null, null);
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
@@ -140,15 +142,16 @@ public class SynchronizeAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private SyncContext createSyncContext(UserType user, ResourceType resource) throws SchemaException {
+    private LensContext<UserType, AccountShadowType> createSyncContext(UserType user, ResourceType resource) throws SchemaException {
         LOGGER.debug("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
 
-        SyncContext context = new SyncContext(getPrismContext());
+        LensContext<UserType, AccountShadowType> context = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, getPrismContext());
+        LensFocusContext<UserType> focusContext = context.createFocusContext();
         PrismObject<UserType> oldUser = user.asPrismObject();
-        context.setUserOld(oldUser);
+        focusContext.setObjectOld(oldUser);
         context.rememberResource(resource);
 
         return context;

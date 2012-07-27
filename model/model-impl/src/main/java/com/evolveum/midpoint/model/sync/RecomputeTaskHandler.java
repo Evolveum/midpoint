@@ -29,9 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.ChangeExecutor;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
@@ -77,7 +79,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 	private PrismContext prismContext;
 	
     @Autowired(required = true)
-    private UserSynchronizer userSynchronizer;
+    private Clockwork clockwork;
     
     @Autowired
     private ChangeExecutor changeExecutor;
@@ -214,14 +216,15 @@ public class RecomputeTaskHandler implements TaskHandler {
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Reconciling user {}", user);
 		
-		SyncContext syncContext = new SyncContext(prismContext);
-		syncContext.setUserOld(user);
-		syncContext.setUserOid(user.getOid());
+		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
+		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
+		focusContext.setObjectOld(user);
+		focusContext.setOid(user.getOid());
 
 		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
-		syncContext.setDoReconciliationForAllAccounts(true);
+		syncContext.setDoReconciliationForAllProjections(true);
 		
-		userSynchronizer.synchronizeUser(syncContext, task, result);
+		clockwork.run(syncContext, task, result);
 		
 		LOGGER.trace("Reconciling of user {}: context:\n{}", user,syncContext.dump());
 		

@@ -19,15 +19,13 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,7 +37,6 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -49,7 +46,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -88,9 +87,22 @@ public class ReconciliationProcessor {
      * @param result
      * @throws SchemaException 
      */
-    void processReconciliation(SyncContext context, AccountSyncContext accContext, OperationResult result) throws SchemaException {
-        OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);
-
+    <F extends ObjectType, P extends ObjectType> void processReconciliation(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) throws SchemaException {
+    	LensFocusContext<F> focusContext = context.getFocusContext();
+    	if (focusContext == null) {
+    		return;
+    	}
+    	if (focusContext.getObjectTypeClass() != UserType.class) {
+    		// We can do this only for user.
+    		return;
+    	}
+    	processReconciliationUser((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
+    }
+    
+    void processReconciliationUser(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accContext, OperationResult result) throws SchemaException {
+    
+    OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);    
+        
         try {
             if (!accContext.isDoReconciliation()) {
             	return;
@@ -102,7 +114,7 @@ public class ReconciliationProcessor {
             	return;
             }
 
-            if (accContext.getAccountOld() == null) {
+            if (accContext.getObjectOld() == null) {
                 LOGGER.warn("Can't do reconciliation. Account context doesn't contain old version of account.");
                 return;
             }
@@ -132,10 +144,10 @@ public class ReconciliationProcessor {
         }
     }
 
-    private void reconcileAccount(AccountSyncContext accCtx,
+    private void reconcileAccount(LensProjectionContext<AccountShadowType> accCtx,
             Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes, RefinedAccountDefinition accountDefinition) throws SchemaException {
 
-    	PrismObject<AccountShadowType> account = accCtx.getAccountNew();
+    	PrismObject<AccountShadowType> account = accCtx.getObjectNew();
 
         PrismContainer attributesContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
         Collection<QName> attributeNames = MiscUtil.union(squeezedAttributes.keySet(),attributesContainer.getValue().getPropertyNames());
@@ -192,7 +204,7 @@ public class ReconciliationProcessor {
         }
     }
 
-	private void recordDelta(AccountSyncContext accCtx, ResourceAttributeDefinition attrDef, ChangeType changeType, Object value) throws SchemaException {
+	private void recordDelta(LensProjectionContext<AccountShadowType> accCtx, ResourceAttributeDefinition attrDef, ChangeType changeType, Object value) throws SchemaException {
 		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrDef, value});
 		
 		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName(), attrDef);

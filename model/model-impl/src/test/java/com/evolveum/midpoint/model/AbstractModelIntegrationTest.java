@@ -52,6 +52,9 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
@@ -312,48 +315,54 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
 	}
 	
-	protected void fillContextWithUser(SyncContext context, String userOid, OperationResult result) throws SchemaException,
+	protected LensContext<UserType, AccountShadowType> createUserAccountContext() {
+		return new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
+	}
+	
+	protected void fillContextWithUser(LensContext<UserType, AccountShadowType> context, String userOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
-        context.setUserOld(user);
+        LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+        focusContext.setObjectOld(user);
     }
 	
-	protected void fillContextWithEmtptyAddUserDelta(SyncContext context, OperationResult result) throws SchemaException {
+	protected void fillContextWithEmtptyAddUserDelta(LensContext<UserType, AccountShadowType> context, OperationResult result) throws SchemaException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyAddDelta(UserType.class, null, prismContext);
-		context.setUserPrimaryDelta(userDelta);
+		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+		focusContext.setPrimaryDelta(userDelta);
 	}
 
-	protected void fillContextWithAccount(SyncContext context, String accountOid, OperationResult result) throws SchemaException,
+	protected void fillContextWithAccount(LensContext<UserType, AccountShadowType> context, String accountOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismObject<AccountShadowType> account = repositoryService.getObject(AccountShadowType.class, accountOid, result);
         fillContextWithAccount(context, account, result);
 	}
 
-	protected void fillContextWithAccountFromFile(SyncContext context, String filename, OperationResult result) throws SchemaException,
+	protected void fillContextWithAccountFromFile(LensContext<UserType, AccountShadowType> context, String filename, OperationResult result) throws SchemaException,
 	ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(filename));
 		fillContextWithAccount(context, account, result);
 	}
 
-    protected void fillContextWithAccount(SyncContext context, PrismObject<AccountShadowType> account, OperationResult result) throws SchemaException,
+    protected void fillContextWithAccount(LensContext<UserType, AccountShadowType> context, PrismObject<AccountShadowType> account, OperationResult result) throws SchemaException,
 		ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	AccountShadowType accountType = account.asObjectable();
         String resourceOid = accountType.getResourceRef().getOid();
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
         applyResourceSchema(accountType, resourceType);
         ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
-        AccountSyncContext accountSyncContext = context.createAccountSyncContext(rat);
+        LensProjectionContext<AccountShadowType> accountSyncContext = context.findOrCreateProjectionContext(rat);
         accountSyncContext.setOid(account.getOid());
-		accountSyncContext.setAccountOld(account);
+		accountSyncContext.setObjectOld(account);
 		accountSyncContext.setResource(resourceType);
-		accountSyncContext.fixAccounts();
+		accountSyncContext.fixShadows();
 		context.rememberResource(resourceType);
     }
     
-    protected void makeImportSyncDelta(AccountSyncContext accContext) {
-    	PrismObject<AccountShadowType> syncAccountToAdd = accContext.getAccountOld().clone();
+    protected void makeImportSyncDelta(LensProjectionContext<AccountShadowType> accContext) {
+    	PrismObject<AccountShadowType> syncAccountToAdd = accContext.getObjectOld().clone();
     	ObjectDelta<AccountShadowType> syncDelta = ObjectDelta.createAddDelta(syncAccountToAdd);
-    	accContext.setAccountSyncDelta(syncDelta);
+    	accContext.setSyncDelta(syncDelta);
     }
     
     /**
@@ -363,48 +372,51 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
     	IntegrationTestTools.applyResourceSchema(accountType, resourceType, prismContext);
     }
 
-	protected ObjectDelta<UserType> addModificationToContext(SyncContext context, String filename) throws JAXBException,
+	protected ObjectDelta<UserType> addModificationToContext(LensContext<UserType, AccountShadowType> context, String filename) throws JAXBException,
 			SchemaException, FileNotFoundException {
 	    ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename), ObjectModificationType.class);
 	    ObjectDelta<UserType> userDelta = DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
-	    context.addPrimaryUserDelta(userDelta);
+	    LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+	    focusContext.addPrimaryDelta(userDelta);
 	    return userDelta;
 	}
 	
-	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(SyncContext context, QName propertyName,
+	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(LensContext<UserType, AccountShadowType> context, QName propertyName,
 			Object... propertyValues) throws SchemaException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, context.getUserOld().getOid(), 
+		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, focusContext.getObjectOld().getOid(), 
 				propertyName, prismContext, propertyValues);
-	    context.addPrimaryUserDelta(userDelta);
+		focusContext.addPrimaryDelta(userDelta);
 	    return userDelta;
 	}
 	
-	protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(SyncContext context, String filename) throws JAXBException,
+	protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(LensContext<UserType, AccountShadowType> context, String filename) throws JAXBException,
 	SchemaException, FileNotFoundException {
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(filename));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddReference(UserType.class, context.getUserOld().getOid(),
+		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddReference(UserType.class, focusContext.getObjectOld().getOid(),
 				UserType.F_ACCOUNT_REF, prismContext, account);
-		context.addPrimaryUserDelta(userDelta);
+		focusContext.addPrimaryDelta(userDelta);
 		return userDelta;
 	}
 	
-	protected <T> ObjectDelta<AccountShadowType> addModificationToContextReplaceAccountAttribute(SyncContext context, String accountOid, 
+	protected <T> ObjectDelta<AccountShadowType> addModificationToContextReplaceAccountAttribute(LensContext<UserType, AccountShadowType> context, String accountOid, 
 			String attributeLocalName, T... propertyValues) throws SchemaException {
-		AccountSyncContext accCtx = context.findAccountSyncContextByOid(accountOid);		
+		LensProjectionContext<AccountShadowType> accCtx = context.findProjectionContextByOid(accountOid);		
 		ObjectDelta<AccountShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName, propertyValues);
-		accCtx.addAccountPrimaryDelta(accountDelta);
+		accCtx.addPrimaryDelta(accountDelta);
 	    return accountDelta;
 	}
 	
-	protected <T> ObjectDelta<AccountShadowType> addSyncModificationToContextReplaceAccountAttribute(SyncContext context, String accountOid, 
+	protected <T> ObjectDelta<AccountShadowType> addSyncModificationToContextReplaceAccountAttribute(LensContext<UserType, AccountShadowType> context, String accountOid, 
 			String attributeLocalName, T... propertyValues) throws SchemaException {
-		AccountSyncContext accCtx = context.findAccountSyncContextByOid(accountOid);		
+		LensProjectionContext<AccountShadowType> accCtx = context.findProjectionContextByOid(accountOid);		
 		ObjectDelta<AccountShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName, propertyValues);
 		accCtx.addAccountSyncDelta(accountDelta);
 	    return accountDelta;
 	}
 
-	protected <T> ObjectDelta<AccountShadowType> createAccountDelta(AccountSyncContext accCtx, String accountOid, 
+	protected <T> ObjectDelta<AccountShadowType> createAccountDelta(LensProjectionContext<AccountShadowType> accCtx, String accountOid, 
 			String attributeLocalName, T... propertyValues) throws SchemaException {
 		ResourceType resourceType = accCtx.getResource();
 		QName attrQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeLocalName);
@@ -419,40 +431,45 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return accountDelta;
 	}
 	
-	protected void assertNoUserPrimaryDelta(SyncContext context) {
-		ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
+	protected void assertNoUserPrimaryDelta(LensContext<UserType, AccountShadowType> context) {
+		LensFocusContext<UserType> focusContext = context.getFocusContext();
+		ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
 		if (userPrimaryDelta == null) {
 			return;
 		}
 		assertTrue("User primary delta is not empty", userPrimaryDelta.isEmpty());
 	}
 
-	protected void assertUserPrimaryDelta(SyncContext context) {
-		ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
+	protected void assertUserPrimaryDelta(LensContext<UserType, AccountShadowType> context) {
+		LensFocusContext<UserType> focusContext = context.getFocusContext();
+		ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
 		assertNotNull("User primary delta is null", userPrimaryDelta);
 		assertFalse("User primary delta is empty", userPrimaryDelta.isEmpty());
 	}
 	
-	protected void assertNoUserSecondaryDelta(SyncContext context) throws SchemaException {
-		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
+	protected void assertNoUserSecondaryDelta(LensContext<UserType, AccountShadowType> context) throws SchemaException {
+		LensFocusContext<UserType> focusContext = context.getFocusContext();
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
 		if (userSecondaryDelta == null) {
 			return;
 		}
 		assertTrue("User secondary delta is not empty", userSecondaryDelta.isEmpty());
 	}
 
-	protected void assertUserSecondaryDelta(SyncContext context) throws SchemaException {
-		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
+	protected void assertUserSecondaryDelta(LensContext<UserType, AccountShadowType> context) throws SchemaException {
+		LensFocusContext<UserType> focusContext = context.getFocusContext();
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
 		assertNotNull("User secondary delta is null", userSecondaryDelta);
 		assertFalse("User secondary delta is empty", userSecondaryDelta.isEmpty());
 	}
 	
-	protected void assertUserModificationSanity(SyncContext context) throws JAXBException {
-	    PrismObject<UserType> userOld = context.getUserOld();
+	protected void assertUserModificationSanity(LensContext<UserType, AccountShadowType> context) throws JAXBException {
+		LensFocusContext<UserType> focusContext = context.getFocusContext();
+	    PrismObject<UserType> userOld = focusContext.getObjectOld();
 	    if (userOld == null) {
 	    	return;
 	    }
-	    ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
+	    ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
 	    if (userPrimaryDelta != null) {
 		    assertEquals("No OID in userOld", userOld.getOid(), userPrimaryDelta.getOid());
 		    assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());

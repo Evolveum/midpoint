@@ -24,9 +24,10 @@ package com.evolveum.midpoint.model.sync.action;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
@@ -65,7 +67,8 @@ public class AddUserAction extends BaseAction {
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
 
-        SyncContext context = new SyncContext(getPrismContext());
+        LensContext<UserType, AccountShadowType> context = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, getPrismContext());
+        LensFocusContext<UserType> focusContext = context.createFocusContext();
         try {
             UserType user = getUser(userOid, subResult);
             if (user == null) {
@@ -78,7 +81,7 @@ public class AddUserAction extends BaseAction {
                 }
 
                 //add account sync context for inbound processing
-                AccountSyncContext accountContext = createAccountSyncContext(context, change, PolicyDecision.KEEP, null);
+                LensProjectionContext<AccountShadowType> accountContext = createAccountSyncContext(context, change, PolicyDecision.KEEP, null);
                 if (accountContext == null) {
                     LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                     return userOid;
@@ -94,7 +97,7 @@ public class AddUserAction extends BaseAction {
                 //we set secondary delta to create user when executing changes
                 ObjectDelta<UserType> delta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
                 delta.setObjectToAdd(oldUser);
-                context.setUserSecondaryDelta(delta, 0);
+                focusContext.setSecondaryDelta(delta, 0);
 
                 context.rememberResource(change.getResource().asObjectable());
             } else {
@@ -117,7 +120,7 @@ public class AddUserAction extends BaseAction {
         try {
             synchronizeUser(context, task, subResult);
 
-            userOid = context.getUserSecondaryDelta().getOid();
+            userOid = focusContext.getSecondaryDelta().getOid();
         
         } finally {
             subResult.recomputeStatus();

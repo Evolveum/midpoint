@@ -44,12 +44,12 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.synchronizer.TestUserSynchronizer;
-import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
-import com.evolveum.midpoint.model.test.util.mock.MockSyncContextListener;
+import com.evolveum.midpoint.model.test.util.mock.MockLensDebugListener;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -67,6 +67,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * @author semancik
@@ -86,7 +87,7 @@ public class TestSynchronizationService extends AbstractModelIntegrationTest {
 	SynchronizationService synchronizationService;
 	
 	@Autowired(required = true)
-	UserSynchronizer userSynchronizer;
+	Clockwork clockwork;
 	
 	@Autowired(required = true)
 	TaskManager taskManager;
@@ -103,8 +104,8 @@ public class TestSynchronizationService extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + ".test001AddedAccountJack");
         OperationResult result = task.getResult();
         
-        MockSyncContextListener mockListener = new MockSyncContextListener();
-        userSynchronizer.setSyncContextListener(mockListener);
+        MockLensDebugListener mockListener = new MockLensDebugListener();
+        clockwork.setDebugListener(mockListener);
         
         PrismObject<AccountShadowType> accountShadowJack = addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, AccountShadowType.class, result);
         DummyAccount dummyAccount = new DummyAccount();
@@ -122,22 +123,22 @@ public class TestSynchronizationService extends AbstractModelIntegrationTest {
         synchronizationService.notifyChange(change, task, result);
         
         // THEN
-        SyncContext context = mockListener.getLastSyncContext();
+        LensContext<UserType, AccountShadowType> context = mockListener.getLastSyncContext();
 
         display("Resulting context", context);
         assertNotNull("No resulting context", context);
         
-        assertNull("Unexpected user primary delta", context.getUserPrimaryDelta());
-        assertNull("Unexpected user secondary delta", context.getUserSecondaryDelta());
+        assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
+        assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());
         
         ResourceAccountType rat = new ResourceAccountType(resourceDummy.getOid(), null);
-		AccountSyncContext accCtx = context.getAccountSyncContext(rat);
+		LensProjectionContext<AccountShadowType> accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		
-		assertNull("Unexpected account primary delta", accCtx.getAccountPrimaryDelta());
-		assertNotNull("Missing account secondary delta", accCtx.getAccountSecondaryDelta());
+		assertNull("Unexpected account primary delta", accCtx.getPrimaryDelta());
+		assertNotNull("Missing account secondary delta", accCtx.getSecondaryDelta());
 		
-		assertLinked(context.getUserOld().getOid(), accountShadowJack.getOid());
+		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
                 
 //        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
 //        assertNull("Unexpected user changes", context.getUserSecondaryDelta());

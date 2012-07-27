@@ -23,10 +23,12 @@ package com.evolveum.midpoint.model.synchronizer;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.AccountConstruction;
+import com.evolveum.midpoint.model.lens.AssignmentProcessor;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -38,9 +40,12 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -93,15 +98,15 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
      * resulting changes are also empty.
      */
     @Test
-    public void test001OutboundEmpty() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+    public void test001OutboundEmpty() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
         displayTestTile(this, "test001OutboundEmpty");
 
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test001OutboundEmpty");
 
-        SyncContext context = new SyncContext(prismContext);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        context.recomputeNew();
+        context.recompute();
 
         // WHEN
         assignmentProcessor.processAssignmentsAccounts(context, result);
@@ -110,9 +115,9 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         display("outbound processor result", result);
 //		assertSuccess("Outbound processor failed (result)", result);
 
-        assertNull(context.getUserPrimaryDelta());
-        assertNull(context.getUserSecondaryDelta());
-        assertTrue(context.getAccountContexts().isEmpty());
+        assertNull(context.getFocusContext().getPrimaryDelta());
+        assertNull(context.getFocusContext().getSecondaryDelta());
+        assertTrue(context.getProjectionContexts().isEmpty());
     }
 
     @Test
@@ -122,11 +127,11 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test002ModifyUser");
 
-        SyncContext context = new SyncContext(prismContext);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
-        context.recomputeNew();
+        context.recompute();
 
         display("Input context", context);
 
@@ -140,16 +145,16 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         display("outbound processor result", result);
 //		assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
         assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
@@ -178,16 +183,16 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
     
 	@Test
-    public void test011AddAssignmentAddAccountDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
+    public void test011AddAssignmentAddAccountDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
         displayTestTile(this, "test011AddAssignmentAddAccountDirect");
 
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test011AddAssignmentAddAccountDirect");
 
-        SyncContext context = new SyncContext(prismContext);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, TestUserSynchronizer.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ);
-        context.recomputeNew();
+        context.recompute();
 
         display("Input context", context);
 
@@ -201,16 +206,16 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         display("outbound processor result", result);
 //		assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
         assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
@@ -235,16 +240,16 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test012AddAssignmentAddAccountDirectAssignmentWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException {
+    public void test012AddAssignmentAddAccountDirectAssignmentWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
         displayTestTile(this, "test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
 
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
 
-        SyncContext context = new SyncContext(prismContext);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, TestUserSynchronizer.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
-        context.recomputeNew();
+        context.recompute();
 
         display("Input context", context);
 
@@ -258,16 +263,16 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         display("outbound processor result", result);
 //		assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
         assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
@@ -322,11 +327,11 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test021AddAssignmentModifyAccountAssignment");
 
-        SyncContext context = new SyncContext(prismContext);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModificationToContext(context, TestUserSynchronizer.REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
-        context.recomputeNew();
+        context.recompute();
 
         display("Input context", context);
 
@@ -340,16 +345,16 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         display("outbound processor result", result);
 //		assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
         assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
@@ -410,15 +415,15 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test031DeleteAssignmentModifyAccount");
 
-        SyncContext context = new SyncContext(prismContext);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModificationToContext(context, TestUserSynchronizer.REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
-        context.recomputeUserNew();
+        context.recomputeFocus();
 
         display("Input context", context);
         
-        PrismObject<UserType> userNew = context.getUserNew();
+        PrismObject<UserType> userNew = context.getFocusContext().getObjectNew();
         assertEquals("Unexpected number of assignemnts in userNew after recompute", 1, userNew.asObjectable().getAssignment().size());
 
         assertUserModificationSanity(context);
@@ -431,16 +436,16 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         display("outbound processor result", result);
 //		assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
 
         assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());

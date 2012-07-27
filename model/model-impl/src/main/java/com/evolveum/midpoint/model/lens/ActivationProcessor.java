@@ -17,14 +17,12 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -36,9 +34,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -46,6 +42,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,9 +60,20 @@ public class ActivationProcessor {
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
 
-    public void processActivation(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public <F extends ObjectType, P extends ObjectType> void processActivation(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	LensFocusContext<F> focusContext = context.getFocusContext();
+    	if (focusContext == null) {
+    		return;
+    	}
+    	if (focusContext.getObjectTypeClass() != UserType.class) {
+    		// We can do this only for user.
+    		return;
+    	}
+    	processActivationUser((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
+    }
 
-        ObjectDelta<UserType> userDelta = context.getUserDelta();
+    public void processActivationUser(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        ObjectDelta<UserType> userDelta = context.getFocusContext().getDelta();
         if (userDelta == null) {
             // This must be a user delete or something similar. No point in proceeding
             LOGGER.trace("userDelta is null, skipping activation processing");
@@ -73,7 +81,7 @@ public class ActivationProcessor {
         }
         PropertyDelta enabledValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
-        PrismObject<UserType> userNew = context.getUserNew();
+        PrismObject<UserType> userNew = context.getFocusContext().getObjectNew();
         if (userNew == null) {
             // This must be a user delete or something similar. No point in proceeding
             LOGGER.trace("userNew is null, skipping activation processing");
@@ -94,7 +102,7 @@ public class ActivationProcessor {
             return;
         }
 
-        ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+        ObjectDelta<AccountShadowType> accountDelta = accCtx.getDelta();
         if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
             // adding new account, synchronize activation regardless whether the user activation was changed or not.
         } else if (enabledValueDelta != null) {

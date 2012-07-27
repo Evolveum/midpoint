@@ -27,7 +27,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ChangeExecutor;
-import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -92,12 +92,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	@Autowired(required = true)
 	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private UserSynchronizer userSynchronizer;
-
-	@Autowired
-	private ChangeExecutor changeExecutor;
 
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher changeNotificationDispatcher;

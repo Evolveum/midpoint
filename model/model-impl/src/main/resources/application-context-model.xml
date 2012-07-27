@@ -131,8 +131,8 @@
         <property name="model">
             <ref bean="modelController"/>
         </property>
-        <property name="synchronizer">
-            <ref bean="userSynchronizer"/>
+        <property name="clockwork">
+            <ref bean="clockwork"/>
         </property>
         <property name="changeExecutor">
             <ref bean="changeExecutor"/>

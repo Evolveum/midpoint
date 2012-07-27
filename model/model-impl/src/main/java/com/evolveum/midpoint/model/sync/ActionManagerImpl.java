@@ -24,8 +24,8 @@ package com.evolveum.midpoint.model.sync;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
-import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -44,7 +44,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 
     private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
     private Map<String, Class<T>> actionMap;
-    private UserSynchronizer synchronizer;
+    private Clockwork clockwork;
     private ChangeExecutor changeExecutor;
     private PrismContext prismContext;
     private AuditService auditService;
@@ -71,7 +71,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
             action = clazz.newInstance();
             if (action instanceof BaseAction) {
                 BaseAction baseAction = (BaseAction) action;
-                baseAction.setSynchronizer(synchronizer);
+                baseAction.setClockwork(clockwork);
                 baseAction.setExecutor(changeExecutor);
                 baseAction.setPrismContext(prismContext);
                 baseAction.setAuditService(auditService);
@@ -94,8 +94,8 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
         return actions;
     }
 
-    public void setSynchronizer(UserSynchronizer synchronizer) {
-        this.synchronizer = synchronizer;
+    public void setClockwork(Clockwork clockwork) {
+        this.clockwork = clockwork;
     }
 
     public void setChangeExecutor(ChangeExecutor executor) {

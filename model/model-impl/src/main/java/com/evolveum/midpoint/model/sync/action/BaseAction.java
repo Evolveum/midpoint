@@ -25,14 +25,14 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -73,7 +73,7 @@ public abstract class BaseAction implements Action {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseAction.class);
 
-    private UserSynchronizer synchronizer;
+    private Clockwork clockwork;
     private ChangeExecutor executor;
     private ModelController model;
     private List<Object> parameters;
@@ -166,8 +166,8 @@ public abstract class BaseAction implements Action {
         return model;
     }
 
-    public void setSynchronizer(UserSynchronizer synchronizer) {
-        this.synchronizer = synchronizer;
+    public void setClockwork(Clockwork clockwork) {
+        this.clockwork = clockwork;
     }
 
     public ChangeExecutor getExecutor() {
@@ -178,7 +178,7 @@ public abstract class BaseAction implements Action {
         this.executor = executor;
     }
 
-    protected AccountSyncContext createAccountSyncContext(SyncContext context,
+    protected LensProjectionContext<AccountShadowType> createAccountSyncContext(LensContext<UserType, AccountShadowType> context,
             ResourceObjectShadowChangeDescription change, PolicyDecision policyDecision,
             ActivationDecision activationDecision) throws SchemaException {
         LOGGER.debug("Creating account context for sync change.");
@@ -188,18 +188,18 @@ public abstract class BaseAction implements Action {
         String accountType = getAccountTypeFromChange(change);
         boolean thombstone = isThombstone(change);
 		ResourceAccountType resourceAccountType = new ResourceAccountType(resource.getOid(), accountType, thombstone);
-        AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccountType);
+		LensProjectionContext<AccountShadowType> accountContext = context.createProjectionContext(resourceAccountType);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));
 
         //insert object delta if available in change
         ObjectDelta<? extends ResourceObjectShadowType> delta = change.getObjectDelta();
         if (delta != null && AccountShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-            accountContext.setAccountSyncDelta((ObjectDelta<AccountShadowType>) delta);
+            accountContext.setSyncDelta((ObjectDelta<AccountShadowType>) delta);
         }
 
         //we insert account if available in change
-        accountContext.setAccountOld(getAccountObject(change));
+        accountContext.setObjectOld(getAccountObject(change));
 
         accountContext.setPolicyDecision(policyDecision);
         if (activationDecision != null) {
@@ -222,8 +222,8 @@ public abstract class BaseAction implements Action {
 		return objectDelta.isDelete();
 	}
 
-	private void updateAccountActivation(AccountSyncContext accContext, ActivationDecision activationDecision) throws SchemaException {
-        PrismObject<AccountShadowType> object = accContext.getAccountOld();
+	private void updateAccountActivation(LensProjectionContext<AccountShadowType> accContext, ActivationDecision activationDecision) throws SchemaException {
+        PrismObject<AccountShadowType> object = accContext.getObjectOld();
         if (object == null) {
             LOGGER.debug("Account object is null, skipping activation property check/update.");
             return;
@@ -232,11 +232,11 @@ public abstract class BaseAction implements Action {
         PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
         LOGGER.debug("Account activation defined, activation property found {}", enable);
 
-        ObjectDelta<AccountShadowType> accDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accDelta = accContext.getSecondaryDelta();
         if (accDelta == null) {
             accDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
             accDelta.setOid(accContext.getOid());
-            accContext.setAccountSecondaryDelta(accDelta);
+            accContext.setSecondaryDelta(accDelta);
         }
 
         PrismPropertyValue<Boolean> value = enable.getValue(Boolean.class);
@@ -315,18 +315,18 @@ public abstract class BaseAction implements Action {
         return change.getCurrentShadow().getOid();
     }
 
-    protected void synchronizeUser(SyncContext context, Task task, OperationResult result) throws SynchronizationException {
+    protected void synchronizeUser(LensContext<UserType, AccountShadowType> context, Task task, OperationResult result) throws SynchronizationException {
         try {
             Validate.notNull(context, "Sync context must not be null.");
             Validate.notNull(result, "Operation result must not be null.");
 
-            synchronizer.synchronizeUser(context, task, result);
+            clockwork.run(context, task, result);
         } catch (Exception ex) {
             throw new SynchronizationException("Couldn't synchronize user, reason: " + ex.getMessage(), ex);
         }
     }
 
-    protected void executeChanges(SyncContext context, OperationResult result) throws SynchronizationException {
+    protected void executeChanges(LensContext<UserType, AccountShadowType> context, OperationResult result) throws SynchronizationException {
         try {
             Validate.notNull(context, "Sync context must not be null.");
             getExecutor().executeChanges(context, result);

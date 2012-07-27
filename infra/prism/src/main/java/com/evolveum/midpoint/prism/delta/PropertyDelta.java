@@ -105,7 +105,6 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
      * Useful for iterating over all the changed values.
      */
     public <T> Collection<PrismPropertyValue<T>> getValues(Class<T> type) {
-        checkConsistence();
         if (valuesToReplace != null) {
             return (Collection) valuesToReplace;
         }

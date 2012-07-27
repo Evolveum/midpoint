@@ -430,7 +430,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             } else if (changeType == ChangeType.MODIFY) {
             	ItemDelta myDelta = findModification(propDelta.getPath(), ItemDelta.class);
                 if (myDelta == null) {
-                    ((Collection)modifications).add(propDelta.clone());
+                    addModification(propDelta.clone());
                 } else {
                     myDelta.merge(propDelta);
                 }

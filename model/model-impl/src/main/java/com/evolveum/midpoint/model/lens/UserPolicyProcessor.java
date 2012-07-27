@@ -17,27 +17,23 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -47,6 +43,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PropertyConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -69,25 +67,36 @@ public class UserPolicyProcessor {
 	@Autowired(required=true)
 	private PrismContext prismContext;
 
-	public void processUserPolicy(SyncContext context, OperationResult result) throws ObjectNotFoundException,
+	<F extends ObjectType, P extends ObjectType> void processUserPolicy(LensContext<F,P> context, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException {
 
-		UserTemplateType userTemplate = determineUserTemplate(context, result);
+		LensFocusContext<F> focusContext = context.getFocusContext();
+    	if (focusContext == null) {
+    		return;
+    	}
+    	if (focusContext.getObjectTypeClass() != UserType.class) {
+    		// We can do this only for user.
+    		return;
+    	}
+    	LensContext<UserType,AccountShadowType> usContext = (LensContext<UserType,AccountShadowType>) context;
+		
+		UserTemplateType userTemplate = determineUserTemplate(usContext, result);
 
 		if (userTemplate == null) {
 			// No applicable template
 			return;
 		}
 
-		applyUserTemplate(context, userTemplate, result);
+		applyUserTemplate(usContext, userTemplate, result);
 	}
 
-	private void applyUserTemplate(SyncContext context, UserTemplateType userTemplate, OperationResult result)
+	private void applyUserTemplate(LensContext<UserType,AccountShadowType> context, UserTemplateType userTemplate, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		LensFocusContext<UserType> focusContext = context.getFocusContext();
 
-		LOGGER.trace("Applying "+ObjectTypeUtil.toShortString(userTemplate)+" to "+context.getUserNew());
+		LOGGER.trace("Applying "+ObjectTypeUtil.toShortString(userTemplate)+" to "+focusContext.getObjectNew());
 
-		ObjectDelta<UserType> userSecondaryDelta = context.getWaveUserSecondaryDelta();
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getWaveSecondaryDelta();
 		for (PropertyConstructionType propConstr: userTemplate.getPropertyConstruction()) {
 			XPathHolder propertyXPath = new XPathHolder(propConstr.getProperty());
 			PropertyPath itemPath = propertyXPath.toPropertyPath();
@@ -103,9 +112,9 @@ public class UserPolicyProcessor {
 			// TODO: is the parentPath correct (null)?
 			ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(valueConstructionType,
 					itemDefinition,
-					"user template expression for "+itemDefinition.getName()+" while processing user " + context.getUserNew());
+					"user template expression for "+itemDefinition.getName()+" while processing user " + focusContext.getObjectNew());
 
-			PrismProperty existingValue = context.getUserNew().findProperty(itemPath);
+			PrismProperty existingValue = focusContext.getObjectNew().findProperty(itemPath);
 			if (existingValue != null && !existingValue.isEmpty() && valueConstruction.isInitial()) {
 				// This valueConstruction only applies if the property does not have a value yet.
 				// ... but it does
@@ -125,7 +134,7 @@ public class UserPolicyProcessor {
 
 			if (userSecondaryDelta == null) {
 				userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
-				context.setWaveUserSecondaryDelta(userSecondaryDelta);
+				focusContext.setWaveSecondaryDelta(userSecondaryDelta);
 			}
 			userSecondaryDelta.addModification(itemDelta);
 		}
@@ -137,10 +146,10 @@ public class UserPolicyProcessor {
 	}
 
 	private void evaluateUserTemplateValueConstruction(ValueConstruction valueConstruction,
-            ItemDefinition propertyDefinition, SyncContext context, OperationResult result)
+            ItemDefinition propertyDefinition, LensContext<UserType,AccountShadowType> context, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, context.getUserNew());
+		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectNew());
 		// TODO: variables
 		// TODO: root node
 
@@ -148,7 +157,7 @@ public class UserPolicyProcessor {
 
 	}
 
-	private UserTemplateType determineUserTemplate(SyncContext context, OperationResult result)
+	private UserTemplateType determineUserTemplate(LensContext<UserType,AccountShadowType> context, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
 		if (context.getUserTemplate() != null) {

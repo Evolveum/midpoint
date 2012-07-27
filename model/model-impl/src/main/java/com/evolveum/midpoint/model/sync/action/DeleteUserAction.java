@@ -24,8 +24,9 @@ package com.evolveum.midpoint.model.sync.action;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.AccountSyncContext;
-import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import org.apache.commons.lang.StringUtils;
@@ -72,21 +74,22 @@ public class DeleteUserAction extends BaseAction {
             throw new SynchronizationException(message);
         }
 
-        SyncContext context = new SyncContext(getPrismContext());
+        LensContext<UserType, AccountShadowType> context = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, getPrismContext());
+        LensFocusContext<UserType> focusContext = context.createFocusContext();
         try {
             context.rememberResource(change.getResource().asObjectable());
 
             //set old user
             PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
             PrismObject<UserType> oldUser = userType.asPrismObject();
-            context.setUserOld(oldUser);
+            focusContext.setObjectOld(oldUser);
             //set object delta with delete
             ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.DELETE);
             userDelta.setOid(oldUser.getOid());
-            context.setUserSecondaryDelta(userDelta, 0);
+            focusContext.setSecondaryDelta(userDelta, 0);
 
             //create account context for this change
-            AccountSyncContext accContext = createAccountSyncContext(context, change, null, null);
+            LensProjectionContext<AccountShadowType> accContext = createAccountSyncContext(context, change, null, null);
             if (accContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;

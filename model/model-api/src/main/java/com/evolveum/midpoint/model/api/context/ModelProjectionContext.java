@@ -17,24 +17,18 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
 /**
- * Interface used to intercept the SyncContext as it passes through the computation.
- * 
- * It is mostly used in tests.
- * 
- * EXPERIMENTAL
- * 
- * @author Radovan Semancik
+ * @author semancik
  *
  */
-public interface SyncContextListener {
-	
-	public void beforeSync(SyncContext context);
+public interface ModelProjectionContext<O extends ObjectType> extends ModelElementContext<O> {
 
-	public void afterSync(SyncContext context);
+	public ObjectDelta<O> getSyncDelta();
+	public void setSyncDelta(ObjectDelta<O> syncDelta);
 	
 }

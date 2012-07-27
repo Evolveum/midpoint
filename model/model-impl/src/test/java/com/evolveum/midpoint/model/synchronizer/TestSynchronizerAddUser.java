@@ -17,7 +17,9 @@
  */
 package com.evolveum.midpoint.model.synchronizer;
 
-import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.Projector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -35,8 +37,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -76,7 +78,7 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 	private static final Trace LOGGER = TraceManager.getTrace(TestSynchronizerAddUser.class);
 	
 	@Autowired(required = true)
-	private UserSynchronizer userSynchronizer;
+	private Projector projector;
 	
 	@Autowired(required = true)
 	private TaskManager taskManager;
@@ -144,24 +146,26 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 		Task task = taskManager.createTaskInstance("Add User With Template");
 		OperationResult result = task.getResult();
 		
-		SyncContext syncContext = new SyncContext(PrismTestUtil.getPrismContext());
+		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, PrismTestUtil.getPrismContext());
+		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
 
 		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
 		objectDelta.setObjectToAdd(user);
 		
-		syncContext.setUserOld(null);
-		syncContext.setUserNew(user);
-		syncContext.setUserPrimaryDelta(objectDelta);
+		focusContext.setObjectOld(null);
+		focusContext.setObjectNew(user);
+		focusContext.setPrimaryDelta(objectDelta);
 		
 		syncContext.setUserTemplate(userTemplateType);
-		syncContext.setNoExecute(true);
+		
+		syncContext.checkConsistence();
 
 		try {
 			LOGGER.info("provisioning: " + provisioning.getClass());
 			LOGGER.info("repo" + repository.getClass());
 						
 			// WHEN
-			userSynchronizer.synchronizeUser(syncContext, task, result);
+			projector.project(syncContext, task, result);
 			
 		} finally {
 			LOGGER.info(result.dump());

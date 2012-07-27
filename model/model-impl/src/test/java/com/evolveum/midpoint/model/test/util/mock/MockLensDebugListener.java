@@ -19,41 +19,45 @@
  */
 package com.evolveum.midpoint.model.test.util.mock;
 
-import com.evolveum.midpoint.model.SyncContext;
-import com.evolveum.midpoint.model.synchronizer.SyncContextListener;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensDebugListener;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
 /**
  * @author semancik
  *
  */
-public class MockSyncContextListener implements SyncContextListener {
+public class MockLensDebugListener implements LensDebugListener {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(MockSyncContextListener.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MockLensDebugListener.class);
 
 	private static final String SEPARATOR = "############################################################################";
 
-	private SyncContext lastSyncContext;
+	private LensContext lastSyncContext;
 	
-	public SyncContext getLastSyncContext() {
+	public <F extends ObjectType, P extends ObjectType>  LensContext<F, P> getLastSyncContext() {
 		return lastSyncContext;
 	}
 
-	public void setLastSyncContext(SyncContext lastSyncContext) {
+	public <F extends ObjectType, P extends ObjectType> void setLastSyncContext(LensContext<F, P> lastSyncContext) {
 		this.lastSyncContext = lastSyncContext;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#beforeSync(com.evolveum.midpoint.model.lens.LensContext)
+	 */
 	@Override
-	public void beforeSync(SyncContext context) {
+	public <F extends ObjectType, P extends ObjectType> void beforeSync(LensContext<F, P> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.dump());
 	}
 
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.synchronizer.SyncContextListener#afterFinish(com.evolveum.midpoint.model.SyncContext)
+	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#afterSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
 	@Override
-	public void afterSync(SyncContext context) {
+	public <F extends ObjectType, P extends ObjectType> void afterSync(LensContext<F, P> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.dump());
 		lastSyncContext = context;
 	}

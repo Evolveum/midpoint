@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2012 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -26,8 +26,6 @@ import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
-import com.evolveum.midpoint.model.AccountSyncContext;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -68,11 +66,11 @@ public class OutboundProcessor {
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
 
-    void processOutbound(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws SchemaException,
+    void processOutbound(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ResourceAccountType rat = accCtx.getResourceAccountType();
-        ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+        ObjectDelta<AccountShadowType> accountDelta = accCtx.getDelta();
 
         if (accountDelta != null && accountDelta.getChangeType() == ChangeType.DELETE) {
             LOGGER.trace("Processing outbound expressions for account {} skipped, DELETE account delta", rat);
@@ -82,13 +80,13 @@ public class OutboundProcessor {
 
         LOGGER.trace("Processing outbound expressions for account {} starting", rat);
 
-        RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat);
+        RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
         if (rAccount == null) {
             LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
         }
         
-        ObjectDeltaObject<UserType> userOdo = context.getUserObjectDeltaObject();
+        ObjectDeltaObject<UserType> userOdo = context.getFocusContext().getObjectDeltaObject();
         
         AccountConstruction outboundAccountConstruction = new AccountConstruction(null, accCtx.getResource());
 

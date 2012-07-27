@@ -19,19 +19,15 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -41,9 +37,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -51,6 +45,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,12 +69,12 @@ import java.util.Map;
 public class ConsolidationProcessor {
 
     public static final String PROCESS_CONSOLIDATION = ConsolidationProcessor.class.getName() + ".consolidateValues";
-    private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ConsolidationProcessor.class);
 
     /**
      * Converts delta set triples to a secondary account deltas.
      */
-    void consolidateValues(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws SchemaException,
+    void consolidateValues(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) throws SchemaException,
             ExpressionEvaluationException {
     		//todo filter changes which were already in account sync delta
 
@@ -102,13 +98,13 @@ public class ConsolidationProcessor {
         }
     }
 
-    private void dropAllAccountDelta(AccountSyncContext accContext) {
-        accContext.setAccountPrimaryDelta(null);
-        accContext.setAccountSecondaryDelta(null);
+    private void dropAllAccountDelta(LensProjectionContext<AccountShadowType> accContext) {
+        accContext.setPrimaryDelta(null);
+        accContext.setSecondaryDelta(null);
     }
 
-    private boolean wasAccountDeleted(AccountSyncContext accContext) {
-        ObjectDelta<AccountShadowType> delta = accContext.getAccountSyncDelta();
+    private boolean wasAccountDeleted(LensProjectionContext<AccountShadowType> accContext) {
+        ObjectDelta<AccountShadowType> delta = accContext.getSyncDelta();
         if (delta != null && ChangeType.DELETE.equals(delta.getChangeType())) {
             return true;
         }
@@ -116,8 +112,8 @@ public class ConsolidationProcessor {
         return false;
     }
 
-    private ObjectDelta<AccountShadowType> consolidateValuesToModifyDelta(SyncContext context,
-            AccountSyncContext accCtx,
+    private ObjectDelta<AccountShadowType> consolidateValuesToModifyDelta(LensContext<UserType,AccountShadowType> context,
+    		LensProjectionContext<AccountShadowType> accCtx,
             boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
     	Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes = sqeezeAttributes(accCtx); 
@@ -127,7 +123,7 @@ public class ConsolidationProcessor {
         ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(accCtx.getOid());
 
-        RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat);
+        RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
         if (rAccount == null) {
             LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
@@ -144,8 +140,8 @@ public class ConsolidationProcessor {
             LOGGER.trace("Consolidating (modify) account {}, attribute {}", rat, attributeName);
 
             PrismContainer<?> attributesPropertyContainer = null;
-            if (accCtx.getAccountNew() != null) {
-                attributesPropertyContainer = accCtx.getAccountNew().findContainer(SchemaConstants.I_ATTRIBUTES);
+            if (accCtx.getObjectNew() != null) {
+                attributesPropertyContainer = accCtx.getObjectNew().findContainer(SchemaConstants.I_ATTRIBUTES);
             }
 
             Collection<PrismPropertyValue<?>> allValues = collectAllValues(triple);
@@ -228,17 +224,17 @@ public class ConsolidationProcessor {
         return objectDelta;
     }
 
-	private void consolidateValuesAddAccount(SyncContext context, AccountSyncContext accCtx,
+	private void consolidateValuesAddAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
             OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
         ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, true, result);
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getSecondaryDelta();
         if (accountSecondaryDelta != null) {
             accountSecondaryDelta.merge(modifyDelta);
         } else {
-            if (accCtx.getAccountPrimaryDelta() == null) {
+            if (accCtx.getPrimaryDelta() == null) {
                 ObjectDelta<AccountShadowType> addDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
-                RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(accCtx.getResourceAccountType());
+                RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
 
                 if (rAccount == null) {
                     LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", accCtx.getResourceAccountType(), context.dump());
@@ -248,32 +244,32 @@ public class ConsolidationProcessor {
                 addDelta.setObjectToAdd(newAccount);
 
                 addDelta.merge(modifyDelta);
-                accCtx.setAccountSecondaryDelta(addDelta);
+                accCtx.setSecondaryDelta(addDelta);
             } else {
-                accCtx.setAccountSecondaryDelta(modifyDelta);
+                accCtx.setSecondaryDelta(modifyDelta);
             }
         }
     }
 
-    private void consolidateValuesModifyAccount(SyncContext context, AccountSyncContext accCtx,
+    private void consolidateValuesModifyAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
             OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
         ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, false, result);
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getSecondaryDelta();
         if (accountSecondaryDelta != null) {
             if (!modifyDelta.isEmpty()) {
                 accountSecondaryDelta.merge(modifyDelta);
             }
         } else {
-            accCtx.setAccountSecondaryDelta(modifyDelta);
+            accCtx.setSecondaryDelta(modifyDelta);
         }
     }
 
-    private void consolidateValuesDeleteAccount(SyncContext context, AccountSyncContext accCtx,
+    private void consolidateValuesDeleteAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
             OperationResult result) {
         ObjectDelta<AccountShadowType> deleteDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
         deleteDelta.setOid(accCtx.getOid());
-        accCtx.setAccountSecondaryDelta(deleteDelta);
+        accCtx.setSecondaryDelta(deleteDelta);
     }
 
     /**
@@ -285,12 +281,12 @@ public class ConsolidationProcessor {
      * @param delta  new delta created during consolidation process
      * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
      */
-    private PropertyDelta consolidateWithSync(AccountSyncContext accCtx, PropertyDelta delta) {
+    private PropertyDelta consolidateWithSync(LensProjectionContext<AccountShadowType> accCtx, PropertyDelta delta) {
         if (delta == null) {
             return null;
         }
 
-        ObjectDelta<AccountShadowType> syncDelta = accCtx.getAccountSyncDelta();
+        ObjectDelta<AccountShadowType> syncDelta = accCtx.getSyncDelta();
         if (syncDelta == null) {
             return consolidateWithSyncAbsolute(accCtx, delta);
         }
@@ -317,12 +313,12 @@ public class ConsolidationProcessor {
      * @param delta
      * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
      */
-    private PropertyDelta consolidateWithSyncAbsolute(AccountSyncContext accCtx, PropertyDelta delta) {
-        if (delta == null || accCtx.getAccountOld() == null) {
+    private PropertyDelta consolidateWithSyncAbsolute(LensProjectionContext<AccountShadowType> accCtx, PropertyDelta delta) {
+        if (delta == null || accCtx.getObjectOld() == null) {
             return delta;
         }
 
-        PrismObject<AccountShadowType> absoluteAccountState = accCtx.getAccountOld();
+        PrismObject<AccountShadowType> absoluteAccountState = accCtx.getObjectOld();
         PrismProperty absoluteProperty = absoluteAccountState.findProperty(delta.getPath());
         if (absoluteProperty == null) {
             return delta;
@@ -419,7 +415,7 @@ public class ConsolidationProcessor {
         return pvwos;
     }
     
-	private Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> sqeezeAttributes(AccountSyncContext accCtx) {
+	private Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> sqeezeAttributes(LensProjectionContext<AccountShadowType> accCtx) {
 		Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap = new HashMap<QName, DeltaSetTriple<PropertyValueWithOrigin>>();
 		if (accCtx.getAccountConstructionDeltaSetTriple() != null) {
 			sqeezeAttributesFromAccountConstructionTriple(squeezedMap, accCtx.getAccountConstructionDeltaSetTriple());		

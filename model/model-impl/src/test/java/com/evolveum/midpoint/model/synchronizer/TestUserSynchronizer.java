@@ -42,10 +42,11 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.Projector;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -104,7 +105,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
             "/user-barbossa-modify-delete-assignment-account-opendj-attr.xml";
 	
 	@Autowired(required = true)
-	private UserSynchronizer userSynchronizer;
+	private Projector projector;
 	
 	@Autowired(required = true)
 	private TaskManager taskManager;
@@ -133,8 +134,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test010AddAccountToJackDirect");
         OperationResult result = task.getResult();
         
-        SyncContext context = new SyncContext(prismContext);
-        context.setNoExecute(true);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         // We want "shadow" so the fullname will be computed by outbound expression 
         addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILENAME);
@@ -144,20 +144,20 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        userSynchronizer.synchronizeUser(context, task, result);
+        projector.project(context, task, result);
         
         // THEN
         display("Output context", context);
         
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
         
-        ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getAccountPrimaryDelta();
+        ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertEquals(ChangeType.ADD, accountPrimaryDelta.getChangeType());
         PrismObject<AccountShadowType> accountToAddPrimary = accountPrimaryDelta.getObjectToAdd();
         assertNotNull("No object in account primary add delta", accountToAddPrimary);
@@ -169,11 +169,11 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         PrismReference resourceRef = accountToAddPrimary.findReference(AccountShadowType.F_RESOURCE_REF);
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
 
-        PrismObject<AccountShadowType> accountNew = accContext.getAccountNew();
+        PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
         PrismContainer<?> attributes = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
         assertNotNull("No attribute in account new", attributes);
         PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "jack");
@@ -190,8 +190,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test020AssignAccountToJack");
         OperationResult result = task.getResult();
         
-        SyncContext context = new SyncContext(prismContext);
-        context.setNoExecute(true);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
 
@@ -200,21 +199,21 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        userSynchronizer.synchronizeUser(context, task, result);
+        projector.project(context, task, result);
         
         // THEN
         display("Output context", context);
         
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull("Account primary delta sneaked in", accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         
         assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
         
@@ -240,34 +239,33 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test050ModifyUserBarbossaLocality");
         OperationResult result = task.getResult();
 
-        SyncContext context = new SyncContext(prismContext);
-        context.setNoExecute(true);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Tortuga"));
-        context.recomputeNew();
+        context.recompute();
 
         display("Input context", context);
 
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, task, result);
+        projector.project(context, task, result);
         
         // THEN
         display("Output context", context);
         
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
         assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getOpenDJAttributePath("l") , "Tortuga");
@@ -287,8 +285,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         // Make sure there is a shadow with conflicting account
         addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, AccountShadowType.class, result);
         
-        SyncContext context = new SyncContext(prismContext);
-        context.setNoExecute(true);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
 
@@ -297,21 +294,21 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        userSynchronizer.synchronizeUser(context, task, result);
+        projector.project(context, task, result);
         
         // THEN
         display("Output context", context);
         
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         
         assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
         
@@ -339,36 +336,35 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test200ImportHermanDummy");
         OperationResult result = task.getResult();
 
-        SyncContext context = new SyncContext(prismContext);
-        context.setNoExecute(true);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithEmtptyAddUserDelta(context, result);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILENAME, result);
-        makeImportSyncDelta(context.getAccountContexts().iterator().next());
-        context.recomputeNew();
+        makeImportSyncDelta(context.getProjectionContexts().iterator().next());
+        context.recompute();
 
         display("Input context", context);
 
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, task, result);
+        projector.project(context, task, result);
         
         // THEN
         display("Output context", context);
         
         // TODO
         
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.ADD);
-        assertNotNull("No user secondary delta", context.getUserSecondaryDelta());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.ADD);
+        assertNotNull("No user secondary delta", context.getFocusContext().getSecondaryDelta());
         
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
         
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
 
         // TODO
@@ -383,36 +379,35 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test201ImportHermanOpenDj");
         OperationResult result = task.getResult();
 
-        SyncContext context = new SyncContext(prismContext);
-        context.setNoExecute(true);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithEmtptyAddUserDelta(context, result);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_OPENDJ_FILENAME, result);
-        makeImportSyncDelta(context.getAccountContexts().iterator().next());
-        context.recomputeNew();
+        makeImportSyncDelta(context.getProjectionContexts().iterator().next());
+        context.recompute();
 
         display("Input context", context);
 
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, task, result);
+        projector.project(context, task, result);
         
         // THEN
         display("Output context", context);
         
         // TODO
         
-        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.ADD);
-        assertNotNull("No user secondary delta", context.getUserSecondaryDelta());
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.ADD);
+        assertNotNull("No user secondary delta", context.getFocusContext().getSecondaryDelta());
         
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
         // TODO
         
@@ -426,26 +421,25 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test250GuybrushInboundFromDelta");
         OperationResult result = task.getResult();
 
-        SyncContext context = new SyncContext(prismContext);
-        context.setNoExecute(true);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         fillContextWithAccount(context, ACCOUNT_SHADOW_GUYBRUSH_OID, result);
         addSyncModificationToContextReplaceAccountAttribute(context, ACCOUNT_SHADOW_GUYBRUSH_OID, "ship", "Black Pearl");
-        context.recomputeNew();
+        context.recompute();
 
         display("Input context", context);
 
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, task, result);
+        projector.project(context, task, result);
         
         // THEN
         display("Output context", context);
         
         assertNoUserPrimaryDelta(context);
         assertUserSecondaryDelta(context);
-        ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , 
         		PrismTestUtil.createPolyString("The crew of Black Pearl"));
@@ -460,28 +454,27 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test251GuybrushInboundFromAbsolute");
         OperationResult result = task.getResult();
 
-        SyncContext context = new SyncContext(prismContext);
-        context.setNoExecute(true);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         fillContextWithAccountFromFile(context, ACCOUNT_GUYBRUSH_DUMMY_FILENAME, result);
-        AccountSyncContext guybrushAccountContext = context.findAccountSyncContextByOid(ACCOUNT_SHADOW_GUYBRUSH_OID);
-        guybrushAccountContext.setFullAccount(true);
+        LensProjectionContext<AccountShadowType> guybrushAccountContext = context.findProjectionContextByOid(ACCOUNT_SHADOW_GUYBRUSH_OID);
+        guybrushAccountContext.setFullShadow(true);
         guybrushAccountContext.setDoReconciliation(true);
-        context.recomputeNew();
+        context.recompute();
 
         display("Input context", context);
 
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, task, result);
+        projector.project(context, task, result);
         
         // THEN
         display("Output context", context);
         
         assertNoUserPrimaryDelta(context);
         assertUserSecondaryDelta(context);
-        ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , 
         		PrismTestUtil.createPolyString("The crew of The Sea Monkey"));
@@ -501,32 +494,31 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         dummyAccount.replaceAttributeValue("location", "Phatt Island");
         
-        SyncContext context = new SyncContext(prismContext);
-        context.setNoExecute(true);
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
-        context.setDoReconciliationForAllAccounts(true);
+        context.setDoReconciliationForAllProjections(true);
 
         display("Input context", context);
 
         assertUserModificationSanity(context);
 
         // WHEN
-        userSynchronizer.synchronizeUser(context, task, result);
+        projector.project(context, task, result);
         
         // THEN
         display("Output context", context);
         
-        assertNull("User primary delta sneaked in", context.getUserPrimaryDelta());
-        assertNull("User secondary delta sneaked in", context.getUserSecondaryDelta());
+        assertNull("User primary delta sneaked in", context.getFocusContext().getPrimaryDelta());
+        assertNull("User secondary delta sneaked in", context.getFocusContext().getSecondaryDelta());
         
-        assertFalse("No account changes", context.getAccountContexts().isEmpty());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        AccountSyncContext accContext = accountContexts.iterator().next();
-        assertNull(accContext.getAccountPrimaryDelta());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
         
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getDummyAttributePath("location"), "Melee Island");
         

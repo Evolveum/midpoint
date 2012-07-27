@@ -17,14 +17,13 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -53,21 +52,21 @@ public class ShadowConstraintsChecker {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
 	
-	private AccountSyncContext accountContext;
+	private LensProjectionContext<AccountShadowType> accountContext;
 	private PrismContext prismContext;
 	private RepositoryService repositoryService;
 	private boolean satisfiesConstraints;
 	private StringBuilder messageBuilder = new StringBuilder();
 
-	public ShadowConstraintsChecker(AccountSyncContext accountContext) {
+	public ShadowConstraintsChecker(LensProjectionContext<AccountShadowType> accountContext) {
 		this.accountContext = accountContext;
 	}
 	
-	public AccountSyncContext getAccountContext() {
+	public LensProjectionContext<AccountShadowType> getAccountContext() {
 		return accountContext;
 	}
 
-	public void setAccountContext(AccountSyncContext accountContext) {
+	public void setAccountContext(LensProjectionContext<AccountShadowType> accountContext) {
 		this.accountContext = accountContext;
 	}
 
@@ -98,7 +97,7 @@ public class ShadowConstraintsChecker {
 	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		
 		RefinedAccountDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
-		PrismObject<AccountShadowType> accountNew = accountContext.getAccountNew();
+		PrismObject<AccountShadowType> accountNew = accountContext.getObjectNew();
 		if (accountNew == null) {
 			// This must be delete
 			satisfiesConstraints = true;
@@ -123,7 +122,7 @@ public class ShadowConstraintsChecker {
 					accountContext.getOid(), result);
 			if (!unique) {
 				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr,  accountContext.getResourceAccountType());
-				if (isInDelta(attr, accountContext.getAccountPrimaryDelta())) {
+				if (isInDelta(attr, accountContext.getPrimaryDelta())) {
 					throw new ObjectAlreadyExistsException("Attribute "+attr+" conflicts with existing object (and it is present in primary "+
 							"account delta therefore no iteration is performed)");
 				}

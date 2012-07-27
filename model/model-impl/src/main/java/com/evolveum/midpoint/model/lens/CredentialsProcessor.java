@@ -17,13 +17,11 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
-import com.evolveum.midpoint.model.AccountSyncContext;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -44,6 +42,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,10 +65,23 @@ public class CredentialsProcessor {
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
 
-    public void processCredentials(SyncContext context, AccountSyncContext accCtx, OperationResult result) 
+    public <F extends ObjectType, P extends ObjectType> void processCredentials(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) 
     		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-    	
-        ObjectDelta<UserType> userDelta = context.getUserDelta();
+    	LensFocusContext<F> focusContext = context.getFocusContext();
+    	if (focusContext == null) {
+    		return;
+    	}
+    	if (focusContext.getObjectTypeClass() != UserType.class) {
+    		// We can do this only for user.
+    		return;
+    	}
+    	processCredentialsUser((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
+    }
+    
+    public void processCredentialsUser(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) 
+		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	LensFocusContext<UserType> focusContext = context.getFocusContext();
+        ObjectDelta<UserType> userDelta = focusContext.getDelta();
         PropertyDelta<PasswordType> passwordValueDelta = null;
         if (userDelta != null) {
         	passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
@@ -82,20 +94,20 @@ public class CredentialsProcessor {
 //            LOGGER.trace("userDelta is null, skipping credentials processing");
 //            return; 
 
-        PrismObject<UserType> userNew = context.getUserNew();
+        PrismObject<UserType> userNew = focusContext.getObjectNew();
         if (userNew == null) {
             // This must be a user delete or something similar. No point in proceeding
             LOGGER.trace("userNew is null, skipping credentials processing");
             return;
         }
-        PrismProperty<PasswordType> userPasswordNew = context.getUserNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+        PrismProperty<PasswordType> userPasswordNew = focusContext.getObjectNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
         
         PrismObjectDefinition<AccountShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
         PrismPropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
         ResourceAccountType rat = accCtx.getResourceAccountType();
 
-        ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+        ObjectDelta<AccountShadowType> accountDelta = accCtx.getDelta();
         if (accountDelta != null && accountDelta.getChangeType() == ChangeType.MODIFY) {
         	PropertyDelta<PasswordType> accountPasswordDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
         	if (accountPasswordDelta != null && (accountPasswordDelta.isAdd() || accountDelta.isDelete())) {

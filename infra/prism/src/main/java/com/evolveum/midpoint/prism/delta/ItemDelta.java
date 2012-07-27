@@ -420,18 +420,11 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 * chronologically earlier.
 	 */
 	public void merge(ItemDelta deltaToMerge) {
-		checkConsistence();
-		deltaToMerge.checkConsistence();
 		if (deltaToMerge.isEmpty()) {
 			return;
 		}
 		if (deltaToMerge.valuesToReplace != null) {
-			if (this.valuesToReplace != null) {
-				this.valuesToReplace.clear();
-				this.valuesToReplace.addAll(PrismValue.cloneValues(deltaToMerge.valuesToReplace));
-			}
-			this.valuesToReplace = newValueCollection();
-			this.valuesToReplace.addAll(PrismValue.cloneValues(deltaToMerge.valuesToReplace));
+			setValuesToReplace(PrismValue.cloneValues(deltaToMerge.valuesToReplace));
 		} else {
 			if (deltaToMerge.valuesToAdd != null) {
 				addValuesToAdd(PrismValue.cloneValues(deltaToMerge.valuesToAdd));
@@ -528,19 +521,19 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		clone.definition = this.definition;
 		clone.name = this.name;
 		clone.parentPath = this.parentPath;
-		clone.valuesToAdd = cloneSet(this.valuesToAdd);
-		clone.valuesToDelete = cloneSet(this.valuesToDelete);
-		clone.valuesToReplace = cloneSet(this.valuesToReplace);
+		clone.valuesToAdd = cloneSet(clone, this.valuesToAdd);
+		clone.valuesToDelete = cloneSet(clone, this.valuesToDelete);
+		clone.valuesToReplace = cloneSet(clone, this.valuesToReplace);
 	}
 
-	private Collection<V> cloneSet(Collection<V> thisSet) {
+	private Collection<V> cloneSet(ItemDelta clone, Collection<V> thisSet) {
 		if (thisSet == null) {
 			return null;
 		}
 		Collection<V> clonedSet = newValueCollection();
 		for (V thisVal : thisSet) {
 			V clonedVal = (V) thisVal.clone();
-			clonedVal.setParent(this);
+			clonedVal.setParent(clone);
 			clonedSet.add(clonedVal);
 		}
 		return clonedSet;

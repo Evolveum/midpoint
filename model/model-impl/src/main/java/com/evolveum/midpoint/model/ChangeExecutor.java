@@ -22,6 +22,9 @@
 package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.model.controller.ModelUtils;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -45,6 +48,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -89,32 +93,37 @@ public class ChangeExecutor {
         }
     }
 
-    public void executeChanges(SyncContext syncContext, OperationResult result) throws ObjectAlreadyExistsException,
+    public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ObjectDelta<UserType> userDelta = syncContext.getWaveUserDelta();
-        if (userDelta != null) {
+    	
+    	LensFocusContext<F> focusContext = syncContext.getFocusContext();
+    	if (focusContext != null) {
+	        ObjectDelta<F> userDelta = focusContext.getWaveDelta();
+	        if (userDelta != null) {
+	
+	            executeChange(userDelta, result);
+	
+	            // userDelta is composite, mixed from primary and secondary. The OID set into
+	            // it will be lost ... unless we explicitly save it
+	            focusContext.setOid(userDelta.getOid());
+	        } else {
+	            LOGGER.trace("Skipping change execute, because user delta is null");
+	        }
+    	}
 
-            executeChange(userDelta, result);
-
-            // userDelta is composite, mixed from primary and secondary. The OID set into
-            // it will be lost ... unless we explicitly save it
-            syncContext.setUserOid(userDelta.getOid());
-        } else {
-            LOGGER.trace("Skipping change execute, because user delta is null");
-        }
-
-        for (AccountSyncContext accCtx : syncContext.getAccountContexts()) {
+        for (LensProjectionContext<P> accCtx : syncContext.getProjectionContexts()) {
         	if (accCtx.getWave() != syncContext.getWave()) {
         		continue;
         	}
-            ObjectDelta<AccountShadowType> accDelta = accCtx.getAccountDelta();
+            ObjectDelta<P> accDelta = accCtx.getDelta();
             if (accDelta == null || accDelta.isEmpty()) {
                 if (LOGGER.isTraceEnabled()) {
                 	LOGGER.trace("No change for account " + accCtx.getResourceAccountType());
                 	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
                 }
-                accCtx.setOid(getOidFromContext(accCtx));
-                updateAccountLinks(syncContext.getUserNew(), accCtx, result);
+                if (focusContext != null) {
+                	updateAccountLinks(focusContext.getObjectNew(), accCtx, result);
+                }
                 continue;
             }
             
@@ -122,7 +131,9 @@ public class ChangeExecutor {
             
             // To make sure that the OID is set (e.g. after ADD operation)
             accCtx.setOid(accDelta.getOid());
-            updateAccountLinks(syncContext.getUserNew(), accCtx, result);
+            if (focusContext != null) {
+            	updateAccountLinks(focusContext.getObjectNew(), accCtx, result);
+            }
         }
         
         if (LOGGER.isTraceEnabled()) {
@@ -131,31 +142,19 @@ public class ChangeExecutor {
         
     }
 
-    private String getOidFromContext(AccountSyncContext context) throws SchemaException {
-        if (context.getAccountDelta() != null && context.getAccountDelta().getOid() != null) {
-            return context.getAccountDelta().getOid();
-        }
-
-        if (context.getAccountOld() != null && context.getAccountOld().getOid() != null) {
-            return context.getAccountOld().getOid();
-        }
-
-        if (context.getAccountSyncDelta() != null && context.getAccountSyncDelta().getOid() != null) {
-            return context.getAccountSyncDelta().getOid();
-        }
-
-        return null;
-    }
-
     /**
      * Make sure that the account is linked (or unlinked) as needed.
      */
-    private void updateAccountLinks(PrismObject<UserType> userNew, AccountSyncContext accCtx,
+    private <F extends ObjectType, P extends ObjectType> void updateAccountLinks(PrismObject<F> prismObject, LensProjectionContext<P> accCtx,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
-    	if (userNew == null) {
+    	if (prismObject == null) {
     		return;
     	}
-        UserType userTypeNew = userNew.asObjectable();
+        F objectTypeNew = prismObject.asObjectable();
+        if (!(objectTypeNew instanceof UserType)) {
+        	return;
+        }
+        UserType userTypeNew = (UserType) objectTypeNew;
         String accountOid = accCtx.getOid();
         if (accountOid == null) {
             throw new IllegalStateException("Account has null OID, this should not happen");

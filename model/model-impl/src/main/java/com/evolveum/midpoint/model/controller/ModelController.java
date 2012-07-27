@@ -44,10 +44,8 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.ModelObjectResolver;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
@@ -55,7 +53,9 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
-import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -149,7 +149,7 @@ public class ModelController implements ModelService {
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
 	@Autowired(required = true)
-	private UserSynchronizer userSynchronizer;
+	private Clockwork clockwork;
 
 	@Autowired(required = true)
 	PrismContext prismContext;
@@ -307,18 +307,19 @@ public class ModelController implements ModelService {
 			if (objectType instanceof UserType) {
 				UserType userType = (UserType) objectType;
 
-				SyncContext syncContext = userTypeAddToContext(userType.asPrismObject(), result);
+				LensContext<UserType, AccountShadowType> syncContext = userTypeAddToContext(userType.asPrismObject(), result);
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
 
-				objectDelta = (ObjectDelta<T>) syncContext.getUserPrimaryDelta();
+				objectDelta = (ObjectDelta<T>) syncContext.getFocusContext().getPrimaryDelta();
 
 				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
 					return null;
 
-				if (userSynchronizer.synchronizeUser(syncContext, task, result) != HookOperationMode.FOREGROUND)
-					return null;
+				clockwork.run(syncContext, task, result);
+//				if (clockwork.run(syncContext, task, result) != HookOperationMode.FOREGROUND)
+//					return null;
 
 				auditRecord.clearDeltas();
 				auditRecord.addDeltas(syncContext.getAllChanges());
@@ -469,19 +470,20 @@ public class ModelController implements ModelService {
 		return executePostChange(deltas, task, result);
 	}
 
-	private SyncContext userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
+	private LensContext<UserType, AccountShadowType> userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
 		UserType userType = user.asObjectable();
-		SyncContext syncContext = new SyncContext(prismContext);
+		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
 
 		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
 		userDelta.setObjectToAdd(user);
 
-		syncContext.setUserOld(null);
-		syncContext.setUserNew(user);
-		syncContext.setUserPrimaryDelta(userDelta);
+		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
+		focusContext.setObjectOld(null);
+		focusContext.setObjectNew(user);
+		focusContext.setPrimaryDelta(userDelta);
 
 		return syncContext;
 	}
@@ -677,14 +679,14 @@ public class ModelController implements ModelService {
 
 			if (UserType.class.isAssignableFrom(type)) {
 
-				SyncContext syncContext = userTypeModifyToContext(oid, modifications, result);
+				LensContext<UserType, AccountShadowType> syncContext = userTypeModifyToContext(oid, modifications, result);
 				
 				Collection<ObjectDelta<? extends ObjectType>> allChanges = syncContext.getAllChanges();
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
 				
-				userSynchronizer.synchronizeUser(syncContext, task, result);
+				clockwork.run(syncContext, task, result);
 
 				// Deltas after sync will be different
 				auditRecord.clearDeltas();
@@ -813,15 +815,16 @@ public class ModelController implements ModelService {
 		}
 	}
 
-	private SyncContext userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications,
+	private LensContext<UserType, AccountShadowType> userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
-		SyncContext syncContext = new SyncContext(prismContext);
+		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class);
 
-		syncContext.setUserOld(null);
-		syncContext.setUserNew(null);
-		syncContext.setUserPrimaryDelta(userDelta);
+		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
+		focusContext.setObjectOld(null);
+		focusContext.setObjectNew(null);
+		focusContext.setPrimaryDelta(userDelta);
 
 		return syncContext;
 	}
@@ -871,13 +874,14 @@ public class ModelController implements ModelService {
 			Collection<ObjectDelta<? extends ObjectType>> changes = null;
 
 			if (UserType.class.isAssignableFrom(clazz)) {
-				SyncContext syncContext = new SyncContext(prismContext);
-				syncContext.setUserOld(null);
-				syncContext.setUserNew(null);
-				syncContext.setUserPrimaryDelta((ObjectDelta<UserType>) objectDelta);
+				LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
+				LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
+				focusContext.setObjectOld(null);
+				focusContext.setObjectNew(null);
+				focusContext.setPrimaryDelta((ObjectDelta<UserType>) objectDelta);
 
 				try {
-					userSynchronizer.synchronizeUser(syncContext, task, result);
+					clockwork.run(syncContext, task, result);
 				} catch (SchemaException e) {
 					// TODO Better handling
 					throw new SystemException(e.getMessage(), e);

@@ -17,13 +17,11 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -33,8 +31,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -43,9 +39,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.IterationSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -80,7 +78,19 @@ public class AccountValuesProcessor {
 	private PrismContext prismContext;
 
 	
-	public void process(SyncContext context, AccountSyncContext accountContext, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+    	if (focusContext == null) {
+    		return;
+    	}
+    	if (focusContext.getObjectTypeClass() != UserType.class) {
+    		// We can do this only for user.
+    		return;
+    	}
+    	processAccounts((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
+	}
+	
+	public void processAccounts(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accountContext, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		
 		PolicyDecision policyDecision = accountContext.getPolicyDecision();
 		if (policyDecision != null && policyDecision == PolicyDecision.UNLINK) {
@@ -98,13 +108,13 @@ public class AccountValuesProcessor {
 			accountContext.setIterationToken(iterationToken);
 			
 			assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
-			context.recomputeNew();
+			context.recompute();
 			outboundProcessor.processOutbound(context, accountContext, result);
-			context.recomputeNew();
+			context.recompute();
 			consolidationProcessor.consolidateValues(context, accountContext, result);
-	        context.recomputeNew();
+	        context.recompute();
 	 
-	        SynchronizerUtil.traceContext("values", context, true);
+	        LensUtil.traceContext("values", context, true);
 	        
 	        // Check constraints
 	        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);
@@ -123,7 +133,7 @@ public class AccountValuesProcessor {
 	        	} else {
 	        		sb.append("Too many iterations ("+iteration+") for ");
 	        	}
-	        	sb.append(accountContext.getHumanReadableAccountName());
+	        	sb.append(accountContext.getHumanReadableName());
 	        	if (iteration == 1) {
 	        		sb.append(": constraint violation: ");
 	        	} else {
@@ -138,7 +148,7 @@ public class AccountValuesProcessor {
 					
 	}
 	
-	private int determineMaxIterations(AccountSyncContext accountContext) {
+	private int determineMaxIterations(LensProjectionContext<AccountShadowType> accountContext) {
 		ResourceAccountTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef != null) {
 			IterationSpecificationType iteration = accDef.getIteration();
@@ -170,10 +180,10 @@ public class AccountValuesProcessor {
 	/**
 	 * Remove the intermediate results of values processing such as secondary deltas.
 	 */
-	private void cleanupContext(AccountSyncContext accountContext) throws SchemaException {
-		accountContext.setAccountSecondaryDelta(null);
+	private void cleanupContext(LensProjectionContext<AccountShadowType> accountContext) throws SchemaException {
+		accountContext.setSecondaryDelta(null);
 		accountContext.clearIntermediateResults();
-		accountContext.recomputeAccountNew();
+		accountContext.recompute();
 	}
 
 	

@@ -19,14 +19,12 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
-import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
-import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -34,15 +32,18 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
@@ -81,12 +82,28 @@ public class AssignmentProcessor {
 
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
+    
+    @Autowired(required = true)
+    private ProvisioningService provisioningService;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
-    public void processAssignmentsAccounts(SyncContext context, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
-
+    public <F extends ObjectType, P extends ObjectType> void processAssignmentsProjections(LensContext<F,P> context, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	LensFocusContext<F> focusContext = context.getFocusContext();
+    	if (focusContext == null) {
+    		return;
+    	}
+    	if (focusContext.getObjectTypeClass() != UserType.class) {
+    		// We can do this only for user.
+    		return;
+    	}
+    	processAssignmentsAccounts((LensContext<UserType,AccountShadowType>) context, result);
+    }
+    
+    public void processAssignmentsAccounts(LensContext<UserType,AccountShadowType> context, OperationResult result) throws SchemaException,
+    		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	LensFocusContext<UserType> focusContext = context.getFocusContext();
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
         if (accountSynchronizationSettings != null) {
             AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountSynchronizationSettings.getAssignmentPolicyEnforcement();
@@ -95,7 +112,7 @@ public class AssignmentProcessor {
                 LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
 
                 // But mark all accounts as assigned, so they will be synchronized as expected
-                for (AccountSyncContext accCtx : context.getAccountContexts()) {
+                for (LensProjectionContext<AccountShadowType> accCtx : context.getProjectionContexts()) {
                     accCtx.setAssigned(true);
                 }
 
@@ -104,14 +121,14 @@ public class AssignmentProcessor {
         }
         
         Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new ArrayList<PrismContainerValue<AssignmentType>>();
-        if (context.getUserOld() != null) {
-            PrismContainer<AssignmentType> assignmentContainer = context.getUserOld().findContainer(UserType.F_ASSIGNMENT);
+        if (focusContext.getObjectOld() != null) {
+            PrismContainer<AssignmentType> assignmentContainer = focusContext.getObjectOld().findContainer(UserType.F_ASSIGNMENT);
             if (assignmentContainer != null) {
             	assignmentsOld.addAll(assignmentContainer.getValues());
             }
         }
 
-        ContainerDelta<AssignmentType> assignmentDelta = context.getAssignmentDelta();
+        ContainerDelta<AssignmentType> assignmentDelta = focusContext.getAssignmentDelta();
 
         LOGGER.trace("Assignment delta {}", assignmentDelta.dump());
 
@@ -120,7 +137,7 @@ public class AssignmentProcessor {
 
         AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
         assignmentEvaluator.setRepository(repositoryService);
-        assignmentEvaluator.setUserOdo(context.getUserOdo());
+        assignmentEvaluator.setUserOdo(focusContext.getObjectDeltaObject());
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);
@@ -133,10 +150,10 @@ public class AssignmentProcessor {
         LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
 
         ObjectType source = null;
-        if (context.getUserOld() != null) {
-            source = context.getUserOld().asObjectable();
-        } else if (context.getUserNew() != null){
-            source = context.getUserNew().asObjectable();
+        if (focusContext.getObjectOld() != null) {
+            source = focusContext.getObjectOld().asObjectable();
+        } else if (focusContext.getObjectNew() != null){
+            source = focusContext.getObjectNew().asObjectable();
         }
         
         Collection<Assignment> evaluatedAssignmentsZero = new ArrayList<Assignment>();
@@ -204,20 +221,20 @@ public class AssignmentProcessor {
             }
 
             if (zeroAccountMap.containsKey(rat)) {
-                AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+                LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rat);
                 if (accountSyncContext == null) {
                 	// The account should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. Pretend that the assignment was just added. That should do.
-                	markPolicyDecision(context, rat, PolicyDecision.ADD);
-                    context.getAccountSyncContext(rat).setAssigned(true);
+                	markPolicyDecision(context, rat, PolicyDecision.ADD, result);
+                	accountSyncContext.setAssigned(true);
                 } else {
                 	// The account existed before the change and should still exist
 	                accountSyncContext.setAssigned(true);
-	                markPolicyDecision(context, rat, PolicyDecision.KEEP);
+	                markPolicyDecision(context, rat, PolicyDecision.KEEP, result);
                 }
 
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
-                context.getAccountSyncContext(rat).setAssigned(true);
+            	context.findProjectionContext(rat).setAssigned(true);
                 // Account was removed and added in the same operation, therefore keep its original state
                 // TODO
                 throw new UnsupportedOperationException("add+delete of account is not supported yet");
@@ -226,16 +243,16 @@ public class AssignmentProcessor {
             } else if (plusAccountMap.containsKey(rat)) {
                 // Account added
             	if (accountExists(context,rat)) {
-            		markPolicyDecision(context, rat, PolicyDecision.KEEP);
+            		markPolicyDecision(context, rat, PolicyDecision.KEEP, result);
             	} else {
-            		markPolicyDecision(context, rat, PolicyDecision.ADD);
+            		markPolicyDecision(context, rat, PolicyDecision.ADD, result);
             	}
-                context.getAccountSyncContext(rat).setAssigned(true);
+                context.findProjectionContext(rat).setAssigned(true);
 
             } else if (minusAccountMap.containsKey(rat)) {
-                context.getAccountSyncContext(rat).setAssigned(false);
+                context.findProjectionContext(rat).setAssigned(false);
                 // Account removed
-                markPolicyDecision(context, rat, PolicyDecision.DELETE);
+                markPolicyDecision(context, rat, PolicyDecision.DELETE, result);
 
             } else {
                 throw new IllegalStateException("Account " + rat + " went looney");
@@ -244,7 +261,7 @@ public class AssignmentProcessor {
             PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountDeltaSetTriple = 
             		new PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>>(zeroAccountMap.get(rat),
                     plusAccountMap.get(rat), minusAccountMap.get(rat));
-            context.getAccountSyncContext(rat).setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
+            context.findProjectionContext(rat).setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
 
         }
         
@@ -255,13 +272,13 @@ public class AssignmentProcessor {
 	/**
 	 * Set policy decisions for the accounts that does not have it already
 	 */
-	private void finishProplicyDecisions(SyncContext context) {
-		for (AccountSyncContext accountContext: context.getAccountContexts()) {
+	private void finishProplicyDecisions(LensContext<UserType,AccountShadowType> context) {
+		for (LensProjectionContext<AccountShadowType> accountContext: context.getProjectionContexts()) {
 			if (accountContext.getPolicyDecision() != null) {
 				// already have decision
 				continue;
 			}
-			ObjectDelta<AccountShadowType> accountSyncDelta = accountContext.getAccountSyncDelta();
+			ObjectDelta<AccountShadowType> accountSyncDelta = accountContext.getSyncDelta();
 			if (accountSyncDelta != null) {
 				if (accountSyncDelta.isDelete()) {
 					accountContext.setPolicyDecision(PolicyDecision.UNLINK);
@@ -284,7 +301,7 @@ public class AssignmentProcessor {
 		return false;
 	}
 
-	public void processAssignmentsAccountValues(AccountSyncContext accountContext, OperationResult result) throws SchemaException,
+	public void processAssignmentsAccountValues(LensProjectionContext<AccountShadowType> accountContext, OperationResult result) throws SchemaException,
 		ObjectNotFoundException, ExpressionEvaluationException {
             
 		// TODO: reevaluate constructions
@@ -324,44 +341,41 @@ public class AssignmentProcessor {
         return sb.toString();
     }
 
-    private boolean accountExists(SyncContext context, ResourceAccountType rat) {
-    	AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+    private boolean accountExists(LensContext<UserType,AccountShadowType> context, ResourceAccountType rat) {
+    	LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rat);
     	if (accountSyncContext == null) {
     		return false;
     	}
-    	if (accountSyncContext.getAccountOld() == null) {
+    	if (accountSyncContext.getObjectOld() == null) {
     		return false;
     	}
     	return true;
     }
     
-    private void markPolicyDecision(SyncContext context, ResourceAccountType rat, PolicyDecision decision) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    private void markPolicyDecision(LensContext<UserType,AccountShadowType> context, ResourceAccountType rat, PolicyDecision decision, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
-        if (accountSyncContext == null) {
-            accountSyncContext = context.createAccountSyncContext(rat);
-        }
+    	LensProjectionContext<AccountShadowType> accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat, provisioningService, result);
         if (accountSyncContext.getPolicyDecision() == null) {
             accountSyncContext.setPolicyDecision(decision);
         }
 
     }
 
-	private void checkExclusions(SyncContext context, Collection<Assignment> assignmentsA,
+	private void checkExclusions(LensContext<UserType,AccountShadowType> context, Collection<Assignment> assignmentsA,
 			Collection<Assignment> assignmentsB) throws PolicyViolationException {
 		for (Assignment assignmentA: assignmentsA) {
 			checkExclusion(context, assignmentA, assignmentsB);
 		}
 	}
 
-	private void checkExclusion(SyncContext context, Assignment assignmentA,
+	private void checkExclusion(LensContext<UserType,AccountShadowType> context, Assignment assignmentA,
 			Collection<Assignment> assignmentsB) throws PolicyViolationException {
 		for (Assignment assignmentB: assignmentsB) {
 			checkExclusion(context, assignmentA, assignmentB);
 		}
 	}
 
-	private void checkExclusion(SyncContext context, Assignment assignmentA, Assignment assignmentB) throws PolicyViolationException {
+	private void checkExclusion(LensContext<UserType,AccountShadowType> context, Assignment assignmentA, Assignment assignmentB) throws PolicyViolationException {
 		if (assignmentA == assignmentB) {
 			// Same thing, this cannot exclude itself
 			return;
