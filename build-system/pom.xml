@@ -39,7 +39,7 @@
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
         <!-- Dependencies global versions -->
-        <aspectj.version>1.6.11</aspectj.version>
+        <aspectj.version>1.6.12</aspectj.version>
         <basex.version>6.7.1</basex.version>
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
@@ -154,7 +154,8 @@
             <dependency>
                 <groupId>com.sun.xsom</groupId>
                 <artifactId>xsom</artifactId>
-                <version>20100725</version>
+                <!-- <version>20100725</version> -->
+                <version>20110809</version>
             </dependency>
             <dependency>
                 <groupId>commons-beanutils</groupId>

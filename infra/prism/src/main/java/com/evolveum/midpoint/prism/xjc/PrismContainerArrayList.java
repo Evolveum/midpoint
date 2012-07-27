@@ -28,14 +28,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
 
-import java.util.ArrayList;
+import java.util.AbstractList;
 import java.util.Collection;
 import java.util.List;
 
 /**
  * @author lazyman
+ *
+ * Changed to extend AbstractList instead of ArrayList, as some functionality of ArrayList
+ * (e.g. its optimized Itr class) does not work with class (PrismContainerArrayList), as of Java7.
+ *
+ * TODO: account for concurrent structural modifications using modCount property
  */
-public abstract class PrismContainerArrayList<T extends Containerable> extends ArrayList<T> {
+public abstract class PrismContainerArrayList<T extends Containerable> extends AbstractList<T> {
 
     private PrismContainer<T> container;
 

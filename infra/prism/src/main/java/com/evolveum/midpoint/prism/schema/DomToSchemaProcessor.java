@@ -481,8 +481,8 @@ class DomToSchemaProcessor {
 				itemDef.setMaxOccurs(-1);
 			}
 		} else {
-			itemDef.setMinOccurs(particle.getMinOccurs());
-			itemDef.setMaxOccurs(particle.getMaxOccurs());
+			itemDef.setMinOccurs(particle.getMinOccurs().intValue());
+			itemDef.setMaxOccurs(particle.getMaxOccurs().intValue());
 		}
 	}
 

@@ -700,7 +700,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             if (cat != null) {
                 retval.addAll(cat);
             } else {
-                retval.add(h.getCategoryName(null));
+                String catName = h.getCategoryName(null);
+                if (catName != null) {
+                    retval.add(catName);
+                }
             }
         }
         return retval;

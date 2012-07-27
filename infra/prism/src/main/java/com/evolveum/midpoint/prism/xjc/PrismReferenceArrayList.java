@@ -32,6 +32,8 @@ import java.util.List;
 
 /**
  * @author lazyman
+ *
+ * TODO: account for concurrent structural modifications using modCount property
  */
 public abstract class PrismReferenceArrayList<T> extends AbstractList<T> {
 
