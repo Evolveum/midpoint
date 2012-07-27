@@ -55,7 +55,7 @@ function initMessages() {
 				$(this).append("<span class='"+ arrow +"-arrow arrow-down'></span>");
 				var exceptionHeight = $(this).find(".messages-topException").height();
 				var arrowPosition = $(this).height() / 2 - exceptionHeight + 3;
-				alert($(this).height());
+				//alert($(this).height());
 				//var arrowPosition = $(this).height() / 2 + 4;
 				$("." + arrow +"-arrow").css("marginTop", - arrowPosition);
 			}
