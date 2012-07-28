@@ -28,6 +28,9 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfHook;
+import com.evolveum.midpoint.wf.WfTaskHandler;
+import com.evolveum.midpoint.wf.messages.ActivitiToMidPointMessage;
+import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +39,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Transports messages from Activiti to midPoint (originally via Camel, now directly as java calls).
+ *
+ * Currently almost obsolete ... we'll see what will be its fate.
  */
 
 @Component
@@ -48,32 +53,32 @@ public class Activiti2Idm {
     TaskManager taskManager;
 
     @Autowired(required = true)
-    WfHook wfHook;
+    WfTaskHandler wfTaskHandler;
 
     private static final Trace LOGGER = TraceManager.getTrace(Activiti2Idm.class);
 
-    public void onWorkflowMessage(Object o) {
+    public void onWorkflowMessage(ActivitiToMidPointMessage msg) {
 
         OperationResult result = new OperationResult("onWorkflowMessage");
 
 		LOGGER.info("onWorkflowMessage starting.");
 		try {
 
-			if (o instanceof WfProcessInstanceEventType) {
+			if (msg instanceof ProcessEvent) {
 
-				WfProcessInstanceEventType event = (WfProcessInstanceEventType) o;
-				LOGGER.info("Received WfProcessInstanceEvent: " + event);
-				String taskOid = event.getMidpointTaskOid();
+				ProcessEvent event = (ProcessEvent) msg;
+				LOGGER.info("Received ProcessEvent: " + event);
+				String taskOid = event.getTaskOid();
 
 				if (taskOid != null) {
 
 					Task task = taskManager.getTask(taskOid, result);
-					wfHook.processWorkflowMessage(event, task, result);
+					wfTaskHandler.processWorkflowMessage(event, task, result);
 
 				} else
 					throw new Exception("Got a workflow message without taskOid: " + event.toString());
 			} else
-				throw new Exception("Unknown message type coming from the workflow: " + o);
+				throw new Exception("Unknown message type coming from the workflow: " + msg);
 
 		} catch (Exception e) {
 			String message = "Couldn't process an event coming from the workflow management system";

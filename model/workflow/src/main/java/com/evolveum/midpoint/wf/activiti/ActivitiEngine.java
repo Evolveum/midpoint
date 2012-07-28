@@ -72,7 +72,7 @@ public class ActivitiEngine {
                 .setJdbcUsername(configuration.getJdbcUser())
                 .setJdbcPassword(configuration.getJdbcPassword())
                 .setJobExecutorActivate(false)
-                .setHistory(ProcessEngineConfiguration.HISTORY_AUDIT)
+                .setHistory(ProcessEngineConfiguration.HISTORY_FULL)
                 .buildProcessEngine();
 
         LOGGER.info("Activiti engine successfully created.");

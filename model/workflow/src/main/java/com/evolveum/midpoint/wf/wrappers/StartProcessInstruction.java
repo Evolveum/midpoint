@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf;
+package com.evolveum.midpoint.wf.wrappers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,10 +31,11 @@ import java.util.Map;
  * Time: 15:11
  * To change this template use File | Settings | File Templates.
  */
-public class WfProcessStartCommand {
+public class StartProcessInstruction {
 
-    private Map<String,String> processVariables = new HashMap<String,String>();
+    private Map<String,Object> processVariables = new HashMap<String,Object>();
     private String processName;
+    private String taskName;
     private boolean simple;
 
     public boolean isSimple() {
@@ -53,12 +54,20 @@ public class WfProcessStartCommand {
         return processName;
     }
 
-    public Map<String, String> getProcessVariables() {
+    public Map<String, Object> getProcessVariables() {
         return processVariables;
     }
 
     public void addProcessVariable(String name, String value) {
         processVariables.put(name, value);
+    }
+
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
     }
 
     public String toString() {

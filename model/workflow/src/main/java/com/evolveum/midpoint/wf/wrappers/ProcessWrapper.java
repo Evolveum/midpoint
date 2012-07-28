@@ -21,13 +21,12 @@
 
 package com.evolveum.midpoint.wf.wrappers;
 
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.wf.WfProcessStartCommand;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStageType;
+import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
 
 import java.util.Collection;
 
@@ -38,9 +37,9 @@ import java.util.Collection;
  * Time: 15:02
  * To change this template use File | Settings | File Templates.
  */
-public interface WfProcessWrapper {
+public interface ProcessWrapper {
 
-    WfProcessStartCommand startProcessIfNeeded(ModelOperationStageType stage, Collection<ObjectDelta<? extends ObjectType>> changes, Task task);
+    StartProcessInstruction startProcessIfNeeded(ModelState state, Collection<ObjectDelta<? extends ObjectType>> changes, Task task);
 
-    void finishProcess(WfProcessInstanceEventType event, Task task, OperationResult result) throws Exception;
+    void finishProcess(ProcessEvent event, Task task, OperationResult result);
 }

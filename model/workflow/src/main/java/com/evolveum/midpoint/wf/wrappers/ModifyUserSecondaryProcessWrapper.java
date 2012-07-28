@@ -22,14 +22,11 @@
 package com.evolveum.midpoint.wf.wrappers;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.WfHook;
-import com.evolveum.midpoint.wf.WfProcessStartCommand;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
@@ -49,8 +46,9 @@ import java.util.Map;
  * Time: 15:06
  * To change this template use File | Settings | File Templates.
  */
-@Component
-public class ModifyUserSecondaryProcessWrapper implements WfProcessWrapper {
+//@Component
+public class ModifyUserSecondaryProcessWrapper //implements ProcessWrapper {
+{
 
     @Autowired(required = true)
     private WfHook wfHook;
@@ -60,11 +58,11 @@ public class ModifyUserSecondaryProcessWrapper implements WfProcessWrapper {
 
     @PostConstruct
     public void register() {
-        wfHook.registerWfProcessWrapper(this);
+        //wfHook.registerWfProcessWrapper(this);
     }
 
-    @Override
-    public WfProcessStartCommand startProcessIfNeeded(ModelOperationStageType stage, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
+    //@Override
+    public StartProcessInstruction startProcessIfNeeded(ModelOperationStageType stage, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
 
         if (true)
             return null;
@@ -78,7 +76,7 @@ public class ModifyUserSecondaryProcessWrapper implements WfProcessWrapper {
                             if (o instanceof PrismPropertyValue) {
                                 Object real = ((PrismPropertyValue<Object>) o).getValue();
                                 if (real instanceof String && ((String) real).startsWith("testwf2")) {
-                                    WfProcessStartCommand startCommand = new WfProcessStartCommand();
+                                    StartProcessInstruction startCommand = new StartProcessInstruction();
                                     startCommand.setProcessName("ModifyUserSecondary");
                                     startCommand.addProcessVariable("changes", dump(changes));
                                     startCommand.setSimple(true);
@@ -93,7 +91,7 @@ public class ModifyUserSecondaryProcessWrapper implements WfProcessWrapper {
         return null;
     }
 
-    @Override
+    //@Override
     public void finishProcess(WfProcessInstanceEventType event, Task task, OperationResult result) throws Exception {
 
         Map<String,String> variables = wfTaskUtil.unwrapWfVariables(event);

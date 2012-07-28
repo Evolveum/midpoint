@@ -22,7 +22,16 @@
 package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.wf.activiti.Idm2Activiti;
+import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.messages.ProcessFinishedEvent;
+import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
+import com.evolveum.midpoint.wf.messages.QueryProcessCommand;
+import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfQueryProcessInstanceCommandType;
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -43,13 +52,19 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
 	@Autowired(required = true)
 	private WfHook workflowHook;
 
-	@Autowired(required = true)
+    @Autowired(required = true)
+    private WfTaskUtil wfTaskUtil;
+
+    @Autowired(required = true)
 	private TaskManager taskManager;
 
     @Autowired(required = true)
     private WorkflowManager workflowManager;
 
-	private static final Trace LOGGER = TraceManager.getTrace(WfTaskHandler.class);
+    @Autowired(required = true)
+    private Idm2Activiti idm2Activiti;
+
+    private static final Trace LOGGER = TraceManager.getTrace(WfTaskHandler.class);
 
     /*
      * There are two kinds of wf process-watching tasks: passive and active.
@@ -94,7 +109,7 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
                     String id = values.iterator().next();
                     //String id = (String) idProp.getRealValue(String.class);
                     LOGGER.info("Task " + task.getName() + ": requesting status for wf process id " + id + "...");
-                    workflowHook.queryProcessInstance(id, task, null);
+                    queryProcessInstance(id, task, null);
                 }
             }
         } else {
@@ -135,7 +150,74 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
 		else
 			LOGGER.error("Cannot register with taskManager as taskManager == null");
 	}
-	
-	
+
+
+    void queryProcessInstance(String id, Task task, OperationResult parentResult) {
+
+        String taskOid = task.getOid();
+        Validate.notEmpty(taskOid, "Task oid must not be null or empty (task must be persistent).");
+
+        if (parentResult == null)
+            parentResult = new OperationResult("queryProcessInstance");
+
+        QueryProcessCommand qpc = new QueryProcessCommand();
+        qpc.setTaskOid(taskOid);
+        qpc.setPid(id);
+
+        try {
+            idm2Activiti.idm2activiti(qpc);
+        } catch (RuntimeException e) {     // FIXME
+            LoggingUtils.logException(LOGGER,
+                    "Couldn't send a request to query a process instance to workflow management system", e);
+            parentResult.recordPartialError("Couldn't send a request to query a process instance to workflow management system", e);
+        }
+
+        parentResult.recordSuccessIfUnknown();
+    }
+
+
+    /**
+     * Processes a message got from workflow engine - either synchronously (while waiting for
+     * replies after sending - i.e. in a thread that requested the operation), or asynchronously
+     * (directly from onWorkflowMessage, in a separate thread).
+     *
+     * @param event an event got from workflow engine
+     * @param task a task instance (should be as current as possible)
+     * @param result
+     * @throws Exception
+     */
+    public void processWorkflowMessage(ProcessEvent event, Task task, OperationResult result) throws Exception {
+
+        String pid = event.getPid();
+        //String answer = event.getWfAnswer();
+
+        // let us generate description if there is none
+        String description = event.getState();
+        if (description == null || description.isEmpty())
+        {
+            if (event instanceof ProcessStartedEvent) {
+                description = "Workflow process instance has been created (process id " + pid + ")";
+            } else if (event instanceof ProcessFinishedEvent) {
+                description = "Workflow process instance has ended (process id " + pid + ")";
+            } else {
+                description = "Workflow process instance has proceeded further (process id " + pid + ")";
+            }
+        }
+
+        // record the process state
+        String details = wfTaskUtil.dumpVariables(event);
+        wfTaskUtil.recordProcessState(task, description, details, event, result);
+
+        // let us record process id (when getting "process started" event)
+        if (event instanceof ProcessStartedEvent) {
+            wfTaskUtil.setWfProcessId(task, event.getPid(), result);
+        }
+
+        // should we finish this task?
+        if (event instanceof ProcessFinishedEvent || !event.isRunning()) {
+            workflowHook.finishProcessing(event, task, result);
+        }
+
+    }
 
 }

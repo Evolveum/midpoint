@@ -21,14 +21,12 @@
 
 package com.evolveum.midpoint.wf;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -37,7 +35,9 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.wf.wrappers.WfProcessWrapper;
+import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.messages.QueryProcessResponse;
+import com.evolveum.midpoint.wf.wrappers.ProcessWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.StringUtils;
@@ -231,7 +231,7 @@ public class WfTaskUtil {
 	 * @param description Description to be set.
 	 * @param parentResult
 	 */
-	void recordProcessState(Task task, String description, String details, WfProcessInstanceEventType event,
+	void recordProcessState(Task task, String description, String details, ProcessEvent event,
 			OperationResult parentResult) {
 		
 		LOGGER.info("recordProcessState starting.");
@@ -268,7 +268,7 @@ public class WfTaskUtil {
 			 * The following is executed only if the process variables have changed (for active tasks i.e. answers to queries)
 			 */
 			boolean recordStatus = true;
-			if (event != null && event.isAnswerToQuery()) {
+			if (event != null && event instanceof QueryProcessResponse) {
 				String lastVariables = getLastVariables(task);
 				if (lastVariables != null) {
 					String currentVariables = dumpVariables(event);
@@ -393,20 +393,23 @@ public class WfTaskUtil {
 	 * Sorts variables according to their names, in order to be able to decide whether
 	 * anything has changed since last event coming from the process. 
 	 */
-	String dumpVariables(WfProcessInstanceEventType event)
+	String dumpVariables(ProcessEvent event)
 	{
 		StringBuffer sb = new StringBuffer();
 		boolean first = true;
 		
-		if (event.getWfAnswer() != null)
-			sb.append("[answer from workflow: " + event.getWfAnswer() + "] ");
+		if (event.getAnswer() != null)
+			sb.append("[answer from workflow: " + event.getAnswer() + "] ");
 		
-		TreeMap<String,String> variables = new TreeMap<String,String>();
-		for (WfProcessVariable var : event.getWfProcessVariable())
-			if (!var.getName().startsWith("midpoint"))
-				variables.put(var.getName(), var.getValue());
+		TreeMap<String,Object> variables = new TreeMap<String,Object>();
+        if (event.getVariables() != null) {
+            variables.putAll(event.getVariables());
+        }
+//		for (WfProcessVariable var : event.getVariables())
+//			if (!var.getName().startsWith("midpoint"))
+//				variables.put(var.getName(), var.getValue());
 		
-		for (Map.Entry<String,String> entry: variables.entrySet()) {
+		for (Map.Entry<String,Object> entry: variables.entrySet()) {
 			if (!first)
 				sb.append("; ");
 			sb.append(entry.getKey() + "=" + entry.getValue());
@@ -426,19 +429,19 @@ public class WfTaskUtil {
 ////    	task.setModelOperationStateWithPersist(state, result);
 //    }
 
-    public void setProcessWrapper(Task task, WfProcessWrapper wrapper) throws SchemaException {
+    public void setProcessWrapper(Task task, ProcessWrapper wrapper) throws SchemaException {
         PrismProperty<String> w = wfProcessWrapperPropertyDefinition.instantiate();
         w.setRealValue(wrapper.getClass().getName());
         task.setExtensionProperty(w);
     }
 
-    public WfProcessWrapper getProcessWrapper(Task task, List<WfProcessWrapper> wrappers) {
+    public ProcessWrapper getProcessWrapper(Task task, List<ProcessWrapper> wrappers) {
         String wrapperClassName = task.getExtension(WFPROCESS_WRAPPER_PROPERTY_NAME).getRealValue(String.class);
         if (wrapperClassName == null) {
             throw new IllegalStateException("No wf process wrapper defined in task " + task);
         }
 
-        for (WfProcessWrapper w : wrappers) {
+        for (ProcessWrapper w : wrappers) {
             if (wrapperClassName.equals(w.getClass().getName())) {
                 return w;
             }

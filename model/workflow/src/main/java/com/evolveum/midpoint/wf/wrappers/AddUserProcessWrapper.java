@@ -21,14 +21,15 @@
 
 package com.evolveum.midpoint.wf.wrappers;
 
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.WfHook;
-import com.evolveum.midpoint.wf.WfProcessStartCommand;
 import com.evolveum.midpoint.wf.WfTaskUtil;
+import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -48,7 +49,7 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 @Component
-public class AddUserProcessWrapper implements WfProcessWrapper {
+public class AddUserProcessWrapper implements ProcessWrapper {
 
     @Autowired(required = true)
     private WfHook wfHook;
@@ -62,9 +63,9 @@ public class AddUserProcessWrapper implements WfProcessWrapper {
     }
 
     @Override
-    public WfProcessStartCommand startProcessIfNeeded(ModelOperationStageType stage, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
+    public StartProcessInstruction startProcessIfNeeded(ModelState state, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
 
-        if (stage == ModelOperationStageType.PRIMARY) {
+        if (state == ModelState.PRIMARY) {
             if (changes.size() == 1) {
                 ObjectDelta<? extends ObjectType> change = changes.iterator().next();
 
@@ -81,9 +82,10 @@ public class AddUserProcessWrapper implements WfProcessWrapper {
 
                         String user = prismToAdd.asObjectable().getName();
                         if (user.startsWith("testwf")) {
-                            WfProcessStartCommand startCommand = new WfProcessStartCommand();
+                            StartProcessInstruction startCommand = new StartProcessInstruction();
                             startCommand.setProcessName("AddUser");
                             startCommand.addProcessVariable("user", user);
+                            startCommand.setTaskName("Workflow for creating user " + user);
                             startCommand.setSimple(true);
                             return startCommand;
                         }
@@ -95,13 +97,12 @@ public class AddUserProcessWrapper implements WfProcessWrapper {
     }
 
     @Override
-    public void finishProcess(WfProcessInstanceEventType event, Task task, OperationResult result) throws Exception {
+    public void finishProcess(ProcessEvent event, Task task, OperationResult result) {
 
-        Map<String,String> variables = wfTaskUtil.unwrapWfVariables(event);
-        if ("true".equals(variables.get("approved"))) {
-            wfTaskUtil.markAcceptation(task, result);
+        if (event.getAnswer() == Boolean.TRUE) {
+            //wfTaskUtil.markAcceptation(task, result);
         } else {
-            wfTaskUtil.markRejection(task, result);
+            //wfTaskUtil.markRejection(task, result);
         }
 
     }

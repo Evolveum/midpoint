@@ -179,6 +179,10 @@ public class TaskSynchronizer {
      */
     public boolean synchronizeTask(TaskQuartzImpl task, OperationResult parentResult) {
 
+        if (!task.isPersistent()) {
+            return false;               // transient tasks are not scheduled via Quartz!
+        }
+
         boolean changed = false;
         String message = "";
 

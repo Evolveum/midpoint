@@ -49,7 +49,6 @@ public class WfConfiguration {
 
     private boolean activitiSchemaUpdate;
 
-    // quartz jdbc job store specific information
     private String database;
     private String jdbcDriver;
     private String jdbcUrl;

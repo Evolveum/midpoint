@@ -23,6 +23,8 @@ package com.evolveum.midpoint.wf.activiti;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.WfConstants;
+import com.evolveum.midpoint.wf.messages.*;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.*;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.ProcessEngines;
@@ -34,7 +36,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  *  Transports messages from midPoint to Activiti. (Originally via Camel, currently using direct java calls.)
@@ -52,128 +53,100 @@ public class Idm2Activiti {
     private static final Trace LOGGER = TraceManager.getTrace(Idm2Activiti.class);
 
     /**
-     * Converts an XML StartProcessInstanceCommand message coming from midPoint
-     * into a activiti process-starting message.
-     *
-     * Namely, creates these variables:
-     *  - midpointTaskOid (from XML message)
-     *  - midpointListener (by instantiating the appropriate class)
-     *  - all variables contained within incoming XML message
+     * Processes a message coming from midPoint to activiti
      */
 
-    public void idm2activiti(Object o) {
+    public void idm2activiti(MidPointToActivitiMessage cmd) {
 
-        LOGGER.trace(" *** A message from midPoint has arrived; class = " + o.getClass().getName() + " ***");
+        LOGGER.trace(" *** A command from midPoint has arrived; class = " + cmd.getClass().getName() + " ***");
 
-        if (o instanceof WfQueryProcessInstanceCommandType)
+        if (cmd instanceof QueryProcessCommand)
         {
-            WfQueryProcessInstanceCommandType qpic = (WfQueryProcessInstanceCommandType) o;
-            String id = qpic.getWfProcessInstanceId();
-            LOGGER.trace("Querying process instance id = " + id);
+            QueryProcessCommand qpc = (QueryProcessCommand) cmd;
+            QueryProcessResponse qpr = new QueryProcessResponse();
+
+            String pid = qpc.getPid();
+            qpr.setPid(pid);
+            qpr.setTaskOid(qpc.getTaskOid());
+
+            LOGGER.trace("Querying process instance id = " + pid);
 
             HistoryService hs = activitiEngine.getHistoryService();
             HistoricDetailQuery hdq = hs.createHistoricDetailQuery()
                     .variableUpdates()
-                    .processInstanceId(id)
+                    .processInstanceId(pid)
                     .orderByVariableRevision().desc();
 
-            TreeMap<String,String> variables = new TreeMap<String,String>();		// sorted in order to provide deterministic answer
             for (HistoricDetail hd : hdq.list())
             {
                 HistoricVariableUpdate hvu = (HistoricVariableUpdate) hd;
                 String varname = hvu.getVariableName();
                 Object value = hvu.getValue();
-                String varvalue = value == null ? null : value.toString();
-                LOGGER.trace("hvu: " + varname + " <- " + varvalue);
-                System.out.println("Variable: " + varname + " <- " + varvalue);
-                if (!variables.containsKey(varname))
-                    variables.put(varname, varvalue);
+                LOGGER.trace("hvu: " + varname + " <- " + value);
+                System.out.println("Variable: " + varname + " <- " + value);
+                qpr.putVariable(varname, value);
             }
 
             HistoricDetailQuery hdq2 = hs.createHistoricDetailQuery()
                     .formProperties()
-                    .processInstanceId(id)
+                    .processInstanceId(pid)
                     .orderByVariableRevision().desc();
             for (HistoricDetail hd : hdq2.list())
             {
                 HistoricFormProperty hfp = (HistoricFormProperty) hd;
                 String varname = hfp.getPropertyId();
                 Object value = hfp.getPropertyValue();
-                String varvalue = value == null ? null : value.toString();
-                LOGGER.trace("form-property: " + varname + " <- " + varvalue);
-                System.out.println("form-property: " + varname + " <- " + varvalue);
-                if (!variables.containsKey(varname))
-                    variables.put(varname, varvalue);
+                LOGGER.trace("form-property: " + varname + " <- " + value);
+                System.out.println("form-property: " + varname + " <- " + value);
+                qpr.putVariable(varname, value);
             }
 
-            // obsolete (wfAnswer)
-//            String answerValue = variables.get("wfAnswer");
-//            LOGGER.trace("wfAnswer value = " + answerValue);
-//            System.out.println("wfAnswer value = " + answerValue);
+            ProcessInstance pi = activitiEngine.getProcessEngine().getRuntimeService().createProcessInstanceQuery().processInstanceId(pid).singleResult();
+            qpr.setRunning(pi != null && !pi.isEnded());
+            System.out.println("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
 
-            // is the process still running (needed if value == null)
-//            if (answerValue == null)
+            // is the process still running? (needed if value == null)
+//            if (qpr.getAnswer() == null)
 //            {
 //                HistoricProcessInstance hip = hs.createHistoricProcessInstanceQuery()
-//                        .processInstanceId(id).singleResult();
+//                        .processInstanceId(pid).singleResult();
 //                if (hip != null)
 //                {
 //                    LOGGER.trace("Found historic process instance with id " + hip.getId() + ", end time = " + hip.getEndTime());
 //                    if (hip.getEndTime() != null)
-//                        answerValue = "no-result";
+//                        ;
 //                }
 //                else
-//                    LOGGER.trace("No historic process instance with id " + id + " was found.");
+//                    LOGGER.trace("No historic process instance with id " + pid + " was found.");
 //            }
 
-            WfProcessInstanceEventType event = new WfProcessInstanceEventType();
-            event.setMidpointTaskOid(qpic.getMidpointTaskOid());
-            event.setWfProcessInstanceId(id);
-//            event.setWfAnswer(answerValue);
-            event.setAnswerToQuery(true);
-
-            for (String v : variables.keySet())
-            {
-                WfProcessVariable pv = new WfProcessVariable();
-                pv.setName(v);
-                pv.setValue(variables.get(v));
-                event.getWfProcessVariable().add(pv);
-            }
-
-            LOGGER.trace("Event to be sent to IDM: " + event);
-            activiti2Idm.onWorkflowMessage(event);
+            LOGGER.trace("Response to be sent to midPoint: " + qpr);
+            activiti2Idm.onWorkflowMessage(qpr);
         }
-        else if (o instanceof WfStartProcessInstanceCommandType)
+        else if (cmd instanceof StartProcessCommand)
         {
-            WfStartProcessInstanceCommandType spic = (WfStartProcessInstanceCommandType) o;
+            StartProcessCommand spic = (StartProcessCommand) cmd;
 
             Map<String,Object> map = new HashMap<String,Object>();
 
-            LOGGER.trace("midpointTaskOid = " + spic.getMidpointTaskOid());
+            LOGGER.trace("midpointTaskOid = " + spic.getTaskOid());
 
-            map.put("midpointTaskOid", spic.getMidpointTaskOid());
-            map.put("midpointListener", new IdmExecutionListenerProxy());
-            for (WfProcessVariable var : spic.getWfProcessVariable())
-            {
-                LOGGER.trace("process variable: " + var.getName() + " = " + var.getValue());
-                map.put(var.getName(), var.getValue());
-            }
+            map.put(WfConstants.MIDPOINT_TASK_OID, spic.getTaskOid());
+            map.put(WfConstants.MIDPOINT_LISTENER, new IdmExecutionListenerProxy());
+            map.putAll(spic.getVariables());
 
-            LOGGER.trace("process name = " + spic.getWfProcessName());
+            LOGGER.trace("process name = " + spic.getProcessName());
 
-            RuntimeService rs = ProcessEngines.getDefaultProcessEngine().getRuntimeService();
-            ProcessInstance pi = rs.startProcessInstanceByKey(spic.getWfProcessName(), map);
+            RuntimeService rs = activitiEngine.getProcessEngine().getRuntimeService();
+            ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessName(), map);
 
             // let us send a reply back (useful for listener-free processes)
-            // TODO for processes with listeners this is not good, as (typically) this "process started"
-            // event comes *after* first internal process event (so the resulting event list looks illogical)
-            // We should add a "send confirmation" flag to StartCommand, by which midpoint will enable/disable this message
 
             if (spic.isSendStartConfirmation()) {
-                WfProcessInstanceStartedEventType event = new WfProcessInstanceStartedEventType();
-                event.setMidpointTaskOid(spic.getMidpointTaskOid());
-                event.setWfProcessInstanceId(pi.getProcessInstanceId());
-                event.getWfProcessVariable().addAll(spic.getWfProcessVariable());
+                ProcessStartedEvent event = new ProcessStartedEvent();
+                event.setTaskOid(spic.getTaskOid());
+                event.setPid(pi.getProcessInstanceId());
+                event.setVariablesFrom(map);
 
                 LOGGER.info("Event to be sent to IDM: " + event);
                 activiti2Idm.onWorkflowMessage(event);
@@ -181,7 +154,7 @@ public class Idm2Activiti {
         }
         else
         {
-            String message = "Unknown incoming message type: " + o.getClass().getName();
+            String message = "Unknown incoming message type: " + cmd.getClass().getName();
             LOGGER.error(message);
         }
     }
