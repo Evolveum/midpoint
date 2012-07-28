@@ -997,7 +997,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test016WaitForSubtasks() throws Exception {
         final String test = "016WaitForSubtasks";
         final OperationResult result = createResult(test);
