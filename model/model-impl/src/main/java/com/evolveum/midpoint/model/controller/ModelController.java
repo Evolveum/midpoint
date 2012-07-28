@@ -685,13 +685,19 @@ public class ModelController implements ModelService {
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
-				
-				clockwork.run(syncContext, task, result);
+
+                // temporary (P.M.)
+                if (executePreChangePrimary(syncContext.getFocusContext().getPrimaryDelta(), task, result) != HookOperationMode.FOREGROUND)
+                    return;
+
+                clockwork.run(syncContext, task, result);
 
 				// Deltas after sync will be different
 				auditRecord.clearDeltas();
 				allChanges = syncContext.getAllChanges();
 				auditRecord.addDeltas(allChanges);
+
+                result.computeStatus();
 
 			} else {
 				if (ResourceObjectShadowType.class.isAssignableFrom(type)) {

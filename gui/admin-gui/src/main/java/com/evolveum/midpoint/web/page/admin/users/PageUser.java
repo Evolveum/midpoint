@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -56,17 +57,6 @@ import org.apache.wicket.util.string.StringValue;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -844,7 +834,7 @@ public class PageUser extends PageAdminUsers {
         return refDelta;
     }
 
-    private ContainerDelta prepareUserAssignmentsDeltaForModify(PrismContainerDefinition def) {
+    private ContainerDelta prepareUserAssignmentsDeltaForModify(PrismContainerDefinition def) throws SchemaException {
         ContainerDelta assDelta = new ContainerDelta(new PropertyPath(), UserType.F_ASSIGNMENT, def);
 
         List<UserAssignmentDto> assignments = assignmentsModel.getObject();
@@ -854,6 +844,7 @@ public class PageUser extends PageAdminUsers {
                 case DELETE:
                     AssignmentType assignment = assDto.createAssignment();
                     PrismContainerValue value = assignment.asPrismContainerValue();
+                    value.applyDefinition(def, false);  // note: when adding item into container, the definition is applied automatically; in case of adding to ContainerDelta it seems to be added manually, as it is here
                     if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
                         assDelta.addValueToAdd(value);
                     } else {
