@@ -74,7 +74,7 @@ public class ContextLoader {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 	
-	public <F extends ObjectType, P extends ObjectType> void load(LensContext<F,P> context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType, P extends ObjectType> void load(LensContext<F,P> context, String activityDescription, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
@@ -93,7 +93,7 @@ public class ContextLoader {
         loadAccountRefs(ucContext, result);
         context.recomputeFocus();
 
-        LensUtil.traceContext("load", context, false);
+        LensUtil.traceContext(activityDescription, "load", context, false);
 
         // Check reconcile flag in account sync context and set accountOld
         // variable if it's not set (from provisioning)

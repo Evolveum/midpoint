@@ -333,7 +333,8 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("LensContext: wave ").append(wave).append("\n");
+        sb.append("LensContext: state ").append(state);
+        sb.append(", wave ").append(wave).append("\n");
 
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("Settings: ");

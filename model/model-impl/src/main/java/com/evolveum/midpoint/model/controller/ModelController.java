@@ -1311,7 +1311,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	public <T extends ObjectType, F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
 			ObjectDelta<T> delta, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(delta, prismContext);
-		projector.project(context, result);
+		projector.project(context, "preview", result);
 		return context;
 	}
 

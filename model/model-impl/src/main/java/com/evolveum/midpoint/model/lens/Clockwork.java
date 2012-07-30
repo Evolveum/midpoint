@@ -68,7 +68,9 @@ public class Clockwork {
 	
 	public void click(LensContext context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
-		projector.project(context, result);
+		if (!context.isFresh()) {
+			projector.project(context, "synchronization", result);
+		}
 		
 		ModelState state = context.getState();
 		switch (state) {
@@ -107,6 +109,8 @@ public class Clockwork {
 		changeExecutor.executeChanges(context, result);
 		// TODO: attempts
 		context.incrementWave();
+		// Force recompute for next wave
+		context.setFresh(false);
 	}
 
 }

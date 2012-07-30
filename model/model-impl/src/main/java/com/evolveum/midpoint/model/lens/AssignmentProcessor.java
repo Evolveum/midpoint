@@ -225,12 +225,13 @@ public class AssignmentProcessor {
                 if (accountSyncContext == null) {
                 	// The account should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. Pretend that the assignment was just added. That should do.
-                	markPolicyDecision(context, rat, PolicyDecision.ADD, result);
+                	accountSyncContext = getOrCreateAccountContext(context, rat, result);
+                	markPolicyDecision(accountSyncContext, PolicyDecision.ADD);
                 	accountSyncContext.setAssigned(true);
                 } else {
                 	// The account existed before the change and should still exist
 	                accountSyncContext.setAssigned(true);
-	                markPolicyDecision(context, rat, PolicyDecision.KEEP, result);
+	                markPolicyDecision(accountSyncContext, PolicyDecision.KEEP);
                 }
 
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
@@ -243,16 +244,19 @@ public class AssignmentProcessor {
             } else if (plusAccountMap.containsKey(rat)) {
                 // Account added
             	if (accountExists(context,rat)) {
-            		markPolicyDecision(context, rat, PolicyDecision.KEEP, result);
+            		LensProjectionContext<AccountShadowType> accountContext = getOrCreateAccountContext(context, rat, result);
+            		markPolicyDecision(accountContext, PolicyDecision.KEEP);
             	} else {
-            		markPolicyDecision(context, rat, PolicyDecision.ADD, result);
+            		LensProjectionContext<AccountShadowType> accountContext = getOrCreateAccountContext(context, rat, result);
+            		markPolicyDecision(accountContext, PolicyDecision.ADD);
             	}
                 context.findProjectionContext(rat).setAssigned(true);
 
             } else if (minusAccountMap.containsKey(rat)) {
-                context.findProjectionContext(rat).setAssigned(false);
+            	LensProjectionContext<AccountShadowType> accountContext = getOrCreateAccountContext(context, rat, result);
+            	accountContext.setAssigned(false);
                 // Account removed
-                markPolicyDecision(context, rat, PolicyDecision.DELETE, result);
+                markPolicyDecision(accountContext, PolicyDecision.DELETE);
 
             } else {
                 throw new IllegalStateException("Account " + rat + " went looney");
@@ -352,13 +356,16 @@ public class AssignmentProcessor {
     	return true;
     }
     
-    private void markPolicyDecision(LensContext<UserType,AccountShadowType> context, ResourceAccountType rat, PolicyDecision decision, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-    	LensProjectionContext<AccountShadowType> accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat, provisioningService, result);
+    private LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context, 
+    		ResourceAccountType rat, OperationResult result) 
+    		throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+    	return LensUtil.getOrCreateAccountContext(context, rat, provisioningService, result);
+    }
+    
+    private void markPolicyDecision(LensProjectionContext<AccountShadowType> accountSyncContext, PolicyDecision decision) {
         if (accountSyncContext.getPolicyDecision() == null) {
             accountSyncContext.setPolicyDecision(decision);
         }
-
     }
 
 	private void checkExclusions(LensContext<UserType,AccountShadowType> context, Collection<Assignment> assignmentsA,

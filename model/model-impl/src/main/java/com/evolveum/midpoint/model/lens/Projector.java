@@ -73,13 +73,13 @@ public class Projector {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 	
-	public <F extends ObjectType, P extends ObjectType> void project(LensContext<F,P> context, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType, P extends ObjectType> void project(LensContext<F,P> context, String activityDescription, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		context.checkConsistence();
 		
 		int originalWave = context.getWave();
 		
-		contextLoader.load(context, result);
+		contextLoader.load(context, activityDescription, result);
 		
 		sortAccountsToWaves(context);
         // Let's do one extra wave with no accounts in it. This time we expect to get the results of the execution to the user
@@ -97,19 +97,19 @@ public class Projector {
 	        inboundProcessor.processInbound(context, result);
 	        if (consistenceChecks) context.checkConsistence();
 	        context.recomputeFocus();
-	        LensUtil.traceContext("inbound", context, false);
+	        LensUtil.traceContext(activityDescription, "inbound", context, false);
 	        if (consistenceChecks) context.checkConsistence();
 	
 	        userPolicyProcessor.processUserPolicy(context, result);
 	        context.recomputeFocus();
-	        LensUtil.traceContext("user policy", context, false);
+	        LensUtil.traceContext(activityDescription,"user policy", context, false);
 	        if (consistenceChecks) context.checkConsistence();
 	
 	        assignmentProcessor.processAssignmentsProjections(context, result);
 	        context.recompute();
 	        sortAccountsToWaves(context);
 	        maxWaves = context.getMaxWave() + 2;
-	        LensUtil.traceContext("assignments", context, true);
+	        LensUtil.traceContext(activityDescription,"assignments", context, true);
 	        if (consistenceChecks) context.checkConsistence();
 	
 	        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
@@ -120,7 +120,7 @@ public class Projector {
 	        	
 	        	if (consistenceChecks) context.checkConsistence();
 	        	
-	        	accountValuesProcessor.process(context, projectionContext, result);
+	        	accountValuesProcessor.process(context, projectionContext, activityDescription, result);
 	        	
 	        	projectionContext.recompute();
 	        	//SynchronizerUtil.traceContext("values", context, false);
@@ -135,12 +135,12 @@ public class Projector {
 	        	activationProcessor.processActivation(context, projectionContext, result);
 		        
 	        	context.recompute();
-	        	LensUtil.traceContext("values computation", context, false);
+	        	LensUtil.traceContext(activityDescription, "values computation", context, false);
 		        if (consistenceChecks) context.checkConsistence();
 		
 		        reconciliationProcessor.processReconciliation(context, projectionContext, result);
 		        context.recompute();
-		        LensUtil.traceContext("reconciliation", context, false);
+		        LensUtil.traceContext(activityDescription, "reconciliation", context, false);
 		        if (consistenceChecks) context.checkConsistence();
 	        }
 	        

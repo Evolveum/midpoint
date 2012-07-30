@@ -2915,7 +2915,7 @@ public class TestSanity extends AbstractIntegrationTest {
         displayJaxb("User (repository)", repoUser, new QName("user"));
 
         List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-        assertEquals(1, accountRefs.size());
+        assertEquals("Wrong number of accountRefs after recompute for user "+repoUser.getName(), 1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         accountShadowOidGuybrushOpendj = accountRef.getOid();
         assertFalse(accountShadowOidGuybrushOpendj.isEmpty());

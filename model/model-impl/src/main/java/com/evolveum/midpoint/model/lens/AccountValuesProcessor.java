@@ -78,7 +78,9 @@ public class AccountValuesProcessor {
 	private PrismContext prismContext;
 
 	
-	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, LensProjectionContext<P> projectionContext, 
+			String activityDescription, OperationResult result) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
@@ -87,10 +89,13 @@ public class AccountValuesProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	processAccounts((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
+    	processAccounts((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, 
+    			activityDescription, result);
 	}
 	
-	public void processAccounts(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accountContext, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	public void processAccounts(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accountContext, 
+			String activityDescription, OperationResult result) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		
 		PolicyDecision policyDecision = accountContext.getPolicyDecision();
 		if (policyDecision != null && policyDecision == PolicyDecision.UNLINK) {
@@ -114,7 +119,7 @@ public class AccountValuesProcessor {
 			consolidationProcessor.consolidateValues(context, accountContext, result);
 	        context.recompute();
 	 
-	        LensUtil.traceContext("values", context, true);
+	        LensUtil.traceContext(activityDescription, "values", context, true);
 	        
 	        // Check constraints
 	        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);
