@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.wf.wrappers;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,7 +40,7 @@ import java.util.Collection;
  */
 public interface ProcessWrapper {
 
-    StartProcessInstruction startProcessIfNeeded(ModelState state, Collection<ObjectDelta<? extends ObjectType>> changes, Task task);
+    StartProcessInstruction startProcessIfNeeded(ModelContext context, Task task, OperationResult result);
 
     void finishProcess(ProcessEvent event, Task task, OperationResult result);
 }

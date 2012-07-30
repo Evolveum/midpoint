@@ -21,7 +21,10 @@
 
 package com.evolveum.midpoint.wf.activiti;
 
+import com.evolveum.midpoint.common.expression.xpath.MidPointNamespaceContext;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
@@ -30,13 +33,25 @@ import org.activiti.engine.identity.Group;
 import org.activiti.engine.identity.GroupQuery;
 import org.activiti.engine.identity.User;
 import org.activiti.engine.identity.UserQuery;
+import org.activiti.engine.repository.Deployment;
 import org.apache.commons.lang.Validate;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.xpath.*;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -48,12 +63,13 @@ import javax.annotation.PreDestroy;
 @Component
 public class ActivitiEngine {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TaskManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ActivitiEngine.class);
 
     private static final String ADMINISTRATOR = "administrator";
 
     private ProcessEngine processEngine = null;
     private WfConfiguration wfConfiguration;
+    private static final String BPMN_URI = "http://www.omg.org/spec/BPMN/20100524/MODEL";
 
     public void initialize(WfConfiguration configuration) throws Exception {
 
@@ -77,6 +93,8 @@ public class ActivitiEngine {
 
         LOGGER.info("Activiti engine successfully created.");
 
+        autoDeploy();
+
         IdentityService identityService = getIdentityService();
 
         UserQuery uq = identityService.createUserQuery().userId(ADMINISTRATOR);
@@ -93,6 +111,76 @@ public class ActivitiEngine {
 
             LOGGER.info("Finished creating workflow user '" + ADMINISTRATOR + "' and its group membership.");
         }
+    }
+
+    private void autoDeploy() {
+
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        String adf = wfConfiguration.getAutoDeploymentFrom();
+
+        Resource[] resources = new Resource[0];
+        try {
+            resources = resolver.getResources(adf);
+        } catch (IOException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't get resources to be automatically deployed from " + adf, e);
+            return;
+        }
+
+        LOGGER.info("Auto deployment from " + adf + " yields " + resources.length + " resource(s)");
+        for (Resource resource : resources) {
+            try {
+                autoDeployResource(resource);
+            } catch (IOException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
+            } catch (XPathExpressionException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
+            } catch (RuntimeException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
+            }
+        }
+
+    }
+
+    private void autoDeployResource(Resource resource) throws IOException, XPathExpressionException {
+
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+
+        URL url = resource.getURL();
+        String name = url.toString();
+        long resourceLastModified = resource.lastModified();
+        LOGGER.info("Checking resource " + name + " (last modified = " + new Date(resourceLastModified) + ")");
+
+        Deployment existing = repositoryService.createDeploymentQuery().deploymentName(name).orderByDeploymenTime().desc().singleResult();
+        if (existing != null) {
+            LOGGER.info("Found deployment " + existing.getName() + ", last modified " + existing.getDeploymentTime());
+            if (resourceLastModified >= existing.getDeploymentTime().getTime()) {
+                LOGGER.info("... it is too old, we'll redeploy it.");
+                existing = null;
+            }
+        } else {
+            LOGGER.info("Deployment with name " + name + " was not found.");
+        }
+
+        if (existing == null) {
+            Deployment deployment = repositoryService.createDeployment().name(name).addInputStream(name, resource.getInputStream()).deploy();
+            LOGGER.info("Deployment of " + name + " done.");
+        }
+
+//        Document d = DOMUtil.parse(resource.getInputStream());
+//
+//        XPathFactory factory = XPathFactory.newInstance();
+//        XPath xpath = factory.newXPath();
+//        Map<String,String> ns = new HashMap<String,String>();
+//        ns.put("bpmn", BPMN_URI);
+//        xpath.setNamespaceContext(new MidPointNamespaceContext(ns));
+//        XPathExpression expr = xpath.compile("/bpmn:definitions/bpmn:process/@id");
+//        NodeList nl = (NodeList) expr.evaluate(new DOMSource(d), XPathConstants.NODESET);
+//        LOGGER.info("Found " + nl.getLength() + " process definition(s) in " + url);
+//        for (int i = 0; i < nl.getLength(); i++) {
+//            String id = nl.item(i).getTextContent();
+//            LOGGER.info("Process definition #" + i + " has id = " + id);
+//
+//        }
     }
 
     @PreDestroy

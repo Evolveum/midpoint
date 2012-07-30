@@ -321,12 +321,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 				objectDelta = (ObjectDelta<T>) syncContext.getFocusContext().getPrimaryDelta();
 
-				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
-					return null;
-
-				clockwork.run(syncContext, task, result);
-//				if (clockwork.run(syncContext, task, result) != HookOperationMode.FOREGROUND)
-//					return null;
+				if (clockwork.run(syncContext, task, result) != HookOperationMode.FOREGROUND) {
+                    return null;
+                }
 
 				auditRecord.clearDeltas();
 				auditRecord.addDeltas(syncContext.getAllChanges());
@@ -338,8 +335,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 				objectDelta.setObjectToAdd(object);
 
-				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
-					return null;
+//				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
+//					return null;
 
 				LOGGER.trace("Executing GENERIC change " + objectDelta);
 				changeExecutor.executeChange(objectDelta, result);
@@ -399,83 +396,6 @@ public class ModelController implements ModelService, ModelInteractionService {
         }
         return config;
     }
-
-    /**
-	 * Executes preChangePrimary on all registered hooks. Parameters (delta,
-	 * task, result) are simply passed to these hooks.
-	 * 
-	 * @return FOREGROUND, if all hooks returns FOREGROUND; BACKGROUND if not.
-	 * 
-	 *         TODO in the future, maybe some error status returned from hooks
-	 *         should be considered here.
-	 */
-	private HookOperationMode executePreChangePrimary(
-			Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task, OperationResult result) {
-
-		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
-		if (hookRegistry != null) {
-			for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-				HookOperationMode mode = hook.preChangePrimary(objectDeltas, task, result);
-				if (mode == HookOperationMode.BACKGROUND)
-					resultMode = HookOperationMode.BACKGROUND;
-			}
-		}
-		return resultMode;
-	}
-
-	/**
-	 * A convenience method when there is only one delta.
-	 */
-	private HookOperationMode executePreChangePrimary(ObjectDelta<? extends ObjectType> objectDelta,
-			Task task, OperationResult result) {
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-		deltas.add(objectDelta);
-		return executePreChangePrimary(deltas, task, result);
-	}
-
-	/**
-	 * Executes preChangeSecondary. See above for comments.
-	 */
-	private HookOperationMode executePreChangeSecondary(
-			Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task, OperationResult result) {
-
-		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
-		if (hookRegistry != null) {
-			for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-				HookOperationMode mode = hook.preChangeSecondary(objectDeltas, task, result);
-				if (mode == HookOperationMode.BACKGROUND)
-					resultMode = HookOperationMode.BACKGROUND;
-			}
-		}
-		return resultMode;
-	}
-
-	/**
-	 * Executes postChange. See above for comments.
-	 */
-	private HookOperationMode executePostChange(Collection<ObjectDelta<? extends ObjectType>> objectDeltas,
-			Task task, OperationResult result) {
-
-		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
-		if (hookRegistry != null) {
-			for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-				HookOperationMode mode = hook.postChange(objectDeltas, task, result);
-				if (mode == HookOperationMode.BACKGROUND)
-					resultMode = HookOperationMode.BACKGROUND;
-			}
-		}
-		return resultMode;
-	}
-
-	/**
-	 * A convenience method when there is only one delta.
-	 */
-	private HookOperationMode executePostChange(ObjectDelta<? extends ObjectType> objectDelta, Task task,
-			OperationResult result) {
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-		deltas.add(objectDelta);
-		return executePostChange(deltas, task, result);
-	}
 
 	private LensContext<UserType, AccountShadowType> userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
@@ -693,11 +613,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
 
-                // temporary (P.M.)
-                if (executePreChangePrimary(syncContext.getFocusContext().getPrimaryDelta(), task, result) != HookOperationMode.FOREGROUND)
+                if (clockwork.run(syncContext, task, result) != HookOperationMode.FOREGROUND) {
                     return;
-
-                clockwork.run(syncContext, task, result);
+                }
 
 				// Deltas after sync will be different
 				auditRecord.clearDeltas();
@@ -894,7 +812,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 				focusContext.setPrimaryDelta((ObjectDelta<UserType>) objectDelta);
 
 				try {
-					clockwork.run(syncContext, task, result);
+					if (clockwork.run(syncContext, task, result) != HookOperationMode.FOREGROUND) {
+                        return;
+                    }
 				} catch (SchemaException e) {
 					// TODO Better handling
 					throw new SystemException(e.getMessage(), e);
@@ -1111,7 +1031,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		RepositoryCache.enter();
-		LOGGER.trace("Testing resource OID: {}", new Object[] { resourceOid });
+		LOGGER.trace("Testing resource OID: {}", new Object[]{resourceOid});
 
 		OperationResult testResult = null;
 		try {
@@ -1154,8 +1074,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(task, "Task must not be null.");
 		RepositoryCache.enter();
-		LOGGER.trace("Launching import from resource with oid {} for object class {}.", new Object[] {
-				resourceOid, objectClass });
+		LOGGER.trace("Launching import from resource with oid {} for object class {}.", new Object[]{
+                resourceOid, objectClass});
 
 		OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
 		result.addParams(new String[] { "resourceOid", "objectClass", "task" }, resourceOid, objectClass,
@@ -1314,5 +1234,29 @@ public class ModelController implements ModelService, ModelInteractionService {
 		projector.project(context, "preview", result);
 		return context;
 	}
+
+    /**
+     * Methods to invoke old-style hooks, necessary for keeping SystemConfigurationHandler updated.
+     * (Will disappear after non-user-related model actions will be migrated to new 'lens' paradigm.)
+     */
+    @Deprecated
+    private void executePostChange(ObjectDelta<? extends ObjectType> objectDelta, Task task,
+                                                OperationResult result) {
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        deltas.add(objectDelta);
+        executePostChange(deltas, task, result);
+    }
+
+    @Deprecated
+    private void executePostChange(Collection<ObjectDelta<? extends ObjectType>> objectDeltas,
+                                                Task task, OperationResult result) {
+
+        HookOperationMode resultMode = HookOperationMode.FOREGROUND;
+        if (hookRegistry != null) {
+            for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+                hook.postChange(objectDeltas, task, result);
+            }
+        }
+    }
 
 }

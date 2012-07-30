@@ -49,7 +49,7 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 @Component
-public class AddUserProcessWrapper implements ProcessWrapper {
+public class AddUserProcessWrapper { //implements ProcessWrapper {
 
     @Autowired(required = true)
     private WfHook wfHook;
@@ -59,10 +59,10 @@ public class AddUserProcessWrapper implements ProcessWrapper {
 
     @PostConstruct
     public void register() {
-        wfHook.registerWfProcessWrapper(this);
+        //wfHook.registerWfProcessWrapper(this);
     }
 
-    @Override
+    //@Override
     public StartProcessInstruction startProcessIfNeeded(ModelState state, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
 
         if (state == ModelState.PRIMARY) {
@@ -96,7 +96,7 @@ public class AddUserProcessWrapper implements ProcessWrapper {
         return null;
     }
 
-    @Override
+    //@Override
     public void finishProcess(ProcessEvent event, Task task, OperationResult result) {
 
         if (event.getAnswer() == Boolean.TRUE) {

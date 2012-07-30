@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.wf.wrappers;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.WfHook;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
@@ -44,7 +46,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -64,27 +65,23 @@ public class AddRoleProcessWrapper implements ProcessWrapper {
     @Autowired(required = true)
     private WfTaskUtil wfTaskUtil;
 
+    public static final String ROLES_TO_APPROVE = "rolesToApprove";
+    public static final String APPROVED_ROLES = "approvedRoles";
+    private static final String ADD_ROLE_PROCESS = "addRole";
+
     @PostConstruct
     public void register() {
         wfHook.registerWfProcessWrapper(this);
     }
 
     @Override
-    public StartProcessInstruction startProcessIfNeeded(ModelState state,
-                                                        Collection<ObjectDelta<? extends ObjectType>> changes,
-                                                        Task task) {
+    public StartProcessInstruction startProcessIfNeeded(ModelContext context, Task task, OperationResult result) {
 
-        OperationResult result = task.getResult().createSubresult("startProcessIfNeeded");
-
-        if (state != ModelState.PRIMARY) {
+        if (context.getState() != ModelState.PRIMARY) {
             return null;
         }
 
-        if (changes.size() != 1) {
-            return null;
-        }
-
-        ObjectDelta<? extends ObjectType> change = changes.iterator().next();
+        ObjectDelta<? extends ObjectType> change = context.getFocusContext().getPrimaryDelta();
 
         /*
         * We either add a user; then the list of roles to be added is given by the assignment property,
@@ -138,22 +135,28 @@ public class AddRoleProcessWrapper implements ProcessWrapper {
                     }
                 }
             }
+        } else {
+            return null;            // MODIFY does not need role approval
         }
 
-//                        if (user.startsWith("testwf")) {
-//                            StartProcessInstruction startCommand = new StartProcessInstruction();
-//                            startCommand.setProcessName("AddUser");
-//                            startCommand.addProcessVariable("user", user);
-//                            startCommand.setTaskName("Workflow for creating user " + user);
-//                            startCommand.setSimple(true);
-//                            return startCommand;
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        if (!rolesToAdd.isEmpty()) {
+
+            UserType oldUser = (UserType) context.getFocusContext().getObjectOld().asObjectable();
+            UserType newUser = (UserType) context.getFocusContext().getObjectNew().asObjectable();
+
+            StartProcessInstruction spi = new StartProcessInstruction();
+            spi.setProcessName(ADD_ROLE_PROCESS);
+            spi.setSimple(true);
+            spi.setTaskName("Workflow for approving adding " + rolesToAdd.size() + " role(s) to " + newUser.getName());
+            spi.addProcessVariable(WfConstants.MIDPOINT_OBJECT_OLD, oldUser);
+            spi.addProcessVariable(WfConstants.MIDPOINT_OBJECT_NEW, newUser);
+            spi.addProcessVariable(WfConstants.MIDPOINT_DELTA, change);
+            spi.addProcessVariable(ROLES_TO_APPROVE, rolesToAdd);
+            return spi;
+        }
         return null;
     }
+
 
     private RoleType resolveRoleRef(AssignmentType a, OperationResult result) {
         RoleType role = (RoleType) a.getTarget();

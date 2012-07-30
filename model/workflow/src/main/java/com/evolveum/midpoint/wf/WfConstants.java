@@ -34,5 +34,9 @@ public class WfConstants {
     public static final String MIDPOINT_ANSWER = "midPointAnswer";
     public static final String MIDPOINT_STATE = "midPointState";
 
+    public static final String MIDPOINT_OBJECT_OLD = "midPointObjectOld";
+    public static final String MIDPOINT_OBJECT_NEW = "midPointObjectNew";
+    public static final String MIDPOINT_DELTA = "midPointDelta";
+
     public static final String MIDPOINT_LISTENER = "midPointListener";
 }

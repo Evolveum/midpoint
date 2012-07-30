@@ -19,6 +19,9 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import com.evolveum.midpoint.model.api.hooks.ChangeHook;
+import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,8 +50,11 @@ public class Clockwork {
 	
 	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;
-	
-	private LensDebugListener debugListener;
+
+    @Autowired(required = false)
+    private HookRegistry hookRegistry;
+
+    private LensDebugListener debugListener;
 	
 	private boolean consistenceChecks = true;
 	
@@ -60,13 +66,17 @@ public class Clockwork {
 		this.debugListener = debugListener;
 	}
 
-	public void run(LensContext context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public HookOperationMode run(LensContext context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		while (context.getState() != ModelState.FINAL) {
-			click(context, task, result);
+            HookOperationMode mode = click(context, task, result);
+            if (mode != HookOperationMode.FOREGROUND) {
+                return mode;
+            }
 		}
+        return HookOperationMode.FOREGROUND;
 	}
 	
-	public void click(LensContext context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public HookOperationMode click(LensContext context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		if (!context.isFresh()) {
 			projector.project(context, "synchronization", result);
@@ -84,13 +94,40 @@ public class Clockwork {
 				processSecondary(context, task, result);
 				break;
 			case FINAL:
-				return;
+				return HookOperationMode.FOREGROUND;
 		}
 		
-		// Invoke hook
+		return invokeHooks(context, task, result);
 	}
 
-	private void processInitialToPrimary(LensContext context, Task task, OperationResult result) {
+    /**
+     * Invokes hooks, if there are any.
+     *
+     * @return
+     *  - ERROR, if any hook reported error; otherwise returns
+     *  - BACKGROUND, if any hook reported switching to background; otherwise
+     *  - FOREGROUND (if all hooks reported finishing on foreground)
+     */
+    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) {
+
+        HookOperationMode resultMode = HookOperationMode.FOREGROUND;
+        if (hookRegistry != null) {
+            for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+                HookOperationMode mode = hook.invoke(context, task, result);
+                if (mode == HookOperationMode.ERROR) {
+                    resultMode = HookOperationMode.ERROR;
+                } else if (mode == HookOperationMode.BACKGROUND) {
+                    if (resultMode != HookOperationMode.ERROR) {
+                        resultMode = HookOperationMode.BACKGROUND;
+                    }
+                }
+            }
+        }
+        return resultMode;
+    }
+
+
+    private void processInitialToPrimary(LensContext context, Task task, OperationResult result) {
 		// Context loaded, nothing to do. Bump state to PRIMARY
 		context.setState(ModelState.PRIMARY);
 	}

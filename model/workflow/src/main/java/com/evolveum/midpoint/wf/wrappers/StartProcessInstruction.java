@@ -58,7 +58,7 @@ public class StartProcessInstruction {
         return processVariables;
     }
 
-    public void addProcessVariable(String name, String value) {
+    public void addProcessVariable(String name, Object value) {
         processVariables.put(name, value);
     }
 

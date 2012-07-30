@@ -22,18 +22,11 @@ package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
-import com.evolveum.midpoint.task.api.UseThreadInterrupt;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 
 /**
  *
@@ -44,6 +37,7 @@ public class WfConfiguration {
     private static final transient Trace LOGGER = TraceManager.getTrace(WfConfiguration.class);
 
     private static final String WF_CONFIG_SECTION = "midpoint.workflow";
+    private static final String AUTO_DEPLOYMENT_FROM_DEFAULT = "classpath*:processes/*.bpmn20.xml";
 
     private boolean enabled;
 
@@ -58,6 +52,8 @@ public class WfConfiguration {
     private String hibernateDialect;
     private boolean databaseIsEmbedded;
     private int processCheckInterval;
+    private String autoDeploymentFrom;
+
 
     void initialize(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig) {
 
@@ -71,6 +67,7 @@ public class WfConfiguration {
         jdbcPassword = c.getString("jdbcPassword", sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 
         processCheckInterval = c.getInt("processCheckInterval", 30);
+        autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
 
         hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
 
@@ -143,5 +140,9 @@ public class WfConfiguration {
 
     public int getProcessCheckInterval() {
         return processCheckInterval;
+    }
+
+    public String getAutoDeploymentFrom() {
+        return autoDeploymentFrom;
     }
 }

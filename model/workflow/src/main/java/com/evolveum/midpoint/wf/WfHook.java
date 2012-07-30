@@ -23,7 +23,10 @@ package com.evolveum.midpoint.wf;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -34,7 +37,9 @@ import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
 import com.evolveum.midpoint.wf.wrappers.ProcessWrapper;
 import com.evolveum.midpoint.wf.wrappers.StartProcessInstruction;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -75,22 +80,48 @@ public class WfHook implements ChangeHook {
     private List<ProcessWrapper> wrappers = new ArrayList<ProcessWrapper>();
 
     @Override
-    public HookOperationMode preChangePrimary(Collection<ObjectDelta<? extends ObjectType>> changes, Task task,
-                                              OperationResult result) {
+    public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
 
-        Validate.notNull(changes);
-        Validate.notNull(task);
-        Validate.notNull(result);
+        LensContext<UserType,AccountShadowType> lensContext = (LensContext<UserType,AccountShadowType>) context;
 
         LOGGER.info("=====================================================================");
-        LOGGER.info("preChangePrimary:\n" + dump(changes));
+        LOGGER.info("WfHook invoked in state " + context.getState() + " (wave " + lensContext.getWave() + ", max " + lensContext.getMaxWave() + "):");
 
-        if (changes.size() != 1) {
-            return reportHookError(result, "Invalid number of objectDeltas in preChangePrimary (" + changes.size() + "), expected 1");
+        ModelContext<UserType, AccountShadowType> usContext = (ModelContext<UserType, AccountShadowType>) context;
+
+        ObjectDelta pdelta = usContext.getFocusContext().getPrimaryDelta();
+        ObjectDelta sdelta = usContext.getFocusContext().getSecondaryDelta();
+        LOGGER.info("Primary delta: " + (pdelta == null ? "(null)" : pdelta.debugDump()));
+        LOGGER.info("Secondary delta: " + (sdelta == null ? "(null)" : sdelta.debugDump()));
+
+        LOGGER.info("Projection contexts: " + usContext.getProjectionContexts().size());
+        for (ModelProjectionContext mpc : usContext.getProjectionContexts()) {
+            ObjectDelta ppdelta = mpc.getPrimaryDelta();
+            ObjectDelta psdelta = mpc.getSecondaryDelta();
+            LOGGER.info(" - Primary delta: " + (ppdelta == null ? "(null)" : ppdelta.debugDump()));
+            LOGGER.info(" - Secondary delta: " + (psdelta == null ? "(null)" : psdelta.debugDump()));
+            LOGGER.info(" - Sync delta:" + (mpc.getSyncDelta() == null ? "(null)" : mpc.getSyncDelta().debugDump()));
         }
 
-        return executeProcessStart(ModelState.PRIMARY, changes, task, result);
+        return HookOperationMode.FOREGROUND;
     }
+
+//    @Override
+//    public HookOperationMode preChangePrimary(Collection<ObjectDelta<? extends ObjectType>> changes, Task task,
+//                                              OperationResult result) {
+//
+//        Validate.notNull(changes);
+//        Validate.notNull(task);
+//        Validate.notNull(result);
+//
+//
+//
+//        if (changes.size() != 1) {
+//            return reportHookError(result, "Invalid number of objectDeltas in preChangePrimary (" + changes.size() + "), expected 1");
+//        }
+//
+//        return executeProcessStart(ModelState.PRIMARY, changes, task, result);
+//    }
 
     public void registerWfProcessWrapper(ProcessWrapper starter) {
         LOGGER.trace("Registering process wrapper: " + starter.getClass().getName());
@@ -98,32 +129,19 @@ public class WfHook implements ChangeHook {
     }
 
     @Override
-    public HookOperationMode preChangeSecondary(Collection<ObjectDelta<? extends ObjectType>> changes, Task task,
-                                                OperationResult result) {
-        LOGGER.info("=====================================================================");
-        LOGGER.info("preChangeSecondary:\n" + dump(changes));
-
-        return executeProcessStart(ModelState.SECONDARY, changes, task, result);
-    }
-
-    @Override
-    public HookOperationMode postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result) {
+    public void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result) {
         LOGGER.info("=====================================================================");
         LOGGER.info("postChange:\n" + dump(changes));
         for (ObjectDelta<?> change : changes)
             LOGGER.trace(change.debugDump());
-        return HookOperationMode.FOREGROUND;
     }
 
 
-    private HookOperationMode executeProcessStart(ModelState state,
-                                                  Collection<ObjectDelta<? extends ObjectType>> changes,
-                                                  Task task,
-                                                  OperationResult result) {
+    private HookOperationMode executeProcessStart(ModelContext context, Task task, OperationResult result) {
 
         for (ProcessWrapper wrapper : wrappers) {
             LOGGER.debug("Trying wrapper: " + wrapper.getClass().getName());
-            StartProcessInstruction startCommand = wrapper.startProcessIfNeeded(state, changes, task);
+            StartProcessInstruction startCommand = wrapper.startProcessIfNeeded(context, task, result);
             if (startCommand != null) {
                 LOGGER.debug("Wrapper " + wrapper.getClass().getName() + " prepared the following wf process start command: " + startCommand);
                 try {
