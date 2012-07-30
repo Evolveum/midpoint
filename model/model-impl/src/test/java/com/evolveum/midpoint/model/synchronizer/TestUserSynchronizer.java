@@ -144,7 +144,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        projector.project(context, task, result);
+        projector.project(context, result);
         
         // THEN
         display("Output context", context);
@@ -199,7 +199,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        projector.project(context, task, result);
+        projector.project(context, result);
         
         // THEN
         display("Output context", context);
@@ -250,7 +250,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, task, result);
+        projector.project(context, result);
         
         // THEN
         display("Output context", context);
@@ -294,7 +294,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        projector.project(context, task, result);
+        projector.project(context, result);
         
         // THEN
         display("Output context", context);
@@ -347,7 +347,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, task, result);
+        projector.project(context, result);
         
         // THEN
         display("Output context", context);
@@ -390,7 +390,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, task, result);
+        projector.project(context, result);
         
         // THEN
         display("Output context", context);
@@ -432,7 +432,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, task, result);
+        projector.project(context, result);
         
         // THEN
         display("Output context", context);
@@ -467,7 +467,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, task, result);
+        projector.project(context, result);
         
         // THEN
         display("Output context", context);
@@ -503,7 +503,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, task, result);
+        projector.project(context, result);
         
         // THEN
         display("Output context", context);

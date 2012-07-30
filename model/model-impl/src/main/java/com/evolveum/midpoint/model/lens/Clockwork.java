@@ -68,7 +68,7 @@ public class Clockwork {
 	
 	public void click(LensContext context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
-		projector.project(context, task, result);
+		projector.project(context, result);
 		
 		ModelState state = context.getState();
 		switch (state) {

@@ -73,7 +73,7 @@ public class Projector {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 	
-	public <F extends ObjectType, P extends ObjectType> void project(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType, P extends ObjectType> void project(LensContext<F,P> context, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		context.checkConsistence();
 		

@@ -20,6 +20,8 @@
 package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -91,6 +93,31 @@ public class LensUtil {
 		}
 		return accountSyncContext;
 	}
+	
+	public static <T extends ObjectType, F extends ObjectType, P extends ObjectType> ModelContext<F, P> objectDeltaToContext(
+			ObjectDelta<T> delta, PrismContext prismContext) {
+		LensContext<F, P> context = null;
+		Class<T> typeClass = delta.getObjectTypeClass();
+		Class<F> focusClass = null;
+		Class<P> projectionClass = null;
+		if (isFocalClass(typeClass)) {
+			focusClass = (Class<F>) typeClass;
+			context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
+			LensFocusContext<F> focusContext = context.createFocusContext();
+			focusContext.setPrimaryDelta((ObjectDelta<F>) delta);
+		} else {
+			// TODO
+		}
+		
+		return context;
+	}
 
+	public static <T extends ObjectType> boolean isFocalClass(Class<T> clazz) {
+		// TODO!!!!!!!!!!!!
+		if (UserType.class.isAssignableFrom(clazz)) {
+			return true;
+		}
+		return false;
+	}
 
 }

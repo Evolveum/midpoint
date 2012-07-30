@@ -46,8 +46,10 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.ModelObjectResolver;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
@@ -56,6 +58,8 @@ import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.model.lens.Projector;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -126,7 +130,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
  * @author Radovan Semancik
  */
 @Component
-public class ModelController implements ModelService {
+public class ModelController implements ModelService, ModelInteractionService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -184,6 +188,9 @@ public class ModelController implements ModelService {
 
 	@Autowired(required = true)
 	SystemConfigurationHandler systemConfigurationHandler;
+	
+	@Autowired(required = true)
+	Projector projector;
 	
 	public ModelObjectResolver getObjectResolver() {
 		return objectResolver;
@@ -1295,6 +1302,17 @@ public class ModelController implements ModelService {
 		RefinedAccountDefinition rAccountDef = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(AccountShadowType.F_ATTRIBUTES);
 		attributesContainer.applyDefinition(rAccountDef, true);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public <T extends ObjectType, F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
+			ObjectDelta<T> delta, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(delta, prismContext);
+		projector.project(context, result);
+		return context;
 	}
 
 }
