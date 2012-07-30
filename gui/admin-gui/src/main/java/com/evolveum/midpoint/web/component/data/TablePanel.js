@@ -25,6 +25,11 @@ function initTable(){
       'border-color' : '#FFFFFF'
     };
 	
+	var cssSecondaryValue = {
+		      'background' : '#E0F0FF',
+		      'border-color' : '#FFFFFF'
+		    };
+	
 	$(document).find(".sortedTable").each(function(index){
 		var row =  $(this).find("table tbody tr");
 		if(row.find(".tableCheckbox").length > 0) {
@@ -33,6 +38,9 @@ function initTable(){
 		}
 	});
 	
+	$(document).find(".sortedTable .secondaryValue").each(function(){
+		$(this).parents("tr:first").find("td").css(cssSecondaryValue);
+	});
 	
 	
 	$("thead input[type='checkbox']").click(function(){
@@ -73,6 +81,8 @@ function initTable(){
 	$(".sortedTable table tbody tr").mouseenter(function(){
 		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
 			$(this).find("td").css("background", "#c6e9c6");
+		} else if($(this).find(".secondaryValue").length > 0) {
+			$(this).find("td").css("background", "#D0E0FF");
 		} else {
 			$(this).find("td").css("background", "#f2f2f2");
 		}
@@ -80,6 +90,8 @@ function initTable(){
 		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
 			$(this).find("td").css("background", "#d8f4d8");
 			$(this).find("td").css("border-color","#FFFFFF");
+		} else if($(this).find(".secondaryValue").length > 0) {
+			$(this).find("td").css("background", "#E0F0FF");
 		} else {
 			$(this).find("td").css("background", "#FFFFFF");
 			$(this).find("td").css("border-color","#F2F2F2");

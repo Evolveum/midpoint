@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -320,7 +321,6 @@ public class PageSubmit extends PageAdmin {
 						}
 						return new PackageResourceReference(PageSubmit.class, "primaryValue.png");
 					}
-
 				};
 			}
 
@@ -340,7 +340,22 @@ public class PageSubmit extends PageAdmin {
 				};
 			}
 
+			@Override
+			protected IModel<AttributeModifier> createAttribute(final IModel<SubmitAccountDto> rowModel) {
+				return new AbstractReadOnlyModel<AttributeModifier>() {
+
+					@Override
+					public AttributeModifier getObject() {
+						SubmitAccountDto dto = rowModel.getObject();
+						if (dto.isSecondaryValue()) {
+							return new AttributeModifier("class", "secondaryValue");
+						}
+						return new AttributeModifier("class", "primaryValue");
+					}
+				};
+			}
 		};
+		
 		columns.add(column);
 
 		ListDataProvider<SubmitAccountDto> provider = new ListDataProvider<SubmitAccountDto>(this,

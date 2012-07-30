@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -32,10 +33,17 @@ import org.apache.wicket.request.resource.ResourceReference;
  */
 public class ImagePanel extends Panel {
 
-    public ImagePanel(String id, IModel<ResourceReference> model) {
+    public ImagePanel(String id, IModel<ResourceReference> model, IModel<String> titleModel, IModel<AttributeModifier> attribute) {
         super(id);
         Validate.notNull(model, "Resource reference model must not be null.");
-
-        add(new Image("image", model));
+        
+        Image image = new Image("image", model);
+        if (titleModel != null) {
+            image.add(new AttributeModifier("title", titleModel));
+        }
+        if (attribute != null) {
+        	image.add(attribute.getObject());
+        }
+        add(image);
     }
 }
