@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -126,7 +127,7 @@ public class PageUser extends PageAdminUsers {
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
-    private static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "SendToSubmit";
+    private static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
     private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
@@ -882,12 +883,12 @@ public class PageUser extends PageAdminUsers {
 
     private void submitPerformed(AjaxRequestTarget target) {
         LOGGER.debug("Submit user.");
-        ObjectDeltaComponent deltaComponent = null;
-
+        
         OperationResult result = new OperationResult(OPERATION_SEND_TO_SUBMIT);
         modifyAccounts(result);
 
         ObjectWrapper userWrapper = userModel.getObject();
+        ModelContext changes = null;
         try {
             ObjectDelta delta = userWrapper.getObjectDelta();
             if (LOGGER.isTraceEnabled()) {
@@ -900,13 +901,15 @@ public class PageUser extends PageAdminUsers {
                     encryptCredentials(user, true);
                     prepareUserForAdd(user);
                     getPrismContext().adopt(user, UserType.class);
-                    deltaComponent = new ObjectDeltaComponent(user, userWrapper.getObject().clone(), delta);
+                    //deltaComponent = new ObjectDeltaComponent(user, userWrapper.getObject().clone(), delta);
+                    changes = getModelInteractionService().previewChanges(delta, result);
                     result.recordSuccess();
                     break;
                 case MODIFYING:
                     encryptCredentials(delta, true);
                     prepareUserDeltaForModify(delta);
-                    deltaComponent = new ObjectDeltaComponent(userWrapper.getObject().clone(), delta);
+                    //deltaComponent = new ObjectDeltaComponent(userWrapper.getObject().clone(), delta);
+                    changes = getModelInteractionService().previewChanges(delta, result);
                     result.recordSuccess();
                     break;
                 // delete state is where? wtf?? in next release add there delete state as well as
@@ -924,8 +927,9 @@ public class PageUser extends PageAdminUsers {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
-        	PageSubmit page = new PageSubmit(deltaComponent, accountsDeltas);
-    		setResponsePage(page);
+        	//PageSubmit page = new PageSubmit(deltaComponent, accountsDeltas);
+        	PageSubmit pageSubmit = new PageSubmit(changes);
+    		setResponsePage(pageSubmit);
         }
     }
 

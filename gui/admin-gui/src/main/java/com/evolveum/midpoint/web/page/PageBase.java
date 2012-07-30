@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -65,6 +66,8 @@ public abstract class PageBase extends WebPage {
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
     @SpringBean(name = "modelController")
     private ModelService modelService;
+    @SpringBean(name = "modelController")
+    private ModelInteractionService modelInteractionService;
     @SpringBean(name = "cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
     @SpringBean(name = "taskManager")
@@ -78,6 +81,7 @@ public abstract class PageBase extends WebPage {
         validateInjection(cacheRepositoryService, "Cache repository service was not injected.");
         validateInjection(taskManager, "Task manager was not injected.");
         initLayout();
+        
     }
 
     @Override
@@ -173,6 +177,10 @@ public abstract class PageBase extends WebPage {
 
     protected ModelService getModelService() {
         return modelService;
+    }
+    
+    protected ModelInteractionService getModelInteractionService() {
+        return modelInteractionService;
     }
 
     public String getString(String resourceKey, Object... objects) {

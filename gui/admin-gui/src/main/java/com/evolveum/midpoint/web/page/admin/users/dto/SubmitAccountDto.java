@@ -31,14 +31,14 @@ public class SubmitAccountDto implements Serializable {
 	private String attribute;
 	private String oldValue;
 	private String newValue;
-	private boolean isSecondaryValue;
+	private boolean secondaryValue;
 
-	public SubmitAccountDto(String resourceName, String attribute, String oldValue, String newValue, boolean isSecondaryValue) {
+	public SubmitAccountDto(String resourceName, String attribute, String oldValue, String newValue, boolean secondaryValue) {
 		this.resourceName = resourceName;
 		this.attribute = attribute;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
-		this.isSecondaryValue = isSecondaryValue;
+		this.secondaryValue = secondaryValue;
 	}
 
 	public String getAttribute() {
@@ -58,6 +58,6 @@ public class SubmitAccountDto implements Serializable {
 	}
 
 	public boolean isSecondaryValue() {
-		return isSecondaryValue;
+		return secondaryValue;
 	}
 }

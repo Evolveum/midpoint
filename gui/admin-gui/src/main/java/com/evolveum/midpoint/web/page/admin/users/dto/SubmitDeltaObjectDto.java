@@ -23,31 +23,26 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+
 /**
  * @author mserbak
  */
-public class SubmitAssignmentDto implements Serializable {
-	private String assignment;
-	private String status;
-	private boolean secondaryValue;
+public class SubmitDeltaObjectDto implements Serializable {
+	ItemDelta itemDelta;
+	boolean secondaryValue;
 
-	public SubmitAssignmentDto(String assignment, String status, boolean secondaryValue) {
-		this.assignment = assignment;
-		this.status = status;
+	public SubmitDeltaObjectDto(ItemDelta itemDelta, boolean secondaryValue) {
+		this.itemDelta = itemDelta;
 		this.secondaryValue = secondaryValue;
 	}
-
-	public String getAssignment() {
-		return assignment;
-	}
-
-	public String getStatus() {
-		return status;
+	
+	public ItemDelta getItemDelta() {
+		return itemDelta;
 	}
 
 	public boolean isSecondaryValue() {
 		return secondaryValue;
 	}
-	
-
 }

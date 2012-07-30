@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -37,6 +38,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -75,14 +78,17 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitDeltaObjectDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAssignmentDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserChangesDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitObjectStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -95,73 +101,20 @@ public class PageSubmit extends PageAdmin {
 	private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "saveUser - modifyAccount";
 	private static final Trace LOGGER = TraceManager.getTrace(PageSubmit.class);
 
-	private ObjectDeltaComponent userDelta;
-	List<ObjectDeltaComponent> accountsDeltas;
-	private List<ContainerDelta> assignmentsDeltas = new ArrayList<ContainerDelta>();
-	private List<PropertyDelta> userPropertiesDeltas = new ArrayList<PropertyDelta>();
+	private SubmitUserChangesDto userChangesDto;
+	private ModelContext previewChanges;
 
 	private List<SubmitAccountDto> accountsList;
 	private List<SubmitAssignmentDto> assignmentsList;
 	private List<SubmitUserDto> userList;
 
-	public PageSubmit(ObjectDeltaComponent userDelta, List<ObjectDeltaComponent> accountsDeltas) {
-
-		if (userDelta == null || accountsDeltas == null) {
+	public PageSubmit(ModelContext previewChanges) {
+		if (previewChanges == null) {
 			getSession().error(getString("pageSubmit.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
 		}
-		this.userDelta = userDelta;
-		this.accountsDeltas = accountsDeltas;
-
-		PropertyPath account = new PropertyPath(SchemaConstants.I_ACCOUNT_REF);
-		PropertyPath assignment = new PropertyPath(SchemaConstantsGenerated.C_ASSIGNMENT);
-		ObjectDelta newObject = userDelta.getNewDelta();
-
-		if (newObject.getChangeType().equals(ChangeType.ADD)) {
-
-			for (Object value : newObject.getObjectToAdd().getValues()) {
-				PrismContainerValue prismValue = (PrismContainerValue) value;
-				for (Object itemObject : prismValue.getItems()) {
-					Item item = (Item) itemObject;
-					if (item instanceof PrismProperty) {
-						PrismProperty property = (PrismProperty) item;
-						PropertyDelta propertyDelta = new PropertyDelta(property.getDefinition());
-						propertyDelta
-								.addValuesToAdd(PrismPropertyValue.cloneCollection(property.getValues()));
-						userPropertiesDeltas.add(propertyDelta);
-					} else if (item instanceof PrismContainer) {
-						if (!(item.getDefinition().getTypeName().equals(AssignmentType.COMPLEX_TYPE))) {
-							PrismContainer property = (PrismContainer) item;
-							PrismContainerDefinition def = property.getDefinition();
-							PrismPropertyDefinition propertyDef = new PrismPropertyDefinition(def.getName(),
-									def.getDefaultName(), def.getTypeName(), def.getPrismContext());
-							PropertyDelta propertyDelta = new PropertyDelta(propertyDef);
-							propertyDelta.addValuesToAdd(PrismContainerValue.cloneCollection(property
-									.getValues()));
-							userPropertiesDeltas.add(propertyDelta);
-							continue;
-						}
-						PrismContainer assign = (PrismContainer) item;
-						ContainerDelta assignDelta = new ContainerDelta(assign.getDefinition());
-						assignDelta.addValuesToAdd(PrismContainerValue.cloneCollection(assign.getValues()));
-						assignmentsDeltas.add(assignDelta);
-					}
-				}
-			}
-		} else {
-			for (Object item : newObject.getModifications()) {
-				ItemDelta itemDelta = (ItemDelta) item;
-
-				if (itemDelta.getPath().equals(account)) {
-					continue;
-				} else if (itemDelta.getPath().equals(assignment)) {
-					assignmentsDeltas.add((ContainerDelta) itemDelta);
-				} else {
-					userPropertiesDeltas.add((PropertyDelta) itemDelta);
-				}
-			}
-		}
-
+		this.previewChanges = previewChanges;
+		userChangesDto = new SubmitUserChangesDto(previewChanges.getFocusContext());
 		initLayout();
 	}
 
@@ -175,10 +128,11 @@ public class PageSubmit extends PageAdmin {
 
 					@Override
 					public String getObject() {
-						if (userDelta.getNewDelta().getChangeType().equals(ChangeType.ADD)) {
-							return WebMiscUtil.getName(userDelta.getNewDelta().getObjectToAdd());
+						ModelElementContext userDelta = previewChanges.getFocusContext();
+						if (userDelta.getPrimaryDelta().getChangeType().equals(ChangeType.ADD)) {
+							return WebMiscUtil.getName(userDelta.getPrimaryDelta().getObjectToAdd());
 						}
-						return WebMiscUtil.getName(userDelta.getOldObject());
+						return WebMiscUtil.getName(userDelta.getObjectOld());
 					}
 
 				})));
@@ -273,6 +227,56 @@ public class PageSubmit extends PageAdmin {
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
+		IColumn column = new IconColumn<SubmitUserDto>(createStringResource("pageSubmit.typeOfAddData")) {
+
+			@Override
+			protected IModel<ResourceReference> createIconModel(final IModel<SubmitUserDto> rowModel) {
+				return new AbstractReadOnlyModel<ResourceReference>() {
+
+					@Override
+					public ResourceReference getObject() {
+						SubmitUserDto dto = rowModel.getObject();
+						if (dto.isSecondaryValue()) {
+							return new PackageResourceReference(PageSubmit.class, "secondaryValue.png");
+						}
+						return new PackageResourceReference(PageSubmit.class, "primaryValue.png");
+					}
+				};
+			}
+
+			@Override
+			protected IModel<String> createTitleModel(final IModel<SubmitUserDto> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						SubmitUserDto dto = rowModel.getObject();
+						if (dto.isSecondaryValue()) {
+							return PageSubmit.this.getString("pageSubmit.secondaryValue");
+						}
+						return PageSubmit.this.getString("pageSubmit.primaryValue");
+					}
+
+				};
+			}
+
+			@Override
+			protected IModel<AttributeModifier> createAttribute(final IModel<SubmitUserDto> rowModel) {
+				return new AbstractReadOnlyModel<AttributeModifier>() {
+
+					@Override
+					public AttributeModifier getObject() {
+						SubmitUserDto dto = rowModel.getObject();
+						if (dto.isSecondaryValue()) {
+							return new AttributeModifier("class", "secondaryValue");
+						}
+						return new AttributeModifier("class", "primaryValue");
+					}
+				};
+			}
+		};
+
+		columns.add(column);
 
 		ListDataProvider<SubmitUserDto> provider = new ListDataProvider<SubmitUserDto>(this,
 				new AbstractReadOnlyModel<List<SubmitUserDto>>() {
@@ -306,8 +310,7 @@ public class PageSubmit extends PageAdmin {
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
-		IColumn column = new IconColumn<SubmitAccountDto>(
-				createStringResource("pageSubmit.typeOfAddData")) {
+		IColumn column = new IconColumn<SubmitAccountDto>(createStringResource("pageSubmit.typeOfAddData")) {
 
 			@Override
 			protected IModel<ResourceReference> createIconModel(final IModel<SubmitAccountDto> rowModel) {
@@ -355,7 +358,7 @@ public class PageSubmit extends PageAdmin {
 				};
 			}
 		};
-		
+
 		columns.add(column);
 
 		ListDataProvider<SubmitAccountDto> provider = new ListDataProvider<SubmitAccountDto>(this,
@@ -444,112 +447,140 @@ public class PageSubmit extends PageAdmin {
 		LOGGER.debug("Saving user changes.");
 		OperationResult result = new OperationResult(OPERATION_SAVE_USER);
 
-		if (accountsDeltas != null && !accountsDeltas.isEmpty()) {
-			OperationResult subResult = null;
-			for (ObjectDeltaComponent account : accountsDeltas) {
-				try {
-					if (!(SubmitObjectStatus.MODIFYING.equals(account.getStatus()))
-							|| account.getNewDelta().isEmpty()) {
-						continue;
-					}
-
-					subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
-					Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Modifying account:\n{}", new Object[] { account.getNewDelta()
-								.debugDump(3) });
-					}
-					getModelService().modifyObject(account.getNewDelta().getObjectTypeClass(),
-							account.getNewDelta().getOid(), account.getNewDelta().getModifications(), task,
-							subResult);
-					subResult.recomputeStatus();
-				} catch (Exception ex) {
-					if (subResult != null) {
-						subResult.recomputeStatus();
-						subResult.recordFatalError("Modify account failed.", ex);
-					}
-					LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
-				}
-			}
-		}
-
-		try {
-			ObjectDelta userDeltaObject = userDelta.getNewDelta();
-			Task task = createSimpleTask(OPERATION_SAVE_USER);
-			switch (userDeltaObject.getChangeType()) {
-				case ADD:
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before add user:\n{}", new Object[] { userDelta.getNewDelta()
-								.debugDump(3) });
-					}
-					getModelService().addObject(userDelta.getNewUser(), task, result);
-					break;
-				case MODIFY:
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before modify user:\n{}",
-								new Object[] { userDeltaObject.debugDump(3) });
-					}
-					if (!userDeltaObject.isEmpty()) {
-						getModelService().modifyObject(UserType.class, userDeltaObject.getOid(),
-								userDeltaObject.getModifications(), task, result);
-					} else {
-						result.recordSuccessIfUnknown();
-					}
-					break;
-				default:
-					error(getString("pageSubmit.message.unsupportedState", userDeltaObject.getChangeType()));
-			}
-			result.recomputeStatus();
-		} catch (Exception ex) {
-			result.recordFatalError("Couldn't save user.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
-		}
-
-		if (!result.isSuccess()) {
-			showResult(result);
-			target.add(getFeedbackPanel());
-		} else {
-			showResultInSession(result);
-			setResponsePage(PageUsers.class);
-		}
+		// // if (accountsDeltas != null && !accountsDeltas.isEmpty()) {
+		// // OperationResult subResult = null;
+		// // for (ObjectDeltaComponent account : accountsDeltas) {
+		// // try {
+		// // if (!(SubmitObjectStatus.MODIFYING.equals(account.getStatus()))
+		// // || account.getNewDelta().isEmpty()) {
+		// // continue;
+		// // }
+		// //
+		// // subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
+		// // Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
+		// // if (LOGGER.isTraceEnabled()) {
+		// // LOGGER.trace("Modifying account:\n{}", new Object[] {
+		// account.getNewDelta()
+		// // .debugDump(3) });
+		// // }
+		// //
+		// getModelService().modifyObject(account.getNewDelta().getObjectTypeClass(),
+		// // account.getNewDelta().getOid(),
+		// account.getNewDelta().getModifications(), task,
+		// // subResult);
+		// // subResult.recomputeStatus();
+		// // } catch (Exception ex) {
+		// // if (subResult != null) {
+		// // subResult.recomputeStatus();
+		// // subResult.recordFatalError("Modify account failed.", ex);
+		// // }
+		// // LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
+		// // }
+		// // }
+		// // }
+		//
+		// try {
+		// ObjectDelta userDeltaObject = userDelta.getNewDelta();
+		// Task task = createSimpleTask(OPERATION_SAVE_USER);
+		// switch (userDeltaObject.getChangeType()) {
+		// case ADD:
+		// if (LOGGER.isTraceEnabled()) {
+		// LOGGER.trace("Delta before add user:\n{}", new Object[] {
+		// userDelta.getNewDelta()
+		// .debugDump(3) });
+		// }
+		// getModelService().addObject(userDelta.getNewUser(), task, result);
+		// break;
+		// case MODIFY:
+		// if (LOGGER.isTraceEnabled()) {
+		// LOGGER.trace("Delta before modify user:\n{}",
+		// new Object[] { userDeltaObject.debugDump(3) });
+		// }
+		// if (!userDeltaObject.isEmpty()) {
+		// getModelService().modifyObject(UserType.class,
+		// userDeltaObject.getOid(),
+		// userDeltaObject.getModifications(), task, result);
+		// } else {
+		// result.recordSuccessIfUnknown();
+		// }
+		// break;
+		// default:
+		// error(getString("pageSubmit.message.unsupportedState",
+		// userDeltaObject.getChangeType()));
+		// }
+		// result.recomputeStatus();
+		// } catch (Exception ex) {
+		// result.recordFatalError("Couldn't save user.", ex);
+		// LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
+		// }
+		//
+		// if (!result.isSuccess()) {
+		// showResult(result);
+		// target.add(getFeedbackPanel());
+		// } else {
+		// showResultInSession(result);
+		// setResponsePage(PageUsers.class);
+		// }
 	}
 
 	private List<SubmitAccountDto> loadAccountsList() {
 		List<SubmitAccountDto> list = new ArrayList<SubmitAccountDto>();
-		/*
-		 * if (accountsDeltas != null) { for (ObjectDeltaComponent account :
-		 * accountsDeltas) { ObjectDelta delta = account.getNewDelta(); if
-		 * (delta.getChangeType().equals(ChangeType.MODIFY)) { for (Object
-		 * modification : account.getNewDelta().getModifications()) { ItemDelta
-		 * modifyDelta = (ItemDelta) modification; String oldValue = ""; String
-		 * newValue = "";
-		 * 
-		 * ItemDefinition def = modifyDelta.getDefinition(); String attribute =
-		 * def.getDisplayName() != null ? def.getDisplayName() : def
-		 * .getName().getLocalPart();
-		 * 
-		 * if (modifyDelta.getValuesToDelete() != null) { List<Object>
-		 * valuesToDelete = new ArrayList<Object>(
-		 * modifyDelta.getValuesToDelete()); Integer listSize =
-		 * valuesToDelete.size(); for (int i = 0; i < listSize; i++) {
-		 * PrismPropertyValue value = (PrismPropertyValue)
-		 * valuesToDelete.get(i); String valueToDelete = value == null ? "" :
-		 * value.getValue().toString(); oldValue += valueToDelete; if (i !=
-		 * listSize - 1) { oldValue += ", "; } } }
-		 * 
-		 * if (modifyDelta.getValuesToAdd() != null) { List<Object> valuesToAdd
-		 * = new ArrayList<Object>(modifyDelta.getValuesToAdd()); Integer
-		 * listSize = valuesToAdd.size(); for (int i = 0; i < listSize; i++) {
-		 * PrismPropertyValue value = (PrismPropertyValue) valuesToAdd.get(i);
-		 * String valueToAdd = value == null ? "" : value.getValue().toString();
-		 * newValue += valueToAdd; if (i != listSize - 1) { newValue += ", "; }
-		 * } }
-		 * 
-		 * SubmitResourceProvider resourceProvider = new SubmitResourceProvider(
-		 * getResource(account.getNewDelta()), false); list.add(new
-		 * SubmitAccountProvider(resourceProvider.getResourceName(), attribute,
-		 * oldValue, newValue)); } } } }
-		 */
+
+		// if (accountsDeltas != null) {
+		// for (ObjectDeltaComponent account : accountsDeltas) {
+		// ObjectDelta delta = account.getNewDelta();
+		// if (delta.getChangeType().equals(ChangeType.MODIFY)) {
+		// for (Object modification : account.getNewDelta().getModifications())
+		// {
+		// ItemDelta modifyDelta = (ItemDelta) modification;
+		// String oldValue = "";
+		// String newValue = "";
+		//
+		// ItemDefinition def = modifyDelta.getDefinition();
+		// String attribute = def.getDisplayName() != null ?
+		// def.getDisplayName() : def
+		// .getName().getLocalPart();
+		//
+		// if (modifyDelta.getValuesToDelete() != null) {
+		// List<Object> valuesToDelete = new ArrayList<Object>(
+		// modifyDelta.getValuesToDelete());
+		// Integer listSize = valuesToDelete.size();
+		// for (int i = 0; i < listSize; i++) {
+		// PrismPropertyValue value = (PrismPropertyValue)
+		// valuesToDelete.get(i);
+		// String valueToDelete = value == null ? "" :
+		// value.getValue().toString();
+		// oldValue += valueToDelete;
+		// if (i != listSize - 1) {
+		// oldValue += ", ";
+		// }
+		// }
+		// }
+		//
+		// if (modifyDelta.getValuesToAdd() != null) {
+		// List<Object> valuesToAdd = new
+		// ArrayList<Object>(modifyDelta.getValuesToAdd());
+		// Integer listSize = valuesToAdd.size();
+		// for (int i = 0; i < listSize; i++) {
+		// PrismPropertyValue value = (PrismPropertyValue) valuesToAdd.get(i);
+		// String valueToAdd = value == null ? "" : value.getValue().toString();
+		// newValue += valueToAdd;
+		// if (i != listSize - 1) {
+		// newValue += ", ";
+		// }
+		// }
+		// }
+		//
+		// SubmitResourceProvider resourceProvider = new SubmitResourceProvider(
+		// getResource(account.getNewDelta()), false);
+		// list.add(new
+		// SubmitAccountProvider(resourceProvider.getResourceName(), attribute,
+		// oldValue, newValue));
+		// }
+		// }
+		// }
+		// }
+
 		list.add(new SubmitAccountDto("OpenDj localhost", "First name", "", "Janko", false));
 		list.add(new SubmitAccountDto("OpenDj localhost", "Second name", "", "Hrasko", false));
 		list.add(new SubmitAccountDto("OpenDj localhost", "Family name", "", "Janko Hrasko", true));
@@ -561,30 +592,33 @@ public class PageSubmit extends PageAdmin {
 
 	private List<PrismObject> loadResourceList() {
 		List<PrismObject> list = new ArrayList<PrismObject>();
-		if (accountsDeltas != null) {
-			for (ObjectDeltaComponent account : accountsDeltas) {
-				ObjectDelta delta = account.getNewDelta();
-				list.add(getResource(delta));
-			}
-		}
+		// if (accountsDeltas != null) {
+		// for (ObjectDeltaComponent account : accountsDeltas) {
+		// ObjectDelta delta = account.getNewDelta();
+		// list.add(getResource(delta));
+		// }
+		// }
 		return list;
 	}
 
 	private List<SubmitAssignmentDto> loadAssignmentsList() {
 
 		List<SubmitAssignmentDto> list = new ArrayList<SubmitAssignmentDto>();
-		for (ContainerDelta assignment : assignmentsDeltas) {
+		for (SubmitDeltaObjectDto assignmentDto : userChangesDto.getAssignmentsDeltas()) {
+			ContainerDelta assignment = (ContainerDelta) assignmentDto.getItemDelta();
 			if (assignment.getValuesToAdd() != null) {
 				for (Object item : assignment.getValuesToAdd()) {
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
-							getString("pageSubmit.status." + SubmitObjectStatus.ADDING)));
+							getString("pageSubmit.status." + SubmitObjectStatus.ADDING), assignmentDto
+									.isSecondaryValue()));
 				}
 			}
 
 			if (assignment.getValuesToDelete() != null) {
 				for (Object item : assignment.getValuesToDelete()) {
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
-							getString("pageSubmit.status." + SubmitObjectStatus.DELETING)));
+							getString("pageSubmit.status." + SubmitObjectStatus.DELETING), assignmentDto
+									.isSecondaryValue()));
 				}
 			}
 		}
@@ -593,72 +627,103 @@ public class PageSubmit extends PageAdmin {
 
 	private List<SubmitUserDto> loadUserProperties() {
 		List<SubmitUserDto> list = new ArrayList<SubmitUserDto>();
-		if (userPropertiesDeltas != null && !userPropertiesDeltas.isEmpty()) {
-			PrismObject oldUser = userDelta.getOldObject();
-			ObjectDelta newUserDelta = userDelta.getNewDelta();
-			for (PropertyDelta propertyDelta : userPropertiesDeltas) {
+		List<SubmitDeltaObjectDto> userPropertiesDelta = userChangesDto.getUserPropertiesDeltas();
+		if (userPropertiesDelta != null && !userChangesDto.getUserPropertiesDeltas().isEmpty()) {
+			PrismObject oldUser = previewChanges.getFocusContext().getObjectOld();
+			PrismObject newUser = previewChanges.getFocusContext().getObjectNew();
+
+			for (SubmitDeltaObjectDto itemDeltaDto : userPropertiesDelta) {
+				PropertyDelta propertyDelta = (PropertyDelta) itemDeltaDto.getItemDelta();
+				if(propertyDelta.getDefinition().getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
+					continue;
+				}
 				if (propertyDelta.getValuesToAdd() != null) {
+					List<PrismPropertyValue> valuesToAdd = new ArrayList<PrismPropertyValue>();
 					for (Object value : propertyDelta.getValuesToAdd()) {
 						if (value instanceof PrismContainerValue) {
 							PrismContainerValue containerValues = (PrismContainerValue) value;
-							for (Object containerValue : containerValues.getItems()) {
-								if (containerValue instanceof PrismProperty) {
-									PrismProperty propertyValue = (PrismProperty) containerValue;
-									PropertyDelta delta = new PropertyDelta(propertyValue.getDefinition());
-									list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
-											(PrismPropertyValue) propertyValue.getValue(), delta));
-								} else if (containerValue instanceof PrismContainer) {
+
+							PropertyDelta delta = null;
+
+							for (Object propertyValueObject : containerValues.getItems()) {
+								if (propertyValueObject instanceof PrismContainer) {
 									continue;
 								}
-
+								PrismProperty propertyValue = (PrismProperty) propertyValueObject;
+								delta = new PropertyDelta(propertyValue.getDefinition());
+								valuesToAdd.add((PrismPropertyValue) propertyValue.getValue());
 							}
+							list.add(getDeltasFromUserProperties(valuesToAdd, delta,
+									itemDeltaDto.isSecondaryValue()));
+							valuesToAdd = new ArrayList<PrismPropertyValue>();
 							continue;
 						}
-						list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
-								(PrismPropertyValue) value, propertyDelta));
+						valuesToAdd.add((PrismPropertyValue) value);
 					}
+					list.add(getDeltasFromUserProperties(valuesToAdd, propertyDelta,
+							itemDeltaDto.isSecondaryValue()));
 				}
 
 				if (propertyDelta.getValuesToDelete() != null) {
+					List<PrismPropertyValue> valuesToDelete = new ArrayList<PrismPropertyValue>();
 					for (Object value : propertyDelta.getValuesToDelete()) {
-						list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
-								(PrismPropertyValue) value, propertyDelta));
+						valuesToDelete.add((PrismPropertyValue) value);
 					}
+					list.add(getDeltasFromUserProperties(valuesToDelete, propertyDelta,
+							itemDeltaDto.isSecondaryValue()));
 				}
 
 				if (propertyDelta.getValuesToReplace() != null) {
+					List<PrismPropertyValue> valuesToReplace = new ArrayList<PrismPropertyValue>();
 					for (Object value : propertyDelta.getValuesToReplace()) {
-						list.add(getDeltasFromUserProperties(oldUser, newUserDelta,
-								(PrismPropertyValue) value, propertyDelta));
+						valuesToReplace.add((PrismPropertyValue) value);
 					}
+					list.add(getDeltasFromUserProperties(valuesToReplace, propertyDelta,
+							itemDeltaDto.isSecondaryValue()));
 				}
-
 			}
 		}
 		return list;
 	}
 
-	private SubmitUserDto getDeltasFromUserProperties(PrismObject oldUser, ObjectDelta newUserDelta,
-			PrismPropertyValue prismValue, PropertyDelta propertyDelta) {
-		ItemDefinition def = propertyDelta.getDefinition();
-		String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName().getLocalPart();
-		String oldValue = "";
-		String newValue = "";
+	private String convertPropertiestToMultiString(Collection collection) {
 
-		PrismProperty oldPropertyValue = oldUser.findProperty(propertyDelta.getName());
-		if (oldPropertyValue != null) {
-			if (oldPropertyValue.getValues() != null) {
-				for (Object valueObject : oldPropertyValue.getValues()) {
-					PrismPropertyValue value = (PrismPropertyValue) valueObject;
-					oldValue = value.getValue().toString();
-				}
-
-			}
-		}
-		newValue = prismValue.getValue().toString();
-		return new SubmitUserDto(attribute, oldValue, newValue);
+		return null;
 	}
 
+	private SubmitUserDto getDeltasFromUserProperties(List<PrismPropertyValue> prismValueList,
+			PropertyDelta propertyDelta, boolean secondaryValue) {
+		
+		ItemDefinition def = propertyDelta.getDefinition();
+		String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName().getLocalPart();
+		List<String> oldValue = new ArrayList<String>();
+		List<String> newValue = new ArrayList<String>();
+		
+		PrismObject oldUserObject = previewChanges.getFocusContext().getObjectOld();
+		PrismProperty oldPropertyValue = oldUserObject.findProperty(propertyDelta.getName());
+		if (oldPropertyValue != null && oldPropertyValue.getValues() != null) {
+			for (Object valueObject : oldPropertyValue.getValues()) {
+				PrismPropertyValue value = (PrismPropertyValue) valueObject;
+				oldValue.add(value.getValue().toString());
+			}
+		}
+		for (PrismPropertyValue newPrismValue : prismValueList) {
+			newValue.add(newPrismValue.getValue().toString());
+		}
+		return new SubmitUserDto(attribute, listToString(oldValue), listToString(newValue), secondaryValue);
+	}
+	
+	private String listToString(List<String> list) {
+		StringBuilder sb = new StringBuilder(list.size());
+		for (int i = 0; i < list.size(); i++) {
+		    sb.append(list.get(i));
+		    if (i < list.size() - 1) {
+		        sb.append(", ");
+		    }
+		}
+		return sb.toString();
+	}
+	
 	private String getReferenceFromAssignment(PrismContainerValue assignment) {
 		Task task = createSimpleTask("getRefFromAssignment: Load role");
 		OperationResult result = new OperationResult("getRefFromAssignment: Load role");

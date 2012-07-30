@@ -409,7 +409,7 @@ public class ObjectWrapper implements Serializable {
 					if (property.hasRealValue(valueWrapper.getValue())) {
 						continue;
 					}
-					property.addValue(valueWrapper.getValue());
+					property.addValue(valueWrapper.getValue().clone());
 				}
 			}
 		}

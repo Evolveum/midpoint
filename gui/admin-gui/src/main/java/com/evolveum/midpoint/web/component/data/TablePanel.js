@@ -85,6 +85,7 @@ function initTable(){
 			$(this).find("td").css("background", "#D0E0FF");
 		} else {
 			$(this).find("td").css("background", "#f2f2f2");
+			$(this).find("td").css("border-color","#FFFFFF");
 		}
 	}).mouseleave(function(){
 		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){

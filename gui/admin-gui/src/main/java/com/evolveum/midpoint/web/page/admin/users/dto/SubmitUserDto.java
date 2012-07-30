@@ -30,11 +30,13 @@ public class SubmitUserDto implements Serializable {
 	private String attribute;
 	private String oldValue;
 	private String newValue;
+	private boolean secondaryValue;
 
-	public SubmitUserDto(String attribute, String oldValue, String newValue) {
+	public SubmitUserDto(String attribute, String oldValue, String newValue, boolean secondaryValue) {
 		this.attribute = attribute;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
+		this.secondaryValue = secondaryValue;
 	}
 
 	public String getAttribute() {
@@ -47,6 +49,10 @@ public class SubmitUserDto implements Serializable {
 
 	public String getNewValue() {
 		return newValue;
+	}
+
+	public boolean isSecondaryValue() {
+		return secondaryValue;
 	}
 
 	
