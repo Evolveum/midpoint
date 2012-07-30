@@ -32,6 +32,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.ResourceReference;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -64,13 +67,16 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.delta.ObjectDeltaComponent;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountProvider;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitResourceProvider;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAssignmentProvider;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserProvider;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitResourceDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAssignmentDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitObjectStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
@@ -93,9 +99,9 @@ public class PageSubmit extends PageAdmin {
 	private List<ContainerDelta> assignmentsDeltas = new ArrayList<ContainerDelta>();
 	private List<PropertyDelta> userPropertiesDeltas = new ArrayList<PropertyDelta>();
 
-	private List<SubmitAccountProvider> accountsList;
-	private List<SubmitAssignmentProvider> assignmentsList;
-	private List<SubmitUserProvider> userList;
+	private List<SubmitAccountDto> accountsList;
+	private List<SubmitAssignmentDto> assignmentsList;
+	private List<SubmitUserDto> userList;
 
 	public PageSubmit(ObjectDeltaComponent userDelta, List<ObjectDeltaComponent> accountsDeltas) {
 
@@ -218,9 +224,9 @@ public class PageSubmit extends PageAdmin {
 		accountsList.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(accountsList);
 
-		List<IColumn<SubmitResourceProvider>> columns = new ArrayList<IColumn<SubmitResourceProvider>>();
+		List<IColumn<SubmitResourceDto>> columns = new ArrayList<IColumn<SubmitResourceDto>>();
 
-		IColumn column = new CheckBoxHeaderColumn<SubmitResourceProvider>();
+		IColumn column = new CheckBoxHeaderColumn<SubmitResourceDto>();
 		columns.add(column);
 
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.name"), "name"));
@@ -228,22 +234,21 @@ public class PageSubmit extends PageAdmin {
 				"resourceName"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.exist"), "exist"));
 
-		ListDataProvider<SubmitResourceProvider> provider = new ListDataProvider<SubmitResourceProvider>(
-				this, new AbstractReadOnlyModel<List<SubmitResourceProvider>>() {
+		ListDataProvider<SubmitResourceDto> provider = new ListDataProvider<SubmitResourceDto>(this,
+				new AbstractReadOnlyModel<List<SubmitResourceDto>>() {
 
 					@Override
-					public List<SubmitResourceProvider> getObject() {
-						List<SubmitResourceProvider> list = new ArrayList<SubmitResourceProvider>();
+					public List<SubmitResourceDto> getObject() {
+						List<SubmitResourceDto> list = new ArrayList<SubmitResourceDto>();
 						for (PrismObject item : loadResourceList()) {
 							if (item != null) {
-								list.add(new SubmitResourceProvider(item, true));
+								list.add(new SubmitResourceDto(item, true));
 							}
 						}
 						return list;
 					}
 				});
-		TablePanel resourcesTable = new TablePanel<SubmitResourceProvider>("resourcesTable", provider,
-				columns);
+		TablePanel resourcesTable = new TablePanel<SubmitResourceDto>("resourcesTable", provider, columns);
 		resourcesTable.setShowPaging(false);
 		resourcesTable.setOutputMarkupId(true);
 		accountsList.getBodyContainer().add(resourcesTable);
@@ -262,21 +267,21 @@ public class PageSubmit extends PageAdmin {
 		userInfoAccordion.setOutputMarkupId(true);
 		changeType.getBodyContainer().add(userInfoAccordion);
 
-		List<IColumn<SubmitUserProvider>> columns = new ArrayList<IColumn<SubmitUserProvider>>();
+		List<IColumn<SubmitUserDto>> columns = new ArrayList<IColumn<SubmitUserDto>>();
 
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
 
-		ListDataProvider<SubmitUserProvider> provider = new ListDataProvider<SubmitUserProvider>(this,
-				new AbstractReadOnlyModel<List<SubmitUserProvider>>() {
+		ListDataProvider<SubmitUserDto> provider = new ListDataProvider<SubmitUserDto>(this,
+				new AbstractReadOnlyModel<List<SubmitUserDto>>() {
 
 					@Override
-					public List<SubmitUserProvider> getObject() {
+					public List<SubmitUserDto> getObject() {
 						return userList = loadUserProperties();
 					}
 				});
-		TablePanel userTable = new TablePanel<SubmitUserProvider>("userTable", provider, columns);
+		TablePanel userTable = new TablePanel<SubmitUserDto>("userTable", provider, columns);
 		userTable.setShowPaging(false);
 		userTable.setOutputMarkupId(true);
 		userInfoAccordion.getBodyContainer().add(userTable);
@@ -295,21 +300,58 @@ public class PageSubmit extends PageAdmin {
 		accountsAccordion.setOutputMarkupId(true);
 		changeType.getBodyContainer().add(accountsAccordion);
 
-		List<IColumn<SubmitAccountProvider>> columns = new ArrayList<IColumn<SubmitAccountProvider>>();
+		List<IColumn<SubmitAccountDto>> columns = new ArrayList<IColumn<SubmitAccountDto>>();
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resource"), "resourceName"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
+		IColumn column = new IconColumn<SubmitAccountDto>(
+				createStringResource("pageSubmit.typeOfAddData")) {
 
-		ListDataProvider<SubmitAccountProvider> provider = new ListDataProvider<SubmitAccountProvider>(this,
-				new AbstractReadOnlyModel<List<SubmitAccountProvider>>() {
+			@Override
+			protected IModel<ResourceReference> createIconModel(final IModel<SubmitAccountDto> rowModel) {
+				return new AbstractReadOnlyModel<ResourceReference>() {
 
 					@Override
-					public List<SubmitAccountProvider> getObject() {
+					public ResourceReference getObject() {
+						SubmitAccountDto dto = rowModel.getObject();
+						if (dto.isSecondaryValue()) {
+							return new PackageResourceReference(PageSubmit.class, "secondaryValue.png");
+						}
+						return new PackageResourceReference(PageSubmit.class, "primaryValue.png");
+					}
+
+				};
+			}
+
+			@Override
+			protected IModel<String> createTitleModel(final IModel<SubmitAccountDto> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						SubmitAccountDto dto = rowModel.getObject();
+						if (dto.isSecondaryValue()) {
+							return PageSubmit.this.getString("pageSubmit.secondaryValue");
+						}
+						return PageSubmit.this.getString("pageSubmit.primaryValue");
+					}
+
+				};
+			}
+
+		};
+		columns.add(column);
+
+		ListDataProvider<SubmitAccountDto> provider = new ListDataProvider<SubmitAccountDto>(this,
+				new AbstractReadOnlyModel<List<SubmitAccountDto>>() {
+
+					@Override
+					public List<SubmitAccountDto> getObject() {
 						return accountsList = loadAccountsList();
 					}
 				});
-		TablePanel accountsTable = new TablePanel<SubmitAccountProvider>("accountsTable", provider, columns);
+		TablePanel accountsTable = new TablePanel<SubmitAccountDto>("accountsTable", provider, columns);
 		accountsTable.setShowPaging(false);
 		accountsTable.setOutputMarkupId(true);
 		accountsAccordion.getBodyContainer().add(accountsTable);
@@ -328,20 +370,20 @@ public class PageSubmit extends PageAdmin {
 		assignmentsAccordion.setOutputMarkupId(true);
 		changeType.getBodyContainer().add(assignmentsAccordion);
 
-		List<IColumn<SubmitAssignmentProvider>> columns = new ArrayList<IColumn<SubmitAssignmentProvider>>();
+		List<IColumn<SubmitAssignmentDto>> columns = new ArrayList<IColumn<SubmitAssignmentDto>>();
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.assignment"),
 				"assignment"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.operation"), "status"));
 
-		ListDataProvider<SubmitAssignmentProvider> provider = new ListDataProvider<SubmitAssignmentProvider>(
-				this, new AbstractReadOnlyModel<List<SubmitAssignmentProvider>>() {
+		ListDataProvider<SubmitAssignmentDto> provider = new ListDataProvider<SubmitAssignmentDto>(this,
+				new AbstractReadOnlyModel<List<SubmitAssignmentDto>>() {
 
 					@Override
-					public List<SubmitAssignmentProvider> getObject() {
+					public List<SubmitAssignmentDto> getObject() {
 						return assignmentsList = loadAssignmentsList();
 					}
 				});
-		TablePanel assignmentsTable = new TablePanel<SubmitAssignmentProvider>("assignmentsTable", provider,
+		TablePanel assignmentsTable = new TablePanel<SubmitAssignmentDto>("assignmentsTable", provider,
 				columns);
 		assignmentsTable.setShowPaging(false);
 		assignmentsTable.setOutputMarkupId(true);
@@ -457,57 +499,47 @@ public class PageSubmit extends PageAdmin {
 		}
 	}
 
-	private List<SubmitAccountProvider> loadAccountsList() {
-		List<SubmitAccountProvider> list = new ArrayList<SubmitAccountProvider>();
-		if (accountsDeltas != null) {
-			for (ObjectDeltaComponent account : accountsDeltas) {
-				ObjectDelta delta = account.getNewDelta();
-				if (delta.getChangeType().equals(ChangeType.MODIFY)) {
-					for (Object modification : account.getNewDelta().getModifications()) {
-						ItemDelta modifyDelta = (ItemDelta) modification;
-						String oldValue = "";
-						String newValue = "";
-
-						ItemDefinition def = modifyDelta.getDefinition();
-						String attribute = def.getDisplayName() != null ? def.getDisplayName() : def
-								.getName().getLocalPart();
-
-						if (modifyDelta.getValuesToDelete() != null) {
-							List<Object> valuesToDelete = new ArrayList<Object>(
-									modifyDelta.getValuesToDelete());
-							Integer listSize = valuesToDelete.size();
-							for (int i = 0; i < listSize; i++) {
-								PrismPropertyValue value = (PrismPropertyValue) valuesToDelete.get(i);
-								String valueToDelete = value == null ? "" : value.getValue().toString();
-								oldValue += valueToDelete;
-								if (i != listSize - 1) {
-									oldValue += ", ";
-								}
-							}
-						}
-
-						if (modifyDelta.getValuesToAdd() != null) {
-							List<Object> valuesToAdd = new ArrayList<Object>(modifyDelta.getValuesToAdd());
-							Integer listSize = valuesToAdd.size();
-							for (int i = 0; i < listSize; i++) {
-								PrismPropertyValue value = (PrismPropertyValue) valuesToAdd.get(i);
-								String valueToAdd = value == null ? "" : value.getValue().toString();
-								newValue += valueToAdd;
-								if (i != listSize - 1) {
-									newValue += ", ";
-								}
-							}
-						}
-
-						SubmitResourceProvider resourceProvider = new SubmitResourceProvider(
-								getResource(account.getNewDelta()), false);
-						list.add(new SubmitAccountProvider(resourceProvider.getResourceName(), attribute,
-								oldValue, newValue));
-					}
-				}
-			}
-		}
-
+	private List<SubmitAccountDto> loadAccountsList() {
+		List<SubmitAccountDto> list = new ArrayList<SubmitAccountDto>();
+		/*
+		 * if (accountsDeltas != null) { for (ObjectDeltaComponent account :
+		 * accountsDeltas) { ObjectDelta delta = account.getNewDelta(); if
+		 * (delta.getChangeType().equals(ChangeType.MODIFY)) { for (Object
+		 * modification : account.getNewDelta().getModifications()) { ItemDelta
+		 * modifyDelta = (ItemDelta) modification; String oldValue = ""; String
+		 * newValue = "";
+		 * 
+		 * ItemDefinition def = modifyDelta.getDefinition(); String attribute =
+		 * def.getDisplayName() != null ? def.getDisplayName() : def
+		 * .getName().getLocalPart();
+		 * 
+		 * if (modifyDelta.getValuesToDelete() != null) { List<Object>
+		 * valuesToDelete = new ArrayList<Object>(
+		 * modifyDelta.getValuesToDelete()); Integer listSize =
+		 * valuesToDelete.size(); for (int i = 0; i < listSize; i++) {
+		 * PrismPropertyValue value = (PrismPropertyValue)
+		 * valuesToDelete.get(i); String valueToDelete = value == null ? "" :
+		 * value.getValue().toString(); oldValue += valueToDelete; if (i !=
+		 * listSize - 1) { oldValue += ", "; } } }
+		 * 
+		 * if (modifyDelta.getValuesToAdd() != null) { List<Object> valuesToAdd
+		 * = new ArrayList<Object>(modifyDelta.getValuesToAdd()); Integer
+		 * listSize = valuesToAdd.size(); for (int i = 0; i < listSize; i++) {
+		 * PrismPropertyValue value = (PrismPropertyValue) valuesToAdd.get(i);
+		 * String valueToAdd = value == null ? "" : value.getValue().toString();
+		 * newValue += valueToAdd; if (i != listSize - 1) { newValue += ", "; }
+		 * } }
+		 * 
+		 * SubmitResourceProvider resourceProvider = new SubmitResourceProvider(
+		 * getResource(account.getNewDelta()), false); list.add(new
+		 * SubmitAccountProvider(resourceProvider.getResourceName(), attribute,
+		 * oldValue, newValue)); } } } }
+		 */
+		list.add(new SubmitAccountDto("OpenDj localhost", "First name", "", "Janko", false));
+		list.add(new SubmitAccountDto("OpenDj localhost", "Second name", "", "Hrasko", false));
+		list.add(new SubmitAccountDto("OpenDj localhost", "Family name", "", "Janko Hrasko", true));
+		list.add(new SubmitAccountDto("OpenDj localhost", "Age", "", "18", false));
+		list.add(new SubmitAccountDto("OpenDj localhost", "Organizataion", "", "Bla bla", true));
 		return list;
 
 	}
@@ -523,22 +555,20 @@ public class PageSubmit extends PageAdmin {
 		return list;
 	}
 
-	private List<SubmitAssignmentProvider> loadAssignmentsList() {
+	private List<SubmitAssignmentDto> loadAssignmentsList() {
 
-		List<SubmitAssignmentProvider> list = new ArrayList<SubmitAssignmentProvider>();
+		List<SubmitAssignmentDto> list = new ArrayList<SubmitAssignmentDto>();
 		for (ContainerDelta assignment : assignmentsDeltas) {
 			if (assignment.getValuesToAdd() != null) {
 				for (Object item : assignment.getValuesToAdd()) {
-					list.add(new SubmitAssignmentProvider(
-							getReferenceFromAssignment((PrismContainerValue) item),
+					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
 							getString("pageSubmit.status." + SubmitObjectStatus.ADDING)));
 				}
 			}
 
 			if (assignment.getValuesToDelete() != null) {
 				for (Object item : assignment.getValuesToDelete()) {
-					list.add(new SubmitAssignmentProvider(
-							getReferenceFromAssignment((PrismContainerValue) item),
+					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
 							getString("pageSubmit.status." + SubmitObjectStatus.DELETING)));
 				}
 			}
@@ -546,8 +576,8 @@ public class PageSubmit extends PageAdmin {
 		return list;
 	}
 
-	private List<SubmitUserProvider> loadUserProperties() {
-		List<SubmitUserProvider> list = new ArrayList<SubmitUserProvider>();
+	private List<SubmitUserDto> loadUserProperties() {
+		List<SubmitUserDto> list = new ArrayList<SubmitUserDto>();
 		if (userPropertiesDeltas != null && !userPropertiesDeltas.isEmpty()) {
 			PrismObject oldUser = userDelta.getOldObject();
 			ObjectDelta newUserDelta = userDelta.getNewDelta();
@@ -593,7 +623,7 @@ public class PageSubmit extends PageAdmin {
 		return list;
 	}
 
-	private SubmitUserProvider getDeltasFromUserProperties(PrismObject oldUser, ObjectDelta newUserDelta,
+	private SubmitUserDto getDeltasFromUserProperties(PrismObject oldUser, ObjectDelta newUserDelta,
 			PrismPropertyValue prismValue, PropertyDelta propertyDelta) {
 		ItemDefinition def = propertyDelta.getDefinition();
 		String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName().getLocalPart();
@@ -611,7 +641,7 @@ public class PageSubmit extends PageAdmin {
 			}
 		}
 		newValue = prismValue.getValue().toString();
-		return new SubmitUserProvider(attribute, oldValue, newValue);
+		return new SubmitUserDto(attribute, oldValue, newValue);
 	}
 
 	private String getReferenceFromAssignment(PrismContainerValue assignment) {

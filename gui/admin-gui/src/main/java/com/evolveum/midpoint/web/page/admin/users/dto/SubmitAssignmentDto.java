@@ -26,11 +26,11 @@ import java.io.Serializable;
 /**
  * @author mserbak
  */
-public class SubmitAssignmentProvider implements Serializable {
+public class SubmitAssignmentDto implements Serializable {
 	private String assignment;
 	private String status;
 
-	public SubmitAssignmentProvider(String assignment, String status) {
+	public SubmitAssignmentDto(String assignment, String status) {
 		this.assignment = assignment;
 		this.status = status;
 	}

@@ -39,14 +39,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 /**
  * @author mserbak
  */
-public class SubmitResourceProvider extends PageAdmin implements Serializable {
+public class SubmitResourceDto extends PageAdmin implements Serializable {
 	private PrismObject account;
 	private String name;
 	private String resourceName;
 	private boolean selected;
 	private String exist;
 
-	public SubmitResourceProvider(PrismObject account, boolean selected) {
+	public SubmitResourceDto(PrismObject account, boolean selected) {
 		this.account = account;
 		this.selected = selected;
 	}

@@ -26,17 +26,19 @@ import java.io.Serializable;
 /**
  * @author mserbak
  */
-public class SubmitAccountProvider implements Serializable {
+public class SubmitAccountDto implements Serializable {
 	private String resourceName;
 	private String attribute;
 	private String oldValue;
 	private String newValue;
+	private boolean isSecondaryValue;
 
-	public SubmitAccountProvider(String resourceName, String attribute, String oldValue, String newValue) {
+	public SubmitAccountDto(String resourceName, String attribute, String oldValue, String newValue, boolean isSecondaryValue) {
 		this.resourceName = resourceName;
 		this.attribute = attribute;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
+		this.isSecondaryValue = isSecondaryValue;
 	}
 
 	public String getAttribute() {
@@ -55,5 +57,7 @@ public class SubmitAccountProvider implements Serializable {
 		return resourceName;
 	}
 
-	
+	public boolean isSecondaryValue() {
+		return isSecondaryValue;
+	}
 }
