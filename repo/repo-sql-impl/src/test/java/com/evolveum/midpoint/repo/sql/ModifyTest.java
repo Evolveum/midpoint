@@ -278,7 +278,10 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     
     @Test
     public void testModifyUserAddRole() throws Exception{
+    	 LOGGER.info("=== [ testModifyUserAddRole ] ===");
     	OperationResult parentResult = new OperationResult("Modify user -> add roles");
+    	String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
+    	
     	PrismObject<ResourceType> csvResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/resource-csv.xml"));
     	repositoryService.addObject(csvResource, parentResult);
     	
@@ -291,8 +294,13 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     	PrismObject<RoleType> roleCsv = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/role-csv.xml"));
     	repositoryService.addObject(roleCsv, parentResult);
     	
+    	String ldapRoleOid = "12345678-d34d-b33f-f00d-987987987988";
     	PrismObject<RoleType> roleLdap = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/role-ldap.xml"));
     	repositoryService.addObject(roleLdap, parentResult);
+    	
+    	RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, parentResult).asObjectable();
+    	AssertJUnit.assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
+    	AssertJUnit.assertEquals("Actual approved not equals to expected one.", userToModifyOid, ldapRole.getApproverRef().get(0).getOid());
     	
     	ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(TEST_DIR+"/modify-user-add-roles.xml"),
 				ObjectModificationType.class);
@@ -300,12 +308,12 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     	
     	ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
     	
-    	String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
+    	
     	
     	repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), parentResult);
     	
     	UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, parentResult).asObjectable();
-    	AssertJUnit.assertEquals(3, modifiedUser.getAssignment().size());
+    	AssertJUnit.assertEquals("assertion failed", 3, modifiedUser.getAssignment().size());
     	
     	
     	
