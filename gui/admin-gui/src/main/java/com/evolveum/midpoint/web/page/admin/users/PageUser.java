@@ -759,7 +759,6 @@ public class PageUser extends PageAdminUsers {
                 
                 if (!UserDtoStatus.MODIFY.equals(account.getStatus())
                         || delta.isEmpty()) {
-                	//accountsDeltas.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta, SubmitObjectStatus.ADDING));
                     continue;
                 }
                 encryptCredentials(delta, true);

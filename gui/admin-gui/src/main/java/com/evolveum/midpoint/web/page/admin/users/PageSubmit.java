@@ -502,80 +502,79 @@ public class PageSubmit extends PageAdmin {
 		LOGGER.debug("Saving user changes.");
 		OperationResult result = new OperationResult(OPERATION_SAVE_USER);
 
-		// // if (accountsDeltas != null && !accountsDeltas.isEmpty()) {
-		// // OperationResult subResult = null;
-		// // for (ObjectDeltaComponent account : accountsDeltas) {
-		// // try {
-		// // if (!(SubmitObjectStatus.MODIFYING.equals(account.getStatus()))
-		// // || account.getNewDelta().isEmpty()) {
-		// // continue;
-		// // }
-		// //
-		// // subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
-		// // Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
-		// // if (LOGGER.isTraceEnabled()) {
-		// // LOGGER.trace("Modifying account:\n{}", new Object[] {
-		// account.getNewDelta()
-		// // .debugDump(3) });
-		// // }
-		// //
-		// getModelService().modifyObject(account.getNewDelta().getObjectTypeClass(),
-		// // account.getNewDelta().getOid(),
-		// account.getNewDelta().getModifications(), task,
-		// // subResult);
-		// // subResult.recomputeStatus();
-		// // } catch (Exception ex) {
-		// // if (subResult != null) {
-		// // subResult.recomputeStatus();
-		// // subResult.recordFatalError("Modify account failed.", ex);
-		// // }
-		// // LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
-		// // }
-		// // }
-		// // }
-		//
-		// try {
-		// ObjectDelta userDeltaObject = userDelta.getNewDelta();
-		// Task task = createSimpleTask(OPERATION_SAVE_USER);
-		// switch (userDeltaObject.getChangeType()) {
-		// case ADD:
-		// if (LOGGER.isTraceEnabled()) {
-		// LOGGER.trace("Delta before add user:\n{}", new Object[] {
-		// userDelta.getNewDelta()
-		// .debugDump(3) });
-		// }
-		// getModelService().addObject(userDelta.getNewUser(), task, result);
-		// break;
-		// case MODIFY:
-		// if (LOGGER.isTraceEnabled()) {
-		// LOGGER.trace("Delta before modify user:\n{}",
-		// new Object[] { userDeltaObject.debugDump(3) });
-		// }
-		// if (!userDeltaObject.isEmpty()) {
-		// getModelService().modifyObject(UserType.class,
-		// userDeltaObject.getOid(),
-		// userDeltaObject.getModifications(), task, result);
-		// } else {
-		// result.recordSuccessIfUnknown();
-		// }
-		// break;
-		// default:
-		// error(getString("pageSubmit.message.unsupportedState",
-		// userDeltaObject.getChangeType()));
-		// }
-		// result.recomputeStatus();
-		// } catch (Exception ex) {
-		// result.recordFatalError("Couldn't save user.", ex);
-		// LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
-		// }
-		//
-		// if (!result.isSuccess()) {
-		// showResult(result);
-		// target.add(getFeedbackPanel());
-		// } else {
-		// showResultInSession(result);
-		// setResponsePage(PageUsers.class);
-		// }
+		modifyAccounts(result);
+
+		try {
+			ModelElementContext userElement = previewChanges.getFocusContext();
+			Task task = createSimpleTask(OPERATION_SAVE_USER);
+			switch (userElement.getPrimaryDelta().getChangeType()) {
+				case ADD:
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Delta before add user:\n{}", new Object[] { userElement
+								.getPrimaryDelta().debugDump(3) });
+					}
+
+					getModelService().addObject(userElement.getObjectNew(), task, result);
+					break;
+				case MODIFY:
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Delta before modify user:\n{}", new Object[] { userElement
+								.getPrimaryDelta().debugDump(3) });
+					}
+					if (!userElement.getPrimaryDelta().isEmpty()) {
+						getModelService().modifyObject(UserType.class, userElement.getObjectNew().getOid(),
+								userElement.getPrimaryDelta().getModifications(), task, result);
+					} else {
+						result.recordSuccessIfUnknown();
+					}
+					break;
+				default:
+					error(getString("pageSubmit.message.unsupportedState", userElement.getPrimaryDelta()
+							.getChangeType()));
+			}
+			result.recomputeStatus();
+		} catch (Exception ex) {
+			result.recordFatalError("Couldn't save user.", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
+		}
+
+		if (!result.isSuccess()) {
+			showResult(result);
+			target.add(getFeedbackPanel());
+		} else {
+			showResultInSession(result);
+			setResponsePage(PageUsers.class);
+		}
+	}
+
+	private void modifyAccounts(OperationResult result) {
+		if (accountChangesDto.getAccountsList() != null && !accountChangesDto.getAccountsList().isEmpty()) {
+			OperationResult subResult = null;
+			for (PrismObject account : accountChangesDto.getAccountsList()) {
+				try {
+					ObjectDelta newDelta = previewChanges.getFocusContext().getPrimaryDelta();
+					if (!(newDelta.getChangeType().equals(ChangeType.MODIFY)) || newDelta.isEmpty()) {
+						continue;
+					}
+
+					subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
+					Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Modifying account:\n{}", new Object[] { newDelta.debugDump(3) });
+					}
+
+					getModelService().modifyObject(newDelta.getObjectTypeClass(), newDelta.getOid(),
+							newDelta.getModifications(), task, subResult);
+					subResult.recomputeStatus();
+				} catch (Exception ex) {
+					if (subResult != null) {
+						subResult.recomputeStatus();
+						subResult.recordFatalError("Modify account failed.", ex);
+					}
+					LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
+				}
+			}
+		}
 	}
 
 	private List<SubmitAssignmentDto> loadAssignmentsChanges() {
@@ -649,9 +648,10 @@ public class PageSubmit extends PageAdmin {
 						values.add((PrismPropertyValue) value);
 					}
 				}
-				
-				if(!values.isEmpty()) {
-					list.add(getDeltasFromUserProperties(values, propertyDelta, itemDeltaDto.isSecondaryValue()));
+
+				if (!values.isEmpty()) {
+					list.add(getDeltasFromUserProperties(values, propertyDelta,
+							itemDeltaDto.isSecondaryValue()));
 				}
 			}
 		}
