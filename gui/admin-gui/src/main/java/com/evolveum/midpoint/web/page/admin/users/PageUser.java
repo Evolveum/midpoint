@@ -525,7 +525,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                submitPerformed(target);
+                savePerformed(target);
             }
 
             @Override
@@ -534,6 +534,21 @@ public class PageUser extends PageAdminUsers {
             }
         };
         mainForm.add(save);
+        
+        AjaxSubmitLinkButton submit = new AjaxSubmitLinkButton("submit", ButtonType.POSITIVE,
+                createStringResource("pageUser.button.submit")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                submitPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(submit);
 		
 //        AjaxLinkButton recalculate = new AjaxLinkButton("recalculate",
 //                createStringResource("pageUser.button.recalculate")) {
@@ -744,7 +759,48 @@ public class PageUser extends PageAdminUsers {
                 
                 if (!UserDtoStatus.MODIFY.equals(account.getStatus())
                         || delta.isEmpty()) {
-                	accountsDeltas.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta, SubmitObjectStatus.ADDING));
+                	//accountsDeltas.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta, SubmitObjectStatus.ADDING));
+                    continue;
+                }
+                encryptCredentials(delta, true);
+
+                subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
+                Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Modifying account:\n{}", new Object[]{delta.debugDump(3)});
+                }
+                getModelService().modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(),
+                        task, subResult);
+                //accountsDeltas.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta, SubmitObjectStatus.MODIFYING));
+                subResult.recomputeStatus();
+            } catch (Exception ex) {
+                if (subResult != null) {
+                    subResult.recomputeStatus();
+                    subResult.recordFatalError("Modify account failed.", ex);
+                }
+                LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
+            }
+        }
+    }
+    
+    private void modifyAccounts2(OperationResult result) {
+        LOGGER.debug("Modifying existing accounts.");
+        
+        accountsDeltas = new ArrayList<ObjectDeltaComponent>();
+        List<UserAccountDto> accounts = accountsModel.getObject();
+        OperationResult subResult = null;
+        for (UserAccountDto account : accounts) {
+            try {
+                ObjectWrapper accountWrapper = account.getObject();
+                ObjectDelta delta = accountWrapper.getObjectDelta();
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
+                }
+                
+                if (!UserDtoStatus.MODIFY.equals(account.getStatus())
+                        || delta.isEmpty()) {
+                	//accountsDeltas.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta, SubmitObjectStatus.ADDING));
                     continue;
                 }
                 encryptCredentials(delta, true);
@@ -881,6 +937,82 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
+    private void savePerformed(AjaxRequestTarget target) {
+        LOGGER.debug("Submit user.");
+        
+        OperationResult result = new OperationResult(OPERATION_SEND_TO_SUBMIT);
+        modifyAccounts(result);
+
+        ObjectWrapper userWrapper = userModel.getObject();
+        ModelContext changes = null;
+        try {
+            ObjectDelta delta = userWrapper.getObjectDelta();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
+            }
+            Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+            switch (userWrapper.getStatus()) {
+                case ADDING:
+                    PrismObject<UserType> user = delta.getObjectToAdd();
+                    encryptCredentials(user, true);
+                    prepareUserForAdd(user);
+                    getPrismContext().adopt(user, UserType.class);
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before add user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
+                    getModelService().addObject(user, task, result);
+                    //deltaComponent = new ObjectDeltaComponent(user, userWrapper.getObject().clone(), delta);
+                    //changes = getModelInteractionService().previewChanges(delta, result);
+                    //result.recordSuccess();
+                    break;
+                case MODIFYING:
+                    encryptCredentials(delta, true);
+                    prepareUserDeltaForModify(delta);
+                    
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
+                    
+                    
+                    if (!delta.isEmpty()) {
+                        getModelService().modifyObject(UserType.class, delta.getOid(), delta.getModifications(), task, result);
+                    } else {
+                        result.recordSuccessIfUnknown();
+                    }
+                    //deltaComponent = new ObjectDeltaComponent(userWrapper.getObject().clone(), delta);
+                    //changes = getModelInteractionService().previewChanges(delta, result);
+                    //result.recordSuccess();
+                    break;
+                // delete state is where? wtf?? in next release add there delete state as well as
+                // support for add/delete containers (e.g. delete credentials)
+                default:
+                    error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
+            }
+
+            result.recomputeStatus();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't submit user.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
+        }
+        
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else {
+            showResultInSession(result);
+            setResponsePage(PageUsers.class);
+                
+        }
+//        if (result.isError()) {
+//            showResult(result);
+//            target.add(getFeedbackPanel());
+//        } else {
+//        	//PageSubmit page = new PageSubmit(deltaComponent, accountsDeltas);
+//        	PageSubmit pageSubmit = new PageSubmit(changes);
+//    		setResponsePage(pageSubmit);
+//        }
+    }
+    
     private void submitPerformed(AjaxRequestTarget target) {
         LOGGER.debug("Submit user.");
         
@@ -901,14 +1033,12 @@ public class PageUser extends PageAdminUsers {
                     encryptCredentials(user, true);
                     prepareUserForAdd(user);
                     getPrismContext().adopt(user, UserType.class);
-                    //deltaComponent = new ObjectDeltaComponent(user, userWrapper.getObject().clone(), delta);
                     changes = getModelInteractionService().previewChanges(delta, result);
                     result.recordSuccess();
                     break;
                 case MODIFYING:
                     encryptCredentials(delta, true);
                     prepareUserDeltaForModify(delta);
-                    //deltaComponent = new ObjectDeltaComponent(userWrapper.getObject().clone(), delta);
                     changes = getModelInteractionService().previewChanges(delta, result);
                     result.recordSuccess();
                     break;

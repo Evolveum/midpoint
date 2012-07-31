@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 /**
  * @author mserbak
  */
-public class SubmitUserChangesDto implements Serializable {
+public class UserChangesDto implements Serializable {
 	private ModelElementContext userChanges;
 	private List<SubmitDeltaObjectDto> assignmentsDeltas = new ArrayList<SubmitDeltaObjectDto>();
 	private List<SubmitDeltaObjectDto> userPropertiesDeltas = new ArrayList<SubmitDeltaObjectDto>();
@@ -54,7 +54,7 @@ public class SubmitUserChangesDto implements Serializable {
 	PropertyPath account = new PropertyPath(SchemaConstants.I_ACCOUNT_REF);
 	PropertyPath assignment = new PropertyPath(SchemaConstantsGenerated.C_ASSIGNMENT);
 
-	public SubmitUserChangesDto(ModelElementContext userChanges) {
+	public UserChangesDto(ModelElementContext userChanges) {
 		this.userChanges = userChanges;
 		getChanges(userChanges.getPrimaryDelta(), false);
 		getChanges(userChanges.getSecondaryDelta(), true);
