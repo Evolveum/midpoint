@@ -65,7 +65,7 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 	public PropertyValueWithOrigin clone() {
 		PropertyValueWithOrigin clone = new PropertyValueWithOrigin(propertyValue, valueConstruction, accountConstruction);
 		copyValues(clone);
-		return clone();
+		return clone;
 	}
 
 	protected void copyValues(PropertyValueWithOrigin clone) {

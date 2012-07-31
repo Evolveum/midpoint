@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 public class MidPointConstants {
 
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public";
+	public static final String NS_MIDPOINT_TEST_PREFIX = "http://midpoint.evolveum.com/xml/ns/test";
 	
 	public static final String NS_RA = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/annotation-2";
 	public static final String PREFIX_NS_RA = "ra";

@@ -52,9 +52,11 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.test.util.mock.MockClockworkHook;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
@@ -195,6 +197,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "fullname");
 	protected static final PropertyPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = new PropertyPath(
 			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME);
+	
+	protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
 
 	@Autowired(required = true)
 	protected ModelService modelService;
@@ -206,9 +210,14 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected ProvisioningService provisioningService;
 	
 	@Autowired(required = true)
+	protected HookRegistry hookRegistry;
+	
+	@Autowired(required = true)
 	protected PrismContext prismContext;
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
+	
+	protected MockClockworkHook mockClockworkHook;
 	
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
@@ -230,6 +239,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
+		
+		mockClockworkHook = new MockClockworkHook();
+		hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);
 		
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();
