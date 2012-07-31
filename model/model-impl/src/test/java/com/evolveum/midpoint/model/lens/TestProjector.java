@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -87,7 +87,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestUserSynchronizer extends AbstractModelIntegrationTest {
+public class TestProjector extends AbstractModelIntegrationTest {
 	
 	public static final String TEST_RESOURCE_DIR_NAME = "src/test/resources/synchronizer";
 
@@ -110,7 +110,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
 	@Autowired(required = true)
 	private TaskManager taskManager;
 	
-	public TestUserSynchronizer() throws JAXBException {
+	public TestProjector() throws JAXBException {
 		super();
 	}
 	
@@ -131,7 +131,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test010AddAccountToJackDirect");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test010AddAccountToJackDirect");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test010AddAccountToJackDirect");
         OperationResult result = task.getResult();
         
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
@@ -187,7 +187,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test020AssignAccountToJack");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test020AssignAccountToJack");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test020AssignAccountToJack");
         OperationResult result = task.getResult();
         
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
@@ -236,7 +236,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test050ModifyUserBarbossaLocality");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test050ModifyUserBarbossaLocality");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test050ModifyUserBarbossaLocality");
         OperationResult result = task.getResult();
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
@@ -279,7 +279,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test101AssignConflictingAccountToJack");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test101AssignConflictingAccountToJack");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test101AssignConflictingAccountToJack");
         OperationResult result = task.getResult();
         
         // Make sure there is a shadow with conflicting account
@@ -333,7 +333,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test200ImportHermanDummy");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test200ImportHermanDummy");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test200ImportHermanDummy");
         OperationResult result = task.getResult();
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
@@ -376,7 +376,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test201ImportHermanOpenDj");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test201ImportHermanOpenDj");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test201ImportHermanOpenDj");
         OperationResult result = task.getResult();
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
@@ -418,7 +418,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test250GuybrushInboundFromDelta");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test250GuybrushInboundFromDelta");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test250GuybrushInboundFromDelta");
         OperationResult result = task.getResult();
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
@@ -451,7 +451,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test251GuybrushInboundFromAbsolute");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test251GuybrushInboundFromAbsolute");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test251GuybrushInboundFromAbsolute");
         OperationResult result = task.getResult();
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
@@ -487,7 +487,7 @@ public class TestUserSynchronizer extends AbstractModelIntegrationTest {
         displayTestTile(this, "test300ReconcileGuybrushDummy");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserSynchronizer.class.getName() + ".test300ReconcileGuybrushDummy");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test300ReconcileGuybrushDummy");
         OperationResult result = task.getResult();
         
         // Change the guybrush account on dummy resource directly. This creates inconsistency.

@@ -15,7 +15,7 @@
  * 
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.synchronizer;
+package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -70,12 +70,12 @@ import static org.mockito.Mockito.when;
 		"classpath:application-context-configuration-test-no-repo.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml" })
-public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
+public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/addUser");
 	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestSynchronizerAddUser.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestProjectorAddUser.class);
 	
 	@Autowired(required = true)
 	private Projector projector;
