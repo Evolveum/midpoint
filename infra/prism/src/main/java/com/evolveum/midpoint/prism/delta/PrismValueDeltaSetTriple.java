@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -149,21 +150,18 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 
 	public PrismValueDeltaSetTriple<V> clone() {
 		PrismValueDeltaSetTriple<V> clone = new PrismValueDeltaSetTriple<V>();
-		clone.zeroSet = cloneSet(this.zeroSet);
-		clone.plusSet = cloneSet(this.plusSet);
-		clone.minusSet = cloneSet(this.minusSet);
+		copyValues(clone);
 		return clone;
 	}
 
-	private Collection<V> cloneSet(Collection<V> origSet) {
-		if (origSet == null) {
-			return null;
-		}
-		Collection<V> clonedSet = createSet();
-		for (V origVal: origSet) {
-			clonedSet.add((V) origVal.clone());
-		}
-		return clonedSet;
+	protected void copyValues(PrismValueDeltaSetTriple<V> clone) {
+		Cloner<V> cloner = new Cloner<V>() {
+			@Override
+			public V clone(V original) {
+				return (V) original.clone();
+			}
+		};
+		super.copyValues(clone, cloner);
 	}
 	
 	@Override

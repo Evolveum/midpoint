@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -188,6 +189,29 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
 		zeroSet.addAll(triple.zeroSet);
 		plusSet.addAll(triple.plusSet);
 		minusSet.addAll(triple.minusSet);
+	}
+	
+	public DeltaSetTriple<T> clone(Cloner<T> cloner) {
+		DeltaSetTriple<T> clone = new DeltaSetTriple<T>();
+		copyValues(clone, cloner);
+		return clone;
+	}
+
+	protected void copyValues(DeltaSetTriple<T> clone, Cloner<T> cloner) {
+		clone.zeroSet = cloneSet(this.zeroSet, cloner);
+		clone.plusSet = cloneSet(this.plusSet, cloner);
+		clone.minusSet = cloneSet(this.minusSet, cloner);		
+	}
+
+	private Collection<T> cloneSet(Collection<T> origSet, Cloner<T> cloner) {
+		if (origSet == null) {
+			return null;
+		}
+		Collection<T> clonedSet = createSet();
+		for (T origVal: origSet) {
+			clonedSet.add(cloner.clone(origVal));
+		}
+		return clonedSet;
 	}
 	
 	@Override

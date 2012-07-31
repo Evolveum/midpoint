@@ -140,9 +140,22 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     private PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition() {
 		return getObjectDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 	}
-	
     
     @Override
+	public LensFocusContext<O> clone(LensContext lensContext) {
+    	LensFocusContext<O> clone = new LensFocusContext<O>(getObjectTypeClass(), lensContext);
+    	copyValues(clone, lensContext);
+    	return clone;
+	}
+
+	protected void copyValues(LensFocusContext<O> clone, LensContext lensContext) {
+		super.copyValues(clone, lensContext);
+		if (this.secondaryDeltas != null) {
+			clone.secondaryDeltas = this.secondaryDeltas.clone();
+		}
+	}
+
+	@Override
     public String debugDump() {
         return debugDump(0);
     }

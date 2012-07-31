@@ -61,6 +61,22 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 		}
 		return propertyValue.equalsRealValue(pvalue);
 	}
+	
+	public PropertyValueWithOrigin clone() {
+		PropertyValueWithOrigin clone = new PropertyValueWithOrigin(propertyValue, valueConstruction, accountConstruction);
+		copyValues(clone);
+		return clone();
+	}
+
+	protected void copyValues(PropertyValueWithOrigin clone) {
+		if (this.propertyValue != null) {
+			clone.propertyValue = this.propertyValue.clone();
+		}
+		if (this.valueConstruction != null) {
+			clone.valueConstruction = this.valueConstruction.clone();
+		}
+		clone.accountConstruction = this.accountConstruction;
+	}
 
 	@Override
 	public String debugDump() {

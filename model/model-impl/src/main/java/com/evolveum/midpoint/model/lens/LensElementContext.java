@@ -257,6 +257,34 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     	}
     }
 	
+	public abstract LensElementContext<O> clone(LensContext lensContext);
+	
+	protected void copyValues(LensElementContext<O> clone, LensContext lensContext) {
+		clone.lensContext = lensContext;
+		// This is de-facto immutable
+		clone.objectDefinition = this.objectDefinition;
+		clone.objectNew = cloneObject(this.objectNew);
+		clone.objectOld = cloneObject(this.objectOld);
+		clone.objectTypeClass = this.objectTypeClass;
+		clone.oid = this.oid;
+		clone.primaryDelta = cloneDelta(this.primaryDelta);
+		clone.secondaryDelta = cloneDelta(this.secondaryDelta);
+	}
+	
+	private ObjectDelta<O> cloneDelta(ObjectDelta<O> thisDelta) {
+		if (thisDelta == null) {
+			return null;
+		}
+		return thisDelta.clone();
+	}
+
+	private PrismObject<O> cloneObject(PrismObject<O> thisObject) {
+		if (thisObject == null) {
+			return null;
+		}
+		return thisObject.clone();
+	}
+
 	protected abstract String getElementDefaultDesc();
 	
 	protected String getElementDesc() {

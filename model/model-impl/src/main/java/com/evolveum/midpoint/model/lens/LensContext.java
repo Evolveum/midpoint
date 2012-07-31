@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -309,8 +310,43 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     public void rememberResource(ResourceType resourceType) {
         resourceCache.put(resourceType.getOid(), resourceType);
     }
+    
+    public LensContext<F, P> clone() {
+    	LensContext<F, P> clone = new LensContext<F, P>(focusClass, projectionClass, prismContext);
+    	copyValues(clone);
+    	return clone;
+    }
+    
+    protected void copyValues(LensContext<F, P> clone) {
+    	clone.state = this.state;
+    	clone.channel = this.channel;
+    	clone.doReconciliationForAllProjections = this.doReconciliationForAllProjections;
+    	clone.focusClass = this.focusClass;
+    	clone.isFresh = this.isFresh;
+    	clone.prismContext = this.prismContext;
+    	clone.projectionClass = this.projectionClass;
+    	clone.resourceCache = cloneResourceCache();
+    	// User template is de-facto immutable, OK to just pass reference here.
+    	clone.userTemplate = this.userTemplate;
+    	clone.wave = this.wave;
+    	
+    	if (this.focusContext != null) {
+    		clone.focusContext = this.focusContext.clone(this);
+    	}
+    	
+    	for (LensProjectionContext<P> thisProjectionContext: this.projectionContexts) {
+    		clone.projectionContexts.add(thisProjectionContext.clone(this));
+    	}
+    }
 
-	
+	private Map<String, ResourceType> cloneResourceCache() {
+		Map<String, ResourceType> clonedMap = new HashMap<String, ResourceType>();
+		for (Entry<String, ResourceType> entry: resourceCache.entrySet()) {
+			clonedMap.put(entry.getKey(), entry.getValue());
+		}
+		return clonedMap;
+	}
+
 	@Override
     public String debugDump() {
         return debugDump(0);

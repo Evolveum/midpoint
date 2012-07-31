@@ -21,8 +21,11 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -48,6 +51,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
@@ -363,6 +367,52 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     	}
     }
     
+	@Override
+	public LensProjectionContext<O> clone(LensContext lensContext) {
+		LensProjectionContext<O> clone = new LensProjectionContext<O>(getObjectTypeClass(), lensContext, resourceAccountType);
+		copyValues(clone, lensContext);
+		return clone;
+	}
+	
+	protected void copyValues(LensProjectionContext<O> clone, LensContext lensContext) {
+		super.copyValues(clone, lensContext);
+		if (this.accountConstructionDeltaSetTriple != null) {
+			clone.accountConstructionDeltaSetTriple = this.accountConstructionDeltaSetTriple.clone();
+		}
+		clone.dependencies = this.dependencies;
+		clone.doReconciliation = this.doReconciliation;
+		clone.fullShadow = this.fullShadow;
+		clone.isAssigned = this.isAssigned;
+		clone.iteration = this.iteration;
+		clone.iterationToken = this.iterationToken;
+		clone.outboundAccountConstruction = this.outboundAccountConstruction;
+		clone.policyDecision = this.policyDecision;
+		clone.resource = this.resource;
+		clone.resourceAccountType = this.resourceAccountType;
+		clone.squeezedAttributes = cloneSqueezedAttributes();
+		if (this.syncDelta != null) {
+			clone.syncDelta = this.syncDelta.clone();
+		}
+		clone.wave = this.wave;
+	}
+
+	private Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> cloneSqueezedAttributes() {
+		if (squeezedAttributes == null) {
+			return null;
+		}
+		Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> clonedMap = new HashMap<QName, DeltaSetTriple<PropertyValueWithOrigin>>();
+		Cloner<PropertyValueWithOrigin> cloner = new Cloner<PropertyValueWithOrigin>() {
+			@Override
+			public PropertyValueWithOrigin clone(PropertyValueWithOrigin original) {
+				return original.clone();
+			}
+		};
+		for (Entry<QName, DeltaSetTriple<PropertyValueWithOrigin>> entry: squeezedAttributes.entrySet()) {
+			clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
+		}
+		return clonedMap;
+	}
+
 	public String getHumanReadableName() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("account(");

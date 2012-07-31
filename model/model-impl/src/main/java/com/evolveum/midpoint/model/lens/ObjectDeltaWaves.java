@@ -97,6 +97,22 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 			}
 		}		
 	}
+	
+	public ObjectDeltaWaves<O> clone() {
+		ObjectDeltaWaves<O> clone = new ObjectDeltaWaves<O>();
+		copyValues(clone);
+		return clone;		
+	}
+
+	protected void copyValues(ObjectDeltaWaves<O> clone) {
+		for (ObjectDelta<O> thisWave: this.waves) {
+			if (thisWave != null) {
+				clone.waves.add(thisWave.clone());
+			} else {
+				clone.waves.add(null);
+			}
+		}
+	}
 
 	// DELEGATED METHODS (with small tweaks)
 	
