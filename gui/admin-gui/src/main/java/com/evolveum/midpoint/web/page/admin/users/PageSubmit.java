@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -304,7 +305,7 @@ public class PageSubmit extends PageAdmin {
 					@Override
 					public String getObject() {
 						return createStringResource("pageSubmit.accountsAccordion",
-								accountsChangesList.size()).getString();
+								accountChangesDto.getAccountChangesList().size()).getString();
 					}
 				});
 		accountsAccordion.setOutputMarkupId(true);
@@ -371,7 +372,7 @@ public class PageSubmit extends PageAdmin {
 
 					@Override
 					public List<SubmitAccountDto> getObject() {
-						return accountsChangesList = loadAccountsChanges();
+						return accountChangesDto.getAccountChangesList();
 					}
 				});
 		TablePanel accountsTable = new TablePanel<SubmitAccountDto>("accountsTable", provider, columns);
@@ -397,6 +398,55 @@ public class PageSubmit extends PageAdmin {
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.assignment"),
 				"assignment"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.operation"), "status"));
+		IColumn column = new IconColumn<SubmitAssignmentDto>(createStringResource("pageSubmit.typeOfAddData")) {
+
+			@Override
+			protected IModel<ResourceReference> createIconModel(final IModel<SubmitAssignmentDto> rowModel) {
+				return new AbstractReadOnlyModel<ResourceReference>() {
+
+					@Override
+					public ResourceReference getObject() {
+						SubmitAssignmentDto dto = rowModel.getObject();
+						if (dto.isSecondaryValue()) {
+							return new PackageResourceReference(PageSubmit.class, "secondaryValue.png");
+						}
+						return new PackageResourceReference(PageSubmit.class, "primaryValue.png");
+					}
+				};
+			}
+
+			@Override
+			protected IModel<String> createTitleModel(final IModel<SubmitAssignmentDto> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						SubmitAssignmentDto dto = rowModel.getObject();
+						if (dto.isSecondaryValue()) {
+							return PageSubmit.this.getString("pageSubmit.secondaryValue");
+						}
+						return PageSubmit.this.getString("pageSubmit.primaryValue");
+					}
+
+				};
+			}
+
+			@Override
+			protected IModel<AttributeModifier> createAttribute(final IModel<SubmitAssignmentDto> rowModel) {
+				return new AbstractReadOnlyModel<AttributeModifier>() {
+
+					@Override
+					public AttributeModifier getObject() {
+						SubmitAssignmentDto dto = rowModel.getObject();
+						if (dto.isSecondaryValue()) {
+							return new AttributeModifier("class", "secondaryValue");
+						}
+						return new AttributeModifier("class", "primaryValue");
+					}
+				};
+			}
+		};
+		columns.add(column);
 
 		ListDataProvider<SubmitAssignmentDto> provider = new ListDataProvider<SubmitAssignmentDto>(this,
 				new AbstractReadOnlyModel<List<SubmitAssignmentDto>>() {
@@ -528,77 +578,6 @@ public class PageSubmit extends PageAdmin {
 		// }
 	}
 
-	private List<SubmitAccountDto> loadAccountsChanges() {
-		List<SubmitAccountDto> list = new ArrayList<SubmitAccountDto>();
-
-//		if (accountsDeltas != null) {
-//			for (ObjectDeltaComponent account : accountsDeltas) {
-//				ObjectDelta delta = account.getNewDelta();
-//				if (delta.getChangeType().equals(ChangeType.MODIFY)) {
-//					for (Object modification : account.getNewDelta().getModifications()) {
-//						ItemDelta modifyDelta = (ItemDelta) modification;
-//						String oldValue = "";
-//						String newValue = "";
-//
-//						ItemDefinition def = modifyDelta.getDefinition();
-//						String attribute = def.getDisplayName() != null ? def.getDisplayName() : def
-//								.getName().getLocalPart();
-//
-//						if (modifyDelta.getValuesToDelete() != null) {
-//							List<Object> valuesToDelete = new ArrayList<Object>(
-//									modifyDelta.getValuesToDelete());
-//							Integer listSize = valuesToDelete.size();
-//							for (int i = 0; i < listSize; i++) {
-//								PrismPropertyValue value = (PrismPropertyValue) valuesToDelete.get(i);
-//								String valueToDelete = value == null ? "" : value.getValue().toString();
-//								oldValue += valueToDelete;
-//								if (i != listSize - 1) {
-//									oldValue += ", ";
-//								}
-//							}
-//						}
-//
-//						if (modifyDelta.getValuesToAdd() != null) {
-//							List<Object> valuesToAdd = new ArrayList<Object>(modifyDelta.getValuesToAdd());
-//							Integer listSize = valuesToAdd.size();
-//							for (int i = 0; i < listSize; i++) {
-//								PrismPropertyValue value = (PrismPropertyValue) valuesToAdd.get(i);
-//								String valueToAdd = value == null ? "" : value.getValue().toString();
-//								newValue += valueToAdd;
-//								if (i != listSize - 1) {
-//									newValue += ", ";
-//								}
-//							}
-//						}
-//
-//						SubmitAccountDto resourceProvider = new SubmitAccountDto(
-//								getResource(account.getNewDelta()), false);
-//						list.add(new SubmitAccountProvider(resourceProvider.getResourceName(), attribute,
-//								oldValue, newValue));
-//					}
-//				}
-//			}
-//		}
-
-		list.add(new SubmitAccountDto("OpenDj localhost", "First name", "", "Janko", false));
-		list.add(new SubmitAccountDto("OpenDj localhost", "Second name", "", "Hrasko", false));
-		list.add(new SubmitAccountDto("OpenDj localhost", "Family name", "", "Janko Hrasko", true));
-		list.add(new SubmitAccountDto("OpenDj localhost", "Age", "", "18", false));
-		list.add(new SubmitAccountDto("OpenDj localhost", "Organizataion", "", "Bla bla", true));
-		return list;
-	}
-
-	private List<PrismObject> loadAccounts() {
-		List<PrismObject> list = new ArrayList<PrismObject>();
-//		if (accountsDeltas != null) {
-//			for (ObjectDeltaComponent account : accountsDeltas) {
-//				ObjectDelta delta = account.getNewDelta();
-//				list.add(getAccountFromDelta(delta));
-//			}
-//		}
-		return list;
-	}
-
 	private List<SubmitAssignmentDto> loadAssignmentsChanges() {
 
 		List<SubmitAssignmentDto> list = new ArrayList<SubmitAssignmentDto>();
@@ -635,8 +614,9 @@ public class PageSubmit extends PageAdmin {
 				if (propertyDelta.getDefinition().getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
 					continue;
 				}
+				List<PrismPropertyValue> values = new ArrayList<PrismPropertyValue>();
+
 				if (propertyDelta.getValuesToAdd() != null) {
-					List<PrismPropertyValue> valuesToAdd = new ArrayList<PrismPropertyValue>();
 					for (Object value : propertyDelta.getValuesToAdd()) {
 						if (value instanceof PrismContainerValue) {
 							PrismContainerValue containerValues = (PrismContainerValue) value;
@@ -649,64 +629,68 @@ public class PageSubmit extends PageAdmin {
 								}
 								PrismProperty propertyValue = (PrismProperty) propertyValueObject;
 								delta = new PropertyDelta(propertyValue.getDefinition());
-								valuesToAdd.add((PrismPropertyValue) propertyValue.getValue());
+								values.add((PrismPropertyValue) propertyValue.getValue());
 							}
-							list.add(getDeltasFromUserProperties(valuesToAdd, delta,
-									itemDeltaDto.isSecondaryValue()));
-							valuesToAdd = new ArrayList<PrismPropertyValue>();
+							values = new ArrayList<PrismPropertyValue>();
 							continue;
 						}
-						valuesToAdd.add((PrismPropertyValue) value);
+						values.add((PrismPropertyValue) value);
 					}
-					list.add(getDeltasFromUserProperties(valuesToAdd, propertyDelta,
-							itemDeltaDto.isSecondaryValue()));
 				}
 
 				if (propertyDelta.getValuesToDelete() != null) {
-					List<PrismPropertyValue> valuesToDelete = new ArrayList<PrismPropertyValue>();
 					for (Object value : propertyDelta.getValuesToDelete()) {
-						valuesToDelete.add((PrismPropertyValue) value);
+						values.add((PrismPropertyValue) value);
 					}
-					list.add(getDeltasFromUserProperties(valuesToDelete, propertyDelta,
-							itemDeltaDto.isSecondaryValue()));
 				}
 
 				if (propertyDelta.getValuesToReplace() != null) {
-					List<PrismPropertyValue> valuesToReplace = new ArrayList<PrismPropertyValue>();
 					for (Object value : propertyDelta.getValuesToReplace()) {
-						valuesToReplace.add((PrismPropertyValue) value);
+						values.add((PrismPropertyValue) value);
 					}
-					list.add(getDeltasFromUserProperties(valuesToReplace, propertyDelta,
-							itemDeltaDto.isSecondaryValue()));
+				}
+				
+				if(!values.isEmpty()) {
+					list.add(getDeltasFromUserProperties(values, propertyDelta, itemDeltaDto.isSecondaryValue()));
 				}
 			}
 		}
 		return list;
 	}
 
-	private SubmitUserDto getDeltasFromUserProperties(List<PrismPropertyValue> prismValueList,
+	private SubmitUserDto getDeltasFromUserProperties(List<PrismPropertyValue> values,
 			PropertyDelta propertyDelta, boolean secondaryValue) {
 
 		ItemDefinition def = propertyDelta.getDefinition();
 		String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName().getLocalPart();
-		List<String> oldValue = new ArrayList<String>();
-		List<String> newValue = new ArrayList<String>();
+		List<String> oldValues = new ArrayList<String>();
+		List<String> newValues = new ArrayList<String>();
 
 		PrismObject oldUserObject = previewChanges.getFocusContext().getObjectOld();
-		PrismProperty oldPropertyValue = oldUserObject.findProperty(propertyDelta.getName());
-		if (oldPropertyValue != null && oldPropertyValue.getValues() != null) {
-			for (Object valueObject : oldPropertyValue.getValues()) {
-				PrismPropertyValue value = (PrismPropertyValue) valueObject;
-				oldValue.add(value.getValue().toString());
+
+		if (oldUserObject != null) {
+			PrismProperty oldPropertyValue = oldUserObject.findProperty(propertyDelta.getName());
+
+			if (oldPropertyValue != null && oldPropertyValue.getValues() != null) {
+				for (Object valueObject : oldPropertyValue.getValues()) {
+					PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
+					oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : " ");
+					if (!values.contains(oldValue)) {
+						newValues.add(oldValue.getValue().toString());
+					}
+				}
 			}
 		}
-		for (PrismPropertyValue newPrismValue : prismValueList) {
-			newValue.add(newPrismValue.getValue().toString());
+		for (PrismPropertyValue newValue : values) {
+			if (oldValues.contains(newValue.getValue().toString())) {
+				continue;
+			}
+			newValues.add(newValue.getValue() != null ? newValue.getValue().toString() : " ");
 		}
-		return new SubmitUserDto(attribute, listToString(oldValue), listToString(newValue), secondaryValue);
+		return new SubmitUserDto(attribute, listToString(oldValues), listToString(newValues), secondaryValue);
 	}
 
-	private String listToString(List<String> list) {
+	public static String listToString(List<String> list) {
 		StringBuilder sb = new StringBuilder(list.size());
 		for (int i = 0; i < list.size(); i++) {
 			sb.append(list.get(i));

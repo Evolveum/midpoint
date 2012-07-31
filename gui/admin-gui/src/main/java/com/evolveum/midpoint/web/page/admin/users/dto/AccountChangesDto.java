@@ -26,41 +26,65 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.web.page.admin.users.PageSubmit;
 
 /**
  * @author mserbak
  */
 public class AccountChangesDto implements Serializable {
 	List<PrismObject> accountsList = new ArrayList<PrismObject>();
+	List<SubmitAccountDto> accountChangesList = new ArrayList<SubmitAccountDto>();
 
 	public AccountChangesDto(Collection<? extends ModelProjectionContext> accounts) {
-		if(accounts == null) {
+		if (accounts == null) {
 			return;
 		}
-		
+
 		for (ModelProjectionContext account : accounts) {
 			accountsList.add(account.getObjectNew());
-			
-			//account.getPrimaryDelta().getModifications()
+			SubmitResourceDto resource = new SubmitResourceDto(account.getObjectNew(), false);
+			getChanges(resource, account.getPrimaryDelta(), false);
+			getChanges(resource, account.getSecondaryDelta(), true);
+
+		}
+
+	}
+
+	private void getChanges(SubmitResourceDto resource, ObjectDelta account, boolean secondaryValue) {
+		if (account == null || !account.getChangeType().equals(ChangeType.MODIFY)) {
+			return;
+		}
+		for (Object modification : account.getModifications()) {
+			ItemDelta modifyDelta = (ItemDelta) modification;
+			List<String> oldValue = new ArrayList<String>();
+			List<String> newValue = new ArrayList<String>();
+
+			ItemDefinition def = modifyDelta.getDefinition();
+			String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName()
+					.getLocalPart();
+
+			if (modifyDelta.getValuesToDelete() != null) {
+				for (Object valueToDelete : modifyDelta.getValuesToDelete()) {
+					PrismPropertyValue value = (PrismPropertyValue) valueToDelete;
+					oldValue.add(value == null ? "" : value.getValue().toString());
+				}
+			}
+
+			if (modifyDelta.getValuesToAdd() != null) {
+				for (Object valueToAdd : modifyDelta.getValuesToAdd()) {
+					PrismPropertyValue value = (PrismPropertyValue) valueToAdd;
+					newValue.add(value == null ? "" : value.getValue().toString());
+				}
+			}
+			accountChangesList.add(new SubmitAccountDto(resource.getResourceName(), attribute, PageSubmit
+					.listToString(oldValue), PageSubmit.listToString(newValue), secondaryValue));
 		}
 	}
 
@@ -68,5 +92,8 @@ public class AccountChangesDto implements Serializable {
 		return accountsList;
 	}
 
-	
+	public List<SubmitAccountDto> getAccountChangesList() {
+		return accountChangesList;
+	}
+
 }

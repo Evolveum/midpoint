@@ -811,7 +811,7 @@ public class PageUser extends PageAdminUsers {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Modifying account:\n{}", new Object[]{delta.debugDump(3)});
                 }
-                accountsDeltas.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta, SubmitObjectStatus.MODIFYING));
+                //accountsDeltas.add(new ObjectDeltaComponent(accountWrapper.getObject(), delta, SubmitObjectStatus.MODIFYING));
                 subResult.recomputeStatus();
             } catch (Exception ex) {
                 if (subResult != null) {
@@ -905,7 +905,7 @@ public class PageUser extends PageAdminUsers {
                     if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
                         assDelta.addValueToAdd(value);
                     } else {
-                        assDelta.addValueToDelete(value);
+                        assDelta.addValueToDelete(value.clone());
                     }
                     break;
                 case MODIFY:
@@ -1017,7 +1017,7 @@ public class PageUser extends PageAdminUsers {
         LOGGER.debug("Submit user.");
         
         OperationResult result = new OperationResult(OPERATION_SEND_TO_SUBMIT);
-        modifyAccounts(result);
+        modifyAccounts2(result);
 
         ObjectWrapper userWrapper = userModel.getObject();
         ModelContext changes = null;

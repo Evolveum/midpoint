@@ -319,11 +319,11 @@ public class ObjectWrapper implements Serializable {
 							// therefore we push replace
 							pDelta.setValuesToReplace(Arrays.asList(val));
 						} else {
-							pDelta.addValueToAdd(val);
+							pDelta.addValueToAdd(val.clone());
 						}
 						break;
 					case DELETED:
-						pDelta.addValueToDelete(val);
+						pDelta.addValueToDelete(val.clone());
 						break;
 					case NOT_CHANGED:
 						// this is modify...
@@ -331,13 +331,13 @@ public class ObjectWrapper implements Serializable {
 							if (val.getValue() != null) {
 								pDelta.setValuesToReplace(Arrays.asList(val));
 							} else {
-								pDelta.addValueToDelete(valueWrapper.getOldValue());
+								pDelta.addValueToDelete(valueWrapper.getOldValue().clone());
 							}
 						} else {
 							if (val.getValue() != null) {
-								pDelta.addValueToAdd(val);
+								pDelta.addValueToAdd(val.clone());
 							}
-							pDelta.addValueToDelete(valueWrapper.getOldValue());
+							pDelta.addValueToDelete(valueWrapper.getOldValue().clone());
 						}
 						break;
 					}
