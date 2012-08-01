@@ -546,7 +546,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     
 	@Override
 	public String toString() {
-		return "LensProjectionContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
+		return "LensProjectionContext(" + getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
 	}
 
 
