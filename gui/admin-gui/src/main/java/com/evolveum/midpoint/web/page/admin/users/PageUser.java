@@ -27,8 +27,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -58,6 +56,18 @@ import org.apache.wicket.util.string.StringValue;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -81,7 +91,6 @@ import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.delta.ObjectDeltaComponent;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
@@ -93,7 +102,6 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitObjectStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -142,7 +150,6 @@ public class PageUser extends PageAdminUsers {
     private IModel<ObjectWrapper> userModel;
     private IModel<List<UserAccountDto>> accountsModel;
     private IModel<List<UserAssignmentDto>> assignmentsModel;
-    private List<ObjectDeltaComponent> accountsDeltas;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -745,8 +752,6 @@ public class PageUser extends PageAdminUsers {
 
     private void modifyAccounts(OperationResult result) {
         LOGGER.debug("Modifying existing accounts.");
-        
-        accountsDeltas = new ArrayList<ObjectDeltaComponent>();
         List<UserAccountDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
         for (UserAccountDto account : accounts) {
@@ -786,7 +791,6 @@ public class PageUser extends PageAdminUsers {
     private void modifyAccounts2(OperationResult result) {
         LOGGER.debug("Modifying existing accounts.");
         
-        accountsDeltas = new ArrayList<ObjectDeltaComponent>();
         List<UserAccountDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
         for (UserAccountDto account : accounts) {

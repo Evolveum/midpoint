@@ -21,11 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
@@ -42,25 +38,18 @@ import org.apache.wicket.request.resource.ResourceReference;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -72,25 +61,20 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.delta.ObjectDeltaComponent;
-import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.AccountChangesDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitDeltaObjectDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAssignmentDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserChangesDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitDeltaObjectDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitPropertiesDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitPropertiesStatus;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitObjectStatus;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserChangesDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
@@ -159,16 +143,13 @@ public class PageSubmit extends PageAdmin {
 		accordion.getBodyContainer().add(changesList);
 
 		Accordion changeType = new Accordion("changeType");
-		// changeType.setExpanded(true);
 		changeType.setMultipleSelect(true);
 		changesList.getBodyContainer().add(changeType);
 
 		initAccounts(accordion);
-
 		initUserChanges(changeType);
 		initAccountsChanges(changeType);
 		initAssignmentsChanges(changeType);
-
 		initButtons(mainForm);
 
 	}
@@ -186,10 +167,10 @@ public class PageSubmit extends PageAdmin {
 		accordion.getBodyContainer().add(accountsList);
 
 		List<IColumn<SubmitResourceDto>> columns = new ArrayList<IColumn<SubmitResourceDto>>();
-
-		IColumn column = new CheckBoxHeaderColumn<SubmitResourceDto>();
-		columns.add(column);
-
+		/*
+		 * IColumn column = new CheckBoxHeaderColumn<SubmitResourceDto>();
+		 * columns.add(column);
+		 */
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.name"), "name"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.resourceName"),
 				"resourceName"));
@@ -210,6 +191,7 @@ public class PageSubmit extends PageAdmin {
 					}
 				});
 		TablePanel resourcesTable = new TablePanel<SubmitResourceDto>("resourcesTable", provider, columns);
+		resourcesTable.setStyle("margin-top: 0px;");
 		resourcesTable.setShowPaging(false);
 		resourcesTable.setOutputMarkupId(true);
 		accountsList.getBodyContainer().add(resourcesTable);
@@ -229,60 +211,10 @@ public class PageSubmit extends PageAdmin {
 		changeType.getBodyContainer().add(userInfoAccordion);
 
 		List<IColumn<SubmitUserDto>> columns = new ArrayList<IColumn<SubmitUserDto>>();
-
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
-		IColumn column = new IconColumn<SubmitUserDto>(createStringResource("pageSubmit.typeOfAddData")) {
-
-			@Override
-			protected IModel<ResourceReference> createIconModel(final IModel<SubmitUserDto> rowModel) {
-				return new AbstractReadOnlyModel<ResourceReference>() {
-
-					@Override
-					public ResourceReference getObject() {
-						SubmitUserDto dto = rowModel.getObject();
-						if (dto.isSecondaryValue()) {
-							return new PackageResourceReference(PageSubmit.class, "secondaryValue.png");
-						}
-						return new PackageResourceReference(PageSubmit.class, "primaryValue.png");
-					}
-				};
-			}
-
-			@Override
-			protected IModel<String> createTitleModel(final IModel<SubmitUserDto> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						SubmitUserDto dto = rowModel.getObject();
-						if (dto.isSecondaryValue()) {
-							return PageSubmit.this.getString("pageSubmit.secondaryValue");
-						}
-						return PageSubmit.this.getString("pageSubmit.primaryValue");
-					}
-
-				};
-			}
-
-			@Override
-			protected IModel<AttributeModifier> createAttribute(final IModel<SubmitUserDto> rowModel) {
-				return new AbstractReadOnlyModel<AttributeModifier>() {
-
-					@Override
-					public AttributeModifier getObject() {
-						SubmitUserDto dto = rowModel.getObject();
-						if (dto.isSecondaryValue()) {
-							return new AttributeModifier("class", "secondaryValue");
-						}
-						return new AttributeModifier("class", "primaryValue");
-					}
-				};
-			}
-		};
-
-		columns.add(column);
+		columns.add(new AdditionalDataIconColumn(createStringResource("pageSubmit.typeOfAddData")));
 
 		ListDataProvider<SubmitUserDto> provider = new ListDataProvider<SubmitUserDto>(this,
 				new AbstractReadOnlyModel<List<SubmitUserDto>>() {
@@ -316,56 +248,7 @@ public class PageSubmit extends PageAdmin {
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
-		IColumn column = new IconColumn<SubmitAccountDto>(createStringResource("pageSubmit.typeOfAddData")) {
-
-			@Override
-			protected IModel<ResourceReference> createIconModel(final IModel<SubmitAccountDto> rowModel) {
-				return new AbstractReadOnlyModel<ResourceReference>() {
-
-					@Override
-					public ResourceReference getObject() {
-						SubmitAccountDto dto = rowModel.getObject();
-						if (dto.isSecondaryValue()) {
-							return new PackageResourceReference(PageSubmit.class, "secondaryValue.png");
-						}
-						return new PackageResourceReference(PageSubmit.class, "primaryValue.png");
-					}
-				};
-			}
-
-			@Override
-			protected IModel<String> createTitleModel(final IModel<SubmitAccountDto> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						SubmitAccountDto dto = rowModel.getObject();
-						if (dto.isSecondaryValue()) {
-							return PageSubmit.this.getString("pageSubmit.secondaryValue");
-						}
-						return PageSubmit.this.getString("pageSubmit.primaryValue");
-					}
-
-				};
-			}
-
-			@Override
-			protected IModel<AttributeModifier> createAttribute(final IModel<SubmitAccountDto> rowModel) {
-				return new AbstractReadOnlyModel<AttributeModifier>() {
-
-					@Override
-					public AttributeModifier getObject() {
-						SubmitAccountDto dto = rowModel.getObject();
-						if (dto.isSecondaryValue()) {
-							return new AttributeModifier("class", "secondaryValue");
-						}
-						return new AttributeModifier("class", "primaryValue");
-					}
-				};
-			}
-		};
-
-		columns.add(column);
+		columns.add(new AdditionalDataIconColumn(createStringResource("pageSubmit.typeOfAddData")));
 
 		ListDataProvider<SubmitAccountDto> provider = new ListDataProvider<SubmitAccountDto>(this,
 				new AbstractReadOnlyModel<List<SubmitAccountDto>>() {
@@ -398,55 +281,7 @@ public class PageSubmit extends PageAdmin {
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.assignment"),
 				"assignment"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.operation"), "status"));
-		IColumn column = new IconColumn<SubmitAssignmentDto>(createStringResource("pageSubmit.typeOfAddData")) {
-
-			@Override
-			protected IModel<ResourceReference> createIconModel(final IModel<SubmitAssignmentDto> rowModel) {
-				return new AbstractReadOnlyModel<ResourceReference>() {
-
-					@Override
-					public ResourceReference getObject() {
-						SubmitAssignmentDto dto = rowModel.getObject();
-						if (dto.isSecondaryValue()) {
-							return new PackageResourceReference(PageSubmit.class, "secondaryValue.png");
-						}
-						return new PackageResourceReference(PageSubmit.class, "primaryValue.png");
-					}
-				};
-			}
-
-			@Override
-			protected IModel<String> createTitleModel(final IModel<SubmitAssignmentDto> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						SubmitAssignmentDto dto = rowModel.getObject();
-						if (dto.isSecondaryValue()) {
-							return PageSubmit.this.getString("pageSubmit.secondaryValue");
-						}
-						return PageSubmit.this.getString("pageSubmit.primaryValue");
-					}
-
-				};
-			}
-
-			@Override
-			protected IModel<AttributeModifier> createAttribute(final IModel<SubmitAssignmentDto> rowModel) {
-				return new AbstractReadOnlyModel<AttributeModifier>() {
-
-					@Override
-					public AttributeModifier getObject() {
-						SubmitAssignmentDto dto = rowModel.getObject();
-						if (dto.isSecondaryValue()) {
-							return new AttributeModifier("class", "secondaryValue");
-						}
-						return new AttributeModifier("class", "primaryValue");
-					}
-				};
-			}
-		};
-		columns.add(column);
+		columns.add(new AdditionalDataIconColumn(createStringResource("pageSubmit.typeOfAddData")));
 
 		ListDataProvider<SubmitAssignmentDto> provider = new ListDataProvider<SubmitAssignmentDto>(this,
 				new AbstractReadOnlyModel<List<SubmitAssignmentDto>>() {
@@ -496,6 +331,194 @@ public class PageSubmit extends PageAdmin {
 			}
 		};
 		mainForm.add(cancelButton);
+	}
+
+	private List<SubmitAssignmentDto> loadAssignmentsChanges() {
+
+		List<SubmitAssignmentDto> list = new ArrayList<SubmitAssignmentDto>();
+		for (SubmitDeltaObjectDto assignmentDto : userChangesDto.getAssignmentsDeltas()) {
+			ContainerDelta assignment = (ContainerDelta) assignmentDto.getItemDelta();
+			if (assignment.getValuesToAdd() != null) {
+				for (Object item : assignment.getValuesToAdd()) {
+					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
+							getString("pageSubmit.status." + SubmitPropertiesStatus.ADDING), assignmentDto
+									.isSecondaryValue()));
+				}
+			}
+
+			if (assignment.getValuesToDelete() != null) {
+				for (Object item : assignment.getValuesToDelete()) {
+					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
+							getString("pageSubmit.status." + SubmitPropertiesStatus.DELETING), assignmentDto
+									.isSecondaryValue()));
+				}
+			}
+		}
+		return list;
+	}
+
+	private List<SubmitUserDto> loadUserChanges() {
+		List<SubmitUserDto> list = new ArrayList<SubmitUserDto>();
+		List<SubmitDeltaObjectDto> userPropertiesDelta = userChangesDto.getUserPropertiesDeltas();
+		if (userPropertiesDelta != null && !userChangesDto.getUserPropertiesDeltas().isEmpty()) {
+			PrismObject oldUser = previewChanges.getFocusContext().getObjectOld();
+			PrismObject newUser = previewChanges.getFocusContext().getObjectNew();
+
+			for (SubmitDeltaObjectDto itemDeltaDto : userPropertiesDelta) {
+				PropertyDelta propertyDelta = (PropertyDelta) itemDeltaDto.getItemDelta();
+				if (propertyDelta.getDefinition().getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
+					continue;
+				}
+				List<SubmitPropertiesDto> values = new ArrayList<SubmitPropertiesDto>();
+
+				if (propertyDelta.getValuesToAdd() != null) {
+					for (Object value : propertyDelta.getValuesToAdd()) {
+						if (value instanceof PrismContainerValue) {
+							PrismContainerValue containerValues = (PrismContainerValue) value;
+
+							PropertyDelta delta = null;
+
+							for (Object propertyValueObject : containerValues.getItems()) {
+								if (propertyValueObject instanceof PrismContainer) {
+									continue;
+								}
+								PrismProperty propertyValue = (PrismProperty) propertyValueObject;
+								delta = new PropertyDelta(propertyValue.getDefinition());
+								values.add(new SubmitPropertiesDto((PrismPropertyValue) propertyValue
+										.getValue(), SubmitPropertiesStatus.ADDING));
+							}
+							continue;
+						}
+						values.add(new SubmitPropertiesDto((PrismPropertyValue) value,
+								SubmitPropertiesStatus.ADDING));
+					}
+				}
+
+				if (propertyDelta.getValuesToDelete() != null) {
+					for (Object value : propertyDelta.getValuesToDelete()) {
+						values.add(new SubmitPropertiesDto((PrismPropertyValue) value,
+								SubmitPropertiesStatus.DELETING));
+					}
+				}
+
+				if (propertyDelta.getValuesToReplace() != null) {
+					for (Object value : propertyDelta.getValuesToReplace()) {
+						values.add(new SubmitPropertiesDto((PrismPropertyValue) value,
+								SubmitPropertiesStatus.REPLACEING));
+					}
+				}
+
+				if (!values.isEmpty()) {
+					list.add(getDeltasFromUserProperties(values, propertyDelta,
+							itemDeltaDto.isSecondaryValue()));
+				}
+			}
+		}
+		return list;
+	}
+
+	private SubmitUserDto getDeltasFromUserProperties(List<SubmitPropertiesDto> values,
+			PropertyDelta propertyDelta, boolean secondaryValue) {
+
+		ItemDefinition def = propertyDelta.getDefinition();
+		String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName().getLocalPart();
+		List<String> oldValues = new ArrayList<String>();
+		List<String> newValues = new ArrayList<String>();
+
+		PrismObject oldUserObject = previewChanges.getFocusContext().getObjectOld();
+
+		if (oldUserObject != null) {
+			PrismProperty oldPropertyValue = oldUserObject.findProperty(propertyDelta.getPath());
+
+			if (oldPropertyValue != null && oldPropertyValue.getValues() != null) {
+				for (Object valueObject : oldPropertyValue.getValues()) {
+					PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
+					oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : " ");
+				}
+			}
+		}
+		for (SubmitPropertiesDto newValue : values) {
+			Object newValueObject = newValue.getSubmitedPropertie().getValue();
+			if (newValue.getStatus().equals(SubmitPropertiesStatus.DELETING)) {
+				
+				for (String oldValue : oldValues) {
+					if (!newValueObject.toString().contains(oldValue)
+							&& oldValue != newValueObject.toString()) {
+						newValues.add(oldValue);
+					}
+				}
+				continue;
+			}
+
+			String stringValue = newValueObject != null ? newValueObject.toString() : " ";
+			newValues.add(stringValue);
+		}
+		return new SubmitUserDto(attribute, listToString(oldValues), listToString(newValues), secondaryValue);
+	}
+
+	public static String listToString(List<String> list) {
+		StringBuilder sb = new StringBuilder(list.size());
+		for (int i = 0; i < list.size(); i++) {
+			sb.append(list.get(i));
+			if (i < list.size() - 1) {
+				sb.append(", ");
+			}
+		}
+		return sb.toString();
+	}
+
+	private String getReferenceFromAssignment(PrismContainerValue assignment) {
+		Task task = createSimpleTask("getRefFromAssignment: Load role");
+		OperationResult result = new OperationResult("getRefFromAssignment: Load role");
+
+		PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
+		if (targetRef != null) {
+			PrismObject<RoleType> role = null;
+			try {
+				role = getModelService().getObject(RoleType.class, targetRef.getValue().getOid(), null, task,
+						result);
+			} catch (Exception ex) {
+				result.recordFatalError("Unable to get role object", ex);
+				showResultInSession(result);
+				throw new RestartResponseException(PageUsers.class);
+			}
+			return WebMiscUtil.getName(role);
+		}
+
+		PrismReference accountConstrRef = assignment.findReference(AssignmentType.F_ACCOUNT_CONSTRUCTION);
+		if (accountConstrRef != null) {
+			PrismObject<RoleType> role = null;
+			try {
+				role = getModelService().getObject(RoleType.class, accountConstrRef.getValue().getOid(),
+						null, task, result);
+			} catch (Exception ex) {
+				result.recordFatalError("Unable to get role object", ex);
+				showResultInSession(result);
+				throw new RestartResponseException(PageUsers.class);
+			}
+			return WebMiscUtil.getName(role);
+		}
+
+		return "";
+	}
+
+	private PrismObject<AccountShadowType> getAccountFromDelta(ObjectDelta delta) {
+		if (delta.getChangeType().equals(ChangeType.ADD)) {
+			return delta.getObjectToAdd();
+		} else {
+			Task task = createSimpleTask("loadResourceList: Load account");
+			OperationResult result = new OperationResult("loadResourceList: Load account");
+			PrismObject<AccountShadowType> accountObject = null;
+			try {
+				accountObject = getModelService().getObject(AccountShadowType.class, delta.getOid(), null,
+						task, result);
+			} catch (Exception ex) {
+				result.recordFatalError("Unable to get account object", ex);
+				showResultInSession(result);
+				throw new RestartResponseException(PageUsers.class);
+			}
+			return accountObject;
+		}
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
@@ -577,181 +600,82 @@ public class PageSubmit extends PageAdmin {
 		}
 	}
 
-	private List<SubmitAssignmentDto> loadAssignmentsChanges() {
+	private class AdditionalDataIconColumn<T> extends IconColumn<T> {
 
-		List<SubmitAssignmentDto> list = new ArrayList<SubmitAssignmentDto>();
-		for (SubmitDeltaObjectDto assignmentDto : userChangesDto.getAssignmentsDeltas()) {
-			ContainerDelta assignment = (ContainerDelta) assignmentDto.getItemDelta();
-			if (assignment.getValuesToAdd() != null) {
-				for (Object item : assignment.getValuesToAdd()) {
-					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
-							getString("pageSubmit.status." + SubmitObjectStatus.ADDING), assignmentDto
-									.isSecondaryValue()));
-				}
-			}
-
-			if (assignment.getValuesToDelete() != null) {
-				for (Object item : assignment.getValuesToDelete()) {
-					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
-							getString("pageSubmit.status." + SubmitObjectStatus.DELETING), assignmentDto
-									.isSecondaryValue()));
-				}
-			}
+		public AdditionalDataIconColumn(IModel<String> displayModel) {
+			super(displayModel);
 		}
-		return list;
-	}
 
-	private List<SubmitUserDto> loadUserChanges() {
-		List<SubmitUserDto> list = new ArrayList<SubmitUserDto>();
-		List<SubmitDeltaObjectDto> userPropertiesDelta = userChangesDto.getUserPropertiesDeltas();
-		if (userPropertiesDelta != null && !userChangesDto.getUserPropertiesDeltas().isEmpty()) {
-			PrismObject oldUser = previewChanges.getFocusContext().getObjectOld();
-			PrismObject newUser = previewChanges.getFocusContext().getObjectNew();
+		@Override
+		protected IModel<String> createTitleModel(final IModel<T> rowModel) {
+			return new AbstractReadOnlyModel<String>() {
 
-			for (SubmitDeltaObjectDto itemDeltaDto : userPropertiesDelta) {
-				PropertyDelta propertyDelta = (PropertyDelta) itemDeltaDto.getItemDelta();
-				if (propertyDelta.getDefinition().getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-					continue;
-				}
-				List<PrismPropertyValue> values = new ArrayList<PrismPropertyValue>();
+				@Override
+				public String getObject() {
+					T dto = rowModel.getObject();
 
-				if (propertyDelta.getValuesToAdd() != null) {
-					for (Object value : propertyDelta.getValuesToAdd()) {
-						if (value instanceof PrismContainerValue) {
-							PrismContainerValue containerValues = (PrismContainerValue) value;
-
-							PropertyDelta delta = null;
-
-							for (Object propertyValueObject : containerValues.getItems()) {
-								if (propertyValueObject instanceof PrismContainer) {
-									continue;
-								}
-								PrismProperty propertyValue = (PrismProperty) propertyValueObject;
-								delta = new PropertyDelta(propertyValue.getDefinition());
-								values.add((PrismPropertyValue) propertyValue.getValue());
-							}
-							values = new ArrayList<PrismPropertyValue>();
-							continue;
-						}
-						values.add((PrismPropertyValue) value);
+					if (dto instanceof SubmitUserDto) {
+						return ((SubmitUserDto) dto).isSecondaryValue() ? PageSubmit.this
+								.getString("pageSubmit.secondaryValue") : PageSubmit.this
+								.getString("pageSubmit.primaryValue");
+					} else if (dto instanceof SubmitAccountDto) {
+						return ((SubmitAccountDto) dto).isSecondaryValue() ? PageSubmit.this
+								.getString("pageSubmit.secondaryValue") : PageSubmit.this
+								.getString("pageSubmit.primaryValue");
+					} else {
+						return ((SubmitAssignmentDto) dto).isSecondaryValue() ? PageSubmit.this
+								.getString("pageSubmit.secondaryValue") : PageSubmit.this
+								.getString("pageSubmit.primaryValue");
 					}
 				}
+			};
+		}
 
-				if (propertyDelta.getValuesToDelete() != null) {
-					for (Object value : propertyDelta.getValuesToDelete()) {
-						values.add((PrismPropertyValue) value);
+		@Override
+		protected IModel<ResourceReference> createIconModel(final IModel<T> rowModel) {
+			return new AbstractReadOnlyModel<ResourceReference>() {
+
+				@Override
+				public ResourceReference getObject() {
+					T dto = rowModel.getObject();
+
+					if (dto instanceof SubmitUserDto) {
+						return ((SubmitUserDto) dto).isSecondaryValue() ? new PackageResourceReference(
+								PageSubmit.class, "secondaryValue.png") : new PackageResourceReference(
+								PageSubmit.class, "primaryValue.png");
+					} else if (dto instanceof SubmitAccountDto) {
+						return ((SubmitAccountDto) dto).isSecondaryValue() ? new PackageResourceReference(
+								PageSubmit.class, "secondaryValue.png") : new PackageResourceReference(
+								PageSubmit.class, "primaryValue.png");
+					} else {
+						return ((SubmitAssignmentDto) dto).isSecondaryValue() ? new PackageResourceReference(
+								PageSubmit.class, "secondaryValue.png") : new PackageResourceReference(
+								PageSubmit.class, "primaryValue.png");
 					}
 				}
+			};
+		}
 
-				if (propertyDelta.getValuesToReplace() != null) {
-					for (Object value : propertyDelta.getValuesToReplace()) {
-						values.add((PrismPropertyValue) value);
+		@Override
+		protected IModel<AttributeModifier> createAttribute(final IModel<T> rowModel) {
+			return new AbstractReadOnlyModel<AttributeModifier>() {
+
+				@Override
+				public AttributeModifier getObject() {
+					T dto = rowModel.getObject();
+
+					if (dto instanceof SubmitUserDto) {
+						return ((SubmitUserDto) dto).isSecondaryValue() ? new AttributeModifier("class",
+								"secondaryValue") : new AttributeModifier("class", "primaryValue");
+					} else if (dto instanceof SubmitAccountDto) {
+						return ((SubmitAccountDto) dto).isSecondaryValue() ? new AttributeModifier("class",
+								"secondaryValue") : new AttributeModifier("class", "primaryValue");
+					} else {
+						return ((SubmitAssignmentDto) dto).isSecondaryValue() ? new AttributeModifier(
+								"class", "secondaryValue") : new AttributeModifier("class", "primaryValue");
 					}
 				}
-
-				if (!values.isEmpty()) {
-					list.add(getDeltasFromUserProperties(values, propertyDelta,
-							itemDeltaDto.isSecondaryValue()));
-				}
-			}
-		}
-		return list;
-	}
-
-	private SubmitUserDto getDeltasFromUserProperties(List<PrismPropertyValue> values,
-			PropertyDelta propertyDelta, boolean secondaryValue) {
-
-		ItemDefinition def = propertyDelta.getDefinition();
-		String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName().getLocalPart();
-		List<String> oldValues = new ArrayList<String>();
-		List<String> newValues = new ArrayList<String>();
-
-		PrismObject oldUserObject = previewChanges.getFocusContext().getObjectOld();
-
-		if (oldUserObject != null) {
-			PrismProperty oldPropertyValue = oldUserObject.findProperty(propertyDelta.getName());
-
-			if (oldPropertyValue != null && oldPropertyValue.getValues() != null) {
-				for (Object valueObject : oldPropertyValue.getValues()) {
-					PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
-					oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : " ");
-					if (!values.contains(oldValue)) {
-						newValues.add(oldValue.getValue().toString());
-					}
-				}
-			}
-		}
-		for (PrismPropertyValue newValue : values) {
-			if (oldValues.contains(newValue.getValue().toString())) {
-				continue;
-			}
-			newValues.add(newValue.getValue() != null ? newValue.getValue().toString() : " ");
-		}
-		return new SubmitUserDto(attribute, listToString(oldValues), listToString(newValues), secondaryValue);
-	}
-
-	public static String listToString(List<String> list) {
-		StringBuilder sb = new StringBuilder(list.size());
-		for (int i = 0; i < list.size(); i++) {
-			sb.append(list.get(i));
-			if (i < list.size() - 1) {
-				sb.append(", ");
-			}
-		}
-		return sb.toString();
-	}
-
-	private String getReferenceFromAssignment(PrismContainerValue assignment) {
-		Task task = createSimpleTask("getRefFromAssignment: Load role");
-		OperationResult result = new OperationResult("getRefFromAssignment: Load role");
-
-		PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
-		if (targetRef != null) {
-			PrismObject<RoleType> role = null;
-			try {
-				role = getModelService().getObject(RoleType.class, targetRef.getValue().getOid(), null, task,
-						result);
-			} catch (Exception ex) {
-				result.recordFatalError("Unable to get role object", ex);
-				showResultInSession(result);
-				throw new RestartResponseException(PageUsers.class);
-			}
-			return WebMiscUtil.getName(role);
-		}
-
-		PrismReference accountConstrRef = assignment.findReference(AssignmentType.F_ACCOUNT_CONSTRUCTION);
-		if (accountConstrRef != null) {
-			PrismObject<RoleType> role = null;
-			try {
-				role = getModelService().getObject(RoleType.class, accountConstrRef.getValue().getOid(),
-						null, task, result);
-			} catch (Exception ex) {
-				result.recordFatalError("Unable to get role object", ex);
-				showResultInSession(result);
-				throw new RestartResponseException(PageUsers.class);
-			}
-			return WebMiscUtil.getName(role);
-		}
-
-		return "";
-	}
-
-	private PrismObject<AccountShadowType> getAccountFromDelta(ObjectDelta delta) {
-		if (delta.getChangeType().equals(ChangeType.ADD)) {
-			return delta.getObjectToAdd();
-		} else {
-			Task task = createSimpleTask("loadResourceList: Load account");
-			OperationResult result = new OperationResult("loadResourceList: Load account");
-			PrismObject<AccountShadowType> accountObject = null;
-			try {
-				accountObject = getModelService().getObject(AccountShadowType.class, delta.getOid(), null,
-						task, result);
-			} catch (Exception ex) {
-				result.recordFatalError("Unable to get account object", ex);
-				showResultInSession(result);
-				throw new RestartResponseException(PageUsers.class);
-			}
-			return accountObject;
+			};
 		}
 	}
 }
