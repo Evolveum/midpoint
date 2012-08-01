@@ -45,6 +45,9 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -89,6 +92,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     private Class<T> objectTypeClass;
 
     public ObjectDelta(Class<T> objectTypeClass, ChangeType changeType) {
+    	Validate.notNull(objectTypeClass,"No objectTypeClass");
+    	Validate.notNull(changeType,"No changeType");
+    	
         this.changeType = changeType;
         this.objectTypeClass = objectTypeClass;
         objectToAdd = null;
@@ -616,6 +622,12 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	ObjectDelta<O> objectDelta = new ObjectDelta<O>(objectToAdd.getCompileTimeClass(), ChangeType.ADD);
     	objectDelta.setOid(objectToAdd.getOid());
     	objectDelta.setObjectToAdd(objectToAdd);
+    	return objectDelta;
+    }
+    
+    public static <O extends Objectable> ObjectDelta<O> createDeleteDelta(Class<O> type, String oid) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.DELETE);
+    	objectDelta.setOid(oid);
     	return objectDelta;
     }
     

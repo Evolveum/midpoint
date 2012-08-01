@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -98,6 +100,7 @@ public class LensUtil {
 			ObjectDelta<T> delta, PrismContext prismContext) {
 		LensContext<F, P> context = null;
 		Class<T> typeClass = delta.getObjectTypeClass();
+		Validate.notNull(typeClass, "Object type class is null in "+delta);
 		Class<F> focusClass = null;
 		Class<P> projectionClass = null;
 		if (isFocalClass(typeClass)) {

@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -81,9 +83,10 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	transient private PrismContext prismContext;
 	
 	public LensContext(Class<F> focusClass, Class<P> projectionClass, PrismContext prismContext) {
-    	if (prismContext == null) {
-    		throw new IllegalArgumentException("No prismContext");
-    	}
+		Validate.notNull(prismContext, "No prismContext");
+		Validate.notNull(focusClass, "No focus class");
+		Validate.notNull(projectionClass, "No projection class");
+		
         this.prismContext = prismContext;
         this.focusClass = focusClass;
         this.projectionClass = projectionClass;

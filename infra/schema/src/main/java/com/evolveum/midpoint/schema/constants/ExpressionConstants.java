@@ -30,7 +30,18 @@ public class ExpressionConstants {
 	public static final QName VAR_INPUT = new QName(SchemaConstants.NS_C, "input");
 	public static final QName VAR_USER = new QName(SchemaConstants.NS_C, "user");
 	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
+	
+	/**
+	 * Numeric value describing the current iteration. It starts with 0 and increments on every iteration.
+	 * Iterations are used to find unique values for an account, to resolve naming conflicts, etc.
+	 */
 	public static final QName VAR_ITERATION = new QName(SchemaConstants.NS_C, "iteration");
+	
+	/**
+	 * String value describing the current iteration. It is usually suffix that is appended to the username
+	 * or a similar "extension" of the value. It should have different value for every iteration. The actual
+	 * value is determined by the iteration settings.
+	 */
 	public static final QName VAR_ITERATION_TOKEN = new QName(SchemaConstants.NS_C, "iterationToken");
 	
 }
