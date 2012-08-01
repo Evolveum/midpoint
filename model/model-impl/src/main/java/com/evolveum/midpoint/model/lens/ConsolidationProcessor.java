@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.model.lens;
 
+import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
+
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
@@ -86,16 +88,22 @@ public class ConsolidationProcessor {
 
         PolicyDecision policyDecision = accCtx.getPolicyDecision();
 
+        if (CONSISTENCY_CHECKS) context.checkConsistence();
         if (policyDecision == PolicyDecision.ADD) {
             consolidateValuesAddAccount(context, accCtx, result);
+            if (CONSISTENCY_CHECKS) context.checkConsistence();
         } else if (policyDecision == PolicyDecision.KEEP) {
             consolidateValuesModifyAccount(context, accCtx, result);
+            if (CONSISTENCY_CHECKS) context.checkConsistence();
         } else if (policyDecision == PolicyDecision.DELETE) {
             consolidateValuesDeleteAccount(context, accCtx, result);
+            if (CONSISTENCY_CHECKS) context.checkConsistence();
         } else {
             // This is either UNLINK or null, both are in fact the same as KEEP
             consolidateValuesModifyAccount(context, accCtx, result);
+            if (CONSISTENCY_CHECKS) context.checkConsistence();
         }
+        if (CONSISTENCY_CHECKS) context.checkConsistence();
     }
 
     private void dropAllAccountDelta(LensProjectionContext<AccountShadowType> accContext) {
@@ -268,7 +276,11 @@ public class ConsolidationProcessor {
     private void consolidateValuesDeleteAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
             OperationResult result) {
         ObjectDelta<AccountShadowType> deleteDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
-        deleteDelta.setOid(accCtx.getOid());
+        String oid = accCtx.getOid();
+        if (oid == null) {
+        	throw new IllegalStateException("Internal error: account context OID is null during attempt to create delete secondary delta; context="+context);
+        }
+        deleteDelta.setOid(oid);
         accCtx.setSecondaryDelta(deleteDelta);
     }
 

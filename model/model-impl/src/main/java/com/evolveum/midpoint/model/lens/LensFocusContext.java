@@ -205,4 +205,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	protected String getElementDefaultDesc() {
 		return "focus";
 	}
+
+	@Override
+	public String toString() {
+		return "LensFocusContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
+	}
 }

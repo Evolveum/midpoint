@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountReferenceType;
@@ -32,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountRefer
  * 
  * @author Radovan Semancik
  */
-public class ResourceAccountType {
+public class ResourceAccountType implements Serializable {
 
 	private String resourceOid;
 	private String accountType;

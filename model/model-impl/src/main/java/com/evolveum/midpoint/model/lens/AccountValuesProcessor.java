@@ -52,6 +52,8 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
+
 /**
  * @author semancik
  *
@@ -104,6 +106,8 @@ public class AccountValuesProcessor {
 			return;
 		}
 		
+		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		
 		int maxIterations = determineMaxIterations(accountContext);
 		int iteration = 0;
 		while (true) {
@@ -112,12 +116,16 @@ public class AccountValuesProcessor {
 			String iterationToken = formatIterationToken(iteration);
 			accountContext.setIterationToken(iterationToken);
 			
+			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
 			context.recompute();
+			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			outboundProcessor.processOutbound(context, accountContext, result);
 			context.recompute();
+			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			consolidationProcessor.consolidateValues(context, accountContext, result);
 	        context.recompute();
+	        if (CONSISTENCY_CHECKS) context.checkConsistence();
 	 
 	        LensUtil.traceContext(activityDescription, "values", context, true);
 	        
@@ -149,7 +157,10 @@ public class AccountValuesProcessor {
 	        }
 	        
 	        cleanupContext(accountContext);
+	        if (CONSISTENCY_CHECKS) context.checkConsistence();
 		} 
+		
+		if (CONSISTENCY_CHECKS) context.checkConsistence();
 					
 	}
 	

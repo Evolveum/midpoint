@@ -27,6 +27,8 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
+
 import java.io.FileNotFoundException;
 import java.util.Collection;
 
@@ -88,22 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestProjector extends AbstractModelIntegrationTest {
-	
-	public static final String TEST_RESOURCE_DIR_NAME = "src/test/resources/synchronizer";
-
-	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ = TEST_RESOURCE_DIR_NAME +
-            "/user-jack-modify-add-assignment-account-opendj.xml";
-	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-jack-modify-add-assignment-account-opendj-attr.xml";
-	
-	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY = TEST_RESOURCE_DIR_NAME +
-    "/user-jack-modify-add-assignment-account-dummy.xml";
-	
-	public static final String REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-barbossa-modify-add-assignment-account-opendj-attr.xml";
-	public static final String REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-barbossa-modify-delete-assignment-account-opendj-attr.xml";
-	
+		
 	@Autowired(required = true)
 	private Projector projector;
 	

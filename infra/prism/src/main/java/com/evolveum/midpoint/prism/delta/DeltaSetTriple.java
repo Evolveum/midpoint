@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -39,7 +40,7 @@ import java.util.Collection;
  *
  * @author Radovan Semancik
  */
-public class DeltaSetTriple<T> implements Dumpable, DebugDumpable {
+public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable {
 
     /**
      * Collection of values that were not changed.

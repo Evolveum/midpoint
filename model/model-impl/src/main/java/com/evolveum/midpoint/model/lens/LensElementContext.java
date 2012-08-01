@@ -200,17 +200,21 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         objectNew = delta.computeChangedObject(objectOld);
     }
 
-	public void checkConsistence() {
+    public void checkConsistence() {
+    	checkConsistence(null);
+    }
+    
+	public void checkConsistence(String contextDesc) {
     	if (getObjectOld() != null) {
-    		checkConsistence(getObjectOld(), "old "+getElementDesc());
+    		checkConsistence(getObjectOld(), "old "+getElementDesc() , contextDesc);
     	}
     	if (primaryDelta != null) {
     		try {
     			primaryDelta.checkConsistence();
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" primary delta in "+this, e);
+				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" primary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" primary delta in "+this, e);
+				throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" primary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			}
     	}
     	if (secondaryDelta != null) {
@@ -219,40 +223,40 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	    		boolean requireOid = primaryDelta == null;
 	    		secondaryDelta.checkConsistence(requireOid, true);
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" secondary delta in "+this, e);
+				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" secondary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" secondary delta in "+this, e);
+				throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" secondary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			}
 
     	}
     	if (getObjectNew() != null) {
-    		checkConsistence(getObjectNew(), "new "+getElementDesc());
+    		checkConsistence(getObjectNew(), "new "+getElementDesc(), contextDesc);
     	}
 	}
 	
-	protected void checkConsistence(PrismObject<O> object, String desc) {
+	protected void checkConsistence(PrismObject<O> object, String elementDesc, String contextDesc) {
     	try {
     		object.checkConsistence();
     	} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException(e.getMessage()+"; in "+desc+" in "+this, e);
+			throw new IllegalArgumentException(e.getMessage()+"; in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 		} catch (IllegalStateException e) {
-			throw new IllegalStateException(e.getMessage()+"; in "+desc+" in "+this, e);
+			throw new IllegalStateException(e.getMessage()+"; in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 		}
 		if (object.getDefinition() == null) {
-			throw new IllegalStateException("No new "+getElementDesc()+" definition "+desc+" in "+this);
+			throw new IllegalStateException("No new "+getElementDesc()+" definition "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 		}
     	O objectType = object.asObjectable();
     	if (objectType instanceof ResourceObjectShadowType) {
     		PrismReference resourceRef = object.findReference(AccountShadowType.F_RESOURCE_REF);
         	if (resourceRef == null) {
-        		throw new IllegalStateException("No resourceRef in "+desc+" in "+this);
+        		throw new IllegalStateException("No resourceRef in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
         	}
         	if (StringUtils.isBlank(resourceRef.getOid())) {
-        		throw new IllegalStateException("Null or empty OID in resourceRef in "+desc+" in "+this);
+        		throw new IllegalStateException("Null or empty OID in resourceRef in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
         	}
     		ResourceObjectShadowType shadowType = (ResourceObjectShadowType)objectType;
 	    	if (shadowType.getObjectClass() == null) {
-	    		throw new IllegalStateException("Null objectClass in "+desc+" in "+this);
+	    		throw new IllegalStateException("Null objectClass in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 	    	}
     	}
     }

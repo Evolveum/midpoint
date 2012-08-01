@@ -110,13 +110,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
      * Intermediary computation result. It is stored to allow re-computing of account constructions during
      * iterative computations.
      */
-    private PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple;
+    private transient PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple;
     
-    private AccountConstruction outboundAccountConstruction;
+    private transient AccountConstruction outboundAccountConstruction;
     
-    private Collection<ResourceAccountReferenceType> dependencies = null;
+    private transient Collection<ResourceAccountReferenceType> dependencies = null;
     
-    private Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes;
+    private transient Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes;
 
     
 	/**
@@ -349,20 +349,24 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 	
 	public void checkConsistence() {
-		super.checkConsistence();
-    	if (resource == null) {
-    		throw new IllegalStateException("Null resource in "+this);
+		checkConsistence(null, true);
+	}
+	
+	public void checkConsistence(String contextDesc, boolean fresh) {
+		super.checkConsistence(contextDesc);
+    	if (fresh && resource == null) {
+    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
     	}
     	if (resourceAccountType == null) {
-    		throw new IllegalStateException("Null resource "+getElementDesc()+" type in "+this);
+    		throw new IllegalStateException("Null resource "+getElementDesc()+" type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
     	}
     	if (syncDelta != null) {
     		try {
     			syncDelta.checkConsistence();
     		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this, e);
+				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this, e);
+				throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			}
     	}
     }
@@ -461,15 +465,6 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 
 	@Override
-	public String toString() {
-    	StringBuilder sb = new StringBuilder("LensProjectionContext(");
-    	sb.append("OID: ").append(getOid());
-    	sb.append(", RAT: ").append(resourceAccountType);
-    	sb.append(")");
-    	return sb.toString();
-	}
-
-	@Override
     public String debugDump() {
         return debugDump(0);
     }
@@ -540,5 +535,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	protected String getElementDefaultDesc() {
 		return "projection";
 	}
+    
+	@Override
+	public String toString() {
+		return "LensProjectionContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
+	}
+
 
 }

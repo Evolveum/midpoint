@@ -23,6 +23,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
+import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
+
 import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
@@ -63,10 +65,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 		"classpath:application-context-audit.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentEvaluator extends AbstractModelIntegrationTest {
-	
-	protected static final String TEST_RESOURCE_DIR_NAME = "src/test/resources/synchronizer";
-	
-	protected static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-account-opendj.xml";
 
 	@Autowired(required=true)
 	private RepositoryService repositoryService;

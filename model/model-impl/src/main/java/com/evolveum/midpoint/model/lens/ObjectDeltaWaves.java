@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -36,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
  * @author semancik
  *
  */
-public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<O>>, Dumpable, DebugDumpable {
+public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<O>>, Dumpable, DebugDumpable, Serializable {
 	
 	private List<ObjectDelta<O>> waves = new ArrayList<ObjectDelta<O>>();
 
@@ -363,5 +364,9 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
         return sb.toString();
     }
 
+	@Override
+	public String toString() {
+		return "ObjectDeltaWaves(" + waves + ")";
+	}
 
 }

@@ -84,7 +84,6 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     	if (prismContext == null) {
     		throw new IllegalArgumentException("No prismContext");
     	}
-        resourceCache = new HashMap<String, ResourceType>();
         this.prismContext = prismContext;
         this.focusClass = focusClass;
         this.projectionClass = projectionClass;
@@ -269,7 +268,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 			focusContext.checkConsistence();
 		}
 		for (LensProjectionContext<P> projectionContext: projectionContexts) {
-			projectionContext.checkConsistence();
+			projectionContext.checkConsistence(this.toString(), isFresh);
 		}
 	}
 	
@@ -283,6 +282,13 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		return projCtx;
 	}
 	
+	private Map<String, ResourceType> getResourceCache() {
+		if (resourceCache == null) {
+			resourceCache = new HashMap<String, ResourceType>();
+		}
+		return resourceCache;
+	}
+
 	/**
      * Returns a resource for specified account type.
      * This is supposed to be efficient, taking the resource from the cache. It assumes the resource is in the cache.
@@ -290,7 +296,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
      * @see SyncContext#rememberResource(ResourceType)
      */
     public ResourceType getResource(ResourceAccountType rat) {
-        return resourceCache.get(rat.getResourceOid());
+        return getResourceCache().get(rat.getResourceOid());
     }
 	
 	/**
@@ -308,7 +314,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
      * and have pre-parsed schemas. So the next time just reuse it without the other overhead.
      */
     public void rememberResource(ResourceType resourceType) {
-        resourceCache.put(resourceType.getOid(), resourceType);
+    	getResourceCache().put(resourceType.getOid(), resourceType);
     }
     
     public LensContext<F, P> clone() {
@@ -340,6 +346,9 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     }
 
 	private Map<String, ResourceType> cloneResourceCache() {
+		if (resourceCache == null) {
+			return null;
+		}
 		Map<String, ResourceType> clonedMap = new HashMap<String, ResourceType>();
 		for (Entry<String, ResourceType> entry: resourceCache.entrySet()) {
 			clonedMap.put(entry.getKey(), entry.getValue());
@@ -399,5 +408,10 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
         return sb.toString();
     }
+
+	@Override
+	public String toString() {
+		return "LensContext(s=" + state + ", w=" + wave + ": "+focusContext+", "+projectionContexts+")";
+	}
 	
 }

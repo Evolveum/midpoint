@@ -27,7 +27,10 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
+
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
@@ -45,6 +48,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.Projector;
@@ -66,6 +71,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -90,21 +96,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestClockwork extends AbstractModelIntegrationTest {
 	
-	public static final String TEST_RESOURCE_DIR_NAME = "src/test/resources/synchronizer";
-
-	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ = TEST_RESOURCE_DIR_NAME +
-            "/user-jack-modify-add-assignment-account-opendj.xml";
-	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-jack-modify-add-assignment-account-opendj-attr.xml";
-	
-	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY = TEST_RESOURCE_DIR_NAME +
-    "/user-jack-modify-add-assignment-account-dummy.xml";
-	
-	public static final String REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-barbossa-modify-add-assignment-account-opendj-attr.xml";
-	public static final String REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-barbossa-modify-delete-assignment-account-opendj-attr.xml";
-	
 	@Autowired(required = true)
 	private Clockwork clockwork;
 	
@@ -117,33 +108,109 @@ public class TestClockwork extends AbstractModelIntegrationTest {
 	
 		
 	@Test
-    public void test020AssignAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    public void test020AssignAccountToJackSync() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test020AssignAccountToJack");
+        displayTestTile(this, "test020AssignAccountToJackSync");
 
-        // GIVEN
-        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".test020AssignAccountToJack");
+        try {
+        	
+	        // GIVEN
+	        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".test020AssignAccountToJackSync");
+	        OperationResult result = task.getResult();
+	        
+	        LensContext<UserType, AccountShadowType> context = createJackAssignAccountContext(result);
+	
+	        display("Input context", context);
+	
+	        assertUserModificationSanity(context);
+	        mockClockworkHook.reset();
+	        mockClockworkHook.setRecord(true);
+	        
+	        // WHEN
+	        clockwork.run(context, task, result);
+	        
+	        // THEN
+	        mockClockworkHook.setRecord(false);
+	        display("Output context", context);
+	        display("Hook contexts", mockClockworkHook);
+	        
+	        assertJackAssignAccountContext(context);
+	        
+	        List<LensContext<?, ?>> hookContexts = mockClockworkHook.getContexts();
+	        assertFalse("No contexts recorded by the hook", hookContexts.isEmpty());
+        
+		} finally {
+	    	mockClockworkHook.reset();
+	    	unassignJackAccount();
+	    }
+	}
+
+	@Test
+    public void test030AssignAccountToJackAsyncNoserialize() throws Exception {
+        try {
+        	
+        	assignAccountToJackAsync("test030AssignAccountToJackAsyncNoserialize", false);
+	        
+        } finally {
+        	mockClockworkHook.reset();
+        	unassignJackAccount();
+        }
+	}
+
+	@Test(enabled=false)
+    public void test031AssignAccountToJackAsyncSerialize() throws Exception {
+        displayTestTile(this, "test031AssignAccountToJackAsyncSerialize");
+        try {
+        	
+        	assignAccountToJackAsync("test031AssignAccountToJackAsyncSerialize", true);
+	        
+        } finally {
+        	mockClockworkHook.reset();
+        	unassignJackAccount();
+        }
+	}
+	
+	private void assignAccountToJackAsync(String testName, boolean serialize) throws SchemaException, ObjectNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ClassNotFoundException {
+		displayTestTile(this, testName);
+		
+		// GIVEN
+        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "."+testName);
         OperationResult result = task.getResult();
         
-        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
-        fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+        LensContext<UserType, AccountShadowType> context = createJackAssignAccountContext(result);
 
         display("Input context", context);
 
         assertUserModificationSanity(context);
-        mockClockworkHook.clear();
+        mockClockworkHook.reset();
         mockClockworkHook.setRecord(true);
+        mockClockworkHook.setAsynchronous(true);
         
         // WHEN
-        clockwork.run(context, task, result);
+        while(context.getState() != ModelState.FINAL) {
+        	HookOperationMode mode = clockwork.click(context, task, result);
+        	assertTrue("Unexpected INITIAL state of the context", context.getState() != ModelState.INITIAL);
+        	assertEquals("Wrong mode after click in "+context.getState(), HookOperationMode.BACKGROUND, mode);
+        	if (serialize) {
+        		LensProjectionContext<AccountShadowType> accCtx = context.getProjectionContexts().iterator().next();
+        		System.out.println("acc ctx BEFORE: "+accCtx.dump());
+        		String serializedContext = SerializationUtil.toString(context);
+        		context = (LensContext<UserType, AccountShadowType>) SerializationUtil.fromString(serializedContext);
+        		accCtx = context.getProjectionContexts().iterator().next();
+        		System.out.println("acc ctx AFTER: "+accCtx.dump());
+        	}
+        }
         
         // THEN
         mockClockworkHook.setRecord(false);
         display("Output context", context);
         display("Hook contexts", mockClockworkHook);
         
+        assertJackAssignAccountContext(context);
+	}
+	
+	private void assertJackAssignAccountContext(LensContext<UserType, AccountShadowType> context) {
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
@@ -168,10 +235,22 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
         assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
         assertEquals("Jack Sparrow", attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname")).getRealValue());
-        
-        List<LensContext<?, ?>> hookContexts = mockClockworkHook.getContexts();
-        assertFalse("No contexts recorded by the hook", hookContexts.isEmpty());
 	}
 
+	private LensContext<UserType, AccountShadowType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException {
+		LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+        return context;
+	}
+
+	private void unassignJackAccount() throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".unassignJackAccount");
+		LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+		OperationResult result = task.getResult();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContext(context, REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY);
+        clockwork.run(context, task, result);
+	}
 
 }

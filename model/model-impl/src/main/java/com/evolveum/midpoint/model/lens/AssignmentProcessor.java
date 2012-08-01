@@ -253,10 +253,14 @@ public class AssignmentProcessor {
                 context.findProjectionContext(rat).setAssigned(true);
 
             } else if (minusAccountMap.containsKey(rat)) {
-            	LensProjectionContext<AccountShadowType> accountContext = getOrCreateAccountContext(context, rat, result);
-            	accountContext.setAssigned(false);
-                // Account removed
-                markPolicyDecision(accountContext, PolicyDecision.DELETE);
+            	if (accountExists(context,rat)) {
+            		LensProjectionContext<AccountShadowType> accountContext = getOrCreateAccountContext(context, rat, result);
+                	accountContext.setAssigned(false);
+                    // Account removed
+                    markPolicyDecision(accountContext, PolicyDecision.DELETE);
+            	} else {
+            		// We have to delete something that is not there. Nothing to do.
+            	}
 
             } else {
                 throw new IllegalStateException("Account " + rat + " went looney");
@@ -265,7 +269,11 @@ public class AssignmentProcessor {
             PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountDeltaSetTriple = 
             		new PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>>(zeroAccountMap.get(rat),
                     plusAccountMap.get(rat), minusAccountMap.get(rat));
-            context.findProjectionContext(rat).setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
+            LensProjectionContext<AccountShadowType> accountContext = context.findProjectionContext(rat);
+            if (accountContext != null) {
+            	// This can be null in a exotic case if we delete already deleted account
+            	accountContext.setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
+            }
 
         }
         

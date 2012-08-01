@@ -69,6 +69,8 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
+
 /**
  * @author semancik
  */
@@ -191,7 +193,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, TestProjector.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ);
+        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ);
         context.recompute();
 
         display("Input context", context);
@@ -248,7 +250,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, TestProjector.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
         context.recompute();
 
         display("Input context", context);
@@ -330,7 +332,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModificationToContext(context, TestProjector.REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
         context.recompute();
 
         display("Input context", context);
@@ -418,7 +420,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModificationToContext(context, TestProjector.REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
         context.recomputeFocus();
 
         display("Input context", context);

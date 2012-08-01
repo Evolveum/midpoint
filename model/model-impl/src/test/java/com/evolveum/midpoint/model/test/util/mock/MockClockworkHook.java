@@ -19,11 +19,15 @@
  */
 package com.evolveum.midpoint.model.test.util.mock;
 
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertFalse;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -42,7 +46,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
 	
 	private List<LensContext<?,?>> contexts = new ArrayList<LensContext<?,?>>();
+	private LensContext<?,?> lastAsyncContext = null;
 	private boolean record = false;
+	private boolean asynchronous = false;
 
 	public boolean isRecord() {
 		return record;
@@ -52,12 +58,31 @@ public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
 		this.record = record;
 	}
 	
+	public boolean isAsynchronous() {
+		return asynchronous;
+	}
+
+	public void setAsynchronous(boolean asynchronous) {
+		this.asynchronous = asynchronous;
+	}
+
 	public List<LensContext<?, ?>> getContexts() {
 		return contexts;
+	}
+	
+	public void reset() {
+		record = false;
+		asynchronous = false;
+		clear();
 	}
 
 	public void clear() {
 		contexts.clear();
+		lastAsyncContext = null;
+	}
+
+	public LensContext<?, ?> getLastAsyncContext() {
+		return lastAsyncContext;
 	}
 
 	/* (non-Javadoc)
@@ -65,14 +90,18 @@ public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
 	 */
 	@Override
 	public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
+		assertTrue("Unexpected INITIAL state of the context in the hook", context.getState() != ModelState.INITIAL);
+		// OK to rely on implementation here. This is an implementation test.
+		if (!(context instanceof LensContext)) {
+			throw new IllegalArgumentException("WHOOPS! The context is of type "+context.getClass()+" which we haven't expected");
+		}
+		LensContext lensContext = (LensContext)context;
 		if (record) {
-			// OK to rely on implementation here. This is an implementation test.
-			if (context instanceof LensContext) {
-				LensContext lensContext = (LensContext)context;
-				contexts.add(lensContext.clone());
-			} else {
-				throw new IllegalArgumentException("WHOOPS! The context is of type "+context.getClass()+" which we haven't expected");
-			}
+			contexts.add(lensContext.clone());
+		}
+		if (asynchronous) {
+			lastAsyncContext = lensContext;
+			return HookOperationMode.BACKGROUND;
 		}
 		return HookOperationMode.FOREGROUND;
 	}
