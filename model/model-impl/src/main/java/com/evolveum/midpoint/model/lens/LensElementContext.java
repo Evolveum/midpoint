@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.model.lens;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -55,6 +56,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	
 	public LensElementContext(Class<O> objectTypeClass, LensContext<? extends ObjectType, ? extends ObjectType> lensContext) {
 		super();
+		Validate.notNull(objectTypeClass, "Object class is null");
+		Validate.notNull(lensContext, "Lens context is null");
 		this.lensContext = lensContext;
 		this.objectTypeClass = objectTypeClass;
 	}
