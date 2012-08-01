@@ -272,11 +272,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     }
 	
 	private ResourceSchema getResourceSchema() throws SchemaException {
-		return RefinedResourceSchema.getResourceSchema(resource, getPrismContext());
+		return RefinedResourceSchema.getResourceSchema(resource, getNotNullPrismContext());
 	}
 	
     public RefinedResourceSchema getRefinedResourceSchema() throws SchemaException {
-    	return RefinedResourceSchema.getRefinedSchema(resource, getPrismContext());
+    	return RefinedResourceSchema.getRefinedSchema(resource, getNotNullPrismContext());
     }
     
     public RefinedAccountDefinition getRefinedAccountDefinition() throws SchemaException {
@@ -312,7 +312,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
             if (objectToAdd != null) {
                 PrismObjectDefinition<O> objectDefinition = objectToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                oldAccount = new PrismObject<O>(objectToAdd.getName(), objectDefinition, getPrismContext());
+                oldAccount = new PrismObject<O>(objectToAdd.getName(), objectDefinition, getNotNullPrismContext());
                 oldAccount = syncDelta.computeChangedObject(oldAccount);
             }
         }
@@ -371,6 +371,14 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     	}
     }
     
+	@Override
+	public void adopt(PrismContext prismContext) throws SchemaException {
+		super.adopt(prismContext);
+		if (syncDelta != null) {
+			prismContext.adopt(syncDelta);
+		}
+	}
+
 	@Override
 	public LensProjectionContext<O> clone(LensContext lensContext) {
 		LensProjectionContext<O> clone = new LensProjectionContext<O>(getObjectTypeClass(), lensContext, resourceAccountType);

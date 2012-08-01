@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -686,6 +687,30 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	if (changeType == ChangeType.MODIFY) {
     		for (ItemDelta<?> mod: modifications) {
     			mod.assertDefinitions(tolerateRawElements, "modify delta for "+getOid()+" in "+sourceDescription);
+    		}
+    	}
+    }
+    
+    public void revive(PrismContext prismContext) {
+    	if (objectToAdd != null) {
+    		objectToAdd.revive(prismContext);
+    	}
+    	if (modifications != null) {
+    		for (ItemDelta modification: modifications) {
+    			modification.revive(prismContext);
+    		}
+    	}
+	}
+    
+    public void applyDefinition(PrismObjectDefinition<T> objectDefinition, boolean force) throws SchemaException {
+    	if (objectToAdd != null) {
+    		objectToAdd.applyDefinition(objectDefinition, force);
+    	}
+    	if (modifications != null) {
+    		for (ItemDelta modification: modifications) {
+    			PropertyPath path = modification.getPath();
+    			ItemDefinition itemDefinition = objectDefinition.findItemDefinition(path);
+    			modification.applyDefinition(itemDefinition, force);
     		}
     	}
     }

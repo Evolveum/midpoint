@@ -158,7 +158,7 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         }
 	}
 
-	@Test(enabled=false)
+	@Test
     public void test031AssignAccountToJackAsyncSerialize() throws Exception {
         displayTestTile(this, "test031AssignAccountToJackAsyncSerialize");
         try {
@@ -193,12 +193,9 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         	assertTrue("Unexpected INITIAL state of the context", context.getState() != ModelState.INITIAL);
         	assertEquals("Wrong mode after click in "+context.getState(), HookOperationMode.BACKGROUND, mode);
         	if (serialize) {
-        		LensProjectionContext<AccountShadowType> accCtx = context.getProjectionContexts().iterator().next();
-        		System.out.println("acc ctx BEFORE: "+accCtx.dump());
         		String serializedContext = SerializationUtil.toString(context);
         		context = (LensContext<UserType, AccountShadowType>) SerializationUtil.fromString(serializedContext);
-        		accCtx = context.getProjectionContexts().iterator().next();
-        		System.out.println("acc ctx AFTER: "+accCtx.dump());
+        		context.adopt(prismContext);
         	}
         }
         

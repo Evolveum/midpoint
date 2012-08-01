@@ -63,8 +63,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return lensContext;
 	}
 	
-	protected PrismContext getPrismContext() {
-		return getLensContext().getPrismContext();
+	protected PrismContext getNotNullPrismContext() {
+		return getLensContext().getNotNullPrismContext();
 	}
 
 	public Class<O> getObjectTypeClass() {
@@ -185,7 +185,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     
     protected PrismObjectDefinition<O> getObjectDefinition() {
 		if (objectDefinition == null) {
-			objectDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
+			objectDefinition = getNotNullPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
 		}
 		return objectDefinition;
 	}
@@ -260,6 +260,22 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	    	}
     	}
     }
+	
+	public void adopt(PrismContext prismContext) throws SchemaException {
+		if (objectNew != null) {
+			prismContext.adopt(objectNew);
+		}
+		if (objectOld != null) {
+			prismContext.adopt(objectOld);
+		}
+		if (primaryDelta != null) {
+			prismContext.adopt(primaryDelta);
+		}
+		if (secondaryDelta != null) {
+			prismContext.adopt(secondaryDelta);
+		}
+		// TODO: object definition?
+	}
 	
 	public abstract LensElementContext<O> clone(LensContext lensContext);
 	

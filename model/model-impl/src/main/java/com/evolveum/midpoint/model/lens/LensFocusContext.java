@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -139,6 +140,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     
     private PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition() {
 		return getObjectDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+	}
+    
+    @Override
+	public void adopt(PrismContext prismContext) throws SchemaException {
+		super.adopt(prismContext);
+		if (secondaryDeltas != null) {
+			secondaryDeltas.adopt(prismContext);
+		}
 	}
     
     @Override

@@ -55,8 +55,8 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	private LensFocusContext<F> focusContext;
 	private Collection<LensProjectionContext<P>> projectionContexts = new ArrayList<LensProjectionContext<P>>();
 	
-	private UserTemplateType userTemplate;
-	private AccountSynchronizationSettingsType accountSynchronizationSettings;
+	transient private UserTemplateType userTemplate;
+	transient private AccountSynchronizationSettingsType accountSynchronizationSettings;
 	
 	private Class<F> focusClass;
 	private Class<P> projectionClass;
@@ -90,6 +90,13 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     }
 	
 	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+	
+	protected PrismContext getNotNullPrismContext() {
+		if (prismContext == null) {
+			throw new IllegalStateException("Null prism context in "+this+"; the context was not adopted (most likely)");
+		}
 		return prismContext;
 	}
 	
@@ -315,6 +322,17 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
      */
     public void rememberResource(ResourceType resourceType) {
     	getResourceCache().put(resourceType.getOid(), resourceType);
+    }
+    
+    public void adopt(PrismContext prismContext) throws SchemaException {
+    	this.prismContext = prismContext;
+    	
+    	if (focusContext != null) {
+    		focusContext.adopt(prismContext);
+    	}
+    	for (LensProjectionContext<P> projectionContext: projectionContexts) {
+    		projectionContext.adopt(prismContext);
+    	}
     }
     
     public LensContext<F, P> clone() {

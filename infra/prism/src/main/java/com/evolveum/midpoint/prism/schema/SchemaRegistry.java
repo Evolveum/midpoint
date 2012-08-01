@@ -62,6 +62,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -713,6 +714,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	public void applyDefinition(PrismObject<? extends Objectable> prismObject, Class<? extends Objectable> type, boolean force) throws SchemaException {
 		PrismObjectDefinition<? extends Objectable> objectDefinition = determineDefinitionFromClass(type);
 		prismObject.applyDefinition(objectDefinition, force);
+	}
+	
+	/**
+	 * This method will try to locate the appropriate object definition and apply it.
+	 */
+	public <T extends Objectable> void applyDefinition(ObjectDelta<T> objectDelta, Class<T> type, boolean force) throws SchemaException {
+		PrismObjectDefinition<T> objectDefinition = determineDefinitionFromClass(type);
+		objectDelta.applyDefinition(objectDefinition, force);
 	}
 		
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName) {

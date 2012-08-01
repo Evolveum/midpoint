@@ -80,6 +80,7 @@ public class Projector {
 		int originalWave = context.getWave();
 		
 		contextLoader.load(context, activityDescription, result);
+		// Set the "fresh" mark now so following consistency check will be stricter
 		context.setFresh(true);
 		if (CONSISTENCY_CHECKS) context.checkConsistence();
 		

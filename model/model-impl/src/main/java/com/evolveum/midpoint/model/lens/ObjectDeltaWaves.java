@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -114,6 +115,15 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 			}
 		}
 	}
+	
+	public void adopt(PrismContext prismContext) throws SchemaException {
+		for (ObjectDelta<O> thisWave: this.waves) {
+			if (thisWave != null) {
+				prismContext.adopt(thisWave);
+			}
+		}
+	}
+
 
 	// DELEGATED METHODS (with small tweaks)
 	
@@ -368,5 +378,6 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 	public String toString() {
 		return "ObjectDeltaWaves(" + waves + ")";
 	}
+
 
 }

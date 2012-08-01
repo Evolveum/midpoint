@@ -646,6 +646,36 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		return true;
 	}
+	
+	public void revive(PrismContext prismContext) {
+		reviveSet(valuesToAdd, prismContext);
+	}
+
+	private void reviveSet(Collection<V> set, PrismContext prismContext) {
+		if (set == null) {
+			return;
+		}
+		for (V val: set) {
+			// TODO: nothing to do ???????????
+		}
+	}
+	
+	public void applyDefinition(ItemDefinition itemDefinition, boolean force) throws SchemaException {
+		if (this.definition != null && !force) {
+			return;
+		}
+		this.definition = itemDefinition;
+		applyDefinitionSet(valuesToAdd, itemDefinition, force);
+	}
+
+	private void applyDefinitionSet(Collection<V> set, ItemDefinition itemDefinition, boolean force) throws SchemaException {
+		if (set == null) {
+			return;
+		}
+		for (V val: set) {
+			val.applyDefinition(itemDefinition, force);
+		}
+	}
 
 	@Override
 	public String toString() {

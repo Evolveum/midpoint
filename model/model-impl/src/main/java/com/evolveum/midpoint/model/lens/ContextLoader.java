@@ -95,9 +95,7 @@ public class ContextLoader {
 
         LensUtil.traceContext(activityDescription, "load", context, false);
 
-        // Check reconcile flag in account sync context and set accountOld
-        // variable if it's not set (from provisioning)
-        checkAccountContextReconciliation(ucContext, result);		
+        checkAccountContexts(ucContext, result);		
 	}
 	
 	private <F extends ObjectType, P extends ObjectType> void loadObjectOld(LensContext<F,P> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -450,7 +448,11 @@ public class ContextLoader {
 		return false;
 	}
 	
-	private void checkAccountContextReconciliation(LensContext<UserType,AccountShadowType> context, OperationResult result)
+	/**
+	 * Check reconcile flag in account sync context and set accountOld
+     * variable if it's not set (from provisioning), load resource (if not set already), etc.
+	 */
+	private void checkAccountContexts(LensContext<UserType,AccountShadowType> context, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
 			SecurityViolationException {
 
@@ -458,6 +460,17 @@ public class ContextLoader {
 				+ ".checkAccountContextReconciliation");
 		try {
 			for (LensProjectionContext<AccountShadowType> accContext : context.getProjectionContexts()) {
+				if (accContext.getResource() == null) {
+					ResourceAccountType rat = accContext.getResourceAccountType();
+					ResourceType resourceType = context.getResource(rat);
+					if (resourceType == null) {
+						PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, rat.getResourceOid(), null, result);
+						resourceType = resource.asObjectable();
+						context.rememberResource(resourceType);
+					}
+					accContext.setResource(resourceType);
+				}
+				
 				if (!accContext.isDoReconciliation()) {
 					// no need to load
 					continue;

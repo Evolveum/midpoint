@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -153,9 +154,18 @@ public class PrismContext {
 		object.revive(this);
 		getSchemaRegistry().applyDefinition(object, declaredType, false);
 	}
+	
+	public <T extends Objectable> void adopt(PrismObject<T> object) throws SchemaException {
+		adopt(object, object.getCompileTimeClass());
+	}
 
 	public void adopt(Objectable objectable) throws SchemaException {
 		adopt(objectable.asPrismObject(), objectable.getClass());
+	}
+	
+	public <T extends Objectable> void adopt(ObjectDelta<T> delta) throws SchemaException {
+		delta.revive(this);
+		getSchemaRegistry().applyDefinition(delta, delta.getObjectTypeClass(), false);
 	}
 	
     /**
