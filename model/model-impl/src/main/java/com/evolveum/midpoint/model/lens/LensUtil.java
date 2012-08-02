@@ -105,11 +105,14 @@ public class LensUtil {
 		Class<P> projectionClass = null;
 		if (isFocalClass(typeClass)) {
 			focusClass = (Class<F>) typeClass;
+			projectionClass = getProjectionClass(focusClass);
+			Validate.notNull(projectionClass, "No projection class for focus "+focusClass);
 			context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
 			LensFocusContext<F> focusContext = context.createFocusContext();
 			focusContext.setPrimaryDelta((ObjectDelta<F>) delta);
 		} else {
 			// TODO
+			throw new UnsupportedOperationException();
 		}
 		
 		return context;
@@ -121,6 +124,14 @@ public class LensUtil {
 			return true;
 		}
 		return false;
+	}
+	
+	public static <F extends ObjectType, P extends ObjectType> Class<P> getProjectionClass(Class<F> focusClass) {
+		// TODO!!!!!!!!!!!!
+		if (UserType.class.isAssignableFrom(focusClass)) {
+			return (Class<P>) AccountShadowType.class;
+		}
+		return null;
 	}
 
 }
