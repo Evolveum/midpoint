@@ -19,6 +19,9 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
@@ -96,26 +99,52 @@ public class LensUtil {
 		return accountSyncContext;
 	}
 	
-	public static <T extends ObjectType, F extends ObjectType, P extends ObjectType> ModelContext<F, P> objectDeltaToContext(
-			ObjectDelta<T> delta, PrismContext prismContext) {
-		LensContext<F, P> context = null;
-		Class<T> typeClass = delta.getObjectTypeClass();
-		Validate.notNull(typeClass, "Object type class is null in "+delta);
+	public static <F extends ObjectType, P extends ObjectType> LensContext<F, P> objectDeltaToContext(
+			Collection<ObjectDelta<? extends ObjectType>> deltas, PrismContext prismContext) {
+		ObjectDelta<F> focusDelta = null;
+		Collection<ObjectDelta<P>> projectionDeltas = new ArrayList<ObjectDelta<P>>(deltas.size());
 		Class<F> focusClass = null;
 		Class<P> projectionClass = null;
-		if (isFocalClass(typeClass)) {
-			focusClass = (Class<F>) typeClass;
-			projectionClass = getProjectionClass(focusClass);
-			Validate.notNull(projectionClass, "No projection class for focus "+focusClass);
-			context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
+		// Sort deltas to focus and projection deltas, check if the classes are correct;
+		for (ObjectDelta<? extends ObjectType> delta: deltas) {
+			Class<? extends ObjectType> typeClass = delta.getObjectTypeClass();
+			Validate.notNull(typeClass, "Object type class is null in "+delta);
+			if (isFocalClass(typeClass)) {
+				focusClass = (Class<F>) typeClass;
+				projectionClass = checkProjectionClass(projectionClass, (Class<P>) getProjectionClass(focusClass));
+				Validate.notNull(projectionClass, "No projection class for focus "+focusClass);
+				focusDelta = (ObjectDelta<F>) delta;
+			} else {
+				// This must be projection delta
+				projectionClass = checkProjectionClass(projectionClass, (Class<P>) typeClass);
+				projectionDeltas.add((ObjectDelta<P>) delta);
+			}
+		}
+		
+		LensContext<F, P> context = null;
+		context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
+		if (focusDelta != null) {
 			LensFocusContext<F> focusContext = context.createFocusContext();
-			focusContext.setPrimaryDelta((ObjectDelta<F>) delta);
-		} else {
-			// TODO
-			throw new UnsupportedOperationException();
+			focusContext.setPrimaryDelta(focusDelta);
+		}
+		for (ObjectDelta<P> projectionDelta: projectionDeltas) {
+			// TODO: special handling for account (RAT)
+			LensProjectionContext<P> projectionContext = context.createProjectionContext();
+			projectionContext.setPrimaryDelta(projectionDelta);
 		}
 		
 		return context;
+	}
+
+	private static <T extends ObjectType> Class<T> checkProjectionClass(Class<T> oldProjectionClass, Class<T> newProjectionClass) {
+		if (oldProjectionClass == null) {
+			return newProjectionClass;
+		} else {
+			if (oldProjectionClass != oldProjectionClass) {
+				throw new IllegalArgumentException("Mixed projection classes in the deltas, got both "+oldProjectionClass+" and "+oldProjectionClass);
+			}
+			return oldProjectionClass;
+		}
 	}
 
 	public static <T extends ObjectType> boolean isFocalClass(Class<T> clazz) {

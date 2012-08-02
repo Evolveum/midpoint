@@ -1042,6 +1042,7 @@ public class PageUser extends PageAdminUsers {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 			}
 			Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+			Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 			switch (userWrapper.getStatus()) {
 				case ADDING:
 					PrismContainer password = delta.getObjectToAdd().findContainer(
@@ -1054,13 +1055,15 @@ public class PageUser extends PageAdminUsers {
 					encryptCredentials(user, true);
 					prepareUserForAdd(user);
 					getPrismContext().adopt(user, UserType.class);
-					changes = getModelInteractionService().previewChanges(delta, result);
+					deltas.add(delta);
+					changes = getModelInteractionService().previewChanges(deltas , result);
 					result.recordSuccess();
 					break;
 				case MODIFYING:
 					encryptCredentials(delta, true);
 					prepareUserDeltaForModify(delta);
-					changes = getModelInteractionService().previewChanges(delta, result);
+					deltas.add(delta);
+					changes = getModelInteractionService().previewChanges(deltas, result);
 					result.recordSuccess();
 					break;
 				// delete state is where? wtf?? in next release add there delete

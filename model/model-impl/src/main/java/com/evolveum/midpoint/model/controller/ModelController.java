@@ -272,7 +272,35 @@ public class ModelController implements ModelService, ModelInteractionService {
 			}
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelService#executeChanges(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, Task task,
+			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException {
+		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
+		LensContext<?, ?> context = LensUtil.objectDeltaToContext(deltas, prismContext);
+		clockwork.run(context, task, result);
+		// TODO: ERROR HANDLING
+		result.computeStatus();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
+			Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(deltas, prismContext);
+		projector.project(context, "preview", result);
+		return context;
+	}
 
+	@Deprecated
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task,
 			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
@@ -550,6 +578,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 	}
 
+	@Deprecated
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, Task task, OperationResult parentResult)
@@ -760,6 +789,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		return syncContext;
 	}
 
+	@Deprecated
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
@@ -1224,17 +1254,6 @@ public class ModelController implements ModelService, ModelInteractionService {
 		attributesContainer.applyDefinition(rAccountDef, true);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
-	@Override
-	public <T extends ObjectType, F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
-			ObjectDelta<T> delta, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(delta, prismContext);
-		projector.project(context, "preview", result);
-		return context;
-	}
-
     /**
      * Methods to invoke old-style hooks, necessary for keeping SystemConfigurationHandler updated.
      * (Will disappear after non-user-related model actions will be migrated to new 'lens' paradigm.)
@@ -1258,5 +1277,6 @@ public class ModelController implements ModelService, ModelInteractionService {
             }
         }
     }
+
 
 }

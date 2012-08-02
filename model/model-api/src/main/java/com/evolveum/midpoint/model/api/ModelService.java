@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -87,6 +88,7 @@ public interface ModelService {
 	String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
 	String ADD_USER = CLASS_NAME_WITH_DOT + "addUser";
 	String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
+	String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
 	String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME_WITH_DOT + "getPropertyAvailableValues";
 	String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
 	String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
@@ -135,6 +137,76 @@ public interface ModelService {
 	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<ObjectOperationOptions> options,
 			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException;
 
+	/**
+	 * <p>
+	 * Execute the provided object deltas.
+	 * </p>
+	 * <p>
+	 * The operation executes the provided object deltas. All deltas must relate to analogous objects (e.g. user
+	 * and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation
+	 * also implicitly links the objects (mark them to be analogous) if such a link is part of the data model.
+	 * E.g. the implementation links all accounts to the user if they are passed in a single delta collection.
+	 * This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked
+	 * explicitly. 
+	 * </p>
+	 * <p>
+	 * There must be no more than one delta for each object.
+	 * The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering.
+	 * </p>
+	 * <p>
+	 * The OID provided in ADD deltas may be empty. In that case the OID
+	 * will be assigned by the implementation and the OIDs will be set in the
+	 * deltas after the operation is completed.
+	 * </p>
+	 * <p>
+	 * Execution of ADD deltas should fail if such object already exists (if object with
+	 * the provided OID already exists). Execution of MODIFY and DELETE deltas should fail if
+	 * such objects do not exist.
+	 * </p>
+	 * <p>
+	 * The operation may fail if provided OIDs are in an unusable format for the
+	 * storage. Generating own OIDs and providing them to this method is not
+	 * recommended for normal operation.
+	 * </p>
+	 * <p>
+	 * There are no explicit atomicity guarantees for the operations. Some of the operations may pass, some may fail
+	 * or even fail partially. The consistency of the data and state are not based on operation atomicity but rather
+	 * a data model that can "repair" inconsistencies.
+	 * </p>
+	 * <p>
+	 * The operation may fail if any of the objects to be created or modified does not conform to
+	 * the underlying schema of the storage system or the schema enforced by the implementation.
+	 * </p>
+	 * 
+	 * @param deltas
+	 *            Collection of object deltas to execute
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @return OID assigned to the created object
+	 * @throws ObjectAlreadyExistsException
+	 *             object with specified identifiers already exists, cannot add
+	 * @throws ObjectNotFoundException
+	 *             object required to complete the operation was not found (e.g.
+	 *             appropriate connector or resource definition)
+	 * @throws SchemaException
+	 *             error dealing with resource schema, e.g. created object does
+	 *             not conform to schema
+	 * @throws ExpressionEvaluationException 
+	 * 				evaluation of expression associated with the object has failed
+	 * @throws CommunicationException 
+	 * @throws ConfigurationException 
+	 * @throws PolicyViolationException
+	 * 				Policy violation was detected during processing of the object
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, etc.
+	 * @throws SystemException
+	 *             unknown error from underlying layers or other unexpected
+	 *             state
+	 */
+	void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) 
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+	
 	/**
 	 * <p>
 	 * Add new object.
@@ -188,6 +260,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
+	@Deprecated
 	<T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult) 
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
@@ -231,6 +304,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
+	@Deprecated
 	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
@@ -262,6 +336,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
+	@Deprecated
 	<T extends ObjectType> void deleteObject(Class<T> type, String oid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException;

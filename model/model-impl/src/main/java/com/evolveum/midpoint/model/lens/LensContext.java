@@ -86,8 +86,9 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	
 	public LensContext(Class<F> focusClass, Class<P> projectionClass, PrismContext prismContext) {
 		Validate.notNull(prismContext, "No prismContext");
-		Validate.notNull(focusClass, "No focus class");
-		Validate.notNull(projectionClass, "No projection class");
+		if (focusClass == null && projectionClass == null) {
+			throw new IllegalArgumentException("Neither focus class nor projection class was specified");
+		}
 		
         this.prismContext = prismContext;
         this.focusClass = focusClass;

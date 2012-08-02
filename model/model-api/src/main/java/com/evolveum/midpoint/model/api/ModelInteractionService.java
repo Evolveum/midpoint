@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,6 +61,8 @@ public interface ModelInteractionService {
 	 * by the resource are not taken into account while recomputing the values. This may also cause errors if some expressions depend
 	 * on the generated values. 
 	 */
-	public <T extends ObjectType, F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(ObjectDelta<T> delta, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
+			Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result) 
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 }

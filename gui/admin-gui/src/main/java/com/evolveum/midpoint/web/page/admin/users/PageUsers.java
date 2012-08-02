@@ -430,7 +430,9 @@ public class PageUsers extends PageAdminUsers {
         	
         	try {
         		delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid());
-        		changes = getModelInteractionService().previewChanges(delta, result);
+        		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        		deltas.add(delta);
+				changes = getModelInteractionService().previewChanges(deltas , result);
 			} catch (Exception ex) {
 				result.recordFatalError("Couldn't send user to submit.", ex);
 				LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
