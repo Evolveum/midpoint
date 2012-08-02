@@ -142,6 +142,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void simpleAddGetTest() throws Exception {
+		LOGGER.info("===[ simpleAddGetTest ]===");
 		final File OBJECTS_FILE = new File("./src/test/resources/objects.xml");
 		addGetCompare(OBJECTS_FILE);
 	}
@@ -239,6 +240,31 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertNotNull(delta);
 		LOGGER.info("delta\n{}", new Object[] { delta.debugDump(3) });
 		AssertJUnit.assertTrue(delta.isEmpty());
+	}
+	
+	@Test
+	public void addGetSystemConfigFile() throws Exception {
+		LOGGER.info("===[ addGetPasswordPolicy ]===");
+		File file = new File("./src/test/resources/password-policy.xml");
+		PrismObject<AccountShadowType> filePasswordPolicy = prismContext.parseObject(new File(TEST_DIR, "password-policy.xml"));
+
+		OperationResult result = new OperationResult("ADD");
+		String pwdPolicyOid = "00000000-0000-0000-0000-000000000003";
+		String oid = repositoryService.addObject(filePasswordPolicy, result);
+		AssertJUnit.assertNotNull(oid);
+		AssertJUnit.assertEquals(pwdPolicyOid, oid);
+		PrismObject<PasswordPolicyType> repoPasswordPolicy = repositoryService.getObject(PasswordPolicyType.class, oid, result);
+		AssertJUnit.assertNotNull(repoPasswordPolicy);
+		
+		String systemCongigOid = "00000000-0000-0000-0000-000000000001";
+		PrismObject<AccountShadowType> fileSystemConfig = prismContext.parseObject(new File(TEST_DIR, "systemConfiguration.xml"));
+		oid = repositoryService.addObject(fileSystemConfig, result);
+		AssertJUnit.assertNotNull(oid);
+		AssertJUnit.assertEquals(systemCongigOid, oid);
+		
+		PrismObject<SystemConfigurationType> repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, result);
+//		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicy());
+		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicyRef());
 	}
 
 	

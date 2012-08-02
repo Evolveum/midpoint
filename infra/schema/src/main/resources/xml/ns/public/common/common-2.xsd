@@ -4518,8 +4518,6 @@
 
     <!-- The following clauses belong to the operation support. -->
 
-    <xsd:element name="passwordPolicy" type="tns:PasswordPolicyType"/>
-
     <xsd:complexType name="PasswordPolicyType">
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
@@ -4530,6 +4528,8 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    
+    <xsd:element name="passwordPolicy" type="tns:PasswordPolicyType"/>
 
     <xsd:complexType name="PasswordLifeTimeType">
         <xsd:sequence>
@@ -4799,6 +4799,32 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="globalPasswordPolicy" type="tns:PasswordPolicyType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                System-global password policy settings. These will be used if there is no specific settings 
+                                (e.g. per account)
+
+                                TODO: better documentation
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReference>tns:globalPasswordPolicyRef</a:objectReference>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="globalPasswordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the global password policy settings.
+
+                                TODO: better documentation
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:PasswordPolicyType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="modelHooks" type="tns:ModelHooksType" minOccurs="0"/>
                     <xsd:element name="logging" type="tns:LoggingConfigurationType" minOccurs="0">
                         <xsd:annotation>

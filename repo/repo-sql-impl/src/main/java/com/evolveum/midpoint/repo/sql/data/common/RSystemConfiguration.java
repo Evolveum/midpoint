@@ -48,6 +48,7 @@ public class RSystemConfiguration extends RObject {
     @QueryAttribute
     private String name;
     private String globalAccountSynchronizationSettings;
+    private RObjectReference globalPasswordPolicyRef;
     private String modelHooks;
     private String logging;
     private RObjectReference defaultUserTemplateRef;
@@ -58,6 +59,12 @@ public class RSystemConfiguration extends RObject {
         return connectorFramework;
     }
 
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RObjectReference getGlobalPasswordPolicyRef() {
+		return globalPasswordPolicyRef;
+	}
+    
     @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReference getDefaultUserTemplateRef() {
@@ -101,6 +108,10 @@ public class RSystemConfiguration extends RObject {
         this.globalAccountSynchronizationSettings = globalAccountSynchronizationSettings;
     }
 
+    public void setGlobalPasswordPolicyRef(RObjectReference globalPasswordPolicyRef) {
+		this.globalPasswordPolicyRef = globalPasswordPolicyRef;
+	}
+    
     public void setLogging(String logging) {
         this.logging = logging;
     }
@@ -122,6 +133,8 @@ public class RSystemConfiguration extends RObject {
             return false;
         if (defaultUserTemplateRef != null ? !defaultUserTemplateRef.equals(that.defaultUserTemplateRef) : that.defaultUserTemplateRef != null)
             return false;
+        if (globalPasswordPolicyRef != null ? !globalPasswordPolicyRef.equals(that.globalPasswordPolicyRef) : that.globalPasswordPolicyRef != null)
+            return false;
         if (globalAccountSynchronizationSettings != null ? !globalAccountSynchronizationSettings.equals(that.globalAccountSynchronizationSettings) : that.globalAccountSynchronizationSettings != null)
             return false;
         if (logging != null ? !logging.equals(that.logging) : that.logging != null) return false;
@@ -135,6 +148,7 @@ public class RSystemConfiguration extends RObject {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (globalAccountSynchronizationSettings != null ? globalAccountSynchronizationSettings.hashCode() : 0);
+        result = 31 * result + (globalPasswordPolicyRef != null ? globalPasswordPolicyRef.hashCode() : 0);
         result = 31 * result + (modelHooks != null ? modelHooks.hashCode() : 0);
         result = 31 * result + (logging != null ? logging.hashCode() : 0);
         result = 31 * result + (connectorFramework != null ? connectorFramework.hashCode() : 0);
@@ -148,6 +162,10 @@ public class RSystemConfiguration extends RObject {
         jaxb.setName(repo.getName());
         if (repo.getDefaultUserTemplateRef() != null) {
             jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB(prismContext));
+        }
+        
+        if (repo.getGlobalPasswordPolicyRef() != null) {
+            jaxb.setGlobalPasswordPolicyRef(repo.getGlobalPasswordPolicyRef().toJAXB(prismContext));
         }
 
         try {
@@ -177,6 +195,13 @@ public class RSystemConfiguration extends RObject {
         }
 
         repo.setDefaultUserTemplateRef(RUtil.jaxbRefToRepo(jaxb.getDefaultUserTemplateRef(), repo, prismContext));
+        
+        if (jaxb.getGlobalPasswordPolicy() != null) {
+            LOGGER.warn("Global password policy from system configuration type won't be saved. It should be " +
+                    "translated to global password policy reference.");
+        }
+        
+        repo.setGlobalPasswordPolicyRef(RUtil.jaxbRefToRepo(jaxb.getGlobalPasswordPolicyRef(), repo, prismContext));
 
         try {
             repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework(), prismContext));

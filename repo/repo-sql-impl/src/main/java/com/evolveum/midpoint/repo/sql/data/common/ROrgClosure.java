@@ -28,14 +28,10 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "m_org_closure")
-// @org.hibernate.annotations.Table(appliesTo = "m_org_closure", foreignKey=
-// @ForeignKey(name = "iDescendant"))
 public class ROrgClosure implements Serializable {
 
-	// todo how about FK keys?
+
 	private Long id;
-	// private Set<RObject> ancestors;
-	// private Set<RObject> descendants;
 	private RObject ancestor;
 	private RObject descendant;
 	private int depth;
@@ -60,29 +56,6 @@ public class ROrgClosure implements Serializable {
 		this.id = id;
 	}
 
-	// @Id
-	// @Index(name = "iAncestor")
-	// @ManyToMany(fetch = FetchType.LAZY, mappedBy="closureRefs")
-	// @JoinColumns({
-	// @JoinColumn(name = "ancestor_oid", referencedColumnName = "oid"),
-	// @JoinColumn(name = "ancestor_id", referencedColumnName = "id")
-	// })
-	// @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-	// public Set<RObject> getAncestors() {
-	// return ancestors;
-	// }
-
-	// @Id
-	// @Index(name = "iDescendant")
-	// @ManyToMany(fetch = FetchType.LAZY, mappedBy="closureRefs")
-	// @JoinColumns({
-	// @JoinColumn(name = "descendant_oid", referencedColumnName = "oid"),
-	// @JoinColumn(name = "descendant_id", referencedColumnName = "id")
-	// })
-	// @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-	// public Set<RObject> getDescendants() {
-	// return descendants;
-	// }
 
 	@Index(name = "iAncestor")
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -112,13 +85,6 @@ public class ROrgClosure implements Serializable {
 		return depth;
 	}
 
-	// public void setAncestors(Set<RObject> ancestor) {
-	// this.ancestors = ancestor;
-	// }
-	//
-	// public void setDescendants(Set<RObject> descendant) {
-	// this.descendants = descendant;
-	// }
 
 	public void setDepth(int depth) {
 		this.depth = depth;
