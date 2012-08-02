@@ -19,14 +19,23 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -34,18 +43,25 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PropertyConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
@@ -66,20 +82,31 @@ public class UserPolicyProcessor {
 
 	@Autowired(required=true)
 	private PrismContext prismContext;
+	
+	@Autowired(required = true)
+    @Qualifier("cacheRepositoryService")
+    private transient RepositoryService cacheRepositoryService;
+	
+	@Autowired(required = true)
+	Protector protector;
 
 	<F extends ObjectType, P extends ObjectType> void processUserPolicy(LensContext<F,P> context, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, ExpressionEvaluationException {
+            SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
     	}
+    	
     	if (focusContext.getObjectTypeClass() != UserType.class) {
     		// We can do this only for user.
     		return;
     	}
+    	
     	LensContext<UserType,AccountShadowType> usContext = (LensContext<UserType,AccountShadowType>) context;
-		
+    	//check user password if satisfies policies
+    	checkPasswordPolicies(usContext, (LensFocusContext<UserType>)focusContext, result);
+    	
 		UserTemplateType userTemplate = determineUserTemplate(usContext, result);
 
 		if (userTemplate == null) {
@@ -88,6 +115,51 @@ public class UserPolicyProcessor {
 		}
 
 		applyUserTemplate(usContext, userTemplate, result);
+				
+	}
+	
+	private void checkPasswordPolicies(LensContext<UserType,AccountShadowType> context, LensFocusContext<UserType> focusContext, OperationResult result) throws PolicyViolationException{
+		PrismObject<UserType> user = null;
+		if (focusContext.getObjectOld() != null) {
+			user = (PrismObject<UserType>) focusContext.getObjectOld();
+		} else {
+			user = (PrismObject<UserType>) focusContext.getObjectNew();
+		}
+
+		if (user != null) {
+			PrismProperty<PasswordType> password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+
+			// TODO: what to do if the provided password is null???
+			if (password == null || password.getValue(ProtectedStringType.class) == null) {
+				return;
+			}
+
+			ProtectedStringType passValue = password.getValue(ProtectedStringType.class).getValue();
+
+			if (passValue == null || context.getGlobalPasswordPolicy() == null) {
+				return;
+			}
+
+			String passwordStr = passValue.getClearValue();
+
+			if (passwordStr == null && passValue.getEncryptedData() != null) {
+				// TODO: is this appropriate handling???
+				try {
+					passwordStr = protector.decryptString(passValue);
+				} catch (EncryptionException ex) {
+					throw new SystemException("Failed to process password for user: " + user.asObjectable().getName(),
+							ex);
+				}
+			}
+			boolean isValid = PasswordPolicyUtils.validatePassword(passwordStr, context.getGlobalPasswordPolicy(),
+					result);
+
+			if (!isValid) {
+				throw new PolicyViolationException("Provided password does not satisfy password policies.");
+			}
+
+		}
+
 	}
 
 	private void applyUserTemplate(LensContext<UserType,AccountShadowType> context, UserTemplateType userTemplate, OperationResult result)

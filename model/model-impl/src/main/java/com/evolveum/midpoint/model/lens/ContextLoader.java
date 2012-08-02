@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
@@ -147,6 +148,23 @@ public class ContextLoader {
 		    AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfigurationType.getGlobalAccountSynchronizationSettings();
 		    LOGGER.trace("Applying globalAccountSynchronizationSettings to context: {}", globalAccountSynchronizationSettings);
 		    context.setAccountSynchronizationSettings(globalAccountSynchronizationSettings);
+		}
+		
+		if (context.getGlobalPasswordPolicy() == null){
+			
+			
+			PasswordPolicyType globalPasswordPolicy = systemConfigurationType.getGlobalPasswordPolicy();
+			
+			if (globalPasswordPolicy == null){
+				if (systemConfigurationType.getGlobalPasswordPolicyRef() != null){
+					PrismObject<PasswordPolicyType> passwordPolicy = cacheRepositoryService.getObject(PasswordPolicyType.class, systemConfigurationType.getGlobalPasswordPolicyRef().getOid(), result);
+					if (passwordPolicy != null){
+						globalPasswordPolicy = passwordPolicy.asObjectable();
+					}
+				}
+			}
+			
+			context.setGlobalPasswordPolicy(globalPasswordPolicy);
 		}
 	}
 	

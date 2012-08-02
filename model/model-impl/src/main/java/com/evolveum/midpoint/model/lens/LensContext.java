@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
 
@@ -59,6 +60,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	
 	transient private UserTemplateType userTemplate;
 	transient private AccountSynchronizationSettingsType accountSynchronizationSettings;
+	transient private PasswordPolicyType globalPasswordPolicy;
 	
 	private Class<F> focusClass;
 	private Class<P> projectionClass;
@@ -183,6 +185,14 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	public void setAccountSynchronizationSettings(
 			AccountSynchronizationSettingsType accountSynchronizationSettings) {
 		this.accountSynchronizationSettings = accountSynchronizationSettings;
+	}
+	
+	public PasswordPolicyType getGlobalPasswordPolicy() {
+		return globalPasswordPolicy;
+	}
+	
+	public void setGlobalPasswordPolicy(PasswordPolicyType globalPasswordPolicy) {
+		this.globalPasswordPolicy = globalPasswordPolicy;
 	}
 	
 	public int getWave() {

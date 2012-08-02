@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.evolveum.midpoint.common.string.StringPolicyUtils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 
@@ -103,6 +105,34 @@ public class PasswordPolicyUtils {
 		return ret;
 	}
 	
+	public static boolean validatePassword(String password, List<PrismObject<PasswordPolicyType>> policies) {
+		boolean ret=true;
+		//iterate through policies 
+		for (PrismObject<PasswordPolicyType> pp: policies) {
+			OperationResult op = validatePassword(password, pp.asObjectable());
+//			result.addSubresult(op);
+			//if one fail then result is failure
+			if (ret == true && ! op.isSuccess()) {
+				ret = false;
+			}
+		}
+		return ret;
+	}
+	
+	public static boolean validatePassword(ProtectedStringType password, List<PrismObject<PasswordPolicyType>> policies) {
+		boolean ret=true;
+		//iterate through policies 
+		for (PrismObject<PasswordPolicyType> pp: policies) {
+			OperationResult op = validatePassword(password.getClearValue(), pp.asObjectable());
+//			result.addSubresult(op);
+			//if one fail then result is failure
+			if (ret == true && ! op.isSuccess()) {
+				ret = false;
+			}
+		}
+		return ret;
+	}
+	
 	/**
 	 * Check provided password against provided policy
 	 * 
@@ -119,6 +149,13 @@ public class PasswordPolicyUtils {
 	public static boolean validatePassword(String password, PasswordPolicyType pp, OperationResult result) {
 		OperationResult op = validatePassword(password, pp);
 		result.addSubresult(op);
+		return op.isSuccess();
+	}
+	
+	public static boolean validatePassword(ProtectedStringType password, PasswordPolicyType pp) {
+		
+		OperationResult op = validatePassword(password.getClearValue(), pp);
+//		result.addSubresult(op);
 		return op.isSuccess();
 	}
 
