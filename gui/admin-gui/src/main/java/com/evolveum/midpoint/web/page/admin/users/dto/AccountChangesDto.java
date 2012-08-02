@@ -30,10 +30,16 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.page.admin.users.PageSubmit;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 
 /**
  * @author mserbak
@@ -70,6 +76,14 @@ public class AccountChangesDto implements Serializable {
 			String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName()
 					.getLocalPart();
 
+			PropertyPath passwordPath = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
+					CredentialsType.F_PASSWORD);
+
+			if (passwordPath.equals(modifyDelta.getParentPath())
+					&& PasswordType.F_PROTECTED_STRING.equals(def.getName())) {
+				attribute = "Password";
+			}
+
 			if (modifyDelta.getValuesToDelete() != null) {
 				for (Object valueToDelete : modifyDelta.getValuesToDelete()) {
 					PrismPropertyValue value = (PrismPropertyValue) valueToDelete;
@@ -80,6 +94,18 @@ public class AccountChangesDto implements Serializable {
 			if (modifyDelta.getValuesToAdd() != null) {
 				for (Object valueToAdd : modifyDelta.getValuesToAdd()) {
 					PrismPropertyValue value = (PrismPropertyValue) valueToAdd;
+					newValue.add(value == null ? "" : value.getValue().toString());
+				}
+			}
+
+			if (modifyDelta.getValuesToReplace() != null) {
+				for (Object valueToReplace : modifyDelta.getValuesToReplace()) {
+					PrismPropertyValue value = (PrismPropertyValue) valueToReplace;
+					PropertyDelta parent = (PropertyDelta) value.getParent();
+					if (parent.getParentPath().equals(SchemaConstants.PATH_PASSWORD)) {
+						newValue.add("*****");
+						continue;
+					}
 					newValue.add(value == null ? "" : value.getValue().toString());
 				}
 			}

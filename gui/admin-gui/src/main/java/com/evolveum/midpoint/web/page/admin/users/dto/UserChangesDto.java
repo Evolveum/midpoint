@@ -47,15 +47,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
  * @author mserbak
  */
 public class UserChangesDto implements Serializable {
-	private ModelElementContext userChanges;
-	private List<SubmitDeltaObjectDto> assignmentsDeltas = new ArrayList<SubmitDeltaObjectDto>();
-	private List<SubmitDeltaObjectDto> userPropertiesDeltas = new ArrayList<SubmitDeltaObjectDto>();
-
-	PropertyPath account = new PropertyPath(SchemaConstants.I_ACCOUNT_REF);
-	PropertyPath assignment = new PropertyPath(SchemaConstantsGenerated.C_ASSIGNMENT);
+	private List<SubmitDeltaObjectDto> assignmentsList = new ArrayList<SubmitDeltaObjectDto>();
+	private List<SubmitDeltaObjectDto> userPropertiesList = new ArrayList<SubmitDeltaObjectDto>();
 
 	public UserChangesDto(ModelElementContext userChanges) {
-		this.userChanges = userChanges;
 		getChanges(userChanges.getPrimaryDelta(), false);
 		getChanges(userChanges.getSecondaryDelta(), true);
 	}
@@ -64,6 +59,9 @@ public class UserChangesDto implements Serializable {
 		if (delta == null) {
 			return;
 		}
+		
+		PropertyPath account = new PropertyPath(SchemaConstants.I_ACCOUNT_REF);
+		PropertyPath assignment = new PropertyPath(SchemaConstantsGenerated.C_ASSIGNMENT);
 
 		if (delta.getChangeType().equals(ChangeType.MODIFY)) {
 			for (Object item : delta.getModifications()) {
@@ -71,10 +69,10 @@ public class UserChangesDto implements Serializable {
 				if (itemDelta.getPath().equals(account)) {
 					continue;
 				} else if (itemDelta.getPath().equals(assignment)) {
-					assignmentsDeltas
+					assignmentsList
 							.add(new SubmitDeltaObjectDto((ContainerDelta) itemDelta, secondaryValue));
 				} else {
-					userPropertiesDeltas.add(new SubmitDeltaObjectDto((PropertyDelta) itemDelta,
+					userPropertiesList.add(new SubmitDeltaObjectDto((PropertyDelta) itemDelta,
 							secondaryValue));
 				}
 			}
@@ -93,7 +91,7 @@ public class UserChangesDto implements Serializable {
 						PropertyDelta propertyDelta = new PropertyDelta(property.getDefinition());
 						propertyDelta
 								.addValuesToAdd(PrismPropertyValue.cloneCollection(property.getValues()));
-						userPropertiesDeltas.add(new SubmitDeltaObjectDto(propertyDelta, secondaryValue));
+						userPropertiesList.add(new SubmitDeltaObjectDto(propertyDelta, secondaryValue));
 					} else if (item instanceof PrismContainer) {
 
 						if (!(item.getDefinition().getTypeName().equals(AssignmentType.COMPLEX_TYPE))) {
@@ -105,24 +103,24 @@ public class UserChangesDto implements Serializable {
 							PropertyDelta propertyDelta = new PropertyDelta(propertyDef);
 							propertyDelta.addValuesToAdd(PrismContainerValue.cloneCollection(property
 									.getValues()));
-							userPropertiesDeltas.add(new SubmitDeltaObjectDto(propertyDelta, secondaryValue));
+							userPropertiesList.add(new SubmitDeltaObjectDto(propertyDelta, secondaryValue));
 							continue;
 						}
 						PrismContainer assign = (PrismContainer) item;
 						ContainerDelta assignDelta = new ContainerDelta(assign.getDefinition());
 						assignDelta.addValuesToAdd(PrismContainerValue.cloneCollection(assign.getValues()));
-						assignmentsDeltas.add(new SubmitDeltaObjectDto(assignDelta, secondaryValue));
+						assignmentsList.add(new SubmitDeltaObjectDto(assignDelta, secondaryValue));
 					}
 				}
 			}
 		}
 	}
 
-	public List<SubmitDeltaObjectDto> getAssignmentsDeltas() {
-		return assignmentsDeltas;
+	public List<SubmitDeltaObjectDto> getAssignmentsList() {
+		return assignmentsList;
 	}
 
-	public List<SubmitDeltaObjectDto> getUserPropertiesDeltas() {
-		return userPropertiesDeltas;
+	public List<SubmitDeltaObjectDto> getUserPropertiesList() {
+		return userPropertiesList;
 	}
 }

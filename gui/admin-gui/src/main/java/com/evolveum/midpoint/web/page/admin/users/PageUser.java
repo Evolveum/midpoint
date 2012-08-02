@@ -135,7 +135,6 @@ public class PageUser extends PageAdminUsers {
 	private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 	private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
 	private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
-	private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
 	private static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
 	private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
 	private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
@@ -246,7 +245,7 @@ public class PageUser extends PageAdminUsers {
 		accordion.getBodyContainer().add(accounts);
 		initAccounts(accounts);
 
-		AccordionItem assignments = new AccordionItem("assignmentsDeltas",
+		AccordionItem assignments = new AccordionItem("assignmentsList",
 				new AbstractReadOnlyModel<String>() {
 
 					@Override
@@ -347,7 +346,7 @@ public class PageUser extends PageAdminUsers {
 
 	private AccordionItem getAssignmentAccordionItem() {
 		Accordion accordion = (Accordion) get("mainForm:accordion");
-		return (AccordionItem) accordion.getBodyContainer().get("assignmentsDeltas");
+		return (AccordionItem) accordion.getBodyContainer().get("assignmentsList");
 	}
 
 	private AccordionItem getAccountsAccordionItem() {
@@ -1382,7 +1381,7 @@ public class PageUser extends PageAdminUsers {
 		}
 
 		for (UserAccountDto account : selected) {
-			// todo implement unlock
+			// TODO: implement unlock
 		}
 	}
 }

@@ -338,7 +338,7 @@ public class PageSubmit extends PageAdmin {
 	private List<SubmitAssignmentDto> loadAssignmentsChanges() {
 
 		List<SubmitAssignmentDto> list = new ArrayList<SubmitAssignmentDto>();
-		for (SubmitDeltaObjectDto assignmentDto : userChangesDto.getAssignmentsDeltas()) {
+		for (SubmitDeltaObjectDto assignmentDto : userChangesDto.getAssignmentsList()) {
 			ContainerDelta assignment = (ContainerDelta) assignmentDto.getItemDelta();
 			if (assignment.getValuesToAdd() != null) {
 				for (Object item : assignment.getValuesToAdd()) {
@@ -361,8 +361,8 @@ public class PageSubmit extends PageAdmin {
 
 	private List<SubmitUserDto> loadUserChanges() {
 		List<SubmitUserDto> list = new ArrayList<SubmitUserDto>();
-		List<SubmitDeltaObjectDto> userPropertiesDelta = userChangesDto.getUserPropertiesDeltas();
-		if (userPropertiesDelta != null && !userChangesDto.getUserPropertiesDeltas().isEmpty()) {
+		List<SubmitDeltaObjectDto> userPropertiesDelta = userChangesDto.getUserPropertiesList();
+		if (userPropertiesDelta != null && !userChangesDto.getUserPropertiesList().isEmpty()) {
 			PrismObject oldUser = previewChanges.getFocusContext().getObjectOld();
 			PrismObject newUser = previewChanges.getFocusContext().getObjectNew();
 
@@ -444,8 +444,7 @@ public class PageSubmit extends PageAdmin {
 			if (newValue.getStatus().equals(SubmitPropertiesStatus.DELETING)) {
 
 				for (String oldValue : oldValues) {
-					if (!newValueObject.toString().contains(oldValue)
-							&& oldValue != newValueObject.toString()) {
+					if (oldValue != newValueObject.toString()) {
 						newValues.add(oldValue);
 					}
 				}
@@ -567,7 +566,8 @@ public class PageSubmit extends PageAdmin {
 			setResponsePage(PageUsers.class);
 		}
 	}
-
+	
+	@Deprecated
 	private void modifyAccounts(OperationResult result) {
 		if (accountChangesDto.getAccountsList() != null && !accountChangesDto.getAccountsList().isEmpty()) {
 			OperationResult subResult = null;

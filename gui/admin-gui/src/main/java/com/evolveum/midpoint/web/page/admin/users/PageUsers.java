@@ -22,7 +22,9 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -415,9 +417,39 @@ public class PageUsers extends PageAdminUsers {
         if (!isAnythingSelected(getSelectedUsers(), target)) {
             return;
         }
+        
+        if(getSelectedUsers().size() == 1) {
+        	OperationResult result = new OperationResult(PageUsers.class.getName() + "sendToSubmit");
+        	
+        	List<SelectableBean<UserType>> users = getSelectedUsers();
+        	SelectableBean<UserType> bean = users.get(0);
+        	
+        	UserType user = bean.getValue();
+        	ModelContext changes = null;
+        	ObjectDelta delta = null;
+        	
+        	try {
+        		delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid());
+        		changes = getModelInteractionService().previewChanges(delta, result);
+			} catch (Exception ex) {
+				result.recordFatalError("Couldn't send user to submit.", ex);
+				LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
+			}
+        	
+        	if(result.isError()) {
+        		showResult(result);
+    			target.add(getFeedbackPanel());
+        	} else {
+        		PageSubmit pageSubmit = new PageSubmit(changes, delta);
+    			setResponsePage(pageSubmit);
+        	}
+        	
+        } else {
+        	ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
+            dialog.show(target);
+        }
 
-        ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
-        dialog.show(target);
+        
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target) {
