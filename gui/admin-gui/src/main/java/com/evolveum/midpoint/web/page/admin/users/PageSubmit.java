@@ -92,16 +92,18 @@ public class PageSubmit extends PageAdmin {
 	private UserChangesDto userChangesDto;
 	private AccountChangesDto accountChangesDto;
 	private ModelContext previewChanges;
+	private ObjectDelta deltaChanges;
 
 	private List<SubmitAccountDto> accountsChangesList;
 	private List<SubmitAssignmentDto> assignmentsChangesList;
 	private List<SubmitUserDto> userChangesList;
 
-	public PageSubmit(ModelContext previewChanges) {
-		if (previewChanges == null) {
+	public PageSubmit(ModelContext previewChanges, ObjectDelta deltaChanges) {
+		if (previewChanges == null || deltaChanges == null) {
 			getSession().error(getString("pageSubmit.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
 		}
+		this.deltaChanges = deltaChanges;
 		this.previewChanges = previewChanges;
 		userChangesDto = new UserChangesDto(previewChanges.getFocusContext());
 		accountChangesDto = new AccountChangesDto(previewChanges.getProjectionContexts());
@@ -440,7 +442,7 @@ public class PageSubmit extends PageAdmin {
 		for (SubmitPropertiesDto newValue : values) {
 			Object newValueObject = newValue.getSubmitedPropertie().getValue();
 			if (newValue.getStatus().equals(SubmitPropertiesStatus.DELETING)) {
-				
+
 				for (String oldValue : oldValues) {
 					if (!newValueObject.toString().contains(oldValue)
 							&& oldValue != newValueObject.toString()) {
@@ -525,35 +527,31 @@ public class PageSubmit extends PageAdmin {
 		LOGGER.debug("Saving user changes.");
 		OperationResult result = new OperationResult(OPERATION_SAVE_USER);
 
-		modifyAccounts(result);
+		// modifyAccounts(result);
 
 		try {
-			ModelElementContext userElement = previewChanges.getFocusContext();
 			Task task = createSimpleTask(OPERATION_SAVE_USER);
-			switch (userElement.getPrimaryDelta().getChangeType()) {
+			switch (deltaChanges.getChangeType()) {
 				case ADD:
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before add user:\n{}", new Object[] { userElement
-								.getPrimaryDelta().debugDump(3) });
+						LOGGER.trace("Delta before add user:\n{}", new Object[] { deltaChanges.debugDump(3) });
 					}
-
-					getModelService().addObject(userElement.getObjectNew(), task, result);
+					getModelService().addObject(deltaChanges.getObjectToAdd(), task, result);
 					break;
 				case MODIFY:
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before modify user:\n{}", new Object[] { userElement
-								.getPrimaryDelta().debugDump(3) });
+						LOGGER.trace("Delta before modify user:\n{}",
+								new Object[] { deltaChanges.debugDump(3) });
 					}
-					if (!userElement.getPrimaryDelta().isEmpty()) {
-						getModelService().modifyObject(UserType.class, userElement.getObjectNew().getOid(),
-								userElement.getPrimaryDelta().getModifications(), task, result);
+					if (!deltaChanges.isEmpty()) {
+						getModelService().modifyObject(UserType.class, deltaChanges.getOid(),
+								deltaChanges.getModifications(), task, result);
 					} else {
 						result.recordSuccessIfUnknown();
 					}
 					break;
 				default:
-					error(getString("pageSubmit.message.unsupportedState", userElement.getPrimaryDelta()
-							.getChangeType()));
+					error(getString("pageSubmit.message.unsupportedState", deltaChanges.getChangeType()));
 			}
 			result.recomputeStatus();
 		} catch (Exception ex) {
