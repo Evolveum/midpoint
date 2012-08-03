@@ -245,15 +245,14 @@ public class PageUser extends PageAdminUsers {
 		accordion.getBodyContainer().add(accounts);
 		initAccounts(accounts);
 
-		AccordionItem assignments = new AccordionItem("assignmentsList",
-				new AbstractReadOnlyModel<String>() {
+		AccordionItem assignments = new AccordionItem("assignmentsList", new AbstractReadOnlyModel<String>() {
 
-					@Override
-					public String getObject() {
-						return createStringResource("pageUser.assignments",
-								assignmentsModel.getObject().size()).getString();
-					}
-				});
+			@Override
+			public String getObject() {
+				return createStringResource("pageUser.assignments", assignmentsModel.getObject().size())
+						.getString();
+			}
+		});
 		assignments.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(assignments);
 		initAssignments(assignments);
@@ -792,7 +791,8 @@ public class PageUser extends PageAdminUsers {
 		}
 	}
 
-	private void modifyAccounts2(OperationResult result) {
+	private Collection<ObjectDelta<? extends ObjectType>> modifyAccounts2(OperationResult result,
+			Collection<ObjectDelta<? extends ObjectType>> deltas) {
 		LOGGER.debug("Modifying existing accounts.");
 
 		List<UserAccountDto> accounts = accountsModel.getObject();
@@ -819,6 +819,7 @@ public class PageUser extends PageAdminUsers {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Modifying account:\n{}", new Object[] { delta.debugDump(3) });
 				}
+				deltas.add(delta);
 				// accountsDeltas.add(new
 				// ObjectDeltaComponent(accountWrapper.getObject(), delta,
 				// SubmitObjectStatus.MODIFYING));
@@ -829,8 +830,10 @@ public class PageUser extends PageAdminUsers {
 					subResult.recordFatalError("Modify account failed.", ex);
 				}
 				LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
+				return deltas;
 			}
 		}
+		return deltas;
 	}
 
 	private void prepareUserForAdd(PrismObject<UserType> user) throws SchemaException {
@@ -1031,8 +1034,9 @@ public class PageUser extends PageAdminUsers {
 		LOGGER.debug("Submit user.");
 
 		OperationResult result = new OperationResult(OPERATION_SEND_TO_SUBMIT);
-		modifyAccounts2(result);
-
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		modifyAccounts2(result, deltas);
+		
 		ObjectWrapper userWrapper = userModel.getObject();
 		ObjectDelta delta = null;
 		ModelContext changes = null;
@@ -1042,7 +1046,6 @@ public class PageUser extends PageAdminUsers {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 			}
 			Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
-			Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 			switch (userWrapper.getStatus()) {
 				case ADDING:
 					PrismContainer password = delta.getObjectToAdd().findContainer(
@@ -1056,7 +1059,7 @@ public class PageUser extends PageAdminUsers {
 					prepareUserForAdd(user);
 					getPrismContext().adopt(user, UserType.class);
 					deltas.add(delta);
-					changes = getModelInteractionService().previewChanges(deltas , result);
+					changes = getModelInteractionService().previewChanges(deltas, result);
 					result.recordSuccess();
 					break;
 				case MODIFYING:
@@ -1083,7 +1086,7 @@ public class PageUser extends PageAdminUsers {
 			target.add(getFeedbackPanel());
 		} else {
 			// PageSubmit page = new PageSubmit(deltaComponent, accountsDeltas);
-			PageSubmit pageSubmit = new PageSubmit(changes, delta);
+			PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta);
 			setResponsePage(pageSubmit);
 		}
 	}

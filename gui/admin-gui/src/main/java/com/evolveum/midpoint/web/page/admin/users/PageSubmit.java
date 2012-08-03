@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
@@ -76,6 +77,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserChangesDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -92,19 +94,21 @@ public class PageSubmit extends PageAdmin {
 	private UserChangesDto userChangesDto;
 	private AccountChangesDto accountChangesDto;
 	private ModelContext previewChanges;
-	private ObjectDelta deltaChanges;
+	private Collection<ObjectDelta<? extends ObjectType>> deltasChanges;
+	private ObjectDelta delta;
 
 	private List<SubmitAccountDto> accountsChangesList;
 	private List<SubmitAssignmentDto> assignmentsChangesList;
 	private List<SubmitUserDto> userChangesList;
 
-	public PageSubmit(ModelContext previewChanges, ObjectDelta deltaChanges) {
-		if (previewChanges == null || deltaChanges == null) {
+	public PageSubmit(ModelContext previewChanges, Collection<ObjectDelta<? extends ObjectType>> deltasChanges, ObjectDelta delta) {
+		if (previewChanges == null || deltasChanges == null || delta == null) {
 			getSession().error(getString("pageSubmit.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
 		}
-		this.deltaChanges = deltaChanges;
+		this.deltasChanges = deltasChanges;
 		this.previewChanges = previewChanges;
+		this.delta = delta;
 		userChangesDto = new UserChangesDto(previewChanges.getFocusContext());
 		accountChangesDto = new AccountChangesDto(previewChanges.getProjectionContexts());
 		initLayout();
@@ -530,19 +534,26 @@ public class PageSubmit extends PageAdmin {
 
 		try {
 			Task task = createSimpleTask(OPERATION_SAVE_USER);
-			switch (deltaChanges.getChangeType()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Delta before save user:\n{}", new Object[] { delta.debugDump(3) });
+			}
+			getModelService().executeChanges(deltasChanges, task, result);
+			
+			/*switch (delta.getChangeType()) {
 				case ADD:
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before add user:\n{}", new Object[] { deltaChanges.debugDump(3) });
+						LOGGER.trace("Delta before add user:\n{}", new Object[] { delta.debugDump(3) });
 					}
-					getModelService().addObject(deltaChanges.getObjectToAdd(), task, result);
+					getModelService().executeChanges(deltasChanges, task, result);
+					//getModelService().addObject(deltasChanges.getObjectToAdd(), task, result);
 					break;
 				case MODIFY:
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Delta before modify user:\n{}",
-								new Object[] { deltaChanges.debugDump(3) });
+								new Object[] { delta.debugDump(3) });
 					}
-					if (!deltaChanges.isEmpty()) {
+					if (!delta.isEmpty()) {
+						getModelService().executeChanges(deltasChanges, task, result);
 						getModelService().modifyObject(UserType.class, deltaChanges.getOid(),
 								deltaChanges.getModifications(), task, result);
 					} else {
@@ -550,8 +561,8 @@ public class PageSubmit extends PageAdmin {
 					}
 					break;
 				default:
-					error(getString("pageSubmit.message.unsupportedState", deltaChanges.getChangeType()));
-			}
+					error(getString("pageSubmit.message.unsupportedState", delta.getChangeType()));
+			}*/
 			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't save user.", ex);

@@ -418,7 +418,11 @@ public class PageUsers extends PageAdminUsers {
             return;
         }
         
-        if(getSelectedUsers().size() == 1) {
+        ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
+        dialog.show(target);
+        
+        // TODO: When delete one user -> submit page
+        /*if(getSelectedUsers().size() == 1) {
         	OperationResult result = new OperationResult(PageUsers.class.getName() + "sendToSubmit");
         	
         	List<SelectableBean<UserType>> users = getSelectedUsers();
@@ -427,10 +431,10 @@ public class PageUsers extends PageAdminUsers {
         	UserType user = bean.getValue();
         	ModelContext changes = null;
         	ObjectDelta delta = null;
+        	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         	
         	try {
         		delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid());
-        		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         		deltas.add(delta);
 				changes = getModelInteractionService().previewChanges(deltas , result);
 			} catch (Exception ex) {
@@ -442,14 +446,14 @@ public class PageUsers extends PageAdminUsers {
         		showResult(result);
     			target.add(getFeedbackPanel());
         	} else {
-        		PageSubmit pageSubmit = new PageSubmit(changes, delta);
+        		PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta);
     			setResponsePage(pageSubmit);
         	}
         	
         } else {
         	ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
             dialog.show(target);
-        }
+        }*/
 
         
     }
