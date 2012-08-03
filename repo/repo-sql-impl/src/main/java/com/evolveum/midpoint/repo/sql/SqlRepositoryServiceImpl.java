@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -351,88 +352,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		session.save(closure);
 		// }
 
-		// if (!orgType.getOrgRef().isEmpty()) {
-		// fillTransitiveHierarchy(orgType, orgType, session, depth);
 		for (ObjectReferenceType orgRef : orgType.getOrgRef()) {
 			fillTransitiveHierarchy(rOrg, orgRef.getOid(), session);
 		}
 
 	}
-
-	// private boolean checkClosureUniqueness(ROrgClosure orgClosure,
-	// Session session) {
-	// Criteria criteria = session.createCriteria(ROrgClosure.class);
-	// criteria.add(Restrictions.eq("ancestor", orgClosure.getAncestor()));
-	// criteria.add(Restrictions.eq("descendant", orgClosure.getDescendant()));
-	// criteria.setProjection(Projections.rowCount());
-	//
-	// Long count = (Long) criteria.uniqueResult();
-	// if (count != null && count > 0) {
-	// return false;
-	// }
-	// // if (count == null){
-	// // return true;
-	// // }
-	//
-	// // if (count.getAncestor().equals(
-	// // orgClosure.getAncestor())
-	// // && count.getDescendant().equals(
-	// // orgClosure.getDescendant())) {
-	// // return false;
-	// // }
-	// return true;
-	// }
-
-//	private <T extends ObjectType> void fillTransitiveHierarchy(T descendant, T orgType, Session session, int depth)
-//			throws SchemaException {
-//
-//		if (descendant == null) {
-//			descendant = orgType;
-//		}
-//
-//		depth++;
-//
-//		RObject rDescendant = createDataObjectFromJAXB(descendant);
-//
-//		for (ObjectReferenceType orgRef : orgType.getOrgRef()) {
-//
-//			PrismObject<T> ancestorOrgType = null;
-//			try {
-//				ancestorOrgType = getObject(session, orgType.asPrismObject().getCompileTimeClass(), orgRef.getOid());
-//				RObject rAncestor = createDataObjectFromJAXB(ancestorOrgType.asObjectable());
-//				ROrgClosure closure = new ROrgClosure(rAncestor, rDescendant, depth);
-//
-//				// Property desc = Property.forName("descendant");
-//				Criteria query = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
-//						.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", orgRef.getOid()));
-//				// query.add(desc.getProperty("oid").eq(orgRef.getOid()));
-//				// Criteria descentandQuery = query.createAlias("descendant",
-//				// "desc");
-//				// descentandQuery.add(Restrictions.eq("desc.oid",
-//				// orgRef.getOid()));
-//
-//				// query.
-//				List<ROrgClosure> results = query.list();
-//				for (ROrgClosure o : results) {
-//					LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(getPrismContext()),
-//							o.getDescendant().toJAXB(getPrismContext()), o.getDepth() });
-//					// LOGGER.info("=> A: {}, D: {}, depth: {}", new
-//					// Object[]{o.getAncestor(), o.getDescendant(),
-//					// o.getDepth()});
-//				}
-//				// if (checkClosureUniqueness(closure, session)) {
-//				session.save(closure);
-//				// }
-//			} catch (ObjectNotFoundException ex) {
-//				// TODO: error handling
-//			} catch (DtoTranslationException ex) {
-//				// TODO: error handling
-//			}
-//			if (ancestorOrgType != null && !ancestorOrgType.asObjectable().getOrgRef().isEmpty()) {
-//				fillTransitiveHierarchy(descendant, ancestorOrgType.asObjectable(), session, depth);
-//			}
-//		}
-//	}
 
 	private <T extends ObjectType> void fillTransitiveHierarchy(RObject newDescendant, String descendantOid,
 			Session session) throws SchemaException {
@@ -781,18 +705,32 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 		for (ItemDelta delta : modifications) {
 			if (delta.getName().equals(OrgType.F_ORG_REF)) {
+				// if modifiction is one of the modify or delete, delete old
+				// record in org closure table and in the next step fill the
+				// closure table with the new records
 				if (delta.isReplace() || delta.isDelete()) {
-					LOGGER.trace("Org ref modification: {}", delta.dump());
-					Collection<PrismReferenceValue> deleteValues = delta.getValuesToDelete();
-					for (PrismReferenceValue s : deleteValues) {
-						LOGGER.trace("values to delete: {}", s.getOid());
-					}
-
+					// the modification is not used, because the object after
+					// applying modifications is used
 					deleteHierarchy(orgType, session);
+					fillHierarchy(orgType, session);
+				} else{
+					//fill closure table with new transitive relations
+					for (Object orgRefDValue : delta.getValuesToAdd()) {
+						if (!(orgRefDValue instanceof PrismReferenceValue)){
+							throw new SchemaException(
+									"Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
+											+ orgRefDValue);
+						}
+						
+						PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
+						
+						RObject rDescendant = createDataObjectFromJAXB(orgType);
+						fillTransitiveHierarchy(rDescendant, value.getOid(), session);
+					}
 				}
 
-				LOGGER.trace("Org ref modification: {}", delta.dump());
-				fillHierarchy(orgType, session);
+				
+				
 
 			}
 		}

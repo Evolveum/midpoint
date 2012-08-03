@@ -1,10 +1,14 @@
 package com.evolveum.midpoint.repo.sql;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -125,10 +129,29 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		Session session = factory.openSession();
 		List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
 		LOGGER.info("==============CLOSURE TABLE==========");
+		AssertJUnit.assertEquals(57, results.size());
 		for (ROrgClosure o : results) {
 			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
 					o.getDescendant().toJAXB(prismContext), o.getDepth() });
 		}
+
+		// check descendants for F0001 org unit
+		String ancestorOid = "00000000-8888-6666-0000-100000000001";
+		String descendantOid = "00000000-8888-6666-0000-100000000006";
+		Criteria criteria = session.createCriteria(ROrgClosure.class).createCriteria("ancestor", "anc")
+				.setFetchMode("ancestor", FetchMode.JOIN).add(Restrictions.eq("anc.oid", ancestorOid));
+
+		results = criteria.list();
+		AssertJUnit.assertEquals(17, results.size());
+
+		criteria = session.createCriteria(ROrgClosure.class).add(Restrictions.eq("depth", 2));
+		Criteria ancCriteria = criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
+				.add(Restrictions.eq("anc.oid", ancestorOid));
+		Criteria descCriteria = criteria.createCriteria("descendant", "desc")
+				.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+
+		results = criteria.list();
+		AssertJUnit.assertEquals(2, results.size());
 
 		session.close();
 	}
@@ -143,16 +166,72 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 				ObjectModificationType.class);
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
+		Session session = factory.openSession();
+		String descendantOid = "00000000-8888-6666-0000-100000000005";
+		Criteria criteria = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
+				.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+
+		List<ROrgClosure> results = criteria.list();
+		AssertJUnit.assertEquals(3, results.size());
+
 		repositoryService.modifyObject(OrgType.class, MODIFY_ORG_ADD_REF_OID, delta.getModifications(), opResult);
 
-		Session session = factory.openSession();
 		LOGGER.info("==>after modify - add<==");
-		List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
+		results = session.createQuery("from ROrgClosure").list();
 		LOGGER.info("==============CLOSURE TABLE==========");
+		AssertJUnit.assertEquals(59, results.size());
 		for (ROrgClosure o : results) {
 			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
 					o.getDescendant().toJAXB(prismContext), o.getDepth() });
 
+		}
+
+		criteria = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
+				.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+
+		results = criteria.list();
+		AssertJUnit.assertEquals(5, results.size());
+
+		List<String> ancestors = new ArrayList<String>();
+		ancestors.add("00000000-8888-6666-0000-100000000005");
+		ancestors.add("00000000-8888-6666-0000-100000000003");
+		ancestors.add("00000000-8888-6666-0000-100000000001");
+		ancestors.add("00000000-8888-6666-0000-100000000002");
+
+		for (String ancestorOid : ancestors) {
+			
+
+			criteria = session.createCriteria(ROrgClosure.class);
+			Criteria ancCriteria = criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
+					.add(Restrictions.eq("anc.oid", ancestorOid));
+			Criteria descCriteria = criteria.createCriteria("descendant", "desc")
+					.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+
+			results = criteria.list();
+//			LOGGER.info("==============CLOSURE TABLE FOR EACH==========");
+//			
+//			for (ROrgClosure o : results) {
+//				LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
+//						o.getDescendant().toJAXB(prismContext), o.getDepth() });
+//
+//			}
+			if (ancestorOid.equals("00000000-8888-6666-0000-100000000001")){
+				AssertJUnit.assertEquals(2, results.size());
+			} else {
+				AssertJUnit.assertEquals(1, results.size());
+				AssertJUnit.assertEquals(ancestorOid, results.get(0).getAncestor().getOid());
+				AssertJUnit.assertEquals(descendantOid, results.get(0).getDescendant().getOid());
+				int depth = -1;
+				if (ancestorOid.equals("00000000-8888-6666-0000-100000000005")){
+					depth = 0;
+				} else if (ancestorOid.equals("00000000-8888-6666-0000-100000000003")){
+					depth = 1;
+				} else if (ancestorOid.equals("00000000-8888-6666-0000-100000000002")){
+					depth = 1;
+				} 
+				AssertJUnit.assertEquals(depth, results.get(0).getDepth());
+			}
+			
 		}
 		session.close();
 	}
@@ -240,7 +319,8 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		QueryType query = QueryUtil.createQuery(filter);
 
 		// List<>
-		List<PrismObject<UserType>> resultss = repositoryService.searchObjects(UserType.class, query, null, parentResult);
+		List<PrismObject<UserType>> resultss = repositoryService.searchObjects(UserType.class, query, null,
+				parentResult);
 		for (PrismObject<UserType> u : resultss) {
 
 			LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
@@ -248,7 +328,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		}
 
 	}
-	
+
 	@Test
 	public void test007searchOrgStructOrgDepth() throws Exception {
 		LOGGER.info("===[ SEARCH QUERY ]===");
