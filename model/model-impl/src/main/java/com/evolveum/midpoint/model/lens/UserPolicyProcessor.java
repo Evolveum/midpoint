@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -103,7 +104,7 @@ public class UserPolicyProcessor {
     		return;
     	}
     	
-    	LensContext<UserType,AccountShadowType> usContext = (LensContext<UserType,AccountShadowType>) context;
+		LensContext<UserType, AccountShadowType> usContext = (LensContext<UserType, AccountShadowType>) context;
     	//check user password if satisfies policies
     	checkPasswordPolicies(usContext, (LensFocusContext<UserType>)focusContext, result);
     	
@@ -118,49 +119,82 @@ public class UserPolicyProcessor {
 				
 	}
 	
-	private void checkPasswordPolicies(LensContext<UserType,AccountShadowType> context, LensFocusContext<UserType> focusContext, OperationResult result) throws PolicyViolationException{
+	private void checkPasswordPolicies(LensContext<UserType,AccountShadowType> context, LensFocusContext<UserType> focusContext, OperationResult result) throws PolicyViolationException, SchemaException{
+		
 		PrismObject<UserType> user = null;
-		if (focusContext.getObjectOld() != null) {
-			user = (PrismObject<UserType>) focusContext.getObjectOld();
-		} else {
-			user = (PrismObject<UserType>) focusContext.getObjectNew();
+		
+		ObjectDelta userDelta = focusContext.getDelta();
+		
+		if (userDelta == null){
+			LOGGER.trace("Skipping processing password policies. User delta not specified.");
+			return;
+		}
+		
+		PrismProperty<PasswordType> password = null;
+		if (ChangeType.ADD == userDelta.getChangeType()){
+			user = focusContext.getDelta().getObjectToAdd();
+			if (user != null){
+				password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+			}
+		} else if (ChangeType.MODIFY == userDelta.getChangeType()){
+			 PropertyDelta<PasswordType> passwordValueDelta = null;
+		        if (userDelta != null) {
+		        	passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+		        	// Modification sanity check
+		            if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null && 
+		            		(passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
+		            	throw new SchemaException("User password value cannot be added or deleted, it can only be replaced"); 
+		            }
+		            if (passwordValueDelta == null){
+		            	LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
+		            	return;
+		            }
+		            password = passwordValueDelta.getPropertyNew();
+		        }
 		}
 
-		if (user != null) {
-			PrismProperty<PasswordType> password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+		String passwordValue = determinePasswordValue(password);
+		if (passwordValue == null || context.getGlobalPasswordPolicy() == null){
+			LOGGER.trace("Skipping processing password policies. Password value or password policies not specified.");
+			return;
+		}
 
-			// TODO: what to do if the provided password is null???
-			if (password == null || password.getValue(ProtectedStringType.class) == null) {
-				return;
-			}
+		boolean isValid = PasswordPolicyUtils
+				.validatePassword(passwordValue, context.getGlobalPasswordPolicy(), result);
 
-			ProtectedStringType passValue = password.getValue(ProtectedStringType.class).getValue();
-
-			if (passValue == null || context.getGlobalPasswordPolicy() == null) {
-				return;
-			}
-
-			String passwordStr = passValue.getClearValue();
-
-			if (passwordStr == null && passValue.getEncryptedData() != null) {
-				// TODO: is this appropriate handling???
-				try {
-					passwordStr = protector.decryptString(passValue);
-				} catch (EncryptionException ex) {
-					throw new SystemException("Failed to process password for user: " + user.asObjectable().getName(),
-							ex);
-				}
-			}
-			boolean isValid = PasswordPolicyUtils.validatePassword(passwordStr, context.getGlobalPasswordPolicy(),
-					result);
-
-			if (!isValid) {
-				throw new PolicyViolationException("Provided password does not satisfy password policies.");
-			}
+		if (!isValid) {
+			throw new PolicyViolationException("Provided password does not satisfy password policies.");
 
 		}
 
 	}
+
+	private String determinePasswordValue(PrismProperty<PasswordType> password) {
+		// TODO: what to do if the provided password is null???
+		if (password == null || password.getValue(ProtectedStringType.class) == null) {
+			return null;
+		}
+
+		ProtectedStringType passValue = password.getValue(ProtectedStringType.class).getValue();
+
+		if (passValue == null) {
+			return null;
+		}
+
+		String passwordStr = passValue.getClearValue();
+
+		if (passwordStr == null && passValue.getEncryptedData() != null) {
+			// TODO: is this appropriate handling???
+			try {
+				passwordStr = protector.decryptString(passValue);
+			} catch (EncryptionException ex) {
+				throw new SystemException("Failed to process password for user: " , ex);
+			}
+		}
+
+		return passwordStr;
+	}
+	
 
 	private void applyUserTemplate(LensContext<UserType,AccountShadowType> context, UserTemplateType userTemplate, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
