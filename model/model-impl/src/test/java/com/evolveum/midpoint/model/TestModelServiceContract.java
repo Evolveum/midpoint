@@ -83,6 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -119,6 +120,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test050GetUser");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
@@ -134,11 +136,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100ModifyUserAddAccount");
         OperationResult result = task.getResult();
-
-        // IMPORTANT! SWITCHING OFF ASSIGNMENT ENFORCEMENT HERE!
-        AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-        syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.NONE);
-        applySyncSettings(syncSettings);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
@@ -185,6 +183,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test101GetAccount");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
 		// WHEN
 		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, null , task, result);
@@ -206,6 +205,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test102GetAccountNoFetch");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.NO_FETCH);
 		
 		// WHEN
@@ -228,6 +228,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test110GetUserResolveAccount");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         Collection<ObjectOperationOptions> options = 
         	ObjectOperationOptions.createCollection(UserType.F_ACCOUNT, ObjectOperationOption.RESOLVE);
@@ -261,6 +262,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test111GetUserResolveAccountResource");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         Collection<ObjectOperationOptions> options = 
         	ObjectOperationOptions.createCollection(ObjectOperationOption.RESOLVE,
@@ -298,6 +300,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test112GetUserResolveAccountNoFetch");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         Collection<ObjectOperationOptions> options = 
         	ObjectOperationOptions.createCollection(UserType.F_ACCOUNT, ObjectOperationOption.RESOLVE, ObjectOperationOption.NO_FETCH);
@@ -331,6 +334,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test119ModifyUserDeleteAccount");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         account.setOid(accountOid);
@@ -372,6 +376,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120AddAccount");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
@@ -406,6 +411,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test121ModifyUserAddAccountRef");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
@@ -416,16 +422,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		
 		// THEN
 		// Check accountRef
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-        assertUserJack(userJack);
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
-        accountOid = accountRefType.getOid();
-        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
-        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		assertUserJack(userJack);
+        accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
         PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
@@ -450,6 +449,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test128ModifyUserDeleteAccountRef");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
@@ -463,12 +463,11 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
 		
 		// THEN
-		// Check accountRef
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
-        
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
+		        
 		// Check shadow (if it is unchanged)
         PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
@@ -490,29 +489,92 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test129DeleteAccount");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
 		// WHEN
         modelService.deleteObject(AccountShadowType.class, accountOid, task, result);
 		
 		// THEN
-		// Check accountRef
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
         
 		// Check is shadow is gone
-        try {
-        	PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
-        	AssertJUnit.fail("Shadow "+accountOid+" still exists");
-        } catch (ObjectNotFoundException e) {
-        	// This is OK
-        }
+        assertNoAccountShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
 	}
 
+	
+	@Test
+    public void test130ModifyUserJackAssignAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test130ModifyUserJackAssignAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test130ModifyUserJackAssignAccount");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, true);
+        deltas.add(accountAssignmentUserDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, task, result);
+		
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Jack Sparrow", true);
+	}
+	
+	@Test
+    public void test139ModifyUserJackUnassignAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test139ModifyUserJackUnassignAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test139ModifyUserJackUnassignAccount");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, false);
+        deltas.add(accountAssignmentUserDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, task, result);
+		
+		// THEN
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertUserJack(userJack);
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
+        
+        // Check is shadow is gone
+        assertNoAccountShadow(accountOid);
+        
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+	}
 	
 	@Test
     public void test150AddUserBlackbeardWithAccount() throws Exception {
@@ -521,11 +583,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test150AddUserBlackbeardWithAccount");
         OperationResult result = task.getResult();
-
-        // IMPORTANT! SWITCHING ON ASSIGNMENT ENFORCEMENT HERE!
-        AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-        syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
-        applySyncSettings(syncSettings);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
                 
@@ -561,11 +619,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test210AddUserMorganWithAssignment");
         OperationResult result = task.getResult();
-
-        // IMPORTANT! SWITCHING ON ASSIGNMENT ENFORCEMENT HERE!
-        AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-        syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
-        applySyncSettings(syncSettings);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
                 

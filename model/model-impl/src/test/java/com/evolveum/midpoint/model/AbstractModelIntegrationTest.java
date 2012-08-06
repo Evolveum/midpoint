@@ -97,6 +97,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -107,8 +108,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
@@ -685,7 +688,12 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		
+		ObjectDelta<UserType> userDelta = createRoleAssignmentUserDelta(userOid, roleOid, add);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);;
+		modelService.executeChanges(deltas, task, result);		
+	}
+	
+	protected ContainerDelta<AssignmentType> createRoleAssignmentModification(String roleOid, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
 		if (add) {
@@ -696,9 +704,75 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 		targetRef.getValue().setOid(roleOid);
 		targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);
-		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>();
-		((Collection)modifications).add(assignmentDelta);
-		modelService.modifyObject(UserType.class, userOid, modifications , task, result);
+		return assignmentDelta;
+	}
+	
+	protected ObjectDelta<UserType> createRoleAssignmentUserDelta(String userOid, String roleOid, boolean add) throws SchemaException {
+		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+		modifications.add((createRoleAssignmentModification(roleOid, add)));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class);
+		return userDelta;
+	}
+	
+	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, boolean add) throws SchemaException {
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
+		if (add) {
+			assignmentDelta.addValueToAdd(cval);
+		} else {
+			assignmentDelta.addValueToDelete(cval);
+		}
+		AssignmentType assignmentType = cval.asContainerable();
+		AccountConstructionType accountConstructionType = new AccountConstructionType();
+		assignmentType.setAccountConstruction(accountConstructionType);
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resourceOid);
+		accountConstructionType.setResourceRef(resourceRef);
+		return assignmentDelta;
+	}
+	
+	protected ObjectDelta<UserType> createAccountAssignmentUserDelta(String userOid, String resourceOid, boolean add) throws SchemaException {
+		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+		modifications.add((createAccountAssignmentModification(resourceOid, add)));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class);
+		return userDelta;
+	}
+	
+	protected PrismObject<UserType> getUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getUser");
+        OperationResult result = task.getResult();
+		PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
+		result.computeStatus();
+		IntegrationTestTools.assertSuccess("getObject(User) result not success", result);
+		return user;
+	}
+	
+	protected String getSingleUserAccountRef(PrismObject<UserType> user) {
+        UserType userType = user.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+        return accountOid;
+	}
+	
+	protected void assertUserNoAccountRefs(PrismObject<UserType> user) {
+		UserType userJackType = user.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+	}
+	
+	protected void assertNoAccountShadow(String accountOid) throws SchemaException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoAccountShadow");
+		// Check is shadow is gone
+        try {
+        	PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        	AssertJUnit.fail("Shadow "+accountOid+" still exists");
+        } catch (ObjectNotFoundException e) {
+        	// This is OK
+        }
 	}
 	
 	protected void assertHasRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -750,6 +824,33 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertSuccess("Aplying sync settings failed (result)", result);
 	}
 	
+	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName()+".getSystemConfiguration");
+		PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+		result.computeStatus();
+		assertSuccess("getObject(systemConfig) not success", result);
+		return sysConf.asObjectable();
+	}
+	
+	protected void assumeAssignmentPolicy(AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		SystemConfigurationType systemConfiguration = getSystemConfiguration();
+		AssignmentPolicyEnforcementType currentPolicy = getAssignmentPolicyEnforcementType(systemConfiguration);
+		if (currentPolicy == policy) {
+			return;
+		}
+		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+        syncSettings.setAssignmentPolicyEnforcement(policy);
+        applySyncSettings(syncSettings);
+	}
+	
+	protected AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(SystemConfigurationType systemConfiguration) {
+		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfiguration.getGlobalAccountSynchronizationSettings();
+		if (globalAccountSynchronizationSettings == null) {
+			return null;
+		}
+		return globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();
+	}
+
 	protected PropertyPath getOpenDJAttributePath(String attrName) {
 		return new PropertyPath(
 				ResourceObjectShadowType.F_ATTRIBUTES,
@@ -763,4 +864,5 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 				new QName(RESOURCE_DUMMY_NAMESPACE, attrName));
 		
 	}
+	
 }

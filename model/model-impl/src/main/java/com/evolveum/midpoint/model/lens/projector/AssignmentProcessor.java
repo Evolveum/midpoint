@@ -19,13 +19,22 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.model.lens;
+package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.AccountConstruction;
+import com.evolveum.midpoint.model.lens.Assignment;
+import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
+import com.evolveum.midpoint.model.lens.AssignmentPath;
+import com.evolveum.midpoint.model.lens.AssignmentPathSegment;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;

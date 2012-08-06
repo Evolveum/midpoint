@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -37,6 +38,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author semancik
@@ -44,6 +47,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
  */
 @Component
 public class Clockwork {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 	
 	@Autowired(required = true)
 	Projector projector;
@@ -79,10 +84,13 @@ public class Clockwork {
 	public HookOperationMode click(LensContext context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		if (!context.isFresh()) {
-			projector.project(context, "synchronization", result);
+			projector.project(context, "synchronization projection", result);
 		}
 		
 		ModelState state = context.getState();
+		
+		LensUtil.traceContext(LOGGER, "synchronization", state.toString(), context, true);
+		
 		switch (state) {
 			case INITIAL:
 				processInitialToPrimary(context, task, result);
@@ -95,7 +103,7 @@ public class Clockwork {
 				break;
 			case FINAL:
 				return HookOperationMode.FOREGROUND;
-		}
+		}		
 		
 		return invokeHooks(context, task, result);
 	}

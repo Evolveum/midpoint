@@ -17,11 +17,16 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.lens;
+package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.model.lens.ShadowConstraintsChecker;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -127,7 +132,7 @@ public class AccountValuesProcessor {
 	        context.recompute();
 	        if (CONSISTENCY_CHECKS) context.checkConsistence();
 	 
-	        LensUtil.traceContext(activityDescription, "values", context, true);
+	        LensUtil.traceContext(LOGGER, activityDescription, "values", context, true);
 	        
 	        // Check constraints
 	        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);

@@ -48,7 +48,7 @@ import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.lens.Projector;
+import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;

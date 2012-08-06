@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2012 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.lens;
+package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -26,6 +26,9 @@ import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.model.lens.AccountConstruction;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;

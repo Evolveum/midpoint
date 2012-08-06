@@ -17,13 +17,16 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.lens;
+package com.evolveum.midpoint.model.lens.projector;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -100,19 +103,19 @@ public class Projector {
 	        inboundProcessor.processInbound(context, result);
 	        if (CONSISTENCY_CHECKS) context.checkConsistence();
 	        context.recomputeFocus();
-	        LensUtil.traceContext(activityDescription, "inbound", context, false);
+	        LensUtil.traceContext(LOGGER, activityDescription, "inbound", context, false);
 	        if (CONSISTENCY_CHECKS) context.checkConsistence();
 	
 	        userPolicyProcessor.processUserPolicy(context, result);
 	        context.recomputeFocus();
-	        LensUtil.traceContext(activityDescription,"user policy", context, false);
+	        LensUtil.traceContext(LOGGER, activityDescription,"user policy", context, false);
 	        if (CONSISTENCY_CHECKS) context.checkConsistence();
 	
 	        assignmentProcessor.processAssignmentsProjections(context, result);
 	        context.recompute();
 	        sortAccountsToWaves(context);
 	        maxWaves = context.getMaxWave() + 2;
-	        LensUtil.traceContext(activityDescription,"assignments", context, true);
+	        LensUtil.traceContext(LOGGER, activityDescription,"assignments", context, true);
 	        if (CONSISTENCY_CHECKS) context.checkConsistence();
 	
 	        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
@@ -140,12 +143,12 @@ public class Projector {
 	        	activationProcessor.processActivation(context, projectionContext, result);
 		        
 	        	context.recompute();
-	        	LensUtil.traceContext(activityDescription, "values computation", context, false);
+	        	LensUtil.traceContext(LOGGER, activityDescription, "values computation", context, false);
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
 		        reconciliationProcessor.processReconciliation(context, projectionContext, result);
 		        context.recompute();
-		        LensUtil.traceContext(activityDescription, "reconciliation", context, false);
+		        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation", context, false);
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
 	        }
 	        

@@ -59,7 +59,7 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
-import com.evolveum.midpoint.model.lens.Projector;
+import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;

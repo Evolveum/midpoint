@@ -53,9 +53,11 @@ public class LensUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(LensUtil.class);
 	
-	public static <F extends ObjectType, P extends ObjectType> void traceContext(String activity, String phase, LensContext<F,P> context, boolean showTriples) throws SchemaException {
-    	if (LOGGER.isDebugEnabled()) {
-    		StringBuilder sb = new StringBuilder("Lens context changes after ");
+	public static <F extends ObjectType, P extends ObjectType> void traceContext(Trace logger, String activity, String phase, LensContext<F,P> context, boolean showTriples) throws SchemaException {
+    	if (logger.isDebugEnabled()) {
+    		StringBuilder sb = new StringBuilder("Lens context ");
+    		sb.append(activity);
+    		sb.append(" after ");
     		sb.append(phase);
     		sb.append(":");
     		boolean empty = true;
@@ -70,10 +72,10 @@ public class LensUtil {
     		if (empty) {
     			sb.append(" no change");
     		}
-    		LOGGER.debug(sb.toString());
+    		logger.debug(sb.toString());
     	}
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Lens context:\n"+
+        if (logger.isTraceEnabled()) {
+        	logger.trace("Lens context:\n"+
             		"---[ {} CONTEXT after {} ]--------------------------------\n"+
             		"{}\n",
             		new Object[]{activity, phase, context.dump(showTriples)});

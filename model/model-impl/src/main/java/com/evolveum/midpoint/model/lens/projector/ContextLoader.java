@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.lens;
+package com.evolveum.midpoint.model.lens.projector;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -29,6 +29,10 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -94,7 +98,7 @@ public class ContextLoader {
         loadAccountRefs(ucContext, result);
         context.recomputeFocus();
 
-        LensUtil.traceContext(activityDescription, "load", context, false);
+        LensUtil.traceContext(LOGGER, activityDescription, "load", context, false);
 
         checkAccountContexts(ucContext, result);		
 	}
