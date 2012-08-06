@@ -52,6 +52,7 @@ import org.hibernate.FetchMode;
 import org.hibernate.PessimisticLockException;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
@@ -403,7 +404,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Session session = null;
 		try {
 			session = beginTransaction();
-
+			
 			Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 			query.add(Restrictions.eq("oid", oid));
 			query.add(Restrictions.eq("id", 0L));
@@ -412,12 +413,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
 						+ "' was not found.", null, oid);
 			}
+			
+			List<RObject> objectsToRecompute = null;
+			if (type.isAssignableFrom(OrgType.class)) {
+				objectsToRecompute = deleteTransitiveHierarchy(object, session);
+			}
+			
 			session.delete(object);
 
-			if (type.isAssignableFrom(OrgType.class)) {
-				deleteFromHierarchy(object, session);
+			if (objectsToRecompute != null){
+				recompute(objectsToRecompute, session);
 			}
-
+			
 			session.getTransaction().commit();
 		} catch (PessimisticLockException ex) {
 			rollbackTransaction(session);
@@ -438,6 +445,25 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		}
 	}
 
+	private void recompute(List<RObject> objectsToRecompute, Session session) throws SchemaException, DtoTranslationException{
+		
+		LOGGER.trace("Recomputing organization structure closure table after delete.");
+		
+		for (RObject object : objectsToRecompute) {
+			Criteria query = session.createCriteria(object.getClass());
+			query.add(Restrictions.eq("oid", object.getOid()));
+			query.add(Restrictions.eq("id", 0L));
+			RObject obj = (RObject) query.uniqueResult();
+			if (obj == null) {
+				// object not found..probably it was just deleted.
+				continue;
+			}
+
+			fillHierarchy(object.toJAXB(getPrismContext()), session);
+		}
+		LOGGER.trace("Closure table for organization structure recomputed.");
+	}
+	
 	@Deprecated
 	@Override
 	public void claimTask(String oid, OperationResult result) throws ObjectNotFoundException, ConcurrencyException,
@@ -709,10 +735,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				// record in org closure table and in the next step fill the
 				// closure table with the new records
 				if (delta.isReplace() || delta.isDelete()) {
-					// the modification is not used, because the object after
-					// applying modifications is used
-					deleteHierarchy(orgType, session);
-					fillHierarchy(orgType, session);
+					for (Object orgRefDValue : delta.getValuesToDelete()) {
+						if (!(orgRefDValue instanceof PrismReferenceValue)){
+							throw new SchemaException(
+									"Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
+											+ orgRefDValue);
+						}
+						
+						PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
+						RObject rObjectToModify = createDataObjectFromJAXB(orgType);
+						List<RObject> objectsToRecompute = deleteTransitiveHierarchy(rObjectToModify, session);
+						refillHierarchy(rObjectToModify, objectsToRecompute, session);
+					}
+//					List<RObject> objectsToRecompute = deleteFromHierarchy(createDataObjectFromJAXB(orgType), session);
+//					recompute(objectsToRecompute, session);
+//					fillHierarchy(orgType, session);
 				} else{
 					//fill closure table with new transitive relations
 					for (Object orgRefDValue : delta.getValuesToAdd()) {
@@ -728,18 +765,27 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 						fillTransitiveHierarchy(rDescendant, value.getOid(), session);
 					}
 				}
-
-				
-				
-
 			}
 		}
 	}
 
-	private <T extends ObjectType> void deleteHierarchy(T descendant, Session session) throws SchemaException, DtoTranslationException {
+	private List<RObject> deleteTransitiveHierarchy(RObject rObjectToModify, Session session) throws SchemaException, DtoTranslationException {
+		
+		
+		List<RObject> descendants = session.createCriteria(ROrgClosure.class)
+				.setProjection(Projections.property("descendant")).add(Restrictions.eq("ancestor", rObjectToModify))
+				.list();
+		
+		List<RObject> ancestors = session
+				.createCriteria(ROrgClosure.class)
+				.setProjection(Projections.property("ancestor"))
+				.createCriteria("ancestor", "anc")
+				.add(Restrictions.and(Restrictions.eq("this.descendant", rObjectToModify),
+						Restrictions.not(Restrictions.eq("anc.oid", rObjectToModify.getOid())))).list();
+
 		Criteria criteria = session.createCriteria(ROrgClosure.class);
-		RObject rDescendant = createDataObjectFromJAXB(descendant);
-		criteria.add(Restrictions.eq("descendant", rDescendant));
+		criteria.add(Restrictions.in("ancestor",ancestors));
+		criteria.add(Restrictions.in("descendant", descendants));
 
 		List<ROrgClosure> orgClosure = criteria.list();
 		for (ROrgClosure o : orgClosure) {
@@ -747,11 +793,53 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 					new Object[] { o.getAncestor().toJAXB(getPrismContext()), o.getDescendant().toJAXB(getPrismContext()), o.getDepth() });
 			session.delete(o);
 		}
+		
+		deleteHierarchy(rObjectToModify, session);
+		return descendants;
+	}
+	
+	private void refillHierarchy(RObject parent, List<RObject> descendants, Session session) throws SchemaException, DtoTranslationException{
+		fillHierarchy(parent.toJAXB(getPrismContext()), session);
+		
+		for (RObject descentant : descendants) {
+			if (!parent.getOid().equals(descentant.getOid())) {
+				fillTransitiveHierarchy(descentant, parent.getOid(), session);
+			}
+		}
+		
+	}
+	
+	private void deleteHierarchy(RObject objectToDelete, Session session){
+		Criteria criteria = session.createCriteria(ROrgClosure.class).add(
+				Restrictions.or(Restrictions.eq("ancestor", objectToDelete), Restrictions.eq("descendant", objectToDelete)));
+		
+		List<ROrgClosure> orgClosure = criteria.list();
+		for (ROrgClosure o : orgClosure) {
+			LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
+					new Object[] { o.getAncestor(), o.getDescendant(), o.getDepth() });
+			session.delete(o);
+		}
+		
 	}
 
-	private void deleteFromHierarchy(RObject object, Session session) {
+	private List<RObject> deleteFromHierarchy(RObject object, Session session) throws SchemaException, DtoTranslationException {
+		
+		LOGGER.trace("Deleting records from organization closure table.");
+		
 		Criteria criteria = session.createCriteria(ROrgClosure.class);
-		criteria.add(Restrictions.or(Restrictions.eq("ancestor", object), Restrictions.eq("descendant", object)));
+		List<RObject> descendants = criteria.setProjection(Projections.property("descendant")).add(Restrictions.eq("ancestor", object)).list();
+		
+		for (RObject desc : descendants) {
+			List<ROrgClosure> orgClosure = session.createCriteria(ROrgClosure.class)
+					.add(Restrictions.eq("descendant", desc)).list();
+			for (ROrgClosure o : orgClosure) {
+				session.delete(o);
+			}
+//			fillHierarchy(desc.toJAXB(getPrismContext()), session);
+		}
+
+		criteria = session.createCriteria(ROrgClosure.class).add(
+				Restrictions.or(Restrictions.eq("ancestor", object), Restrictions.eq("descendant", object)));
 
 		List<ROrgClosure> orgClosure = criteria.list();
 		for (ROrgClosure o : orgClosure) {
@@ -759,6 +847,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 					new Object[] { o.getAncestor(), o.getDescendant(), o.getDepth() });
 			session.delete(o);
 		}
+		return descendants;
 	}
 
 	@Override

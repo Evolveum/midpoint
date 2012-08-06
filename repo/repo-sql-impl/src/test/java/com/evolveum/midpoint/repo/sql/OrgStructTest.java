@@ -250,6 +250,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		Session session = factory.openSession();
 		LOGGER.info("==>after modify - delete<==");
 		List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
+		AssertJUnit.assertEquals(49, results.size());
 		LOGGER.info("==============CLOSURE TABLE==========");
 		for (ROrgClosure o : results) {
 			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
@@ -273,6 +274,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		Session session = factory.openSession();
 		LOGGER.info("==>after modify - add user to org<==");
 		List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
+		AssertJUnit.assertEquals(52, results.size());
 		LOGGER.info("==============CLOSURE TABLE==========");
 		for (ROrgClosure o : results) {
 			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
@@ -282,15 +284,17 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		session.close();
 	}
 
+	@Test
 	public void test005deleteOrg() throws Exception {
 		LOGGER.info("===[ deleteOrgStruct ]===");
-		String orgOidToDelete = "00000000-8888-6666-0000-100000000004";
+		String orgOidToDelete = "00000000-8888-6666-0000-100000000002";
 		OperationResult opResult = new OperationResult("===[ deleteOrgStruct ]===");
 		repositoryService.deleteObject(OrgType.class, orgOidToDelete, opResult);
 
 		Session session = factory.openSession();
 		LOGGER.info("==>after delete<==");
 		List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
+//		AssertJUnit.assertEquals(54, results.size());
 		LOGGER.info("==============CLOSURE TABLE==========");
 		for (ROrgClosure o : results) {
 			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
