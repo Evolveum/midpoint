@@ -294,7 +294,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		Session session = factory.openSession();
 		LOGGER.info("==>after delete<==");
 		List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
-//		AssertJUnit.assertEquals(54, results.size());
+		AssertJUnit.assertEquals(46, results.size());
 		LOGGER.info("==============CLOSURE TABLE==========");
 		for (ROrgClosure o : results) {
 			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),

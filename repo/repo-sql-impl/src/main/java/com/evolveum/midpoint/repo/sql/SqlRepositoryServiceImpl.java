@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -418,6 +419,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			if (type.isAssignableFrom(OrgType.class)) {
 				objectsToRecompute = deleteTransitiveHierarchy(object, session);
 			}
+			LOGGER.trace("objectsTORecompute.");
+			for (RObject obj : objectsToRecompute){
+				LOGGER.trace(ObjectTypeUtil.toShortString(obj.toJAXB(getPrismContext())));
+			}
 			
 			session.delete(object);
 
@@ -450,7 +455,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		LOGGER.trace("Recomputing organization structure closure table after delete.");
 		
 		for (RObject object : objectsToRecompute) {
-			Criteria query = session.createCriteria(object.getClass());
+			Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(object.toJAXB(getPrismContext()).getClass()));
 			query.add(Restrictions.eq("oid", object.getOid()));
 			query.add(Restrictions.eq("id", 0L));
 			RObject obj = (RObject) query.uniqueResult();
@@ -458,10 +463,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				// object not found..probably it was just deleted.
 				continue;
 			}
-
+			deleteAncestors(object, session);
 			fillHierarchy(object.toJAXB(getPrismContext()), session);
 		}
 		LOGGER.trace("Closure table for organization structure recomputed.");
+	}
+	
+	private void deleteAncestors(RObject object, Session session){
+		Criteria criteria = session.createCriteria(ROrgClosure.class);
+		criteria.add(Restrictions.eq("descendant", object));
+		List<ROrgClosure> objectsToDelete = criteria.list();
+		
+		for (ROrgClosure objectToDelete : objectsToDelete){
+			session.delete(objectToDelete);
+		}
+		
 	}
 	
 	@Deprecated
