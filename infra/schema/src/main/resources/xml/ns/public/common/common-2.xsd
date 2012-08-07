@@ -2658,6 +2658,16 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the account type password policy settings.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:PasswordPolicyType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -4952,7 +4962,7 @@
             <xsd:enumeration value="none">
                 <xsd:annotation>
                     <xsd:documentation>
-                        No enforcement
+                        No enforcement. Assignments will be ignored.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NONE"/>
