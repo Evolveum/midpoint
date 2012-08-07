@@ -317,7 +317,7 @@ public class ObjectWrapper implements Serializable {
 						if (SchemaConstants.PATH_PASSWORD.equals(path)) {
 							// password change will always look like add,
 							// therefore we push replace
-							pDelta.setValuesToReplace(Arrays.asList(val));
+							pDelta.setValuesToReplace(Arrays.asList(val.clone()));
 						} else {
 							pDelta.addValueToAdd(val.clone());
 						}
@@ -329,7 +329,7 @@ public class ObjectWrapper implements Serializable {
 						// this is modify...
 						if (propertyDef.isSingleValue()) {
 							if (val.getValue() != null) {
-								pDelta.setValuesToReplace(Arrays.asList(val));
+								pDelta.setValuesToReplace(Arrays.asList(val.clone()));
 							} else {
 								pDelta.addValueToDelete(valueWrapper.getOldValue().clone());
 							}
