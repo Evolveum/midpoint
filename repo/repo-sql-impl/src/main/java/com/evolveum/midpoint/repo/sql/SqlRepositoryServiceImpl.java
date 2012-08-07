@@ -419,11 +419,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			if (type.isAssignableFrom(OrgType.class)) {
 				objectsToRecompute = deleteTransitiveHierarchy(object, session);
 			}
-			LOGGER.trace("objectsTORecompute.");
-			for (RObject obj : objectsToRecompute){
-				LOGGER.trace(ObjectTypeUtil.toShortString(obj.toJAXB(getPrismContext())));
-			}
-			
+						
 			session.delete(object);
 
 			if (objectsToRecompute != null){
