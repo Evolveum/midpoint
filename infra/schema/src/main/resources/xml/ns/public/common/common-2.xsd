@@ -2450,6 +2450,7 @@
             </xsd:element>
             <xsd:element name="dependency" type="tns:ResourceAccountReferenceType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="entitlementAssociation" type="tns:ResourceEntitlementAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+         	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     
