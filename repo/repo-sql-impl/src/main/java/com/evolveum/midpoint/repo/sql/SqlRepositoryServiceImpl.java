@@ -297,6 +297,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			LOGGER.debug("Translating JAXB to data type.");
 			RObject rObject = createDataObjectFromJAXB(objectType);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Translated JAXB object to data type:\n{}", new Object[]{rObject.toString()});
+            }
 
 			LOGGER.debug("Saving object.");
 			RContainerId containerId = (RContainerId) session.save(rObject);
@@ -701,9 +704,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			// merge and update user
 			LOGGER.debug("Translating JAXB to data type.");
 			RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Translated JAXB object to data type:\n{}", new Object[]{rObject.toString()});
+            }
 			rObject.setVersion(rObject.getVersion() + 1);
 
-			session.merge(rObject);
+			RObject merged = (RObject) session.merge(rObject);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Merged data type:\n{}", new Object[]{merged.toString()});
+            }
 
 			recomputeHierarchy(prismObject.asObjectable(), session, modifications);
 
