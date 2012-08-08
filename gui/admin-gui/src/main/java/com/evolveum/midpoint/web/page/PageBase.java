@@ -263,4 +263,16 @@ public abstract class PageBase extends WebPage {
                 }
         }
     }
+
+    /**
+     * It's here only because of eclipse ide - it's not properly filtering resources during maven build.
+     * "buildnumber" variable is not replaced.
+     *
+     * @deprecated
+     * @return
+     */
+    @Deprecated
+    public String getBuildNumber() {
+        return getString("pageBase.unknownBuildNumber");
+    }
 }
