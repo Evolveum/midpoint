@@ -317,7 +317,17 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
      * @see SyncContext#rememberResource(ResourceType)
      */
     public ResourceType getResource(ResourceAccountType rat) {
-        return getResourceCache().get(rat.getResourceOid());
+        return getResource(rat.getResourceOid());
+    }
+    
+    /**
+     * Returns a resource for specified account type.
+     * This is supposed to be efficient, taking the resource from the cache. It assumes the resource is in the cache.
+     *
+     * @see SyncContext#rememberResource(ResourceType)
+     */
+    public ResourceType getResource(String resourceOid) {
+        return getResourceCache().get(resourceOid);
     }
 	
 	/**

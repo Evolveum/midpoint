@@ -25,6 +25,7 @@ import java.util.Collection;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.model.ModelCompiletimeConfig;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -130,9 +131,14 @@ public class LensUtil {
 			focusContext.setPrimaryDelta(focusDelta);
 		}
 		for (ObjectDelta<P> projectionDelta: projectionDeltas) {
-			// TODO: special handling for account (RAT)
 			LensProjectionContext<P> projectionContext = context.createProjectionContext();
 			projectionContext.setPrimaryDelta(projectionDelta);
+		}
+
+		context.setFresh(false);
+		
+		if (ModelCompiletimeConfig.CONSISTENCY_CHECKS) {
+			context.checkConsistence();
 		}
 		
 		return context;

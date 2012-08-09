@@ -43,8 +43,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -57,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
@@ -81,26 +84,24 @@ public class ContextLoader {
 	
 	public <F extends ObjectType, P extends ObjectType> void load(LensContext<F,P> context, String activityDescription, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
-    	if (focusContext == null) {
-    		return;
+    	if (focusContext != null) {
+			loadObjectOld(context, result);
+			
+			if (UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+				LensContext<UserType,AccountShadowType> ucContext = (LensContext<UserType,AccountShadowType>) context;
+				
+		        loadFromSystemConfig(ucContext, result);
+		        context.recomputeFocus();
+		        
+		        loadAccountRefs(ucContext, result);
+	    	}
     	}
-		loadObjectOld(context, result);
 		
-		if (focusContext.getObjectTypeClass() != UserType.class) {
-    		// We can do this only for user.
-    		return;
-    	}
-		LensContext<UserType,AccountShadowType> ucContext = (LensContext<UserType,AccountShadowType>) context;
-		
-        loadFromSystemConfig(ucContext, result);
-        context.recomputeFocus();
-        
-        loadAccountRefs(ucContext, result);
-        context.recomputeFocus();
+        checkProjectionContexts(context, result);
+        context.recompute();
 
         LensUtil.traceContext(LOGGER, activityDescription, "load", context, false);
 
-        checkAccountContexts(ucContext, result);		
 	}
 	
 	private <F extends ObjectType, P extends ObjectType> void loadObjectOld(LensContext<F,P> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -474,45 +475,87 @@ public class ContextLoader {
 	 * Check reconcile flag in account sync context and set accountOld
      * variable if it's not set (from provisioning), load resource (if not set already), etc.
 	 */
-	private void checkAccountContexts(LensContext<UserType,AccountShadowType> context, OperationResult result)
+	private <F extends ObjectType, P extends ObjectType> void checkProjectionContexts(LensContext<F,P> context, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
 			SecurityViolationException {
 
 		OperationResult subResult = result.createSubresult(ContextLoader.class.getName()
-				+ ".checkAccountContextReconciliation");
+				+ ".checkProjectionContexts");
 		try {
-			for (LensProjectionContext<AccountShadowType> accContext : context.getProjectionContexts()) {
-				if (accContext.getResource() == null) {
-					ResourceAccountType rat = accContext.getResourceAccountType();
-					ResourceType resourceType = context.getResource(rat);
-					if (resourceType == null) {
-						PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, rat.getResourceOid(), null, result);
-						resourceType = resource.asObjectable();
-						context.rememberResource(resourceType);
-					}
-					accContext.setResource(resourceType);
+			for (LensProjectionContext<P> projContext : context.getProjectionContexts()) {
+				
+				// Remember OID before the object could be wiped
+				String projectionObjectOid = projContext.getOid();
+				if (projContext.isDoReconciliation() && !projContext.isFullShadow()) {
+					// The old object is useless here. So lets just wipe it so it will get loaded
+					projContext.setObjectOld(null);
 				}
 				
-				if (!accContext.isDoReconciliation()) {
-					// no need to load
-					continue;
+				// Load old object
+				PrismObject<P> projectionObject = projContext.getObjectOld();
+				if (projContext.getObjectOld() != null) {
+					projectionObject = projContext.getObjectOld();
+				} else {
+					if (projContext.isAdd()) {
+						// No need to load old object, there is none
+						projContext.recompute();
+						projectionObject = projContext.getObjectNew();
+					} else {
+						if (projectionObjectOid == null) {
+							throw new SystemException(
+									"Projection with null OID and without a representation in account sync context");
+						}
+						Collection<ObjectOperationOption> options = null;
+						if (projContext.isDoReconciliation()) {
+							projContext.setFullShadow(true);
+						} else {
+							projContext.setFullShadow(false);
+							options = MiscUtil.createCollection(ObjectOperationOption.NO_FETCH);
+						}
+						PrismObject<P> objectOld = provisioningService.getObject(
+								projContext.getObjectTypeClass(), projectionObjectOid, options, subResult);
+						projContext.setObjectOld(objectOld);
+						projectionObject = objectOld;
+					}
 				}
-
-				if (accContext.getObjectOld() != null && accContext.isFullShadow()) {
-					// already loaded
-					continue;
+				
+				Class<P> projClass = projContext.getObjectTypeClass();
+				if (ResourceObjectShadowType.class.isAssignableFrom(projClass)) {
+					ResourceObjectShadowType shadowType = ((PrismObject<ResourceObjectShadowType>)projectionObject).asObjectable();
+				
+					// Determine Resource
+					ResourceType resourceType = projContext.getResource();
+					String resourceOid = null;
+					if (resourceType == null) {
+						resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
+					} else {
+						resourceOid = resourceType.getOid();
+					}
+					
+					// Determine RAT
+					ResourceAccountType rat = projContext.getResourceAccountType();
+					if (rat == null) {
+						if (AccountShadowType.class.isAssignableFrom(projClass)) {
+							AccountShadowType accountShadowType = ((PrismObject<AccountShadowType>)projectionObject).asObjectable();
+							String accountType = accountShadowType.getAccountType();
+							rat = new ResourceAccountType(resourceOid, accountType);
+							projContext.setResourceAccountType(rat);
+						}
+					}
+					
+					// Load resource
+					if (resourceType == null) {
+						resourceType = context.getResource(resourceOid);
+						if (resourceType == null) {
+							PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
+							resourceType = resource.asObjectable();
+							context.rememberResource(resourceType);
+						}
+						projContext.setResource(resourceType);
+					}
+					
+					projContext.fixShadows();
 				}
-
-				if (accContext.getOid() == null) {
-					throw new SystemException(
-							"Request to reconcile account with null OID and without a full representation in account sync context");
-				}
-
-				PrismObject<AccountShadowType> account = provisioningService.getObject(
-						AccountShadowType.class, accContext.getOid(), null, subResult);
-				accContext.setObjectOld(account);
-				accContext.fixShadows();
-				accContext.setFullShadow(true);
 			}
 		} finally {
 			subResult.computeStatus();

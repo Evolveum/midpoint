@@ -158,7 +158,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         return resourceAccountType;
     }
     
-    public void addAccountSyncDelta(ObjectDelta<O> delta) throws SchemaException {
+    public void setResourceAccountType(ResourceAccountType resourceAccountType) {
+		this.resourceAccountType = resourceAccountType;
+	}
+
+	public void addAccountSyncDelta(ObjectDelta<O> delta) throws SchemaException {
         if (syncDelta == null) {
         	syncDelta = delta;
         } else {
@@ -324,7 +328,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         }
 
         setObjectNew(accDelta.computeChangedObject(oldAccount));
-        fixShadow(getObjectNew());
+        if (resource != null) {
+        	fixShadow(getObjectNew());
+        }
     }
     
     public void fixShadows() throws SchemaException {
@@ -354,11 +360,15 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	
 	public void checkConsistence(String contextDesc, boolean fresh) {
 		super.checkConsistence(contextDesc);
-    	if (fresh && resource == null) {
-    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-    	}
-    	if (resourceAccountType == null) {
-    		throw new IllegalStateException("Null resource "+getElementDesc()+" type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+    	if (fresh) {
+    		if (resource == null) {
+	    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+	    	}
+	    	if (AccountShadowType.class.isAssignableFrom(getObjectTypeClass())) {
+		    	if (resourceAccountType == null) {
+		    		throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+		    	}
+	    	}
     	}
     	if (syncDelta != null) {
     		try {
@@ -546,7 +556,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     
 	@Override
 	public String toString() {
-		return "LensProjectionContext(" + getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
+		return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() + ")";
 	}
 
 

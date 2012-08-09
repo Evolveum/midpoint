@@ -706,7 +706,7 @@ public class TestSanity extends AbstractIntegrationTest {
     @Test
     public void test010AddUser() throws FileNotFoundException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException {
-        displayTestTile("test012AddUser");
+        displayTestTile("test010AddUser");
 
         // GIVEN
         checkRepoOpenDjResource();

@@ -546,6 +546,44 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
+    public void test131ModifyAccountJackDummy() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test131ModifyAccountJackDummy");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test131ModifyAccountJackDummy");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        		accountOid, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, prismContext, "Cpt. Jack Sparrow");
+        deltas.add(accountDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, task, result);
+		
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Cpt. Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Cpt. Jack Sparrow", true);
+	}
+	
+	@Test
     public void test139ModifyUserJackUnassignAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
