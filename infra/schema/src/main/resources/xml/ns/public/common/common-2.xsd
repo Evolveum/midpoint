@@ -3816,6 +3816,25 @@
 							</xsd:documentation>
 						</xsd:annotation>
      				</xsd:element>
+     				<xsd:element name="synchronizationSituation" type="tns:SynchronizationSituationType" minOccurs="0" maxOccurs="unbounded">
+	     				<xsd:annotation>
+							<xsd:documentation>
+								The most recent synchronization situation. Regardless of the channel.
+								This simple enumeration property is used for (indexed) search of shadows in certain situation.
+								It does not provide any further details. More details can be found in the "synchronizationSituationDescription"
+								property.
+							</xsd:documentation>
+						</xsd:annotation>
+     				</xsd:element>
+     				<xsd:element name="synchronizationSituationDescription" type="tns:SynchronizationSituationDescriptionType" minOccurs="0" maxOccurs="unbounded">
+     					<xsd:annotation>
+							<xsd:documentation>
+								Complex description of synchronization situations. This is multi-valued proprty and it should
+								store only a single value for each channel (the most recent one). All the older values shoule be
+								removed on each update.
+							</xsd:documentation>
+						</xsd:annotation>
+     				</xsd:element>
                     <xsd:element name="objectClass" type="xsd:QName">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3899,6 +3918,20 @@
 	        </xsd:any>
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="SynchronizationSituationDescriptionType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Complex description of a synchronization situation. It describes the resulting situation
+    			but also when it happened (timestamp) and from where it originated (channel).
+    		</xsd:documentation>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="situation" type="tns:SynchronizationSituationType"/>
+    		<xsd:element name="timestamp" type="xsd:dateTime"/>
+    		<xsd:element name="channel" type="xsd:anyURI"/>
+    	</xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="AccountShadowType">
