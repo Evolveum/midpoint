@@ -173,7 +173,7 @@ public class PrismContext {
      * @param object
      * @return xml as string
      */
-    public String silentMarshalObject(Object object) {
+    public String silentMarshalObject(Object object, Trace logger) {
         String xml = null;
         try {
             QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
@@ -187,7 +187,8 @@ public class PrismContext {
                 xml = prismJaxbProcessor.marshalElementToString(new JAXBElement<Object>(fakeQName, Object.class, object));
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't marshal element to string {}", ex, object);
+            Trace log = logger != null ? logger : LOGGER;
+            LoggingUtils.logException(log, "Couldn't marshal element to string {}", ex, object);
         }
         return xml;
     }

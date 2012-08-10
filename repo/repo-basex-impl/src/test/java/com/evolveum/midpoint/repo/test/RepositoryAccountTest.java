@@ -157,8 +157,8 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			// get account object
 			PrismObject<AccountShadowType> retrievedAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
 					new OperationResult("test"));
-            LOGGER.debug("A\n{}", prismContext.silentMarshalObject(accountShadow.asObjectable()));
-            LOGGER.debug("B\n{}", prismContext.silentMarshalObject(retrievedAccount.asObjectable()));
+            LOGGER.debug("A\n{}", prismContext.silentMarshalObject(accountShadow.asObjectable(), LOGGER));
+            LOGGER.debug("B\n{}", prismContext.silentMarshalObject(retrievedAccount.asObjectable(), LOGGER));
             EncryptedDataType data1 = accountShadow.asObjectable().getCredentials().getPassword().getProtectedString().getEncryptedData();
             EncryptedDataType data2 = retrievedAccount.asObjectable().getCredentials().getPassword().getProtectedString().getEncryptedData();
             data1.equals(data2);

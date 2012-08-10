@@ -277,7 +277,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		try {
 			ObjectType objectType = object.asObjectable();
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Object\n{}", new Object[] { getPrismContext().silentMarshalObject(objectType) });
+				LOGGER.trace("Object\n{}", new Object[] { getPrismContext().silentMarshalObject(objectType, LOGGER) });
 			}
 
 			// check name uniqueness (by type)
@@ -509,7 +509,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		LOGGER.debug("Counting objects of type '{}', query (on trace level).", new Object[] { type });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Full query\n{}", new Object[] { (query == null ? "undefined" : getPrismContext()
-					.silentMarshalObject(query)) });
+					.silentMarshalObject(query, LOGGER)) });
 		}
 
 		OperationResult subResult = result.createSubresult(COUNT_OBJECTS);
@@ -577,8 +577,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				(paging == null ? "undefined" : paging.getMaxSize()) });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[] {
-					(query == null ? "undefined" : getPrismContext().silentMarshalObject(query)),
-					(paging == null ? "undefined" : getPrismContext().silentMarshalObject(paging)) });
+					(query == null ? "undefined" : getPrismContext().silentMarshalObject(query, LOGGER)),
+					(paging == null ? "undefined" : getPrismContext().silentMarshalObject(paging, LOGGER)) });
 		}
 
 		OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);

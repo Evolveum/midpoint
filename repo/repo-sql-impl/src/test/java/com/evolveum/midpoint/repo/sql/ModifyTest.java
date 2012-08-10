@@ -244,7 +244,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertNotNull(taskType.getObjectRef());
         objectRef = taskType.getObjectRef();
         AssertJUnit.assertEquals("2", objectRef.getOid());
-        LOGGER.info(prismContext.silentMarshalObject(taskType));
+        LOGGER.info(prismContext.silentMarshalObject(taskType, LOGGER));
 
         modifications.clear();
         delta = new ReferenceDelta(def);

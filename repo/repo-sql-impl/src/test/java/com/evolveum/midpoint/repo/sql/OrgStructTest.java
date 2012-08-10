@@ -114,7 +114,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertEquals(1, users.size());
 		UserType elaine = users.get(0).asObjectable();
 		LOGGER.info("--->elaine<----");
-		LOGGER.info(prismContext.silentMarshalObject(elaine));
+		LOGGER.info(prismContext.silentMarshalObject(elaine, LOGGER));
 		AssertJUnit.assertEquals("elaine", elaine.getName());
 		AssertJUnit.assertEquals(1, elaine.getOrgRef().size());
 		AssertJUnit.assertEquals("00000000-8888-6666-0000-100000000001", elaine.getOrgRef().get(0).getOid());
