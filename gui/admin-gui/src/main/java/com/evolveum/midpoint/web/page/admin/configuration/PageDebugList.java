@@ -287,6 +287,12 @@ public class PageDebugList extends PageAdminConfiguration {
         return (TablePanel) content.getBodyContainer().get("table");
     }
 
+    private RepositoryObjectDataProvider getDataTableProvider() {
+        TablePanel tablePanel = getListTable();
+        DataTable dataTable = tablePanel.getDataTable();
+        return (RepositoryObjectDataProvider) dataTable.getDataProvider();
+    }
+
     private void listObjectsPerformed(AjaxRequestTarget target, String nameText, ObjectTypes selected) {
         RepositoryObjectDataProvider provider = getTableDataProvider();
         if (StringUtils.isNotEmpty(nameText)) {
@@ -368,6 +374,9 @@ public class PageDebugList extends PageAdminConfiguration {
         }
         result.recomputeStatus();
 
+        RepositoryObjectDataProvider provider = getTableDataProvider();
+        provider.clearCache();
+
         showResult(result);
         target.add(getListTable());
         target.add(getFeedbackPanel());
@@ -385,6 +394,9 @@ public class PageDebugList extends PageAdminConfiguration {
         } catch (Exception ex) {
             result.recordFatalError("Couldn't delete object '" + object.getName() + "'.", ex);
         }
+
+        RepositoryObjectDataProvider provider = getTableDataProvider();
+        provider.clearCache();
 
         showResult(result);
         target.add(getListTable());

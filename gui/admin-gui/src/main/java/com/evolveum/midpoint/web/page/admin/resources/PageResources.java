@@ -344,6 +344,10 @@ public class PageResources extends PageAdminResources {
         if (result.isSuccess()) {
             result.recordStatus(OperationResultStatus.SUCCESS, "The resource(s) have been successfully deleted.");
         }
+
+        DataTable table = getResourceTable().getDataTable();
+        ResourceDtoProvider provider = (ResourceDtoProvider) table.getDataProvider();
+        provider.clearCache();
         
         showResult(result);
         target.add(getFeedbackPanel());

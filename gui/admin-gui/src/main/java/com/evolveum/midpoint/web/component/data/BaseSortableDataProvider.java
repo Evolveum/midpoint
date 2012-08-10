@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -128,6 +129,19 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         }
 
         return PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
+    }
+
+    public void clearCache() {
+        cache.clear();
+    }
+
+    public int getCacheCleanupThreshold() {
+        return cacheCleanupThreshold;
+    }
+
+    public void setCacheCleanupThreshold(int cacheCleanupThreshold) {
+        Validate.isTrue(cacheCleanupThreshold > 0, "Cache cleanup threshold must be bigger than zero.");
+        this.cacheCleanupThreshold = cacheCleanupThreshold;
     }
 
     @Override

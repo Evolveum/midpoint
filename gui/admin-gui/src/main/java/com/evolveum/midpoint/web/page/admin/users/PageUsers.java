@@ -479,6 +479,9 @@ public class PageUsers extends PageAdminUsers {
         }
         result.recomputeStatus();
 
+        ObjectDataProvider<UserType> provider = (ObjectDataProvider) getTable().getDataTable().getDataProvider();
+        provider.clearCache();
+
         showResult(result);
         target.add(getFeedbackPanel());
         target.add(getTable());
