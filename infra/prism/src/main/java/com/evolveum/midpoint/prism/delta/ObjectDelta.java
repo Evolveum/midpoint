@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
@@ -630,7 +631,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	objectDelta.setOid(oid);
     	return objectDelta;
     }
-    
+        
     public void checkConsistence() {
     	checkConsistence(true, false);
     }

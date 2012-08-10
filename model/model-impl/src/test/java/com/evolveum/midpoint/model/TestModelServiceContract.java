@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -140,14 +141,15 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
-		modifications.add(accountDelta);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
         
 		// WHEN
-		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
 		// Check accountRef
@@ -338,15 +340,16 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         account.setOid(accountOid);
-        
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        		
+		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+		PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), account);
-		modifications.add(accountDelta);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         
 		// WHEN
-		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
 		// Check accountRef
@@ -379,11 +382,15 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createAddDelta(account);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
         
 		// WHEN
-        accountOid = modelService.addObject(account, task, result);
+        modelService.executeChanges(deltas, task, result);
 		
 		// THEN
+        accountOid = accountDelta.getOid();
+        assertNotNull("No account OID in resulting delta", accountOid);
 		// Check accountRef (should be none)
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
@@ -413,12 +420,13 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
-		modifications.add(accountDelta);
-        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+                
 		// WHEN
-		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
 		// Check accountRef
@@ -453,14 +461,15 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
-		modifications.add(accountDelta);
-        
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		        
 		// WHEN
-		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -491,8 +500,11 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
+        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
+        
 		// WHEN
-        modelService.deleteObject(AccountShadowType.class, accountOid, task, result);
+        modelService.executeChanges(deltas, task, result);
 		
 		// THEN
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -624,9 +636,11 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-		modelService.addObject(user , task, result);
+		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
 		// Check accountRef
@@ -660,9 +674,11 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-		modelService.addObject(user , task, result);
+		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
 		// Check accountRef

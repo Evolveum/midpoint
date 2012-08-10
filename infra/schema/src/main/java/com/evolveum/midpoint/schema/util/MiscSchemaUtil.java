@@ -31,11 +31,13 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOptionType;
@@ -171,5 +173,14 @@ public class MiscSchemaUtil {
 		XPathHolder itemXPath = new XPathHolder(selectorType.getPath());
 		return new ObjectSelector(itemXPath.toPropertyPath());
 	}
+	
+    /**
+     * Convenience method that helps avoid some compiler warnings.
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Collection<ObjectDelta<? extends ObjectType>> createCollection(ObjectDelta<?>... deltas) {
+    	return (Collection)MiscUtil.createCollection(deltas);
+    }
+
 
 }
