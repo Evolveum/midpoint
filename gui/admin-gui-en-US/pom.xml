@@ -60,6 +60,14 @@
             <url>http://repo.evolveum.com/repo</url>
         </repository>
     </repositories>
+    <build>
+        <resources>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+    </build>
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
