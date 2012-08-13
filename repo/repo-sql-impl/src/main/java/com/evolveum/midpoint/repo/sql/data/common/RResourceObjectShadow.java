@@ -59,6 +59,7 @@ public class RResourceObjectShadow extends RObject {
     private String objectChange;
     private Integer attemptNumber;
     private RFailedOperationTypeType failedOperationType;
+    private String intent;
     //attributes
     @QueryEntity(any = true)
     private RAnyContainer attributes;
@@ -122,6 +123,10 @@ public class RResourceObjectShadow extends RObject {
     public String getName() {
         return name;
     }
+    
+    public String getIntent() {
+		return intent;
+	}
 
     public void setName(String name) {
         this.name = name;
@@ -161,6 +166,10 @@ public class RResourceObjectShadow extends RObject {
     public void setObjectClass(QName objectClass) {
         this.objectClass = objectClass;
     }
+    
+    public void setIntent(String intent) {
+		this.intent = intent;
+	}
 
     @Override
     public boolean equals(Object o) {
@@ -180,6 +189,7 @@ public class RResourceObjectShadow extends RObject {
         if (objectClass != null ? !objectClass.equals(that.objectClass) : that.objectClass != null) return false;
         if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
         if (result != null ? !result.equals(that.result) : that.result != null) return false;
+        if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
 
         return true;
     }
@@ -193,6 +203,7 @@ public class RResourceObjectShadow extends RObject {
         result1 = 31 * result1 + (objectChange != null ? objectChange.hashCode() : 0);
         result1 = 31 * result1 + (attemptNumber != null ? attemptNumber.hashCode() : 0);
         result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
+        result1 = 31 * result1 + (intent != null ? intent.hashCode() : 0);
         return result1;
     }
 
@@ -202,6 +213,7 @@ public class RResourceObjectShadow extends RObject {
 
         jaxb.setName(repo.getName());
         jaxb.setObjectClass(repo.getObjectClass());
+        jaxb.setIntent(repo.getIntent());
         if (repo.getActivation() != null) {
             jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
         }
@@ -238,6 +250,7 @@ public class RResourceObjectShadow extends RObject {
 
         repo.setName(jaxb.getName());
         repo.setObjectClass(jaxb.getObjectClass());
+        repo.setIntent(jaxb.getIntent());
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
             RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
