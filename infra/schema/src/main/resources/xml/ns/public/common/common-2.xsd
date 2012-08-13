@@ -3851,6 +3851,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The intended usage type or purpose of the object. E.g. for accounts it may be
+                                "user", "admin", "test".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="attributes" type="tns:ResourceObjectShadowAttributesType" minOccurs="0">
                     </xsd:element>
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
@@ -3949,7 +3957,13 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ResourceObjectShadowType">
                 <xsd:sequence>
-                    <xsd:element name="accountType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="accountType" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			DEPRECATED. Replaced by "intent" in tns:ResourceObjectShadowType.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
