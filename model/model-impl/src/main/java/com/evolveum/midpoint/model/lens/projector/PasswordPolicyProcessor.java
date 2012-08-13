@@ -99,7 +99,12 @@ public class PasswordPolicyProcessor {
 		ObjectDelta accountDelta = projectionContext.getDelta();
 		
 		if (accountDelta == null){
-			
+			LOGGER.trace("Skipping processing password policies. User delta not specified.");
+			return null;
+		}
+		
+		if (ChangeType.DELETE == accountDelta.getChangeType()){
+			return null;
 		}
 		
 		PrismObject<AccountShadowType> accountShadow = null;

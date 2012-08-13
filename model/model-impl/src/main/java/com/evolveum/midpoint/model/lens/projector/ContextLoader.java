@@ -547,6 +547,21 @@ public class ContextLoader {
 						}
 					}
 					
+					
+					// Load resource
+					if (resourceType == null) {
+						resourceType = context.getResource(resourceOid);
+						if (resourceType == null) {
+							PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
+							resourceType = resource.asObjectable();
+							context.rememberResource(resourceType);
+						}
+						projContext.setResource(resourceType);
+					}
+					
+					
+					projContext.fixShadows();
+					
 					//Determine refined schema and password policies for account type
 					RefinedAccountDefinition rad = projContext.getRefinedAccountDefinition();
 					if (rad != null && AccountShadowType.class.isAssignableFrom(projClass)) {
@@ -560,18 +575,6 @@ public class ContextLoader {
 						}
 					}
 					
-					// Load resource
-					if (resourceType == null) {
-						resourceType = context.getResource(resourceOid);
-						if (resourceType == null) {
-							PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
-							resourceType = resource.asObjectable();
-							context.rememberResource(resourceType);
-						}
-						projContext.setResource(resourceType);
-					}
-					
-					projContext.fixShadows();
 				}
 			}
 		} finally {
