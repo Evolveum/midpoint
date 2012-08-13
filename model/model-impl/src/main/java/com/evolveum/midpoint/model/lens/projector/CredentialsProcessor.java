@@ -19,9 +19,11 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -67,19 +69,25 @@ public class CredentialsProcessor {
 
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
+    
+    @Autowired(required = true)
+    private PasswordPolicyProcessor passwordPolicyProcessor;
 
     public <F extends ObjectType, P extends ObjectType> void processCredentials(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) 
-    		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
     	LensFocusContext<F> focusContext = context.getFocusContext();
-    	if (focusContext == null) {
-    		return;
+    	if (focusContext != null && focusContext.getObjectTypeClass() == UserType.class) {
+    		processCredentialsUser((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
+//    		return;
     	}
-    	if (focusContext.getObjectTypeClass() != UserType.class) {
-    		// We can do this only for user.
-    		return;
-    	}
-    	processCredentialsUser((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
+//    	if (focusContext.getObjectTypeClass() != UserType.class) {
+//    		// We can do this only for user.
+//    		return;
+//    	} 	
+    	
+    	passwordPolicyProcessor.processPasswordPolicy((LensProjectionContext<AccountShadowType>)projectionContext, context, result);
     }
+    
     
     public void processCredentialsUser(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) 
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
@@ -126,22 +134,30 @@ public class CredentialsProcessor {
             return;
         }
 
-        ResourceAccountTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
-        if (resourceAccountDefType == null) {
-            LOGGER.trace("No ResourceAccountTypeDefinition, therefore also no password outbound definition, skipping credentials processing for account " + rat);
-            return;
+//        ResourceAccountTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
+//        if (resourceAccountDefType == null) {
+//            LOGGER.trace("No ResourceAccountTypeDefinition, therefore also no password outbound definition, skipping credentials processing for account " + rat);
+//            return;
+//        }
+//        ResourceCredentialsDefinitionType credentialsType = resourceAccountDefType.getCredentials();
+//        if (credentialsType == null) {
+//            LOGGER.trace("No credentials definition in account type {}, skipping credentials processing", rat);
+//            return;
+//        }
+//        ResourcePasswordDefinitionType passwordType = credentialsType.getPassword();
+//        if (passwordType == null) {
+//            LOGGER.trace("No password definition in credentials in account type {}, skipping credentials processing", rat);
+//            return;
+//        }
+//        ValueConstructionType outbound = passwordType.getOutbound();
+        RefinedAccountDefinition refinedAccountDef = accCtx.getRefinedAccountDefinition();
+        if (refinedAccountDef == null){
+        	LOGGER.trace("No RefinedAccountDefinition, therefore also no password outbound definition, skipping credentials processing for account " + rat);
+          return;
         }
-        ResourceCredentialsDefinitionType credentialsType = resourceAccountDefType.getCredentials();
-        if (credentialsType == null) {
-            LOGGER.trace("No credentials definition in account type {}, skipping credentials processing", rat);
-            return;
-        }
-        ResourcePasswordDefinitionType passwordType = credentialsType.getPassword();
-        if (passwordType == null) {
-            LOGGER.trace("No password definition in credentials in account type {}, skipping credentials processing", rat);
-            return;
-        }
-        ValueConstructionType outbound = passwordType.getOutbound();
+        
+        ValueConstructionType outbound = refinedAccountDef.getCredentialsOutbound();
+        
         if (outbound == null) {
             LOGGER.trace("No outbound definition in password definition in credentials in account type {}, skipping credentials processing", rat);
             return;

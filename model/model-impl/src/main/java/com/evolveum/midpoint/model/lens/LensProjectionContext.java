@@ -56,6 +56,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
@@ -117,6 +118,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     private transient Collection<ResourceAccountReferenceType> dependencies = null;
     
     private transient Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes;
+    
+    private PasswordPolicyType accountPasswordPolicy;
 
     
 	/**
@@ -299,6 +302,14 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			}
 		}
 		return dependencies;
+	}
+	
+	public PasswordPolicyType getAccountPasswordPolicy() {
+		return accountPasswordPolicy;
+	}
+	
+	public void setAccountPasswordPolicy(PasswordPolicyType accountPasswordPolicy) {
+		this.accountPasswordPolicy = accountPasswordPolicy;
 	}
 
 	/**

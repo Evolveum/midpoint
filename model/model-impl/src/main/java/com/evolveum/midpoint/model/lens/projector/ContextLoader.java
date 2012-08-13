@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -57,6 +59,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
@@ -540,6 +543,20 @@ public class ContextLoader {
 							String accountType = accountShadowType.getAccountType();
 							rat = new ResourceAccountType(resourceOid, accountType);
 							projContext.setResourceAccountType(rat);
+							
+						}
+					}
+					
+					//Determine refined schema and password policies for account type
+					RefinedAccountDefinition rad = projContext.getRefinedAccountDefinition();
+					if (rad != null && AccountShadowType.class.isAssignableFrom(projClass)) {
+						ObjectReferenceType passwordPolicyRef = rad.getPasswordPolicy();
+						if (passwordPolicyRef != null && passwordPolicyRef.getOid() != null) {
+							PrismObject<PasswordPolicyType> passwordPolicy = cacheRepositoryService.getObject(
+									PasswordPolicyType.class, passwordPolicyRef.getOid(), result);
+							if (passwordPolicy != null) {
+								projContext.setAccountPasswordPolicy(passwordPolicy.asObjectable());
+							}
 						}
 					}
 					

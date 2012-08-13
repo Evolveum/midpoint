@@ -60,6 +60,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     private Collection<ResourceAttributeDefinition> identifiers;
 	private Collection<ResourceAttributeDefinition> secondaryIdentifiers;
 	private Collection<ResourceObjectPattern> protectedAccounts;
+	
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
      */
@@ -282,7 +283,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     public void setObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
         this.objectClassDefinition = objectClassDefinition;
     }
-
+    
     @Override
     public boolean isAccountType() {
         return true;
@@ -418,7 +419,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         }
         
         parseProtectedAccounts(rAccountDef, accountTypeDefType);
-
+   
         return rAccountDef;
     }
 
@@ -428,7 +429,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 			rAccountDef.getProtectedAccounts().add(protectedPattern);
 		}
 	}
-
+	
 	private static ResourceObjectPattern convertToPatten(ResourceObjectPatternType protectedType, RefinedAccountDefinition rAccountDef) throws SchemaException {
 		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern();
 		Collection<? extends Item<?>> items = rAccountDef.getPrismContext().getPrismDomProcessor().parseContainerItems(rAccountDef, protectedType.getAny());
@@ -620,7 +621,40 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     public ValueAssignmentType getCredentialsInbound() {
-        ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
+        
+    	ResourcePasswordDefinitionType password = getPasswordDefinition();
+    	
+        if (password == null || password.getInbound() == null) {
+            return null;
+        }
+
+        return password.getInbound();
+    }
+    
+	public ValueConstructionType getCredentialsOutbound() {
+
+		ResourcePasswordDefinitionType password = getPasswordDefinition();
+
+		if (password == null || password.getOutbound() == null) {
+			return null;
+		}
+
+		return password.getOutbound();
+	}
+    
+	
+	public ObjectReferenceType getPasswordPolicy(){
+		ResourcePasswordDefinitionType password = getPasswordDefinition();
+		
+		if (password == null || password.getPasswordPolicyRef() == null){
+			return null;
+		}
+		
+		return password.getPasswordPolicyRef();
+	}
+	
+    private ResourcePasswordDefinitionType getPasswordDefinition(){
+    	ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
         if (definition == null) {
             return null;
         }
@@ -628,16 +662,33 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         if (credentials == null) {
             return null;
         }
-        ResourcePasswordDefinitionType password = credentials.getPassword();
-        if (password == null || password.getInbound() == null) {
-            return null;
-        }
-
-        return password.getInbound();
+        
+        return credentials.getPassword();
     }
 
     public ValueAssignmentType getActivationInbound() {
-        ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
+        
+        ResourceActivationEnableDefinitionType enabled = getActivationEnableDefinition();
+        if (enabled == null || enabled.getInbound() == null) {
+            return null;
+        }
+
+        return (enabled.getInbound());
+    }
+ 
+	public ValueConstructionType getActivationOutbound() {
+
+		ResourceActivationEnableDefinitionType enabled = getActivationEnableDefinition();
+		if (enabled == null || enabled.getOutbound() == null) {
+			return null;
+		}
+
+		return (enabled.getOutbound());
+	}
+ 
+    
+    private ResourceActivationEnableDefinitionType getActivationEnableDefinition(){
+    	ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
         if (definition == null) {
             return null;
         }
@@ -646,11 +697,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         if (activation == null) {
             return null;
         }
-        ResourceActivationEnableDefinitionType enabled = activation.getEnabled();
-        if (enabled == null || enabled.getInbound() == null) {
-            return null;
-        }
-
-        return (enabled.getInbound());
+        
+        return activation.getEnabled();
     }
 }

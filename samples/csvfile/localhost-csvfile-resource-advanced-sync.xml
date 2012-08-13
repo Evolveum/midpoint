@@ -65,7 +65,7 @@ object.
             <!-- Configuration specific for the CSVfile connector -->
             <icfc:configurationProperties
 		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector">
-                <icfccsvfile:filePath>/var/tmp/midpoint-flatfile.csv</icfccsvfile:filePath>
+                <icfccsvfile:filePath>C:/csv/midpoint-flatfile.csv</icfccsvfile:filePath>
                 <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
                 <icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
                 <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
@@ -197,6 +197,7 @@ object.
                                 <generate/>
                             </source>
                         </inbound>
+						<passwordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3ffff" type="c:PasswordPolicyType"/>
                     </password>
                 </credentials>
                 <activation>
@@ -291,6 +292,47 @@ object.
         </synchronization>
     </c:resource>
 
+	<passwordPolicy oid="81818181-76e0-59e2-8888-3d4f02d3ffff" xsi:type="c:PasswordPolicyType" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<name>Global Password Policy</name>
+	<description>Global password policy</description>
+	<lifetime>
+		<expiration>999</expiration>
+		<warnBeforeExpiration>9</warnBeforeExpiration>
+		<lockAfterExpiration>0</lockAfterExpiration>
+		<minPasswordAge>0</minPasswordAge>
+		<passwordHistoryLength>0</passwordHistoryLength>
+	</lifetime>
+	<stringPolicy>
+		<description>Testing string policy</description>
+		<limitations>
+			<minLength>6</minLength>
+			<maxLength>10</maxLength>
+			<minUniqueChars>3</minUniqueChars>
+			<checkAgainstDictionary>true</checkAgainstDictionary>
+			<checkPattern />
+			<limit>
+				<description>Alphas</description>
+				<minOccurs>1</minOccurs>
+				<maxOccurs>6</maxOccurs>
+				<mustBeFirst>true</mustBeFirst>
+				<characterClass>
+					<value>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</value>
+				</characterClass>
+			</limit>
+			<limit>
+				<description>Numbers</description>
+				<minOccurs>1</minOccurs>
+				<maxOccurs>5</maxOccurs>
+				<mustBeFirst>false</mustBeFirst>
+				<characterClass>
+					<value>1234567890</value>
+				</characterClass>
+			</limit>
+		</limitations>
+	</stringPolicy>
+</passwordPolicy>
+	
     <task oid="91919191-76e0-59e2-8888-3d4f02d3ffff">
         <name>Synchronization: CSV File</name>
         <description>

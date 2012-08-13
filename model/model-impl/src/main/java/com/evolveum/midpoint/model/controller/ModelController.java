@@ -40,6 +40,9 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -66,6 +69,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -73,6 +77,7 @@ import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -80,6 +85,7 @@ import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -108,6 +114,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
@@ -191,6 +200,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 	
 	@Autowired(required = true)
 	Projector projector;
+	
+	@Autowired(required = true)
+	Protector protector;
+	
 	
 	public ModelObjectResolver getObjectResolver() {
 		return objectResolver;
@@ -654,6 +667,7 @@ public class ModelController implements ModelService, ModelInteractionService {
                 result.computeStatus();
 
 			} else {
+				RefinedAccountDefinition accountDefinition = null;
 				if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
 					Collection<? extends ResourceAttributeDefinition> attributeDefinitions = null;
 					ResourceObjectShadowType shadow = (ResourceObjectShadowType) cacheRepositoryService.getObject(type,
@@ -661,6 +675,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 					String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
 					ResourceType resource = provisioning.getObject(ResourceType.class, resourceOid, null,
 							result).asObjectable();
+					
+					
 					if (AccountShadowType.class.isAssignableFrom(type)) {
 						// Need to read the shadow to get reference to resource and
 						// account type
@@ -668,7 +684,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 								prismContext);
 //						PrismObjectDefinition<AccountShadowType> accountDefinition = refinedSchema
 //								.getObjectDefinition(shadow);
-						RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition((AccountShadowType)shadow);
+						accountDefinition = refinedSchema.getAccountDefinition((AccountShadowType)shadow);
 						attributeDefinitions = accountDefinition.getAttributeDefinitions();
 					} else {
 						ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
@@ -689,6 +705,41 @@ public class ModelController implements ModelService, ModelInteractionService {
 				
 				objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type);
 				objectDelta.checkConsistence();
+				
+				if (objectDelta.hasItemDelta(SchemaConstants.PATH_PASSWORD_VALUE) && accountDefinition != null
+						&& accountDefinition.getPasswordPolicy() != null
+						&& accountDefinition.getPasswordPolicy().getOid() != null) {
+
+					PrismObject<PasswordPolicyType> passwordPolicy = cacheRepositoryService.getObject(
+							PasswordPolicyType.class, accountDefinition.getPasswordPolicy().getOid(), parentResult);
+					
+					if (passwordPolicy != null) {
+						PropertyDelta passwordDelta = objectDelta
+								.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+						PrismProperty<PasswordType> password = null;
+						if (passwordDelta.isReplace()) {
+							password = passwordDelta.getPropertyNew();
+						}
+
+						if (password != null) {
+							ProtectedStringType protectedPass = password.getValue(ProtectedStringType.class).getValue();
+							String passValue = protectedPass.getClearValue();
+							if (passValue == null) {
+								try{
+								passValue = protector.decryptString(protectedPass);
+								} catch(EncryptionException ex){
+									LOGGER.error("Failed to process decsyption of password value.");
+									throw new SchemaException("Failed to process decsyption of password value.");
+								}
+							}
+							if (!PasswordPolicyUtils.validatePassword(passValue, passwordPolicy.asObjectable(), result)){
+								throw new PolicyViolationException("Provided password does not satisfy specified password policies.");
+							}
+
+						}
+					}
+
+				}
 
 				auditRecord.addDelta(objectDelta);
 				auditService.audit(auditRecord, task);

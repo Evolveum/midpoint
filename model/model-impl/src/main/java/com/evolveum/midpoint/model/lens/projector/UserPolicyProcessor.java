@@ -70,28 +70,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 
 /**
- * Processor to handle user template and possible also other user "policy" elements.
- *
+ * Processor to handle user template and possible also other user "policy"
+ * elements.
+ * 
  * @author Radovan Semancik
- *
+ * 
  */
 @Component
 public class UserPolicyProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserPolicyProcessor.class);
 
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private ValueConstructionFactory valueConstructionFactory;
 
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private PrismContext prismContext;
-	
+
 	@Autowired(required = true)
-    @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
-	
+	private PasswordPolicyProcessor passwordPolicyProcessor;
+
 	@Autowired(required = true)
-	Protector protector;
+	@Qualifier("cacheRepositoryService")
+	private transient RepositoryService cacheRepositoryService;
 
 	<F extends ObjectType, P extends ObjectType> void processUserPolicy(LensContext<F,P> context, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, PolicyViolationException {
@@ -108,8 +109,12 @@ public class UserPolicyProcessor {
     	
 		LensContext<UserType, AccountShadowType> usContext = (LensContext<UserType, AccountShadowType>) context;
     	//check user password if satisfies policies
-    	checkPasswordPolicies(usContext, (LensFocusContext<UserType>)focusContext, result);
-    	
+		
+//		PrismProperty<PasswordType> password = getPasswordValue((LensFocusContext<UserType>)focusContext);
+		
+//		if (password != null) {
+			passwordPolicyProcessor.processPasswordPolicy((LensFocusContext<UserType>) focusContext, usContext, result);
+//		}
 		UserTemplateType userTemplate = determineUserTemplate(usContext, result);
 
 		if (userTemplate == null) {
@@ -120,111 +125,36 @@ public class UserPolicyProcessor {
 		applyUserTemplate(usContext, userTemplate, result);
 				
 	}
+
 	
-	private void checkPasswordPolicies(LensContext<UserType,AccountShadowType> context, LensFocusContext<UserType> focusContext, OperationResult result) throws PolicyViolationException, SchemaException{
-		
-		PrismObject<UserType> user = null;
-		
-		ObjectDelta userDelta = focusContext.getDelta();
-		
-		if (userDelta == null){
-			LOGGER.trace("Skipping processing password policies. User delta not specified.");
-			return;
-		}
-		
-		PrismProperty<PasswordType> password = null;
-		if (ChangeType.ADD == userDelta.getChangeType()){
-			user = focusContext.getDelta().getObjectToAdd();
-			if (user != null){
-				password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
-			}
-		} else if (ChangeType.MODIFY == userDelta.getChangeType()){
-			 PropertyDelta<PasswordType> passwordValueDelta = null;
-		        if (userDelta != null) {
-		        	passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-		        	// Modification sanity check
-		            if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null && 
-		            		(passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
-		            	throw new SchemaException("User password value cannot be added or deleted, it can only be replaced"); 
-		            }
-		            if (passwordValueDelta == null){
-		            	LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
-		            	return;
-		            }
-		            password = passwordValueDelta.getPropertyNew();
-		        }
-		}
-
-		String passwordValue = determinePasswordValue(password);
-		if (passwordValue == null || context.getGlobalPasswordPolicy() == null){
-			LOGGER.trace("Skipping processing password policies. Password value or password policies not specified.");
-			return;
-		}
-
-		boolean isValid = PasswordPolicyUtils
-				.validatePassword(passwordValue, context.getGlobalPasswordPolicy(), result);
-
-		if (!isValid) {
-			throw new PolicyViolationException("Provided password does not satisfy password policies.");
-
-		}
-
-	}
-
-	private String determinePasswordValue(PrismProperty<PasswordType> password) {
-		// TODO: what to do if the provided password is null???
-		if (password == null || password.getValue(ProtectedStringType.class) == null) {
-			return null;
-		}
-
-		ProtectedStringType passValue = password.getValue(ProtectedStringType.class).getValue();
-
-		if (passValue == null) {
-			return null;
-		}
-
-		String passwordStr = passValue.getClearValue();
-
-		if (passwordStr == null && passValue.getEncryptedData() != null) {
-			// TODO: is this appropriate handling???
-			try {
-				passwordStr = protector.decryptString(passValue);
-			} catch (EncryptionException ex) {
-				throw new SystemException("Failed to process password for user: " , ex);
-			}
-		}
-
-		return passwordStr;
-	}
-	
-
-	private void applyUserTemplate(LensContext<UserType,AccountShadowType> context, UserTemplateType userTemplate, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private void applyUserTemplate(LensContext<UserType, AccountShadowType> context, UserTemplateType userTemplate,
+			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 
-		LOGGER.trace("Applying "+ObjectTypeUtil.toShortString(userTemplate)+" to "+focusContext.getObjectNew());
+		LOGGER.trace("Applying " + ObjectTypeUtil.toShortString(userTemplate) + " to " + focusContext.getObjectNew());
 
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getWaveSecondaryDelta();
-		for (PropertyConstructionType propConstr: userTemplate.getPropertyConstruction()) {
+		for (PropertyConstructionType propConstr : userTemplate.getPropertyConstruction()) {
 			XPathHolder propertyXPath = new XPathHolder(propConstr.getProperty());
 			PropertyPath itemPath = propertyXPath.toPropertyPath();
 
 			PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
 			ItemDefinition itemDefinition = userDefinition.findItemDefinition(itemPath);
 			if (itemDefinition == null) {
-				throw new SchemaException("The property "+itemPath+" is not a valid user property, defined in "
-                        +ObjectTypeUtil.toShortString(userTemplate));
+				throw new SchemaException("The property " + itemPath + " is not a valid user property, defined in "
+						+ ObjectTypeUtil.toShortString(userTemplate));
 			}
 
 			ValueConstructionType valueConstructionType = propConstr.getValueConstruction();
 			// TODO: is the parentPath correct (null)?
-			ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(valueConstructionType,
-					itemDefinition,
-					"user template expression for "+itemDefinition.getName()+" while processing user " + focusContext.getObjectNew());
+			ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(
+					valueConstructionType, itemDefinition, "user template expression for " + itemDefinition.getName()
+							+ " while processing user " + focusContext.getObjectNew());
 
 			PrismProperty existingValue = focusContext.getObjectNew().findProperty(itemPath);
 			if (existingValue != null && !existingValue.isEmpty() && valueConstruction.isInitial()) {
-				// This valueConstruction only applies if the property does not have a value yet.
+				// This valueConstruction only applies if the property does not
+				// have a value yet.
 				// ... but it does
 				continue;
 			}
@@ -250,12 +180,13 @@ public class UserPolicyProcessor {
 	}
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
-		return prismContext.getSchemaRegistry().getObjectSchema().findObjectDefinitionByCompileTimeClass(UserType.class);
+		return prismContext.getSchemaRegistry().getObjectSchema()
+				.findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 	private void evaluateUserTemplateValueConstruction(ValueConstruction valueConstruction,
-            ItemDefinition propertyDefinition, LensContext<UserType,AccountShadowType> context, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			ItemDefinition propertyDefinition, LensContext<UserType, AccountShadowType> context, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectNew());
 		// TODO: variables
@@ -265,14 +196,13 @@ public class UserPolicyProcessor {
 
 	}
 
-	private UserTemplateType determineUserTemplate(LensContext<UserType,AccountShadowType> context, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+	private UserTemplateType determineUserTemplate(LensContext<UserType, AccountShadowType> context,
+			OperationResult result) throws ObjectNotFoundException, SchemaException {
 
 		if (context.getUserTemplate() != null) {
 			return context.getUserTemplate();
 		}
 		return null;
 	}
-
 
 }
