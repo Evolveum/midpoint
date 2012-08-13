@@ -549,6 +549,12 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     		PropertyPath propertyPath, PrismContext prismContext, X... propertyValues) {
     	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY);
     	objectDelta.setOid(oid);
+    	fillInModificationReplaceProperty(type, objectDelta, propertyPath, prismContext, propertyValues);
+    	return objectDelta;
+    }
+    	
+    protected static <O extends Objectable, X> void fillInModificationReplaceProperty(Class<O> type, ObjectDelta<O> objectDelta,
+    		PropertyPath propertyPath, PrismContext prismContext, X... propertyValues) {
     	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
     	PrismPropertyDefinition propDef = objDef.findPropertyDefinition(propertyPath);
     	PropertyDelta<X> propertyDelta = objectDelta.createPropertyModification(propertyPath, propDef);
@@ -564,7 +570,6 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     		valuesToReplace.add(pval);
     	}
     	propertyDelta.setValuesToReplace(valuesToReplace);
-    	return objectDelta;
     }
     
     /**
@@ -647,9 +652,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 				throw new IllegalStateException("User primary delta is ADD, but there is not object to add in "+this);
 			}
 		} else if (getChangeType() == ChangeType.MODIFY) {
-	    	if (requireOid && getOid() == null) {
-	    		throw new IllegalStateException("Null oid in delta "+this);
-	    	}
+			checkIdentifierConsistence(requireOid);
 			if (getObjectToAdd() != null) {
 				throw new IllegalStateException("Object to add present in MODIFY delta "+this);
 			}
@@ -672,6 +675,12 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 		}
     }
     
+	protected void checkIdentifierConsistence(boolean requireOid) {
+		if (requireOid && getOid() == null) {
+    		throw new IllegalStateException("Null oid in delta "+this);
+    	}
+	}
+
 	public static void checkConsistence(Collection<? extends ObjectDelta<?>> deltas) {
 		for (ObjectDelta<?> delta: deltas) {
 			delta.checkConsistence();
@@ -731,8 +740,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("ObjectDelta(oid=");
-        sb.append(oid).append(",").append(changeType).append(": ");
+        sb.append(debugName());
+        sb.append("(").append(debugIdentifiers());
+        sb.append(",").append(changeType).append(": ");
         if (changeType == ChangeType.ADD) {
             if (objectToAdd == null) {
                 sb.append("null");
@@ -752,6 +762,14 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         sb.append(")");
         return sb.toString();
     }
+    
+    protected String debugName() {
+    	return "ObjectDelta";
+    }
+    
+    protected String debugIdentifiers() {
+    	return "oid=" + getOid();
+    }
 
     @Override
     public String debugDump() {
@@ -762,8 +780,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("ObjectDelta<").append(objectTypeClass.getSimpleName()).append(">:");
-        sb.append(oid).append(",").append(changeType).append("):\n");
+        sb.append(debugName());
+        sb.append("<").append(objectTypeClass.getSimpleName()).append(">:");
+        sb.append(debugIdentifiers()).append(",").append(changeType).append("):\n");
         if (objectToAdd == null) {
         	if (changeType == ChangeType.ADD) {
 	        	DebugUtil.indentDebugDump(sb, indent + 1);

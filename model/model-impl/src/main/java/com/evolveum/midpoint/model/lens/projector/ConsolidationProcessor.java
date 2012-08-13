@@ -244,7 +244,7 @@ public class ConsolidationProcessor {
         if (accountSecondaryDelta != null) {
             accountSecondaryDelta.merge(modifyDelta);
         } else {
-            if (accCtx.getPrimaryDelta() == null) {
+            if (accCtx.getPrimaryDelta() == null || !accCtx.getPrimaryDelta().isAdd()) {
                 ObjectDelta<AccountShadowType> addDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
                 RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
 

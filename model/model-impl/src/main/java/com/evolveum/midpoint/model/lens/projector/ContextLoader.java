@@ -505,32 +505,41 @@ public class ContextLoader {
 						projectionObject = projContext.getObjectNew();
 					} else {
 						if (projectionObjectOid == null) {
-							throw new SystemException(
-									"Projection with null OID and without a representation in account sync context");
-						}
-						Collection<ObjectOperationOption> options = null;
-						if (projContext.isDoReconciliation()) {
-							projContext.setFullShadow(true);
+							if (projContext.getResourceAccountType() == null || projContext.getResourceAccountType().getResourceOid() == null) {								
+								throw new SystemException(
+										"Projection with null OID, no representation and no resource OID in account sync context "+projContext);
+							}
 						} else {
-							projContext.setFullShadow(false);
-							options = MiscUtil.createCollection(ObjectOperationOption.NO_FETCH);
+							Collection<ObjectOperationOption> options = null;
+							if (projContext.isDoReconciliation()) {
+								projContext.setFullShadow(true);
+							} else {
+								projContext.setFullShadow(false);
+								options = MiscUtil.createCollection(ObjectOperationOption.NO_FETCH);
+							}
+							PrismObject<P> objectOld = provisioningService.getObject(
+									projContext.getObjectTypeClass(), projectionObjectOid, options, subResult);
+							projContext.setObjectOld(objectOld);
+							projectionObject = objectOld;
 						}
-						PrismObject<P> objectOld = provisioningService.getObject(
-								projContext.getObjectTypeClass(), projectionObjectOid, options, subResult);
-						projContext.setObjectOld(objectOld);
-						projectionObject = objectOld;
 					}
 				}
 				
 				Class<P> projClass = projContext.getObjectTypeClass();
 				if (ResourceObjectShadowType.class.isAssignableFrom(projClass)) {
-					ResourceObjectShadowType shadowType = ((PrismObject<ResourceObjectShadowType>)projectionObject).asObjectable();
 				
 					// Determine Resource
 					ResourceType resourceType = projContext.getResource();
 					String resourceOid = null;
 					if (resourceType == null) {
-						resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
+						if (projectionObject != null) {
+							ResourceObjectShadowType shadowType = ((PrismObject<ResourceObjectShadowType>)projectionObject).asObjectable();
+							resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
+						} else if (projContext.getResourceAccountType() != null) {
+							resourceOid = projContext.getResourceAccountType().getResourceOid();
+						} else {
+							throw new IllegalStateException("No shadow and no resource intent means no resource OID in "+projContext);
+						}
 					} else {
 						resourceOid = resourceType.getOid();
 					}

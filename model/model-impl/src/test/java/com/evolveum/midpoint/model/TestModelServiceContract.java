@@ -49,6 +49,7 @@ import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.ShadowProjectionObjectDelta;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -618,6 +619,78 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertUserJack(userJack);
 		// Check accountRef
         assertUserNoAccountRefs(userJack);
+        
+        // Check is shadow is gone
+        assertNoAccountShadow(accountOid);
+        
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+	}
+	
+	@Test
+    public void test140ModifyUserJackAssignAccountAndModify() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test140ModifyUserJackAssignAccountAndModify");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test140ModifyUserJackAssignAccountAndModify");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, true);
+        ShadowProjectionObjectDelta<AccountShadowType> accountDelta = ShadowProjectionObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        		RESOURCE_DUMMY_OID, null, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, prismContext, "Cpt. Jack Sparrow");
+        deltas.add(accountDelta);
+        deltas.add(accountAssignmentUserDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, task, result);
+		
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Cpt. Jack Sparrow");
+        accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Cpt. Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Cpt. Jack Sparrow", true);
+	}
+		
+	@Test
+    public void test149DeleteUserJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test149DeleteUserJack");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149DeleteUserJack");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, USER_JACK_OID);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, task, result);
+		
+		// THEN
+		try {
+			PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+			AssertJUnit.fail("Jack is still alive!");
+		} catch (ObjectNotFoundException ex) {
+			// This is OK
+		}
         
         // Check is shadow is gone
         assertNoAccountShadow(accountOid);

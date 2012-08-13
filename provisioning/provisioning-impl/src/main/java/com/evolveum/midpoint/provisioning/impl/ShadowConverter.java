@@ -768,6 +768,9 @@ public class ShadowConverter {
 			PrismObject<T> shadow) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(shadow);
+		if (attributesContainer == null) {
+			return false;
+		}
 		QName objectClass = shadow.asObjectable().getObjectClass();
 		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		return isProtectedShadow(resource, objectClass, attributes);
