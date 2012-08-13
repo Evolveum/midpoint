@@ -101,7 +101,8 @@ public class PageSubmit extends PageAdmin {
 	private List<SubmitAssignmentDto> assignmentsChangesList;
 	private List<SubmitUserDto> userChangesList;
 
-	public PageSubmit(ModelContext previewChanges, Collection<ObjectDelta<? extends ObjectType>> deltasChanges, ObjectDelta delta) {
+	public PageSubmit(ModelContext previewChanges,
+			Collection<ObjectDelta<? extends ObjectType>> deltasChanges, ObjectDelta delta) {
 		if (previewChanges == null || deltasChanges == null || delta == null) {
 			getSession().error(getString("pageSubmit.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
@@ -110,9 +111,12 @@ public class PageSubmit extends PageAdmin {
 		this.previewChanges = previewChanges;
 		this.delta = delta;
 		userChangesDto = new UserChangesDto(previewChanges.getFocusContext());
-		
-		ArrayList<PrismObject> prismAccountsInSession = (ArrayList<PrismObject>)getSession().getAttribute("prismAccounts");
-		accountChangesDto = new AccountChangesDto(previewChanges.getProjectionContexts(), prismAccountsInSession);
+
+		ArrayList<PrismObject> prismAccountsInSession = (ArrayList<PrismObject>) getSession().getAttribute(
+				"prismAccounts");
+		accountChangesDto = new AccountChangesDto(previewChanges.getProjectionContexts(),
+				prismAccountsInSession);
+		getSession().setAttribute("prismAccounts", null);
 		initLayout();
 	}
 
@@ -397,15 +401,13 @@ public class PageSubmit extends PageAdmin {
 							}
 							continue;
 						}
-						values.add(new SubmitPropertiesDto((PrismPropertyValue) value,
-								SubmitStatus.ADDING));
+						values.add(new SubmitPropertiesDto((PrismPropertyValue) value, SubmitStatus.ADDING));
 					}
 				}
 
 				if (propertyDelta.getValuesToDelete() != null) {
 					for (Object value : propertyDelta.getValuesToDelete()) {
-						values.add(new SubmitPropertiesDto((PrismPropertyValue) value,
-								SubmitStatus.DELETING));
+						values.add(new SubmitPropertiesDto((PrismPropertyValue) value, SubmitStatus.DELETING));
 					}
 				}
 
@@ -436,30 +438,39 @@ public class PageSubmit extends PageAdmin {
 		PrismObject oldUserObject = previewChanges.getFocusContext().getObjectOld();
 
 		if (oldUserObject != null) {
+			boolean exist = true;
 			PrismProperty oldPropertyValue = oldUserObject.findProperty(propertyDelta.getPath());
-
 			if (oldPropertyValue != null && oldPropertyValue.getValues() != null) {
 				for (Object valueObject : oldPropertyValue.getValues()) {
 					PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
 					oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : " ");
+
+					for (SubmitPropertiesDto newValue : values) {
+						if(newValue.getStatus().equals(SubmitStatus.REPLACEING)) {
+							continue;
+						}
+						exist = false;
+						String newValueObjectString = newValue.getSubmitedPropertie().getValue().toString();
+						if (newValueObjectString.equals(oldValue.getValue().toString())) {
+							exist = true;
+							break;
+						}
+					}
+					if (!exist) {
+						newValues.add(oldValue.getValue().toString());
+					}
 				}
 			}
 		}
 		for (SubmitPropertiesDto newValue : values) {
-			Object newValueObject = newValue.getSubmitedPropertie().getValue();
 			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
-
-				for (String oldValue : oldValues) {
-					if (oldValue != newValueObject.toString()) {
-						newValues.add(oldValue);
-					}
-				}
 				continue;
 			}
-
+			Object newValueObject = newValue.getSubmitedPropertie().getValue();
 			String stringValue = newValueObject != null ? newValueObject.toString() : " ";
 			newValues.add(stringValue);
 		}
+
 		return new SubmitUserDto(attribute, listToString(oldValues), listToString(newValues), secondaryValue);
 	}
 

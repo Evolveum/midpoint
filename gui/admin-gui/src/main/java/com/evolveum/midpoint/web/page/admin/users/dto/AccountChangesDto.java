@@ -125,11 +125,27 @@ public class AccountChangesDto implements Serializable {
 			for (PrismObject accountInSession : prismAccountsInSession) {
 				if (accountInSession.getOid().equals(oldAccountObject.getOid())) {
 					Item oldAccountValue = accountInSession.findItem(modifyDelta.getPath());
-
+					boolean exist = true;
 					if (oldAccountValue != null && oldAccountValue.getValues() != null) {
 						for (Object valueObject : oldAccountValue.getValues()) {
 							PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
 							oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : " ");
+							
+							// Get remaining values from oldValues​​ ​​for newValues​​
+							for (SubmitAccountChangesDto newValue : values) {
+								if(newValue.getStatus().equals(SubmitStatus.REPLACEING)) {
+									continue;
+								}
+								exist = false;
+								String newValueObjectString = newValue.getSubmitedValue().getValue().toString();
+								if (newValueObjectString.equals(oldValue.getValue().toString())) {
+									exist = true;
+									break;
+								}
+							}
+							if (!exist) {
+								newValues.add(oldValue.getValue().toString());
+							}
 						}
 					}
 				}
@@ -137,17 +153,11 @@ public class AccountChangesDto implements Serializable {
 		}
 
 		for (SubmitAccountChangesDto newValue : values) {
-			Object newValueObject = newValue.getSubmitedValue().getValue();
 			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
-
-				for (String oldValue : oldValues) {
-					if (oldValue != newValueObject.toString()) {
-						newValues.add(oldValue);
-					}
-				}
 				continue;
 			}
-
+			
+			Object newValueObject = newValue.getSubmitedValue().getValue();
 			PropertyDelta parent = (PropertyDelta) newValue.getSubmitedValue().getParent();
 			if (parent.getParentPath().equals(SchemaConstants.PATH_PASSWORD)) {
 				newValues.add("*****");
