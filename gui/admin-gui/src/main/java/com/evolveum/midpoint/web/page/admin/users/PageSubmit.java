@@ -70,7 +70,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAssignmentDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitDeltaObjectDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitPropertiesDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitPropertiesStatus;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserChangesDto;
@@ -110,7 +110,9 @@ public class PageSubmit extends PageAdmin {
 		this.previewChanges = previewChanges;
 		this.delta = delta;
 		userChangesDto = new UserChangesDto(previewChanges.getFocusContext());
-		accountChangesDto = new AccountChangesDto(previewChanges.getProjectionContexts());
+		
+		ArrayList<PrismObject> prismAccountsInSession = (ArrayList<PrismObject>)getSession().getAttribute("prismAccounts");
+		accountChangesDto = new AccountChangesDto(previewChanges.getProjectionContexts(), prismAccountsInSession);
 		initLayout();
 	}
 
@@ -347,7 +349,7 @@ public class PageSubmit extends PageAdmin {
 			if (assignment.getValuesToAdd() != null) {
 				for (Object item : assignment.getValuesToAdd()) {
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
-							getString("pageSubmit.status." + SubmitPropertiesStatus.ADDING), assignmentDto
+							getString("pageSubmit.status." + SubmitStatus.ADDING), assignmentDto
 									.isSecondaryValue()));
 				}
 			}
@@ -355,7 +357,7 @@ public class PageSubmit extends PageAdmin {
 			if (assignment.getValuesToDelete() != null) {
 				for (Object item : assignment.getValuesToDelete()) {
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
-							getString("pageSubmit.status." + SubmitPropertiesStatus.DELETING), assignmentDto
+							getString("pageSubmit.status." + SubmitStatus.DELETING), assignmentDto
 									.isSecondaryValue()));
 				}
 			}
@@ -391,26 +393,26 @@ public class PageSubmit extends PageAdmin {
 								PrismProperty propertyValue = (PrismProperty) propertyValueObject;
 								delta = new PropertyDelta(propertyValue.getDefinition());
 								values.add(new SubmitPropertiesDto((PrismPropertyValue) propertyValue
-										.getValue(), SubmitPropertiesStatus.ADDING));
+										.getValue(), SubmitStatus.ADDING));
 							}
 							continue;
 						}
 						values.add(new SubmitPropertiesDto((PrismPropertyValue) value,
-								SubmitPropertiesStatus.ADDING));
+								SubmitStatus.ADDING));
 					}
 				}
 
 				if (propertyDelta.getValuesToDelete() != null) {
 					for (Object value : propertyDelta.getValuesToDelete()) {
 						values.add(new SubmitPropertiesDto((PrismPropertyValue) value,
-								SubmitPropertiesStatus.DELETING));
+								SubmitStatus.DELETING));
 					}
 				}
 
 				if (propertyDelta.getValuesToReplace() != null) {
 					for (Object value : propertyDelta.getValuesToReplace()) {
 						values.add(new SubmitPropertiesDto((PrismPropertyValue) value,
-								SubmitPropertiesStatus.REPLACEING));
+								SubmitStatus.REPLACEING));
 					}
 				}
 
@@ -445,7 +447,7 @@ public class PageSubmit extends PageAdmin {
 		}
 		for (SubmitPropertiesDto newValue : values) {
 			Object newValueObject = newValue.getSubmitedPropertie().getValue();
-			if (newValue.getStatus().equals(SubmitPropertiesStatus.DELETING)) {
+			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
 
 				for (String oldValue : oldValues) {
 					if (oldValue != newValueObject.toString()) {
@@ -530,39 +532,13 @@ public class PageSubmit extends PageAdmin {
 		LOGGER.debug("Saving user changes.");
 		OperationResult result = new OperationResult(OPERATION_SAVE_USER);
 
-		// modifyAccounts(result);
-
 		try {
 			Task task = createSimpleTask(OPERATION_SAVE_USER);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Delta before save user:\n{}", new Object[] { delta.debugDump(3) });
 			}
 			getModelService().executeChanges(deltasChanges, task, result);
-			
-			/*switch (delta.getChangeType()) {
-				case ADD:
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before add user:\n{}", new Object[] { delta.debugDump(3) });
-					}
-					getModelService().executeChanges(deltasChanges, task, result);
-					//getModelService().addObject(deltasChanges.getObjectToAdd(), task, result);
-					break;
-				case MODIFY:
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before modify user:\n{}",
-								new Object[] { delta.debugDump(3) });
-					}
-					if (!delta.isEmpty()) {
-						getModelService().executeChanges(deltasChanges, task, result);
-						getModelService().modifyObject(UserType.class, deltaChanges.getOid(),
-								deltaChanges.getModifications(), task, result);
-					} else {
-						result.recordSuccessIfUnknown();
-					}
-					break;
-				default:
-					error(getString("pageSubmit.message.unsupportedState", delta.getChangeType()));
-			}*/
+
 			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't save user.", ex);
@@ -575,37 +551,6 @@ public class PageSubmit extends PageAdmin {
 		} else {
 			showResultInSession(result);
 			setResponsePage(PageUsers.class);
-		}
-	}
-	
-	@Deprecated
-	private void modifyAccounts(OperationResult result) {
-		if (accountChangesDto.getAccountsList() != null && !accountChangesDto.getAccountsList().isEmpty()) {
-			OperationResult subResult = null;
-			for (PrismObject account : accountChangesDto.getAccountsList()) {
-				try {
-					ObjectDelta newDelta = previewChanges.getFocusContext().getPrimaryDelta();
-					if (!(newDelta.getChangeType().equals(ChangeType.MODIFY)) || newDelta.isEmpty()) {
-						continue;
-					}
-
-					subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
-					Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Modifying account:\n{}", new Object[] { newDelta.debugDump(3) });
-					}
-
-					getModelService().modifyObject(newDelta.getObjectTypeClass(), newDelta.getOid(),
-							newDelta.getModifications(), task, subResult);
-					subResult.recomputeStatus();
-				} catch (Exception ex) {
-					if (subResult != null) {
-						subResult.recomputeStatus();
-						subResult.recordFatalError("Modify account failed.", ex);
-					}
-					LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
-				}
-			}
 		}
 	}
 

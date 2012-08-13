@@ -29,17 +29,17 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
  * @author mserbak
  */
 
-public class SubmitPropertiesDto implements Serializable {
-	private PrismPropertyValue submitedPropertie;
+public class SubmitAccountChangesDto implements Serializable {
+	private PrismPropertyValue submitedValue;
 	private SubmitStatus status;
 
-	public SubmitPropertiesDto(PrismPropertyValue submitedPropertie, SubmitStatus status) {
-		this.submitedPropertie = submitedPropertie;
+	public SubmitAccountChangesDto(PrismPropertyValue submitedValue, SubmitStatus status) {
+		this.submitedValue = submitedValue;
 		this.status = status;
 	}
 
-	public PrismPropertyValue getSubmitedPropertie() {
-		return submitedPropertie;
+	public PrismPropertyValue getSubmitedValue() {
+		return submitedValue;
 	}
 
 	public SubmitStatus getStatus() {

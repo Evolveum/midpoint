@@ -796,6 +796,7 @@ public class PageUser extends PageAdminUsers {
 		LOGGER.debug("Modifying existing accounts.");
 
 		List<UserAccountDto> accounts = accountsModel.getObject();
+		ArrayList<PrismObject> prismAccounts = new ArrayList<PrismObject>();
 		OperationResult subResult = null;
 		for (UserAccountDto account : accounts) {
 			try {
@@ -804,7 +805,7 @@ public class PageUser extends PageAdminUsers {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Account delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 				}
-
+				prismAccounts.add(account.getObject().getObject());
 				if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty()) {
 					// accountsDeltas.add(new
 					// ObjectDeltaComponent(accountWrapper.getObject(), delta,
@@ -833,6 +834,7 @@ public class PageUser extends PageAdminUsers {
 				return deltas;
 			}
 		}
+		getSession().setAttribute("prismAccounts", prismAccounts);
 		return deltas;
 	}
 

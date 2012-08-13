@@ -25,7 +25,7 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
  * @author mserbak
  */
 
-public enum SubmitPropertiesStatus {
+public enum SubmitStatus {
 	
     ADDING, DELETING, REPLACEING;
 }

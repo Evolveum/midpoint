@@ -27,8 +27,10 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -45,16 +47,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
  * @author mserbak
  */
 public class AccountChangesDto implements Serializable {
-	List<PrismObject> accountsList = new ArrayList<PrismObject>();
-	List<SubmitAccountDto> accountChangesList = new ArrayList<SubmitAccountDto>();
+	private List<PrismObject> accountsList = new ArrayList<PrismObject>();
+	private List<SubmitAccountDto> accountChangesList = new ArrayList<SubmitAccountDto>();
+	private PrismObject oldAccountObject;
+	private ArrayList<PrismObject> prismAccountsInSession;
 
-	public AccountChangesDto(Collection<? extends ModelProjectionContext> accounts) {
+	public AccountChangesDto(Collection<? extends ModelProjectionContext> accounts,
+			ArrayList<PrismObject> prismAccountsInSession) {
 		if (accounts == null) {
 			return;
 		}
-
+		this.prismAccountsInSession = prismAccountsInSession;
 		for (ModelProjectionContext account : accounts) {
 			accountsList.add(account.getObjectNew());
+			this.oldAccountObject = account.getObjectOld();
 			SubmitResourceDto resource = new SubmitResourceDto(account.getObjectNew(), false);
 			getChanges(resource, account.getPrimaryDelta(), false);
 			getChanges(resource, account.getSecondaryDelta(), true);
@@ -69,49 +75,90 @@ public class AccountChangesDto implements Serializable {
 		}
 		for (Object modification : account.getModifications()) {
 			ItemDelta modifyDelta = (ItemDelta) modification;
-			List<String> oldValue = new ArrayList<String>();
-			List<String> newValue = new ArrayList<String>();
 
-			ItemDefinition def = modifyDelta.getDefinition();
-			String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName()
-					.getLocalPart();
-
-			PropertyPath passwordPath = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
-					CredentialsType.F_PASSWORD);
-
-			if (passwordPath.equals(modifyDelta.getParentPath())
-					&& PasswordType.F_PROTECTED_STRING.equals(def.getName())) {
-				attribute = "Password";
-			}
+			List<SubmitAccountChangesDto> values = new ArrayList<SubmitAccountChangesDto>();
 
 			if (modifyDelta.getValuesToDelete() != null) {
 				for (Object valueToDelete : modifyDelta.getValuesToDelete()) {
 					PrismPropertyValue value = (PrismPropertyValue) valueToDelete;
-					oldValue.add(value == null ? "" : value.getValue().toString());
+					values.add(new SubmitAccountChangesDto(value, SubmitStatus.DELETING));
 				}
 			}
 
 			if (modifyDelta.getValuesToAdd() != null) {
 				for (Object valueToAdd : modifyDelta.getValuesToAdd()) {
 					PrismPropertyValue value = (PrismPropertyValue) valueToAdd;
-					newValue.add(value == null ? "" : value.getValue().toString());
+					values.add(new SubmitAccountChangesDto(value, SubmitStatus.ADDING));
 				}
 			}
 
 			if (modifyDelta.getValuesToReplace() != null) {
 				for (Object valueToReplace : modifyDelta.getValuesToReplace()) {
 					PrismPropertyValue value = (PrismPropertyValue) valueToReplace;
-					PropertyDelta parent = (PropertyDelta) value.getParent();
-					if (parent.getParentPath().equals(SchemaConstants.PATH_PASSWORD)) {
-						newValue.add("*****");
-						continue;
-					}
-					newValue.add(value == null ? "" : value.getValue().toString());
+					values.add(new SubmitAccountChangesDto(value, SubmitStatus.REPLACEING));
 				}
 			}
-			accountChangesList.add(new SubmitAccountDto(resource.getResourceName(), attribute, PageSubmit
-					.listToString(oldValue), PageSubmit.listToString(newValue), secondaryValue));
+
+			if (!values.isEmpty()) {
+				getDeltasFromAccount(resource, values, modifyDelta, secondaryValue);
+			}
 		}
+	}
+
+	private void getDeltasFromAccount(SubmitResourceDto resource, List<SubmitAccountChangesDto> values,
+			ItemDelta modifyDelta, boolean secondaryValue) {
+
+		ItemDefinition def = modifyDelta.getDefinition();
+		String attribute = def.getDisplayName() != null ? def.getDisplayName() : def.getName().getLocalPart();
+
+		PropertyPath passwordPath = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
+				CredentialsType.F_PASSWORD);
+
+		if (passwordPath.equals(modifyDelta.getParentPath())
+				&& PasswordType.F_PROTECTED_STRING.equals(def.getName())) {
+			attribute = "Password";
+		}
+		List<String> oldValues = new ArrayList<String>();
+		List<String> newValues = new ArrayList<String>();
+
+		if (!prismAccountsInSession.isEmpty()) {
+			for (PrismObject accountInSession : prismAccountsInSession) {
+				if (accountInSession.getOid().equals(oldAccountObject.getOid())) {
+					Item oldAccountValue = accountInSession.findItem(modifyDelta.getPath());
+
+					if (oldAccountValue != null && oldAccountValue.getValues() != null) {
+						for (Object valueObject : oldAccountValue.getValues()) {
+							PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
+							oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : " ");
+						}
+					}
+				}
+			}
+		}
+
+		for (SubmitAccountChangesDto newValue : values) {
+			Object newValueObject = newValue.getSubmitedValue().getValue();
+			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
+
+				for (String oldValue : oldValues) {
+					if (oldValue != newValueObject.toString()) {
+						newValues.add(oldValue);
+					}
+				}
+				continue;
+			}
+
+			PropertyDelta parent = (PropertyDelta) newValue.getSubmitedValue().getParent();
+			if (parent.getParentPath().equals(SchemaConstants.PATH_PASSWORD)) {
+				newValues.add("*****");
+				continue;
+			}
+
+			String stringValue = newValueObject != null ? newValueObject.toString() : " ";
+			newValues.add(stringValue);
+		}
+		accountChangesList.add(new SubmitAccountDto(resource.getResourceName(), attribute, PageSubmit
+				.listToString(oldValues), PageSubmit.listToString(newValues), secondaryValue));
 	}
 
 	public List<PrismObject> getAccountsList() {
