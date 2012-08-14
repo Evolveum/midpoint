@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
@@ -119,28 +120,31 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         //pretty url pages
         MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();
         mount(new MountedMapper("/login", PageLogin.class, encoder));
+
         mount(new MountedMapper("/admin", PageHome.class, encoder));
         mount(new MountedMapper("/admin/home", PageHome.class, encoder));
+
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
-        mount(new MountedMapper("/admin/submit", PageSubmit.class, encoder));
+        mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
+        mount(new MountedMapper("/admin/submit", PageSubmit.class, encoder));   //todo rename url mapping to something more explanatory
+
+        mount(new MountedMapper("/admin/task", PageTaskEdit.class, new OnePageParameterEncoder(PageTaskEdit.PARAM_TASK_EDIT_ID)));
         mount(new MountedMapper("/admin/tasks", PageTasks.class, encoder));
         mount(new MountedMapper("/admin/addTask", PageTaskAdd.class, encoder));
-        mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));
-        mount(new MountedMapper("/admin/resources", PageResources.class, encoder));
-        mount(new MountedMapper("/admin/config", PageLogging.class, encoder));
-        mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
-        mount(new MountedMapper("/admin/config/importFile", PageImportFile.class, encoder));
-        mount(new MountedMapper("/admin/config/importXml", PageImportXml.class, encoder));
-        mount(new MountedMapper("/admin/config/debugs", PageDebugList.class, encoder));
 
-        mount(new MountedMapper("/admin/config/debug", PageDebugView.class,
-                new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));
-        mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
         mount(new MountedMapper("/admin/role", PageRole.class, new OnePageParameterEncoder(PageRole.PARAM_ROLE_ID)));
-        mount(new MountedMapper("/admin/task", PageTaskEdit.class, new OnePageParameterEncoder(PageTaskEdit.PARAM_TASK_EDIT_ID)));
+        mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));
+
         mount(new MountedMapper("/admin/resource", PageResource.class, new OnePageParameterEncoder(PageResource.PARAM_RESOURCE_ID)));
-//        mount(new MountedMapper("/admin/task", PageTaskEdit.class,
-//                new OnePageParameterEncoder(PageTaskEdit.PARAM_TASK_ID)));
+        mount(new MountedMapper("/admin/resources", PageResources.class, encoder));
+        mount(new MountedMapper("/admin/resources/content/account", PageContentAccounts.class, encoder));
+
+        mount(new MountedMapper("/admin/config", PageLogging.class, encoder));
+        mount(new MountedMapper("/admin/config/debug", PageDebugView.class, new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));
+        mount(new MountedMapper("/admin/config/debugs", PageDebugList.class, encoder));
+        mount(new MountedMapper("/admin/config/importXml", PageImportXml.class, encoder));
+        mount(new MountedMapper("/admin/config/importFile", PageImportFile.class, encoder));
+        mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
 
         //todo design error pages...
         //error pages

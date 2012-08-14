@@ -107,6 +107,10 @@ public abstract class PageBase extends WebPage {
     }
 
     private void initLayout() {
+        Label title = new Label("title", createPageTitleModel());
+        title.setRenderBodyOnly(true);
+        add(title);
+
         DebugBar debugPanel = new DebugBar("debugPanel");
         add(debugPanel);
 
