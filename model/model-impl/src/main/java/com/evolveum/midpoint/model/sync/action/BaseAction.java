@@ -47,6 +47,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -298,7 +299,7 @@ public abstract class BaseAction implements Action {
     private String getAccountTypeFromChange(ResourceObjectShadowChangeDescription change) {
         AccountShadowType account = getAccountShadowFromChange(change);
         if (account != null) {
-            return account.getAccountType();
+            return ResourceObjectShadowUtil.getIntent(account);
         }
 
         LOGGER.warn("Can't get account type from change (resource {}), because current and old shadow are null. " +

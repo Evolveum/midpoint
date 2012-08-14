@@ -455,7 +455,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
             rAccountDef.setAccountTypeName(accountTypeName);
         } else {
             if (objectClassDef.isDefaultAccountType()) {
-                rAccountDef.setAccountTypeName(MidPointConstants.DEFAULT_ACCOUNT_NAME);
+                rAccountDef.setAccountTypeName(MidPointConstants.DEFAULT_INTENT);
             } else {
                 throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
             }

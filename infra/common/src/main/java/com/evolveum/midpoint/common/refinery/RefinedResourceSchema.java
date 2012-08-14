@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -87,7 +88,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 
 	
 	public RefinedAccountDefinition getAccountDefinition(AccountShadowType shadow) {
-		return getAccountDefinition(shadow.getAccountType());
+		return getAccountDefinition(ResourceObjectShadowUtil.getIntent(shadow));
 	}
 	
 	/**
@@ -114,7 +115,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 	
 	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(AccountShadowType shadow) {
-		return getObjectDefinition(shadow.getAccountType());
+		return getObjectDefinition(ResourceObjectShadowUtil.getIntent(shadow));
 	}
 		
 	private void add(RefinedAccountDefinition refinedAccountDefinition) {
@@ -304,7 +305,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		}
 		if (shadowType instanceof AccountShadowType) {
 			// Determine definition by account type
-			String accountType = ((AccountShadowType)shadowType).getAccountType();
+			String accountType = ResourceObjectShadowUtil.getIntent(shadowType);
 			definition = getAccountDefinition(accountType);
 			if (definition == null) {
 				throw new SchemaException("No definition for account type "+accountType);

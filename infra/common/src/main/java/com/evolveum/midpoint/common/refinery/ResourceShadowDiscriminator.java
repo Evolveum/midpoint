@@ -65,7 +65,7 @@ public class ResourceShadowDiscriminator implements Serializable {
 	}
 	public void setIntent(String intent) {
 		if (intent == null) {
-			this.intent = MidPointConstants.DEFAULT_ACCOUNT_NAME;
+			this.intent = MidPointConstants.DEFAULT_INTENT;
 		} else {
 			this.intent = intent;
 		}
@@ -84,7 +84,7 @@ public class ResourceShadowDiscriminator implements Serializable {
 
 	@Override
 	public String toString() {
-		return "RAT(" + resourceOid + ": " + intent + ( thombstone ? ", THOMBSTONE" : "" ) + ")";
+		return "Discr(" + resourceOid + ": " + intent + ( thombstone ? ", THOMBSTONE" : "" ) + ")";
 	}
 
 	@Override
@@ -158,7 +158,7 @@ public class ResourceShadowDiscriminator implements Serializable {
 		if (accountType == null) {
 			return true;
 		}
-		return (MidPointConstants.DEFAULT_ACCOUNT_NAME.equals(accountType));
+		return (MidPointConstants.DEFAULT_INTENT.equals(accountType));
 	}
 	
 }

@@ -365,7 +365,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
         String resourceOid = accountType.getResourceRef().getOid();
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
         applyResourceSchema(accountType, resourceType);
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, accountType.getAccountType());
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ResourceObjectShadowUtil.getIntent(accountType));
         LensProjectionContext<AccountShadowType> accountSyncContext = context.findOrCreateProjectionContext(rat);
         accountSyncContext.setOid(account.getOid());
 		accountSyncContext.setObjectOld(account);

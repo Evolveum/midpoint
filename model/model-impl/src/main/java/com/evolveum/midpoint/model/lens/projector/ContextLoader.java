@@ -458,7 +458,7 @@ public class ContextLoader {
 		if (resourceOid == null) {
 			throw new SchemaException("The " + account + " has null resource reference OID");
 		}
-		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, accountType.getAccountType());
+		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ResourceObjectShadowUtil.getIntent(accountType));
 		LensProjectionContext<AccountShadowType> accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat, provisioningService, result);
 		accountSyncContext.setOid(account.getOid());
 		return accountSyncContext;
@@ -545,13 +545,13 @@ public class ContextLoader {
 					}
 					
 					// Determine RAT
-					ResourceShadowDiscriminator rat = projContext.getResourceShadowDiscriminator();
-					if (rat == null) {
+					ResourceShadowDiscriminator discr = projContext.getResourceShadowDiscriminator();
+					if (discr == null) {
 						if (AccountShadowType.class.isAssignableFrom(projClass)) {
 							AccountShadowType accountShadowType = ((PrismObject<AccountShadowType>)projectionObject).asObjectable();
-							String accountType = accountShadowType.getAccountType();
-							rat = new ResourceShadowDiscriminator(resourceOid, accountType);
-							projContext.setResourceShadowDiscriminator(rat);
+							String intent = ResourceObjectShadowUtil.getIntent(accountShadowType);
+							discr = new ResourceShadowDiscriminator(resourceOid, intent);
+							projContext.setResourceShadowDiscriminator(discr);
 							
 						}
 					}

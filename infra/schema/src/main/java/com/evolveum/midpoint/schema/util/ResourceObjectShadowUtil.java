@@ -256,5 +256,23 @@ public class ResourceObjectShadowUtil {
 				objectClassDefinition, objectClassDefinition.getPrismContext());
 		attributesContainer.applyDefinition(racDef, true);
 	}
+
+	/**
+	 * Returns intent from the shadow. Backwards compatible with older accountType. May also adjust for default
+	 * intent if necessary.
+	 */
+	public static String getIntent(ResourceObjectShadowType shadow) {
+		if (shadow == null) {
+			return null;
+		}
+		String intent = shadow.getIntent();
+		if (intent != null) {
+			return intent;
+		}
+		if (shadow instanceof AccountShadowType) {
+			return ((AccountShadowType)shadow).getAccountType();
+		}
+		return null;
+	}
 	
 }

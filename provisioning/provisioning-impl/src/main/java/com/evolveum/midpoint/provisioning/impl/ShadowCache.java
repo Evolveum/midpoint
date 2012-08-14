@@ -439,6 +439,7 @@ public class ShadowCache {
 					if (currentShadowType != null) {
 						currentShadowType.setOid(newShadow.getOid());
 						currentShadowType.setResourceRef(newShadow.getResourceRef());
+						currentShadowType.setIntent(newShadow.getIntent());
 						if (currentShadowType instanceof AccountShadowType && newShadow instanceof AccountShadowType) {
 							((AccountShadowType) currentShadowType).setAccountType(((AccountShadowType) newShadow)
 									.getAccountType());
