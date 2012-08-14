@@ -55,5 +55,7 @@ public class SubmitUserDto implements Serializable {
 		return secondaryValue;
 	}
 
-	
+	public boolean isDeletedValue() {
+		return newValue.equals("");
+	}
 }

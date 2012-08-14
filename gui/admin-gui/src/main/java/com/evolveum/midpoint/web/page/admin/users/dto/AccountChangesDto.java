@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.page.admin.users.PageSubmit;
@@ -64,16 +65,19 @@ public class AccountChangesDto implements Serializable {
 			SubmitResourceDto resource = new SubmitResourceDto(account.getObjectNew(), false);
 			getChanges(resource, account.getPrimaryDelta(), false);
 			getChanges(resource, account.getSecondaryDelta(), true);
-
 		}
 
 	}
 
-	private void getChanges(SubmitResourceDto resource, ObjectDelta account, boolean secondaryValue) {
-		if (account == null || !account.getChangeType().equals(ChangeType.MODIFY)) {
+	private void getChanges(SubmitResourceDto resource, ObjectDelta delta, boolean secondaryValue) {
+		if (delta == null) {
+			return;
+		} else if (delta.getChangeType().equals(ChangeType.DELETE)) {
+			return;
+		} else if (!delta.getChangeType().equals(ChangeType.MODIFY)) {
 			return;
 		}
-		for (Object modification : account.getModifications()) {
+		for (Object modification : delta.getModifications()) {
 			ItemDelta modifyDelta = (ItemDelta) modification;
 
 			List<SubmitAccountChangesDto> values = new ArrayList<SubmitAccountChangesDto>();
@@ -123,6 +127,9 @@ public class AccountChangesDto implements Serializable {
 
 		if (!prismAccountsInSession.isEmpty()) {
 			for (PrismObject accountInSession : prismAccountsInSession) {
+				if (accountInSession.getOid() == null) {
+					continue;
+				}
 				if (accountInSession.getOid().equals(oldAccountObject.getOid())) {
 					Item oldAccountValue = accountInSession.findItem(modifyDelta.getPath());
 					boolean exist = true;
@@ -130,14 +137,16 @@ public class AccountChangesDto implements Serializable {
 						for (Object valueObject : oldAccountValue.getValues()) {
 							PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
 							oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : " ");
-							
-							// Get remaining values from oldValues​​ ​​for newValues​​
+
+							// Getting remaining values from oldValues​​ ​​for
+							// newValues​​
 							for (SubmitAccountChangesDto newValue : values) {
-								if(newValue.getStatus().equals(SubmitStatus.REPLACEING)) {
+								if (newValue.getStatus().equals(SubmitStatus.REPLACEING)) {
 									continue;
 								}
 								exist = false;
-								String newValueObjectString = newValue.getSubmitedValue().getValue().toString();
+								String newValueObjectString = newValue.getSubmitedValue().getValue()
+										.toString();
 								if (newValueObjectString.equals(oldValue.getValue().toString())) {
 									exist = true;
 									break;
@@ -156,15 +165,20 @@ public class AccountChangesDto implements Serializable {
 			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
 				continue;
 			}
-			
+
 			Object newValueObject = newValue.getSubmitedValue().getValue();
 			PropertyDelta parent = (PropertyDelta) newValue.getSubmitedValue().getParent();
 			if (parent.getParentPath().equals(SchemaConstants.PATH_PASSWORD)) {
 				newValues.add("*****");
 				continue;
 			}
-
-			String stringValue = newValueObject != null ? newValueObject.toString() : " ";
+			String stringValue;
+			if (newValueObject instanceof PolyString) {
+				PolyString polyStringValue = (PolyString) newValueObject;
+				stringValue = polyStringValue.getOrig() != null ? newValueObject.toString() : "";
+			} else {
+				stringValue = newValueObject != null ? newValueObject.toString() : "";
+			}
 			newValues.add(stringValue);
 		}
 		accountChangesList.add(new SubmitAccountDto(resource.getResourceName(), attribute, PageSubmit

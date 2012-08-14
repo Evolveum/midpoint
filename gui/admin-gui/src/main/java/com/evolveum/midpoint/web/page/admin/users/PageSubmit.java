@@ -354,7 +354,7 @@ public class PageSubmit extends PageAdmin {
 				for (Object item : assignment.getValuesToAdd()) {
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
 							getString("pageSubmit.status." + SubmitStatus.ADDING), assignmentDto
-									.isSecondaryValue()));
+									.isSecondaryValue(), false));
 				}
 			}
 
@@ -362,7 +362,7 @@ public class PageSubmit extends PageAdmin {
 				for (Object item : assignment.getValuesToDelete()) {
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
 							getString("pageSubmit.status." + SubmitStatus.DELETING), assignmentDto
-									.isSecondaryValue()));
+									.isSecondaryValue(), true));
 				}
 			}
 		}
@@ -446,7 +446,7 @@ public class PageSubmit extends PageAdmin {
 					oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : " ");
 
 					for (SubmitPropertiesDto newValue : values) {
-						if(newValue.getStatus().equals(SubmitStatus.REPLACEING)) {
+						if (newValue.getStatus().equals(SubmitStatus.REPLACEING)) {
 							continue;
 						}
 						exist = false;
@@ -466,8 +466,14 @@ public class PageSubmit extends PageAdmin {
 			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
 				continue;
 			}
+			String stringValue;
 			Object newValueObject = newValue.getSubmitedPropertie().getValue();
-			String stringValue = newValueObject != null ? newValueObject.toString() : " ";
+			if (newValueObject instanceof PolyString) {
+				PolyString polyStringValue = (PolyString) newValueObject;
+				stringValue = polyStringValue.getOrig() != null ? newValueObject.toString() : "";
+			} else {
+				stringValue = newValueObject != null ? newValueObject.toString() : "";
+			}
 			newValues.add(stringValue);
 		}
 
@@ -580,17 +586,14 @@ public class PageSubmit extends PageAdmin {
 					T dto = rowModel.getObject();
 
 					if (dto instanceof SubmitUserDto) {
-						return ((SubmitUserDto) dto).isSecondaryValue() ? PageSubmit.this
-								.getString("pageSubmit.secondaryValue") : PageSubmit.this
-								.getString("pageSubmit.primaryValue");
+						SubmitUserDto submitDto = (SubmitUserDto) dto;
+						return getTitle(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
 					} else if (dto instanceof SubmitAccountDto) {
-						return ((SubmitAccountDto) dto).isSecondaryValue() ? PageSubmit.this
-								.getString("pageSubmit.secondaryValue") : PageSubmit.this
-								.getString("pageSubmit.primaryValue");
+						SubmitAccountDto submitDto = (SubmitAccountDto) dto;
+						return getTitle(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
 					} else {
-						return ((SubmitAssignmentDto) dto).isSecondaryValue() ? PageSubmit.this
-								.getString("pageSubmit.secondaryValue") : PageSubmit.this
-								.getString("pageSubmit.primaryValue");
+						SubmitAssignmentDto submitDto = (SubmitAssignmentDto) dto;
+						return getTitle(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
 					}
 				}
 			};
@@ -605,17 +608,14 @@ public class PageSubmit extends PageAdmin {
 					T dto = rowModel.getObject();
 
 					if (dto instanceof SubmitUserDto) {
-						return ((SubmitUserDto) dto).isSecondaryValue() ? new PackageResourceReference(
-								PageSubmit.class, "secondaryValue.png") : new PackageResourceReference(
-								PageSubmit.class, "primaryValue.png");
+						SubmitUserDto submitDto = (SubmitUserDto) dto;
+						return getIcon(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
 					} else if (dto instanceof SubmitAccountDto) {
-						return ((SubmitAccountDto) dto).isSecondaryValue() ? new PackageResourceReference(
-								PageSubmit.class, "secondaryValue.png") : new PackageResourceReference(
-								PageSubmit.class, "primaryValue.png");
+						SubmitAccountDto submitDto = (SubmitAccountDto) dto;
+						return getIcon(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
 					} else {
-						return ((SubmitAssignmentDto) dto).isSecondaryValue() ? new PackageResourceReference(
-								PageSubmit.class, "secondaryValue.png") : new PackageResourceReference(
-								PageSubmit.class, "primaryValue.png");
+						SubmitAssignmentDto submitDto = (SubmitAssignmentDto) dto;
+						return getIcon(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
 					}
 				}
 			};
@@ -630,17 +630,48 @@ public class PageSubmit extends PageAdmin {
 					T dto = rowModel.getObject();
 
 					if (dto instanceof SubmitUserDto) {
-						return ((SubmitUserDto) dto).isSecondaryValue() ? new AttributeModifier("class",
-								"secondaryValue") : new AttributeModifier("class", "primaryValue");
+						SubmitUserDto submitDto = (SubmitUserDto) dto;
+						return getAttribute(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
+
 					} else if (dto instanceof SubmitAccountDto) {
-						return ((SubmitAccountDto) dto).isSecondaryValue() ? new AttributeModifier("class",
-								"secondaryValue") : new AttributeModifier("class", "primaryValue");
+						SubmitAccountDto submitDto = (SubmitAccountDto) dto;
+						return getAttribute(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
 					} else {
-						return ((SubmitAssignmentDto) dto).isSecondaryValue() ? new AttributeModifier(
-								"class", "secondaryValue") : new AttributeModifier("class", "primaryValue");
+						SubmitAssignmentDto submitDto = (SubmitAssignmentDto) dto;
+						return getAttribute(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
 					}
 				}
 			};
+		}
+
+		private AttributeModifier getAttribute(boolean secondaryValue, boolean deletedValue) {
+			if (deletedValue) {
+				return new AttributeModifier("class", "deletedValue");
+			} else if (secondaryValue) {
+				return new AttributeModifier("class", "secondaryValue");
+			} else {
+				return new AttributeModifier("class", "primaryValue");
+			}
+		}
+
+		private String getTitle(boolean secondaryValue, boolean deletedValue) {
+			if (deletedValue) {
+				return PageSubmit.this.getString("pageSubmit.deletedValue");
+			} else if (secondaryValue) {
+				return PageSubmit.this.getString("pageSubmit.secondaryValue");
+			} else {
+				return PageSubmit.this.getString("pageSubmit.primaryValue");
+			}
+		}
+
+		private ResourceReference getIcon(boolean secondaryValue, boolean deletedValue) {
+			if (deletedValue) {
+				return new PackageResourceReference(PageSubmit.class, "DeletedValue.png");
+			} else if (secondaryValue) {
+				return new PackageResourceReference(PageSubmit.class, "SecondaryValue.png");
+			} else {
+				return new PackageResourceReference(PageSubmit.class, "PrimaryValue.png");
+			}
 		}
 	}
 }

@@ -60,4 +60,8 @@ public class SubmitAccountDto implements Serializable {
 	public boolean isSecondaryValue() {
 		return secondaryValue;
 	}
+	
+	public boolean isDeletedValue() {
+		return newValue.equals("");
+	}
 }

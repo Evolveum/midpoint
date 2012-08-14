@@ -24,9 +24,13 @@ function initTable(){
       'background' : '#d8f4d8',
       'border-color' : '#FFFFFF'
     };
-	
 	var cssSecondaryValue = {
 		      'background' : '#E0F0FF',
+		      'border-color' : '#FFFFFF'
+		    };
+	
+	var cssDeletedValue = {
+		      'background' : '#FFD7CA',
 		      'border-color' : '#FFFFFF'
 		    };
 	
@@ -40,6 +44,10 @@ function initTable(){
 	
 	$(document).find(".sortedTable .secondaryValue").each(function(){
 		$(this).parents("tr:first").find("td").css(cssSecondaryValue);
+	});
+	
+	$(document).find(".sortedTable .deletedValue").each(function(){
+		$(this).parents("tr:first").find("td").css(cssDeletedValue);
 	});
 	
 	
@@ -81,6 +89,8 @@ function initTable(){
 	$(".sortedTable table tbody tr").mouseenter(function(){
 		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
 			$(this).find("td").css("background", "#c6e9c6");
+		} else if($(this).find(".deletedValue").length > 0) {
+			$(this).find("td").css("background", "#FFC2AE");
 		} else if($(this).find(".secondaryValue").length > 0) {
 			$(this).find("td").css("background", "#D0E0FF");
 		} else {
@@ -91,6 +101,8 @@ function initTable(){
 		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
 			$(this).find("td").css("background", "#d8f4d8");
 			$(this).find("td").css("border-color","#FFFFFF");
+		} else if($(this).find(".deletedValue").length > 0) {
+			$(this).find("td").css("background", "#FFD7CA");
 		} else if($(this).find(".secondaryValue").length > 0) {
 			$(this).find("td").css("background", "#E0F0FF");
 		} else {
