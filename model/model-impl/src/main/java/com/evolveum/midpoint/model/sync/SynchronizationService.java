@@ -30,8 +30,12 @@ import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -46,6 +50,8 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -73,248 +79,259 @@ import java.util.List;
 @Service(value = "synchronizationService")
 public class SynchronizationService implements ResourceObjectChangeListener {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationService.class);
-    @Autowired(required = true)
-    private ModelController controller;
-    @Autowired(required = true)
-    private ActionManager<Action> actionManager;
-    @Autowired
-    private ExpressionHandler expressionHandler;
-    @Autowired
-    private ChangeNotificationDispatcher notificationManager;
-    @Autowired(required = true)
-    private AuditService auditService;
-    @Autowired(required = true)
-    private PrismContext prismContext;
-    @Autowired(required = true)
-    private RepositoryService repositoryService;
+	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationService.class);
+	@Autowired(required = true)
+	private ModelController controller;
+	@Autowired(required = true)
+	private ActionManager<Action> actionManager;
+	@Autowired
+	private ExpressionHandler expressionHandler;
+	@Autowired
+	private ChangeNotificationDispatcher notificationManager;
+	@Autowired(required = true)
+	private AuditService auditService;
+	@Autowired(required = true)
+	private PrismContext prismContext;
+	@Autowired(required = true)
+	private RepositoryService repositoryService;
 
-    @PostConstruct
-    public void registerForResourceObjectChangeNotifications() {
-        notificationManager.registerNotificationListener(this);
-    }
+	@PostConstruct
+	public void registerForResourceObjectChangeNotifications() {
+		notificationManager.registerNotificationListener(this);
+	}
 
-    @PreDestroy
-    public void unregisterForResourceObjectChangeNotifications() {
-        notificationManager.unregisterNotificationListener(this);
-    }
+	@PreDestroy
+	public void unregisterForResourceObjectChangeNotifications() {
+		notificationManager.unregisterNotificationListener(this);
+	}
 
-    @Override
-    public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
-        Validate.notNull(change, "Resource object shadow change description must not be null.");
-        Validate.isTrue(change.getCurrentShadow() != null || change.getObjectDelta() != null,
-                "Object delta and current shadow are null. At least one must be provided.");
-        Validate.notNull(change.getResource(), "Resource in change must not be null.");
-        Validate.notNull(parentResult, "Parent operation result must not be null.");
-        LOGGER.debug("SYNCHRONIZATION: received change notifiation {}", change);
-        
-        OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
-        try {
-            ResourceType resource = change.getResource().asObjectable();
+	@Override
+	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+		Validate.notNull(change, "Resource object shadow change description must not be null.");
+		Validate.isTrue(change.getCurrentShadow() != null || change.getObjectDelta() != null,
+				"Object delta and current shadow are null. At least one must be provided.");
+		Validate.notNull(change.getResource(), "Resource in change must not be null.");
+		Validate.notNull(parentResult, "Parent operation result must not be null.");
+		LOGGER.debug("SYNCHRONIZATION: received change notifiation {}", change);
 
-            if (!isSynchronizationEnabled(ResourceTypeUtil.determineSynchronization(resource, UserType.class))) {
-                String message = "SYNCHRONIZATION is not enabled for " + ObjectTypeUtil.toShortString(resource) + " ignoring change from channel " + change.getSourceChannel();
-                LOGGER.debug(message);
-                subResult.recordStatus(OperationResultStatus.SUCCESS, message);
-                return;
-            }
-            LOGGER.trace("Synchronization is enabled.");
+		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
+		try {
+			ResourceType resource = change.getResource().asObjectable();
 
-            SynchronizationSituation situation = checkSituation(change, subResult);
-            LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}",
-                    situation.getSituation().value(), situation.getUser());
+			if (!isSynchronizationEnabled(ResourceTypeUtil.determineSynchronization(resource, UserType.class))) {
+				String message = "SYNCHRONIZATION is not enabled for " + ObjectTypeUtil.toShortString(resource)
+						+ " ignoring change from channel " + change.getSourceChannel();
+				LOGGER.debug(message);
+				subResult.recordStatus(OperationResultStatus.SUCCESS, message);
+				return;
+			}
+			LOGGER.trace("Synchronization is enabled.");
 
-            notifyChange(change, situation, resource, task, subResult);
-            subResult.computeStatus();
-        } catch (Exception ex) {
-        	subResult.recordFatalError(ex);
-            throw new SystemException(ex);
-        } finally {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(subResult.dump());
-            }
-        }
-    }
+			SynchronizationSituation situation = checkSituation(change, subResult);
+			LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
 
-    private boolean isSynchronizationEnabled(ObjectSynchronizationType synchronization) {
-        if (synchronization == null || synchronization.isEnabled() == null) {
-            return false;
-        }
-        return synchronization.isEnabled();
-    }
+			notifyChange(change, situation, resource, task, subResult);
+			
+			PrismObject<? extends ObjectType> object = change.getOldShadow();
+			if (object == null) {
+				object = change.getCurrentShadow();
+			}
 
-    /**
-     * XXX: in situation when one account belongs to two different idm users (repository returns only first user,
-     * method {@link com.evolveum.midpoint.model.api.ModelService#listAccountShadowOwner(String, com.evolveum.midpoint.schema.result.OperationResult)}).
-     * It should be changed because otherwise we can't find {@link SynchronizationSituationType#DISPUTED} situation
-     *
-     * @param change
-     * @param result
-     * @return
-     */
-    private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescription change,
-            OperationResult result) {
+			if (object != null) {
+				saveExecutedSituationDescription(object, situation, change, subResult);
+			}
+			subResult.computeStatus();
+		} catch (Exception ex) {
+			subResult.recordFatalError(ex);
+			throw new SystemException(ex);
+		} finally {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(subResult.dump());
+			}
+		}
+	}
 
-        OperationResult subResult = result.createSubresult(CHECK_SITUATION);
-        LOGGER.trace("Determining situation for resource object shadow.");
+	private boolean isSynchronizationEnabled(ObjectSynchronizationType synchronization) {
+		if (synchronization == null || synchronization.isEnabled() == null) {
+			return false;
+		}
+		return synchronization.isEnabled();
+	}
 
-        SynchronizationSituation situation = null;
-        try {
-            String shadowOid = getOidFromChange(change);
-            Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
-            PrismObject<UserType> user = repositoryService.listAccountShadowOwner(shadowOid, subResult);
+	/**
+	 * XXX: in situation when one account belongs to two different idm users
+	 * (repository returns only first user, method
+	 * {@link com.evolveum.midpoint.model.api.ModelService#listAccountShadowOwner(String, com.evolveum.midpoint.schema.result.OperationResult)}
+	 * ). It should be changed because otherwise we can't find
+	 * {@link SynchronizationSituationType#DISPUTED} situation
+	 * 
+	 * @param change
+	 * @param result
+	 * @return
+	 */
+	private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescription change, OperationResult result) {
 
-            if (user != null) {
-            	UserType userType = user.asObjectable();
-                LOGGER.trace("Shadow OID {} does have owner: {}", shadowOid, userType.getName());
-                SynchronizationSituationType state = null;
-                switch (getModificationType(change)) {
-                    case ADD:
-                    case MODIFY:
-                        // if user is found it means account/group is linked to
-                        // resource
-                        state = SynchronizationSituationType.LINKED;
-                        break;
-                    case DELETE:
-                        state = SynchronizationSituationType.DELETED;
-                }
-                situation = new SynchronizationSituation(userType, state);
-            } else {
-                LOGGER.trace("Resource object shadow doesn't have owner.");
-                situation = checkSituationWithCorrelation(change, result);
-            }
-        } catch (Exception ex) {
-            LOGGER.error("Error occurred during resource object shadow owner lookup.");
-            throw new SystemException("Error occurred during resource object shadow owner lookup, reason: "
-                    + ex.getMessage(), ex);
-        } finally {
-            subResult.computeStatus();
-        }
+		OperationResult subResult = result.createSubresult(CHECK_SITUATION);
+		LOGGER.trace("Determining situation for resource object shadow.");
 
-        LOGGER.trace("checkSituation::end - {}, {}",
-                new Object[]{(situation.getUser() == null ? "null" : situation.getUser().getOid()),
-                        situation.getSituation()});
+		SynchronizationSituation situation = null;
+		try {
+			String shadowOid = getOidFromChange(change);
+			Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
+			PrismObject<UserType> user = repositoryService.listAccountShadowOwner(shadowOid, subResult);
 
-        return situation;
-    }
+			if (user != null) {
+				UserType userType = user.asObjectable();
+				LOGGER.trace("Shadow OID {} does have owner: {}", shadowOid, userType.getName());
+				SynchronizationSituationType state = null;
+				switch (getModificationType(change)) {
+				case ADD:
+				case MODIFY:
+					// if user is found it means account/group is linked to
+					// resource
+					state = SynchronizationSituationType.LINKED;
+					break;
+				case DELETE:
+					state = SynchronizationSituationType.DELETED;
+				}
+				situation = new SynchronizationSituation(userType, state);
+			} else {
+				LOGGER.trace("Resource object shadow doesn't have owner.");
+				situation = checkSituationWithCorrelation(change, result);
+			}
+		} catch (Exception ex) {
+			LOGGER.error("Error occurred during resource object shadow owner lookup.");
+			throw new SystemException("Error occurred during resource object shadow owner lookup, reason: "
+					+ ex.getMessage(), ex);
+		} finally {
+			subResult.computeStatus();
+		}
 
-    private String getOidFromChange(ResourceObjectShadowChangeDescription change) {
-        if (change.getCurrentShadow() != null && StringUtils.isNotEmpty(change.getCurrentShadow().getOid())) {
-            return change.getCurrentShadow().getOid();
-        }
-        if (change.getOldShadow() != null && StringUtils.isNotEmpty(change.getOldShadow().getOid())) {
-            return change.getOldShadow().getOid();
-        }
+		LOGGER.trace("checkSituation::end - {}, {}", new Object[] {
+				(situation.getUser() == null ? "null" : situation.getUser().getOid()), situation.getSituation() });
 
-        if (change.getObjectDelta() == null || StringUtils.isEmpty(change.getObjectDelta().getOid())) {
-            throw new IllegalArgumentException("Oid was not defined in change (not in current, old shadow, delta).");
-        }
+		return situation;
+	}
 
-        return change.getObjectDelta().getOid();
-    }
+	private String getOidFromChange(ResourceObjectShadowChangeDescription change) {
+		if (change.getCurrentShadow() != null && StringUtils.isNotEmpty(change.getCurrentShadow().getOid())) {
+			return change.getCurrentShadow().getOid();
+		}
+		if (change.getOldShadow() != null && StringUtils.isNotEmpty(change.getOldShadow().getOid())) {
+			return change.getOldShadow().getOid();
+		}
 
-    /**
-     * account is not linked to user. you have to use correlation and
-     * confirmation rule to be sure user for this account doesn't exists
-     * resourceShadow only contains the data that were in the repository before
-     * the change. But the correlation/confirmation should work on the updated
-     * data. Therefore let's apply the changes before running
-     * correlation/confirmation
-     *
-     * @throws SynchronizationException
-     */
-    private SynchronizationSituation checkSituationWithCorrelation(
-            ResourceObjectShadowChangeDescription change, OperationResult result) throws SynchronizationException, SchemaException {
+		if (change.getObjectDelta() == null || StringUtils.isEmpty(change.getObjectDelta().getOid())) {
+			throw new IllegalArgumentException("Oid was not defined in change (not in current, old shadow, delta).");
+		}
 
-        if (ChangeType.DELETE.equals(getModificationType(change))) {
-            //account was deleted and we know it didn't have owner
-            return new SynchronizationSituation(null, SynchronizationSituationType.DELETED);
-        }
+		return change.getObjectDelta().getOid();
+	}
 
-        PrismObject<? extends ResourceObjectShadowType> resourceShadow = change.getCurrentShadow();
-        
-        ObjectDelta syncDelta = change.getObjectDelta();
-        if (resourceShadow == null && syncDelta != null
-                && ChangeType.ADD.equals(syncDelta.getChangeType())) {
-            LOGGER.trace("Trying to compute current shadow from change delta add.");
-            PrismObject<? extends ResourceObjectShadowType> shadow =
-                    syncDelta.computeChangedObject(syncDelta.getObjectToAdd());
-            resourceShadow = shadow;
-            change.setCurrentShadow(shadow);
-        }
-        Validate.notNull(resourceShadow, "Current shadow must not be null.");
+	/**
+	 * account is not linked to user. you have to use correlation and
+	 * confirmation rule to be sure user for this account doesn't exists
+	 * resourceShadow only contains the data that were in the repository before
+	 * the change. But the correlation/confirmation should work on the updated
+	 * data. Therefore let's apply the changes before running
+	 * correlation/confirmation
+	 * 
+	 * @throws SynchronizationException
+	 */
+	private SynchronizationSituation checkSituationWithCorrelation(ResourceObjectShadowChangeDescription change,
+			OperationResult result) throws SynchronizationException, SchemaException {
 
-        ResourceType resource = change.getResource().asObjectable();
-        validateResourceInShadow(resourceShadow.asObjectable(), resource);
+		if (ChangeType.DELETE.equals(getModificationType(change))) {
+			// account was deleted and we know it didn't have owner
+			return new SynchronizationSituation(null, SynchronizationSituationType.DELETED);
+		}
 
-        ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
+		PrismObject<? extends ResourceObjectShadowType> resourceShadow = change.getCurrentShadow();
 
-        SynchronizationSituationType state = null;
-        LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of users based on correlation rule.");
-        List<PrismObject<UserType>> users = findUsersByCorrelationRule(resourceShadow.asObjectable(), synchronization.getCorrelation(), resource, result);
-        if (users == null) {
-            users = new ArrayList<PrismObject<UserType>>();
-        }
+		ObjectDelta syncDelta = change.getObjectDelta();
+		if (resourceShadow == null && syncDelta != null && ChangeType.ADD.equals(syncDelta.getChangeType())) {
+			LOGGER.trace("Trying to compute current shadow from change delta add.");
+			PrismObject<? extends ResourceObjectShadowType> shadow = syncDelta.computeChangedObject(syncDelta
+					.getObjectToAdd());
+			resourceShadow = shadow;
+			change.setCurrentShadow(shadow);
+		}
+		Validate.notNull(resourceShadow, "Current shadow must not be null.");
 
-        if (users.size() > 1) {
-            if (synchronization.getConfirmation() == null) {
-                LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
-            } else {
-                LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking users from correlation with confirmation rule.");
-                users = findUserByConfirmationRule(users, resourceShadow.asObjectable(), synchronization.getConfirmation(), result);
-            }
-        }
+		ResourceType resource = change.getResource().asObjectable();
+		validateResourceInShadow(resourceShadow.asObjectable(), resource);
 
-        UserType user = null;
-        switch (users.size()) {
-            case 0:
-                state = SynchronizationSituationType.UNMATCHED;
-                break;
-            case 1:
-                switch (getModificationType(change)) {
-                    case ADD:
-                    case MODIFY:
-                        state = SynchronizationSituationType.UNLINKED;
-                        break;
-                    case DELETE:
-                        state = SynchronizationSituationType.DELETED;
-                        break;
-                }
+		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
 
-                user = users.get(0).asObjectable();
-                break;
-            default:
-                state = SynchronizationSituationType.DISPUTED;
-        }
+		SynchronizationSituationType state = null;
+		LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of users based on correlation rule.");
+		List<PrismObject<UserType>> users = findUsersByCorrelationRule(resourceShadow.asObjectable(),
+				synchronization.getCorrelation(), resource, result);
+		if (users == null) {
+			users = new ArrayList<PrismObject<UserType>>();
+		}
 
-        return new SynchronizationSituation(user, state);
-    }
+		if (users.size() > 1) {
+			if (synchronization.getConfirmation() == null) {
+				LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
+			} else {
+				LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking users from correlation with confirmation rule.");
+				users = findUserByConfirmationRule(users, resourceShadow.asObjectable(),
+						synchronization.getConfirmation(), result);
+			}
+		}
 
-    private void validateResourceInShadow(ResourceObjectShadowType shadow, ResourceType resource) {
-        if (shadow.getResource() != null || shadow.getResourceRef() != null) {
-            return;
-        }
+		UserType user = null;
+		switch (users.size()) {
+		case 0:
+			state = SynchronizationSituationType.UNMATCHED;
+			break;
+		case 1:
+			switch (getModificationType(change)) {
+			case ADD:
+			case MODIFY:
+				state = SynchronizationSituationType.UNLINKED;
+				break;
+			case DELETE:
+				state = SynchronizationSituationType.DELETED;
+				break;
+			}
 
-        ObjectReferenceType reference = new ObjectReferenceType();
-        reference.setOid(resource.getOid());
-        reference.setType(ObjectTypes.RESOURCE.getTypeQName());
+			user = users.get(0).asObjectable();
+			break;
+		default:
+			state = SynchronizationSituationType.DISPUTED;
+		}
 
-        shadow.setResourceRef(reference);
-    }
+		return new SynchronizationSituation(user, state);
+	}
 
-    /**
-     * @param change
-     * @return method checks change type in object delta if available, otherwise returns {@link ChangeType#ADD}
-     */
-    private ChangeType getModificationType(ResourceObjectShadowChangeDescription change) {
-        if (change.getObjectDelta() != null) {
-            return change.getObjectDelta().getChangeType();
-        }
+	private void validateResourceInShadow(ResourceObjectShadowType shadow, ResourceType resource) {
+		if (shadow.getResource() != null || shadow.getResourceRef() != null) {
+			return;
+		}
 
-        return ChangeType.ADD;
-    }
+		ObjectReferenceType reference = new ObjectReferenceType();
+		reference.setOid(resource.getOid());
+		reference.setType(ObjectTypes.RESOURCE.getTypeQName());
 
-    private void notifyChange(ResourceObjectShadowChangeDescription change,
+		shadow.setResourceRef(reference);
+	}
+
+	/**
+	 * @param change
+	 * @return method checks change type in object delta if available, otherwise
+	 *         returns {@link ChangeType#ADD}
+	 */
+	private ChangeType getModificationType(ResourceObjectShadowChangeDescription change) {
+		if (change.getObjectDelta() != null) {
+			return change.getObjectDelta().getChangeType();
+		}
+
+		return ChangeType.ADD;
+	}
+
+	private void notifyChange(ResourceObjectShadowChangeDescription change,
             SynchronizationSituation situation, ResourceType resource, Task task,
             OperationResult parentResult) {
 
@@ -334,7 +351,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
         ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
         List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
+                
         if (actions.isEmpty()) {
+        	
             LOGGER.warn("Skipping synchronization on resource: {}. Actions was not found.",
                     new Object[]{resource.getName()});
             return;
@@ -365,235 +384,297 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         // Note: The EXECUTION stage audit records are recorded in individual actions
 
     }
+	
+	private <T extends ObjectType> void saveExecutedSituationDescription(PrismObject<T> object, SynchronizationSituation situation, ResourceObjectShadowChangeDescription change, OperationResult parentResult){
+		if (object == null){
+			return;
+		}
+		
+		
+		List<PropertyDelta> syncSituationDeltas = new ArrayList<PropertyDelta>();
+		PropertyDelta syncSituationDelta = PropertyDelta.createReplaceDelta(object.getDefinition(),
+				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION, situation.getSituation());
+		syncSituationDeltas.add(syncSituationDelta);
 
-    private List<Action> findActionsForReaction(List<Reaction> reactions,
-            SynchronizationSituationType situation) {
-        List<Action> actions = new ArrayList<Action>();
-        if (reactions == null) {
-            return actions;
-        }
+		
+		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
+		syncSituationDescription.setSituation(situation.getSituation());
+		syncSituationDescription.setChannel(change.getSourceChannel());
+		syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+		
+		syncSituationDelta = PropertyDelta.createDelta(new PropertyPath(
+				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
+		syncSituationDelta.addValueToAdd(new PrismPropertyValue(syncSituationDescription));
+		syncSituationDeltas.add(syncSituationDelta);
+		
+		T objectType = object.asObjectable();
+		
+		try {
+			
+			repositoryService.modifyObject(objectType.getClass(), object.getOid(), syncSituationDeltas, parentResult);
+		} catch (ObjectNotFoundException ex) {
+			LoggingUtils.logException(LOGGER,
+					"### SYNCHRONIZATION # notifyChange(..): Synchronization action failed. Could not modify object "
+							+ ObjectTypeUtil.toShortString(objectType), ex);
+			parentResult.recordFatalError(
+					"Synchronization action failed, Could not modify object "
+							+ ObjectTypeUtil.toShortString(objectType), ex);
+			throw new SystemException("Synchronization action failed, Could not modify object "
+					+ ObjectTypeUtil.toShortString(objectType) + " reason: "
+					+ ex.getMessage(), ex);
+		} catch (ObjectAlreadyExistsException ex) {
+			LoggingUtils.logException(LOGGER,
+					"### SYNCHRONIZATION # notifyChange(..): Synchronization action failed. Could not modify object "
+							+ ObjectTypeUtil.toShortString(objectType), ex);
+			parentResult.recordFatalError(
+					"Synchronization action failed, Could not modify object "
+							+ ObjectTypeUtil.toShortString(objectType), ex);
+			throw new SystemException("Synchronization action failed, Could not modify object "
+					+ ObjectTypeUtil.toShortString(objectType) + " reason: "
+					+ ex.getMessage(), ex);
+		} catch (SchemaException ex) {
+			LoggingUtils.logException(LOGGER,
+					"### SYNCHRONIZATION # notifyChange(..): Synchronization action failed. Could not modify object "
+							+ ObjectTypeUtil.toShortString(objectType), ex);
+			parentResult.recordFatalError(
+					"Synchronization action failed, Could not modify object "
+							+ ObjectTypeUtil.toShortString(objectType), ex);
+			throw new SystemException("Synchronization action failed, Could not modify object "
+					+ ObjectTypeUtil.toShortString(objectType) + " reason: "
+					+ ex.getMessage(), ex);
+		}
 
-        Reaction reaction = null;
-        for (Reaction react : reactions) {
-            if (react.getSituation() == null) {
-                LOGGER.warn("Reaction ({}) doesn't contain situation element, skipping.",
-                        reactions.indexOf(react));
-                continue;
-            }
-            if (situation.equals(react.getSituation())) {
-                reaction = react;
-                break;
-            }
-        }
+	}
 
-        if (reaction == null) {
-            LOGGER.warn("Reaction on situation {} was not found.", situation);
-            return actions;
-        }
+	private List<Action> findActionsForReaction(List<Reaction> reactions, SynchronizationSituationType situation) {
+		List<Action> actions = new ArrayList<Action>();
+		if (reactions == null) {
+			return actions;
+		}
 
-        List<Reaction.Action> actionList = reaction.getAction();
-        for (Reaction.Action actionXml : actionList) {
-            if (actionXml == null) {
-                LOGGER.warn("Reaction ({}) doesn't contain action element, skipping.",
-                        reactions.indexOf(reaction));
-                return actions;
-            }
-            if (actionXml.getRef() == null) {
-                LOGGER.warn("Reaction ({}): Action element doesn't contain ref attribute, skipping.",
-                        reactions.indexOf(reaction));
-                return actions;
-            }
+		Reaction reaction = null;
+		for (Reaction react : reactions) {
+			if (react.getSituation() == null) {
+				LOGGER.warn("Reaction ({}) doesn't contain situation element, skipping.", reactions.indexOf(react));
+				continue;
+			}
+			if (situation.equals(react.getSituation())) {
+				reaction = react;
+				break;
+			}
+		}
 
-            Action action = actionManager.getActionInstance(actionXml.getRef());
-            if (action == null) {
-                LOGGER.warn("Couldn't create action with uri '{}' for reaction {}, skipping action.",
-                        new Object[]{actionXml.getRef(), reactions.indexOf(reaction)});
-                continue;
-            }
-            action.setParameters(actionXml.getAny());
-            actions.add(action);
-        }
+		if (reaction == null) {
+			LOGGER.warn("Reaction on situation {} was not found.", situation);
+			return actions;
+		}
 
-        return actions;
-    }
+		List<Reaction.Action> actionList = reaction.getAction();
+		for (Reaction.Action actionXml : actionList) {
+			if (actionXml == null) {
+				LOGGER.warn("Reaction ({}) doesn't contain action element, skipping.", reactions.indexOf(reaction));
+				return actions;
+			}
+			if (actionXml.getRef() == null) {
+				LOGGER.warn("Reaction ({}): Action element doesn't contain ref attribute, skipping.",
+						reactions.indexOf(reaction));
+				return actions;
+			}
 
-    private List<PrismObject<UserType>> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
-            QueryType query, ResourceType resourceType, OperationResult result) throws SynchronizationException {
+			Action action = actionManager.getActionInstance(actionXml.getRef());
+			if (action == null) {
+				LOGGER.warn("Couldn't create action with uri '{}' for reaction {}, skipping action.", new Object[] {
+						actionXml.getRef(), reactions.indexOf(reaction) });
+				continue;
+			}
+			action.setParameters(actionXml.getAny());
+			actions.add(action);
+		}
 
-        if (query == null) {
-            LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
-                    + "returning empty list of users.", resourceType);
-            return null;
-        }
+		return actions;
+	}
 
-        Element element = query.getFilter();
-        if (element == null) {
-            LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
-                    + "returning empty list of users.", resourceType);
-            return null;
-        }
-        Element filter = updateFilterWithAccountValues(currentShadow, element, "Correlation expression", result);
-        if (filter == null) {
-            // Null is OK here, it means that the value in the filter evaluated to null and the processing should be skipped
-            return null;
-        }
-        List<PrismObject<UserType>> users = null;
-        try {
-            query = new QueryType();
-            query.setFilter(filter);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for OID {} results in filter\n{}", new Object[]{
-                        currentShadow.getOid(), SchemaDebugUtil.prettyPrint(query)});
-            }
-            PagingType paging = new PagingType();
-            users = repositoryService.searchObjects(UserType.class, query, paging, result);
+	private List<PrismObject<UserType>> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
+			QueryType query, ResourceType resourceType, OperationResult result) throws SynchronizationException {
 
-            if (users == null) {
-                users = new ArrayList<PrismObject<UserType>>();
-            }
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER,
-                    "Couldn't search users in repository, based on filter (simplified)\n{}.", ex,
-                    SchemaDebugUtil.prettyPrint(filter));
-            throw new SynchronizationException(
-                    "Couldn't search users in repository, based on filter (See logs).", ex);
-        }
+		if (query == null) {
+			LOGGER.warn(
+					"Correlation rule for resource '{}' doesn't contain query, " + "returning empty list of users.",
+					resourceType);
+			return null;
+		}
 
-        LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for OID {} returned {} users: {}",
-                new Object[]{currentShadow.getOid(), users.size(), DebugUtil.prettyPrint(users, 3)});
-        return users;
-    }
+		Element element = query.getFilter();
+		if (element == null) {
+			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
+					+ "returning empty list of users.", resourceType);
+			return null;
+		}
+		Element filter = updateFilterWithAccountValues(currentShadow, element, "Correlation expression", result);
+		if (filter == null) {
+			// Null is OK here, it means that the value in the filter evaluated
+			// to null and the processing should be skipped
+			return null;
+		}
+		List<PrismObject<UserType>> users = null;
+		try {
+			query = new QueryType();
+			query.setFilter(filter);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for OID {} results in filter\n{}", new Object[] {
+						currentShadow.getOid(), SchemaDebugUtil.prettyPrint(query) });
+			}
+			PagingType paging = new PagingType();
+			users = repositoryService.searchObjects(UserType.class, query, paging, result);
 
-    private List<PrismObject<UserType>> findUserByConfirmationRule(List<PrismObject<UserType>> users, ResourceObjectShadowType currentShadow,
-            ExpressionType expression, OperationResult result) throws SynchronizationException {
+			if (users == null) {
+				users = new ArrayList<PrismObject<UserType>>();
+			}
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't search users in repository, based on filter (simplified)\n{}.",
+					ex, SchemaDebugUtil.prettyPrint(filter));
+			throw new SynchronizationException("Couldn't search users in repository, based on filter (See logs).", ex);
+		}
 
-        List<PrismObject<UserType>> list = new ArrayList<PrismObject<UserType>>();
-        for (PrismObject<UserType> user : users) {
-            try {
-            	UserType userType = user.asObjectable();
-                boolean confirmedUser = expressionHandler.evaluateConfirmationExpression(userType,
-                        currentShadow, expression, result);
-                if (user != null && confirmedUser) {
-                    list.add(user);
-                }
-            } catch (Exception ex) {
-                LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
-                throw new SynchronizationException("Couldn't confirm user " + user.getName(), ex);
-            }
-        }
+		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for OID {} returned {} users: {}", new Object[] {
+				currentShadow.getOid(), users.size(), DebugUtil.prettyPrint(users, 3) });
+		return users;
+	}
 
-        LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: expression for OID {} matched {} users.", new Object[]{
-                currentShadow.getOid(), list.size()});
-        return list;
-    }
+	private List<PrismObject<UserType>> findUserByConfirmationRule(List<PrismObject<UserType>> users,
+			ResourceObjectShadowType currentShadow, ExpressionType expression, OperationResult result)
+			throws SynchronizationException {
 
-    private Element updateFilterWithAccountValues(ResourceObjectShadowType currentShadow,
-            Element filter, String shortDesc, OperationResult result) throws SynchronizationException {
-        LOGGER.trace("updateFilterWithAccountValues::begin");
-        if (filter == null) {
-            return null;
-        }
-        
-        try {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Transforming search filter from:\n{}",
-                        DOMUtil.printDom(filter.getOwnerDocument()));
-            }
-            Document document = DOMUtil.getDocument();
+		List<PrismObject<UserType>> list = new ArrayList<PrismObject<UserType>>();
+		for (PrismObject<UserType> user : users) {
+			try {
+				UserType userType = user.asObjectable();
+				boolean confirmedUser = expressionHandler.evaluateConfirmationExpression(userType, currentShadow,
+						expression, result);
+				if (user != null && confirmedUser) {
+					list.add(user);
+				}
+			} catch (Exception ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
+				throw new SynchronizationException("Couldn't confirm user " + user.getName(), ex);
+			}
+		}
 
-            Element and = document.createElementNS(SchemaConstants.NS_QUERY, "and");
-            document.appendChild(and);
-            and.appendChild(QueryUtil.createTypeFilter(document, ObjectTypes.USER.getObjectTypeUri()));
-            Element equal = null;
-            if (SchemaConstants.NS_QUERY.equals(filter.getNamespaceURI())
-                    && "equal".equals(filter.getLocalName())) {
-                equal = (Element) document.adoptNode(filter.cloneNode(true));
+		LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: expression for OID {} matched {} users.", new Object[] {
+				currentShadow.getOid(), list.size() });
+		return list;
+	}
 
-                Element path = findChildElement(equal, SchemaConstants.NS_QUERY, "path");
-                if (path != null) {
-                    equal.removeChild(path);
-                }
+	private Element updateFilterWithAccountValues(ResourceObjectShadowType currentShadow, Element filter,
+			String shortDesc, OperationResult result) throws SynchronizationException {
+		LOGGER.trace("updateFilterWithAccountValues::begin");
+		if (filter == null) {
+			return null;
+		}
 
-                Element valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C,
-                        "valueExpression");
-                if (valueExpressionElement != null) {
-                    equal.removeChild(valueExpressionElement);
-                    copyNamespaceDefinitions(equal, valueExpressionElement);
+		try {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Transforming search filter from:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
+			}
+			Document document = DOMUtil.getDocument();
 
-                    Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
-                    if (refElement == null) {
-                    	throw new SchemaException("No <ref> element in valueExpression in correlation rule for "+currentShadow.getResource());
-                    }
-                    QName ref = DOMUtil.resolveQName(refElement);
+			Element and = document.createElementNS(SchemaConstants.NS_QUERY, "and");
+			document.appendChild(and);
+			and.appendChild(QueryUtil.createTypeFilter(document, ObjectTypes.USER.getObjectTypeUri()));
+			Element equal = null;
+			if (SchemaConstants.NS_QUERY.equals(filter.getNamespaceURI()) && "equal".equals(filter.getLocalName())) {
+				equal = (Element) document.adoptNode(filter.cloneNode(true));
 
-                    Element value = document.createElementNS(SchemaConstants.NS_QUERY, "value");
-                    equal.appendChild(value);
-                    Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
-                    ExpressionType valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(valueExpressionElement,
-                            ExpressionType.class);
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
-                    }
-                    String expressionResult = expressionHandler.evaluateExpression(currentShadow,
-                            valueExpression, shortDesc, result);
+				Element path = findChildElement(equal, SchemaConstants.NS_QUERY, "path");
+				if (path != null) {
+					equal.removeChild(path);
+				}
 
-                    if (StringUtils.isEmpty(expressionResult)) {
-                        LOGGER.debug("Result of search filter expression was null or empty. Expression: {}", valueExpression);
-                        return null;
-                    }
-                    // TODO: log more context
-                    LOGGER.trace("Search filter expression in the rule for OID {} evaluated to {}.",
-                            new Object[]{currentShadow.getOid(), expressionResult});
-                    attribute.setTextContent(expressionResult);
-                    value.appendChild(attribute);
-                    and.appendChild(equal);
-                } else {
-                    LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
-                }
-            }
-            filter = and;
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Transforming filter to:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
-            }
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
-            throw new SynchronizationException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
-        }
+				Element valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "valueExpression");
+				if (valueExpressionElement != null) {
+					equal.removeChild(valueExpressionElement);
+					copyNamespaceDefinitions(equal, valueExpressionElement);
 
-        LOGGER.trace("updateFilterWithAccountValues::end");
-        return filter;
-    }
+					Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
+					if (refElement == null) {
+						throw new SchemaException("No <ref> element in valueExpression in correlation rule for "
+								+ currentShadow.getResource());
+					}
+					QName ref = DOMUtil.resolveQName(refElement);
 
-    private void copyNamespaceDefinitions(Element from, Element to) {
-        NamedNodeMap attributes = from.getAttributes();
-        List<Attr> xmlns = new ArrayList<Attr>();
-        for (int i = 0; i < attributes.getLength(); i++) {
-            Node node = attributes.item(i);
-            if (!(node instanceof Attr)) {
-                continue;
-            }
-            xmlns.add((Attr) attributes.item(i));
-        }
-        for (Attr attr : xmlns) {
-            from.removeAttributeNode(attr);
-            to.setAttributeNode(attr);
-        }
-    }
+					Element value = document.createElementNS(SchemaConstants.NS_QUERY, "value");
+					equal.appendChild(value);
+					Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
+					ExpressionType valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(
+							valueExpressionElement, ExpressionType.class);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
+					}
+					String expressionResult = expressionHandler.evaluateExpression(currentShadow, valueExpression,
+							shortDesc, result);
 
-    private Element findChildElement(Element element, String namespace, String name) {
-        NodeList list = element.getChildNodes();
-        for (int i = 0; i < list.getLength(); i++) {
-            Node node = list.item(i);
-            if (node.getNodeType() == Node.ELEMENT_NODE && namespace.equals(node.getNamespaceURI())
-                    && name.equals(node.getLocalName())) {
-                return (Element) node;
-            }
-        }
-        return null;
-    }
+					if (StringUtils.isEmpty(expressionResult)) {
+						LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
+								valueExpression);
+						return null;
+					}
+					// TODO: log more context
+					LOGGER.trace("Search filter expression in the rule for OID {} evaluated to {}.", new Object[] {
+							currentShadow.getOid(), expressionResult });
+					attribute.setTextContent(expressionResult);
+					value.appendChild(attribute);
+					and.appendChild(equal);
+				} else {
+					LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
+				}
+			}
+			filter = and;
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Transforming filter to:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
+			}
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
+			throw new SynchronizationException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
+		}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName()
+		LOGGER.trace("updateFilterWithAccountValues::end");
+		return filter;
+	}
+
+	private void copyNamespaceDefinitions(Element from, Element to) {
+		NamedNodeMap attributes = from.getAttributes();
+		List<Attr> xmlns = new ArrayList<Attr>();
+		for (int i = 0; i < attributes.getLength(); i++) {
+			Node node = attributes.item(i);
+			if (!(node instanceof Attr)) {
+				continue;
+			}
+			xmlns.add((Attr) attributes.item(i));
+		}
+		for (Attr attr : xmlns) {
+			from.removeAttributeNode(attr);
+			to.setAttributeNode(attr);
+		}
+	}
+
+	private Element findChildElement(Element element, String namespace, String name) {
+		NodeList list = element.getChildNodes();
+		for (int i = 0; i < list.getLength(); i++) {
+			Node node = list.item(i);
+			if (node.getNodeType() == Node.ELEMENT_NODE && namespace.equals(node.getNamespaceURI())
+					&& name.equals(node.getLocalName())) {
+				return (Element) node;
+			}
+		}
+		return null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName
+	 * ()
 	 */
 	@Override
 	public String getName() {
