@@ -123,7 +123,7 @@ public class ReconciliationProcessor {
                 return;
             }
             
-            LOGGER.trace("Attribute reconciliation processing ACCOUNT {}",accContext.getResourceAccountType());
+            LOGGER.trace("Attribute reconciliation processing ACCOUNT {}",accContext.getResourceShadowDiscriminator());
 
             Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes = accContext.getSqueezedAttributes();
             
@@ -134,7 +134,7 @@ public class ReconciliationProcessor {
             }
 
             RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), prismContext);
-            RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceAccountType().getAccountType());
+            RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceShadowDiscriminator().getIntent());
             
             reconcileAccount(accContext, squeezedAttributes, accountDefinition);
         } catch (RuntimeException e) {
@@ -160,7 +160,7 @@ public class ReconciliationProcessor {
         	//LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
         	RefinedAttributeDefinition attributeDefinition = accountDefinition.getAttributeDefinition(attrName);
         	if (attributeDefinition == null) {
-        		throw new SchemaException("No definition for attribute "+attrName+" in "+accCtx.getResourceAccountType());
+        		throw new SchemaException("No definition for attribute "+attrName+" in "+accCtx.getResourceShadowDiscriminator());
         	}
         	
         	DeltaSetTriple<PropertyValueWithOrigin> pvwoTriple = squeezedAttributes.get(attrName);

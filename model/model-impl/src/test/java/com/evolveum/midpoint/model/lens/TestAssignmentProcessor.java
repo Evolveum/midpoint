@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.PolicyDecision;

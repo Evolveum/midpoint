@@ -573,8 +573,8 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return accountShadow;
     }
 
-    public ResourceAccountType getResourceAccountType() {
-        return new ResourceAccountType(resourceType.getOid(), getAccountTypeName());
+    public ResourceShadowDiscriminator getResourceAccountType() {
+        return new ResourceShadowDiscriminator(resourceType.getOid(), getAccountTypeName());
     }
 
     public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {

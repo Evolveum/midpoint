@@ -25,7 +25,7 @@ import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHE
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
@@ -131,7 +131,7 @@ public class ConsolidationProcessor {
     	Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes = sqeezeAttributes(accCtx); 
     	accCtx.setSqueezedAttributes(squeezedAttributes);
         
-        ResourceAccountType rat = accCtx.getResourceAccountType();
+        ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
         ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(accCtx.getOid());
 
@@ -249,8 +249,8 @@ public class ConsolidationProcessor {
                 RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
 
                 if (rAccount == null) {
-                    LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", accCtx.getResourceAccountType(), context.dump());
-                    throw new IllegalStateException("Definition for account type " + accCtx.getResourceAccountType() + " not found in the context, but it should be there");
+                    LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", accCtx.getResourceShadowDiscriminator(), context.dump());
+                    throw new IllegalStateException("Definition for account type " + accCtx.getResourceShadowDiscriminator() + " not found in the context, but it should be there");
                 }
                 PrismObject<AccountShadowType> newAccount = rAccount.createBlankShadow();
                 addDelta.setObjectToAdd(newAccount);

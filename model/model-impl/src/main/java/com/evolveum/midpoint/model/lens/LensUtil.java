@@ -24,7 +24,7 @@ import java.util.Collection;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.ModelCompiletimeConfig;
 import com.evolveum.midpoint.model.api.ShadowProjectionObjectDelta;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -85,7 +85,7 @@ public class LensUtil {
     }
 	
 	public static LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context,
-			ResourceAccountType rat, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
+			ResourceShadowDiscriminator rat, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rat);
 		if (accountSyncContext == null) {
@@ -136,8 +136,8 @@ public class LensUtil {
 			projectionContext.setPrimaryDelta(projectionDelta);
 			if (projectionDelta instanceof ShadowProjectionObjectDelta) {
 				ShadowProjectionObjectDelta<P> shadowDelta = (ShadowProjectionObjectDelta<P>)projectionDelta;
-				ResourceAccountType ri = new ResourceAccountType(shadowDelta.getResourceOid(), shadowDelta.getIntent());
-				projectionContext.setResourceAccountType(ri);
+				ResourceShadowDiscriminator ri = new ResourceShadowDiscriminator(shadowDelta.getResourceOid(), shadowDelta.getIntent());
+				projectionContext.setResourceShadowDiscriminator(ri);
 			}
 		}
 

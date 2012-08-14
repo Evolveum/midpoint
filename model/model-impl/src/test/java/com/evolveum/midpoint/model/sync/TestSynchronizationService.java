@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.lens.Clockwork;
@@ -131,7 +131,7 @@ public class TestSynchronizationService extends AbstractModelIntegrationTest {
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
         assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());
         
-        ResourceAccountType rat = new ResourceAccountType(resourceDummy.getOid(), null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null);
 		LensProjectionContext<AccountShadowType> accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		

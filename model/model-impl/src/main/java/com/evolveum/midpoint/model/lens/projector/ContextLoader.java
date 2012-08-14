@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -458,7 +458,7 @@ public class ContextLoader {
 		if (resourceOid == null) {
 			throw new SchemaException("The " + account + " has null resource reference OID");
 		}
-		ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
+		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, accountType.getAccountType());
 		LensProjectionContext<AccountShadowType> accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat, provisioningService, result);
 		accountSyncContext.setOid(account.getOid());
 		return accountSyncContext;
@@ -505,7 +505,7 @@ public class ContextLoader {
 						projectionObject = projContext.getObjectNew();
 					} else {
 						if (projectionObjectOid == null) {
-							if (projContext.getResourceAccountType() == null || projContext.getResourceAccountType().getResourceOid() == null) {								
+							if (projContext.getResourceShadowDiscriminator() == null || projContext.getResourceShadowDiscriminator().getResourceOid() == null) {								
 								throw new SystemException(
 										"Projection with null OID, no representation and no resource OID in account sync context "+projContext);
 							}
@@ -535,8 +535,8 @@ public class ContextLoader {
 						if (projectionObject != null) {
 							ResourceObjectShadowType shadowType = ((PrismObject<ResourceObjectShadowType>)projectionObject).asObjectable();
 							resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
-						} else if (projContext.getResourceAccountType() != null) {
-							resourceOid = projContext.getResourceAccountType().getResourceOid();
+						} else if (projContext.getResourceShadowDiscriminator() != null) {
+							resourceOid = projContext.getResourceShadowDiscriminator().getResourceOid();
 						} else {
 							throw new IllegalStateException("No shadow and no resource intent means no resource OID in "+projContext);
 						}
@@ -545,13 +545,13 @@ public class ContextLoader {
 					}
 					
 					// Determine RAT
-					ResourceAccountType rat = projContext.getResourceAccountType();
+					ResourceShadowDiscriminator rat = projContext.getResourceShadowDiscriminator();
 					if (rat == null) {
 						if (AccountShadowType.class.isAssignableFrom(projClass)) {
 							AccountShadowType accountShadowType = ((PrismObject<AccountShadowType>)projectionObject).asObjectable();
 							String accountType = accountShadowType.getAccountType();
-							rat = new ResourceAccountType(resourceOid, accountType);
-							projContext.setResourceAccountType(rat);
+							rat = new ResourceShadowDiscriminator(resourceOid, accountType);
+							projContext.setResourceShadowDiscriminator(rat);
 							
 						}
 					}

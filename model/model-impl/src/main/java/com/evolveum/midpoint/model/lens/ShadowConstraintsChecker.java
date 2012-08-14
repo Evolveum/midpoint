@@ -121,7 +121,7 @@ public class ShadowConstraintsChecker {
 			boolean unique = checkAttributeUniqueness(attr, accountDefinition, accountContext.getResource(), 
 					accountContext.getOid(), result);
 			if (!unique) {
-				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr,  accountContext.getResourceAccountType());
+				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr,  accountContext.getResourceShadowDiscriminator());
 				if (isInDelta(attr, accountContext.getPrimaryDelta())) {
 					throw new ObjectAlreadyExistsException("Attribute "+attr+" conflicts with existing object (and it is present in primary "+
 							"account delta therefore no iteration is performed)");

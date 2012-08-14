@@ -29,7 +29,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -154,16 +154,16 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		return null;
 	}
 	
-	public LensProjectionContext<P> findProjectionContext(ResourceAccountType rat) {
+	public LensProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat) {
 		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
-			if (rat.equals(projCtx.getResourceAccountType())) {
+			if (rat.equals(projCtx.getResourceShadowDiscriminator())) {
 				return projCtx;
 			}
 		}
 		return null;
 	}
 	
-	public LensProjectionContext<P> findOrCreateProjectionContext(ResourceAccountType rat) {
+	public LensProjectionContext<P> findOrCreateProjectionContext(ResourceShadowDiscriminator rat) {
 		LensProjectionContext<P> projectionContext = findProjectionContext(rat);
 		if (projectionContext == null) {
 			projectionContext = createProjectionContext(rat);
@@ -297,7 +297,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		return createProjectionContext(null);
 	}
 	
-	public LensProjectionContext<P> createProjectionContext(ResourceAccountType rat) {
+	public LensProjectionContext<P> createProjectionContext(ResourceShadowDiscriminator rat) {
 		LensProjectionContext<P> projCtx = new LensProjectionContext<P>(projectionClass, this, rat);
 		addProjectionContext(projCtx);
 		return projCtx;
@@ -316,7 +316,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
      *
      * @see SyncContext#rememberResource(ResourceType)
      */
-    public ResourceType getResource(ResourceAccountType rat) {
+    public ResourceType getResource(ResourceShadowDiscriminator rat) {
         return getResource(rat.getResourceOid());
     }
     

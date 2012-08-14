@@ -20,7 +20,7 @@
 package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -116,7 +116,7 @@ public class CredentialsProcessor {
         PrismObjectDefinition<AccountShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
         PrismPropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
-        ResourceAccountType rat = accCtx.getResourceAccountType();
+        ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
 
         ObjectDelta<AccountShadowType> accountDelta = accCtx.getDelta();
         if (accountDelta != null && accountDelta.getChangeType() == ChangeType.MODIFY) {

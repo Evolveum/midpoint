@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.PolicyDecision;
@@ -97,7 +97,7 @@ public class ActivationProcessor {
         PrismPropertyDefinition accountEnabledPropertyDefinition = 
         	accountDefinition.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
-        ResourceAccountType rat = accCtx.getResourceAccountType();
+        ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
         
         PolicyDecision policyDecision = accCtx.getPolicyDecision();
         if (policyDecision != null && (policyDecision == PolicyDecision.DELETE || policyDecision == PolicyDecision.UNLINK)) {

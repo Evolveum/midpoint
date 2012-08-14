@@ -49,7 +49,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
@@ -365,7 +365,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
         String resourceOid = accountType.getResourceRef().getOid();
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
         applyResourceSchema(accountType, resourceType);
-        ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, accountType.getAccountType());
         LensProjectionContext<AccountShadowType> accountSyncContext = context.findOrCreateProjectionContext(rat);
         accountSyncContext.setOid(account.getOid());
 		accountSyncContext.setObjectOld(account);

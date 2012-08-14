@@ -26,31 +26,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountReferenceType;
 
 /**
- * Aggregate bean containing resource OID, accountType and thombstone flag.
- * It uniquely identifies an account for a specific user regardless whether it has OID, does not have
+ * Aggregate bean containing resource OID, intent and thombstone flag.
+ * It uniquely identifies an shadow projection (usually account) for a specific user regardless whether it has OID, does not have
  * OID yet, it exists of was deleted.
  * 
  * This is used mostly as a key in hashes and for searches.
  * 
  * @author Radovan Semancik
  */
-public class ResourceAccountType implements Serializable {
+public class ResourceShadowDiscriminator implements Serializable {
 
 	private String resourceOid;
-	private String accountType;
+	private String intent;
 	private boolean thombstone;
 	
-	public ResourceAccountType(String resourceOid, String accountType) {
+	public ResourceShadowDiscriminator(String resourceOid, String accountType) {
 		this(resourceOid, accountType, false);
 	}
 	
-	public ResourceAccountType(String resourceOid, String accountType, boolean thombstone) {
+	public ResourceShadowDiscriminator(String resourceOid, String accountType, boolean thombstone) {
 		this.resourceOid = resourceOid;
 		this.thombstone = thombstone;
-		setAccountType(accountType);
+		setIntent(accountType);
 	}
 	
-	public ResourceAccountType(ResourceAccountReferenceType accRefType) {
+	public ResourceShadowDiscriminator(ResourceAccountReferenceType accRefType) {
 		this(accRefType.getResourceRef().getOid(), accRefType.getType());
 	}
 
@@ -60,14 +60,14 @@ public class ResourceAccountType implements Serializable {
 	public void setResourceOid(String resourceOid) {
 		this.resourceOid = resourceOid;
 	}
-	public String getAccountType() {
-		return accountType;
+	public String getIntent() {
+		return intent;
 	}
-	public void setAccountType(String accountType) {
-		if (accountType == null) {
-			this.accountType = MidPointConstants.DEFAULT_ACCOUNT_NAME;
+	public void setIntent(String intent) {
+		if (intent == null) {
+			this.intent = MidPointConstants.DEFAULT_ACCOUNT_NAME;
 		} else {
-			this.accountType = accountType;
+			this.intent = intent;
 		}
 	}
 
@@ -84,14 +84,14 @@ public class ResourceAccountType implements Serializable {
 
 	@Override
 	public String toString() {
-		return "RAT(" + resourceOid + ": " + accountType + ( thombstone ? ", THOMBSTONE" : "" ) + ")";
+		return "RAT(" + resourceOid + ": " + intent + ( thombstone ? ", THOMBSTONE" : "" ) + ")";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((accountType == null) ? 0 : accountType.hashCode());
+		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
 		result = prime * result + ((resourceOid == null) ? 0 : resourceOid.hashCode());
 		result = prime * result + (thombstone ? 1231 : 1237);
 		return result;
@@ -105,11 +105,11 @@ public class ResourceAccountType implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ResourceAccountType other = (ResourceAccountType) obj;
-		if (accountType == null) {
-			if (other.accountType != null)
+		ResourceShadowDiscriminator other = (ResourceShadowDiscriminator) obj;
+		if (intent == null) {
+			if (other.intent != null)
 				return false;
-		} else if (!accountType.equals(other.accountType))
+		} else if (!intent.equals(other.intent))
 			return false;
 		if (resourceOid == null) {
 			if (other.resourceOid != null)
@@ -128,11 +128,11 @@ public class ResourceAccountType implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ResourceAccountType other = (ResourceAccountType) obj;
-		if (accountType == null) {
-			if (other.accountType != null)
+		ResourceShadowDiscriminator other = (ResourceShadowDiscriminator) obj;
+		if (intent == null) {
+			if (other.intent != null)
 				return false;
-		} else if (!equalsAccountType(this.accountType, other.accountType))
+		} else if (!equalsAccountType(this.intent, other.intent))
 			return false;
 		if (resourceOid == null) {
 			if (other.resourceOid != null)

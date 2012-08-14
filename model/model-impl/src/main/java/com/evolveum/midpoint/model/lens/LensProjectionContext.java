@@ -34,7 +34,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -78,7 +78,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     /**
      * Definition of account type.
      */
-    private ResourceAccountType resourceAccountType;
+    private ResourceShadowDiscriminator resourceShadowDiscriminator;
 	
 	private boolean fullShadow = false;
 	    
@@ -127,9 +127,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
      */
     transient private ResourceType resource;
     
-    LensProjectionContext(Class<O> objectTypeClass, LensContext<? extends ObjectType, O> lensContext, ResourceAccountType resourceAccountType) {
+    LensProjectionContext(Class<O> objectTypeClass, LensContext<? extends ObjectType, O> lensContext, ResourceShadowDiscriminator resourceAccountType) {
     	super(objectTypeClass, lensContext);
-        this.resourceAccountType = resourceAccountType;
+        this.resourceShadowDiscriminator = resourceAccountType;
         this.isAssigned = false;
     }
 
@@ -157,12 +157,12 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         this.doReconciliation = doReconciliation;
     }
 
-    public ResourceAccountType getResourceAccountType() {
-        return resourceAccountType;
+    public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
+        return resourceShadowDiscriminator;
     }
     
-    public void setResourceAccountType(ResourceAccountType resourceAccountType) {
-		this.resourceAccountType = resourceAccountType;
+    public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
+		this.resourceShadowDiscriminator = resourceShadowDiscriminator;
 	}
 
 	public void addAccountSyncDelta(ObjectDelta<O> delta) throws SchemaException {
@@ -274,7 +274,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	
 	public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
         ResourceAccountTypeDefinitionType def = ResourceTypeUtil.getResourceAccountTypeDefinitionType(
-        		resource, resourceAccountType.getAccountType());
+        		resource, resourceShadowDiscriminator.getIntent());
         return def;
     }
 	
@@ -288,7 +288,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     
     public RefinedAccountDefinition getRefinedAccountDefinition() throws SchemaException {
 		RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
-		return refinedSchema.getAccountDefinition(getResourceAccountType().getAccountType());
+		return refinedSchema.getAccountDefinition(getResourceShadowDiscriminator().getIntent());
 	}
 	
 	public Collection<ResourceAccountReferenceType> getDependencies() {
@@ -376,7 +376,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 	    	}
 	    	if (AccountShadowType.class.isAssignableFrom(getObjectTypeClass())) {
-		    	if (resourceAccountType == null) {
+		    	if (resourceShadowDiscriminator == null) {
 		    		throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 		    	}
 	    	}
@@ -402,7 +402,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 
 	@Override
 	public LensProjectionContext<O> clone(LensContext lensContext) {
-		LensProjectionContext<O> clone = new LensProjectionContext<O>(getObjectTypeClass(), lensContext, resourceAccountType);
+		LensProjectionContext<O> clone = new LensProjectionContext<O>(getObjectTypeClass(), lensContext, resourceShadowDiscriminator);
 		copyValues(clone, lensContext);
 		return clone;
 	}
@@ -421,7 +421,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		clone.outboundAccountConstruction = this.outboundAccountConstruction;
 		clone.policyDecision = this.policyDecision;
 		clone.resource = this.resource;
-		clone.resourceAccountType = this.resourceAccountType;
+		clone.resourceShadowDiscriminator = this.resourceShadowDiscriminator;
 		clone.squeezedAttributes = cloneSqueezedAttributes();
 		if (this.syncDelta != null) {
 			clone.syncDelta = this.syncDelta.clone();
@@ -457,7 +457,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			sb.append(humanReadableAccountIdentifier);
 		}
 		sb.append(", type '");
-		sb.append(getResourceAccountType().getAccountType());
+		sb.append(getResourceShadowDiscriminator().getIntent());
 		sb.append("', ");
 		sb.append(getResource());
 		sb.append(")");

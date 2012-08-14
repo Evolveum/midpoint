@@ -22,7 +22,7 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
@@ -72,7 +72,7 @@ public class OutboundProcessor {
     void processOutbound(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
-        ResourceAccountType rat = accCtx.getResourceAccountType();
+        ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
         ObjectDelta<AccountShadowType> accountDelta = accCtx.getDelta();
 
         if (accountDelta != null && accountDelta.getChangeType() == ChangeType.DELETE) {

@@ -22,7 +22,7 @@ package com.evolveum.midpoint.model.lens.projector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -175,10 +175,10 @@ public class Projector {
 		}
 		int wave = 0;
 		for (ResourceAccountReferenceType dependency :accountContext.getDependencies()) {
-			ResourceAccountType refRat = new ResourceAccountType(dependency);
+			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
 			LensProjectionContext<P> dependencyAccountContext = context.findProjectionContext(refRat);
 			if (dependencyAccountContext == null) {
-				throw new PolicyViolationException("Unsatisdied dependency of account "+accountContext.getResourceAccountType()+
+				throw new PolicyViolationException("Unsatisdied dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+": Account not provisioned");
 			}
 			determineAccountWave(context, dependencyAccountContext);

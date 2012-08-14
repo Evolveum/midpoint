@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.PolicyDecision;
@@ -151,9 +151,9 @@ public class AssignmentProcessor {
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);
 
-        Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> zeroAccountMap = new HashMap<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>();
-        Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> plusAccountMap = new HashMap<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>();
-        Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> minusAccountMap = new HashMap<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>();
+        Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> zeroAccountMap = new HashMap<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>();
+        Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> plusAccountMap = new HashMap<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>();
+        Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> minusAccountMap = new HashMap<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>();
 
         LOGGER.trace("Old assignments {}", SchemaDebugUtil.prettyPrint(assignmentsOld));
         LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
@@ -219,13 +219,13 @@ public class AssignmentProcessor {
                     dumpAccountMap(plusAccountMap), dumpAccountMap(minusAccountMap)});
         }
 
-        Collection<ResourceAccountType> allAccountTypes = MiscUtil.union(zeroAccountMap.keySet(), plusAccountMap.keySet(), minusAccountMap.keySet());
-        for (ResourceAccountType rat : allAccountTypes) {
+        Collection<ResourceShadowDiscriminator> allAccountTypes = MiscUtil.union(zeroAccountMap.keySet(), plusAccountMap.keySet(), minusAccountMap.keySet());
+        for (ResourceShadowDiscriminator rat : allAccountTypes) {
 
             if (rat.getResourceOid() == null) {
                 throw new IllegalStateException("Resource OID null in ResourceAccountType during assignment processing");
             }
-            if (rat.getAccountType() == null) {
+            if (rat.getIntent() == null) {
                 throw new IllegalStateException("Account type is null in ResourceAccountType during assignment processing");
             }
 
@@ -330,12 +330,12 @@ public class AssignmentProcessor {
     }
 
     private void collectToAccountMap(
-            Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> accountMap,
+            Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> accountMap,
             Assignment evaluatedAssignment, OperationResult result) throws ObjectNotFoundException, SchemaException {
         for (AccountConstruction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
             String resourceOid = accountConstruction.getResource(result).getOid();
             String accountType = accountConstruction.getAccountType();
-            ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType);
+            ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, accountType);
             Collection<PrismPropertyValue<AccountConstruction>> constructions = null;
             if (accountMap.containsKey(rat)) {
                 constructions = accountMap.get(rat);
@@ -347,12 +347,12 @@ public class AssignmentProcessor {
         }
     }
 
-    private String dumpAccountMap(Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> accountMap) {
+    private String dumpAccountMap(Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> accountMap) {
         StringBuilder sb = new StringBuilder();
-        Set<Entry<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>> entrySet = accountMap.entrySet();
-        Iterator<Entry<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>> i = entrySet.iterator();
+        Set<Entry<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>> entrySet = accountMap.entrySet();
+        Iterator<Entry<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>> i = entrySet.iterator();
         while (i.hasNext()) {
-            Entry<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> entry = i.next();
+            Entry<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> entry = i.next();
             sb.append(entry.getKey()).append(": ");
             sb.append(SchemaDebugUtil.prettyPrint(entry.getValue()));
             if (i.hasNext()) {
@@ -362,7 +362,7 @@ public class AssignmentProcessor {
         return sb.toString();
     }
 
-    private boolean accountExists(LensContext<UserType,AccountShadowType> context, ResourceAccountType rat) {
+    private boolean accountExists(LensContext<UserType,AccountShadowType> context, ResourceShadowDiscriminator rat) {
     	LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rat);
     	if (accountSyncContext == null) {
     		return false;
@@ -374,7 +374,7 @@ public class AssignmentProcessor {
     }
     
     private LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context, 
-    		ResourceAccountType rat, OperationResult result) 
+    		ResourceShadowDiscriminator rat, OperationResult result) 
     		throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
     	return LensUtil.getOrCreateAccountContext(context, rat, provisioningService, result);
     }

@@ -118,7 +118,7 @@ public class ChangeExecutor {
             ObjectDelta<P> accDelta = accCtx.getDelta();
             if (accDelta == null || accDelta.isEmpty()) {
                 if (LOGGER.isTraceEnabled()) {
-                	LOGGER.trace("No change for account " + accCtx.getResourceAccountType());
+                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());
                 	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
                 }
                 if (focusContext != null) {

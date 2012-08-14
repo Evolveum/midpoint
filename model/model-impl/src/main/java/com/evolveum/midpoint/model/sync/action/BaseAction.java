@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model.sync.action;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelController;
@@ -187,7 +187,7 @@ public abstract class BaseAction implements Action {
 
         String accountType = getAccountTypeFromChange(change);
         boolean thombstone = isThombstone(change);
-		ResourceAccountType resourceAccountType = new ResourceAccountType(resource.getOid(), accountType, thombstone);
+		ResourceShadowDiscriminator resourceAccountType = new ResourceShadowDiscriminator(resource.getOid(), accountType, thombstone);
 		LensProjectionContext<AccountShadowType> accountContext = context.createProjectionContext(resourceAccountType);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));

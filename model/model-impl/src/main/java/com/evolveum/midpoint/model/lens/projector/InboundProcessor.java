@@ -23,7 +23,7 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.controller.Filter;
@@ -109,7 +109,7 @@ public class InboundProcessor {
 
         try {
             for (LensProjectionContext<AccountShadowType> accountContext : usContext.getProjectionContexts()) {
-            	ResourceAccountType rat = accountContext.getResourceAccountType();
+            	ResourceShadowDiscriminator rat = accountContext.getResourceShadowDiscriminator();
             	
             	ObjectDelta<AccountShadowType> aPrioriDelta = getAPrioriDelta(context, accountContext);
             	
@@ -160,7 +160,7 @@ public class InboundProcessor {
                 accountAttributeDelta = aPrioriDelta.findPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                 if (accountAttributeDelta == null) {
                     LOGGER.trace("Skipping inbound for {} in {}: Account a priori delta exists, but doesn't have change for processed property.",
-                    		name, accContext.getResourceAccountType());
+                    		name, accContext.getResourceShadowDiscriminator());
                     continue;
                 }
             }
@@ -168,7 +168,7 @@ public class InboundProcessor {
             RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
             List<ValueAssignmentType> inboundJaxbTypes = attrDef.getInboundAssignmentTypes();
             LOGGER.trace("Processing inbound for {} in {}; ({} expressions)", new Object[]{
-            		DebugUtil.prettyPrint(name), accContext.getResourceAccountType(), (inboundJaxbTypes != null ? inboundJaxbTypes.size() : 0)});
+            		DebugUtil.prettyPrint(name), accContext.getResourceShadowDiscriminator(), (inboundJaxbTypes != null ? inboundJaxbTypes.size() : 0)});
 
             for (ValueAssignmentType inboundJaxbType : inboundJaxbTypes) {
                 if (checkInitialSkip(inboundJaxbType, context.getFocusContext().getObjectNew())) {
@@ -438,7 +438,7 @@ public class InboundProcessor {
             accContext.recompute();
             if (accContext.getObjectNew() == null) {
                 // Still null? something must be really wrong here.
-                String message = "Recomputing account " + accContext.getResourceAccountType()
+                String message = "Recomputing account " + accContext.getResourceShadowDiscriminator()
                         + " results in null new account. Something must be really broken.";
                 LOGGER.error(message);
                 if (LOGGER.isTraceEnabled()) {
