@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.page.admin.home.PageHome;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
+import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
@@ -137,7 +138,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         mount(new MountedMapper("/admin/resource", PageResource.class, new OnePageParameterEncoder(PageResource.PARAM_RESOURCE_ID)));
         mount(new MountedMapper("/admin/resources", PageResources.class, encoder));
-        mount(new MountedMapper("/admin/resources/content/account", PageContentAccounts.class, encoder));
+        mount(new MountedMapper("/admin/resources/content/accounts", PageContentAccounts.class, new OnePageParameterEncoder(PageContentAccounts.PARAM_RESOURCE_ID)));
+        mount(new MountedMapper("/admin/resources/content/entitlements", PageContentEntitlements.class, new OnePageParameterEncoder(PageContentEntitlements.PARAM_RESOURCE_ID)));
 
         mount(new MountedMapper("/admin/config", PageLogging.class, encoder));
         mount(new MountedMapper("/admin/config/debug", PageDebugView.class, new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));

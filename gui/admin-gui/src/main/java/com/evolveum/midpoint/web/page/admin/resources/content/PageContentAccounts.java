@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -34,8 +33,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDataProvider;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -58,9 +57,18 @@ import java.util.List;
  */
 public class PageContentAccounts extends PageAdminResources {
 
-    private IModel model;
+    public static final String PARAM_RESOURCE_ID = "resourceOid";
+    private IModel<AccountContentSearchDto> model;
 
     public PageContentAccounts() {
+        model = new LoadableModel<AccountContentSearchDto>(false) {
+
+            @Override
+            protected AccountContentSearchDto load() {
+                return new AccountContentSearchDto();
+            }
+        };
+
         initLayout();
     }
 
@@ -83,12 +91,12 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void initSearch(OptionItem item) {
-        TextField<String> search = new TextField<String>("searchText");//todo, new PropertyModel<String>(model, "searchText"));
+        TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(model, "searchText"));
         item.add(search);
 
-        CheckBox nameCheck = new CheckBox("accountNameCheck");//todo, new PropertyModel<Boolean>(model, "name"));
+        CheckBox nameCheck = new CheckBox("accountNameCheck", new PropertyModel<Boolean>(model, "accountName"));
         item.add(nameCheck);
-        CheckBox fullNameCheck = new CheckBox("ownerNameCheck");//todo, new PropertyModel<Boolean>(model, "fullName"));
+        CheckBox fullNameCheck = new CheckBox("ownerNameCheck", new PropertyModel<Boolean>(model, "ownerName"));
         item.add(fullNameCheck);
 
         AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
@@ -136,7 +144,7 @@ public class PageContentAccounts extends PageAdminResources {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
-                //todo action
+                accountDetailsPerformed();
             }
         };
         columns.add(column);
@@ -148,8 +156,7 @@ public class PageContentAccounts extends PageAdminResources {
                                      IModel<SelectableBean<AccountContentDto>> rowModel) {
 
                 AccountContentDto dto = rowModel.getObject().getValue();
-                String identifiers = "asdf"; //todo
-                cellItem.add(new Label(componentId, new Model<String>(identifiers)));
+                cellItem.add(new Label(componentId, new Model<String>(StringUtils.join(dto.getIdentifiers(), ", "))));
             }
         };
         columns.add(column);
@@ -164,8 +171,16 @@ public class PageContentAccounts extends PageAdminResources {
                                      IModel<SelectableBean<AccountContentDto>> rowModel) {
 
                 AccountContentDto dto = rowModel.getObject().getValue();
-                String identifiers = "asdf"; //todo
-                cellItem.add(new Label(componentId, new Model<String>(identifiers)));
+                StringBuilder owner = new StringBuilder();
+                if (StringUtils.isNotEmpty(dto.getOwnerName())) {
+                    owner.append(dto.getOwnerName());
+                    owner.append(" (");
+                    owner.append(dto.getOwnerOid());
+                    owner.append(")");
+                } else {
+                    owner.append(dto.getOwnerOid());
+                }
+                cellItem.add(new Label(componentId, new Model<String>(owner.toString())));
             }
         };
         columns.add(column);
@@ -190,6 +205,10 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void accountDetailsPerformed() {
         //todo implement
     }
 }
