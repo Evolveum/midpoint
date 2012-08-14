@@ -28,9 +28,9 @@
 	<name>guybrush</name>
 	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
+	<intent>default</intent>
 	<attributes>
 		<icfs:name>guybrush</icfs:name>
 		<icfs:uid>guybrush</icfs:uid>
 	</attributes>
-	<accountType>user</accountType>
 </account>

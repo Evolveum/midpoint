@@ -146,7 +146,7 @@ public class TestJaxbParsing {
 
         account.checkConsistence();
         assertPropertyValue(account, SchemaConstants.C_NAME, "jack");
-        assertPropertyValue(account, AccountShadowType.F_ACCOUNT_TYPE, "user");
+        assertPropertyValue(account, AccountShadowType.F_INTENT, "default");
 
         // TODO: more asserts
     }

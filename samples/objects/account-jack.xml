@@ -28,6 +28,7 @@
 	<name>jack</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
+	<intent>default</intent>
 	<attributes>
 		<icfs:name>uid=jack,ou=People,dc=example,dc=com</icfs:name>
 		<ri:uid>jack</ri:uid>
@@ -35,5 +36,4 @@
 		<ri:givenName>Jack</ri:givenName>
 		<ri:sn>Sparrow</ri:sn>
 	</attributes>
-	<accountType>user</accountType>
 </account>

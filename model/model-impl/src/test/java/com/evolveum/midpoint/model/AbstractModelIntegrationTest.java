@@ -131,6 +131,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected static final String COMMON_DIR_NAME = "src/test/resources/common";
 	
+	protected static final String DEFAULT_ACCOUNT_TYPE = "default";
+	
 	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
 	public static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
 	

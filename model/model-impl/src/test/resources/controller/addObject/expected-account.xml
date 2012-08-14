@@ -30,7 +30,7 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
     <resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
     <objectClass>ri:AccountObjectClass</objectClass>
-    <accountType>user</accountType>
+    <intent>default</intent>
 	<attributes>
 		<ics:name>uid=bond,ou=people,dc=example,dc=com</ics:name>
 		<ri:cn>James Bond 007</ri:cn>

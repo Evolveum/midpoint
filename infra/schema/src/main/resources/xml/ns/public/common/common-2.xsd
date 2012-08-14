@@ -2448,13 +2448,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="dependency" type="tns:ResourceAccountReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="dependency" type="tns:ResourceShadowDiscriminatorType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="entitlementAssociation" type="tns:ResourceEntitlementAssociationType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     
-    <xsd:complexType name="ResourceAccountReferenceType">
+    <xsd:complexType name="ResourceShadowDiscriminatorType">
     	<xsd:annotation>
     		<xsd:documentation>
     			TODO
@@ -2471,7 +2471,7 @@
 	            	</xsd:appinfo>
 	            </xsd:annotation>
 	       	</xsd:element>
-            <xsd:element name="type" type="xsd:string" minOccurs="0" default="user">
+            <xsd:element name="intent" type="xsd:string" minOccurs="0" default="user">
                 <xsd:annotation>
                     <xsd:documentation>
                         Type of account that is the target of reference.

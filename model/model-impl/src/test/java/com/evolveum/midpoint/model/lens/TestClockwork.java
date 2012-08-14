@@ -223,7 +223,7 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         
         assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
         PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
-        assertEquals("user", newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
+        assertEquals(DEFAULT_ACCOUNT_TYPE, newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
         assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);

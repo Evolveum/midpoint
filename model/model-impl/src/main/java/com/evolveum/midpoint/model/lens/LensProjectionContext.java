@@ -57,9 +57,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 
 /**
@@ -115,7 +115,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     
     private transient AccountConstruction outboundAccountConstruction;
     
-    private transient Collection<ResourceAccountReferenceType> dependencies = null;
+    private transient Collection<ResourceShadowDiscriminatorType> dependencies = null;
     
     private transient Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes;
     
@@ -291,12 +291,12 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		return refinedSchema.getAccountDefinition(getResourceShadowDiscriminator().getIntent());
 	}
 	
-	public Collection<ResourceAccountReferenceType> getDependencies() {
+	public Collection<ResourceShadowDiscriminatorType> getDependencies() {
 		if (dependencies == null) {
 			ResourceAccountTypeDefinitionType resourceAccountTypeDefinitionType = getResourceAccountTypeDefinitionType();
 			if (resourceAccountTypeDefinitionType == null) {
 				// No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
-				dependencies = new ArrayList<ResourceAccountReferenceType>();
+				dependencies = new ArrayList<ResourceShadowDiscriminatorType>();
 			} else {
 				dependencies = resourceAccountTypeDefinitionType.getDependency();
 			}

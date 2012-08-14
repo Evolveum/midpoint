@@ -73,7 +73,7 @@ public class TestRefinedSchema {
     public static final String TEST_DIR_NAME = "src/test/resources/refinery";
 	private static final File RESOURCE_COMPLEX_FILE = new File(TEST_DIR_NAME, "resource-complex.xml");
 	private static final File RESOURCE_SIMPLE_FILE = new File(TEST_DIR_NAME, "resource-simple.xml");
-	private static final String DEFAULT_INTENT = "user";
+	private static final String DEFAULT_INTENT = "default";
     
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -193,7 +193,7 @@ public class TestRefinedSchema {
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.C_NAME, "jack");
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, 
         		new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
-        PrismAsserts.assertPropertyValue(accObject, new QName(SchemaConstants.NS_C, "accountType"), DEFAULT_INTENT);
+        PrismAsserts.assertPropertyValue(accObject, AccountShadowType.F_INTENT, DEFAULT_INTENT);
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
         assertEquals("Wrong type of <attributes> definition in account", RefinedAccountDefinition.class, attributes.getDefinition().getClass());

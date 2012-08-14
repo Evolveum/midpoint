@@ -104,7 +104,7 @@ This resource definition contains only the very basic definitions for midPoint t
 
 		<schemaHandling>
 			<accountType>
-				<name>user</name>
+				<name>default</name>
 				<displayName>Default Account</displayName>
 				<default>true</default>
 				<objectClass>ri:AccountObjectClass</objectClass>

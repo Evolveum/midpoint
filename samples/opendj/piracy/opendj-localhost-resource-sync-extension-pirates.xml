@@ -100,7 +100,7 @@ This resource definition contains also definition to enable synchronization.
             <!-- Definition of default account type.
                  This is now the only account type that OpenIDM can work with. -->
             <accountType>
-                <name>user</name>
+                <name>default</name>
                 <!-- Readable name for the account type -->
                 <displayName>Default Account</displayName>
                 <default>true</default>

@@ -34,6 +34,7 @@
 	</extension>
 	<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
+	<intent>default</intent>
 	<attributes>
 		<icfs:name>uid=hbarbossa, ou=People, dc=example,dc=com</icfs:name>
 		<ri:uid>hbarbossa</ri:uid>
@@ -42,5 +43,4 @@
 		<ri:sn>Barbossa</ri:sn>
 		<ri:l>Caribbean</ri:l>
 	</attributes>
-	<accountType>user</accountType>
 </account>

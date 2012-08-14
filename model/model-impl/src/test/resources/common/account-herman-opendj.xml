@@ -31,6 +31,7 @@
 	<name>ht</name>
 	<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
+	<intent>default</intent>
 	<attributes>
 		<icfs:name>uid=ht, ou=People, dc=example,dc=com</icfs:name>
 		<ri:uid>ht</ri:uid>
@@ -39,5 +40,4 @@
 		<ri:sn>Toothrot</ri:sn>
 		<ri:l>Monkey Island</ri:l>
 	</attributes>
-	<accountType>user</accountType>
 </account>

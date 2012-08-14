@@ -23,7 +23,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceShadowDiscriminatorType;
 
 /**
  * Aggregate bean containing resource OID, intent and thombstone flag.
@@ -50,8 +50,8 @@ public class ResourceShadowDiscriminator implements Serializable {
 		setIntent(accountType);
 	}
 	
-	public ResourceShadowDiscriminator(ResourceAccountReferenceType accRefType) {
-		this(accRefType.getResourceRef().getOid(), accRefType.getType());
+	public ResourceShadowDiscriminator(ResourceShadowDiscriminatorType accRefType) {
+		this(accRefType.getResourceRef().getOid(), accRefType.getIntent());
 	}
 
 	public String getResourceOid() {

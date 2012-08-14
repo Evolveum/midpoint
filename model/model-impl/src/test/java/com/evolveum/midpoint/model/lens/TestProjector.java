@@ -148,9 +148,9 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assertEquals(ChangeType.ADD, accountPrimaryDelta.getChangeType());
         PrismObject<AccountShadowType> accountToAddPrimary = accountPrimaryDelta.getObjectToAdd();
         assertNotNull("No object in account primary add delta", accountToAddPrimary);
-        PrismProperty<Object> accountTypeProperty = accountToAddPrimary.findProperty(AccountShadowType.F_ACCOUNT_TYPE);
-        assertNotNull("No account type in account primary add delta", accountTypeProperty);
-        assertEquals("user", accountTypeProperty.getRealValue());
+        PrismProperty<Object> intentProperty = accountToAddPrimary.findProperty(AccountShadowType.F_INTENT);
+        assertNotNull("No account type in account primary add delta", intentProperty);
+        assertEquals(DEFAULT_ACCOUNT_TYPE, intentProperty.getRealValue());
         assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 accountToAddPrimary.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = accountToAddPrimary.findReference(AccountShadowType.F_RESOURCE_REF);
@@ -206,7 +206,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         
         assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
         PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
-        assertEquals("user", newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
+        assertEquals(DEFAULT_ACCOUNT_TYPE, newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
         assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
@@ -301,7 +301,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         
         assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
         PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
-        assertEquals("user", newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
+        assertEquals(DEFAULT_ACCOUNT_TYPE, newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
         assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
