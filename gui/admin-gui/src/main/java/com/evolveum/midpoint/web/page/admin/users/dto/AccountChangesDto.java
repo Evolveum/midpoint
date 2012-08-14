@@ -40,14 +40,17 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.users.PageSubmit;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 
 /**
  * @author mserbak
  */
-public class AccountChangesDto implements Serializable {
+public class AccountChangesDto extends PageAdmin implements Serializable {
 	private List<PrismObject> accountsList = new ArrayList<PrismObject>();
 	private List<SubmitAccountDto> accountChangesList = new ArrayList<SubmitAccountDto>();
 	private PrismObject oldAccountObject;
@@ -64,7 +67,9 @@ public class AccountChangesDto implements Serializable {
 			this.oldAccountObject = account.getObjectOld();
 			SubmitResourceDto resource = new SubmitResourceDto(account.getObjectNew(), false);
 			getChanges(resource, account.getPrimaryDelta(), false);
-			getChanges(resource, account.getSecondaryDelta(), true);
+			if (!account.getPrimaryDelta().getChangeType().equals(ChangeType.DELETE)) {
+				getChanges(resource, account.getSecondaryDelta(), true);
+			}
 		}
 
 	}
@@ -73,6 +78,13 @@ public class AccountChangesDto implements Serializable {
 		if (delta == null) {
 			return;
 		} else if (delta.getChangeType().equals(ChangeType.DELETE)) {
+			for (PrismObject account : prismAccountsInSession) {
+				SubmitResourceDto resourceDto = new SubmitResourceDto(account, false);
+
+				SubmitAccountDto submitedAccount = new SubmitAccountDto(resourceDto.getResourceName(),
+						getString("schema.objectTypes.account"), resourceDto.getName(), "", false);
+				accountChangesList.add(submitedAccount);
+			}
 			return;
 		} else if (!delta.getChangeType().equals(ChangeType.MODIFY)) {
 			return;

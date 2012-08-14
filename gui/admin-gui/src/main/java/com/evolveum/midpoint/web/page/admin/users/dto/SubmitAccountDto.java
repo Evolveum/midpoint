@@ -62,6 +62,6 @@ public class SubmitAccountDto implements Serializable {
 	}
 	
 	public boolean isDeletedValue() {
-		return newValue.equals("");
+		return null == newValue || newValue.equals("");
 	}
 }
