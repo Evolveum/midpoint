@@ -38,17 +38,26 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
+import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
+import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -102,7 +111,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void initButtons(Form mainForm) {
-        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource", ButtonType.NEGATIVE, 
+        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource", ButtonType.NEGATIVE,
                 createStringResource("pageResources.button.deleteResource")) {
 
             @Override
@@ -132,6 +141,34 @@ public class PageResources extends PageAdminResources {
 
         columns.add(new PropertyColumn(createStringResource("pageResources.bundle"), "bundle"));
         columns.add(new PropertyColumn(createStringResource("pageResources.version"), "version"));
+
+        columns.add(new AbstractColumn<ResourceDto>(createStringResource("pageResources.content")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ResourceDto>> cellItem,
+                                     String componentId, final IModel<ResourceDto> model) {
+                cellItem.add(new ContentPanel(componentId) {
+
+                    @Override
+                    public void accountsPerformed(AjaxRequestTarget target) {
+                        ResourceDto dto = model.getObject();
+
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(PageContentAccounts.PARAM_RESOURCE_ID, dto.getOid());
+                        setResponsePage(PageContentAccounts.class, parameters);
+                    }
+
+                    @Override
+                    public void entitlementsPerformed(AjaxRequestTarget target) {
+                        ResourceDto dto = model.getObject();
+
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(PageContentEntitlements.PARAM_RESOURCE_ID, dto.getOid());
+                        setResponsePage(PageContentEntitlements.class, parameters);
+                    }
+                });
+            }
+        });
 
         column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.status")) {
 
@@ -336,9 +373,9 @@ public class PageResources extends PageAdminResources {
                 LoggingUtils.logException(LOGGER, "Couldn't delete resource", ex);
             }
         }
-        
+
         if (result.isUnknown()) {
-        	result.recomputeStatus("Error occurred during resource deleting.");
+            result.recomputeStatus("Error occurred during resource deleting.");
         }
 
         if (result.isSuccess()) {
@@ -348,7 +385,7 @@ public class PageResources extends PageAdminResources {
         DataTable table = getResourceTable().getDataTable();
         ResourceDtoProvider provider = (ResourceDtoProvider) table.getDataProvider();
         provider.clearCache();
-        
+
         showResult(result);
         target.add(getFeedbackPanel());
         target.add(getResourceTable());
