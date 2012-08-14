@@ -294,8 +294,8 @@ object.
 
 	<passwordPolicy oid="81818181-76e0-59e2-8888-3d4f02d3ffff" xsi:type="c:PasswordPolicyType" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<name>Global Password Policy</name>
-	<description>Global password policy</description>
+	<name>Password Policy</name>
+	<description>Password policy</description>
 	<lifetime>
 		<expiration>999</expiration>
 		<warnBeforeExpiration>9</warnBeforeExpiration>
