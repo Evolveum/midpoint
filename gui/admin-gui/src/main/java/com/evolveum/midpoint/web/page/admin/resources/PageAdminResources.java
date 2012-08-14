@@ -22,12 +22,20 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.util.PageVisibleDisabledBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -37,12 +45,16 @@ import java.util.List;
  */
 public class PageAdminResources extends PageAdmin {
 
+    public static final String PARAM_RESOURCE_ID = "resourceOid";
+
+    private static final String DOT_CLASS = PageAdminResources.class.getName() + ".";
+    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+
     @Override
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
         items.add(new BottomMenuItem("pageAdminResources.listResources", PageResources.class));
-//        items.add(new BottomMenuItem("pageAdminResources.newResource", PageUser.class));
         items.add(new BottomMenuItem("pageAdminResources.detailsResource", PageResource.class,
                 new PageVisibleDisabledBehaviour(this, PageResource.class)));
         items.add(new BottomMenuItem("pageAdminResources.importResource", PageResourceImport.class,
@@ -50,5 +62,35 @@ public class PageAdminResources extends PageAdmin {
         items.add(new BottomMenuItem("pageAdminResources.contentAccounts", PageContentAccounts.class,
                 new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
         return items;
+    }
+
+    protected PrismObject<ResourceType> loadResource(Collection<ObjectOperationOptions> options) {
+        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+        PrismObject<ResourceType> resource = null;
+
+        try {
+            Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
+            StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
+            resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), options, task, result);
+
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get resource.", ex);
+        }
+
+        if (!result.isSuccess()) {
+            showResult(result);
+        }
+
+        if (resource == null) {
+            getSession().error(getString("pageAdminResources.message.cantLoadResource"));
+
+            if (!result.isSuccess()) {
+                showResultInSession(result);
+            }
+            throw new RestartResponseException(PageResources.class);
+        }
+
+        return resource;
     }
 }

@@ -21,8 +21,11 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -31,7 +34,17 @@ import org.apache.wicket.model.StringResourceModel;
  */
 public class PageContentEntitlements extends PageAdminResources {
 
-    public static final String PARAM_RESOURCE_ID = "resourceOid";
+    private IModel<PrismObject<ResourceType>> resourceModel;
+
+    public PageContentEntitlements() {
+        resourceModel = new LoadableModel<PrismObject<ResourceType>>(false) {
+
+            @Override
+            protected PrismObject<ResourceType> load() {
+                return loadResource(null);
+            }
+        };
+    }
 
     //todo
 
@@ -42,7 +55,7 @@ public class PageContentEntitlements extends PageAdminResources {
 
             @Override
             protected String load() {
-                String name = "some resource name...";
+                String name = WebMiscUtil.getName(resourceModel.getObject());
                 return new StringResourceModel("page.title", PageContentEntitlements.this, null, null, name).getString();
             }
         };

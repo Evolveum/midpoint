@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
@@ -34,6 +35,8 @@ import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDataProvider;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDto;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -57,10 +60,17 @@ import java.util.List;
  */
 public class PageContentAccounts extends PageAdminResources {
 
-    public static final String PARAM_RESOURCE_ID = "resourceOid";
+    private IModel<PrismObject<ResourceType>> resourceModel;
     private IModel<AccountContentSearchDto> model;
 
     public PageContentAccounts() {
+        resourceModel = new LoadableModel<PrismObject<ResourceType>>(false) {
+
+            @Override
+            protected PrismObject<ResourceType> load() {
+                return loadResource(null);
+            }
+        };
         model = new LoadableModel<AccountContentSearchDto>(false) {
 
             @Override
@@ -194,7 +204,7 @@ public class PageContentAccounts extends PageAdminResources {
 
             @Override
             protected String load() {
-                String name = "some resource name...";
+                String name = WebMiscUtil.getName(resourceModel.getObject());
                 return new StringResourceModel("page.title", PageContentAccounts.this, null, null, name).getString();
             }
         };

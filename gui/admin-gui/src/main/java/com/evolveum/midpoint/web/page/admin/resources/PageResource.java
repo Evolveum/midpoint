@@ -21,17 +21,28 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -50,24 +61,10 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -75,113 +72,84 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
  */
 public class PageResource extends PageAdminResources {
 
-	public static final String PARAM_RESOURCE_ID = "resourceId";
-
     private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
-	private static final String DOT_CLASS = PageResource.class.getName() + ".";
-	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+    private static final String DOT_CLASS = PageResource.class.getName() + ".";
     private static final String OPERATION_IMPORT_FROM_RESOURCE = DOT_CLASS + "importFromResource";
-	private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
+    private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
 
-	private IModel<ResourceDto> model;
+    private IModel<ResourceDto> model;
 
-	public PageResource() {
-		model = new LoadableModel<ResourceDto>() {
+    public PageResource() {
+        model = new LoadableModel<ResourceDto>() {
 
-			@Override
-			protected ResourceDto load() {
-				return loadResource();
-			}
-		};
-		initLayout();
-	}
-
-	private ResourceDto loadResource() {
-		OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
-		PrismObject<ResourceType> resource = null;
-
-		try {
-			Collection<ObjectOperationOptions> options = 
-				ObjectOperationOptions.createCollection(ResourceType.F_CONNECTOR, ObjectOperationOption.RESOLVE);
-
-			Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
-
-			StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
-			resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), options, task,
-					result);
-
-			result.recordSuccess();
-		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get resource.", ex);
-		}
-
-		if (!result.isSuccess()) {
-			showResult(result);
-		}
-
-		if (resource == null) {
-            getSession().error(getString("pageResource.message.cantResourceDetails"));
-
-            if (!result.isSuccess()) {
-                showResultInSession(result);
+            @Override
+            protected ResourceDto load() {
+                return loadResourceDto();
             }
-            throw new RestartResponseException(PageResources.class);
-        }
-		return new ResourceDto(resource, getPrismContext(), resource.asObjectable().getConnector(),
-				initCapabilities(resource.asObjectable()));
-	}
+        };
+        initLayout();
+    }
 
-	@Override
-	protected IModel<String> createPageTitleModel() {
-		return new LoadableModel<String>(false) {
+    private ResourceDto loadResourceDto() {
+        Collection<ObjectOperationOptions> options =
+                ObjectOperationOptions.createCollection(ResourceType.F_CONNECTOR, ObjectOperationOption.RESOLVE);
 
-			@Override
-			protected String load() {
-				String name = model.getObject().getName();
-				return new StringResourceModel("page.title", PageResource.this, null, null, name).getString();
-			}
-		};
-	}
+        PrismObject<ResourceType> resource = loadResource(options);
+        return new ResourceDto(resource, getPrismContext(), resource.asObjectable().getConnector(),
+                initCapabilities(resource.asObjectable()));
+    }
 
-	private void initLayout() {
-		Form mainForm = new Form("mainForm");
-		add(mainForm);
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return new LoadableModel<String>(false) {
 
-		SortableDataProvider<ResourceObjectTypeDto> provider = new ListDataProvider<ResourceObjectTypeDto>(this,
-				new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
-		provider.setSort("displayName", SortOrder.ASCENDING);
-		TablePanel objectTypes = new TablePanel<ResourceObjectTypeDto>("objectTypesTable", provider,
-				initObjectTypesColumns());
-		objectTypes.setShowPaging(true);
-		objectTypes.setOutputMarkupId(true);
-		mainForm.add(objectTypes);
+            @Override
+            protected String load() {
+                String name = model.getObject().getName();
+                return new StringResourceModel("page.title", PageResource.this, null, null, name).getString();
+            }
+        };
+    }
 
-		initResourceColumns(mainForm);
-		initConnectorDetails(mainForm);
-		createCapabilitiesList(mainForm);
+    private void initLayout() {
+        Form mainForm = new Form("mainForm");
+        add(mainForm);
 
-		AjaxLink<String> link = new AjaxLink<String>("seeDebug",
-				createStringResource("pageResource.seeDebug")) {
+        SortableDataProvider<ResourceObjectTypeDto> provider = new ListDataProvider<ResourceObjectTypeDto>(this,
+                new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
+        provider.setSort("displayName", SortOrder.ASCENDING);
+        TablePanel objectTypes = new TablePanel<ResourceObjectTypeDto>("objectTypesTable", provider,
+                initObjectTypesColumns());
+        objectTypes.setShowPaging(true);
+        objectTypes.setOutputMarkupId(true);
+        mainForm.add(objectTypes);
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				PageParameters parameters = new PageParameters();
-				parameters.add(PageDebugView.PARAM_OBJECT_ID, model.getObject().getOid());
-				getSession().setAttribute("requestPage", getPage());
-				setResponsePage(PageDebugView.class, parameters);
-			}
-		};
-		mainForm.add(link);
-		initButtons(mainForm);
-	}
+        initResourceColumns(mainForm);
+        initConnectorDetails(mainForm);
+        createCapabilitiesList(mainForm);
 
-	private void initResourceColumns(Form mainForm) {
-		mainForm.add(new Label("resourceOid", new PropertyModel<Object>(model, "oid")));
-		mainForm.add(new Label("resourceName", new PropertyModel<Object>(model, "name")));
-		mainForm.add(new Label("resourceType", new PropertyModel<Object>(model, "type")));
-		mainForm.add(new Label("resourceVersion", new PropertyModel<Object>(model, "version")));
-		mainForm.add(new Label("resourceProgress", new PropertyModel<Object>(model, "progress")));
-	}
+        AjaxLink<String> link = new AjaxLink<String>("seeDebug",
+                createStringResource("pageResource.seeDebug")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                PageParameters parameters = new PageParameters();
+                parameters.add(PageDebugView.PARAM_OBJECT_ID, model.getObject().getOid());
+                getSession().setAttribute("requestPage", getPage());
+                setResponsePage(PageDebugView.class, parameters);
+            }
+        };
+        mainForm.add(link);
+        initButtons(mainForm);
+    }
+
+    private void initResourceColumns(Form mainForm) {
+        mainForm.add(new Label("resourceOid", new PropertyModel<Object>(model, "oid")));
+        mainForm.add(new Label("resourceName", new PropertyModel<Object>(model, "name")));
+        mainForm.add(new Label("resourceType", new PropertyModel<Object>(model, "type")));
+        mainForm.add(new Label("resourceVersion", new PropertyModel<Object>(model, "version")));
+        mainForm.add(new Label("resourceProgress", new PropertyModel<Object>(model, "progress")));
+    }
 
     private IModel<String> createTestConnectionStateTooltip(final String expression) {
         return new AbstractReadOnlyModel<String>() {
@@ -199,9 +167,9 @@ public class PageResource extends PageAdminResources {
         };
     }
 
-	private void initConnectorDetails(Form mainForm) {
-		WebMarkupContainer container = new WebMarkupContainer("connectors");
-		container.setOutputMarkupId(true);
+    private void initConnectorDetails(Form mainForm) {
+        WebMarkupContainer container = new WebMarkupContainer("connectors");
+        container.setOutputMarkupId(true);
 
         Image image = new Image("overallStatus", new AbstractReadOnlyModel() {
 
@@ -212,7 +180,7 @@ public class PageResource extends PageAdminResources {
             }
         });
         image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.overall")));
-		container.add(image);
+        container.add(image);
 
         image = new Image("confValidation", new AbstractReadOnlyModel() {
             @Override
@@ -222,7 +190,7 @@ public class PageResource extends PageAdminResources {
             }
         });
         image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.confValidation")));
-		container.add(image);
+        container.add(image);
 
         image = new Image("conInitialization", new AbstractReadOnlyModel() {
             @Override
@@ -233,7 +201,7 @@ public class PageResource extends PageAdminResources {
             }
         });
         image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conInitialization")));
-		container.add(image);
+        container.add(image);
 
         image = new Image("conConnection", new AbstractReadOnlyModel() {
             @Override
@@ -243,15 +211,15 @@ public class PageResource extends PageAdminResources {
             }
         });
         image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conConnection")));
-		container.add(image);
+        container.add(image);
 
-		/*container.add(new Image("conSanity", new AbstractReadOnlyModel() {
-			@Override
-			public Object getObject() {
-				return new PackageResourceReference(PageResource.class, model.getObject().getState()
-						.getConSanity().getIcon());
-			}
-		}));*/
+        /*container.add(new Image("conSanity", new AbstractReadOnlyModel() {
+              @Override
+              public Object getObject() {
+                  return new PackageResourceReference(PageResource.class, model.getObject().getState()
+                          .getConSanity().getIcon());
+              }
+          }));*/
 
         image = new Image("conSchema", new AbstractReadOnlyModel() {
             @Override
@@ -260,84 +228,84 @@ public class PageResource extends PageAdminResources {
                         .getConSchema().getIcon());
             }
         });
-		container.add(image);
+        container.add(image);
         image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conSchema")));
-		mainForm.add(container);
-	}
+        mainForm.add(container);
+    }
 
-	private List<String> initCapabilities(ResourceType resource) {
-		OperationResult result = new OperationResult("Load resource capabilities");
-		List<String> capabilitiesName = new ArrayList<String>();
-		try {
-			List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resource);
+    private List<String> initCapabilities(ResourceType resource) {
+        OperationResult result = new OperationResult("Load resource capabilities");
+        List<String> capabilitiesName = new ArrayList<String>();
+        try {
+            List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resource);
 
-			if (capabilitiesList != null && !capabilitiesList.isEmpty()) {
-				for (int i = 0; i < capabilitiesList.size(); i++) {
-					capabilitiesName.add(ResourceTypeUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
-				}
-			}
-		} catch (Exception ex) {
-			result.recordFatalError("Couldn't load resource capabilities for resource'"
-					+ new PropertyModel<Object>(model, "name") + ".", ex);
+            if (capabilitiesList != null && !capabilitiesList.isEmpty()) {
+                for (int i = 0; i < capabilitiesList.size(); i++) {
+                    capabilitiesName.add(ResourceTypeUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
+                }
+            }
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't load resource capabilities for resource'"
+                    + new PropertyModel<Object>(model, "name") + ".", ex);
 
-		}
-		return capabilitiesName;
-	}
+        }
+        return capabilitiesName;
+    }
 
-	private List<IColumn<ResourceObjectTypeDto>> initObjectTypesColumns() {
-		List<IColumn<ResourceObjectTypeDto>> columns = new ArrayList<IColumn<ResourceObjectTypeDto>>();
+    private List<IColumn<ResourceObjectTypeDto>> initObjectTypesColumns() {
+        List<IColumn<ResourceObjectTypeDto>> columns = new ArrayList<IColumn<ResourceObjectTypeDto>>();
 
-		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.displayName"),
-				"displayName", "displayName"));
-		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.nativeObjectClass"),
-				"nativeObjectClass"));
-		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.help"), "help"));
-		columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.type"), "type"));
+        columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.displayName"),
+                "displayName", "displayName"));
+        columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.nativeObjectClass"),
+                "nativeObjectClass"));
+        columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.help"), "help"));
+        columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.type"), "type"));
 
-		return columns;
-	}
+        return columns;
+    }
 
-	private void createCapabilitiesList(Form mainForm) {
-		ListView<String> listCapabilities = new ListView<String>("listCapabilities", createCapabilitiesModel(model)) {
+    private void createCapabilitiesList(Form mainForm) {
+        ListView<String> listCapabilities = new ListView<String>("listCapabilities", createCapabilitiesModel(model)) {
 
-			@Override
-			protected void populateItem(ListItem<String> item) {
-				 item.add(new Label("capabilities", item.getModel()));
+            @Override
+            protected void populateItem(ListItem<String> item) {
+                item.add(new Label("capabilities", item.getModel()));
 
-			}
-		};
-		mainForm.add(listCapabilities);
-	}
+            }
+        };
+        mainForm.add(listCapabilities);
+    }
 
-	private IModel<List<String>> createCapabilitiesModel(final IModel<ResourceDto> model) {
-		return new LoadableModel<List<String>>(false) {
+    private IModel<List<String>> createCapabilitiesModel(final IModel<ResourceDto> model) {
+        return new LoadableModel<List<String>>(false) {
 
-			@Override
-			protected List<String> load() {
-				ResourceDto resource = model.getObject();
-				return resource.getCapabilities();
-			}
-		};
-	}
+            @Override
+            protected List<String> load() {
+                ResourceDto resource = model.getObject();
+                return resource.getCapabilities();
+            }
+        };
+    }
 
-	private void initButtons(Form mainForm){
-		AjaxLinkButton back = new AjaxLinkButton("back", createStringResource("pageResource.button.back")) {
+    private void initButtons(Form mainForm) {
+        AjaxLinkButton back = new AjaxLinkButton("back", createStringResource("pageResource.button.back")) {
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				setResponsePage(PageResources.class);
-			}
-		};
-		mainForm.add(back);
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                setResponsePage(PageResources.class);
+            }
+        };
+        mainForm.add(back);
 
-		AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("pageResource.button.test")) {
+        AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("pageResource.button.test")) {
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				testConnectionPerformed(target);
-			}
-		};
-		mainForm.add(test);
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                testConnectionPerformed(target);
+            }
+        };
+        mainForm.add(test);
 
         AjaxLinkButton importAccounts = new AjaxLinkButton("importAccounts",
                 createStringResource("pageResource.button.importAccounts")) {
@@ -348,10 +316,10 @@ public class PageResource extends PageAdminResources {
             }
         };
         mainForm.add(importAccounts);
-	}
+    }
 
-	private void testConnectionPerformed(AjaxRequestTarget target){
-    	ResourceDto dto = model.getObject();
+    private void testConnectionPerformed(AjaxRequestTarget target) {
+        ResourceDto dto = model.getObject();
         if (dto == null || StringUtils.isEmpty(dto.getOid())) {
             error(getString("pageResource.message.oidNotDefined"));
             target.add(getFeedbackPanel());
@@ -376,7 +344,7 @@ public class PageResource extends PageAdminResources {
             showResult(result);
             target.add(getFeedbackPanel());
         }
-	}
+    }
 
     private void importFromResourcePerformed(AjaxRequestTarget target) {
         ResourceDto dto = model.getObject();
