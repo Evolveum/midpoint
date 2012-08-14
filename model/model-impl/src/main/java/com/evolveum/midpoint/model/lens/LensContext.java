@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
@@ -156,13 +157,29 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	
 	public LensProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat) {
 		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
-			if (rat.equals(projCtx.getResourceShadowDiscriminator())) {
+			if (compareResourceShadowDiscriminator(rat, projCtx)) {
 				return projCtx;
 			}
 		}
 		return null;
 	}
 	
+	private boolean compareResourceShadowDiscriminator(ResourceShadowDiscriminator rsd,
+			LensProjectionContext<P> projCtx) {
+		ResourceShadowDiscriminator ctxRsd = projCtx.getResourceShadowDiscriminator();
+		if (rsd.equals(ctxRsd)) {
+			return true;
+		}
+		if (rsd.getIntent() == null && rsd.getResourceOid().equals(ctxRsd.getResourceOid())) {
+			try {
+				return projCtx.getRefinedAccountDefinition().isDefaultAccountType();
+			} catch (SchemaException e) {
+				throw new SystemException("Internal error: "+e.getMessage(), e);
+			}
+		}
+		return false;
+	}
+
 	public LensProjectionContext<P> findOrCreateProjectionContext(ResourceShadowDiscriminator rat) {
 		LensProjectionContext<P> projectionContext = findProjectionContext(rat);
 		if (projectionContext == null) {

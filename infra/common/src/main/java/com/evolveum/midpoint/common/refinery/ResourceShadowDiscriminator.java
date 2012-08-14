@@ -64,11 +64,7 @@ public class ResourceShadowDiscriminator implements Serializable {
 		return intent;
 	}
 	public void setIntent(String intent) {
-		if (intent == null) {
-			this.intent = MidPointConstants.DEFAULT_INTENT;
-		} else {
-			this.intent = intent;
-		}
+		this.intent = intent;
 	}
 
 	/**
@@ -145,20 +141,10 @@ public class ResourceShadowDiscriminator implements Serializable {
 	}
 	
 	public static boolean equalsAccountType(String a, String b) {
-		if (isDefaultAccountType(a) && isDefaultAccountType(b)) {
-			return true;
-		}
 		if (a == null || b == null) {
 			return false;
 		}
 		return a.equals(b);
-	}
-
-	public static boolean isDefaultAccountType(String accountType) {
-		if (accountType == null) {
-			return true;
-		}
-		return (MidPointConstants.DEFAULT_INTENT.equals(accountType));
 	}
 	
 }

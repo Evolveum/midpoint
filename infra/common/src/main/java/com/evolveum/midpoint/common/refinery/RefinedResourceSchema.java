@@ -94,12 +94,12 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	/**
 	 * if null accountType is provided, default account definition is returned.
 	 */
-	public RefinedAccountDefinition getAccountDefinition(String accountType) {
+	public RefinedAccountDefinition getAccountDefinition(String intent) {
 		for (RefinedAccountDefinition acctDef: getAccountDefinitions()) {
-			if (accountType == null && acctDef.isDefault()) {
+			if (intent == null && acctDef.isDefault()) {
 				return acctDef;
 			}
-			if (acctDef.getAccountTypeName().equals(accountType)) {
+			if (acctDef.getAccountTypeName().equals(intent)) {
 				return acctDef;
 			}
 		}

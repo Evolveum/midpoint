@@ -450,12 +450,12 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         RefinedAccountDefinition rAccountDef = new RefinedAccountDefinition(prismContext, resourceType, objectClassDef);
 
         String accountTypeName = null;
-        if (objectClassDef.getAccountTypeName() != null) {
-            accountTypeName = objectClassDef.getAccountTypeName();
+        if (objectClassDef.getIntent() != null) {
+            accountTypeName = objectClassDef.getIntent();
             rAccountDef.setAccountTypeName(accountTypeName);
         } else {
             if (objectClassDef.isDefaultAccountType()) {
-                rAccountDef.setAccountTypeName(MidPointConstants.DEFAULT_INTENT);
+                rAccountDef.setAccountTypeName(MidPointConstants.DEFAULT_ACCOUNT_TYPE_NAME);
             } else {
                 throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
             }

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -83,9 +84,20 @@ public class ContextLoader {
 	@Autowired(required = true)
     private ProvisioningService provisioningService;
 	
+	@Autowired(required = true)
+	private PrismContext prismContext;
+	
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 	
-	public <F extends ObjectType, P extends ObjectType> void load(LensContext<F,P> context, String activityDescription, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType, P extends ObjectType> void load(LensContext<F,P> context, String activityDescription, 
+			OperationResult result) 
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
+			SecurityViolationException {
+		
+		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+			preprocessProjectionContext(context, projectionContext, result);
+		}
+		
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext != null) {
 			loadObjectOld(context, result);
@@ -105,6 +117,26 @@ public class ContextLoader {
 
         LensUtil.traceContext(LOGGER, activityDescription, "load", context, false);
 
+	}
+	
+	/**
+	 * Make sure that the context is OK and consistent. It means that is has a resource, it has correctly processed
+	 * discriminator, etc.
+	 */
+	private <F extends ObjectType, P extends ObjectType> void preprocessProjectionContext(LensContext<F,P> context, 
+			LensProjectionContext<P> projectionContext, OperationResult result) 
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		ResourceShadowDiscriminator rsd = projectionContext.getResourceShadowDiscriminator();
+		if (rsd != null) {
+			ResourceType resource = projectionContext.getResource();
+			if (resource == null) {
+				resource = LensUtil.getResource(context, rsd.getResourceOid(), provisioningService, result);
+				projectionContext.setResource(resource);
+			}
+			String refinedIntent = LensUtil.refineAccountType(rsd.getIntent(), resource, prismContext);
+			rsd = new ResourceShadowDiscriminator(rsd.getResourceOid(), refinedIntent);
+			projectionContext.setResourceShadowDiscriminator(rsd);
+		}
 	}
 	
 	private <F extends ObjectType, P extends ObjectType> void loadObjectOld(LensContext<F,P> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -458,8 +490,9 @@ public class ContextLoader {
 		if (resourceOid == null) {
 			throw new SchemaException("The " + account + " has null resource reference OID");
 		}
-		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ResourceObjectShadowUtil.getIntent(accountType));
-		LensProjectionContext<AccountShadowType> accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat, provisioningService, result);
+		String intent = ResourceObjectShadowUtil.getIntent(accountType);
+		LensProjectionContext<AccountShadowType> accountSyncContext = LensUtil.getOrCreateAccountContext(context, resourceOid,
+				intent, provisioningService, prismContext, result);
 		accountSyncContext.setOid(account.getOid());
 		return accountSyncContext;
 	}

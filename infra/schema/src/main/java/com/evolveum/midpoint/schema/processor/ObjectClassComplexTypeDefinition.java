@@ -43,7 +43,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	private ResourceAttributeDefinition namingAttribute;
 	private boolean defaultAccountType = false;
 	private boolean accountType = false;
-	private String accountTypeName;
+	private String intent;
 	private String nativeObjectClass;
 
 	public ObjectClassComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
@@ -255,12 +255,12 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 		}
 	}
 	
-	public String getAccountTypeName() {
-		return accountTypeName;
+	public String getIntent() {
+		return intent;
 	}
 	
-	public void setAccountTypeName(String accountTypeName) {
-		this.accountTypeName = accountTypeName;
+	public void setIntent(String intent) {
+		this.intent = intent;
 	}
 	
 	/**
@@ -360,7 +360,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	protected void copyDefinitionData(ObjectClassComplexTypeDefinition clone) {
 		super.copyDefinitionData(clone);
 		clone.accountType = this.accountType;
-		clone.accountTypeName = this.accountTypeName;
+		clone.intent = this.intent;
 		clone.defaultAccountType = this.defaultAccountType;
 		clone.descriptionAttribute = this.descriptionAttribute;
 		clone.displayNameAttribute = this.displayNameAttribute;

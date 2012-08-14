@@ -83,7 +83,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			}
 			Element accountType = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT_TYPE);
 			if (accountType != null) {
-				ocDef.setAccountTypeName(accountType.getTextContent());
+				ocDef.setIntent(accountType.getTextContent());
 			}
 		}
 				
@@ -169,8 +169,8 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			if (definition.isDefaultAccountType()) {
 				processor.addAnnotation(MidPointConstants.RA_DEFAULT, appinfo);
 			}
-			if (definition.getAccountTypeName() != null) {
-				processor.addAnnotation(MidPointConstants.RA_ACCOUNT_TYPE, definition.getAccountTypeName(), appinfo);
+			if (definition.getIntent() != null) {
+				processor.addAnnotation(MidPointConstants.RA_ACCOUNT_TYPE, definition.getIntent(), appinfo);
 			}
 		}		
 	}

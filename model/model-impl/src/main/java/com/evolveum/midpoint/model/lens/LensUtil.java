@@ -24,6 +24,8 @@ import java.util.Collection;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.ModelCompiletimeConfig;
 import com.evolveum.midpoint.model.api.ShadowProjectionObjectDelta;
@@ -84,20 +86,44 @@ public class LensUtil {
         }
     }
 	
-	public static LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context,
-			ResourceShadowDiscriminator rat, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
+	public static <F extends ObjectType, P extends ObjectType> ResourceType getResource(LensContext<F,P> context,
+			String resourceOid, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rat);
+		ResourceType resource = context.getResource(resourceOid);
+		if (resource == null) {
+			// Fetching from provisioning to take advantage of caching and
+			// pre-parsed schema
+			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result)
+					.asObjectable();
+			context.rememberResource(resource);
+		}
+		return resource;
+	}
+	
+	public static String refineAccountType(String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
+		RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(intent);
+		if (accountDefinition == null) {
+			throw new SchemaException("No account definition for intent="+intent+" in "+resource);
+		}
+		return accountDefinition.getAccountTypeName();
+	}
+	
+	public static LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context,
+			String resourceOid, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
+		String accountType = refineAccountType(intent, resource, prismContext);
+		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, accountType);
+		return getOrCreateAccountContext(context, rsd);
+	}
+		
+	public static LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context,
+			ResourceShadowDiscriminator rsd) {
+		LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rsd);
 		if (accountSyncContext == null) {
-			ResourceType resource = context.getResource(rat);
-			if (resource == null) {
-				// Fetching from provisioning to take advantage of caching and
-				// pre-parsed schema
-				resource = provisioningService.getObject(ResourceType.class, rat.getResourceOid(), null, result)
-						.asObjectable();
-				context.rememberResource(resource);
-			}
-			accountSyncContext = context.createProjectionContext(rat);
+			accountSyncContext = context.createProjectionContext(rsd);
+			ResourceType resource = context.getResource(rsd.getResourceOid());
 			accountSyncContext.setResource(resource);
 		}
 		return accountSyncContext;

@@ -247,11 +247,11 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	}
 	
 	public String getAccountTypeName() {
-		return getComplexTypeDefinition().getAccountTypeName();
+		return getComplexTypeDefinition().getIntent();
 	}
 	
 	public void setAccountTypeName(String accountTypeName) {
-		getComplexTypeDefinition().setAccountTypeName(accountTypeName);
+		getComplexTypeDefinition().setIntent(accountTypeName);
 	}
 
 	/**

@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -193,19 +194,19 @@ public class AssignmentProcessor {
                 if (assignmentDelta.isValueToAdd(propertyValue)) {
                 	if (containsRealValue(assignmentsOld, propertyValue)) {
                 		// Phantom add: adding assignment that is already there
-                        collectToAccountMap(zeroAccountMap, evaluatedAssignment, result);
+                        collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
                         evaluatedAssignmentsZero.add(evaluatedAssignment);
                 	}
-                    collectToAccountMap(plusAccountMap, evaluatedAssignment, result);
+                    collectToAccountMap(context, plusAccountMap, evaluatedAssignment, result);
                     evaluatedAssignmentsPlus.add(evaluatedAssignment);
                 }
                 if (assignmentDelta.isValueToDelete(propertyValue)) {
-                    collectToAccountMap(minusAccountMap, evaluatedAssignment, result);
+                    collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
                 }
 
             } else {
                 // No change in assignment
-                collectToAccountMap(zeroAccountMap, evaluatedAssignment, result);
+                collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
                 evaluatedAssignmentsZero.add(evaluatedAssignment);
             }
         }
@@ -234,7 +235,7 @@ public class AssignmentProcessor {
                 if (accountSyncContext == null) {
                 	// The account should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. Pretend that the assignment was just added. That should do.
-                	accountSyncContext = getOrCreateAccountContext(context, rat, result);
+                	accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat);
                 	markPolicyDecision(accountSyncContext, PolicyDecision.ADD);
                 	accountSyncContext.setAssigned(true);
                 } else {
@@ -253,17 +254,17 @@ public class AssignmentProcessor {
             } else if (plusAccountMap.containsKey(rat)) {
                 // Account added
             	if (accountExists(context,rat)) {
-            		LensProjectionContext<AccountShadowType> accountContext = getOrCreateAccountContext(context, rat, result);
+            		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
             		markPolicyDecision(accountContext, PolicyDecision.KEEP);
             	} else {
-            		LensProjectionContext<AccountShadowType> accountContext = getOrCreateAccountContext(context, rat, result);
+            		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
             		markPolicyDecision(accountContext, PolicyDecision.ADD);
             	}
                 context.findProjectionContext(rat).setAssigned(true);
 
             } else if (minusAccountMap.containsKey(rat)) {
             	if (accountExists(context,rat)) {
-            		LensProjectionContext<AccountShadowType> accountContext = getOrCreateAccountContext(context, rat, result);
+            		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
                 	accountContext.setAssigned(false);
                     // Account removed
                     markPolicyDecision(accountContext, PolicyDecision.DELETE);
@@ -329,12 +330,14 @@ public class AssignmentProcessor {
 		
     }
 
-    private void collectToAccountMap(
+    private void collectToAccountMap(LensContext<UserType,AccountShadowType> context,
             Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> accountMap,
-            Assignment evaluatedAssignment, OperationResult result) throws ObjectNotFoundException, SchemaException {
+            Assignment evaluatedAssignment, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         for (AccountConstruction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
             String resourceOid = accountConstruction.getResource(result).getOid();
             String accountType = accountConstruction.getAccountType();
+            ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
+            accountType = LensUtil.refineAccountType(accountType, resource, prismContext);
             ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, accountType);
             Collection<PrismPropertyValue<AccountConstruction>> constructions = null;
             if (accountMap.containsKey(rat)) {
@@ -372,13 +375,7 @@ public class AssignmentProcessor {
     	}
     	return true;
     }
-    
-    private LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context, 
-    		ResourceShadowDiscriminator rat, OperationResult result) 
-    		throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-    	return LensUtil.getOrCreateAccountContext(context, rat, provisioningService, result);
-    }
-    
+        
     private void markPolicyDecision(LensProjectionContext<AccountShadowType> accountSyncContext, PolicyDecision decision) {
         if (accountSyncContext.getPolicyDecision() == null) {
             accountSyncContext.setPolicyDecision(decision);
