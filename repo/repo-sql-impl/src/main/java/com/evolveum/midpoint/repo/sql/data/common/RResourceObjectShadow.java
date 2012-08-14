@@ -21,6 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
@@ -29,6 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationDescriptionType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.hibernate.annotations.*;
 
@@ -60,6 +65,9 @@ public class RResourceObjectShadow extends RObject {
     private Integer attemptNumber;
     private RFailedOperationTypeType failedOperationType;
     private String intent;
+    @QueryAttribute(enumerated=true)
+    private RSynchronizationSituation synchronizationSituation;
+    private Set<RSynchronizationSituationDescription> synchronizationSituationDescription;
     //attributes
     @QueryEntity(any = true)
     private RAnyContainer attributes;
@@ -124,6 +132,22 @@ public class RResourceObjectShadow extends RObject {
         return name;
     }
     
+    @ElementCollection
+    @ForeignKey(name = "fk_shadow_sync_situation")
+    @CollectionTable(name = "m_shadow_sync_situation_description", joinColumns = {
+            @JoinColumn(name = "shadow_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "shadow_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RSynchronizationSituationDescription> getSynchronizationSituationDescription() {
+		return synchronizationSituationDescription;
+	}
+    
+    @Enumerated(EnumType.ORDINAL)
+    public RSynchronizationSituation getSynchronizationSituation() {
+		return synchronizationSituation;
+	}
+    
     public String getIntent() {
 		return intent;
 	}
@@ -170,6 +194,15 @@ public class RResourceObjectShadow extends RObject {
     public void setIntent(String intent) {
 		this.intent = intent;
 	}
+    
+    public void setSynchronizationSituation(RSynchronizationSituation synchronizationSituation) {
+		this.synchronizationSituation = synchronizationSituation;
+	}
+    
+    public void setSynchronizationSituationDescription(
+			Set<RSynchronizationSituationDescription> synchronizationSituationDescription) {
+		this.synchronizationSituationDescription = synchronizationSituationDescription;
+	}
 
     @Override
     public boolean equals(Object o) {
@@ -190,6 +223,8 @@ public class RResourceObjectShadow extends RObject {
         if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
         if (result != null ? !result.equals(that.result) : that.result != null) return false;
         if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
+        if (synchronizationSituation != null ? !synchronizationSituation.equals(that.synchronizationSituation) : that.synchronizationSituation != null) return false;
+        if (synchronizationSituationDescription != null ? !synchronizationSituationDescription.equals(that.synchronizationSituationDescription) : that.synchronizationSituationDescription != null) return false;
 
         return true;
     }
@@ -204,6 +239,8 @@ public class RResourceObjectShadow extends RObject {
         result1 = 31 * result1 + (attemptNumber != null ? attemptNumber.hashCode() : 0);
         result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
         result1 = 31 * result1 + (intent != null ? intent.hashCode() : 0);
+        result1 = 31 * result1 + (synchronizationSituation != null ? synchronizationSituation.hashCode() : 0);
+        result1 = 31 * result1 + (synchronizationSituationDescription != null ? synchronizationSituationDescription.hashCode() : 0);
         return result1;
     }
 
@@ -230,6 +267,12 @@ public class RResourceObjectShadow extends RObject {
         if (repo.getFailedOperationType() != null) {
             jaxb.setFailedOperationType(repo.getFailedOperationType().getOperation());
         }
+        
+        if (repo.getSynchronizationSituation() != null){
+        	jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSyncType());
+        }
+        
+        jaxb.getSynchronizationSituationDescription().addAll(RUtil.safeSetSyncSituationToList(repo.getSynchronizationSituationDescription()));
 
         try {
             jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectDeltaType.class, prismContext));
@@ -263,7 +306,12 @@ public class RResourceObjectShadow extends RObject {
             ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
             repo.setResult(result);
         }
-
+        
+        if (jaxb.getSynchronizationSituation() != null){
+        	repo.setSynchronizationSituation(RSynchronizationSituation.toRepoType(jaxb.getSynchronizationSituation()));
+        }
+        
+        repo.setSynchronizationSituationDescription(RUtil.listSyncSituationToSet(jaxb.getSynchronizationSituationDescription()));
         repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), repo, prismContext));
         repo.setAttemptNumber(jaxb.getAttemptNumber());
         repo.setFailedOperationType(RFailedOperationTypeType.toRepoType(jaxb.getFailedOperationType()));

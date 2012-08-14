@@ -240,6 +240,13 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertNotNull(delta);
 		LOGGER.info("delta\n{}", new Object[] { delta.debugDump(3) });
 		AssertJUnit.assertTrue(delta.isEmpty());
+		AccountShadowType repoShadow = repoAccount.asObjectable();
+		AssertJUnit.assertNotNull(repoShadow.getSynchronizationSituation());
+		AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, repoShadow.getSynchronizationSituation());
+		AssertJUnit.assertNotNull(repoShadow.getSynchronizationSituationDescription());
+		AssertJUnit.assertEquals(1, repoShadow.getSynchronizationSituationDescription().size());
+		AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, repoShadow.getSynchronizationSituationDescription().get(0).getSituation());
+		AssertJUnit.assertEquals("syncChannel", repoShadow.getSynchronizationSituationDescription().get(0).getChannel());
 	}
 	
 	@Test

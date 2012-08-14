@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationDescriptionType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -169,6 +170,30 @@ public final class RUtil {
         List<PolyStringType> list = new ArrayList<PolyStringType>();
         for (RPolyString str : set) {
             list.add(RPolyString.copyToJAXB(str));
+        }
+        return list;
+    }
+    
+    public static Set<RSynchronizationSituationDescription> listSyncSituationToSet(List<SynchronizationSituationDescriptionType> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+
+        Set<RSynchronizationSituationDescription> set = new HashSet<RSynchronizationSituationDescription>();
+        for (SynchronizationSituationDescriptionType str : list) {
+            set.add(RSynchronizationSituationDescription.copyFromJAXB(str));
+        }
+        return set;
+    }
+
+    public static List<SynchronizationSituationDescriptionType> safeSetSyncSituationToList(Set<RSynchronizationSituationDescription> set) {
+        if (set == null || set.isEmpty()) {
+            return new ArrayList<SynchronizationSituationDescriptionType>();
+        }
+
+        List<SynchronizationSituationDescriptionType> list = new ArrayList<SynchronizationSituationDescriptionType>();
+        for (RSynchronizationSituationDescription str : set) {
+            list.add(RSynchronizationSituationDescription.copyToJAXB(str));
         }
         return list;
     }

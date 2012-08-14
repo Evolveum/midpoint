@@ -38,4 +38,9 @@
         <activation>
             <enabled>true</enabled>
         </activation>
+        <synchronizationSituation>linked</synchronizationSituation>
+        <synchronizationSituationDescription>
+        	<situation>linked</situation>
+        	<channel>syncChannel</channel>
+        </synchronizationSituationDescription>
 </account>
