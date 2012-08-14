@@ -21,8 +21,10 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
@@ -30,11 +32,22 @@ import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
+import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDataProvider;
+import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
@@ -70,12 +83,48 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void initSearch(OptionItem item) {
-        //todo
+        TextField<String> search = new TextField<String>("searchText");//todo, new PropertyModel<String>(model, "searchText"));
+        item.add(search);
+
+        CheckBox nameCheck = new CheckBox("accountNameCheck");//todo, new PropertyModel<Boolean>(model, "name"));
+        item.add(nameCheck);
+        CheckBox fullNameCheck = new CheckBox("ownerNameCheck");//todo, new PropertyModel<Boolean>(model, "fullName"));
+        item.add(fullNameCheck);
+
+        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
+                createStringResource("pageContentAccounts.button.clearButton")) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                clearButtonPerformed(target);
+            }
+        };
+        item.add(clearButton);
+
+        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
+                createStringResource("pageContentAccounts.button.searchButton")) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                searchPerformed(target);
+            }
+        };
+        item.add(searchButton);
     }
 
     private void initTable(OptionContent content) {
         List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel("table", new ObjectDataProvider(this, UserType.class), columns);
+        TablePanel table = new TablePanel("table", new AccountContentDataProvider(this), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
     }
@@ -83,23 +132,46 @@ public class PageContentAccounts extends PageAdminResources {
     private List<IColumn> initColumns() {
         List<IColumn> columns = new ArrayList<IColumn>();
 
-        IColumn column = new LinkColumn<SelectableBean<UserType>>(createStringResource("pageContentAccounts.name"), "name", "value.name") {
+        IColumn column = new LinkColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.name"), "accountName") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
                 //todo action
             }
         };
         columns.add(column);
 
-        //name, identifiers, situation, owner
+        column = new AbstractColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.identifiers")) {
 
-        //todo list
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccountContentDto>>> cellItem, String componentId,
+                                     IModel<SelectableBean<AccountContentDto>> rowModel) {
+
+                AccountContentDto dto = rowModel.getObject().getValue();
+                String identifiers = "asdf"; //todo
+                cellItem.add(new Label(componentId, new Model<String>(identifiers)));
+            }
+        };
+        columns.add(column);
+
+        column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), "situation");
+        columns.add(column);
+
+        column = new AbstractColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.owner")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccountContentDto>>> cellItem, String componentId,
+                                     IModel<SelectableBean<AccountContentDto>> rowModel) {
+
+                AccountContentDto dto = rowModel.getObject().getValue();
+                String identifiers = "asdf"; //todo
+                cellItem.add(new Label(componentId, new Model<String>(identifiers)));
+            }
+        };
+        columns.add(column);
 
         return columns;
     }
-
-
 
     @Override
     protected IModel<String> createPageTitleModel() {
@@ -111,5 +183,13 @@ public class PageContentAccounts extends PageAdminResources {
                 return new StringResourceModel("page.title", PageContentAccounts.this, null, null, name).getString();
             }
         };
+    }
+
+    private void clearButtonPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void searchPerformed(AjaxRequestTarget target) {
+        //todo implement
     }
 }

@@ -72,7 +72,7 @@
 	<properties>
         <!-- Build system options - more options in build-system/pom.xml -->
 		<project.source.version>1.6</project.source.version>
-		<clover.version>3.1.0</clover.version>
+		<clover.version>3.1.6</clover.version>
 	</properties>
 	<modules>
 		<module>build-system</module>
@@ -103,6 +103,9 @@
 							<generateXml>true</generateXml>
 							<generateHistorical>true</generateHistorical>
 							<multiproject>true</multiproject>
+                            <excludes>
+                                <exclude>**/MidpointAspect.java</exclude>
+                            </excludes>
 						</configuration>
 					</plugin>
 				</plugins>

@@ -23,15 +23,12 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.PageVisibleDisabledBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.util.string.StringValue;
 
 /**
  * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
@@ -46,39 +43,12 @@ public class PageAdminResources extends PageAdmin {
 
         items.add(new BottomMenuItem("pageAdminResources.listResources", PageResources.class));
 //        items.add(new BottomMenuItem("pageAdminResources.newResource", PageUser.class));
-        items.add(new BottomMenuItem("pageAdminResources.detailsResource", PageResource.class, new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isEditingResource();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-        }));
-        items.add(new BottomMenuItem("pageAdminResources.importResource", PageResourceImport.class, new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isImportResource();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-        }));
+        items.add(new BottomMenuItem("pageAdminResources.detailsResource", PageResource.class,
+                new PageVisibleDisabledBehaviour(this, PageResource.class)));
+        items.add(new BottomMenuItem("pageAdminResources.importResource", PageResourceImport.class,
+                new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
+        items.add(new BottomMenuItem("pageAdminResources.contentAccounts", PageContentAccounts.class,
+                new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
         return items;
-    }
-    private boolean isEditingResource() {
-        StringValue resourceOid = getPageParameters().get(PageResource.PARAM_RESOURCE_ID);
-        return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
-    }
-    
-    private boolean isImportResource() {
-        StringValue resourceOid = getPageParameters().get(PageResourceImport.PARAM_RESOURCE_IMPORT_ID);
-        return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
     }
 }

@@ -29,7 +29,20 @@
     <form wicket:id="mainForm">
         <div wicket:id="option">
             <div wicket:id="search">
-                todo
+                <input type="text" wicket:id="searchText"/>
+                <table>
+                    <tr>
+                        <td>
+                            <input type="checkbox" wicket:id="accountNameCheck"/>
+                            <wicket:message key="pageContentAccounts.accountName"/>
+                        </td>
+                        <td><input type="checkbox" wicket:id="ownerNameCheck"/>
+                            <wicket:message key="pageContentAccounts.ownerName"/>
+                        </td>
+                    </tr>
+                </table>
+                <a wicket:id="clearButton"/>
+                <a wicket:id="searchButton"/>
             </div>
         </div>
 
