@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDataProvider;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDto;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.commons.lang.StringUtils;
@@ -47,10 +48,8 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -142,7 +141,7 @@ public class PageContentAccounts extends PageAdminResources {
 
     private void initTable(OptionContent content) {
         List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel("table", new AccountContentDataProvider(this), columns);
+        TablePanel table = new TablePanel("table", new AccountContentDataProvider(this, resourceModel), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
     }
@@ -150,7 +149,7 @@ public class PageContentAccounts extends PageAdminResources {
     private List<IColumn> initColumns() {
         List<IColumn> columns = new ArrayList<IColumn>();
 
-        IColumn column = new LinkColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.name"), "accountName") {
+        IColumn column = new LinkColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.name"), "value.accountName") {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
@@ -171,26 +170,43 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
-        column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), "situation");
-        columns.add(column);
-
-        column = new AbstractColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.owner")) {
+        column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), "value.situation") {
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<AccountContentDto>>> cellItem, String componentId,
-                                     IModel<SelectableBean<AccountContentDto>> rowModel) {
+            protected String translate(Enum en) {
+                return createStringResource(en).getString();
+            }
+        };
+        columns.add(column);
 
+        column = new LinkColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.owner")) {
+
+            @Override
+            protected IModel<String> createLinkModel(final IModel<SelectableBean<AccountContentDto>> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        AccountContentDto dto = rowModel.getObject().getValue();
+                        StringBuilder owner = new StringBuilder();
+                        if (StringUtils.isNotEmpty(dto.getOwnerName())) {
+                            owner.append(dto.getOwnerName());
+                            owner.append(" (");
+                            owner.append(dto.getOwnerOid());
+                            owner.append(")");
+                        } else {
+                            owner.append(dto.getOwnerOid());
+                        }
+                        return owner.toString();
+                    }
+                };
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
                 AccountContentDto dto = rowModel.getObject().getValue();
-                StringBuilder owner = new StringBuilder();
-                if (StringUtils.isNotEmpty(dto.getOwnerName())) {
-                    owner.append(dto.getOwnerName());
-                    owner.append(" (");
-                    owner.append(dto.getOwnerOid());
-                    owner.append(")");
-                } else {
-                    owner.append(dto.getOwnerOid());
-                }
-                cellItem.add(new Label(componentId, new Model<String>(owner.toString())));
+
+                ownerDetailsPerformed(target, dto.getOwnerName(), dto.getOwnerOid());
             }
         };
         columns.add(column);
@@ -208,6 +224,18 @@ public class PageContentAccounts extends PageAdminResources {
                 return new StringResourceModel("page.title", PageContentAccounts.this, null, null, name).getString();
             }
         };
+    }
+
+    private void ownerDetailsPerformed(AjaxRequestTarget target, String ownerName, String ownerOid) {
+        if (StringUtils.isEmpty(ownerOid)) {
+            error(getString("pageContentAccounts.message.cantShowUserDetails", ownerName, ownerOid));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        PageParameters parameters = new PageParameters();
+        parameters.add(PageUser.PARAM_USER_ID, ownerOid);
+        setResponsePage(PageUser.class, parameters);
     }
 
     private void clearButtonPerformed(AjaxRequestTarget target) {

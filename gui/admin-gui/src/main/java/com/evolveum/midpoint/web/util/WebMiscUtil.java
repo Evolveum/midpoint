@@ -30,6 +30,7 @@ import org.apache.wicket.model.IModel;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -64,16 +65,20 @@ public final class WebMiscUtil {
     }
 
     public static String getName(PrismObject object) {
+        return getValue(object, ObjectType.F_NAME, String.class);
+    }
+
+    public static <T> T getValue(PrismObject object, QName propertyName, Class<T> type) {
         if (object == null) {
             return null;
         }
 
-        PrismProperty property = object.findProperty(ObjectType.F_NAME);
+        PrismProperty property = object.findProperty(propertyName);
         if (property == null || property.isEmpty()) {
             return null;
         }
 
-        return (String) property.getRealValue(String.class);
+        return (T) property.getRealValue(type);
     }
 
     public static Locale getLocaleFromString(String localeString) {

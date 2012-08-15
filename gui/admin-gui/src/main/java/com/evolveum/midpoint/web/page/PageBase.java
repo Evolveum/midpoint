@@ -192,7 +192,7 @@ public abstract class PageBase extends WebPage {
     }
 
     protected StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, null, objects);
+        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
     protected StringResourceModel createStringResource(Enum e) {
