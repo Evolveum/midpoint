@@ -66,20 +66,15 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			accountsList.add(account.getObjectNew());
 			this.oldAccountObject = account.getObjectOld();
 			SubmitResourceDto resource = new SubmitResourceDto(account.getObjectNew(), false);
-			getChanges(resource, account.getPrimaryDelta(), false);
-			if (account.getPrimaryDelta() != null
-					&& !account.getPrimaryDelta().getChangeType().equals(ChangeType.DELETE)) {
-				getChanges(resource, account.getSecondaryDelta(), true);
-			} else if (account.getSecondaryDelta() != null
-					&& account.getSecondaryDelta().getChangeType().equals(ChangeType.DELETE)) {
+			if(!getChanges(resource, account.getPrimaryDelta(), false)) {
 				getChanges(resource, account.getSecondaryDelta(), true);
 			}
 		}
 	}
 
-	private void getChanges(SubmitResourceDto resource, ObjectDelta delta, boolean secondaryValue) {
+	private boolean getChanges(SubmitResourceDto resource, ObjectDelta delta, boolean secondaryValue) {
 		if (delta == null) {
-			return;
+			return false;
 		} else if (delta.getChangeType().equals(ChangeType.DELETE)) {
 			if (prismAccountsInSession == null) {
 				addAccountFromResource(new SubmitResourceDto(oldAccountObject, false));
@@ -88,9 +83,9 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 					addAccountFromResource(new SubmitResourceDto(account, false));
 				}
 			}
-			return;
+			return true;
 		} else if (!delta.getChangeType().equals(ChangeType.MODIFY)) {
-			return;
+			return false;
 		}
 		for (Object modification : delta.getModifications()) {
 			ItemDelta modifyDelta = (ItemDelta) modification;
@@ -122,6 +117,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 				getDeltasFromAccount(resource, values, modifyDelta, secondaryValue);
 			}
 		}
+		return false;
 	}
 	
 	private void addAccountFromResource(SubmitResourceDto resourceDto) {
