@@ -237,8 +237,13 @@ public class PageUser extends PageAdminUsers {
 
 			@Override
 			public String getObject() {
-				return createStringResource("pageUser.accounts", accountsModel.getObject().size())
-						.getString();
+				int size = 0;
+				for (UserAccountDto account : accountsModel.getObject()) {
+					if (!UserDtoStatus.DELETE.equals(account.getStatus())) {
+						size++;
+					}
+				}
+				return getString("pageUser.accounts", size);
 			}
 		});
 		accounts.setOutputMarkupId(true);
@@ -249,8 +254,13 @@ public class PageUser extends PageAdminUsers {
 
 			@Override
 			public String getObject() {
-				return createStringResource("pageUser.assignments", assignmentsModel.getObject().size())
-						.getString();
+				int size = 0;
+				for (UserAssignmentDto account : assignmentsModel.getObject()) {
+					if (!UserDtoStatus.DELETE.equals(account.getStatus())) {
+						size++;
+					}
+				}
+				return getString("pageUser.assignments", size);
 			}
 		});
 		assignments.setOutputMarkupId(true);
@@ -262,6 +272,10 @@ public class PageUser extends PageAdminUsers {
 		initResourceModal();
 		initRoleModal();
 		initConfirmationDialogs();
+	}
+
+	private Integer getSizeOfListObjects(IModel listObjects) {
+		return null;
 	}
 
 	private void initConfirmationDialogs() {
