@@ -35,6 +35,8 @@
         <givenName>Jack</givenName>
         <familyName>Sparrow</familyName>
         <honorificPrefix>Cpt.</honorificPrefix>
+        <!-- Following value checks processing of XML-escaped character -->
+        <costCenter>&lt;No &apos;cost&apos; &amp; no &quot;center&quot;&gt;</costCenter>
         <credentials>
         	<password>
         		<protectedString>
