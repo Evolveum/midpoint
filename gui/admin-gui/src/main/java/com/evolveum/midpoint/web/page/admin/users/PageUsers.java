@@ -417,12 +417,8 @@ public class PageUsers extends PageAdminUsers {
         if (!isAnythingSelected(getSelectedUsers(), target)) {
             return;
         }
-        
-        ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
-        dialog.show(target);
-        
-        // TODO: When delete one user -> submit page
-        /*if(getSelectedUsers().size() == 1) {
+        // When delete one user -> submit page
+        if(getSelectedUsers().size() == 1) {
         	OperationResult result = new OperationResult(PageUsers.class.getName() + "sendToSubmit");
         	
         	List<SelectableBean<UserType>> users = getSelectedUsers();
@@ -453,7 +449,7 @@ public class PageUsers extends PageAdminUsers {
         } else {
         	ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
             dialog.show(target);
-        }*/
+        }
 
         
     }

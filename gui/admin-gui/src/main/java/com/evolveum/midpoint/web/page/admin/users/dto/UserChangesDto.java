@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -41,16 +42,19 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 
 /**
  * @author mserbak
  */
-public class UserChangesDto implements Serializable {
+public class UserChangesDto extends PageAdmin implements Serializable {
 	private List<SubmitDeltaObjectDto> assignmentsList = new ArrayList<SubmitDeltaObjectDto>();
 	private List<SubmitDeltaObjectDto> userPropertiesList = new ArrayList<SubmitDeltaObjectDto>();
+	private PrismObject oldUserObject;
 
 	public UserChangesDto(ModelElementContext userChanges) {
+		this.oldUserObject = userChanges.getObjectOld();
 		getChanges(userChanges.getPrimaryDelta(), false);
 		getChanges(userChanges.getSecondaryDelta(), true);
 	}
@@ -59,21 +63,51 @@ public class UserChangesDto implements Serializable {
 		if (delta == null) {
 			return;
 		}
-		
+
 		PropertyPath account = new PropertyPath(SchemaConstants.I_ACCOUNT_REF);
 		PropertyPath assignment = new PropertyPath(SchemaConstantsGenerated.C_ASSIGNMENT);
 
-		if (delta.getChangeType().equals(ChangeType.MODIFY)) {
+		if (delta.getChangeType().equals(ChangeType.DELETE)) {
+
+			for (Object value : oldUserObject.getValues()) {
+
+				PrismContainerValue items = (PrismContainerValue) value;
+
+				for (Object item : items.getItems()) {
+					Item prismItem = (Item) item;
+					if (prismItem instanceof PrismProperty
+							&& prismItem.getDefinition().getName().equals(SchemaConstantsGenerated.C_NAME)) {
+
+						PrismProperty property = (PrismProperty) prismItem;
+						PropertyDelta propertyDelta = new PropertyDelta(property.getDefinition());
+						propertyDelta.addValuesToDelete(PrismPropertyValue.cloneCollection(property
+								.getValues()));
+						userPropertiesList.add(new SubmitDeltaObjectDto(propertyDelta, secondaryValue));
+
+					}
+
+					if (prismItem instanceof PrismContainer
+							&& prismItem.getDefinition().getTypeName().equals(AssignmentType.COMPLEX_TYPE)) {
+						PrismContainer assign = (PrismContainer) item;
+						ContainerDelta assignDelta = new ContainerDelta(assign.getDefinition());
+						assignDelta
+								.addValuesToDelete(PrismContainerValue.cloneCollection(assign.getValues()));
+						assignmentsList.add(new SubmitDeltaObjectDto(assignDelta, secondaryValue));
+					}
+				}
+			}
+
+			return;
+		} else if (delta.getChangeType().equals(ChangeType.MODIFY)) {
 			for (Object item : delta.getModifications()) {
 				ItemDelta itemDelta = (ItemDelta) item;
 				if (itemDelta.getPath().equals(account)) {
 					continue;
 				} else if (itemDelta.getPath().equals(assignment)) {
-					assignmentsList
-							.add(new SubmitDeltaObjectDto((ContainerDelta) itemDelta, secondaryValue));
+					assignmentsList.add(new SubmitDeltaObjectDto((ContainerDelta) itemDelta, secondaryValue));
 				} else {
-					userPropertiesList.add(new SubmitDeltaObjectDto((PropertyDelta) itemDelta,
-							secondaryValue));
+					userPropertiesList
+							.add(new SubmitDeltaObjectDto((PropertyDelta) itemDelta, secondaryValue));
 				}
 			}
 		} else {
@@ -94,7 +128,7 @@ public class UserChangesDto implements Serializable {
 						userPropertiesList.add(new SubmitDeltaObjectDto(propertyDelta, secondaryValue));
 					} else if (item instanceof PrismContainer) {
 
-						if (!(item.getDefinition().getTypeName().equals(AssignmentType.COMPLEX_TYPE))) {
+						if (!item.getDefinition().getTypeName().equals(AssignmentType.COMPLEX_TYPE)) {
 							PrismContainer property = (PrismContainer) item;
 							PrismContainerDefinition def = property.getDefinition();
 

@@ -443,7 +443,7 @@ public class PageSubmit extends PageAdmin {
 			if (oldPropertyValue != null && oldPropertyValue.getValues() != null) {
 				for (Object valueObject : oldPropertyValue.getValues()) {
 					PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
-					oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : " ");
+					oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : "");
 
 					for (SubmitPropertiesDto newValue : values) {
 						if (newValue.getStatus().equals(SubmitStatus.REPLACEING)) {

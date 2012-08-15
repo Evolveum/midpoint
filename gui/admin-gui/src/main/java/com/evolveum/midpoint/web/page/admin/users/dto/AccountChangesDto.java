@@ -67,23 +67,26 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			this.oldAccountObject = account.getObjectOld();
 			SubmitResourceDto resource = new SubmitResourceDto(account.getObjectNew(), false);
 			getChanges(resource, account.getPrimaryDelta(), false);
-			if (!account.getPrimaryDelta().getChangeType().equals(ChangeType.DELETE)) {
+			if (account.getPrimaryDelta() != null
+					&& !account.getPrimaryDelta().getChangeType().equals(ChangeType.DELETE)) {
+				getChanges(resource, account.getSecondaryDelta(), true);
+			} else if (account.getSecondaryDelta() != null
+					&& account.getSecondaryDelta().getChangeType().equals(ChangeType.DELETE)) {
 				getChanges(resource, account.getSecondaryDelta(), true);
 			}
 		}
-
 	}
 
 	private void getChanges(SubmitResourceDto resource, ObjectDelta delta, boolean secondaryValue) {
 		if (delta == null) {
 			return;
 		} else if (delta.getChangeType().equals(ChangeType.DELETE)) {
-			for (PrismObject account : prismAccountsInSession) {
-				SubmitResourceDto resourceDto = new SubmitResourceDto(account, false);
-
-				SubmitAccountDto submitedAccount = new SubmitAccountDto(resourceDto.getResourceName(),
-						getString("schema.objectTypes.account"), resourceDto.getName(), "", false);
-				accountChangesList.add(submitedAccount);
+			if (prismAccountsInSession == null) {
+				addAccountFromResource(new SubmitResourceDto(oldAccountObject, false));
+			} else {
+				for (PrismObject account : prismAccountsInSession) {
+					addAccountFromResource(new SubmitResourceDto(account, false));
+				}
 			}
 			return;
 		} else if (!delta.getChangeType().equals(ChangeType.MODIFY)) {
@@ -118,6 +121,14 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			if (!values.isEmpty()) {
 				getDeltasFromAccount(resource, values, modifyDelta, secondaryValue);
 			}
+		}
+	}
+	
+	private void addAccountFromResource(SubmitResourceDto resourceDto) {
+		SubmitAccountDto submitedAccount = new SubmitAccountDto(resourceDto.getResourceName(),
+				getString("schema.objectTypes.account"), resourceDto.getName(), "", false);
+		if (!accountChangesList.contains(submitedAccount)) {
+			accountChangesList.add(submitedAccount);
 		}
 	}
 
