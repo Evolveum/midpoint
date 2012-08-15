@@ -29,6 +29,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Collection;
 
@@ -101,6 +102,12 @@ public class TestProjector extends AbstractModelIntegrationTest {
 		super();
 	}
 	
+	@Override
+	public void initSystem(OperationResult initResult) throws Exception {
+		super.initSystem(initResult);
+		setDefaultUserTemplate(USER_TEMPLATE_OID);
+	}
+
 	@Test
     public void test000Sanity() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
         displayTestTile(this, "test000Sanity");
@@ -508,6 +515,42 @@ public class TestProjector extends AbstractModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getDummyAttributePath("location"), "Melee Island");
+        
+    }
+	
+	/**
+	 * Let's add user without a fullname. The expression in user template should compute it.
+	 */
+	@Test
+    public void test400AddLargo() throws Exception {
+        displayTestTile(this, "test400AddLargo");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test400AddLargo");
+        OperationResult result = task.getResult();
+
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_LARGO_FILENAME));
+        fillContextWithAddUserDelta(context, user);
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        projector.project(context, "test", result);
+        
+        // THEN
+        display("Output context", context);
+        
+        // TODO
+        
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.ADD);
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
+        assertNotNull("No user secondary delta", userSecondaryDelta);
+        assertFalse("Empty user secondary delta", userSecondaryDelta.isEmpty());
+        PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_FULL_NAME, 
+        		PrismTestUtil.createPolyString("Largo LaGrande"));
         
     }
 

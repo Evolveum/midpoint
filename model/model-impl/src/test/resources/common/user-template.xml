@@ -38,17 +38,4 @@
             </expression>
         </valueConstruction>
     </propertyConstruction>
-    <propertyConstruction>
-        <property>c:assignment</property>
-        <valueConstruction>
-        	<initial>true</initial>
-            <value>
-            	<assignment>
-					<accountConstruction>
-						<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-					</accountConstruction>
-				</assignment>
-            </value>
-        </valueConstruction>
-    </propertyConstruction>
 </userTemplate>

@@ -114,7 +114,7 @@ public class ContextLoader {
 		
         checkProjectionContexts(context, result);
         context.recompute();
-
+        
         LensUtil.traceContext(LOGGER, activityDescription, "load", context, false);
 
 	}
@@ -180,8 +180,13 @@ public class ContextLoader {
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 		
 		if (context.getUserTemplate() == null) {
-		    UserTemplateType defaultUserTemplate = systemConfigurationType.getDefaultUserTemplate();
-		    context.setUserTemplate(defaultUserTemplate);
+			ObjectReferenceType defaultUserTemplateRef = systemConfigurationType.getDefaultUserTemplateRef();
+			if (defaultUserTemplateRef == null) {
+				LOGGER.trace("No default user template");
+			} else {
+				PrismObject<UserTemplateType> defaultUserTemplate = cacheRepositoryService.getObject(UserTemplateType.class, defaultUserTemplateRef.getOid(), result);
+			    context.setUserTemplate(defaultUserTemplate.asObjectable());
+			}
 		}
 		
 		if (context.getAccountSynchronizationSettings() == null) {
@@ -622,6 +627,6 @@ public class ContextLoader {
 		} finally {
 			subResult.computeStatus();
 		}
-}
-
+	}
+	
 }

@@ -115,23 +115,25 @@ public class UserPolicyProcessor {
 //		if (password != null) {
 			passwordPolicyProcessor.processPasswordPolicy((LensFocusContext<UserType>) focusContext, usContext, result);
 //		}
-		UserTemplateType userTemplate = determineUserTemplate(usContext, result);
 
-		if (userTemplate == null) {
-			// No applicable template
-			return;
-		}
-
-		applyUserTemplate(usContext, userTemplate, result);
+		applyUserTemplate(usContext, result);
 				
 	}
 
 	
-	private void applyUserTemplate(LensContext<UserType, AccountShadowType> context, UserTemplateType userTemplate,
+	private void applyUserTemplate(LensContext<UserType, AccountShadowType> context,
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 
-		LOGGER.trace("Applying " + ObjectTypeUtil.toShortString(userTemplate) + " to " + focusContext.getObjectNew());
+		UserTemplateType userTemplate = context.getUserTemplate();
+
+		if (userTemplate == null) {
+			// No applicable template
+			LOGGER.trace("Skipping processing of user template: no user template");
+			return;
+		}
+		
+		LOGGER.trace("Applying " + userTemplate + " to " + focusContext.getObjectNew());
 
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getWaveSecondaryDelta();
 		for (PropertyConstructionType propConstr : userTemplate.getPropertyConstruction()) {
@@ -162,19 +164,22 @@ public class UserPolicyProcessor {
 			evaluateUserTemplateValueConstruction(valueConstruction, itemDefinition, context, result);
 
 			Item output = valueConstruction.getOutput();
-			ItemDelta itemDelta = output.createDelta(itemPath);
+			// output can be null e.g. if a condition is not satisfied
+			if (output != null) {
+				ItemDelta itemDelta = output.createDelta(itemPath);
 
-			if (itemDefinition.isMultiValue()) {
-				itemDelta.addValuesToAdd(PrismValue.cloneCollection(output.getValues()));
-			} else {
-				itemDelta.setValuesToReplace(PrismValue.cloneCollection(output.getValues()));
-			}
+				if (itemDefinition.isMultiValue()) {
+					itemDelta.addValuesToAdd(PrismValue.cloneCollection(output.getValues()));
+				} else {
+					itemDelta.setValuesToReplace(PrismValue.cloneCollection(output.getValues()));
+				}
 
-			if (userSecondaryDelta == null) {
-				userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
-				focusContext.setWaveSecondaryDelta(userSecondaryDelta);
+				if (userSecondaryDelta == null) {
+					userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
+					focusContext.setWaveSecondaryDelta(userSecondaryDelta);
+				}
+				userSecondaryDelta.addModification(itemDelta);				
 			}
-			userSecondaryDelta.addModification(itemDelta);
 		}
 
 	}
@@ -194,15 +199,6 @@ public class UserPolicyProcessor {
 
 		valueConstruction.evaluate(result);
 
-	}
-
-	private UserTemplateType determineUserTemplate(LensContext<UserType, AccountShadowType> context,
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
-
-		if (context.getUserTemplate() != null) {
-			return context.getUserTemplate();
-		}
-		return null;
 	}
 
 }

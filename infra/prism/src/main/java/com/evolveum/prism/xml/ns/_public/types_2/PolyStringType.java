@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -66,6 +67,21 @@ public class PolyStringType implements Dumpable, DebugDumpable, Serializable {
     protected String norm;
     @XmlAnyElement(lax = true)
     protected List<Object> any;
+    
+    public PolyStringType() {
+    	this.orig = null;
+    	this.norm = null;
+    }
+    
+    public PolyStringType(String orig) {
+    	this.orig = orig;
+    	this.norm = null;
+    }
+    
+    public PolyStringType(PolyString polyString) {
+    	this.orig = polyString.getOrig();
+    	this.norm = polyString.getNorm();
+    }
 
     /**
      * Gets the value of the orig property.
@@ -142,6 +158,27 @@ public class PolyStringType implements Dumpable, DebugDumpable, Serializable {
             any = new ArrayList<Object>();
         }
         return this.any;
+    }
+    
+    /**
+     * Plus method for ease of use of PolyStrings in groovy (mapped from + operator).
+     */
+    public PolyStringType plus(String operand) {
+    	if (operand == null) {
+    		return this;
+    	}
+    	return new PolyStringType(getOrig() + operand);
+    }
+    
+    public PolyStringType plus(PolyStringType operand) {
+    	if (operand == null) {
+    		return this;
+    	}
+    	return new PolyStringType(getOrig() + operand.getOrig());
+    }
+    
+    public PolyString toPolyString() {
+    	return new PolyString(orig, norm);
     }
 
     /**

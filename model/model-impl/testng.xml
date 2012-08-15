@@ -125,6 +125,7 @@
         	<class name="com.evolveum.midpoint.model.TestRbac"/>
             <class name="com.evolveum.midpoint.model.TestSegregationOfDuties"/>
             <class name="com.evolveum.midpoint.model.TestMultiResource"/>
+            <class name="com.evolveum.midpoint.model.TestUserTemplate"/>
         </classes>
     </test>
 </suite>

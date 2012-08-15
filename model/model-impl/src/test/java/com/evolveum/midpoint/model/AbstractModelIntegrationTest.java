@@ -77,6 +77,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -137,7 +138,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	public static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
 	
 	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
-	protected static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
+	protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
+	
+	protected static final String USER_TEMPLATE_COMPLEX_FILENAME = COMMON_DIR_NAME + "/user-template-complex.xml";
+	protected static final String USER_TEMPLATE_COMPLEX_OID = "10000000-0000-0000-0000-000000000222";
 
 	protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR_NAME + "/connector-ldap.xml";
 	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR_NAME + "/connector-dbtable.xml";
@@ -155,6 +159,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String RESOURCE_DUMMY_RED_OID = "10000000-0000-0000-0000-000000000104";
 	protected static final String RESOURCE_DUMMY_RED_NAME = "red";
 	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;
+
+	protected static final String RESOURCE_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-blue.xml";
+	protected static final String RESOURCE_DUMMY_BLUE_OID = "10000000-0000-0000-0000-000000000204";
+	protected static final String RESOURCE_DUMMY_BLUE_NAME = "blue";
+	protected static final String RESOURCE_DUMMY_BLUE_NAMESPACE = MidPointConstants.NS_RI;
 	
 	protected static final String ROLE_ALPHA_FILENAME = COMMON_DIR_NAME + "/role-alpha.xml";
 	protected static final String ROLE_ALPHA_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
@@ -179,6 +188,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	protected static final String USER_GUYBRUSH_FILENAME = COMMON_DIR_NAME + "/user-guybrush.xml";
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+	
+	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
+	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
 
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
@@ -233,9 +245,12 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected PrismObject<ResourceType> resourceDummy;
 	protected ResourceType resourceDummyRedType;
 	protected PrismObject<ResourceType> resourceDummyRed;
+	protected ResourceType resourceDummyBlueType;
+	protected PrismObject<ResourceType> resourceDummyBlue;
 	
 	protected static DummyResource dummyResource;
 	protected static DummyResource dummyResourceRed;
+	protected static DummyResource dummyResourceBlue;
 	
 	public AbstractModelIntegrationTest() throws JAXBException {
 		super();
@@ -270,15 +285,24 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		dummyResourceRed.populateWithDefaultSchema();
 		extendDummySchema(dummyResourceRed);
 		
+		dummyResourceBlue = DummyResource.getInstance(RESOURCE_DUMMY_BLUE_NAME);
+		dummyResourceBlue.reset();
+		dummyResourceBlue.populateWithDefaultSchema();
+		extendDummySchema(dummyResourceBlue);
+		
 		postInitDummyResouce();
 		
+		// System Configuration
 		try {
 			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
+		
+		// User Templates
 		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
+		addObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, initResult);
 
 		// Connectors
 		addObjectFromFile(CONNECTOR_LDAP_FILENAME, ConnectorType.class, initResult);
@@ -292,6 +316,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		resourceDummyType = resourceDummy.asObjectable();
 		resourceDummyRed = addObjectFromFile(RESOURCE_DUMMY_RED_FILENAME, ResourceType.class, initResult);
 		resourceDummyRedType = resourceDummyRed.asObjectable();
+		resourceDummyBlue = addObjectFromFile(RESOURCE_DUMMY_BLUE_FILENAME, ResourceType.class, initResult);
+		resourceDummyBlueType = resourceDummyBlue.asObjectable();
 
 		// Accounts
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, initResult);
@@ -336,15 +362,31 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
 	}
 	
+	protected void fillContextWithUser(LensContext<UserType, AccountShadowType> context, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException {
+		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+		focusContext.setObjectOld(user);
+	}
+	
 	protected void fillContextWithUser(LensContext<UserType, AccountShadowType> context, String userOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
-        LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-        focusContext.setObjectOld(user);
+        fillContextWithUser(context, user);
     }
+	
+	protected void fillContextWithUserFromFile(LensContext<UserType, AccountShadowType> context, String filename) throws SchemaException,
+	ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(filename));
+		fillContextWithUser(context, user);
+	}
 	
 	protected void fillContextWithEmtptyAddUserDelta(LensContext<UserType, AccountShadowType> context, OperationResult result) throws SchemaException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyAddDelta(UserType.class, null, prismContext);
+		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+		focusContext.setPrimaryDelta(userDelta);
+	}
+	
+	protected void fillContextWithAddUserDelta(LensContext<UserType, AccountShadowType> context, PrismObject<UserType> user) throws SchemaException {
+		ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		focusContext.setPrimaryDelta(userDelta);
 	}
@@ -556,17 +598,21 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 		
 	protected void assertUserJack(PrismObject<UserType> user) {
-		assertUserJack(user, "Jack Sparrow");
+		assertUserJack(user, "Jack Sparrow", "Jack", "Sparrow");
 	}
 	
 	protected void assertUserJack(PrismObject<UserType> user, String fullName) {
+		assertUserJack(user, fullName, "Jack", "Sparrow");
+	}
+	
+	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName) {
 		assertEquals("Wrong jack OID (prism)", USER_JACK_OID, user.getOid());
 		UserType userType = user.asObjectable();
 		assertEquals("Wrong jack OID (jaxb)", USER_JACK_OID, userType.getOid());
 		assertEquals("Wrong jack name", "jack", userType.getName());
 		PrismAsserts.assertEqualsPolyString("Wrong jack fullName", fullName, userType.getFullName());
-		PrismAsserts.assertEqualsPolyString("Wrong jack givenName", "Jack", userType.getGivenName());
-		PrismAsserts.assertEqualsPolyString("Wrong jack familyName", "Sparrow", userType.getFamilyName());
+		PrismAsserts.assertEqualsPolyString("Wrong jack givenName", givenName, userType.getGivenName());
+		PrismAsserts.assertEqualsPolyString("Wrong jack familyName", familyName, userType.getFamilyName());
 		PrismAsserts.assertEqualsPolyString("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
 		PrismAsserts.assertEqualsPolyString("Wrong jack honorificSuffix", "PhD.", userType.getHonorificSuffix());
 		assertEquals("Wrong jack emailAddress", "jack.sparrow@evolveum.com", userType.getEmailAddress());
@@ -783,6 +829,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected void assertHasRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		assertHasRole(user, roleOid);
+	}
+	
+	protected void assertHasRole(PrismObject<UserType> user, String roleOid) {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
@@ -792,16 +842,52 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 				}
 			}
 		}
-		AssertJUnit.fail("User "+userOid+" does not have role "+roleOid);
+		AssertJUnit.fail(user + " does not have role "+roleOid);
 	}
 	
 	protected void assertHasNoRole(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		assertHasNoRole(user);
+	}
+	
+	protected void assertHasNoRole(PrismObject<UserType> user) {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
-			if (RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
-				AssertJUnit.fail("User "+userOid+" has role "+targetRef.getOid()+" while expected no roles");
+			if (targetRef != null) {
+				if (RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
+					AssertJUnit.fail(user+" has role "+targetRef.getOid()+" while expected no roles");
+				}
+			}
+		}
+	}
+	
+	protected void assertHasAccountAssignment(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		assertHasAccountAssignment(user, resourceOid);
+	}
+	
+	protected void assertHasAccountAssignment(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
+		UserType userType = user.asObjectable();
+		for (AssignmentType assignmentType: userType.getAssignment()) {
+			AccountConstructionType accountConstruction = assignmentType.getAccountConstruction();
+			if (accountConstruction != null) {
+				if (resourceOid.equals(accountConstruction.getResourceRef().getOid())) {
+					return;
+				}
+			}
+		}
+		AssertJUnit.fail(user.toString()+" does not have account assignment for resource "+resourceOid);
+	}
+	
+	protected void assertHasNoAccountAssignment(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
+		UserType userType = user.asObjectable();
+		for (AssignmentType assignmentType: userType.getAssignment()) {
+			AccountConstructionType accountConstruction = assignmentType.getAccountConstruction();
+			if (accountConstruction != null) {
+				if (resourceOid.equals(accountConstruction.getResourceRef().getOid())) {
+					AssertJUnit.fail(user.toString()+" has account assignment for resource "+resourceOid+" while expecting no such assignment");
+				}
 			}
 		}
 	}
@@ -855,6 +941,27 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 			return null;
 		}
 		return globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();
+	}
+	
+	protected void setDefaultUserTemplate(String userTemplateOid)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
+		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
+
+		PrismReferenceValue userTemplateRefVal = new PrismReferenceValue(userTemplateOid);
+		
+		Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationReplaceCollection(
+						SystemConfigurationType.F_DEFAULT_USER_TEMPLATE_REF,
+						objectDefinition, userTemplateRefVal);
+
+		OperationResult result = new OperationResult("Aplying default user template");
+
+		repositoryService.modifyObject(SystemConfigurationType.class,
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
+		display("Aplying default user template result", result);
+		result.computeStatus();
+		assertSuccess("Aplying default user template failed (result)", result);
 	}
 
 	protected PropertyPath getOpenDJAttributePath(String attrName) {
