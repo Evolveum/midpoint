@@ -119,6 +119,16 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         this.query = query;
     }
 
+    /**
+     * Flag method for {@link TablePanel}. If true navigation panel with paging "X to Y from Z results is shown",
+     * otherwise only "previous and next" simple paging is used.
+     *
+     * @return By defaults it returns true.
+     */
+    public boolean isSizeAvailable() {
+        return true;
+    }
+
     protected PagingType createPaging(int first, int count) {
         SortParam sortParam = getSort();
         OrderDirectionType order;

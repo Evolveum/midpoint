@@ -29,6 +29,8 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
+import org.apache.wicket.markup.html.navigation.paging.IPagingLabelProvider;
+import org.apache.wicket.markup.html.navigation.paging.PagingNavigation;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.IModel;
@@ -40,11 +42,15 @@ import org.apache.wicket.model.StringResourceModel;
 public class NavigatorPanel extends PagingNavigator {
 
     private static final Trace LOGGER = TraceManager.getTrace(NavigatorPanel.class);
+    private boolean showPageListing = true;
 
-    public NavigatorPanel(String id, IPageable pageable) {
+    public NavigatorPanel(String id, IPageable pageable, boolean showPageListing) {
         super(id, pageable);
+        this.showPageListing = showPageListing;
 
-        add(new Label("label", createModel(pageable)));
+        Label label = new Label("label", createModel(pageable));
+        label.add(createVisibilityForSimplePaging());
+        add(label);
     }
 
     private VisibleEnableBehaviour createVisibleBehaviour(final IPageable pageable) {
@@ -53,6 +59,23 @@ public class NavigatorPanel extends PagingNavigator {
             @Override
             public boolean isVisible() {
                 return pageable.getPageCount() != 0;
+            }
+        };
+    }
+
+    @Override
+    protected PagingNavigation newNavigation(String id, IPageable pageable, IPagingLabelProvider labelProvider) {
+        PagingNavigation navigation = super.newNavigation(id, pageable, labelProvider);
+        navigation.add(createVisibilityForSimplePaging());
+        return navigation;
+    }
+
+    private VisibleEnableBehaviour createVisibilityForSimplePaging() {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return showPageListing;
             }
         };
     }

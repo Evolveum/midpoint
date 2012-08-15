@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
 
 import java.io.Serializable;
@@ -35,7 +36,7 @@ public class AccountContentDto implements Serializable {
     private String accountOid;
     private String accountName;
 
-    private List<String> identifiers;
+    private List<ResourceAttribute<?>> identifiers;
     private SynchronizationSituationType situation;
 
     private String ownerOid;
@@ -49,9 +50,9 @@ public class AccountContentDto implements Serializable {
         return accountOid;
     }
 
-    public List<String> getIdentifiers() {
+    public List<ResourceAttribute<?>> getIdentifiers() {
         if (identifiers == null) {
-            identifiers = new ArrayList<String>();
+            identifiers = new ArrayList<ResourceAttribute<?>>();
         }
         return identifiers;
     }
@@ -76,7 +77,7 @@ public class AccountContentDto implements Serializable {
         this.accountOid = accountOid;
     }
 
-    public void setIdentifiers(List<String> identifiers) {
+    public void setIdentifiers(List<ResourceAttribute<?>> identifiers) {
         this.identifiers = identifiers;
     }
 

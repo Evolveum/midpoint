@@ -61,8 +61,18 @@ public class TablePanel<T> extends Panel {
         table.addTopToolbar(new TableHeadersToolbar(table, provider));
 
         add(table);
-        add(new NavigatorPanel(NAV_TOP, table));
-        add(new NavigatorPanel(NAV_BOTTOM, table));
+
+        add(new NavigatorPanel(NAV_TOP, table, showPagedPaging(provider)));
+        add(new NavigatorPanel(NAV_BOTTOM, table, showPagedPaging(provider)));
+    }
+
+    private boolean showPagedPaging(ISortableDataProvider provider) {
+        if (!(provider instanceof BaseSortableDataProvider)) {
+            return true;
+        }
+
+        BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) provider;
+        return baseProvider.isSizeAvailable();
     }
 
     public DataTable getDataTable() {
@@ -93,12 +103,12 @@ public class TablePanel<T> extends Panel {
         DataTable table = getDataTable();
         table.add(new AttributeAppender("class", new Model(cssClass), " "));
     }
-    
-    public void setStyle(String value){
-    	Validate.notEmpty(value, "Value must not be null or empty.");
-    	
-    	DataTable table = getDataTable();
-    	table.add(new AttributeModifier("style", new Model(value)));
+
+    public void setStyle(String value) {
+        Validate.notEmpty(value, "Value must not be null or empty.");
+
+        DataTable table = getDataTable();
+        table.add(new AttributeModifier("style", new Model(value)));
     }
 
     @Override

@@ -21,13 +21,18 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,20 +42,14 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -60,6 +59,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
     private static final Trace LOGGER = TraceManager.getTrace(AccountContentDataProvider.class);
     private static final String DOT_CLASS = AccountContentDataProvider.class.getName() + ".";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
+    private static final String OPERATION_LOAD_OWNER = DOT_CLASS + "loadOwner";
 
     private IModel<PrismObject<ResourceType>> model;
     private String resourceOid;
@@ -79,36 +79,37 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
         try {
-//            PagingType paging = createPaging(first, count);
-//            Task task = getPage().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
-//
-//            QueryType query = null;
-//            List<PrismObject<AccountShadowType>> list = getModel().searchObjects(AccountShadowType.class, query, paging, task, result);
-//
-            AccountContentDto dto;
-//            for (PrismObject<AccountShadowType> object : list) {
-//
-//                dto = new AccountContentDto();
-//                dto.setAccountName(WebMiscUtil.getName(object));
-//                dto.setAccountOid(object.getOid());
-//
-//                dto.setIdentifiers(Arrays.asList("identifier1", "identifier2"));
-//                dto.setOwnerName("Administrator");
-//                dto.setOwnerOid("00000000-0000-0000-0000-000000000002");
-//                dto.setSituation(WebMiscUtil.getValue(object, ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION,
-//                        SynchronizationSituationType.class));
-//
-//                getAvailableData().add(new SelectableBean<AccountContentDto>(dto));
-//            }
+            PagingType paging = createPaging(first, count);
+            Task task = getPage().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
 
-            dto = new AccountContentDto();
-            dto.setAccountName("uid=lazyman,ou=People,dc=example,dc=com");
-            dto.setAccountOid("ffffffff-0000-0000-0000-000000000002");
-            dto.setIdentifiers(Arrays.asList("identifier1", "identifier2"));
-            dto.setOwnerName("Administrator");
-            dto.setOwnerOid("00000000-0000-0000-0000-000000000002");
-            dto.setSituation(SynchronizationSituationType.LINKED);
-            getAvailableData().add(new SelectableBean<AccountContentDto>(dto));
+            QueryType query = QueryUtil.createResourceAndAccountQuery(getResourceOid(), getObjectClass(), null);
+            List<PrismObject<AccountShadowType>> list = getModel().searchObjects(AccountShadowType.class, query, paging, task, result);
+
+            AccountContentDto dto;
+            for (PrismObject<AccountShadowType> object : list) {
+
+                dto = new AccountContentDto();
+                dto.setAccountName(WebMiscUtil.getName(object));
+                dto.setAccountOid(object.getOid());
+
+                Collection<ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(object);
+                if (identifiers != null) {
+                    List<ResourceAttribute<?>> idList = new ArrayList<ResourceAttribute<?>>();
+                    idList.addAll(identifiers);
+                    dto.setIdentifiers(idList);
+                }
+
+                PrismObject<UserType> owner = loadOwner(dto.getAccountOid(), result);
+                if (owner != null) {
+                    dto.setOwnerName(WebMiscUtil.getName(owner));
+                    dto.setOwnerOid(owner.getOid());
+                }
+
+                dto.setSituation(WebMiscUtil.getValue(object, ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION,
+                        SynchronizationSituationType.class));
+
+                getAvailableData().add(new SelectableBean<AccountContentDto>(dto));
+            }
 
             result.recordSuccess();
         } catch (Exception ex) {
@@ -127,6 +128,19 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
     @Override
     protected int internalSize() {
         return Integer.MAX_VALUE;
+    }
+
+    private PrismObject<UserType> loadOwner(String accountOid, OperationResult result)
+            throws SchemaException, SecurityViolationException {
+
+        OperationResult ownerResult = result.createSubresult(OPERATION_LOAD_OWNER);
+        Task task = getPage().createSimpleTask(OPERATION_LOAD_OWNER);
+        try {
+            return getModel().getObject(UserType.class, accountOid, null, task, ownerResult);
+        } catch (ObjectNotFoundException ex) {
+            //owner was not found, it's possible and it's ok on unlinked accounts
+        }
+        return null;
     }
 
     private String getResourceOid() {
@@ -159,5 +173,10 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
         }
 
         return objectClass;
+    }
+
+    @Override
+    public boolean isSizeAvailable() {
+        return false;
     }
 }

@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
@@ -44,6 +45,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
@@ -165,7 +167,11 @@ public class PageContentAccounts extends PageAdminResources {
                                      IModel<SelectableBean<AccountContentDto>> rowModel) {
 
                 AccountContentDto dto = rowModel.getObject().getValue();
-                cellItem.add(new Label(componentId, new Model<String>(StringUtils.join(dto.getIdentifiers(), ", "))));
+                List values = new ArrayList();
+                for (ResourceAttribute<?> attr : dto.getIdentifiers()) {
+                    values.add(attr.getName().getLocalPart() + ": " +attr.getRealValue());
+                }
+                cellItem.add(new Label(componentId, new Model<String>(StringUtils.join(values, ", "))));
             }
         };
         columns.add(column);
@@ -195,7 +201,9 @@ public class PageContentAccounts extends PageAdminResources {
                             owner.append(dto.getOwnerOid());
                             owner.append(")");
                         } else {
-                            owner.append(dto.getOwnerOid());
+                            if (StringUtils.isNotEmpty(dto.getOwnerOid())) {
+                                owner.append(dto.getOwnerOid());
+                            }
                         }
                         return owner.toString();
                     }

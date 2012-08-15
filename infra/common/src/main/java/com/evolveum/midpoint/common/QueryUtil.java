@@ -274,7 +274,11 @@ public class QueryUtil {
         return query;
     }
 
-	public static QueryType createResourceAndAccountQuery(ResourceType resource, QName objectClass, String accountType) throws SchemaException {
+    public static QueryType createResourceAndAccountQuery(ResourceType resource, QName objectClass, String accountType) throws SchemaException {
+        return createResourceAndAccountQuery(resource.getOid(), objectClass, accountType);
+    }
+
+	public static QueryType createResourceAndAccountQuery(String resourceOid, QName objectClass, String accountType) throws SchemaException {
 		Document doc = DOMUtil.getDocument();
         Element filter =
                 QueryUtil.createAndFilter(doc,
@@ -282,7 +286,7 @@ public class QueryUtil {
                         // from the schema later, or maybe we can make it entirely
                         // generic (use ResourceObjectShadowType instead).
                         QueryUtil.createEqualRefFilter(doc, null,
-                                com.evolveum.midpoint.schema.constants.SchemaConstants.I_RESOURCE_REF, resource.getOid()),
+                                com.evolveum.midpoint.schema.constants.SchemaConstants.I_RESOURCE_REF, resourceOid),
                         QueryUtil.createEqualFilter(doc, null,
                                 com.evolveum.midpoint.schema.constants.SchemaConstants.I_OBJECT_CLASS, objectClass)
                 );
