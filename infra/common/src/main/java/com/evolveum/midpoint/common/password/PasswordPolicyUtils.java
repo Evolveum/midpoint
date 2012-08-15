@@ -191,20 +191,20 @@ public class PasswordPolicyUtils {
 		// Test minimal length
 		if (lims.getMinLength() > password.length()) {
 			ret.addSubresult(new OperationResult("Check global minimal length", OperationResultStatus.FATAL_ERROR,
-					"Required minimal size (" + lims.getMinLength() + ") of password is not met (password lenght: "
+					"Required minimal size (" + lims.getMinLength() + ") of password is not met (password length: "
 							+ password.length() + ")"));
 		} else {
-			ret.addSubresult(new OperationResult("Check global minimal length. Minimal lenght of password OK.",
+			ret.addSubresult(new OperationResult("Check global minimal length. Minimal length of password OK.",
 					OperationResultStatus.SUCCESS, "PASSED"));
 		}
 
 		// Test maximal length
 		if (lims.getMaxLength() < password.length()) {
 			ret.addSubresult(new OperationResult("Check global maximal length", OperationResultStatus.FATAL_ERROR,
-					"Required maximal size (" + lims.getMaxLength() + ") of password was exceeded (password lenght: "
+					"Required maximal size (" + lims.getMaxLength() + ") of password was exceeded (password length: "
 							+ password.length() + ")."));
 		} else {
-			ret.addSubresult(new OperationResult("Check global maximal length. Maximal lenght of password OK.",
+			ret.addSubresult(new OperationResult("Check global maximal length. Maximal length of password OK.",
 					OperationResultStatus.SUCCESS, "PASSED"));
 		}
 
