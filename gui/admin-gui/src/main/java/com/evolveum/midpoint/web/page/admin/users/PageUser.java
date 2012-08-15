@@ -219,7 +219,7 @@ public class PageUser extends PageAdminUsers {
 		add(mainForm);
 
 		PrismObjectPanel userForm = new PrismObjectPanel("userForm", userModel, new PackageResourceReference(
-				PageUser.class, "User.png"), mainForm) {
+				ImgResources.class, "User.png"), mainForm) {
 
 			@Override
 			protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
@@ -316,7 +316,7 @@ public class PageUser extends PageAdminUsers {
 				});
 
 				PrismObjectPanel account = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
-						item.getModel(), "object"), new PackageResourceReference(PageUser.class, "Hdd.png"),
+						item.getModel(), "object"), new PackageResourceReference(ImgResources.class, "Hdd.png"),
 						(Form) PageUser.this.get("mainForm")) {
 
 					@Override

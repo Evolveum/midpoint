@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.option.OptionContent;
@@ -151,7 +152,8 @@ public class PageContentAccounts extends PageAdminResources {
     private List<IColumn> initColumns() {
         List<IColumn> columns = new ArrayList<IColumn>();
 
-        IColumn column = new LinkColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.name"), "value.accountName") {
+        IColumn column = new LinkColumn<SelectableBean<AccountContentDto>>(
+                createStringResource("pageContentAccounts.name"), "value.accountName") {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
@@ -160,16 +162,17 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.identifiers")) {
+        column = new AbstractColumn<SelectableBean<AccountContentDto>>(
+                createStringResource("pageContentAccounts.identifiers")) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<AccountContentDto>>> cellItem, String componentId,
-                                     IModel<SelectableBean<AccountContentDto>> rowModel) {
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccountContentDto>>> cellItem,
+                                     String componentId, IModel<SelectableBean<AccountContentDto>> rowModel) {
 
                 AccountContentDto dto = rowModel.getObject().getValue();
                 List values = new ArrayList();
                 for (ResourceAttribute<?> attr : dto.getIdentifiers()) {
-                    values.add(attr.getName().getLocalPart() + ": " +attr.getRealValue());
+                    values.add(attr.getName().getLocalPart() + ": " + attr.getRealValue());
                 }
                 cellItem.add(new Label(componentId, new Model<String>(StringUtils.join(values, ", "))));
             }
@@ -219,6 +222,16 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
+        column = new ButtonColumn<SelectableBean<AccountContentDto>>(new Model<String>(),
+                createStringResource("pageContentAccounts.button.changeOwner")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
+                changeOwnerPerformed(target, rowModel);
+            }
+        };
+        columns.add(column);
+
         return columns;
     }
 
@@ -244,6 +257,10 @@ public class PageContentAccounts extends PageAdminResources {
         PageParameters parameters = new PageParameters();
         parameters.add(PageUser.PARAM_USER_ID, ownerOid);
         setResponsePage(PageUser.class, parameters);
+    }
+
+    private void changeOwnerPerformed(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
+        //todo implement
     }
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
