@@ -42,13 +42,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 
 /**
  * @author mserbak
  */
-public class UserChangesDto extends PageAdmin implements Serializable {
+public class UserChangesDto implements Serializable {
 	private List<SubmitDeltaObjectDto> assignmentsList = new ArrayList<SubmitDeltaObjectDto>();
 	private List<SubmitDeltaObjectDto> userPropertiesList = new ArrayList<SubmitDeltaObjectDto>();
 	private PrismObject oldUserObject;
