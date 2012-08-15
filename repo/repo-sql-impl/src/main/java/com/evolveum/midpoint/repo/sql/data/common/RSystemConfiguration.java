@@ -34,6 +34,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
@@ -48,7 +49,7 @@ public class RSystemConfiguration extends RObject {
     @QueryAttribute
     private String name;
     private String globalAccountSynchronizationSettings;
-    private RObjectReference globalPasswordPolicyRef;
+    private REmbeddedReference globalPasswordPolicyRef;
     private String modelHooks;
     private String logging;
     private RObjectReference defaultUserTemplateRef;
@@ -59,9 +60,9 @@ public class RSystemConfiguration extends RObject {
         return connectorFramework;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
+    @Embedded
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReference getGlobalPasswordPolicyRef() {
+    public REmbeddedReference getGlobalPasswordPolicyRef() {
 		return globalPasswordPolicyRef;
 	}
     
@@ -108,7 +109,7 @@ public class RSystemConfiguration extends RObject {
         this.globalAccountSynchronizationSettings = globalAccountSynchronizationSettings;
     }
 
-    public void setGlobalPasswordPolicyRef(RObjectReference globalPasswordPolicyRef) {
+    public void setGlobalPasswordPolicyRef(REmbeddedReference globalPasswordPolicyRef) {
 		this.globalPasswordPolicyRef = globalPasswordPolicyRef;
 	}
     
@@ -201,7 +202,7 @@ public class RSystemConfiguration extends RObject {
                     "translated to global password policy reference.");
         }
         
-        repo.setGlobalPasswordPolicyRef(RUtil.jaxbRefToRepo(jaxb.getGlobalPasswordPolicyRef(), repo, prismContext));
+        repo.setGlobalPasswordPolicyRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getGlobalPasswordPolicyRef(), prismContext));
 
         try {
             repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework(), prismContext));

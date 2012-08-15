@@ -26,7 +26,10 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -265,13 +268,26 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		
 		String systemCongigOid = "00000000-0000-0000-0000-000000000001";
 		PrismObject<AccountShadowType> fileSystemConfig = prismContext.parseObject(new File(TEST_DIR, "systemConfiguration.xml"));
+		LOGGER.info("System config from file: {}", fileSystemConfig.dump());
 		oid = repositoryService.addObject(fileSystemConfig, result);
 		AssertJUnit.assertNotNull(oid);
 		AssertJUnit.assertEquals(systemCongigOid, oid);
 		
 		PrismObject<SystemConfigurationType> repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, result);
 //		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicy());
+		LOGGER.info("System config from repo: {}", repoSystemConfig.dump());
+		AssertJUnit.assertNull("global password policy not null", repoSystemConfig.asObjectable().getGlobalPasswordPolicyRef());
+		
+		ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(), PrismReferenceValue.createFromTarget(repoPasswordPolicy));
+		List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+		refDeltas.add(refDelta);
+		repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
+		repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, result);
+		LOGGER.info("system config after modify: {}", repoSystemConfig.dump());
 		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicyRef());
+		AssertJUnit.assertNull("default user template not null", repoSystemConfig.asObjectable().getDefaultUserTemplateRef());
+		
+		
 	}
 
 	
