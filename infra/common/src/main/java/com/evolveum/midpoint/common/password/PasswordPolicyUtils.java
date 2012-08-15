@@ -244,6 +244,9 @@ public class PasswordPolicyUtils {
 			}
 
 			// Test minimal occurrence
+			if (l.getMinOccurs() == null){
+				l.setMinOccurs(0);
+			}
 			if (l.getMinOccurs() > count) {
 				limitResult.addSubresult(new OperationResult("Check minimal occurence of characters",
 						OperationResultStatus.FATAL_ERROR, "Required minimal occurence (" + l.getMinOccurs()
@@ -255,16 +258,23 @@ public class PasswordPolicyUtils {
 			}
 
 			// Test maximal occurrence
-			if (l.getMaxOccurs() < count) {
-				limitResult.addSubresult(new OperationResult("Check maximal occurence of characters",
-						OperationResultStatus.FATAL_ERROR, "Required maximal occurence (" + l.getMaxOccurs()
-								+ ") of characters in password was exceeded (occurence of characters in password "
-								+ count + ")."));
-			} else {
-				limitResult.addSubresult(new OperationResult("Check maximal occurence of characters in password OK.",
-						OperationResultStatus.SUCCESS, "PASSED"));
+			if (l.getMaxOccurs() != null) {
+
+				if (l.getMaxOccurs() < count) {
+					limitResult.addSubresult(new OperationResult("Check maximal occurence of characters",
+							OperationResultStatus.FATAL_ERROR, "Required maximal occurence (" + l.getMaxOccurs()
+									+ ") of characters in password was exceeded (occurence of characters in password "
+									+ count + ")."));
+				} else {
+					limitResult.addSubresult(new OperationResult(
+							"Check maximal occurence of characters in password OK.", OperationResultStatus.SUCCESS,
+							"PASSED"));
+				}
 			}
 			// test if first character is valid
+			if (l.isMustBeFirst() == null){
+				l.setMustBeFirst(false);
+			}
 			if (l.isMustBeFirst() && !validChars.contains(password.substring(0, 1))) {
 				limitResult.addSubresult(new OperationResult("Check valid first char",
 						OperationResultStatus.FATAL_ERROR, "First character is not from allowed set. Allowed set: "
