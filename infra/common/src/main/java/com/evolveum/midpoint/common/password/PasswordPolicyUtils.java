@@ -189,6 +189,9 @@ public class PasswordPolicyUtils {
 		LimitationsType lims = pp.getStringPolicy().getLimitations();
 
 		// Test minimal length
+		if (lims.getMinLength() == null){
+			lims.setMinLength(0);
+		}
 		if (lims.getMinLength() > password.length()) {
 			ret.addSubresult(new OperationResult("Check global minimal length", OperationResultStatus.FATAL_ERROR,
 					"Required minimal size (" + lims.getMinLength() + ") of password is not met (password length: "
@@ -199,31 +202,40 @@ public class PasswordPolicyUtils {
 		}
 
 		// Test maximal length
-		if (lims.getMaxLength() < password.length()) {
-			ret.addSubresult(new OperationResult("Check global maximal length", OperationResultStatus.FATAL_ERROR,
-					"Required maximal size (" + lims.getMaxLength() + ") of password was exceeded (password length: "
-							+ password.length() + ")."));
-		} else {
-			ret.addSubresult(new OperationResult("Check global maximal length. Maximal length of password OK.",
-					OperationResultStatus.SUCCESS, "PASSED"));
+		if (lims.getMaxLength() != null) {
+			if (lims.getMaxLength() < password.length()) {
+				ret.addSubresult(new OperationResult("Check global maximal length", OperationResultStatus.FATAL_ERROR,
+						"Required maximal size (" + lims.getMaxLength()
+								+ ") of password was exceeded (password length: " + password.length() + ")."));
+			} else {
+				ret.addSubresult(new OperationResult("Check global maximal length. Maximal length of password OK.",
+						OperationResultStatus.SUCCESS, "PASSED"));
+			}
 		}
-
 		// Test uniqueness criteria
 		HashSet<String> tmp = new HashSet<String>(StringPolicyUtils.stringTokenizer(password));
-		if (lims.getMinUniqueChars() > tmp.size()) {
-			ret.addSubresult(new OperationResult("Check minimal count of unique chars",
-					OperationResultStatus.FATAL_ERROR, "Required minimal count of unique characters ("
-							+ lims.getMinUniqueChars() + ") in password are not met (unique characters in password "
-							+ tmp.size() + ")"));
-		} else {
-			ret.addSubresult(new OperationResult("Check minimal count of unique chars. Password satisfies minimal required unique characters.", OperationResultStatus.SUCCESS,
-					"PASSED"));
+		if (lims.getMinUniqueChars() != null) {
+			if (lims.getMinUniqueChars() > tmp.size()) {
+				ret.addSubresult(new OperationResult("Check minimal count of unique chars",
+						OperationResultStatus.FATAL_ERROR, "Required minimal count of unique characters ("
+								+ lims.getMinUniqueChars()
+								+ ") in password are not met (unique characters in password " + tmp.size() + ")"));
+			} else {
+				ret.addSubresult(new OperationResult(
+						"Check minimal count of unique chars. Password satisfies minimal required unique characters.",
+						OperationResultStatus.SUCCESS, "PASSED"));
+			}
 		}
 
 		// check limitation
 		HashSet<String> allValidChars = new HashSet<String>(128);
 		ArrayList<String> validChars = null;
 		ArrayList<String> passwd = StringPolicyUtils.stringTokenizer(password);
+		
+		if (lims.getLimit() == null || lims.getLimit().isEmpty()){
+			ret.computeStatus();
+			return ret;
+		}
 		for (StringLimitType l : lims.getLimit()) {
 			OperationResult limitResult = new OperationResult("Tested limitation: " + l.getDescription());
 			if (null != l.getCharacterClass().getValue()) {
