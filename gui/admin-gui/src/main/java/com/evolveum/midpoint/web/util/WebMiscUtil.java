@@ -21,15 +21,26 @@
 
 package com.evolveum.midpoint.web.util;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 
@@ -38,6 +49,7 @@ import java.util.*;
  */
 public final class WebMiscUtil {
 
+    private static final Trace LOGGER = TraceManager.getTrace(WebMiscUtil.class);
     private static DatatypeFactory df = null;
 
     static {
@@ -112,6 +124,66 @@ public final class WebMiscUtil {
             country = localeString.substring(languageIndex + 1, countryIndex);
             String variant = localeString.substring(countryIndex + 1);
             return new Locale(language, country, variant);
+        }
+    }
+
+    public static void encryptCredentials(ObjectDelta delta, boolean encrypt, MidPointApplication app) {
+        if (delta == null || delta.isEmpty()) {
+            return;
+        }
+
+        PropertyDelta propertyDelta = delta.findPropertyDelta(new PropertyPath(
+                SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD,
+                PasswordType.F_PROTECTED_STRING));
+        if (propertyDelta == null) {
+            return;
+        }
+
+        Collection<PrismPropertyValue<ProtectedStringType>> values = propertyDelta
+                .getValues(ProtectedStringType.class);
+        for (PrismPropertyValue<ProtectedStringType> value : values) {
+            ProtectedStringType string = value.getValue();
+            encryptProtectedString(string, encrypt, app);
+        }
+    }
+
+    public static void encryptCredentials(PrismObject object, boolean encrypt, MidPointApplication app) {
+        PrismContainer password = object.findContainer(new PropertyPath(
+                SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD));
+        if (password == null) {
+            return;
+        }
+        PrismProperty protectedStringProperty = password.findProperty(PasswordType.F_PROTECTED_STRING);
+        if (protectedStringProperty == null
+                || protectedStringProperty.getRealValue(ProtectedStringType.class) == null) {
+            return;
+        }
+
+        ProtectedStringType string = (ProtectedStringType) protectedStringProperty
+                .getRealValue(ProtectedStringType.class);
+
+        encryptProtectedString(string, encrypt, app);
+    }
+
+    private static void encryptProtectedString(ProtectedStringType string, boolean encrypt, MidPointApplication app) {
+        if (string == null) {
+            return;
+        }
+        Protector protector = app.getProtector();
+        try {
+            if (encrypt) {
+                if (StringUtils.isEmpty(string.getClearValue())) {
+                    return;
+                }
+                protector.encrypt(string);
+            } else {
+                if (string.getEncryptedData() == null) {
+                    return;
+                }
+                protector.decrypt(string);
+            }
+        } catch (EncryptionException ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't encrypt protected string", ex);
         }
     }
 }

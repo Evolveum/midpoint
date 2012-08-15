@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,6 +30,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
@@ -36,17 +40,21 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -59,6 +67,7 @@ public class PageAccount extends PageAdminResources {
     private static final Trace LOGGER = TraceManager.getTrace(PageAccount.class);
     private static final String DOT_CLASS = PageAccount.class.getName() + ".";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
+    private static final String OPERATION_SAVE_ACCOUNT = DOT_CLASS + "saveAccount";
 
     private IModel<ObjectWrapper> accountModel;
 
@@ -120,6 +129,34 @@ public class PageAccount extends PageAdminResources {
             }
         };
         mainForm.add(userForm);
+
+        initButtons(mainForm);
+    }
+
+    private void initButtons(Form mainForm) {
+        AjaxSubmitLinkButton save = new AjaxSubmitLinkButton("save", ButtonType.POSITIVE,
+                createStringResource("pageAccount.button.save")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                savePerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(save);
+
+        AjaxLinkButton back = new AjaxLinkButton("back", createStringResource("pageAccount.button.back")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed(target);
+            }
+        };
+        mainForm.add(back);
     }
 
     private IModel<String> createSubtitle() {
@@ -138,5 +175,54 @@ public class PageAccount extends PageAdminResources {
                 return createStringResource("pageAccount.subtitle", resourceName).getString();
             }
         };
+    }
+
+    private void savePerformed(AjaxRequestTarget target) {
+        LOGGER.debug("Saving account changes.");
+
+        OperationResult result = new OperationResult(OPERATION_SAVE_ACCOUNT);
+        ObjectWrapper wrapper = accountModel.getObject();
+        try {
+            ObjectDelta<AccountShadowType> delta = wrapper.getObjectDelta();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
+            }
+
+            if (delta == null || delta.isEmpty()) {
+                return;
+            }
+            WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+
+            Task task = createSimpleTask(OPERATION_SAVE_ACCOUNT);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            deltas.add(delta);
+
+            getModelService().executeChanges(deltas, task, result);
+            result.recomputeStatus();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't save account.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't save account", ex);
+        }
+
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else {
+            showResultInSession(result);
+            returnToAccountList(wrapper.getObject().getOid());
+        }
+    }
+
+    private void cancelPerformed(AjaxRequestTarget target) {
+        PrismObject<AccountShadowType> account = accountModel.getObject().getObject();
+        ResourceType resource = account.asObjectable().getResource();
+
+        returnToAccountList(resource.getOid());
+    }
+
+    private void returnToAccountList(String oid) {
+        PageParameters parameters = new PageParameters();
+        parameters.add(PageContentAccounts.PARAM_RESOURCE_ID, oid);
+        setResponsePage(PageContentAccounts.class, parameters);
     }
 }

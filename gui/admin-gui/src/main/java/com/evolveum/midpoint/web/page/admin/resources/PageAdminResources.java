@@ -29,6 +29,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.util.PageVisibleDisabledBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.wicket.RestartResponseException;
@@ -61,6 +62,9 @@ public class PageAdminResources extends PageAdmin {
                 new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
         items.add(new BottomMenuItem("pageAdminResources.contentAccounts", PageContentAccounts.class,
                 new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
+        items.add(new BottomMenuItem("pageAdminResources.accountDetails", PageAccount.class,
+                new PageVisibleDisabledBehaviour(this, PageAccount.class)));
+
         return items;
     }
 

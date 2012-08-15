@@ -781,7 +781,7 @@ public class PageUser extends PageAdminUsers {
 				if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty()) {
 					continue;
 				}
-				encryptCredentials(delta, true);
+                WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
 
 				subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
 				Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
@@ -826,7 +826,7 @@ public class PageUser extends PageAdminUsers {
 					// SubmitObjectStatus.ADDING));
 					continue;
 				}
-				encryptCredentials(delta, true);
+                WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
 
 				subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
 				Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
@@ -865,7 +865,7 @@ public class PageUser extends PageAdminUsers {
 			ObjectWrapper accountWrapper = accDto.getObject();
 			ObjectDelta delta = accountWrapper.getObjectDelta();
 			PrismObject<AccountShadowType> account = delta.getObjectToAdd();
-			encryptCredentials(account, true);
+            WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
 
 			userType.getAccount().add(account.asObjectable());
 		}
@@ -896,7 +896,7 @@ public class PageUser extends PageAdminUsers {
 			switch (accDto.getStatus()) {
 				case ADD:
 					account = delta.getObjectToAdd();
-					encryptCredentials(account, true);
+                    WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
 					refValue.setObject(account);
 					refDelta.addValueToAdd(refValue);
 					break;
@@ -994,7 +994,7 @@ public class PageUser extends PageAdminUsers {
 			switch (userWrapper.getStatus()) {
 				case ADDING:
 					PrismObject<UserType> user = delta.getObjectToAdd();
-					encryptCredentials(user, true);
+                    WebMiscUtil.encryptCredentials(user, true, getMidpointApplication());
 					prepareUserForAdd(user);
 					getPrismContext().adopt(user, UserType.class);
 					if (LOGGER.isTraceEnabled()) {
@@ -1009,7 +1009,7 @@ public class PageUser extends PageAdminUsers {
 					// result.recordSuccess();
 					break;
 				case MODIFYING:
-					encryptCredentials(delta, true);
+                    WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
 					prepareUserDeltaForModify(delta);
 
 					if (LOGGER.isTraceEnabled()) {
@@ -1071,7 +1071,7 @@ public class PageUser extends PageAdminUsers {
 						break;
 					}
 					PrismObject<UserType> user = delta.getObjectToAdd();
-					encryptCredentials(user, true);
+					WebMiscUtil.encryptCredentials(user, true, getMidpointApplication());
 					prepareUserForAdd(user);
 					getPrismContext().adopt(user, UserType.class);
 					deltas.add(delta);
@@ -1079,7 +1079,7 @@ public class PageUser extends PageAdminUsers {
 					result.recordSuccess();
 					break;
 				case MODIFYING:
-					encryptCredentials(delta, true);
+					WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
 					prepareUserDeltaForModify(delta);
 					deltas.add(delta);
 					changes = getModelInteractionService().previewChanges(deltas, result);
@@ -1104,67 +1104,6 @@ public class PageUser extends PageAdminUsers {
 			// PageSubmit page = new PageSubmit(deltaComponent, accountsDeltas);
 			PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta);
 			setResponsePage(pageSubmit);
-		}
-	}
-
-	private void encryptCredentials(ObjectDelta delta, boolean encrypt) {
-		if (delta == null || delta.isEmpty()) {
-			return;
-		}
-
-		PropertyDelta propertyDelta = delta.findPropertyDelta(new PropertyPath(
-				SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD,
-				PasswordType.F_PROTECTED_STRING));
-		if (propertyDelta == null) {
-			return;
-		}
-
-		Collection<PrismPropertyValue<ProtectedStringType>> values = propertyDelta
-				.getValues(ProtectedStringType.class);
-		for (PrismPropertyValue<ProtectedStringType> value : values) {
-			ProtectedStringType string = value.getValue();
-			encryptProtectedString(string, encrypt);
-		}
-	}
-
-	private void encryptCredentials(PrismObject object, boolean encrypt) {
-		PrismContainer password = object.findContainer(new PropertyPath(
-				SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD));
-		if (password == null) {
-			return;
-		}
-		PrismProperty protectedStringProperty = password.findProperty(PasswordType.F_PROTECTED_STRING);
-		if (protectedStringProperty == null
-				|| protectedStringProperty.getRealValue(ProtectedStringType.class) == null) {
-			return;
-		}
-
-		ProtectedStringType string = (ProtectedStringType) protectedStringProperty
-				.getRealValue(ProtectedStringType.class);
-
-		encryptProtectedString(string, encrypt);
-	}
-
-	private void encryptProtectedString(ProtectedStringType string, boolean encrypt) {
-		if (string == null) {
-			return;
-		}
-		MidPointApplication application = getMidpointApplication();
-		Protector protector = application.getProtector();
-		try {
-			if (encrypt) {
-				if (StringUtils.isEmpty(string.getClearValue())) {
-					return;
-				}
-				protector.encrypt(string);
-			} else {
-				if (string.getEncryptedData() == null) {
-					return;
-				}
-				protector.decrypt(string);
-			}
-		} catch (EncryptionException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't encrypt protected string", ex);
 		}
 	}
 
