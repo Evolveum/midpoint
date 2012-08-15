@@ -83,31 +83,12 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
             Task task = getPage().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
 
             QueryType query = QueryUtil.createResourceAndAccountQuery(getResourceOid(), getObjectClass(), null);
-            List<PrismObject<AccountShadowType>> list = getModel().searchObjects(AccountShadowType.class, query, paging, task, result);
+            List<PrismObject<AccountShadowType>> list = getModel().searchObjects(AccountShadowType.class,
+                    query, paging, task, result);
 
             AccountContentDto dto;
             for (PrismObject<AccountShadowType> object : list) {
-
-                dto = new AccountContentDto();
-                dto.setAccountName(WebMiscUtil.getName(object));
-                dto.setAccountOid(object.getOid());
-
-                Collection<ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(object);
-                if (identifiers != null) {
-                    List<ResourceAttribute<?>> idList = new ArrayList<ResourceAttribute<?>>();
-                    idList.addAll(identifiers);
-                    dto.setIdentifiers(idList);
-                }
-
-                PrismObject<UserType> owner = loadOwner(dto.getAccountOid(), result);
-                if (owner != null) {
-                    dto.setOwnerName(WebMiscUtil.getName(owner));
-                    dto.setOwnerOid(owner.getOid());
-                }
-
-                dto.setSituation(WebMiscUtil.getValue(object, ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION,
-                        SynchronizationSituationType.class));
-
+                dto = createAccountContentDto(object, result);
                 getAvailableData().add(new SelectableBean<AccountContentDto>(dto));
             }
 
@@ -128,6 +109,32 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
     @Override
     protected int internalSize() {
         return Integer.MAX_VALUE;
+    }
+
+    private AccountContentDto createAccountContentDto(PrismObject<AccountShadowType> object, OperationResult result)
+            throws SchemaException, SecurityViolationException {
+
+        AccountContentDto dto = new AccountContentDto();
+        dto.setAccountName(WebMiscUtil.getName(object));
+        dto.setAccountOid(object.getOid());
+
+        Collection<ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(object);
+        if (identifiers != null) {
+            List<ResourceAttribute<?>> idList = new ArrayList<ResourceAttribute<?>>();
+            idList.addAll(identifiers);
+            dto.setIdentifiers(idList);
+        }
+
+        PrismObject<UserType> owner = loadOwner(dto.getAccountOid(), result);
+        if (owner != null) {
+            dto.setOwnerName(WebMiscUtil.getName(owner));
+            dto.setOwnerOid(owner.getOid());
+        }
+
+        dto.setSituation(WebMiscUtil.getValue(object, ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION,
+                SynchronizationSituationType.class));
+
+        return dto;
     }
 
     private PrismObject<UserType> loadOwner(String accountOid, OperationResult result)

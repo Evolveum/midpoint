@@ -46,7 +46,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
@@ -157,7 +156,8 @@ public class PageContentAccounts extends PageAdminResources {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
-                accountDetailsPerformed();
+                AccountContentDto dto = rowModel.getObject().getValue();
+                accountDetailsPerformed(target, dto.getAccountName(), dto.getAccountOid());
             }
         };
         columns.add(column);
@@ -271,7 +271,15 @@ public class PageContentAccounts extends PageAdminResources {
         //todo implement
     }
 
-    private void accountDetailsPerformed() {
-        //todo implement
+    private void accountDetailsPerformed(AjaxRequestTarget target, String accountName, String accountOid) {
+        if (StringUtils.isEmpty(accountOid)) {
+            error(getString("pageContentAccounts.message.cantShowAccountDetails", accountName, accountOid));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        PageParameters parameters = new PageParameters();
+        parameters.add(PageAccount.PARAM_ACCOUNT_ID, accountOid);
+        setResponsePage(PageAccount.class, parameters);
     }
 }
