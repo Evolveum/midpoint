@@ -57,8 +57,20 @@ function initTable(){
 			$(this).parents(".sortedTable").find("tbody").find("td").css("background","#d8f4d8");
 			$(this).parents(".sortedTable").find("tbody").find("td").css("border-color","#FFFFFF");
 		} else {
-			$(this).parents(".sortedTable").find("tbody").find("td").css("background","#FFFFFF");
-			$(this).parents(".sortedTable").find("tbody").find("td").css("border-color","#F2F2F2");
+			$(this).parents(".sortedTable").find("tbody").find("tr").each(function() {
+				var deleted = false;
+				$(this).find("img").each(function() {
+					if($(this).attr("class") == "deletedValue") {
+						deleted = true;
+					}
+				});
+				if(deleted) {
+					$(this).find("td").css(cssDeletedValue);
+				} else {
+					$(this).find("td").css("background","#FFFFFF");
+					$(this).find("td").css("border-color","#F2F2F2");
+				}
+			});
 			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
 		}
 	});

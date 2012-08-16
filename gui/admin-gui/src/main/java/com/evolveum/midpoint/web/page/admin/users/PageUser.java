@@ -28,6 +28,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,8 +54,6 @@ import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -62,20 +61,16 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -101,25 +96,20 @@ import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
@@ -219,7 +209,7 @@ public class PageUser extends PageAdminUsers {
 		add(mainForm);
 
 		PrismObjectPanel userForm = new PrismObjectPanel("userForm", userModel, new PackageResourceReference(
-				ImgResources.class, "User.png"), mainForm) {
+				ImgResources.class, "user_prism.png"), mainForm) {
 
 			@Override
 			protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
@@ -321,17 +311,10 @@ public class PageUser extends PageAdminUsers {
 
 			@Override
 			protected void populateItem(final ListItem<UserAccountDto> item) {
-				item.add(new VisibleEnableBehaviour() {
-
-					@Override
-					public boolean isVisible() {
-						return !UserDtoStatus.DELETE.equals(item.getModelObject().getStatus());
-					}
-				});
 
 				PrismObjectPanel account = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
-						item.getModel(), "object"), new PackageResourceReference(ImgResources.class, "Hdd.png"),
-						(Form) PageUser.this.get("mainForm")) {
+						item.getModel(), "object"), new PackageResourceReference(ImgResources.class,
+						"hdd_prism.png"), (Form) PageUser.this.get("mainForm")) {
 
 					@Override
 					protected Panel createOperationPanel(String id) {
@@ -486,6 +469,23 @@ public class PageUser extends PageAdminUsers {
 					}
 				};
 			}
+
+			@Override
+			protected IModel<AttributeModifier> createAttribute(final IModel<UserAssignmentDto> rowModel) {
+				return new AbstractReadOnlyModel<AttributeModifier>() {
+
+					@Override
+					public AttributeModifier getObject() {
+						UserAssignmentDto dto = rowModel.getObject();
+
+						if (UserDtoStatus.DELETE.equals(dto.getStatus())) {
+							return new AttributeModifier("class", "deletedValue");
+						}
+						return new AttributeModifier("", "");
+					}
+				};
+			}
+
 		});
 		columns.add(new PropertyColumn(createStringResource("pageUser.assignment.name"), "name", "name"));
 		columns.add(new AbstractColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.active")) {
@@ -781,7 +781,7 @@ public class PageUser extends PageAdminUsers {
 				if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty()) {
 					continue;
 				}
-                WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+				WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
 
 				subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
 				Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
@@ -826,7 +826,7 @@ public class PageUser extends PageAdminUsers {
 					// SubmitObjectStatus.ADDING));
 					continue;
 				}
-                WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+				WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
 
 				subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
 				Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
@@ -865,7 +865,7 @@ public class PageUser extends PageAdminUsers {
 			ObjectWrapper accountWrapper = accDto.getObject();
 			ObjectDelta delta = accountWrapper.getObjectDelta();
 			PrismObject<AccountShadowType> account = delta.getObjectToAdd();
-            WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
+			WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
 
 			userType.getAccount().add(account.asObjectable());
 		}
@@ -896,7 +896,7 @@ public class PageUser extends PageAdminUsers {
 			switch (accDto.getStatus()) {
 				case ADD:
 					account = delta.getObjectToAdd();
-                    WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
+					WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
 					refValue.setObject(account);
 					refDelta.addValueToAdd(refValue);
 					break;
@@ -994,7 +994,7 @@ public class PageUser extends PageAdminUsers {
 			switch (userWrapper.getStatus()) {
 				case ADDING:
 					PrismObject<UserType> user = delta.getObjectToAdd();
-                    WebMiscUtil.encryptCredentials(user, true, getMidpointApplication());
+					WebMiscUtil.encryptCredentials(user, true, getMidpointApplication());
 					prepareUserForAdd(user);
 					getPrismContext().adopt(user, UserType.class);
 					if (LOGGER.isTraceEnabled()) {
@@ -1009,7 +1009,7 @@ public class PageUser extends PageAdminUsers {
 					// result.recordSuccess();
 					break;
 				case MODIFYING:
-                    WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+					WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
 					prepareUserDeltaForModify(delta);
 
 					if (LOGGER.isTraceEnabled()) {
@@ -1052,7 +1052,7 @@ public class PageUser extends PageAdminUsers {
 		OperationResult result = new OperationResult(OPERATION_SEND_TO_SUBMIT);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		modifyAccounts2(result, deltas);
-		
+
 		ObjectWrapper userWrapper = userModel.getObject();
 		ObjectDelta delta = null;
 		ModelContext changes = null;
@@ -1295,8 +1295,10 @@ public class PageUser extends PageAdminUsers {
 				assignments.remove(assignment);
 			} else {
 				assignment.setStatus(UserDtoStatus.DELETE);
+				assignment.setSelected(false);
 			}
 		}
+		target.appendJavaScript("window.location.reload()");
 		target.add(getAssignmentAccordionItem());
 	}
 
@@ -1333,6 +1335,7 @@ public class PageUser extends PageAdminUsers {
 		} else {
 			account.setStatus(UserDtoStatus.DELETE);
 		}
+		target.appendJavaScript("window.location.reload()");
 		target.add(getAccountsAccordionItem());
 	}
 
