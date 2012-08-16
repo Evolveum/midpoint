@@ -22,11 +22,8 @@
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,14 +39,20 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
+import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -61,15 +64,16 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_OWNER = DOT_CLASS + "loadOwner";
 
-    private IModel<PrismObject<ResourceType>> model;
-    private String resourceOid;
-    private QName objectClass;
+    private IModel<String> resourceOid;
+    private IModel<QName> objectClass;
 
-    public AccountContentDataProvider(PageBase page, IModel<PrismObject<ResourceType>> model) {
+    public AccountContentDataProvider(PageBase page, IModel<String> resourceOid, IModel<QName> objectClass) {
         super(page);
 
-        Validate.notNull(model, "Model with resource object must not be null.");
-        this.model = model;
+        Validate.notNull(resourceOid, "Resource oid model must not be null.");
+        Validate.notNull(objectClass, "Object class model must not be null.");
+        this.resourceOid = resourceOid;
+        this.objectClass = objectClass;
     }
 
     @Override
@@ -82,7 +86,20 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
             PagingType paging = createPaging(first, count);
             Task task = getPage().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
 
-            QueryType query = QueryUtil.createResourceAndAccountQuery(getResourceOid(), getObjectClass(), null);
+            QueryType baseQuery = QueryUtil.createResourceAndAccountQuery(resourceOid.getObject(), objectClass.getObject(), null);
+            QueryType query = getQuery();
+            if (query != null) {
+                Element baseFilter = baseQuery.getFilter();
+                Element filter = query.getFilter();
+
+                query = new QueryType();
+                Element andFilter = QueryUtil.createAndFilter(filter.getOwnerDocument(), baseFilter, filter);
+                query.setFilter(andFilter);
+            } else {
+                query = baseQuery;
+            }
+
+//            System.out.println(((MidPointApplication) getPage().getApplication()).getPrismContext().silentMarshalObject(query, LOGGER));
             List<PrismObject<AccountShadowType>> list = getModel().searchObjects(AccountShadowType.class,
                     query, paging, task, result);
 
@@ -148,38 +165,6 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
             //owner was not found, it's possible and it's ok on unlinked accounts
         }
         return null;
-    }
-
-    private String getResourceOid() {
-        if (StringUtils.isNotEmpty(resourceOid)) {
-            return resourceOid;
-        }
-
-        PrismObject<ResourceType> resource = this.model.getObject();
-        resourceOid = resource.getOid();
-
-        return resourceOid;
-    }
-
-    private QName getObjectClass() throws SchemaException {
-        if (objectClass != null) {
-            return objectClass;
-        }
-
-        MidPointApplication application = (MidPointApplication) getPage().getApplication();
-        PrismObject<ResourceType> resource = this.model.getObject();
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, application.getPrismContext());
-        Collection<ObjectClassComplexTypeDefinition> list = resourceSchema.getObjectClassDefinitions();
-        if (list != null) {
-            for (ObjectClassComplexTypeDefinition def : list) {
-                if (def.isDefaultAccountType()) {
-                    this.objectClass = def.getTypeName();
-                    break;
-                }
-            }
-        }
-
-        return objectClass;
     }
 
     @Override

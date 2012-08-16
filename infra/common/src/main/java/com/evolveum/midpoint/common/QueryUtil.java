@@ -219,6 +219,8 @@ public class QueryUtil {
         Element logical = doc.createElementNS(filterName.getNamespaceURI(), filterName.getLocalPart());
         for (Element condition : conditions) {
             Validate.notNull(condition);
+
+            doc.adoptNode(condition);
             logical.appendChild(condition);
         }
 

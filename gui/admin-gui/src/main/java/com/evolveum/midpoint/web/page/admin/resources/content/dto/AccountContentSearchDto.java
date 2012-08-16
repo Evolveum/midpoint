@@ -29,30 +29,30 @@ import java.io.Serializable;
 public class AccountContentSearchDto implements Serializable {
 
     private String searchText;
-    private boolean accountName = true;
-    private boolean ownerName;
-
-    public boolean isAccountName() {
-        return accountName;
-    }
-
-    public boolean isOwnerName() {
-        return ownerName;
-    }
+    private boolean name = true;
+    private boolean identifiers;
 
     public String getSearchText() {
         return searchText;
     }
 
-    public void setAccountName(boolean accountName) {
-        this.accountName = accountName;
-    }
-
-    public void setOwnerName(boolean ownerName) {
-        this.ownerName = ownerName;
-    }
-
     public void setSearchText(String searchText) {
         this.searchText = searchText;
+    }
+
+    public boolean isIdentifiers() {
+        return identifiers;
+    }
+
+    public void setIdentifiers(boolean identifiers) {
+        this.identifiers = identifiers;
+    }
+
+    public boolean isName() {
+        return name;
+    }
+
+    public void setName(boolean name) {
+        this.name = name;
     }
 }

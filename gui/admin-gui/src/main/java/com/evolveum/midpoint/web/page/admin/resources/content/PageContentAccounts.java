@@ -21,8 +21,22 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
@@ -38,12 +52,16 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContent
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDto;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -52,8 +70,13 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -61,8 +84,9 @@ import java.util.List;
  */
 public class PageContentAccounts extends PageAdminResources {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageContentAccounts.class);
     private IModel<PrismObject<ResourceType>> resourceModel;
-    private IModel<AccountContentSearchDto> model;
+    private LoadableModel<AccountContentSearchDto> model;
 
     public PageContentAccounts() {
         resourceModel = new LoadableModel<PrismObject<ResourceType>>(false) {
@@ -105,9 +129,9 @@ public class PageContentAccounts extends PageAdminResources {
         TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(model, "searchText"));
         item.add(search);
 
-        CheckBox nameCheck = new CheckBox("accountNameCheck", new PropertyModel<Boolean>(model, "accountName"));
+        CheckBox nameCheck = new CheckBox("nameCheck", new PropertyModel<Boolean>(model, "name"));
         item.add(nameCheck);
-        CheckBox fullNameCheck = new CheckBox("ownerNameCheck", new PropertyModel<Boolean>(model, "ownerName"));
+        CheckBox fullNameCheck = new CheckBox("identifiersCheck", new PropertyModel<Boolean>(model, "identifiers"));
         item.add(fullNameCheck);
 
         AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
@@ -143,7 +167,8 @@ public class PageContentAccounts extends PageAdminResources {
 
     private void initTable(OptionContent content) {
         List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel("table", new AccountContentDataProvider(this, resourceModel), columns);
+        TablePanel table = new TablePanel("table", new AccountContentDataProvider(this,
+                new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel()), columns);
         table.setOutputMarkupId(true);
         content.getBodyContainer().add(table);
     }
@@ -264,11 +289,111 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
-        //todo implement
+        model.reset();
+
+        target.add(get("mainForm:option"));
+        searchPerformed(target);
+    }
+
+    private TablePanel getTable() {
+        OptionContent content = (OptionContent) get("mainForm:optionContent");
+        return (TablePanel) content.getBodyContainer().get("table");
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
-        //todo implement
+        QueryType query = createQuery();
+
+        TablePanel panel = getTable();
+        DataTable table = panel.getDataTable();
+        AccountContentDataProvider provider = (AccountContentDataProvider) table.getDataProvider();
+        provider.setQuery(query);
+        table.setCurrentPage(0);
+
+        target.add(panel);
+        target.add(getFeedbackPanel());
+    }
+
+    private QueryType createQuery() {
+        AccountContentSearchDto dto = model.getObject();
+        if (StringUtils.isEmpty(dto.getSearchText())) {
+            return null;
+        }
+
+        try {
+            QueryType query = new QueryType();
+            Document document = DOMUtil.getDocument();
+
+            List<Element> conditions = new ArrayList<Element>();
+            if (dto.isIdentifiers()) {
+                ObjectClassComplexTypeDefinition def = getAccountDefinition();
+                List<ResourceAttributeDefinition> identifiers = new ArrayList<ResourceAttributeDefinition>();
+                if (def.getIdentifiers() != null) {
+                    identifiers.addAll(def.getIdentifiers());
+                }
+//                if (def.getSecondaryIdentifiers() != null) {
+//                    identifiers.addAll(def.getIdentifiers());
+//                }
+                XPathHolder attributes = new XPathHolder(Arrays.asList(new XPathSegment(SchemaConstants.I_ATTRIBUTES)));
+                for (ResourceAttributeDefinition attrDef : identifiers) {
+                    conditions.add(QueryUtil.createSubstringFilter(document, attributes, attrDef.getName(), dto.getSearchText()));
+                }
+            }
+
+            if (dto.isName()) {
+                conditions.add(QueryUtil.createSubstringFilter(document, null, ObjectType.F_NAME, dto.getSearchText()));
+            }
+
+            if (!conditions.isEmpty()) {
+                query = new QueryType();
+                if (conditions.size() > 1) {
+                    query.setFilter(QueryUtil.createOrFilter(document, conditions.toArray(new Element[conditions.size()])));
+                } else {
+                    query.setFilter(conditions.get(0));
+                }
+            }
+
+            return query;
+        } catch (Exception ex) {
+            error(getString("pageUsers.message.queryError") + " " + ex.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
+        }
+
+        return null;
+    }
+
+    private IModel<QName> createObjectClassModel() {
+        return new LoadableModel<QName>(false) {
+
+            @Override
+            protected QName load() {
+                try {
+                    return getObjectClassDefinition();
+                } catch (Exception ex) {
+                    throw new SystemException(ex.getMessage(), ex);
+                }
+            }
+        };
+    }
+
+    private QName getObjectClassDefinition() throws SchemaException {
+        ObjectClassComplexTypeDefinition def = getAccountDefinition();
+        return def != null ? def.getTypeName() : null;
+    }
+
+    private ObjectClassComplexTypeDefinition getAccountDefinition() throws SchemaException {
+        MidPointApplication application = (MidPointApplication) getApplication();
+        PrismObject<ResourceType> resource = resourceModel.getObject();
+        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, application.getPrismContext());
+        Collection<ObjectClassComplexTypeDefinition> list = resourceSchema.getObjectClassDefinitions();
+        if (list != null) {
+            for (ObjectClassComplexTypeDefinition def : list) {
+                if (def.isDefaultAccountType()) {
+                    return def;
+                }
+            }
+        }
+
+        return null;
     }
 
     private void accountDetailsPerformed(AjaxRequestTarget target, String accountName, String accountOid) {
