@@ -26,11 +26,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -73,20 +79,56 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 	}
 
 	private boolean getChanges(SubmitResourceDto resource, ObjectDelta delta, boolean secondaryValue) {
+		// Return true if modification is delete
+		
 		if (delta == null) {
 			return false;
 		} else if (delta.getChangeType().equals(ChangeType.DELETE)) {
 			if (prismAccountsInSession == null) {
-				addAccountFromResource(new SubmitResourceDto(oldAccountObject, false));
+				addAccountFromResourceForDelete(new SubmitResourceDto(oldAccountObject, false));
 			} else {
 				for (PrismObject account : prismAccountsInSession) {
-					addAccountFromResource(new SubmitResourceDto(account, false));
+					addAccountFromResourceForDelete(new SubmitResourceDto(account, false));
 				}
 			}
 			return true;
-		} else if (!delta.getChangeType().equals(ChangeType.MODIFY)) {
+		} else if (delta.getChangeType().equals(ChangeType.ADD)) {
+			
+			List<SubmitAccountChangesDto> values = new ArrayList<SubmitAccountChangesDto>();
+			for(Object value : delta.getObjectToAdd().getValues()) {
+				PrismContainerValue prismValue = (PrismContainerValue) value;
+				ItemDelta modifyDelta;
+				for (Object itemObject : prismValue.getItems()) {
+					Item item = (Item) itemObject;
+					if(item instanceof PrismContainer) {
+						PrismContainer containerItem = (PrismContainer) item;
+						
+						for (Object objectValue : containerItem.getValues()) {
+							PrismContainerValue containerValue = (PrismContainerValue) objectValue;
+							
+							for (Object objectProperty : containerValue.getItems()) {
+								PrismProperty propertyValue = (PrismProperty) objectProperty;
+								values.add(new SubmitAccountChangesDto(propertyValue.getValue(), SubmitStatus.ADDING));
+								PrismPropertyDefinition def = propertyValue.getDefinition();
+								//propertyValue.createDelta()
+								//modifyDelta = new ItemDelta(propertyValue.getDefinition());
+								//
+							}
+							
+							//modifyDelta = new ItemDelta();
+						}
+						//PrismPropertyValue propertyValue = new PrismPropertyValue(propertyItem.getDefinition());
+						//values.add(new SubmitAccountChangesDto(propertyValue, SubmitStatus.ADDING));
+					}
+				}
+				
+			}
+//			if (!values.isEmpty()) {
+//				//getDeltasFromAccount(resource, values, modifyDelta, secondaryValue);
+//			}
 			return false;
 		}
+		
 		for (Object modification : delta.getModifications()) {
 			ItemDelta modifyDelta = (ItemDelta) modification;
 
@@ -120,7 +162,9 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 		return false;
 	}
 	
-	private void addAccountFromResource(SubmitResourceDto resourceDto) {
+	
+	
+	private void addAccountFromResourceForDelete(SubmitResourceDto resourceDto) {
 		SubmitAccountDto submitedAccount = new SubmitAccountDto(resourceDto.getResourceName(),
 				getString("schema.objectTypes.account"), resourceDto.getName(), "", false);
 		if (!accountChangesList.contains(submitedAccount)) {
