@@ -197,6 +197,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		if (ObjectOperationOption.hasOption(options, ObjectOperationOption.NO_FETCH)) {
+			result.recordSuccess();
 			return repositoryObject;
 		}
 

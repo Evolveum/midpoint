@@ -520,112 +520,106 @@ public class ContextLoader {
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
 			SecurityViolationException {
 
-		OperationResult subResult = result.createSubresult(ContextLoader.class.getName()
-				+ ".checkProjectionContexts");
-		try {
-			for (LensProjectionContext<P> projContext : context.getProjectionContexts()) {
-				
-				// Remember OID before the object could be wiped
-				String projectionObjectOid = projContext.getOid();
-				if (projContext.isDoReconciliation() && !projContext.isFullShadow()) {
-					// The old object is useless here. So lets just wipe it so it will get loaded
-					projContext.setObjectOld(null);
-				}
-				
-				// Load old object
-				PrismObject<P> projectionObject = projContext.getObjectOld();
-				if (projContext.getObjectOld() != null) {
-					projectionObject = projContext.getObjectOld();
+		for (LensProjectionContext<P> projContext : context.getProjectionContexts()) {
+			
+			// Remember OID before the object could be wiped
+			String projectionObjectOid = projContext.getOid();
+			if (projContext.isDoReconciliation() && !projContext.isFullShadow()) {
+				// The old object is useless here. So lets just wipe it so it will get loaded
+				projContext.setObjectOld(null);
+			}
+			
+			// Load old object
+			PrismObject<P> projectionObject = projContext.getObjectOld();
+			if (projContext.getObjectOld() != null) {
+				projectionObject = projContext.getObjectOld();
+			} else {
+				if (projContext.isAdd()) {
+					// No need to load old object, there is none
+					projContext.recompute();
+					projectionObject = projContext.getObjectNew();
 				} else {
-					if (projContext.isAdd()) {
-						// No need to load old object, there is none
-						projContext.recompute();
-						projectionObject = projContext.getObjectNew();
-					} else {
-						if (projectionObjectOid == null) {
-							if (projContext.getResourceShadowDiscriminator() == null || projContext.getResourceShadowDiscriminator().getResourceOid() == null) {								
-								throw new SystemException(
-										"Projection with null OID, no representation and no resource OID in account sync context "+projContext);
-							}
-						} else {
-							Collection<ObjectOperationOption> options = null;
-							if (projContext.isDoReconciliation()) {
-								projContext.setFullShadow(true);
-							} else {
-								projContext.setFullShadow(false);
-								options = MiscUtil.createCollection(ObjectOperationOption.NO_FETCH);
-							}
-							PrismObject<P> objectOld = provisioningService.getObject(
-									projContext.getObjectTypeClass(), projectionObjectOid, options, subResult);
-							projContext.setObjectOld(objectOld);
-							projectionObject = objectOld;
-						}
-					}
-				}
-				
-				Class<P> projClass = projContext.getObjectTypeClass();
-				if (ResourceObjectShadowType.class.isAssignableFrom(projClass)) {
-				
-					// Determine Resource
-					ResourceType resourceType = projContext.getResource();
-					String resourceOid = null;
-					if (resourceType == null) {
-						if (projectionObject != null) {
-							ResourceObjectShadowType shadowType = ((PrismObject<ResourceObjectShadowType>)projectionObject).asObjectable();
-							resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
-						} else if (projContext.getResourceShadowDiscriminator() != null) {
-							resourceOid = projContext.getResourceShadowDiscriminator().getResourceOid();
-						} else {
-							throw new IllegalStateException("No shadow and no resource intent means no resource OID in "+projContext);
+					if (projectionObjectOid == null) {
+						if (projContext.getResourceShadowDiscriminator() == null || projContext.getResourceShadowDiscriminator().getResourceOid() == null) {								
+							throw new SystemException(
+									"Projection with null OID, no representation and no resource OID in account sync context "+projContext);
 						}
 					} else {
-						resourceOid = resourceType.getOid();
-					}
-					
-					// Determine RAT
-					ResourceShadowDiscriminator discr = projContext.getResourceShadowDiscriminator();
-					if (discr == null) {
-						if (AccountShadowType.class.isAssignableFrom(projClass)) {
-							AccountShadowType accountShadowType = ((PrismObject<AccountShadowType>)projectionObject).asObjectable();
-							String intent = ResourceObjectShadowUtil.getIntent(accountShadowType);
-							discr = new ResourceShadowDiscriminator(resourceOid, intent);
-							projContext.setResourceShadowDiscriminator(discr);
-							
+						Collection<ObjectOperationOption> options = null;
+						if (projContext.isDoReconciliation()) {
+							projContext.setFullShadow(true);
+						} else {
+							projContext.setFullShadow(false);
+							options = MiscUtil.createCollection(ObjectOperationOption.NO_FETCH);
 						}
+						PrismObject<P> objectOld = provisioningService.getObject(
+								projContext.getObjectTypeClass(), projectionObjectOid, options, result);
+						projContext.setObjectOld(objectOld);
+						projectionObject = objectOld;
 					}
-					
-					
-					// Load resource
-					if (resourceType == null) {
-						resourceType = context.getResource(resourceOid);
-						if (resourceType == null) {
-							PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
-							resourceType = resource.asObjectable();
-							context.rememberResource(resourceType);
-						}
-						projContext.setResource(resourceType);
-					}
-					
-					
-					projContext.fixShadows();
-					
-					//Determine refined schema and password policies for account type
-					RefinedAccountDefinition rad = projContext.getRefinedAccountDefinition();
-					if (rad != null && AccountShadowType.class.isAssignableFrom(projClass)) {
-						ObjectReferenceType passwordPolicyRef = rad.getPasswordPolicy();
-						if (passwordPolicyRef != null && passwordPolicyRef.getOid() != null) {
-							PrismObject<PasswordPolicyType> passwordPolicy = cacheRepositoryService.getObject(
-									PasswordPolicyType.class, passwordPolicyRef.getOid(), result);
-							if (passwordPolicy != null) {
-								projContext.setAccountPasswordPolicy(passwordPolicy.asObjectable());
-							}
-						}
-					}
-					
 				}
 			}
-		} finally {
-			subResult.computeStatus();
+			
+			Class<P> projClass = projContext.getObjectTypeClass();
+			if (ResourceObjectShadowType.class.isAssignableFrom(projClass)) {
+			
+				// Determine Resource
+				ResourceType resourceType = projContext.getResource();
+				String resourceOid = null;
+				if (resourceType == null) {
+					if (projectionObject != null) {
+						ResourceObjectShadowType shadowType = ((PrismObject<ResourceObjectShadowType>)projectionObject).asObjectable();
+						resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
+					} else if (projContext.getResourceShadowDiscriminator() != null) {
+						resourceOid = projContext.getResourceShadowDiscriminator().getResourceOid();
+					} else {
+						throw new IllegalStateException("No shadow and no resource intent means no resource OID in "+projContext);
+					}
+				} else {
+					resourceOid = resourceType.getOid();
+				}
+				
+				// Determine RAT
+				ResourceShadowDiscriminator discr = projContext.getResourceShadowDiscriminator();
+				if (discr == null) {
+					if (AccountShadowType.class.isAssignableFrom(projClass)) {
+						AccountShadowType accountShadowType = ((PrismObject<AccountShadowType>)projectionObject).asObjectable();
+						String intent = ResourceObjectShadowUtil.getIntent(accountShadowType);
+						discr = new ResourceShadowDiscriminator(resourceOid, intent);
+						projContext.setResourceShadowDiscriminator(discr);
+						
+					}
+				}
+				
+				
+				// Load resource
+				if (resourceType == null) {
+					resourceType = context.getResource(resourceOid);
+					if (resourceType == null) {
+						PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
+						resourceType = resource.asObjectable();
+						context.rememberResource(resourceType);
+					}
+					projContext.setResource(resourceType);
+				}
+				
+				
+				projContext.fixShadows();
+				
+				//Determine refined schema and password policies for account type
+				RefinedAccountDefinition rad = projContext.getRefinedAccountDefinition();
+				if (rad != null && AccountShadowType.class.isAssignableFrom(projClass)) {
+					ObjectReferenceType passwordPolicyRef = rad.getPasswordPolicy();
+					if (passwordPolicyRef != null && passwordPolicyRef.getOid() != null) {
+						PrismObject<PasswordPolicyType> passwordPolicy = cacheRepositoryService.getObject(
+								PasswordPolicyType.class, passwordPolicyRef.getOid(), result);
+						if (passwordPolicy != null) {
+							projContext.setAccountPasswordPolicy(passwordPolicy.asObjectable());
+						}
+					}
+				}
+				
+			}
 		}
 	}
 	

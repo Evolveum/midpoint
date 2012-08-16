@@ -70,6 +70,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -124,9 +125,14 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
+        // WHEN
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        
+        // THEN
         assertUserJack(userJack);
         
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("getObject result", result);
 	}
 	
 	@Test
@@ -175,6 +181,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
 	}
 	
 	@Test
@@ -197,6 +206,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		display("Account attributes def", accountContainer.getDefinition());
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyShadowModel(account, accountOid, "jack", "Jack Sparrow");
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("getObject result", result);
 	}
 
 	@Test
@@ -220,6 +232,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		display("Account attributes def", accountContainer.getDefinition());
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyShadowRepo(account, accountOid, "jack");
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("getObject result", result);
 	}
 
 	@Test
@@ -253,6 +268,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of accounts", 1, userJackType.getAccount().size());
         AccountShadowType accountShadowType = userJackType.getAccount().get(0);
         assertDummyShadowModel(accountShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("getObject result", result);
 	}
 
 
@@ -292,6 +310,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertDummyShadowModel(accountShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
         
         assertNotNull("Resource in account was not resolved", accountShadowType.getResource());
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("getObject result", result);
 	}
 
 	@Test
@@ -325,6 +346,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of accounts", 1, userJackType.getAccount().size());
         AccountShadowType accountShadowType = userJackType.getAccount().get(0);
         assertDummyShadowRepo(accountShadowType.asPrismObject(), accountOid, "jack");
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("getObject result", result);
 	}
 
 	
@@ -353,6 +377,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result, 2);
+        
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
@@ -390,6 +417,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         modelService.executeChanges(deltas, task, result);
 		
 		// THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
         accountOid = accountDelta.getOid();
         assertNotNull("No account OID in resulting delta", accountOid);
 		// Check accountRef (should be none)
@@ -430,7 +460,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
-		// Check accountRef
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack);
         accountOid = getSingleUserAccountRef(userJack);
@@ -473,6 +505,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
 		// Check accountRef
@@ -508,6 +543,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         modelService.executeChanges(deltas, task, result);
 		
 		// THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
 		// Check accountRef
@@ -540,7 +578,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
-		// Check accountRef
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
@@ -578,7 +618,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
-		// Check accountRef
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
@@ -615,6 +657,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
 		// Check accountRef
@@ -649,7 +694,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
-		// Check accountRef
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Cpt. Jack Sparrow");
@@ -685,6 +732,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		try {
 			PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 			AssertJUnit.fail("Jack is still alive!");
@@ -716,7 +766,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
-		// Check accountRef
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
@@ -754,7 +806,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, task, result);
 		
 		// THEN
-		// Check accountRef
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());

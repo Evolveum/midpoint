@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.model;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -85,60 +86,114 @@ public class ChangeExecutor {
     	userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
     }
 
-    public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, OperationResult result) throws
+    public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, OperationResult parentResult) throws
             ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
             SecurityViolationException {
-        for (ObjectDelta<? extends ObjectType> change : changes) {
-            executeChange(change, result);
-        }
+    	OperationResult result = parentResult.createSubresult(ChangeExecutor.class+".executeChanges");
+    	result.addParam("changes", changes);
+    	try {
+	        for (ObjectDelta<? extends ObjectType> change : changes) {
+	            executeChange(change, result);
+	        }
+	        result.recordSuccess();
+    	} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ObjectAlreadyExistsException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (CommunicationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ConfigurationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+    	}
     }
 
-    public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, OperationResult result) throws ObjectAlreadyExistsException,
+    public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, OperationResult parentResult) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
-    	LensFocusContext<F> focusContext = syncContext.getFocusContext();
-    	if (focusContext != null) {
-	        ObjectDelta<F> userDelta = focusContext.getWaveDelta();
-	        if (userDelta != null) {
+    	OperationResult result = parentResult.createSubresult(ChangeExecutor.class+".executeChanges");
+    	
+    	try {
+	    	LensFocusContext<F> focusContext = syncContext.getFocusContext();
+	    	if (focusContext != null) {
+		        ObjectDelta<F> userDelta = focusContext.getWaveDelta();
+		        if (userDelta != null) {
+		
+		            executeChange(userDelta, result);
+		
+		            // userDelta is composite, mixed from primary and secondary. The OID set into
+		            // it will be lost ... unless we explicitly save it
+		            focusContext.setOid(userDelta.getOid());
+		        } else {
+		            LOGGER.trace("Skipping change execute, because user delta is null");
+		        }
+	    	}
 	
-	            executeChange(userDelta, result);
-	
-	            // userDelta is composite, mixed from primary and secondary. The OID set into
-	            // it will be lost ... unless we explicitly save it
-	            focusContext.setOid(userDelta.getOid());
-	        } else {
-	            LOGGER.trace("Skipping change execute, because user delta is null");
+	        for (LensProjectionContext<P> accCtx : syncContext.getProjectionContexts()) {
+	        	if (accCtx.getWave() != syncContext.getWave()) {
+	        		continue;
+	        	}
+	            ObjectDelta<P> accDelta = accCtx.getDelta();
+	            if (accDelta == null || accDelta.isEmpty()) {
+	                if (LOGGER.isTraceEnabled()) {
+	                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());
+	                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
+	                }
+	                if (focusContext != null) {
+	                	updateAccountLinks(focusContext.getObjectNew(), accCtx, result);
+	                }
+	                continue;
+	            }
+	            
+	            executeChange(accDelta, result);
+	            
+	            // To make sure that the OID is set (e.g. after ADD operation)
+	            accCtx.setOid(accDelta.getOid());
+	            if (focusContext != null) {
+	            	updateAccountLinks(focusContext.getObjectNew(), accCtx, result);
+	            }
 	        }
-    	}
-
-        for (LensProjectionContext<P> accCtx : syncContext.getProjectionContexts()) {
-        	if (accCtx.getWave() != syncContext.getWave()) {
-        		continue;
-        	}
-            ObjectDelta<P> accDelta = accCtx.getDelta();
-            if (accDelta == null || accDelta.isEmpty()) {
-                if (LOGGER.isTraceEnabled()) {
-                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());
-                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
-                }
-                if (focusContext != null) {
-                	updateAccountLinks(focusContext.getObjectNew(), accCtx, result);
-                }
-                continue;
-            }
-            
-            executeChange(accDelta, result);
-            
-            // To make sure that the OID is set (e.g. after ADD operation)
-            accCtx.setOid(accDelta.getOid());
-            if (focusContext != null) {
-            	updateAccountLinks(focusContext.getObjectNew(), accCtx, result);
-            }
-        }
-        
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after change execution:\n{}", syncContext.dump(false));
-        }
+	        
+	        if (LOGGER.isTraceEnabled()) {
+	            LOGGER.trace("Context after change execution:\n{}", syncContext.dump(false));
+	        }
+	        
+	        result.recordSuccess();
+	        
+    	} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ObjectAlreadyExistsException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (CommunicationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ConfigurationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+    	}  
         
     }
 
@@ -223,7 +278,7 @@ public class ChangeExecutor {
         }
     }
 
-    public <T extends ObjectType> void executeChange(ObjectDelta<T> objectDelta, OperationResult result) throws ObjectAlreadyExistsException,
+    private <T extends ObjectType> void executeChange(ObjectDelta<T> objectDelta, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
         if (objectDelta == null) {

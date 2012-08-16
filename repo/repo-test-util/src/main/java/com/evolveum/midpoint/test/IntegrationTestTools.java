@@ -126,23 +126,26 @@ public class IntegrationTestTools {
 	 * @param level
 	 */
 	public static void assertSuccess(String message, OperationResult result, int level) {
-		assertSuccess(message, result, level, 0, false);
+		assertSuccess(message, result, result, level, 0, false);
 	}
 	
 	public static void assertSuccessOrWarning(String message, OperationResult result, int level) {
-		assertSuccess(message, result, level, 0, true);
+		assertSuccess(message, result, result, level, 0, true);
 	}
 	
 	public static void assertSuccessOrWarning(String message, OperationResult result) {
-		assertSuccess(message, result, -1, 0, true);
+		assertSuccess(message, result, result, -1, 0, true);
 	}
 	
-	private static void assertSuccess(String message, OperationResult result, int stopLevel, int currentLevel, boolean warningOk) {
+	private static void assertSuccess(String message, OperationResult result, OperationResult originalResult, int stopLevel, int currentLevel, boolean warningOk) {
 		if (!checkResults) {
 			return;
 		}
 		if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
-			fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
+			String logmsg = message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation();
+			LOGGER.error(logmsg);
+			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			fail(logmsg);
 		}
 		
 		if (result.isSuccess()) {
@@ -150,7 +153,10 @@ public class IntegrationTestTools {
 		} else if (warningOk && result.getStatus() == OperationResultStatus.WARNING) {
 			// OK
 		} else {
-			assert false : message + ": " + result.getStatus() + ": " + result.getMessage();	
+			String logmsg = message + ": " + result.getStatus() + ": " + result.getMessage();
+			LOGGER.error(logmsg);
+			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			assert false : logmsg;	
 		}
 		
 		if (stopLevel == currentLevel) {
@@ -158,7 +164,7 @@ public class IntegrationTestTools {
 		}
 		List<OperationResult> partialResults = result.getSubresults();
 		for (OperationResult subResult : partialResults) {
-			assertSuccess(message, subResult, stopLevel, currentLevel + 1, warningOk);
+			assertSuccess(message, subResult, originalResult, stopLevel, currentLevel + 1, warningOk);
 		}
 	}
 

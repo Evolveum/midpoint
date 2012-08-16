@@ -95,6 +95,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
@@ -380,7 +381,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 //					return null;
 
 				LOGGER.trace("Executing GENERIC change " + objectDelta);
-				changeExecutor.executeChange(objectDelta, result);
+				Collection<ObjectDelta<T>> changes = MiscUtil.createCollection(objectDelta);
+				changeExecutor.executeChanges((Collection)changes, result);
 
 				executePostChange(objectDelta, task, result);
 			}
