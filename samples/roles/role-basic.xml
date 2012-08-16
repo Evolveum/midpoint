@@ -29,7 +29,7 @@
     	<accountConstruction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-            <type>user</type>
+            <type>default</type>
     	</accountConstruction>
     </assignment>    
 </role>
