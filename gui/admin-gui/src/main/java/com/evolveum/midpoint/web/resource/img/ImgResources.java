@@ -27,4 +27,9 @@ package com.evolveum.midpoint.web.resource.img;
 public class ImgResources {
 
     public static final String BASE_PATH = "/img";
+
+    public static final String USER_PRISM = "user_prism.png";
+    public static final String HDD_PRISM = "hdd_prism.png";
+    public static final String USER_SUIT = "user_suit.png";
+    public static final String DRIVE = "drive.png";
 }

@@ -121,7 +121,7 @@ public class PageAccount extends PageAdminResources {
         add(mainForm);
 
         PrismObjectPanel userForm = new PrismObjectPanel("account", accountModel, new PackageResourceReference(
-                ImgResources.class, "Hdd.png"), mainForm) {
+                ImgResources.class, ImgResources.HDD_PRISM), mainForm) {
 
             @Override
             protected IModel<String> createDescription(IModel<ObjectWrapper> model) {

@@ -209,7 +209,7 @@ public class PageUser extends PageAdminUsers {
 		add(mainForm);
 
 		PrismObjectPanel userForm = new PrismObjectPanel("userForm", userModel, new PackageResourceReference(
-				ImgResources.class, "user_prism.png"), mainForm) {
+				ImgResources.class, ImgResources.USER_PRISM), mainForm) {
 
 			@Override
 			protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
@@ -314,7 +314,7 @@ public class PageUser extends PageAdminUsers {
 
 				PrismObjectPanel account = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
 						item.getModel(), "object"), new PackageResourceReference(ImgResources.class,
-						"hdd_prism.png"), (Form) PageUser.this.get("mainForm")) {
+                        ImgResources.HDD_PRISM), (Form) PageUser.this.get("mainForm")) {
 
 					@Override
 					protected Panel createOperationPanel(String id) {
@@ -461,10 +461,10 @@ public class PageUser extends PageAdminUsers {
 						UserAssignmentDto dto = rowModel.getObject();
 						switch (dto.getType()) {
 							case ROLE:
-								return new SharedResourceReference(ImgResources.class, "user_suit.png");
+								return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
 							case OTHER:
 							default:
-								return new SharedResourceReference(ImgResources.class, "drive.png");
+								return new SharedResourceReference(ImgResources.class, ImgResources.DRIVE);
 						}
 					}
 				};
