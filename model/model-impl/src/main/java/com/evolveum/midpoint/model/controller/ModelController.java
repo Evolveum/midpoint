@@ -923,7 +923,6 @@ public class ModelController implements ModelService, ModelInteractionService {
     				auditRecord.clearDeltas();
     				auditRecord.addDeltas(changes);
 
-                    result.computeStatus();
     			} catch (ObjectAlreadyExistsException e) {
     				// TODO Better handling
     				throw new SystemException(e.getMessage(), e);
@@ -934,6 +933,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 			}
 
+			result.recordSuccess();
 
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
