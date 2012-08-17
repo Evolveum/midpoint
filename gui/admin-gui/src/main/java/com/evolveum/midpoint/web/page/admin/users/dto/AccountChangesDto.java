@@ -117,7 +117,9 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 				for (Object propertyValueObject : containerWrapper.getProperties()) {
 					List<SubmitAccountChangesDto> values = new ArrayList<SubmitAccountChangesDto>();
 					PropertyWrapper propertyValue = (PropertyWrapper) propertyValueObject;
-
+					if(propertyValue.getDisplayName().equals("password")) {
+						continue;
+					}
 					for (Object valueObject : propertyValue.getValues()) {
 						ValueWrapper value = (ValueWrapper) valueObject;
 						if (value.getValue().getValue() != null) {
@@ -188,11 +190,6 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 				&& PasswordType.F_PROTECTED_STRING.equals(def.getName())) {
 			attribute = "Password";
 		}
-
-		if (passwordPath.equals(modifyDelta.getParentPath())
-				&& PasswordType.F_PROTECTED_STRING.equals(def.getName())) {
-			attribute = "Password";
-		}
 		List<String> oldValues = new ArrayList<String>();
 		List<String> newValues = new ArrayList<String>();
 
@@ -242,6 +239,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			if (newValueObject instanceof ProtectedStringType
 					|| (parent != null && parent.getParentPath().equals(SchemaConstants.PATH_PASSWORD))) {
 				newValues.add("*****");
+				attribute = "Password";
 				continue;
 			}
 			String stringValue;
