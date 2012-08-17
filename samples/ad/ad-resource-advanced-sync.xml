@@ -187,9 +187,8 @@ This resource definition contains only the very basic definitions for midPoint t
                         <initial>true</initial>
                         <expression>
                             <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                                concat('cn=',
-                                $i:user/i:givenName, ' ', $i:user/i:familyName, ',cn=Users,dc=example,dc=com')
+				concat('cn=',
+				$user/givenName, ' ', $user/familyName, $c:iterationToken, ',cn=Users,dc=example,dc=com')
                             </code>
                         </expression>
                     </outbound>
@@ -208,6 +207,9 @@ This resource definition contains only the very basic definitions for midPoint t
                         </outbound>
                     </enabled>
                 </activation>
+		<iteration>
+			<maxIterations>5</maxIterations>
+		</iteration>
             </accountType>
         </schemaHandling>
         <!--

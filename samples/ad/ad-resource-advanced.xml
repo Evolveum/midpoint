@@ -142,11 +142,10 @@ This resource definition contains only the very basic definitions for midPoint t
 
 					<outbound>
 						<initial>true</initial>
-						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+						<expression>
 							<code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
 								concat('cn=',
-								$i:user/i:givenName, ' ', $i:user/i:familyName, ',cn=Users,dc=example,dc=com')
+								$user/givenName, ' ', $user/familyName, $c:iterationToken, ',cn=Users,dc=example,dc=com')
 							</code>
 						</expression>
 					</outbound>
@@ -158,6 +157,23 @@ This resource definition contains only the very basic definitions for midPoint t
 						<value>Created by IDM</value>
 					</outbound>
 				</attribute>
+				<credentials>
+				    <password>
+					<outbound>
+					    <asIs/>
+					</outbound>
+				    </password>
+				</credentials>
+				<activation>
+				    <enabled>
+					<outbound>
+					    <asIs/>
+					</outbound>
+				    </enabled>
+				</activation>
+				<iteration>
+					<maxIterations>5</maxIterations>
+				</iteration>
 			</accountType>
 		</schemaHandling>
 		<scripts>
