@@ -42,10 +42,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -365,6 +367,62 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		squeezedAttributes = null;
 	}
 	
+	/**
+	 * Distribute the resource that's in the context into all the prism objects (old, new) and deltas.
+	 * The resourceRef will not just contain the OID but also full resource object. This may optimize handling
+	 * of the objects in upper layers (e.g. GUI).
+	 */
+	public void distributeResource() {
+		ResourceType resourceType = getResource();
+		if (resourceType == null) {
+			return;
+		}
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		distributeResourceObject(getObjectOld(), resource);
+		distributeResourceObject(getObjectNew(), resource);
+		distributeResourceDelta(getPrimaryDelta(), resource);
+		distributeResourceDelta(getSecondaryDelta(), resource);
+	}
+	
+	private void distributeResourceObject(PrismObject<O> object, PrismObject<ResourceType> resource) {
+		if (object == null) {
+			return;
+		}
+		PrismReference resourceRef = object.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
+		if (resourceRef != null) {
+			distributeResourceValues(resourceRef.getValues(), resource);
+		}
+	}
+
+	private void distributeResourceValue(PrismReferenceValue resourceRefVal, PrismObject<ResourceType> resource) {
+		if (resourceRefVal != null) {
+			resourceRefVal.setObject(resource);
+		}
+	}
+
+	private void distributeResourceDelta(ObjectDelta<O> delta, PrismObject<ResourceType> resource) {
+		if (delta == null) {
+			return;
+		}
+		if (delta.isAdd()) {
+			distributeResourceObject(delta.getObjectToAdd(), resource);
+		} else if (delta.isModify()) {
+			ReferenceDelta referenceDelta = delta.findReferenceModification(ResourceObjectShadowType.F_RESOURCE_REF);
+			distributeResourceValues(referenceDelta.getValuesToAdd(), resource);
+			distributeResourceValues(referenceDelta.getValuesToDelete(), resource);
+			distributeResourceValues(referenceDelta.getValuesToReplace(), resource);
+		} // Nothing to do for DELETE delta
+	}
+
+	private void distributeResourceValues(Collection<PrismReferenceValue> values, PrismObject<ResourceType> resource) {
+		if (values == null) {
+			return;
+		}
+		for(PrismReferenceValue pval: values) {
+			distributeResourceValue(pval, resource);
+		}
+	}
+
 	public void checkConsistence() {
 		checkConsistence(null, true);
 	}

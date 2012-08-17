@@ -22,6 +22,7 @@ package com.evolveum.midpoint.prism.delta;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -204,6 +205,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		valuesToAdd.add(newValue);
 		newValue.setParent(this);
+		newValue.recompute();
 	}
 
 	public void addValuesToDelete(Collection<V> newValues) {
@@ -228,6 +230,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		valuesToDelete.add(newValue);
 		newValue.setParent(this);
+		newValue.recompute();
 	}
 
 	public void setValuesToReplace(Collection<V> newValues) {
@@ -247,6 +250,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		for (V val : newValues) {
 			valuesToReplace.add(val);
 			val.setParent(this);
+			val.recompute();
 		}
 	}
 
@@ -267,6 +271,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		for (V val : newValues) {
 			valuesToReplace.add(val);
 			val.setParent(this);
+			val.recompute();
 		}
 	}
 
@@ -286,6 +291,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		valuesToReplace.add(newValue);
 		newValue.setParent(this);
+		newValue.recompute();
 	}
 
 	private Collection<V> newValueCollection() {
@@ -675,6 +681,65 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		for (V val: set) {
 			val.applyDefinition(itemDefinition, force);
 		}
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((parentPath == null) ? 0 : parentPath.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ItemDelta other = (ItemDelta) obj;
+		if (definition == null) {
+			if (other.definition != null)
+				return false;
+		} else if (!definition.equals(other.definition))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (parentPath == null) {
+			if (other.parentPath != null)
+				return false;
+		} else if (!parentPath.equals(other.parentPath))
+			return false;
+		if (!equalsSetRealValue(this.valuesToAdd, other.valuesToAdd))
+			return false;
+		if (!equalsSetRealValue(this.valuesToDelete, other.valuesToDelete))
+			return false;
+		if (!equalsSetRealValue(this.valuesToReplace, other.valuesToReplace))
+			return false;
+		return true;
+	}
+
+	private boolean equalsSetRealValue(Collection<V> thisValue, Collection<V> otherValues) {
+		Comparator<?> comparator = new Comparator<Object>() {
+			@Override
+			public int compare(Object o1, Object o2) {
+				if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
+					PrismValue v1 = (PrismValue)o1;
+					PrismValue v2 = (PrismValue)o2;
+					return v1.equalsRealValue(v2) ? 0 : 1;
+				} else {
+					return -1;
+				}
+			}
+		};
+		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, comparator);
 	}
 
 	@Override

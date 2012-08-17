@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -306,7 +308,12 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         return new PrismContainer<V>(name, this, prismContext);
     }
 
-    /**
+    @Override
+	public ItemDelta createEmptyDelta(PropertyPath path) {
+		return new ContainerDelta(path, this);
+	}
+
+	/**
      * Shallow clone
      */
     @Override

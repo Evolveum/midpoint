@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
+import com.evolveum.midpoint.prism.Recomputable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -38,7 +39,7 @@ import java.io.Serializable;
  * 				
  * @author Radovan Semancik
  */
-public class PolyString implements Dumpable, DebugDumpable, Serializable {
+public class PolyString implements Recomputable, Dumpable, DebugDumpable, Serializable {
 
 	private String orig;
 	private String norm = null;
@@ -93,6 +94,23 @@ public class PolyString implements Dumpable, DebugDumpable, Serializable {
 				return false;
 		} else if (!norm.equals(other.norm))
 			return false;
+		if (orig == null) {
+			if (other.orig != null)
+				return false;
+		} else if (!orig.equals(other.orig))
+			return false;
+		return true;
+	}
+
+	@Override
+	public boolean equalsOriginalValue(Recomputable obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PolyString other = (PolyString) obj;
 		if (orig == null) {
 			if (other.orig != null)
 				return false;

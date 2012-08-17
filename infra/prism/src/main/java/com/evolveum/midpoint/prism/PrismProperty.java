@@ -243,30 +243,11 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     			iterator.remove();
     		}
     	}
-    	prepareValue(pValueToAdd);
     	pValueToAdd.setParent(this);
+    	pValueToAdd.recompute();
     	getValues().add(pValueToAdd);
     }
     
-    /**
-	 * Prepare the value to be stored in prism by recomputing it or otherwise "initialize" it.
-	 */
-	private void prepareValue(PrismPropertyValue<V> value) {
-		if (value.isRaw()) {
-			return;
-		}
-		V realValue = value.getValue();
-		if (realValue == null) {
-			return;
-		}
-		if (realValue instanceof PolyString && getPrismContext() != null) {
-			PolyStringNormalizer polyStringNormalizer = getPrismContext().getDefaultPolyStringNormalizer();
-			if (polyStringNormalizer != null) {
-				((PolyString)realValue).recompute(polyStringNormalizer);
-			}
-		}
-	}
-
     public boolean deleteValues(Collection<PrismPropertyValue<V>> pValuesToDelete) {
         boolean changed = false;
     	for (PrismPropertyValue<V> pValue: pValuesToDelete) {

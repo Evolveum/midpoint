@@ -180,6 +180,11 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	}
 
 	@Override
+	public void recompute() {
+		// Nothing to do
+	}
+
+	@Override
 	protected Element createDomElement() {
 		return new ElementPrismReferenceImpl(this);
 	}

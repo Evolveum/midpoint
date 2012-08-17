@@ -318,6 +318,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     }
     
     public boolean add(V newValue) throws SchemaException {
+    	if (contains(newValue)) {
+    		return false;
+    	}
     	newValue.setParent(this);
     	return values.add(newValue);
     }

@@ -173,10 +173,22 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	if (getChangeType() != ChangeType.MODIFY) {
     		throw new IllegalStateException("Cannot add modifications to "+getChangeType()+" delta");
     	}
+    	if (containsModification(itemDelta)) {
+    		return;
+    	}
         ((Collection)modifications).add(itemDelta);
     }
     
-    public void addModifications(Collection<? extends ItemDelta> itemDeltas) {
+	public boolean containsModification(ItemDelta itemDelta) {
+		for (ItemDelta modification: modifications) {
+			if (modification.equals(itemDelta)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void addModifications(Collection<? extends ItemDelta> itemDeltas) {
     	for (ItemDelta<?> modDelta: itemDeltas) {
     		addModification(modDelta);
     	}

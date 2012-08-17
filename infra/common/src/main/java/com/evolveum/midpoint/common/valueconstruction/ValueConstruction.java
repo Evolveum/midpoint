@@ -387,6 +387,10 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		return output;
 	}
 	
+	public ItemDelta<V> createEmptyDelta(PropertyPath path) {
+		return outputDefinition.createEmptyDelta(path);
+	}
+	
 	public static List<Object> getStaticValueList(ValueConstructionType valueConstruction) throws SchemaException {
 		JAXBElement<?> valueConstructor = valueConstruction.getValueConstructor();
 		if (valueConstructor == null) {

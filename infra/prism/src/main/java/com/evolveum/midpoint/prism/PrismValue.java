@@ -109,6 +109,12 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		// Do nothing by default
 	}
 	
+	/**
+	 * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
+	 * This may as well do nothing if no recomputing or initialization is needed.
+	 */
+	public abstract void recompute();
+	
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);

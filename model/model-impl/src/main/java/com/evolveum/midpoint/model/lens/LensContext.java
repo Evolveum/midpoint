@@ -414,6 +414,12 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		}
 		return clonedMap;
 	}
+	
+	public void distributeResource() {
+		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+			projCtx.distributeResource();
+		}
+	}
 
 	@Override
     public String debugDump() {

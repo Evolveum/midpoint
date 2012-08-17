@@ -148,4 +148,32 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
 	}
 	
+	@Test(enabled = false) // WORK IN PROGRESS
+    public void test101ModifyUserEmployeeType() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test101ModifyUserEmployeeType");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test101ModifyUserEmployeeType");
+        OperationResult result = task.getResult();
+    
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, prismContext, "PIRATE");
+        deltas.add(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, task, result);
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        
+        assertHasAccountAssignment(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertHasRole(userJack, ROLE_PIRATE_OID);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+	}
+	
 }

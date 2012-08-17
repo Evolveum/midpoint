@@ -61,6 +61,7 @@ import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.Containerable;
@@ -311,6 +312,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(deltas, prismContext);
 		projector.project(context, "preview", result);
+		
+		context.distributeResource();
+
 		return context;
 	}
 

@@ -613,6 +613,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     @Override
+	public void recompute() {
+		// Nothing to do. The subitems should be already recomputed as they are added to this container.
+	}
+    
+    @Override
 	public void accept(Visitor visitor) {
 		super.accept(visitor);
 		for (Item<?> item: getItems()) {

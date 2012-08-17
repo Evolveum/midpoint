@@ -50,8 +50,11 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -219,6 +222,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	@Autowired(required = true)
 	protected ModelService modelService;
+	
+	@Autowired(required = true)
+	protected ModelInteractionService modelInteractionService;
 	
 	@Autowired(required = true)
 	protected RepositoryService repositoryService;
@@ -836,9 +842,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
-			if (RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
-				if (roleOid.equals(targetRef.getOid())) {
-					return;
+			if (targetRef != null) {
+				if (RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
+					if (roleOid.equals(targetRef.getOid())) {
+						return;
+					}
 				}
 			}
 		}
@@ -976,6 +984,49 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 				ResourceObjectShadowType.F_ATTRIBUTES,
 				new QName(RESOURCE_DUMMY_NAMESPACE, attrName));
 		
+	}
+	
+	protected void assertResolvedResourceRefs(ModelContext<UserType,AccountShadowType> context) {
+		for (ModelProjectionContext<AccountShadowType> projectionContext: context.getProjectionContexts()) {
+			assertResolvedResourceRefs(projectionContext.getObjectOld(), "objectOld in "+projectionContext);
+			assertResolvedResourceRefs(projectionContext.getObjectNew(), "objectNew in "+projectionContext);
+			assertResolvedResourceRefs(projectionContext.getPrimaryDelta(), "primaryDelta in "+projectionContext);
+			assertResolvedResourceRefs(projectionContext.getSecondaryDelta(), "secondaryDelta in "+projectionContext);
+		}
+	}
+
+	private void assertResolvedResourceRefs(ObjectDelta<AccountShadowType> delta, String desc) {
+		if (delta == null) {
+			return;
+		}
+		if (delta.isAdd()) {
+			assertResolvedResourceRefs(delta.getObjectToAdd(), desc);
+		} else if (delta.isModify()) {
+			ReferenceDelta referenceDelta = delta.findReferenceModification(ResourceObjectShadowType.F_RESOURCE_REF);
+			assertResolvedResourceRefs(referenceDelta.getValuesToAdd(), "valuesToAdd in "+desc);
+			assertResolvedResourceRefs(referenceDelta.getValuesToDelete(), "valuesToDelete in "+desc);
+			assertResolvedResourceRefs(referenceDelta.getValuesToReplace(), "valuesToReplace in "+desc);
+		}
+	}
+
+	private void assertResolvedResourceRefs(PrismObject<AccountShadowType> shadow, String desc) {
+		if (shadow == null) {
+			return;
+		}
+		PrismReference resourceRef = shadow.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
+		if (resourceRef == null) {
+			AssertJUnit.fail("No resourceRef in "+desc);
+		}
+		assertResolvedResourceRefs(resourceRef.getValues(), desc);
+	}
+
+	private void assertResolvedResourceRefs(Collection<PrismReferenceValue> values, String desc) {
+		if (values == null) {
+			return;
+		}
+		for (PrismReferenceValue pval: values) {
+			assertNotNull("resourceRef in "+desc+" does not contain object", pval.getObject());
+		}
 	}
 	
 }

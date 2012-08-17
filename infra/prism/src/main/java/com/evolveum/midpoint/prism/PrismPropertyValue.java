@@ -23,6 +23,8 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.dom.ElementPrismPropertyImpl;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -125,6 +127,24 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	@Override
 	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
 		applyDefinition(definition);
+	}
+
+	@Override
+	public void recompute() {
+		if (isRaw()) {
+			return;
+		}
+		T realValue = getValue();
+		if (realValue == null) {
+			return;
+		}
+		// TODO: switch to Recomputable interface instead of PolyString
+		if (realValue instanceof PolyString && getPrismContext() != null) {
+			PolyStringNormalizer polyStringNormalizer = getPrismContext().getDefaultPolyStringNormalizer();
+			if (polyStringNormalizer != null) {
+				((PolyString)realValue).recompute(polyStringNormalizer);
+			}
+		}
 	}
 
 	@Override

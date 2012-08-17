@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -153,8 +155,8 @@ public class UserPolicyProcessor {
 					valueConstructionType, itemDefinition, "user template expression for " + itemDefinition.getName()
 							+ " while processing user " + focusContext.getObjectNew());
 
-			PrismProperty existingValue = focusContext.getObjectNew().findProperty(itemPath);
-			if (existingValue != null && !existingValue.isEmpty() && valueConstruction.isInitial()) {
+			PrismProperty existingUserProperty = focusContext.getObjectNew().findProperty(itemPath);
+			if (existingUserProperty != null && !existingUserProperty.isEmpty() && valueConstruction.isInitial()) {
 				// This valueConstruction only applies if the property does not
 				// have a value yet.
 				// ... but it does
@@ -163,26 +165,43 @@ public class UserPolicyProcessor {
 
 			evaluateUserTemplateValueConstruction(valueConstruction, itemDefinition, context, result);
 
-			Item output = valueConstruction.getOutput();
-			// output can be null e.g. if a condition is not satisfied
-			if (output != null) {
-				ItemDelta itemDelta = output.createDelta(itemPath);
-
+			PrismValueDeltaSetTriple<? extends PrismValue> outputTriple = valueConstruction.getOutputTriple();
+			if (outputTriple != null) {
+				ItemDelta itemDelta = valueConstruction.createEmptyDelta(itemPath);
+				Collection<? extends PrismValue> nonNegativeValues = outputTriple.getNonNegativeValues();
 				if (itemDefinition.isMultiValue()) {
-					itemDelta.addValuesToAdd(PrismValue.cloneCollection(output.getValues()));
+					for (PrismValue value: nonNegativeValues) {
+						if (!hasValue(existingUserProperty, value)) {
+							itemDelta.addValueToAdd(value.clone());
+						}
+					}
+					// TODO: remove values
 				} else {
-					itemDelta.setValuesToReplace(PrismValue.cloneCollection(output.getValues()));
+					if (nonNegativeValues.size() > 1) {
+						throw new SchemaException("Attempt to store "+nonNegativeValues.size()+" values in single-valued user property "+itemPath);
+					}
+					itemDelta.setValuesToReplace(PrismValue.cloneCollection(nonNegativeValues));
 				}
-
-				if (userSecondaryDelta == null) {
-					userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
-					focusContext.setWaveSecondaryDelta(userSecondaryDelta);
-				}
-				userSecondaryDelta.addModification(itemDelta);				
+				if (!itemDelta.isEmpty()) {
+					if (userSecondaryDelta == null) {
+						userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
+						focusContext.setWaveSecondaryDelta(userSecondaryDelta);
+					}
+					userSecondaryDelta.addModification(itemDelta);	
+				}			
 			}
 		}
 
 	}
+
+	private boolean hasValue(PrismProperty existingUserProperty, PrismValue newValue) {
+		if (existingUserProperty == null) {
+			return false;
+		}
+		// TODO: is this OK? Will it not mess with value meta-data?
+		return existingUserProperty.contains(newValue);
+	}
+
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().getObjectSchema()

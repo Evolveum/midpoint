@@ -26,6 +26,9 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+
 
 /**
  * Object Reference Schema Definition.
@@ -104,6 +107,11 @@ public class PrismReferenceDefinition extends ItemDefinition {
     }
     
     @Override
+	public ItemDelta createEmptyDelta(PropertyPath path) {
+		return new ReferenceDelta(path, this);
+	}
+
+	@Override
 	public PrismReferenceDefinition clone() {
     	PrismReferenceDefinition clone = new PrismReferenceDefinition(getName(), getDefaultName(), getTypeName(), getPrismContext());
     	copyDefinitionData(clone);

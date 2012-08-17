@@ -234,6 +234,8 @@ public abstract class ItemDefinition extends Definition implements Serializable 
         }
     }
     
+    abstract public ItemDelta createEmptyDelta(PropertyPath path);
+    
     abstract public ItemDefinition clone();
     	
 	protected void copyDefinitionData(ItemDefinition clone) {
