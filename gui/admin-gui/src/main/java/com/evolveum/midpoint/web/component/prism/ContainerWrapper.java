@@ -71,7 +71,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return status;
     }
 
-    PropertyPath getPath() {
+    public PropertyPath getPath() {
         return path;
     }
 
