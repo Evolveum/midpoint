@@ -191,11 +191,11 @@ public abstract class PageBase extends WebPage {
         return createStringResource(resourceKey, objects).getString();
     }
 
-    protected StringResourceModel createStringResource(String resourceKey, Object... objects) {
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
-    protected StringResourceModel createStringResource(Enum e) {
+    public StringResourceModel createStringResource(Enum e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
         return createStringResource(resourceKey);
     }

@@ -99,7 +99,6 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
                 query = baseQuery;
             }
 
-//            System.out.println(((MidPointApplication) getPage().getApplication()).getPrismContext().silentMarshalObject(query, LOGGER));
             List<PrismObject<AccountShadowType>> list = getModel().searchObjects(AccountShadowType.class,
                     query, paging, task, result);
 

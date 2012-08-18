@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+
+package com.evolveum.midpoint.web.page.admin.resources.content.dto;
+
+import javax.xml.namespace.QName;
+
+/**
+ * @author lazyman
+ */
+public class AccountOwnerChangeDto {
+
+    private String accountOid;
+    private QName accountType;
+
+    private String oldOwnerOid;
+
+    private String newOwnerOid;
+
+    public String getAccountOid() {
+        return accountOid;
+    }
+
+    public void setAccountOid(String accountOid) {
+        this.accountOid = accountOid;
+    }
+
+    public QName getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(QName accountType) {
+        this.accountType = accountType;
+    }
+
+    public String getNewOwnerOid() {
+        return newOwnerOid;
+    }
+
+    public void setNewOwnerOid(String newOwnerOid) {
+        this.newOwnerOid = newOwnerOid;
+    }
+
+    public String getOldOwnerOid() {
+        return oldOwnerOid;
+    }
+
+    public void setOldOwnerOid(String oldOwnerOid) {
+        this.oldOwnerOid = oldOwnerOid;
+    }
+}

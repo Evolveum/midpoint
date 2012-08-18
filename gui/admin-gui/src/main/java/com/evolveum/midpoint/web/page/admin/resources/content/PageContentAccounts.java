@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
@@ -51,14 +52,17 @@ import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDataProvider;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDto;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
+import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerChangeDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -85,8 +89,11 @@ import java.util.List;
 public class PageContentAccounts extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageContentAccounts.class);
+    private static final String MODAL_ID_OWNER_CHANGE = "ownerChangePopup";
+
     private IModel<PrismObject<ResourceType>> resourceModel;
     private LoadableModel<AccountContentSearchDto> model;
+    private LoadableModel<AccountOwnerChangeDto> ownerChangeModel;
 
     public PageContentAccounts() {
         resourceModel = new LoadableModel<PrismObject<ResourceType>>(false) {
@@ -103,8 +110,20 @@ public class PageContentAccounts extends PageAdminResources {
                 return new AccountContentSearchDto();
             }
         };
+        ownerChangeModel = new LoadableModel<AccountOwnerChangeDto>(false) {
+
+            @Override
+            protected AccountOwnerChangeDto load() {
+                return new AccountOwnerChangeDto();
+            }
+        };
 
         initLayout();
+    }
+
+    private void initDialog() {
+        UserBrowserDialog dialog = new UserBrowserDialog(MODAL_ID_OWNER_CHANGE);
+        add(dialog);
     }
 
     private void initLayout() {
@@ -123,6 +142,8 @@ public class PageContentAccounts extends PageAdminResources {
         OptionContent content = new OptionContent("optionContent");
         mainForm.add(content);
         initTable(content);
+
+        initDialog();
     }
 
     private void initSearch(OptionItem item) {
@@ -285,7 +306,15 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void changeOwnerPerformed(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
-        //todo implement
+        ownerChangeModel.reset();
+
+        AccountContentDto contentDto = rowModel.getObject().getValue();
+        AccountOwnerChangeDto changeDto = ownerChangeModel.getObject();
+
+        changeDto.setAccountOid(contentDto.getAccountOid());
+        changeDto.setAccountType(AccountShadowType.COMPLEX_TYPE);
+
+        showModalWindow(MODAL_ID_OWNER_CHANGE, target);
     }
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
@@ -394,6 +423,11 @@ public class PageContentAccounts extends PageAdminResources {
         }
 
         return null;
+    }
+
+    private void showModalWindow(String id, AjaxRequestTarget target) {
+        ModalWindow window = (ModalWindow) get(id);
+        window.show(target);
     }
 
     private void accountDetailsPerformed(AjaxRequestTarget target, String accountName, String accountOid) {
