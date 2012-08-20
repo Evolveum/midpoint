@@ -24,6 +24,10 @@ package com.evolveum.midpoint.web.page.admin.resources.content;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
@@ -31,6 +35,8 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -59,6 +65,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -89,6 +96,8 @@ import java.util.List;
 public class PageContentAccounts extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageContentAccounts.class);
+    private static final String DOT_CLASS = PageContentAccounts.class.getName() + ".";
+    private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
     private static final String MODAL_ID_OWNER_CHANGE = "ownerChangePopup";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
@@ -122,7 +131,15 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void initDialog() {
-        UserBrowserDialog dialog = new UserBrowserDialog(MODAL_ID_OWNER_CHANGE);
+        UserBrowserDialog dialog = new UserBrowserDialog(MODAL_ID_OWNER_CHANGE) {
+
+            @Override
+            public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {
+                super.userDetailsPerformed(target, user);
+
+                ownerChangePerformed(target, user);
+            }
+        };
         add(dialog);
     }
 
@@ -314,6 +331,8 @@ public class PageContentAccounts extends PageAdminResources {
         changeDto.setAccountOid(contentDto.getAccountOid());
         changeDto.setAccountType(AccountShadowType.COMPLEX_TYPE);
 
+        changeDto.setOldOwnerOid(contentDto.getOwnerOid());
+
         showModalWindow(MODAL_ID_OWNER_CHANGE, target);
     }
 
@@ -440,5 +459,43 @@ public class PageContentAccounts extends PageAdminResources {
         PageParameters parameters = new PageParameters();
         parameters.add(PageAccount.PARAM_ACCOUNT_ID, accountOid);
         setResponsePage(PageAccount.class, parameters);
+    }
+
+    private void ownerChangePerformed(AjaxRequestTarget target, UserType user) {
+        AccountOwnerChangeDto dto = ownerChangeModel.getObject();
+        if (user == null ) {
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
+        try {
+            Task task = createSimpleTask(OPERATION_CHANGE_OWNER);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+
+            ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
+            deltas.add(delta);
+            delta.setOid(dto.getOldOwnerOid());
+            PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
+            refValue.setTargetType(dto.getAccountType());
+            delta.addModification(ReferenceDelta.createModificationAdd(UserType.class,
+                    UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+
+            delta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
+            deltas.add(delta);
+            delta.setOid(user.getOid());
+            refValue = refValue.clone();
+            delta.addModification(ReferenceDelta.createModificationDelete(UserType.class,
+                    UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+
+            getModelService().executeChanges(deltas, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't submit user.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
+        }
+
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
     }
 }

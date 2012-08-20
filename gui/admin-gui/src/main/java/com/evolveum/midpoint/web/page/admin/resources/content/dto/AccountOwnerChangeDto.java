@@ -33,8 +33,6 @@ public class AccountOwnerChangeDto {
 
     private String oldOwnerOid;
 
-    private String newOwnerOid;
-
     public String getAccountOid() {
         return accountOid;
     }
@@ -49,14 +47,6 @@ public class AccountOwnerChangeDto {
 
     public void setAccountType(QName accountType) {
         this.accountType = accountType;
-    }
-
-    public String getNewOwnerOid() {
-        return newOwnerOid;
-    }
-
-    public void setNewOwnerOid(String newOwnerOid) {
-        this.newOwnerOid = newOwnerOid;
     }
 
     public String getOldOwnerOid() {

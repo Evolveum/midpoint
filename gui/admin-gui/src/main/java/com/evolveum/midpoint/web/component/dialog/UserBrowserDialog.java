@@ -21,6 +21,13 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -33,11 +40,15 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -49,6 +60,8 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +71,7 @@ import java.util.List;
  */
 public class UserBrowserDialog extends ModalWindow {
 
+    private static final Trace LOGGER = TraceManager.getTrace(UserBrowserDialog.class);
     private IModel<UserBrowserDto> model;
     private boolean initialized;
 
@@ -217,14 +231,68 @@ public class UserBrowserDialog extends ModalWindow {
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
-        //todo implement
+        QueryType query = createQuery();
+        target.add(getPageBase().getFeedbackPanel());
+
+        TablePanel panel = getTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(query);
+
+        table.setCurrentPage(0);
+
+        target.add(panel);
+    }
+
+    private TablePanel getTable() {
+        return (TablePanel) getContent().get("mainForm:table");
+    }
+
+    private QueryType createQuery() {
+        UserBrowserDto dto = model.getObject();
+        QueryType query = null;
+        if (StringUtils.isEmpty(dto.getSearchText())) {
+            return null;
+        }
+
+        try {
+            Document document = DOMUtil.getDocument();
+            List<Element> elements = new ArrayList<Element>();
+
+            if (dto.isName()) {
+                elements.add(QueryUtil.createSubstringFilter(document, null, ObjectType.F_NAME, dto.getSearchText()));
+            }
+
+            PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
+            String normalizedString = normalizer.normalize(dto.getSearchText());
+
+            if (dto.isFamilyName()) {
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FAMILY_NAME, normalizedString));
+            }
+            if (dto.isFullName()) {
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FULL_NAME, normalizedString));
+            }
+            if (dto.isGivenName()) {
+                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_GIVEN_NAME, normalizedString));
+            }
+
+            if (!elements.isEmpty()) {
+                query = new QueryType();
+                query.setFilter(QueryUtil.createOrFilter(document, elements.toArray(new Element[elements.size()])));
+            }
+        } catch (Exception ex) {
+            error(getString("userBrowserDialog.message.queryError") + " " + ex.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
+        }
+
+        return query;
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
-        //todo implement
+        close(target);
     }
 
     public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {
-
+        close(target);
     }
 }
