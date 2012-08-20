@@ -314,7 +314,7 @@ public class PageUser extends PageAdminUsers {
 
 				PrismObjectPanel account = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
 						item.getModel(), "object"), new PackageResourceReference(ImgResources.class,
-                        ImgResources.HDD_PRISM), (Form) PageUser.this.get("mainForm")) {
+						ImgResources.HDD_PRISM), (Form) PageUser.this.get("mainForm")) {
 
 					@Override
 					protected Panel createOperationPanel(String id) {
@@ -791,9 +791,6 @@ public class PageUser extends PageAdminUsers {
 				}
 				getModelService().modifyObject(delta.getObjectTypeClass(), delta.getOid(),
 						delta.getModifications(), task, subResult);
-				// accountsDeltas.add(new
-				// ObjectDeltaComponent(accountWrapper.getObject(), delta,
-				// SubmitObjectStatus.MODIFYING));
 				subResult.recomputeStatus();
 			} catch (Exception ex) {
 				if (subResult != null) {
@@ -805,51 +802,14 @@ public class PageUser extends PageAdminUsers {
 		}
 	}
 
-	private Collection<ObjectDelta<? extends ObjectType>> modifyAccounts2(OperationResult result,
+	private ArrayList<PrismObject> getAccountsForSubmit(OperationResult result,
 			Collection<ObjectDelta<? extends ObjectType>> deltas) {
-		LOGGER.debug("Modifying existing accounts.");
-
 		List<UserAccountDto> accounts = accountsModel.getObject();
 		ArrayList<PrismObject> prismAccounts = new ArrayList<PrismObject>();
-		OperationResult subResult = null;
 		for (UserAccountDto account : accounts) {
-			try {
-				ObjectWrapper accountWrapper = account.getObject();
-				ObjectDelta delta = accountWrapper.getObjectDelta();
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Account delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
-				}
-				prismAccounts.add(account.getObject().getObject());
-				if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty()) {
-					// accountsDeltas.add(new
-					// ObjectDeltaComponent(accountWrapper.getObject(), delta,
-					// SubmitObjectStatus.ADDING));
-					continue;
-				}
-				WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
-
-				subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
-				Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
-
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Modifying account:\n{}", new Object[] { delta.debugDump(3) });
-				}
-				deltas.add(delta);
-				// accountsDeltas.add(new
-				// ObjectDeltaComponent(accountWrapper.getObject(), delta,
-				// SubmitObjectStatus.MODIFYING));
-				subResult.recomputeStatus();
-			} catch (Exception ex) {
-				if (subResult != null) {
-					subResult.recomputeStatus();
-					subResult.recordFatalError("Modify account failed.", ex);
-				}
-				LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
-				return deltas;
-			}
+			prismAccounts.add(account.getObject().getObject());
 		}
-		getSession().setAttribute("prismAccounts", prismAccounts);
-		return deltas;
+		return prismAccounts;
 	}
 
 	private void prepareUserForAdd(PrismObject<UserType> user) throws SchemaException {
@@ -932,15 +892,7 @@ public class PageUser extends PageAdminUsers {
 				case DELETE:
 					AssignmentType assignment = assDto.createAssignment();
 					PrismContainerValue value = assignment.asPrismContainerValue();
-					value.applyDefinition(def, false); // note: when adding item
-														// into container, the
-														// definition is applied
-														// automatically; in
-														// case of adding to
-														// ContainerDelta it
-														// seems to be added
-														// manually, as it is
-														// here
+					value.applyDefinition(def, false);
 					if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
 						assDelta.addValueToAdd(value);
 					} else {
@@ -1051,7 +1003,7 @@ public class PageUser extends PageAdminUsers {
 
 		OperationResult result = new OperationResult(OPERATION_SEND_TO_SUBMIT);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-		modifyAccounts2(result, deltas);
+		ArrayList<PrismObject> accountsBeforeModify = getAccountsForSubmit(result, deltas);
 
 		ObjectWrapper userWrapper = userModel.getObject();
 		ObjectDelta delta = null;
@@ -1085,9 +1037,9 @@ public class PageUser extends PageAdminUsers {
 					changes = getModelInteractionService().previewChanges(deltas, result);
 					result.recordSuccess();
 					break;
-				// delete state is where? wtf?? in next release add there delete
-				// state as well as
-				// support for add/delete containers (e.g. delete credentials)
+					// TODO: add delete state. Add there delete state as well as
+					// support for add/delete containers (e.g. delete credentials)
+				
 				default:
 					error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
 			}
@@ -1101,8 +1053,7 @@ public class PageUser extends PageAdminUsers {
 			showResult(result);
 			target.add(getFeedbackPanel());
 		} else {
-			// PageSubmit page = new PageSubmit(deltaComponent, accountsDeltas);
-			PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta);
+			PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta, accountsBeforeModify);
 			setResponsePage(pageSubmit);
 		}
 	}
@@ -1132,12 +1083,6 @@ public class PageUser extends PageAdminUsers {
 
 		return selected;
 	}
-
-	// private void recalculatePerformed(AjaxRequestTarget target) {
-	// }
-	//
-	// private void refreshPerformed(AjaxRequestTarget target) {
-	// }
 
 	private void addSelectedAccountPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
 		ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);

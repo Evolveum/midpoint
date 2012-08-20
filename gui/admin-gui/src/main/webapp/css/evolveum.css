@@ -790,3 +790,7 @@ div.wupb-uploadStatus {
 .reqMessage {
 	color: #F95523;
 }
+
+.helpPaddingRight {
+	adding-right: 40px;
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2011 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2011 [name of copyright owner]
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org">
+<body>
+	<wicket:extend>
+		<h3>midPoint</h3>
+		<table>
+			<tr>
+				<td class="helpPaddingRight"><wicket:message
+						key="pageSystem.midPointVersionTitle" /></td>
+				<td><wicket:message key="pageSystem.midPointVersion" /></td>
+			</tr>
+			<!-- <tr>
+				<td class="helpPaddingRight"><wicket:message
+						key="pageSystem.midPointRevisionTitlee" /></td>
+				<td><wicket:message key="pageSystem.midPointRevision" /></td>
+			</tr> -->
+			<tr>
+				<td class="helpPaddingRight"><wicket:message
+						key="pageSystem.svnLink" /></td>
+				<td><a href="https://svn.evolveum.com/midpoint/trunk"
+					target="_blank"><wicket:message key="pageSystem.midPointSvn" /></a></td>
+			</tr>
+			<tr>
+				<td class="helpPaddingRight"><wicket:message
+						key="pageSystem.wikiLink" /></td>
+				<td><a href="http://wiki.evolveum.com/display/midPoint/Home"
+					target="_blank"><wicket:message key="pageSystem.midPointWiki" /></a></td>
+			</tr>
+		</table>
+		<h3>Basic system properties</h3>
+		<table>
+			<tr wicket:id="listSystemItems">
+				<td class="helpPaddingRight"><span wicket:id="property" /></td>
+				<td><span wicket:id="value" /></td>
+			</tr>
+		</table>
+	</wicket:extend>
+</body>
+</html>

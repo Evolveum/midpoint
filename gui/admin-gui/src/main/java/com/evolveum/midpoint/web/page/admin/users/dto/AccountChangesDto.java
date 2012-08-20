@@ -77,14 +77,14 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 	private List<PrismObject> accountsList = new ArrayList<PrismObject>();
 	private List<SubmitAccountDto> accountChangesList = new ArrayList<SubmitAccountDto>();
 	private PrismObject oldAccountObject;
-	private ArrayList<PrismObject> prismAccountsInSession;
+	private ArrayList<PrismObject> accountsBeforeModify;
 
 	public AccountChangesDto(Collection<? extends ModelProjectionContext> accounts,
-			ArrayList<PrismObject> prismAccountsInSession) {
+			ArrayList<PrismObject> accountsBeforeModify) {
 		if (accounts == null) {
 			return;
 		}
-		this.prismAccountsInSession = prismAccountsInSession;
+		this.accountsBeforeModify = accountsBeforeModify;
 		for (ModelProjectionContext account : accounts) {
 			accountsList.add(account.getObjectNew());
 			this.oldAccountObject = account.getObjectOld();
@@ -101,10 +101,10 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 		if (delta == null) {
 			return false;
 		} else if (delta.getChangeType().equals(ChangeType.DELETE)) {
-			if (prismAccountsInSession == null) {
+			if (accountsBeforeModify == null) {
 				addAccountFromResourceForDelete(new SubmitResourceDto(oldAccountObject, false));
 			} else {
-				for (PrismObject account : prismAccountsInSession) {
+				for (PrismObject account : accountsBeforeModify) {
 					addAccountFromResourceForDelete(new SubmitResourceDto(account, false));
 				}
 			}
@@ -117,7 +117,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 				for (Object propertyValueObject : containerWrapper.getProperties()) {
 					List<SubmitAccountChangesDto> values = new ArrayList<SubmitAccountChangesDto>();
 					PropertyWrapper propertyValue = (PropertyWrapper) propertyValueObject;
-					if(propertyValue.getDisplayName().equals("password")) {
+					if (propertyValue.getDisplayName().equals("password")) {
 						continue;
 					}
 					for (Object valueObject : propertyValue.getValues()) {
@@ -193,8 +193,8 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 		List<String> oldValues = new ArrayList<String>();
 		List<String> newValues = new ArrayList<String>();
 
-		if (!prismAccountsInSession.isEmpty()) {
-			for (PrismObject accountInSession : prismAccountsInSession) {
+		if (!accountsBeforeModify.isEmpty()) {
+			for (PrismObject accountInSession : accountsBeforeModify) {
 				if (accountInSession.getOid() == null) {
 					continue;
 				}
@@ -251,8 +251,8 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			}
 			newValues.add(stringValue);
 		}
-		accountChangesList.add(new SubmitAccountDto(resource.getResourceName(), attribute, PageSubmit
-				.listToString(oldValues), PageSubmit.listToString(newValues), secondaryValue));
+		accountChangesList.add(new SubmitAccountDto(resource.getResourceName(), attribute, WebMiscUtil
+				.listToString(oldValues), WebMiscUtil.listToString(newValues), secondaryValue));
 	}
 
 	public List<PrismObject> getAccountsList() {

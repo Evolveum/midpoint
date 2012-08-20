@@ -70,8 +70,8 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAssignmentDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitDeltaObjectDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitPropertiesDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.SubmitStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitResourceDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SubmitStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserChangesDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -80,7 +80,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * @author mserbak
@@ -101,8 +100,8 @@ public class PageSubmit extends PageAdmin {
 	private List<SubmitAssignmentDto> assignmentsChangesList;
 	private List<SubmitUserDto> userChangesList;
 
-	public PageSubmit(ModelContext previewChanges,
-			Collection<ObjectDelta<? extends ObjectType>> deltasChanges, ObjectDelta delta) {
+	public PageSubmit(ModelContext previewChanges, Collection<ObjectDelta<? extends ObjectType>> allDeltas,
+			ObjectDelta userDelta, ArrayList<PrismObject> accountsBeforeModify) {
 		if (previewChanges == null || deltasChanges == null || delta == null) {
 			getSession().error(getString("pageSubmit.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
@@ -111,11 +110,8 @@ public class PageSubmit extends PageAdmin {
 		this.previewChanges = previewChanges;
 		this.delta = delta;
 		userChangesDto = new UserChangesDto(previewChanges.getFocusContext());
-
-		ArrayList<PrismObject> prismAccountsInSession = (ArrayList<PrismObject>) getSession().getAttribute(
-				"prismAccounts");
 		accountChangesDto = new AccountChangesDto(previewChanges.getProjectionContexts(),
-				prismAccountsInSession);
+				accountsBeforeModify);
 		getSession().setAttribute("prismAccounts", null);
 		initLayout();
 	}
@@ -179,10 +175,6 @@ public class PageSubmit extends PageAdmin {
 		accordion.getBodyContainer().add(accountsList);
 
 		List<IColumn<SubmitResourceDto>> columns = new ArrayList<IColumn<SubmitResourceDto>>();
-		/*
-		 * IColumn column = new CheckBoxHeaderColumn<SubmitResourceDto>();
-		 * columns.add(column);
-		 */
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.name"), "name"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.resourceName"),
 				"resourceName"));
@@ -326,14 +318,6 @@ public class PageSubmit extends PageAdmin {
 		};
 		mainForm.add(saveButton);
 
-		/*
-		 * AjaxLinkButton returnButton = new AjaxLinkButton("returnButton",
-		 * createStringResource("pageSubmit.button.return")) {
-		 * 
-		 * @Override public void onClick(AjaxRequestTarget target) { // TODO
-		 * setResponsePage(PageUser.class); } }; mainForm.add(returnButton);
-		 */
-
 		AjaxLinkButton cancelButton = new AjaxLinkButton("cancelButton",
 				createStringResource("pageSubmit.button.cancel")) {
 
@@ -443,14 +427,18 @@ public class PageSubmit extends PageAdmin {
 			if (oldPropertyValue != null && oldPropertyValue.getValues() != null) {
 				for (Object valueObject : oldPropertyValue.getValues()) {
 					PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
+
+					// add old value to list oldValues
 					oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : "");
 
+					// test if imported values contains current old value. If
+					// not exist, will add
 					for (SubmitPropertiesDto newValue : values) {
 						if (newValue.getStatus().equals(SubmitStatus.REPLACEING)) {
 							continue;
 						}
 						exist = false;
-						String newValueObjectString = newValue.getSubmitedPropertie().getValue().toString();
+						String newValueObjectString = newValue.getSubmitedProperties().getValue().toString();
 						if (newValueObjectString.equals(oldValue.getValue().toString())) {
 							exist = true;
 							break;
@@ -462,12 +450,14 @@ public class PageSubmit extends PageAdmin {
 				}
 			}
 		}
+
+		// add imported values to newValues
 		for (SubmitPropertiesDto newValue : values) {
 			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
 				continue;
 			}
 			String stringValue;
-			Object newValueObject = newValue.getSubmitedPropertie().getValue();
+			Object newValueObject = newValue.getSubmitedProperties().getValue();
 			if (newValueObject instanceof PolyString) {
 				PolyString polyStringValue = (PolyString) newValueObject;
 				stringValue = polyStringValue.getOrig() != null ? newValueObject.toString() : "";
@@ -477,18 +467,8 @@ public class PageSubmit extends PageAdmin {
 			newValues.add(stringValue);
 		}
 
-		return new SubmitUserDto(attribute, listToString(oldValues), listToString(newValues), secondaryValue);
-	}
-
-	public static String listToString(List<String> list) {
-		StringBuilder sb = new StringBuilder(list.size());
-		for (int i = 0; i < list.size(); i++) {
-			sb.append(list.get(i));
-			if (i < list.size() - 1) {
-				sb.append(", ");
-			}
-		}
-		return sb.toString();
+		return new SubmitUserDto(attribute, WebMiscUtil.listToString(oldValues),
+				WebMiscUtil.listToString(newValues), secondaryValue);
 	}
 
 	private String getReferenceFromAssignment(PrismContainerValue assignment) {

@@ -38,7 +38,7 @@ public class SubmitPropertiesDto implements Serializable {
 		this.status = status;
 	}
 
-	public PrismPropertyValue getSubmitedPropertie() {
+	public PrismPropertyValue getSubmitedProperties() {
 		return submitedPropertie;
 	}
 

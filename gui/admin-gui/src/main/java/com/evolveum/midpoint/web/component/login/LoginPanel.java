@@ -24,12 +24,17 @@ package com.evolveum.midpoint.web.component.login;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
+import com.evolveum.midpoint.web.page.admin.help.PageAbout;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -62,6 +67,15 @@ public class LoginPanel extends Panel {
         ExternalLink logoutLink = new ExternalLink("logoutLink",
                 new Model<String>(RequestCycle.get().getRequest().getContextPath() + "/j_spring_security_logout"), new Model<String>("Logout"));
         add(logoutLink);
+        
+        AjaxLink<String> helpLink = new AjaxLink<String>("help") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+            	setResponsePage(PageAbout.class);
+            }
+        };
+        add(helpLink);
     }
 
     private String getShortUserName() {
