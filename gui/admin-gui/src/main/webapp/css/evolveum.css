@@ -197,15 +197,14 @@ input:focus, .button:focus, select:focus, option:focus {
 	color: #FFFFFF;
 	font-size: 12px;
     font-weight: bold;
-    margin-top: 10px;
+    margin: 10px 60px 0 0;
     float: right;
 }
 
-#footer #version {
+#version {
     color: #FFFFFF;
-    font-size: 12px;
-    font-weight: bold;
-    margin: 10px 60px 0 5px;
+    font-size: 11px;
+    margin: 35px 15px 0 0;
     float: right;
 }
 
@@ -792,5 +791,5 @@ div.wupb-uploadStatus {
 }
 
 .helpPaddingRight {
-	adding-right: 40px;
+	padding-right: 40px;
 }

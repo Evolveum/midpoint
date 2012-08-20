@@ -157,8 +157,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/config/importFile", PageImportFile.class, encoder));
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
         
-        mount(new MountedMapper("/admin/help/about", PageAbout.class, encoder));
-        mount(new MountedMapper("/admin/help/system", PageSystem.class, encoder));
+        mount(new MountedMapper("/admin/about/aboutMidPoint", PageAbout.class, encoder));
+        mount(new MountedMapper("/admin/about/aboutSystem", PageSystem.class, encoder));
 
         //todo design error pages...
         //error pages

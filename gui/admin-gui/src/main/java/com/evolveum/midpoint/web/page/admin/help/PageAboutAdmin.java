@@ -85,15 +85,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 /**
  * @author mserbak
  */
-public class PageHelp extends PageAdmin {
+public class PageAboutAdmin extends PageAdmin {
 
 	@Override
 	public List<BottomMenuItem> getBottomMenuItems() {
 		List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-		items.add(new BottomMenuItem("pageHelp.about", PageAbout.class));
-		items.add(new BottomMenuItem("pageHelp.system", PageSystem.class));
-
+		items.add(new BottomMenuItem("pageAboutAdmin.about", PageAbout.class));
+		items.add(new BottomMenuItem("pageAboutAdmin.system", PageSystem.class));
 		return items;
 	}
 }

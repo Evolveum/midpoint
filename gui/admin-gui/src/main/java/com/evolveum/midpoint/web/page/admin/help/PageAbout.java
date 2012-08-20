@@ -85,7 +85,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 /**
  * @author mserbak
  */
-public class PageAbout extends PageHelp {
+public class PageAbout extends PageAboutAdmin {
 
 	public PageAbout() {
 		

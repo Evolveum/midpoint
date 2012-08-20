@@ -35,15 +35,16 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 /**
  * @author mserbak
  */
-public class PageSystem extends PageHelp {
+public class PageSystem extends PageAboutAdmin {
 
 	private static final String[] properties = new String[] { "file.separator", "java.class.path",
 			"java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
 			"os.name", "os.version", "path.separator" };
 
 	public PageSystem() {
-		//Form mainForm = new Form("mainForm");
-		//add(mainForm);
+
+		Label revisionLabel = new Label("revision", createStringResource("pageSystem.midPointRevision"));
+		add(revisionLabel);
 		createSystemItemsList();
 	}
 
@@ -57,7 +58,6 @@ public class PageSystem extends PageHelp {
 			}
 		};
 		add(listSystemItems);
-		//mainForm.add(listSystemItems);
 	}
 
 	public IModel<List<SystemItem>> getItems() {
@@ -91,16 +91,4 @@ public class PageSystem extends PageHelp {
 			return value;
 		}
 	}
-	
-	/**
-     * It's here only because of eclipse ide - it's not properly filtering resources during maven build.
-     * "buildnumber" variable is not replaced.
-     *
-     * @deprecated
-     * @return
-     */
-    @Deprecated
-    public String getBuildNumber() {
-        return getString("pageSystem.unknownBuildNumber");
-    }
 }
