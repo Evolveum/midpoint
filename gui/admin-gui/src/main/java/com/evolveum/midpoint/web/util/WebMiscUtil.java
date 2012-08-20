@@ -192,7 +192,10 @@ public final class WebMiscUtil {
     }
     
     public static String listToString(List<String> list) {
-		StringBuilder sb = new StringBuilder(list.size());
+    	if(list == null) {
+    		return null;
+    	}
+    	StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < list.size(); i++) {
 			sb.append(list.get(i));
 			if (i < list.size() - 1) {
