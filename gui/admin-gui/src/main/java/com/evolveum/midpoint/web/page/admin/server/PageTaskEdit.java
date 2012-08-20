@@ -29,11 +29,11 @@ import java.util.List;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -197,7 +197,7 @@ public class PageTaskEdit extends PageAdminTasks {
 				return edit;
 			}
 		});
-		name.add(new SimpleAttributeModifier("style", "width: 100%"));
+		name.add(new AttributeModifier("style", "width: 100%"));
 		name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		mainForm.add(name);
 

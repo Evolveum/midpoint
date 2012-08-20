@@ -22,11 +22,6 @@
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;

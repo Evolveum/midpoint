@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.DtoUtils;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -208,7 +209,8 @@ public class PageRole extends PageAdminRoles {
                 PrismObject<RoleType> newRole = domProcessor.parseObject(dto.getXml(), RoleType.class);
 
                 ObjectDelta<RoleType> delta = oldRole.diff(newRole);
-                getModelService().modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), task, result);
+
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
             }
 
             result.recordSuccess();

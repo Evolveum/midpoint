@@ -204,4 +204,13 @@ public final class WebMiscUtil {
 
         return selected;
     }
+
+    public static Collection<ObjectDelta<? extends ObjectType>> createDeltaCollection(ObjectDelta<? extends ObjectType>... deltas) {
+        Collection<ObjectDelta<? extends ObjectType>> collection = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        for (ObjectDelta delta : deltas) {
+            collection.add(delta);
+        }
+
+        return collection;
+    }
 }

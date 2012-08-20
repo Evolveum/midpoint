@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -369,7 +371,10 @@ public class PageResources extends PageAdminResources {
         for (ResourceDto resource : selected) {
             try {
                 Task task = createSimpleTask(OPERATION_DELETE_RESOURCES);
-                getModelService().deleteObject(ResourceType.class, resource.getOid(), task, result);
+
+                ObjectDelta<ResourceType> delta = new ObjectDelta<ResourceType>(ResourceType.class, ChangeType.DELETE);
+                delta.setOid(resource.getOid());
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete resource.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't delete resource", ex);

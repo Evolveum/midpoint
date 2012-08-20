@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * @author lazyman
@@ -134,9 +135,9 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			boolean isAdminGuiAccess = credentialsType.isAllowedIdmAdminGuiAccess() != null ? credentialsType
 					.isAllowedIdmAdminGuiAccess() : false;
 			if (isAdminGuiAccess) {
-				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_ADMIN"));
+				grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
 			} else {
-				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_USER"));
+				grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 			}
 
 			/*
@@ -189,8 +190,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			long lockedTill = calendar.getTimeInMillis();
 
 			if (lockedTill > System.currentTimeMillis()) {
-				long time = (lockedTill - System.currentTimeMillis()) / 60000L;
-				throw new BadCredentialsException("web.security.provider.locked", new Object[] { time });
+				throw new BadCredentialsException("web.security.provider.locked");
 			}
 		}
 

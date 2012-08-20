@@ -789,8 +789,7 @@ public class PageUser extends PageAdminUsers {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Modifying account:\n{}", new Object[] { delta.debugDump(3) });
 				}
-				getModelService().modifyObject(delta.getObjectTypeClass(), delta.getOid(),
-						delta.getModifications(), task, subResult);
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, subResult);
 				subResult.recomputeStatus();
 			} catch (Exception ex) {
 				if (subResult != null) {
@@ -969,8 +968,7 @@ public class PageUser extends PageAdminUsers {
 					}
 
 					if (!delta.isEmpty()) {
-						getModelService().modifyObject(UserType.class, delta.getOid(),
-								delta.getModifications(), task, result);
+                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
 					} else {
 						result.recordSuccessIfUnknown();
 					}

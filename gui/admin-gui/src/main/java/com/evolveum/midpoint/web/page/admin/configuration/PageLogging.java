@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -916,9 +917,8 @@ public class PageLogging extends PageAdminConfiguration {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Logging configuration delta:\n{}", delta.dump());
 			}
-			getModelService().modifyObject(SystemConfigurationType.class, oid, delta.getModifications(),
-					task, result);
 
+            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
 			// finish editing for loggers and appenders
 			for (LoggerConfiguration logger : dto.getLoggers()) {
 				logger.setEditing(false);
