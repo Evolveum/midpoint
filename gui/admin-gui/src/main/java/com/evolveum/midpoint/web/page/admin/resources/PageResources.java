@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.commons.lang.StringUtils;
@@ -331,7 +332,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourcePerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = getSelectedResources();
+        List<ResourceDto> selected = WebMiscUtil.getSelectedData(getResourceTable());
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.nothingSelected"));
             target.add(getFeedbackPanel());
@@ -340,34 +341,6 @@ public class PageResources extends PageAdminResources {
 
         ModalWindow dialog = (ModalWindow) get("confirmDeletePopup");
         dialog.show(target);
-    }
-
-    private List<ResourceDto> getSelectedResources() {
-        DataTable table = getResourceTable().getDataTable();
-        ResourceDtoProvider provider = (ResourceDtoProvider) table.getDataProvider();
-
-        List<ResourceDto> selected = new ArrayList<ResourceDto>();
-        for (ResourceDto row : provider.getAvailableData()) {
-            if (row.isSelected()) {
-                selected.add(row);
-            }
-        }
-
-        return selected;
-    }
-
-    private List<ConnectorHostType> getSelectedConnectorHosts() {
-        DataTable table = getConnectorHostTable().getDataTable();
-        ObjectDataProvider<ConnectorHostType> provider = (ObjectDataProvider)table.getDataProvider();
-
-        List<ConnectorHostType> selected = new ArrayList<ConnectorHostType>();
-        for (SelectableBean<ConnectorHostType> bean : provider.getAvailableData()) {
-            if (bean.isSelected()) {
-                selected.add(bean.getValue());
-            }
-        }
-
-        return selected;
     }
 
     private TablePanel getResourceTable() {
@@ -384,13 +357,13 @@ public class PageResources extends PageAdminResources {
             @Override
             public String getObject() {
                 return createStringResource("pageResources.message.deleteResourceConfirm",
-                        getSelectedResources().size()).getString();
+                        WebMiscUtil.getSelectedData(getResourceTable()).size()).getString();
             }
         };
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = getSelectedResources();
+        List<ResourceDto> selected = WebMiscUtil.getSelectedData(getResourceTable());
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
         for (ResourceDto resource : selected) {
@@ -457,13 +430,14 @@ public class PageResources extends PageAdminResources {
         target.add(getFeedbackPanel());
 
         OperationResult result = new OperationResult(OPERATION_CONNECTOR_DISCOVERY);
-        List<ConnectorHostType> selected = getSelectedConnectorHosts();
+        List<SelectableBean<ConnectorHostType>> selected = WebMiscUtil.getSelectedData(getConnectorHostTable());
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.noHostSelected"));
             return;
         }
 
-        for (ConnectorHostType host : selected) {
+        for (SelectableBean<ConnectorHostType> bean : selected) {
+            ConnectorHostType host = bean.getValue();
             try {
                 getModelService().discoverConnectors(host, result);
             } catch (Exception ex) {

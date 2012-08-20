@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
@@ -530,34 +531,6 @@ public class PageTasks extends PageAdminTasks {
         return (TablePanel) content.getBodyContainer().get("nodeTable");
     }
 
-    private List<TaskDto> getSelectedTasks() {
-        DataTable table = getTaskTable().getDataTable();
-        TaskDtoProvider provider = (TaskDtoProvider) table.getDataProvider();
-
-        List<TaskDto> selected = new ArrayList<TaskDto>();
-        for (TaskDto row : provider.getAvailableData()) {
-            if (row.isSelected()) {
-                selected.add(row);
-            }
-        }
-
-        return selected;
-    }
-
-    private List<NodeDto> getSelectedNodes() {
-        DataTable table = getNodeTable().getDataTable();
-        NodeDtoProvider provider = (NodeDtoProvider) table.getDataProvider();
-
-        List<NodeDto> selected = new ArrayList<NodeDto>();
-        for (NodeDto row : provider.getAvailableData()) {
-            if (row.isSelected()) {
-                selected.add(row);
-            }
-        }
-
-        return selected;
-    }
-
     private List<String> createCategoryList() {
         List<String> categories = new ArrayList<String>();
         categories.add(ALL_CATEGORIES);
@@ -608,7 +581,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void suspendTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskTypeList = getSelectedTasks();
+        List<TaskDto> taskTypeList = WebMiscUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskTypeList, target)) {
             return;
         }
@@ -662,7 +635,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void resumeTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = getSelectedTasks();
+        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }
@@ -736,7 +709,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void deleteTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskTypeList = getSelectedTasks();
+        List<TaskDto> taskTypeList = WebMiscUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskTypeList, target)) {
             return;
         }
@@ -790,7 +763,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = getSelectedTasks();
+        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }
@@ -832,7 +805,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = getSelectedNodes();
+        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
@@ -875,7 +848,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void startSchedulersPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = getSelectedNodes();
+        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
@@ -911,7 +884,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void stopSchedulersPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = getSelectedNodes();
+        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
@@ -1042,7 +1015,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void deleteNodesPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = getSelectedNodes();
+        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }

@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
@@ -196,7 +197,7 @@ public class PageUsers extends PageAdminUsers {
             @Override
             public String getObject() {
                 return createStringResource("pageUsers.message.deleteUserConfirm",
-                        getSelectedUsers().size()).getString();
+                        WebMiscUtil.getSelectedData(getTable()).size()).getString();
             }
         };
     }
@@ -389,20 +390,6 @@ public class PageUsers extends PageAdminUsers {
         searchPerformed(target);
     }
 
-    private List<SelectableBean<UserType>> getSelectedUsers() {
-        DataTable table = getTable().getDataTable();
-        ObjectDataProvider<UserType> provider = (ObjectDataProvider) table.getDataProvider();
-
-        List<SelectableBean<UserType>> selected = new ArrayList<SelectableBean<UserType>>();
-        for (SelectableBean<UserType> row : provider.getAvailableData()) {
-            if (row.isSelected()) {
-                selected.add(row);
-            }
-        }
-
-        return selected;
-    }
-
     private boolean isAnythingSelected(List<SelectableBean<UserType>> users, AjaxRequestTarget target) {
         if (!users.isEmpty()) {
             return true;
@@ -414,14 +401,13 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
-        if (!isAnythingSelected(getSelectedUsers(), target)) {
+        List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
+        if (!isAnythingSelected(users, target)) {
             return;
         }
         // When delete one user -> submit page
-        if(getSelectedUsers().size() == 1) {
+        if(users.size() == 1) {
         	OperationResult result = new OperationResult(PageUsers.class.getName() + "sendToSubmit");
-        	
-        	List<SelectableBean<UserType>> users = getSelectedUsers();
         	SelectableBean<UserType> bean = users.get(0);
         	
         	UserType user = bean.getValue();
@@ -455,7 +441,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target) {
-        List<SelectableBean<UserType>> users = getSelectedUsers();
+        List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
         if (!isAnythingSelected(users, target)) {
             return;
         }
@@ -492,7 +478,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling) {
-        List<SelectableBean<UserType>> users = getSelectedUsers();
+        List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
         if (!isAnythingSelected(users, target)) {
             return;
         }

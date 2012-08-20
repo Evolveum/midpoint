@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -329,19 +330,6 @@ public class PageDebugList extends PageAdminConfiguration {
         DataTable table = tablePanel.getDataTable();
         return (RepositoryObjectDataProvider<ObjectType>) table.getDataProvider();
     }
-
-    private List<ObjectType> getSelectedObjects() {
-        RepositoryObjectDataProvider<ObjectType> provider = getTableDataProvider();
-
-        List<ObjectType> selected = new ArrayList<ObjectType>();
-        for (SelectableBean<ObjectType> row : provider.getAvailableData()) {
-            if (row.isSelected()) {
-                selected.add(row.getValue());
-            }
-        }
-
-        return selected;
-    }
     
     private IModel<String> createDeleteConfirmString() {
         return new AbstractReadOnlyModel<String>() {
@@ -349,8 +337,8 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             public String getObject() {
             	if(deleteSelected){
-            		return createStringResource("pageDebugList.message.deleteSelectedConfirm", 
-            				getSelectedObjects().size()).getString();
+            		return createStringResource("pageDebugList.message.deleteSelectedConfirm",
+                            WebMiscUtil.getSelectedData(getListTable()).size()).getString();
             	}
             	return createStringResource("pageDebugList.message.deleteObjectConfirm").getString();
             }
@@ -363,7 +351,9 @@ public class PageDebugList extends PageAdminConfiguration {
         ObjectTypes type = choice.getObject();
 
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
-        for (ObjectType object : getSelectedObjects()) {
+        List<SelectableBean<ObjectType>> beans = WebMiscUtil.getSelectedData(getListTable());
+        for (SelectableBean<ObjectType> bean : beans) {
+            ObjectType object = bean.getValue();
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             try {
                 repository.deleteObject(type.getClassDefinition(), object.getOid(), subResult);
@@ -404,7 +394,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
     
     private void deleteSelectedPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice) {
-    	List<ObjectType> selected = getSelectedObjects();
+    	List<SelectableBean<ObjectType>> selected = WebMiscUtil.getSelectedData(getListTable());
         if (selected.isEmpty()) {
             warn(getString("pageDebugList.message.nothingSelected"));
             target.add(getFeedbackPanel());
