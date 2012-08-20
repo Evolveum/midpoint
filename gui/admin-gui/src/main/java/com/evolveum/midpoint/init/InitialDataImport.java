@@ -23,6 +23,8 @@ package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
@@ -99,7 +102,8 @@ public class InitialDataImport {
                     continue;
                 }
 
-                model.addObject(object.asPrismObject(), task, result);
+                ObjectDelta delta = new ObjectDelta(object.getClass(), ChangeType.ADD);
+                model.executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
                 result.recordSuccess();
             } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, file);

@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -451,7 +452,11 @@ public class PageUsers extends PageAdminUsers {
             try {
                 Task task = createSimpleTask(OPERATION_DELETE_USER);
                 UserType user = bean.getValue();
-                getModelService().deleteObject(UserType.class, user.getOid(), task, subResult);
+
+                ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE);
+                delta.setOid(user.getOid());
+
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
@@ -498,11 +503,10 @@ public class PageUsers extends PageAdminUsers {
                 PropertyDelta delta = new PropertyDelta(path, property.getDefinition());
                 delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling, SourceType.USER_ACTION, null)));
 
-                Collection<PropertyDelta> deltas = new ArrayList<PropertyDelta>();
-                deltas.add(delta);
+                ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
+                objectDelta.addModification(delta);
 
-                getModelService().modifyObject(UserType.class, user.getOid(), deltas, task, subResult);
-
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), task, subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {
                 subResult.recomputeStatus();

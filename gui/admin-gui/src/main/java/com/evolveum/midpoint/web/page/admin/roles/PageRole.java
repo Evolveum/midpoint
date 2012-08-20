@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -201,7 +202,9 @@ public class PageRole extends PageAdminRoles {
                 PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
                 PrismObject<RoleType> newRole = domProcessor.parseObject(dto.getXml(), RoleType.class);
 
-                getModelService().addObject(newRole, task, result);
+                ObjectDelta delta = new ObjectDelta(RoleType.class, ChangeType.ADD);
+                delta.setObjectToAdd(newRole);
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
             } else {
                 //we're editing existing role
                 PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();

@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -951,7 +952,8 @@ public class PageUser extends PageAdminUsers {
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Delta before add user:\n{}", new Object[] { delta.debugDump(3) });
 					}
-					getModelService().addObject(user, task, result);
+
+					getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
 					// deltaComponent = new ObjectDeltaComponent(user,
 					// userWrapper.getObject().clone(), delta);
 					// changes =
