@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -251,8 +252,8 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			}
 			newValues.add(stringValue);
 		}
-		accountChangesList.add(new SubmitAccountDto(resource.getResourceName(), attribute, WebMiscUtil
-				.listToString(oldValues), WebMiscUtil.listToString(newValues), secondaryValue));
+		accountChangesList.add(new SubmitAccountDto(resource.getResourceName(), attribute, StringUtils.join(
+				oldValues, ", "), StringUtils.join(newValues, ", "), secondaryValue));
 	}
 
 	public List<PrismObject> getAccountsList() {

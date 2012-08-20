@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -467,8 +468,8 @@ public class PageSubmit extends PageAdmin {
 			newValues.add(stringValue);
 		}
 
-		return new SubmitUserDto(attribute, WebMiscUtil.listToString(oldValues),
-				WebMiscUtil.listToString(newValues), secondaryValue);
+		return new SubmitUserDto(attribute, StringUtils.join(oldValues, ", "),
+				StringUtils.join(newValues, ", "), secondaryValue);
 	}
 
 	private String getReferenceFromAssignment(PrismContainerValue assignment) {
