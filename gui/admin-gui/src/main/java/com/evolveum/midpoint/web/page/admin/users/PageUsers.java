@@ -428,7 +428,7 @@ public class PageUsers extends PageAdminUsers {
         		showResult(result);
     			target.add(getFeedbackPanel());
         	} else {
-        		PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta);
+        		PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta, null);
     			setResponsePage(pageSubmit);
         	}
         	
