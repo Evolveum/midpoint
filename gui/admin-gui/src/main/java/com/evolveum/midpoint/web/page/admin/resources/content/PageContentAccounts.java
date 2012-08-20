@@ -260,18 +260,11 @@ public class PageContentAccounts extends PageAdminResources {
                     @Override
                     public String getObject() {
                         AccountContentDto dto = rowModel.getObject().getValue();
-                        StringBuilder owner = new StringBuilder();
-                        if (StringUtils.isNotEmpty(dto.getOwnerName())) {
-                            owner.append(dto.getOwnerName());
-                            owner.append(" (");
-                            owner.append(dto.getOwnerOid());
-                            owner.append(")");
-                        } else {
-                            if (StringUtils.isNotEmpty(dto.getOwnerOid())) {
-                                owner.append(dto.getOwnerOid());
-                            }
+                        if (StringUtils.isNotBlank(dto.getOwnerName())) {
+                            return dto.getOwnerName();
                         }
-                        return owner.toString();
+
+                        return dto.getOwnerOid();
                     }
                 };
             }
@@ -463,40 +456,42 @@ public class PageContentAccounts extends PageAdminResources {
 
     private void ownerChangePerformed(AjaxRequestTarget target, UserType user) {
         AccountOwnerChangeDto dto = ownerChangeModel.getObject();
-        if (user == null ) {
-            return;
-        }
-
         OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
         try {
             Task task = createSimpleTask(OPERATION_CHANGE_OWNER);
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
-            ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
-            deltas.add(delta);
-            delta.setOid(dto.getOldOwnerOid());
-            PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
-            refValue.setTargetType(dto.getAccountType());
-            delta.addModification(ReferenceDelta.createModificationAdd(UserType.class,
-                    UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+            ObjectDelta delta;
+            if (user != null) {
+                delta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
+                deltas.add(delta);
+                delta.setOid(user.getOid());
+                PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
+                refValue.setTargetType(dto.getAccountType());
+                delta.addModification(ReferenceDelta.createModificationAdd(UserType.class,
+                        UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+            }
 
-            delta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
-            deltas.add(delta);
-            delta.setOid(user.getOid());
-            refValue = refValue.clone();
-            delta.addModification(ReferenceDelta.createModificationDelete(UserType.class,
-                    UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+            if (StringUtils.isNotEmpty(dto.getOldOwnerOid())) {
+                delta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
+                deltas.add(delta);
+                delta.setOid(dto.getOldOwnerOid());
+                PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
+                refValue.setTargetType(dto.getAccountType());
+                delta.addModification(ReferenceDelta.createModificationDelete(UserType.class,
+                        UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+            }
 
-            getModelService().executeChanges(deltas, task, result);
+            if (!deltas.isEmpty()) {
+                getModelService().executeChanges(deltas, task, result);
+            }
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't submit user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
 
-        if (!result.isSuccess()) {
-            showResult(result);
-            target.add(getFeedbackPanel());
-        }
+        showResult(result);
+        target.add(getFeedbackPanel());
     }
 }

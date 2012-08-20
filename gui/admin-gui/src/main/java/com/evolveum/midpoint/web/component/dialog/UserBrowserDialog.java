@@ -169,9 +169,6 @@ public class UserBrowserDialog extends ModalWindow {
     private List<IColumn<SelectableBean<UserType>>> initColumns() {
         List<IColumn<SelectableBean<UserType>>> columns = new ArrayList<IColumn<SelectableBean<UserType>>>();
 
-        IColumn column = new CheckBoxHeaderColumn<UserType>();
-        columns.add(column);
-
         columns.add(new IconColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.type")) {
 
             @Override
@@ -196,7 +193,7 @@ public class UserBrowserDialog extends ModalWindow {
             }
         });
 
-        column = new LinkColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.name"), "name", "value.name") {
+        IColumn column = new LinkColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.name"), "name", "value.name") {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {

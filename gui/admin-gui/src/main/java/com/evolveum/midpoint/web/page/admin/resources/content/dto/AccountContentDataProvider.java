@@ -153,13 +153,11 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
         return dto;
     }
 
-    private PrismObject<UserType> loadOwner(String accountOid, OperationResult result)
-            throws SchemaException, SecurityViolationException {
-
+    private PrismObject<UserType> loadOwner(String accountOid, OperationResult result) {
         OperationResult ownerResult = result.createSubresult(OPERATION_LOAD_OWNER);
         Task task = getPage().createSimpleTask(OPERATION_LOAD_OWNER);
         try {
-            return getModel().getObject(UserType.class, accountOid, null, task, ownerResult);
+            return getModel().listAccountShadowOwner(accountOid, task, ownerResult);
         } catch (ObjectNotFoundException ex) {
             //owner was not found, it's possible and it's ok on unlinked accounts
         }
