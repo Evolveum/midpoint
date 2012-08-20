@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.web.component.button.ButtonType;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -35,6 +37,7 @@ public class ButtonColumn<T> extends AbstractColumn<T> {
 
     private IModel<String> buttonLabel;
     private String propertyExpression;
+    private ButtonType buttonType = ButtonType.SIMPLE;
 
     public ButtonColumn(IModel<String> displayModel, IModel<String> buttonLabel) {
         super(displayModel);
@@ -48,13 +51,13 @@ public class ButtonColumn<T> extends AbstractColumn<T> {
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
-            final IModel<T> rowModel) {
+                             final IModel<T> rowModel) {
         IModel<String> label = buttonLabel;
         if (label == null) {
             label = new PropertyModel<String>(rowModel, propertyExpression);
         }
 
-        cellItem.add(new ButtonPanel(componentId, label) {
+        cellItem.add(new ButtonPanel(componentId, label, buttonType) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -65,5 +68,10 @@ public class ButtonColumn<T> extends AbstractColumn<T> {
 
     public void onClick(AjaxRequestTarget target, IModel<T> rowModel) {
 
+    }
+
+    public void setButtonType(ButtonType buttonType) {
+        Validate.notNull(buttonType, "Button type must not be null.");
+        this.buttonType = buttonType;
     }
 }

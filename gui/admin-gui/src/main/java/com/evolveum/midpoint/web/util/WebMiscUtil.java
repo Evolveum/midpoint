@@ -30,18 +30,22 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -185,5 +189,19 @@ public final class WebMiscUtil {
         } catch (EncryptionException ex) {
             LoggingUtils.logException(LOGGER, "Couldn't encrypt protected string", ex);
         }
+    }
+
+    public static <T extends Selectable> List<T> getSelectedData(TablePanel panel) {
+        DataTable table = panel.getDataTable();
+        BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>)table.getDataProvider();
+
+        List<T> selected = new ArrayList<T>();
+        for (T bean : provider.getAvailableData()) {
+            if (bean.isSelected()) {
+                selected.add(bean);
+            }
+        }
+
+        return selected;
     }
 }

@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -34,8 +35,12 @@ import java.io.Serializable;
 public class ButtonPanel<T extends Serializable> extends Panel {
 
     public ButtonPanel(String id, IModel<String> label) {
+        this(id, label, ButtonType.SIMPLE);
+    }
+
+    public ButtonPanel(String id, IModel<String> label, ButtonType type) {
         super(id);
-        AjaxLinkButton link = new AjaxLinkButton("link", label) {
+        AjaxLinkButton link = new AjaxLinkButton("link", type, label) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

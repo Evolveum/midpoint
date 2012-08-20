@@ -43,9 +43,12 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
@@ -54,6 +57,7 @@ import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDataProvider;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDto;
@@ -138,6 +142,7 @@ public class PageContentAccounts extends PageAdminResources {
                 super.userDetailsPerformed(target, user);
 
                 ownerChangePerformed(target, user);
+                target.add(getTable());
             }
         };
         add(dialog);
@@ -161,6 +166,19 @@ public class PageContentAccounts extends PageAdminResources {
         initTable(content);
 
         initDialog();
+        initButtons(mainForm);
+    }
+
+    private void initButtons(Form mainForm) {
+        AjaxLinkButton removeOwner = new AjaxLinkButton("removeOwner", ButtonType.NEGATIVE,
+               createStringResource("pageContentAccounts.button.removeOwner")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                removeOwnerPerformed(target);
+            }
+        };
+        mainForm.add(removeOwner);
     }
 
     private void initSearch(OptionItem item) {
@@ -214,7 +232,10 @@ public class PageContentAccounts extends PageAdminResources {
     private List<IColumn> initColumns() {
         List<IColumn> columns = new ArrayList<IColumn>();
 
-        IColumn column = new LinkColumn<SelectableBean<AccountContentDto>>(
+        IColumn column = new CheckBoxColumn(new Model<String>(), "selected");
+        columns.add(column);
+
+        column = new LinkColumn<SelectableBean<AccountContentDto>>(
                 createStringResource("pageContentAccounts.name"), "value.accountName") {
 
             @Override
@@ -316,17 +337,21 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void changeOwnerPerformed(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
-        ownerChangeModel.reset();
-
         AccountContentDto contentDto = rowModel.getObject().getValue();
-        AccountOwnerChangeDto changeDto = ownerChangeModel.getObject();
-
-        changeDto.setAccountOid(contentDto.getAccountOid());
-        changeDto.setAccountType(AccountShadowType.COMPLEX_TYPE);
-
-        changeDto.setOldOwnerOid(contentDto.getOwnerOid());
+        reloadOwnerChangeModel(contentDto.getAccountOid(), contentDto.getOwnerOid());
 
         showModalWindow(MODAL_ID_OWNER_CHANGE, target);
+    }
+
+    private void reloadOwnerChangeModel(String accountOid, String ownerOid) {
+        ownerChangeModel.reset();
+
+        AccountOwnerChangeDto changeDto = ownerChangeModel.getObject();
+
+        changeDto.setAccountOid(accountOid);
+        changeDto.setAccountType(AccountShadowType.COMPLEX_TYPE);
+
+        changeDto.setOldOwnerOid(ownerOid);
     }
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
@@ -452,6 +477,23 @@ public class PageContentAccounts extends PageAdminResources {
         PageParameters parameters = new PageParameters();
         parameters.add(PageAccount.PARAM_ACCOUNT_ID, accountOid);
         setResponsePage(PageAccount.class, parameters);
+    }
+
+    private void removeOwnerPerformed(AjaxRequestTarget target) {
+        List<SelectableBean<AccountContentDto>> selected = WebMiscUtil.getSelectedData(getTable());
+        target.add(getFeedbackPanel());
+        if (selected.isEmpty()) {
+            warn(getString("pageContentAccounts.message.noAccountSelected"));
+            return;
+        }
+
+        for (SelectableBean<AccountContentDto> bean : selected) {
+            AccountContentDto dto = bean.getValue();
+            reloadOwnerChangeModel(dto.getAccountOid(), dto.getOwnerOid());
+            ownerChangePerformed(target, null);
+        }
+
+        target.add(getTable());
     }
 
     private void ownerChangePerformed(AjaxRequestTarget target, UserType user) {
