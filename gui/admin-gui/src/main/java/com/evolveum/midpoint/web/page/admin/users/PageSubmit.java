@@ -103,13 +103,13 @@ public class PageSubmit extends PageAdmin {
 
 	public PageSubmit(ModelContext previewChanges, Collection<ObjectDelta<? extends ObjectType>> allDeltas,
 			ObjectDelta userDelta, ArrayList<PrismObject> accountsBeforeModify) {
-		if (previewChanges == null || deltasChanges == null || delta == null) {
+		if (previewChanges == null || allDeltas == null || userDelta == null) {
 			getSession().error(getString("pageSubmit.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
 		}
-		this.deltasChanges = deltasChanges;
+		this.deltasChanges = allDeltas;
 		this.previewChanges = previewChanges;
-		this.delta = delta;
+		this.delta = userDelta;
 		userChangesDto = new UserChangesDto(previewChanges.getFocusContext());
 		accountChangesDto = new AccountChangesDto(previewChanges.getProjectionContexts(),
 				accountsBeforeModify);
