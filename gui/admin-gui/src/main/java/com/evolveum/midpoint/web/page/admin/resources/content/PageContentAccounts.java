@@ -488,6 +488,7 @@ public class PageContentAccounts extends PageAdminResources {
                     UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
 
             getModelService().executeChanges(deltas, task, result);
+            result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't submit user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);

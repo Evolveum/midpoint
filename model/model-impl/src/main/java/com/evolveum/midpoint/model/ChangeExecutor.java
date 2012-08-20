@@ -89,7 +89,7 @@ public class ChangeExecutor {
     public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, OperationResult parentResult) throws
             ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
             SecurityViolationException {
-    	OperationResult result = parentResult.createSubresult(ChangeExecutor.class+".executeChanges");
+    	OperationResult result = parentResult.createSubresult(ChangeExecutor.class.getName() + ".executeChanges");
     	result.addParam("changes", changes);
     	try {
 	        for (ObjectDelta<? extends ObjectType> change : changes) {

@@ -77,6 +77,7 @@ public class PageResources extends PageAdminResources {
     private static final String TEST_RESOURCE = DOT_CLASS + "testResource";
     private static final String SYNC_STATUS = DOT_CLASS + "syncStatus";
     private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
+    private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
 
     public PageResources() {
         initLayout();
@@ -120,6 +121,16 @@ public class PageResources extends PageAdminResources {
             }
         };
         mainForm.add(deleteResource);
+
+        AjaxLinkButton discoveryRemote = new AjaxLinkButton("discoveryRemote",
+                createStringResource("pageResources.button.discoveryRemote")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                discoveryRemotePerformed(target);
+            }
+        };
+        mainForm.add(discoveryRemote);
     }
 
     private List<IColumn<ResourceDto>> initResourceColumns() {
@@ -234,7 +245,7 @@ public class PageResources extends PageAdminResources {
             @Override
             protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
                 showSyncStatus(target, rowModel);
-                target.add(link);                
+                target.add(link);
             }
         };
         columns.add(column);*/
@@ -345,8 +356,26 @@ public class PageResources extends PageAdminResources {
         return selected;
     }
 
+    private List<ConnectorHostType> getSelectedConnectorHosts() {
+        DataTable table = getConnectorHostTable().getDataTable();
+        ObjectDataProvider<ConnectorHostType> provider = (ObjectDataProvider)table.getDataProvider();
+
+        List<ConnectorHostType> selected = new ArrayList<ConnectorHostType>();
+        for (SelectableBean<ConnectorHostType> bean : provider.getAvailableData()) {
+            if (bean.isSelected()) {
+                selected.add(bean.getValue());
+            }
+        }
+
+        return selected;
+    }
+
     private TablePanel getResourceTable() {
         return (TablePanel) get("mainForm:table");
+    }
+
+    private TablePanel getConnectorHostTable() {
+        return (TablePanel) get("mainForm:connectorTable");
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -422,5 +451,28 @@ public class PageResources extends PageAdminResources {
             result.recordFatalError("Fail to synchronize resource");
         }
         //resourceSync.setResource(resourceItem);
+    }
+
+    private void discoveryRemotePerformed(AjaxRequestTarget target) {
+        target.add(getFeedbackPanel());
+
+        OperationResult result = new OperationResult(OPERATION_CONNECTOR_DISCOVERY);
+        List<ConnectorHostType> selected = getSelectedConnectorHosts();
+        if (selected.isEmpty()) {
+            warn(getString("pageResources.message.noHostSelected"));
+            return;
+        }
+
+        for (ConnectorHostType host : selected) {
+            try {
+                getModelService().discoverConnectors(host, result);
+            } catch (Exception ex) {
+                result.recordFatalError("Fail to discover connectors on host '"+host.getHostname()
+                        + ":" + host.getPort() + "'", ex);
+            }
+        }
+
+        result.recomputeStatus();
+        showResult(result);
     }
 }

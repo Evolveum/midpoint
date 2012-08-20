@@ -85,7 +85,7 @@ public class Projector {
 		
 		int originalWave = context.getWave();
 		
-		OperationResult result = parentResult.createSubresult(Projector.class+".project");
+		OperationResult result = parentResult.createSubresult(Projector.class.getName() + ".project");
 		result.addContext("wave", originalWave);
 		
 		try {
