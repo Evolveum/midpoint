@@ -221,7 +221,7 @@ public class PageUser extends PageAdminUsers {
 
 		Accordion accordion = new Accordion("accordion");
 		accordion.setMultipleSelect(true);
-		accordion.setOpenedPanel(0);
+		accordion.setExpanded(true);
 		mainForm.add(accordion);
 
 		AccordionItem accounts = new AccordionItem("accountsDeltas", new AbstractReadOnlyModel<String>() {
