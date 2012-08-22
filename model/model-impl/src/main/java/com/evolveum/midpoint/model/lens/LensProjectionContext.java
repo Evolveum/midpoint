@@ -249,6 +249,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		this.fullShadow = fullShadow;
 	}
 	
+	public boolean isShadow() {
+		return ResourceObjectShadowType.class.isAssignableFrom(getObjectTypeClass());
+	}
+
+	
 	public PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> getAccountConstructionDeltaSetTriple() {
 		return accountConstructionDeltaSetTriple;
 	}
@@ -275,9 +280,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 	
 	public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
-        ResourceAccountTypeDefinitionType def = ResourceTypeUtil.getResourceAccountTypeDefinitionType(
-        		resource, resourceShadowDiscriminator.getIntent());
-        return def;
+		if (isShadow()) {
+	        ResourceAccountTypeDefinitionType def = ResourceTypeUtil.getResourceAccountTypeDefinitionType(
+	        		resource, resourceShadowDiscriminator.getIntent());
+	        return def;
+		} else {
+			return null;
+		}
     }
 	
 	private ResourceSchema getResourceSchema() throws SchemaException {
@@ -432,14 +441,16 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	public void checkConsistence(String contextDesc, boolean fresh) {
 		super.checkConsistence(contextDesc);
     	if (fresh) {
-    		if (resource == null) {
-	    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-	    	}
-	    	if (AccountShadowType.class.isAssignableFrom(getObjectTypeClass())) {
-		    	if (resourceShadowDiscriminator == null) {
-		    		throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+    		if (isShadow()) {
+	    		if (resource == null) {
+		    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 		    	}
-	    	}
+		    	if (AccountShadowType.class.isAssignableFrom(getObjectTypeClass())) {
+			    	if (resourceShadowDiscriminator == null) {
+			    		throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+			    	}
+		    	}
+    		}
     	}
     	if (syncDelta != null) {
     		try {

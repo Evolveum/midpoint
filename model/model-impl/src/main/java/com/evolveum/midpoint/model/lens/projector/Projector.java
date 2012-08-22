@@ -131,6 +131,9 @@ public class Projector {
 		        		// Let's skip accounts that do not belong into this wave.
 		        		continue;
 		        	}
+		        	if (!projectionContext.isShadow()) {
+		        		continue;
+		        	}
 		        	
 		        	if (CONSISTENCY_CHECKS) context.checkConsistence();
 		        	

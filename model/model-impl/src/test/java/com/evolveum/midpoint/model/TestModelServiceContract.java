@@ -88,6 +88,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizati
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -865,6 +866,34 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("morgan", "Sir Henry Morgan", true);
+	}
+	
+	@Test
+    public void test300AddPasswordPolicy() throws Exception {
+        displayTestTile(this, "test300AddPasswordPolicy");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test300AddPasswordPolicy");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<PasswordPolicyType> passwordPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
+        ObjectDelta<PasswordPolicyType> passwordPolicyDelta = ObjectDelta.createAddDelta(passwordPolicy);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(passwordPolicyDelta);
+        
+		// WHEN
+        modelService.executeChanges(deltas, task, result);
+		
+		// THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        assertEquals("Wrong OID after add", PASSWORD_POLICY_GLOBAL_OID, passwordPolicyDelta.getOid());
+
+		// Check object
+        PrismObject<PasswordPolicyType> accountShadow = repositoryService.getObject(PasswordPolicyType.class, PASSWORD_POLICY_GLOBAL_OID, result);
+
+        // TODO: more asserts
 	}
 
 }
