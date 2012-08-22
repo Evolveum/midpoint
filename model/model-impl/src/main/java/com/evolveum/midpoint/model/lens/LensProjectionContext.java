@@ -350,26 +350,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         }
 
         setObjectNew(accDelta.computeChangedObject(oldAccount));
-        if (resource != null) {
-        	fixShadow(getObjectNew());
-        }
     }
     
-    public void fixShadows() throws SchemaException {
-		fixShadow(getObjectOld());
-		fixShadow(getObjectNew());
-    }
-    
-    private void fixShadow(PrismObject<O> object) throws SchemaException {
-    	if (object == null) {
-    		return;
-    	}
-    	if (object.canRepresent(ResourceObjectShadowType.class)) {
-    		PrismObject<ResourceObjectShadowType> shadow = (PrismObject<ResourceObjectShadowType>)object;
-    		ResourceObjectShadowUtil.fixShadow(shadow, getResourceSchema());
-    	}
-    }
-
 	public void clearIntermediateResults() {
 		accountConstructionDeltaSetTriple = null;
 		outboundAccountConstruction = null;

@@ -196,48 +196,6 @@ public class ResourceObjectShadowUtil {
 		return activation;
 	}
 	
-	/**
-	 * Make sure that the shadow is correct and complete. That means that is has
-	 * ResourceAttributeContainer as <attributes>, has definition, etc.
-	 */
-	public static void fixShadow(PrismObject<? extends ResourceObjectShadowType> shadow, ResourceSchema resourceSchema) throws SchemaException {
-		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
-		if (attributesContainer == null) {
-			// Nothing to do
-			return;
-		}
-		if (attributesContainer instanceof ResourceAttributeContainer) {
-			if (attributesContainer.getDefinition() != null) {
-				// Nothing to do. Everything is OK.
-				return;
-			} else {
-				// TODO: maybe we can apply the definition?
-				throw new SchemaException("No definition for attributes container in " + shadow);
-			}
-		}
-		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow,
-				resourceSchema);
-		// We need to convert <attributes> to ResourceAttributeContainer
-		ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(
-				attributesContainer, objectClassDefinition);
-		shadow.getValue().replace(attributesContainer, convertedContainer);
-	}
-
-	private static ObjectClassComplexTypeDefinition determineObjectClassDefinition(PrismObject<? extends ResourceObjectShadowType> shadow,
-			ResourceSchema resourceSchema) throws SchemaException {
-		QName objectClassName = shadow.asObjectable().getObjectClass();
-		if (objectClassName == null) {
-			throw new SchemaException("No object class specified in shadow " + shadow);
-		}
-		ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema
-				.findObjectClassDefinition(objectClassName);
-		if (objectClassDefinition == null) {
-			throw new SchemaException("No definition for object class " + objectClassName
-					+ " as specified in shadow " + shadow);
-		}
-		return objectClassDefinition;
-	}
-
     /**
      * This is not supposed to be used in production code! It is just for the tests.
      */

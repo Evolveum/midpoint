@@ -282,7 +282,6 @@ public class ContextLoader {
 				continue;
 			}
 			accountSyncContext.setObjectOld(account);
-			accountSyncContext.fixShadows();
 			if (context.isDoReconciliationForAllProjections()) {
 				accountSyncContext.setDoReconciliation(true);
 			}
@@ -360,7 +359,6 @@ public class ContextLoader {
 						// Create account context from retrieved object
 						accountSyncContext = getOrCreateAccountContext(context, account, result);
 						accountSyncContext.setObjectOld(account);
-						accountSyncContext.fixShadows();
 					} catch (ObjectNotFoundException e) {
 						if (refVal.getObject() == null) {
 							// account does not exist, no composite account in
@@ -462,7 +460,6 @@ public class ContextLoader {
 				if (syncDelta.getChangeType() == ChangeType.ADD) {
 					account = syncDelta.getObjectToAdd().clone();
 					accountCtx.setObjectOld(account);
-					accountCtx.fixShadows();
 				} else {
 					if (oid == null) {
 						throw new IllegalArgumentException("No OID in sync delta in " + accountCtx);
@@ -478,7 +475,6 @@ public class ContextLoader {
 					if (syncDelta.getChangeType() != ChangeType.DELETE) {
 						syncDelta.applyTo(account);
 						accountCtx.setObjectOld(account);
-						accountCtx.fixShadows();
 					}
 				}
 				// Make sure OID is set correctly
@@ -627,9 +623,6 @@ public class ContextLoader {
 					}
 					projContext.setResource(resourceType);
 				}
-				
-				
-				projContext.fixShadows();
 				
 				//Determine refined schema and password policies for account type
 				RefinedAccountDefinition rad = projContext.getRefinedAccountDefinition();
