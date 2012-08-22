@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.help;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,7 +75,7 @@ public class PageSystem extends PageAboutAdmin {
 		};
 	}
 
-	public static class SystemItem {
+	public static class SystemItem implements Serializable {
 		private String property;
 		private String value;
 
