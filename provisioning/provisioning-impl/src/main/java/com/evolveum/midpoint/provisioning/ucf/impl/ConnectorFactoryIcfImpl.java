@@ -266,6 +266,12 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 				result.recordSuccess();
 				return connectors;
 			} else {
+				// This is necessary as list of the remote connectors is cached locally.
+				// So if any remote connector is added then it will not be discovered unless we
+				// clear the cache. This may look like inefficiency but in fact the listConnectors() method is
+				// used only when discovering new connectors. Normal connector operation is using connector objects
+				// stored in repository.
+				connectorInfoManagerFactory.clearRemoteCache();
 				Set<ConnectorType> connectors = listRemoteConnectors(host);
 				result.recordSuccess();
 				return connectors;
