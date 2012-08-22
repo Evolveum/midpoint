@@ -61,13 +61,13 @@ class IcfUtil {
 	 * 
 	 * WARNING: This is black magic. Really. Blame ICF interface design.
 	 * 
-	 * @param ex
+	 * @param icfException
 	 *            exception from the ICF
 	 * @param parentResult
 	 *            OperationResult to record failure
 	 * @return reasonable midPoint exception
 	 */
-	static Exception processIcfException(Exception ex,
+	static Exception processIcfException(Exception icfException,
 			OperationResult parentResult) {
 		// Whole exception handling in this case is a black magic.
 		// ICF does not define any exceptions and there is no "best practice"
@@ -75,41 +75,41 @@ class IcfUtil {
 		// Therefore let's just guess what might have happened. That's the best
 		// we can do.
 		
-		if (ex == null) {
+		if (icfException == null) {
 			throw new IllegalArgumentException("Null exception while processing ICF exception ");
 		}
 		
-		LOGGER.error("ICF Exception {}: {}",new Object[]{ex.getClass().getName(),ex.getMessage(),ex});
+		LOGGER.error("ICF Exception {}: {}",new Object[]{icfException.getClass().getName(),icfException.getMessage(),icfException});
 		
-		if (ex instanceof NullPointerException && ex.getMessage() != null) {
+		if (icfException instanceof NullPointerException && icfException.getMessage() != null) {
 			// NPE with a message text is in fact not a NPE but an application exception
 			// this usually means that some parameter is missing
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",ex));  
-			parentResult.recordFatalError("Required attribute is missing: "+ex.getMessage(),newEx);
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",icfException));  
+			parentResult.recordFatalError("Required attribute is missing: "+icfException.getMessage(),newEx);
 			return newEx;
-		} else if (ex instanceof IllegalArgumentException) {
+		} else if (icfException instanceof IllegalArgumentException) {
 			// Let's assume this must be a configuration problem
-			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", ex));
-			parentResult.recordFatalError("Configuration error: "+ex.getMessage(), newEx);
+			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", icfException));
+			parentResult.recordFatalError("Configuration error: "+icfException.getMessage(), newEx);
 			return newEx;
 		}
 		
-		if (ex.getClass().getPackage().equals(NullPointerException.class.getPackage())) {
+		if (icfException.getClass().getPackage().equals(NullPointerException.class.getPackage())) {
 			// There are java.lang exceptions, they are safe to pass through
-			return ex;
+			return icfException;
 		}
 		
-		if (ex.getClass().getPackage().equals(SchemaException.class.getPackage())) {
+		if (icfException.getClass().getPackage().equals(SchemaException.class.getPackage())) {
 			// Common midPoint exceptions, pass through
-			return ex;
+			return icfException;
 		}
 		
 		if (parentResult == null) {
-			throw new IllegalArgumentException(createMessageFromAllExceptions("Null parent result while processing ICF exception",ex));
+			throw new IllegalArgumentException(createMessageFromAllExceptions("Null parent result while processing ICF exception",icfException));
 		}
 
 		// Introspect the inner exceptions and look for known causes
-		Exception knownCause = lookForKnownCause(ex, ex, parentResult);
+		Exception knownCause = lookForKnownCause(icfException, icfException, parentResult);
 		if (knownCause != null) {
 			return knownCause;
 		}
@@ -120,67 +120,67 @@ class IcfUtil {
 		// relevant message directly in the exception ("javax.naming.NoPermissionException([LDAP: error code 50 - The entry uid=idm,ou=Administrators,dc=example,dc=com cannot be modified due to insufficient access rights])
 		
 		// Otherwise try few obvious things
-		if (ex instanceof IllegalArgumentException) {
+		if (icfException instanceof IllegalArgumentException) {
 			// This is most likely missing attribute or similar schema thing
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation (most likely)", ex));
-			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation (most likely)", icfException));
+			parentResult.recordFatalError("Schema violation: "+icfException.getMessage(), newEx);
 			return newEx;
 			
-		} else if (ex instanceof ConfigurationException) {
-			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", ex));
-			parentResult.recordFatalError("Configuration error: "+ex.getMessage(), newEx);
+		} else if (icfException instanceof ConfigurationException) {
+			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", icfException));
+			parentResult.recordFatalError("Configuration error: "+icfException.getMessage(), newEx);
 			return newEx;
 
-		} else if (ex instanceof AlreadyExistsException) {
-			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, ex));
-			parentResult.recordFatalError("Object already exists: "+ex.getMessage(), newEx);
+		} else if (icfException instanceof AlreadyExistsException) {
+			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, icfException));
+			parentResult.recordFatalError("Object already exists: "+icfException.getMessage(), newEx);
 			return newEx;
 
-		} else if (ex instanceof ConnectionBrokenException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection broken", ex));
-			parentResult.recordFatalError("Connection broken: "+ex.getMessage(), newEx);
+		} else if (icfException instanceof ConnectionBrokenException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection broken", icfException));
+			parentResult.recordFatalError("Connection broken: "+icfException.getMessage(), newEx);
 			return newEx;
 
-		} else if (ex instanceof ConnectionFailedException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection failed", ex));
-			parentResult.recordFatalError("Connection failed: "+ex.getMessage(), newEx);
+		} else if (icfException instanceof ConnectionFailedException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection failed", icfException));
+			parentResult.recordFatalError("Connection failed: "+icfException.getMessage(), newEx);
 			return newEx;
 
-		} else if (ex instanceof ConnectorIOException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("IO error", ex));
-			parentResult.recordFatalError("IO error: "+ex.getMessage(), newEx);
+		} else if (icfException instanceof ConnectorIOException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("IO error", icfException));
+			parentResult.recordFatalError("IO error: "+icfException.getMessage(), newEx);
 			return newEx;
 
-		} else if (ex instanceof InvalidCredentialException) {
-			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("Invalid credentials", ex));
-			parentResult.recordFatalError("Invalid credentials: "+ex.getMessage(), newEx);
+		} else if (icfException instanceof InvalidCredentialException) {
+			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("Invalid credentials", icfException));
+			parentResult.recordFatalError("Invalid credentials: "+icfException.getMessage(), newEx);
 			return newEx;
 
-		} else if (ex instanceof OperationTimeoutException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Operation timed out", ex));
-			parentResult.recordFatalError("Operation timed out: "+ex.getMessage(), newEx);
+		} else if (icfException instanceof OperationTimeoutException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Operation timed out", icfException));
+			parentResult.recordFatalError("Operation timed out: "+icfException.getMessage(), newEx);
 			return newEx;
 
-		} else if (ex instanceof UnknownUidException) {
-			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, ex));
-			parentResult.recordFatalError("Unknown UID: "+ex.getMessage(), newEx);
+		} else if (icfException instanceof UnknownUidException) {
+			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, icfException));
+			parentResult.recordFatalError("Unknown UID: "+icfException.getMessage(), newEx);
 			return newEx;
 
-		} else if (ex instanceof ConnectorSecurityException) {
+		} else if (icfException instanceof ConnectorSecurityException) {
 			// Note: connection refused is also packed inside
 			// ConnectorSecurityException. But that will get addressed by the
 			// lookForKnownCause(..) before
 			
 			// Maybe we need special exception for security?
-			Exception newEx =  new SystemException(createMessageFromAllExceptions("Security violation",ex));
+			Exception newEx =  new SystemException(createMessageFromAllExceptions("Security violation",icfException));
 			parentResult.recordFatalError(
-					"Security violation: " + ex.getMessage(), newEx);
+					"Security violation: " + icfException.getMessage(), newEx);
 			return newEx;
 			
 		}
 		
 		// Fallback
-		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,ex)); 
+		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,icfException)); 
 		parentResult.recordFatalError(newEx);
 		return newEx;
 	}

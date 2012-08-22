@@ -396,11 +396,16 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			throw new SystemException("Shared secret decryption error: "+e.getMessage(),e);
 		}
 		Integer timeout = hostType.getTimeout();
+		if (timeout == null) {
+			timeout = 0;
+		}
 		boolean useSSL = false;
 		if (hostType.isProtectConnection() != null) {
 			useSSL = hostType.isProtectConnection();
 		}
 		List<TrustManager> trustManagers = protector.getTrustManagers();
+		LOGGER.trace("Creating RemoteFrameworkConnectionInfo: hostname={}, port={}, key={}, useSSL={}, trustManagers={}, timeout={}",
+				new Object[] {hostname, port, key, useSSL, trustManagers, timeout});
 		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname, port, key, useSSL, trustManagers, timeout);
 		return connectorInfoManagerFactory.getRemoteManager(remoteFramewrorkInfo);
 	}
