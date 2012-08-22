@@ -55,8 +55,7 @@ public class PageAdminConfiguration extends PageAdmin {
                         return isEditingObject();
                     }
                 }));
-        items.add(new BottomMenuItem("pageAdminConfiguration.importFromXml", PageImportXml.class));
-        items.add(new BottomMenuItem("pageAdminConfiguration.importFromFile", PageImportFile.class));
+        items.add(new BottomMenuItem("pageAdminConfiguration.importObject", PageImportObject.class));
         items.add(new BottomMenuItem("pageAdminConfiguration.logging", PageLogging.class));
 
         return items;

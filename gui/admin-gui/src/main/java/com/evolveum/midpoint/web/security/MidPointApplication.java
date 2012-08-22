@@ -48,8 +48,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportFile;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportXml;
+import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
 import com.evolveum.midpoint.web.page.admin.help.PageAbout;
 import com.evolveum.midpoint.web.page.admin.help.PageSystem;
@@ -153,8 +152,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/config", PageLogging.class, encoder));
         mount(new MountedMapper("/admin/config/debug", PageDebugView.class, new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));
         mount(new MountedMapper("/admin/config/debugs", PageDebugList.class, encoder));
-        mount(new MountedMapper("/admin/config/importXml", PageImportXml.class, encoder));
-        mount(new MountedMapper("/admin/config/importFile", PageImportFile.class, encoder));
+        mount(new MountedMapper("/admin/config/importObject", PageImportObject.class, encoder));
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
         
         mount(new MountedMapper("/admin/about/aboutMidPoint", PageAbout.class, encoder));

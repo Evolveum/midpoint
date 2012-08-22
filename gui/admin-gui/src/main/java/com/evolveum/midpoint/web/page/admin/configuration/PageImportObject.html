@@ -24,14 +24,27 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-        <wicket:message key="pageImportFile.chooseFile"/>
-        <input wicket:id="fileInput" type="file"/>
-        <span wicket:id="progress" class="progressBar" />
-
-        <div wicket:id="importOptions"/>
-
-        <div class="operatingFormButtons">
-            <a class="button" wicket:id="importButton"/>
+    	<h4><wicket:message key="pageImportObject.chooseImportType"/></h4>
+    	<span wicket:id="importTypes" />
+    	<br />
+    	<br />
+    	<div wicket:id="container">
+	        <span wicket:id="chooseFile"/>
+	        <input wicket:id="fileInput" type="file"/>
+	        
+	        <div wicket:id="aceContainer">
+		        <div id="aceEditorContainer">
+		            <textarea wicket:id="aceEditor"></textarea>
+		        </div>
+	        </div>
+	        
+	        
+	        <div wicket:id="importOptions"/>
+	
+	        <div class="operatingFormButtons">
+	            <a class="button" wicket:id="importFileButton"/>
+	            <a class="button" wicket:id="importXmlButton"/>
+	        </div>
         </div>
     </form>
 </wicket:extend>
