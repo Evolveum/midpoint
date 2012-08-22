@@ -37,6 +37,7 @@ import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -197,6 +198,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		if (ObjectOperationOption.hasOption(options, ObjectOperationOption.NO_FETCH)) {
+			if (repositoryObject.canRepresent(ResourceObjectShadowType.class)) {
+				applyDefinition((PrismObject<ResourceObjectShadowType>)repositoryObject, result);
+			}
 			result.recordSuccess();
 			return repositoryObject;
 		}
@@ -1114,6 +1118,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus("Connector discovery failed");
 		return discoverConnectors;
 	}
+
+	@Override
+	public <T extends ResourceObjectShadowType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		shadowCache.applyDefinition(delta, parentResult);
+	}
+	
+	public <T extends ResourceObjectShadowType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		shadowCache.applyDefinition(shadow, parentResult);
+	}
+	
 
 	/*
 	 * (non-Javadoc)

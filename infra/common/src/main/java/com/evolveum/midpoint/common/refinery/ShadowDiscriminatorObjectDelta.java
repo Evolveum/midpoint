@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.api;
+package com.evolveum.midpoint.common.refinery;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,34 +37,25 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
  * @author semancik
  *
  */
-public class ShadowProjectionObjectDelta<T extends Objectable> extends ObjectDelta<T> {
+public class ShadowDiscriminatorObjectDelta<T extends Objectable> extends ObjectDelta<T> {
 
-	private String resourceOid;
-	private String intent;
+	private ResourceShadowDiscriminator discriminator;
 	
-	public ShadowProjectionObjectDelta(Class<T> objectTypeClass, ChangeType changeType) {
+	public ShadowDiscriminatorObjectDelta(Class<T> objectTypeClass, ChangeType changeType) {
 		super(objectTypeClass, changeType);
 	}
-
-	public String getResourceOid() {
-		return resourceOid;
+	
+	public ResourceShadowDiscriminator getDiscriminator() {
+		return discriminator;
 	}
 
-	public void setResourceOid(String resourceOid) {
-		this.resourceOid = resourceOid;
-	}
-
-	public String getIntent() {
-		return intent;
-	}
-
-	public void setIntent(String intent) {
-		this.intent = intent;
+	public void setDiscriminator(ResourceShadowDiscriminator discriminator) {
+		this.discriminator = discriminator;
 	}
 
 	@Override
 	protected void checkIdentifierConsistence(boolean requireOid) {
-		if (requireOid && getResourceOid() == null) {
+		if (requireOid && discriminator.getResourceOid() == null) {
     		throw new IllegalStateException("Null resource oid in delta "+this);
     	}
 	}
@@ -73,23 +64,22 @@ public class ShadowProjectionObjectDelta<T extends Objectable> extends ObjectDel
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
      * to justify a separate method. 
      */
-    public static <O extends Objectable, X> ShadowProjectionObjectDelta<O> createModificationReplaceProperty(Class<O> type, 
+    public static <O extends Objectable, X> ShadowDiscriminatorObjectDelta<O> createModificationReplaceProperty(Class<O> type, 
     		String resourceOid, String intent, PropertyPath propertyPath, PrismContext prismContext, X... propertyValues) {
-    	ShadowProjectionObjectDelta<O> objectDelta = new ShadowProjectionObjectDelta<O>(type, ChangeType.MODIFY);
-    	objectDelta.setResourceOid(resourceOid);
-    	objectDelta.setIntent(intent);
+    	ShadowDiscriminatorObjectDelta<O> objectDelta = new ShadowDiscriminatorObjectDelta<O>(type, ChangeType.MODIFY);
+    	objectDelta.setDiscriminator(new ResourceShadowDiscriminator(resourceOid, intent));
     	fillInModificationReplaceProperty(type, objectDelta, propertyPath, prismContext, propertyValues);
     	return objectDelta;
     }
 
 	@Override
 	protected String debugName() {
-		return "ShadowProjectionObjectDelta";
+		return "ShadowDiscriminatorObjectDelta";
 	}
 
 	@Override
 	protected String debugIdentifiers() {
-		return "resourceOid="+getResourceOid()+", intent="+getIntent();
+		return discriminator == null ? "null" : discriminator.toString();
 	}
 	
 }

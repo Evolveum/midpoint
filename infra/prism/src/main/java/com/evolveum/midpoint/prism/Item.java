@@ -103,6 +103,11 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     public ItemDefinition getDefinition() {
         return definition;
     }
+    
+	public boolean hasCompleteDefinition() {
+		return getDefinition() != null;
+	}
+
 
     /**
      * Returns the name of the property.
@@ -517,19 +522,33 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return item;
     }
     
-    public void checkConsistence() {
-    	checkConsistenceInternal(this, PropertyPath.EMPTY_PATH);
+    public void checkConsistence(boolean requireDefinitions) {
+    	checkConsistenceInternal(this, PropertyPath.EMPTY_PATH, requireDefinitions, false);
     }
     
-    public void checkConsistenceInternal(Itemable rootItem, PropertyPath path) {
+    public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw) {
+    	checkConsistenceInternal(this, PropertyPath.EMPTY_PATH, requireDefinitions, prohibitRaw);
+    }
+    
+    public void checkConsistence() {
+    	checkConsistenceInternal(this, PropertyPath.EMPTY_PATH, false, false);
+    }
+    
+    public void checkConsistenceInternal(Itemable rootItem, PropertyPath path, boolean requireDefinitions, boolean prohibitRaw) {
     	if (name == null) {
     		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
     	}
+    	
     	if (definition != null) {
     		checkDefinition(definition);
+    	} else if (requireDefinitions && !isRaw()) {
+    		throw new IllegalStateException("No definition in item "+this+" ("+path+" in "+rootItem+")");
     	}
     	if (values != null) {
     		for(V val: values) {
+    			if (prohibitRaw && val.isRaw()) {
+    				throw new IllegalStateException("Raw value "+val+" in item "+this+" ("+path+" in "+rootItem+")");
+    			}
     			if (val == null) {
     				throw new IllegalStateException("Null value in item "+this+" ("+path+" in "+rootItem+")");
     			}
@@ -540,7 +559,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     				throw new IllegalStateException("Wrong parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+"), "+
     						"bad parent: " + val.getParent());
     			}
-    			val.checkConsistenceInternal(rootItem, path);
+    			val.checkConsistenceInternal(rootItem, path, requireDefinitions, prohibitRaw);
     		}
     	}
     }

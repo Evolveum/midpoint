@@ -382,6 +382,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 					attribute.add(pval.clone());
 				}
 				attributesContainer.add(attribute);
+				attribute.applyDefinition(attributeDefinition);
 			} else {
 				throw new SchemaException("Cannot process item of type "+item.getClass().getSimpleName()+", attributes can only be properties");
 			}

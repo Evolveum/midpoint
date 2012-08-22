@@ -21,6 +21,8 @@ package com.evolveum.midpoint.schema;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 /**
  * @author semancik
  *
@@ -60,6 +62,10 @@ public enum ObjectOperationOption {
 			}
 		}
 		return false;
+	}
+
+	public static Collection<ObjectOperationOption> createCollection(ObjectOperationOption... options) {
+		return MiscUtil.createCollection(options);
 	}
 
 }

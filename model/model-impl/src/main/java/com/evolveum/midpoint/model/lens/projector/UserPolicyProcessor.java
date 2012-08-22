@@ -138,6 +138,7 @@ public class UserPolicyProcessor {
 		LOGGER.trace("Applying " + userTemplate + " to " + focusContext.getObjectNew());
 
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getWaveSecondaryDelta();
+		ObjectDelta<UserType> userPrimaryDelta = focusContext.getWavePrimaryDelta();
 		for (PropertyConstructionType propConstr : userTemplate.getPropertyConstruction()) {
 			XPathHolder propertyXPath = new XPathHolder(propConstr.getProperty());
 			PropertyPath itemPath = propertyXPath.toPropertyPath();
@@ -157,8 +158,7 @@ public class UserPolicyProcessor {
 
 			PrismProperty existingUserProperty = focusContext.getObjectNew().findProperty(itemPath);
 			if (existingUserProperty != null && !existingUserProperty.isEmpty() && valueConstruction.isInitial()) {
-				// This valueConstruction only applies if the property does not
-				// have a value yet.
+				// This valueConstruction only applies if the property does not have a value yet.
 				// ... but it does
 				continue;
 			}
@@ -180,15 +180,27 @@ public class UserPolicyProcessor {
 					if (nonNegativeValues.size() > 1) {
 						throw new SchemaException("Attempt to store "+nonNegativeValues.size()+" values in single-valued user property "+itemPath);
 					}
-					itemDelta.setValuesToReplace(PrismValue.cloneCollection(nonNegativeValues));
-				}
-				if (!itemDelta.isEmpty()) {
-					if (userSecondaryDelta == null) {
-						userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
-						focusContext.setWaveSecondaryDelta(userSecondaryDelta);
+					if (nonNegativeValues.size() == 0) {
+						if (existingUserProperty != null && !existingUserProperty.isEmpty()) {
+							// Empty set in replace value will cause the property to remove all existing values.
+							itemDelta.setValuesToReplace(nonNegativeValues);
+						}
+					} else {
+						PrismValue value = nonNegativeValues.iterator().next();
+						if (!hasValue(existingUserProperty, value)) {
+							itemDelta.setValueToReplace(value.clone());
+						}
 					}
-					userSecondaryDelta.addModification(itemDelta);	
-				}			
+				}
+				if (!userPrimaryDelta.containsModification(itemDelta)) {
+					if (!itemDelta.isEmpty()) {
+						if (userSecondaryDelta == null) {
+							userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
+							focusContext.setWaveSecondaryDelta(userSecondaryDelta);
+						}
+						userSecondaryDelta.addModification(itemDelta);	
+					}
+				}
 			}
 		}
 

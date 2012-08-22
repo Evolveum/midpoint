@@ -19,8 +19,10 @@
  */
 package com.evolveum.midpoint.provisioning.api;
 
+import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -427,6 +429,18 @@ public interface ProvisioningService {
 	 */
 	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException;
+	
+	/**
+	 * Applies appropriate definition to the shadow delta.
+	 */
+	public <T extends ResourceObjectShadowType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult) 
+		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+		
+	/**
+	 * Applies appropriate definition to the shadow.
+	 */
+	public <T extends ResourceObjectShadowType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult) 
+		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**
 	 * Finish initialization of provisioning system.

@@ -130,7 +130,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 
 	@Override
-	public void recompute() {
+	public void recompute(PrismContext prismContext) {
 		if (isRaw()) {
 			return;
 		}
@@ -139,8 +139,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			return;
 		}
 		// TODO: switch to Recomputable interface instead of PolyString
-		if (realValue instanceof PolyString && getPrismContext() != null) {
-			PolyStringNormalizer polyStringNormalizer = getPrismContext().getDefaultPolyStringNormalizer();
+		if (realValue instanceof PolyString && prismContext != null) {
+			PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
 			if (polyStringNormalizer != null) {
 				((PolyString)realValue).recompute(polyStringNormalizer);
 			}
@@ -153,8 +153,11 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 	
     @Override
-	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath) {
+	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
     	PropertyPath myPath = getParent().getPath(parentPath);
+    	if (prohibitRaw && rawElement != null) {
+    		throw new IllegalStateException("Raw element in property value "+this+" ("+myPath+" in "+rootItem+")");
+    	}
     	if (value == null && rawElement == null) {
 			throw new IllegalStateException("Neither value nor raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
 		}
@@ -218,25 +221,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 
 	@Override
 	public boolean equals(PrismValue otherValue, boolean ignoreMetadata) {
-		PrismPropertyValue<T> thisValue = this;
-		if (otherValue instanceof PrismPropertyValue) {
-			PrismPropertyValue<T> otherPropertyValue = (PrismPropertyValue)otherValue;
-			if (this.rawElement != null || otherPropertyValue.rawElement != null) {
-				try {
-					if (this.rawElement == null) {
-						otherValue = parseRawElementToNewValue(otherPropertyValue, this);
-					} else if (otherPropertyValue.rawElement == null) {
-						thisValue = parseRawElementToNewValue(this, otherPropertyValue);
-					}
-				} catch (SchemaException e) {
-					// TODO: Maybe just return false?
-					throw new IllegalArgumentException("Error parsing the value of property "+getParent()+" using the 'other' definition "+
-							"during a compare: "+e.getMessage(),e);
-				}
-			}
-		}
 		
-		return super.equals(thisValue, otherValue, ignoreMetadata);
+		return equals(this, otherValue, ignoreMetadata);
 	}
 
 	/**
@@ -282,12 +268,17 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 	
 	public boolean equals(PrismPropertyValue<T> thisValue, PrismPropertyValue<T> otherValue) {
-		if (thisValue.value == null) {
-			if (otherValue.value != null)
-				return false;
-		} else if (!compareRealValues(thisValue.value,otherValue.value))
+		if (thisValue == null && otherValue == null) {
+			return true;
+		}
+		if (thisValue == null || otherValue == null) {
 			return false;
-		return true;
+		}
+		if (!thisValue.equalsRealValue(otherValue)) {
+			return false;
+		}
+		// This compares meta-data
+		return super.equals(thisValue, otherValue);
 	}
 
 	private boolean compareRealValues(T thisValue, Object otherValue) {
@@ -316,15 +307,30 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         	return equalsRawElements(otherValue);
         }
         
+		if (this.rawElement != null || otherValue.rawElement != null) {
+			try {
+				if (this.rawElement == null) {
+					otherValue = parseRawElementToNewValue(otherValue, this);
+				} else if (otherValue.rawElement == null) {
+					thisValue = parseRawElementToNewValue(this, otherValue);
+				}
+			} catch (SchemaException e) {
+				// TODO: Maybe just return false?
+				throw new IllegalArgumentException("Error parsing the value of property "+getParent()+" using the 'other' definition "+
+						"during a compare: "+e.getMessage(),e);
+			}
+		}
+        
         T otherRealValue = otherValue.getValue();
-        if (otherRealValue == null && getValue() == null) {
+        T thisRealValue = thisValue.getValue();
+        if (otherRealValue == null && thisRealValue == null) {
         	return true;
         }
-        if (otherRealValue == null || getValue() == null) {
+        if (otherRealValue == null || thisRealValue == null) {
         	return false;
         }
 
-        return compareRealValues(getValue(), otherRealValue);
+        return compareRealValues(thisRealValue, otherRealValue);
     }
 
 	private boolean equalsRawElements(PrismPropertyValue<T> other) {

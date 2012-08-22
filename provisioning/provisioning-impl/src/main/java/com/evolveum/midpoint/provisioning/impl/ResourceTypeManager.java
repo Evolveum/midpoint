@@ -471,8 +471,7 @@ public class ResourceTypeManager {
 		}
 	}
 
-	public ResourceSchema getResourceSchema(ResourceType resource, ConnectorInstance connector,
-			OperationResult parentResult) throws SchemaException, CommunicationException,
+	public ResourceSchema getResourceSchema(ResourceType resource, OperationResult parentResult) throws SchemaException, CommunicationException,
 			ConfigurationException {
 
 		ResourceSchema schema = null;
@@ -540,9 +539,8 @@ public class ResourceTypeManager {
 			final ShadowHandler handler, final DiscoveryHandler discoveryHandler,
 			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException {
-		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 
-		final ResourceSchema schema = getResourceSchema(resourceType, connector, parentResult);
+		final ResourceSchema schema = getResourceSchema(resourceType, parentResult);
 
 		if (schema == null) {
 			parentResult.recordFatalError("Can't get resource schema.");
@@ -640,6 +638,8 @@ public class ResourceTypeManager {
 			}
 
 		};
+		
+		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 
 		try {
 			// TODO: refactor
@@ -715,18 +715,7 @@ public class ResourceTypeManager {
 
 		T repoShadow = results.get(0).asObjectable();
 		if (repoShadow != null) {
-			ResourceSchema resourceSchema = null;
-			try {
-				resourceSchema = getResourceSchema(resource, null, parentResult);
-			} catch (CommunicationException ex) {
-				parentResult
-						.recordFatalError("Error communicating with the connector " + ex.getMessage(), ex);
-
-			} catch (ConfigurationException ex) {
-				parentResult.recordFatalError("Error in the configuration: " + ex.getMessage(), ex);
-
-			}
-			ResourceObjectShadowUtil.fixShadow(repoShadow.asPrismObject(), resourceSchema);
+			shadowConverter.applyAttributesDefinition(repoShadow.asPrismObject(), resource);
 		}
 		return ShadowCacheUtil.completeShadow(resourceShadow, repoShadow, resource, parentResult);
 	}

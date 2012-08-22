@@ -25,6 +25,7 @@ import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -523,13 +524,51 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		testResult.computeStatus();
 		assertSuccess("Connector test failed", testResult);
 	}
-
+	
 	@Test
-	public void test010AddAccount() throws Exception {
-		displayTestTile("test010AddAccount");
+	public void test008ApplyDefinitionShadow() throws Exception {
+		displayTestTile("test008ApplyDefinitionShadow");
+
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test008ApplyDefinitionShadow");
+		
+		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
+		
+		// WHEN
+		provisioningService.applyDefinition(account, result);
+		
+		// THEN
+		account.checkConsistence(true, true);
+		assertSuccess("applyDefinition(account) result", result);
+	}
+	
+	@Test
+	public void test009ApplyDefinitionAddDelta() throws Exception {
+		displayTestTile("test009ApplyDefinitionAddDelta");
+
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test009ApplyDefinitionAddDelta");
+		
+		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
+					
+		ObjectDelta<AccountShadowType> delta = account.createAddDelta();
+		
+		// WHEN
+		provisioningService.applyDefinition(delta, result);
+		
+		// THEN
+		delta.checkConsistence(true, true, true);
+		assertSuccess("applyDefinition(add d, elta) result", result);
+	}
+
+	// The account must exist to test this with modify delta. So we postpone the test when the account actually exists
+		
+	@Test
+	public void test100AddAccount() throws Exception {
+		displayTestTile("test110AddAccount");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test010AddAccount");
+				+ ".test110AddAccount");
 
 		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		account.asPrismObject().checkConsistence();
@@ -578,11 +617,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test011AddAccountWithoutName() throws Exception {
-		displayTestTile("test011AddAccountWithoutName");
+	public void test101AddAccountWithoutName() throws Exception {
+		displayTestTile("test101AddAccountWithoutName");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test010Atest011AddAccountWithoutNameddAccount");
+				+ ".test101AddAccountWithoutName");
 
 		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_MORGAN_FILENAME, AccountShadowType.class);
 
@@ -628,11 +667,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test011GetAccount() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test011GetAccount");
+	public void test102GetAccount() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test102GetAccount");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test011GetAccount");
+				+ ".test102GetAccount");
 
 		// WHEN
 		AccountShadowType shadow = provisioningService.getObject(AccountShadowType.class,
@@ -649,11 +688,56 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test012SeachIterative() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, SecurityViolationException {
-		displayTestTile("test012SeachIterative");
+	public void test102GetAccountNoFetch() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		displayTestTile("test102GetAccountNoFetch");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test012SeachIterative");
+				+ ".test102GetAccountNoFetch");
+
+		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
+		
+		// WHEN
+		AccountShadowType shadow = provisioningService.getObject(AccountShadowType.class,
+				ACCOUNT_WILL_OID, options, result).asObjectable();
+
+		// THEN
+		display("Retrieved account shadow", shadow);
+
+		assertNotNull("No dummy account", shadow);
+		
+		checkShadow(shadow, result, false);
+		
+		checkConsistency();
+	}
+	
+	@Test
+	public void test105ApplyDefinitionModifyDelta() throws Exception {
+		displayTestTile("test105ApplyDefinitionModifyDelta");
+
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test105ApplyDefinitionModifyDelta");
+		
+		// TODO
+//		ObjectDelta<AccountShadowType> accountDelta = PrismTestUtil.parseDelta(new File(FILENAME_MODIFY_ACCOUNT));
+		
+		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.unmarshalObject(new File(FILENAME_MODIFY_ACCOUNT), ObjectModificationType.class);
+		ObjectDelta<AccountShadowType> accountDelta = DeltaConvertor.createObjectDelta(changeAddRoleCaptain, AccountShadowType.class, prismContext);
+			
+		
+		// WHEN
+		provisioningService.applyDefinition(accountDelta, result);
+		
+		// THEN
+		accountDelta.checkConsistence(true, true, true);
+		assertSuccess("applyDefinition(modify delta) result", result);
+	}
+	
+	@Test
+	public void test112SeachIterative() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, SecurityViolationException {
+		displayTestTile("test112SeachIterative");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test112SeachIterative");
 		
 		// Make sure there is an account on resource that the provisioning has never seen before, so there is no shadow
 		// for it yet.
@@ -710,11 +794,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test013SearchAllShadowsInRepository() throws Exception {
-		displayTestTile("test013SearchAllShadowsInRepository");
+	public void test113SearchAllShadowsInRepository() throws Exception {
+		displayTestTile("test113SearchAllShadowsInRepository");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test013SearchAllShadowsInRepository");
+				+ ".test113SearchAllShadowsInRepository");
 		QueryType query = IntegrationTestTools.createAllShadowsQuery(resourceType);
 		display("All shadows query", query);
 		
@@ -725,11 +809,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test014SearchAllShadows() throws Exception {
-		displayTestTile("test014SearchAllShadows");
+	public void test114SearchAllShadows() throws Exception {
+		displayTestTile("test114SearchAllShadows");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test014SearchAllShadows");
+				+ ".test114SearchAllShadows");
 		QueryType query = IntegrationTestTools.createAllShadowsQuery(resourceType, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		display("All shadows query", query);
 		
@@ -741,11 +825,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test015countAllShadows() throws Exception {
-		displayTestTile("test015countAllShadows");
+	public void test115countAllShadows() throws Exception {
+		displayTestTile("test115countAllShadows");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test015countAllShadows");
+				+ ".test115countAllShadows");
 		QueryType query = IntegrationTestTools.createAllShadowsQuery(resourceType, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		display("All shadows query", query);
 		
@@ -756,11 +840,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test016SearchNullQueryResource() throws Exception {
-		displayTestTile("test016SearchNullQueryResource");
+	public void test116SearchNullQueryResource() throws Exception {
+		displayTestTile("test116SearchNullQueryResource");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test016SearchNullQueryResource");
+				+ ".test116SearchNullQueryResource");
 		
 		List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class, null, null , result);
 		display("Found "+allResources.size()+" resources");
@@ -770,11 +854,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test017CountNullQueryResource() throws Exception {
-		displayTestTile("test017CountNullQueryResource");
+	public void test117CountNullQueryResource() throws Exception {
+		displayTestTile("test117CountNullQueryResource");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test017CountNullQueryResource");
+				+ ".test117CountNullQueryResource");
 		
 		int count = provisioningService.countObjects(ResourceType.class, null, result);
 		display("Counted "+count+" resources");
@@ -782,9 +866,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals("Wrong count", 1, count);
 	}
 
-		
 	private void checkShadow(AccountShadowType shadow, OperationResult parentResult) {
-		ObjectChecker<AccountShadowType> checker = createShadowChecker();
+		checkShadow(shadow, parentResult, true);
+	}
+		
+	private void checkShadow(AccountShadowType shadow, OperationResult parentResult, boolean fullShadow) {
+		shadow.asPrismObject().checkConsistence(true, true);
+		ObjectChecker<AccountShadowType> checker = createShadowChecker(fullShadow);
 		IntegrationTestTools.checkShadow(shadow, resourceType, repositoryService, checker, prismContext, parentResult);
 	}
 	
@@ -793,18 +881,20 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		IntegrationTestTools.checkAllShadows(resourceType, repositoryService, checker, prismContext);		
 	}
 
-	private ObjectChecker<AccountShadowType> createShadowChecker() {
+	private ObjectChecker<AccountShadowType> createShadowChecker(final boolean fullShadow) {
 		return  new ObjectChecker<AccountShadowType>() {
 			@Override
 			public void check(AccountShadowType shadow) {
 				String icfName = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, SchemaTestConstants.ICFS_NAME);
 		        assertNotNull("No ICF NAME", icfName);
 		        assertEquals("Wrong shadow name", shadow.getName(), icfName);
-		        assertNotNull("Missing fullname attribute", ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
-								new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname")));
-				assertNotNull("no activation",shadow.getActivation());
-				assertNotNull("no activation/enabled",shadow.getActivation().isEnabled());
-				assertTrue("not enabled",shadow.getActivation().isEnabled());
+		        if (fullShadow) {
+			        assertNotNull("Missing fullname attribute", ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
+									new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname")));
+					assertNotNull("no activation",shadow.getActivation());
+					assertNotNull("no activation/enabled",shadow.getActivation().isEnabled());
+					assertTrue("not enabled",shadow.getActivation().isEnabled());
+		        }
 				
 				assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, ResourceAttributeDefinition.class);				
 			}
@@ -813,13 +903,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test021EnableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
+	public void test121EnableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test021EnableAccount");
+		displayTestTile("test121EnableAccount");
 		// GIVEN
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test021EnableAccount");
+				+ ".test121EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_WILL_OID, null, result).asObjectable();
@@ -849,13 +939,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test022DisableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
+	public void test122DisableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test022EnableAccount");
+		displayTestTile("test122EnableAccount");
 		// GIVEN
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test022EnableAccount");
+				+ ".test122EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_WILL_OID, null, result).asObjectable();
@@ -884,11 +974,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test023ModifyObject() throws Exception {
-		displayTestTile("test023ModifyObject");
+	public void test123ModifyObject() throws Exception {
+		displayTestTile("test123ModifyObject");
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test023ModifyObject");
+				+ ".test123ModifyObject");
 
 		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_MODIFY_ACCOUNT,
 				ObjectModificationType.class);
@@ -910,12 +1000,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test031AddScript() throws FileNotFoundException, JAXBException, ObjectAlreadyExistsException,
+	public void test131AddScript() throws FileNotFoundException, JAXBException, ObjectAlreadyExistsException,
 			SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test031AddScript");
+		displayTestTile("test131AddScript");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test031AddScript");
+				+ ".test131AddScript");
 
 		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
 
@@ -962,12 +1052,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test032ModifyScript() {
+	public void test132ModifyScript() {
 		// TODO
 	}
 
 	@Test
-	public void test033DeleteScript() {
+	public void test133DeleteScript() {
 		// TODO
 	}
 		

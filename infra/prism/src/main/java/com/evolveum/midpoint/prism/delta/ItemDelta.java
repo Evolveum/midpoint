@@ -148,6 +148,11 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			itemDelta.applyDefinition(itemDefinition);
 		}
 	}
+	
+	public boolean hasCompleteDefinition() {
+		return getDefinition() != null;
+	}
+
 
 	public PrismContext getPrismContext() {
 		if (definition == null) {
@@ -338,20 +343,20 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
-		checkConsistence(deltas, false);
+		checkConsistence(deltas, false, false);
 	}
 	
-	public static void checkConsistence(Collection<? extends ItemDelta> deltas, boolean requireDefinition) {
+	public static void checkConsistence(Collection<? extends ItemDelta> deltas, boolean requireDefinition, boolean prohibitRaw) {
 		for (ItemDelta<?> delta : deltas) {
-			delta.checkConsistence(requireDefinition);
+			delta.checkConsistence(requireDefinition, prohibitRaw);
 		}
 	}
 	
 	public void checkConsistence() {
-		checkConsistence(false);
+		checkConsistence(false, false);
 	}
 
-	public void checkConsistence(boolean requireDefinition) {
+	public void checkConsistence(boolean requireDefinition, boolean prohibitRaw) {
 		if (parentPath == null) {
 			throw new IllegalStateException("Null parent path in " + this);
 		}
@@ -362,12 +367,12 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			throw new IllegalStateException(
 					"The delta cannot be both 'replace' and 'add/delete' at the same time");
 		}
-		assertSetConsistence(valuesToReplace, "replace");
-		assertSetConsistence(valuesToAdd, "add");
-		assertSetConsistence(valuesToDelete, "delete");
+		assertSetConsistence(valuesToReplace, "replace", requireDefinition, prohibitRaw);
+		assertSetConsistence(valuesToAdd, "add", requireDefinition, prohibitRaw);
+		assertSetConsistence(valuesToDelete, "delete", requireDefinition, prohibitRaw);
 	}
 
-	private void assertSetConsistence(Collection<V> values, String type) {
+	private void assertSetConsistence(Collection<V> values, String type, boolean requireDefinitions, boolean prohibitRaw) {
 		if (values == null) {
 			return;
 		}
@@ -383,7 +388,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			if (val.getParent() != this) {
 				throw new IllegalStateException("Wrong parent for " + val + " in " + type + " values set in " + this + ": " + val.getParent());
 			}
-			val.checkConsistenceInternal(this, parentPath);
+			val.checkConsistenceInternal(this, parentPath, requireDefinitions, prohibitRaw);
 		}
 	}
 

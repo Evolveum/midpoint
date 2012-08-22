@@ -613,7 +613,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     @Override
-	public void recompute() {
+	public void recompute(PrismContext prismContext) {
 		// Nothing to do. The subitems should be already recomputed as they are added to this container.
 	}
     
@@ -624,6 +624,15 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			item.accept(visitor);
 		}
 	}
+    
+    public boolean hasCompleteDefinition() {
+    	for (Item<?> item: getItems()) {
+    		if (!item.hasCompleteDefinition()) {
+    			return false;
+    		}
+    	}
+    	return true;
+    }
 
 	@Override
 	protected Element createDomElement() {
@@ -848,8 +857,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     @Override
-	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath) {
+	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
 		PropertyPath myPath = getPath(parentPath);
+		if (prohibitRaw && rawElements != null) {
+			throw new IllegalStateException("Raw elements in container value "+this+" ("+myPath+" in "+rootItem+")");
+		}
 		if (items == null && rawElements == null) {
 			throw new IllegalStateException("Neither items nor raw elements specified in container value "+this+" ("+myPath+" in "+rootItem+")");
 		}
@@ -868,7 +880,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 					throw new IllegalStateException("Wrong parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+"), " +
 							"bad parent: "+ item.getParent());
 				}
-				item.checkConsistenceInternal(rootItem, myPath);
+				item.checkConsistenceInternal(rootItem, myPath, requireDefinitions, prohibitRaw);
 			}
 		}
 	}

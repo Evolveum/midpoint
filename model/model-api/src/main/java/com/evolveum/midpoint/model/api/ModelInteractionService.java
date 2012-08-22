@@ -48,6 +48,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
  */
 public interface ModelInteractionService {
 	
+	String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
+	String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
+	
 	/**
 	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
 	 * add of a user or change of a shadow. The resulting context will sort that out to "focus" and "projection" as needed.

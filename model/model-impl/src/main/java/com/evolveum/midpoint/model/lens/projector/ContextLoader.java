@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
+
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -98,6 +100,8 @@ public class ContextLoader {
 			preprocessProjectionContext(context, projectionContext, result);
 		}
 		
+		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext != null) {
 			loadObjectOld(context, result);
@@ -111,6 +115,7 @@ public class ContextLoader {
 		        loadAccountRefs(ucContext, result);
 	    	}
     	}
+    	if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
         checkProjectionContexts(context, result);
         context.recompute();
@@ -231,7 +236,11 @@ public class ContextLoader {
 			loadAccountRefsFromUser(context, userOld, policyDecision, result);
 		}
 
+		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		
 		loadAccountRefsFromDelta(context, userOld, focusContext.getPrimaryDelta(), result);
+		
+		if (CONSISTENCY_CHECKS) context.checkConsistence();
 
 		loadAccountContextsSync(context, result);
 	}
@@ -258,9 +267,10 @@ public class ContextLoader {
 			}
 			PrismObject<AccountShadowType> account = accountRefVal.getObject();
 			if (account == null) {
-				// Fetching from repository instead of provisioning so we avoid
-				// reading in a full account
-				account = cacheRepositoryService.getObject(AccountShadowType.class, oid, result);
+				// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
+				// We need to fetch from provisioning and not repository so the correct definition will be set.
+				Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
+				account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
 			}
 			LensProjectionContext<AccountShadowType> accountSyncContext = getOrCreateAccountContext(context, account, result);
 			if (accountSyncContext.getPolicyDecision() == null) {
@@ -327,6 +337,9 @@ public class ContextLoader {
 						throw new SchemaException("Null or empty OID in account reference " + refVal + " in "
 								+ user);
 					}
+					if (!account.hasCompleteDefinition()) {
+						provisioningService.applyDefinition(account, result);
+					}
 					// Create account context from embedded object
 					accountSyncContext = getOrCreateAccountContext(context, account, result);
 					// This is a new account that is to be added. So it should
@@ -336,11 +349,14 @@ public class ContextLoader {
 					accountSyncContext.setFullShadow(true);
 					isCombinedAdd = true;
 				} else {
-					// We have OID. This is either linking of exising account or
+					// We have OID. This is either linking of existing account or
 					// add of new account
 					// therefore check for account existence to decide
 					try {
-						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, result);
+						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
+						// We need to fetch from provisioning and not repository so the correct definition will be set.
+						Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
+						account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
 						// Create account context from retrieved object
 						accountSyncContext = getOrCreateAccountContext(context, account, result);
 						accountSyncContext.setObjectOld(account);
@@ -353,6 +369,9 @@ public class ContextLoader {
 						} else {
 							// New account (with OID)
 							account = refVal.getObject();
+							if (!account.hasCompleteDefinition()) {
+								provisioningService.applyDefinition(account, result);
+							}
 							// Create account context from embedded object
 							accountSyncContext = getOrCreateAccountContext(context, account, result);
 							ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
@@ -377,7 +396,10 @@ public class ContextLoader {
 					throw new SchemaException("Cannot delete account ref withot an oid in " + user);
 				} else {
 					try {
-						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, result);
+						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
+						// We need to fetch from provisioning and not repository so the correct definition will be set.
+						Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
+						account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
 						// Create account context from retrieved object
 						accountSyncContext = getOrCreateAccountContext(context, account, result);
 						accountSyncContext.setObjectOld(account);
@@ -445,7 +467,10 @@ public class ContextLoader {
 					if (oid == null) {
 						throw new IllegalArgumentException("No OID in sync delta in " + accountCtx);
 					}
-					account = cacheRepositoryService.getObject(AccountShadowType.class, oid, result);
+					// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
+					// We need to fetch from provisioning and not repository so the correct definition will be set.
+					Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
+					account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
 					// We will not set old account if the delta is delete. The
 					// account does not really exists now.
 					// (but the OID and resource will be set from the repo

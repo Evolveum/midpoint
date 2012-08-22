@@ -21,6 +21,8 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -176,7 +178,7 @@ public class ShadowCache {
 			throw new IllegalArgumentException("Provided OID is not equal to OID of repository shadow");
 		}
 
-		ResourceType resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow), parentResult);
+		ResourceType resource = getResource(repositoryShadow, parentResult);
 
 		LOGGER.trace("Getting fresh object from ucf.");
 
@@ -221,11 +223,7 @@ public class ShadowCache {
 		}
 
 		if (resource == null) {
-			String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
-			if (StringUtils.isEmpty(resourceOid)) {
-				throw new SchemaException("Shadow " + shadow + " does not have an resource OID, cannot add it.");
-			}
-			resource = getResource(resourceOid, parentResult);
+			resource = getResource(shadow, parentResult);
 		}
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
@@ -275,7 +273,7 @@ public class ShadowCache {
 			AccountShadowType accountShadow = (AccountShadowType) objectType;
 
 			if (resource == null) {
-				resource = getResource(ResourceObjectShadowUtil.getResourceOid(accountShadow), parentResult);
+				resource = getResource(accountShadow, parentResult);
 			} 
 
 			LOGGER.trace("Deleting obeject {} from the resource {}.", ObjectTypeUtil.toShortString(objectType),
@@ -326,11 +324,7 @@ public class ShadowCache {
 		if (objectType instanceof ResourceObjectShadowType) {
 			ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
 			if (resource == null) {
-				String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
-				if (resourceOid == null) {
-					throw new SchemaException("No resource OID in " + shadow);
-				}
-				resource = getResource(resourceOid, parentResult);
+				resource = getResource(shadow, parentResult);
 
 			} 
 
@@ -644,15 +638,21 @@ public class ShadowCache {
 		}
 		return accountList;
 	}
-
-	private ResourceType getResource(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException, CommunicationException, ConfigurationException {
-		if (StringUtils.isEmpty(oid)) {
-			throw new IllegalArgumentException("Cannot get resource with an empty OID");
+	
+	private ResourceType getResource(ResourceObjectShadowType shadowType, OperationResult parentResult) throws ObjectNotFoundException,
+	SchemaException, CommunicationException, ConfigurationException {
+		String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
+		if (resourceOid == null) {
+			throw new SchemaException("Shadow " + shadowType + " does not have an resource OID");
 		}
-		// TODO: add some caching
-		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, parentResult);
-		// return resource;
+		return getResource(resourceOid, parentResult);
+	}
+		
+	private ResourceType getResource(String resourceOid, OperationResult parentResult) throws ObjectNotFoundException,
+		SchemaException, CommunicationException, ConfigurationException {
+		
+		// TODO: add some caching ?
+		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, resourceOid, parentResult);
 
 		return shadowConverter.completeResource(resource.asObjectable(), parentResult);
 	}
@@ -692,6 +692,42 @@ public class ShadowCache {
 			}
 			shadow.setOid(oid);
 		}
+	}
+	
+	public <T extends ResourceObjectShadowType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult)
+		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		PrismObject<T> shadow = null;
+		ResourceShadowDiscriminator discriminator = null;
+		if (delta.isAdd()) {
+			shadow = delta.getObjectToAdd();
+		} else if (delta.isModify()) {
+			if (delta instanceof ShadowDiscriminatorObjectDelta) {
+				// This one does not have OID, it has to be specially processed
+				discriminator = ((ShadowDiscriminatorObjectDelta)delta).getDiscriminator();
+			} else {
+				String shadowOid = delta.getOid();
+				if (shadowOid == null) {
+					throw new IllegalArgumentException("No OID in object delta "+delta);
+				}
+				shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, parentResult);
+			}
+		} else {
+			// Delete delta, nothing to do at all
+			return;
+		}
+		if (shadow == null) {
+			ResourceType resource = getResource(discriminator.getResourceOid(), parentResult);
+			shadowConverter.applyAttributesDefinition(delta, discriminator, resource);
+		} else {
+			ResourceType resource = getResource(shadow.asObjectable(), parentResult);
+			shadowConverter.applyAttributesDefinition(delta, shadow, resource);
+		}
+	}
+	
+	public <T extends ResourceObjectShadowType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult)
+		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		ResourceType resource = getResource(shadow.asObjectable(), parentResult);
+		shadowConverter.applyAttributesDefinition(shadow, resource);
 	}
 
 }

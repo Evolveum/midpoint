@@ -232,6 +232,22 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         }
     }
     
+    public boolean hasCompleteDefinition() {
+    	if (isAdd()) {
+    		return getObjectToAdd().hasCompleteDefinition();
+    	} else if (isModify()) {
+    		for (ItemDelta modification: getModifications()) {
+    			if (!modification.hasCompleteDefinition()) {
+    				return false;
+    			}
+    			return true;
+    		}
+    	} else if (isDelete()) {
+    		return true;
+    	}
+    	throw new IllegalStateException("Strange things happen");
+    }
+    
     private <D extends ItemDelta, I extends Item> D createEmptyDelta(PropertyPath propertyPath, ItemDefinition itemDef,
     		Class<D> deltaType, Class<I> itemType) {
     
@@ -650,16 +666,16 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
         
     public void checkConsistence() {
-    	checkConsistence(true, false);
+    	checkConsistence(true, false, false);
     }
     
-    public void checkConsistence(boolean requireOid, boolean requireDefinition) {
+    public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw) {
     	if (getChangeType() == ChangeType.ADD) {
 			if (getModifications() != null && !getModifications().isEmpty()) {
 				throw new IllegalStateException("Modifications present in ADD delta "+this);
 			}
 			if (getObjectToAdd() != null) {
-				PrismAsserts.assertParentConsistency(getObjectToAdd());
+				getObjectToAdd().checkConsistence(requireDefinition, prohibitRaw);
 			} else {
 				throw new IllegalStateException("User primary delta is ADD, but there is not object to add in "+this);
 			}
@@ -671,7 +687,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 			if (getModifications() == null) {
 				throw new IllegalStateException("Null modification in MODIFY delta "+this);
 			}
-			ItemDelta.checkConsistence(getModifications(), requireDefinition);
+			ItemDelta.checkConsistence(getModifications(), requireDefinition, prohibitRaw);
 		} else if (getChangeType() == ChangeType.DELETE) {
 	    	if (requireOid && getOid() == null) {
 	    		throw new IllegalStateException("Null oid in delta "+this);

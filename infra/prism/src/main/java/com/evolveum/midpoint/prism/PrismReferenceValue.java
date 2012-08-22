@@ -180,7 +180,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	}
 
 	@Override
-	public void recompute() {
+	public void recompute(PrismContext prismContext) {
 		// Nothing to do
 	}
 
@@ -190,7 +190,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	}
 	
 	@Override
-	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath) {
+	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
 		PropertyPath myPath = getParent().getPath(parentPath);
 		if (oid == null && object == null && filter == null) {
 			throw new IllegalStateException("Neither OID, object nor filter specified in reference value "+this+" ("+myPath+" in "+rootItem+")");

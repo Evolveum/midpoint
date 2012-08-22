@@ -113,7 +113,11 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 	 * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
 	 * This may as well do nothing if no recomputing or initialization is needed.
 	 */
-	public abstract void recompute();
+	public void recompute() {
+		recompute(getPrismContext());
+	}
+	
+	public abstract void recompute(PrismContext prismContext);
 	
 	@Override
 	public void accept(Visitor visitor) {
@@ -133,7 +137,7 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		domElement = null;
 	}
 	
-	public abstract void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath);
+	public abstract void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath, boolean requireDefinitions, boolean prohibitRaw);
 		
 	/**
 	 * Returns true if this and other value represent the same value.

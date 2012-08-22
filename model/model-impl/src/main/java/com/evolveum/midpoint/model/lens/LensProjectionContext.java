@@ -408,9 +408,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			distributeResourceObject(delta.getObjectToAdd(), resource);
 		} else if (delta.isModify()) {
 			ReferenceDelta referenceDelta = delta.findReferenceModification(ResourceObjectShadowType.F_RESOURCE_REF);
-			distributeResourceValues(referenceDelta.getValuesToAdd(), resource);
-			distributeResourceValues(referenceDelta.getValuesToDelete(), resource);
-			distributeResourceValues(referenceDelta.getValuesToReplace(), resource);
+			if (referenceDelta != null) {
+				distributeResourceValues(referenceDelta.getValuesToAdd(), resource);
+				distributeResourceValues(referenceDelta.getValuesToDelete(), resource);
+				distributeResourceValues(referenceDelta.getValuesToReplace(), resource);
+			}
 		} // Nothing to do for DELETE delta
 	}
 
@@ -441,7 +443,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     	}
     	if (syncDelta != null) {
     		try {
-    			syncDelta.checkConsistence();
+    			syncDelta.checkConsistence(true, true, true);
     		} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			} catch (IllegalStateException e) {

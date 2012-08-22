@@ -129,6 +129,7 @@ public class AccountValuesProcessor {
 			context.recompute();
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			consolidationProcessor.consolidateValues(context, accountContext, result);
+			if (CONSISTENCY_CHECKS) context.checkConsistence();
 	        context.recompute();
 	        if (CONSISTENCY_CHECKS) context.checkConsistence();
 	 

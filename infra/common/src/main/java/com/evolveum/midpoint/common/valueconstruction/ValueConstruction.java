@@ -34,12 +34,15 @@ import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -256,6 +259,10 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 	public void setConditionMaskNew(boolean conditionMaskNew) {
 		this.conditionMaskNew = conditionMaskNew;
 	}
+	
+	private PrismContext getPrismContext() {
+		return outputDefinition.getPrismContext();
+	}
 
 	public void evaluate(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (outputDefinition == null) {
@@ -272,6 +279,7 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 		// TODO: input filter
 		evaluateValueConstructors(result, conditionResultOld, conditionResultNew);
 		fixDefinition();
+		recomputeValues();
 		// TODO: output filter
 	}
 	
@@ -286,6 +294,22 @@ public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugD
 			outputTriple.applyDefinition(outputDefinition);
 		}
 	}
+	
+	private void recomputeValues() {
+		if (outputTriple == null) {
+			return;
+		}
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (visitable instanceof PrismValue) {
+					((PrismValue)visitable).recompute(getPrismContext());
+				}
+			}
+		};
+		outputTriple.accept(visitor);
+	}
+
 
 	private boolean evaluateConditionOld(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (valueConstructionType == null) {

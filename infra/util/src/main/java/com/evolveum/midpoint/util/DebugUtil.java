@@ -283,7 +283,12 @@ public class DebugUtil implements ObjectFormatter {
 		return qname.toString();
 	}
 
-
+	public static <T> String valueAndClass(T value) {
+		if (value == null) {
+			return "null";
+		}
+		return value.getClass().getSimpleName()+":"+value.toString();
+	}
 
 //	public static String prettyPrint(ObjectType object, boolean showContent) {
 //

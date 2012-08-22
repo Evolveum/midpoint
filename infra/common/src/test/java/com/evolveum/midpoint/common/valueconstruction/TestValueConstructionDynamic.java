@@ -337,7 +337,7 @@ public class TestValueConstructionDynamic {
     			"construction-expression-system-variables-polystring-groovy.xml", "fullName", null, vars, "testConstructionExpressionVariablesPolyStringGroovy");
     	
         // THEN
-    	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Captain Jack Sparrow"));
+    	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Captain Jack Sparrow", "captain jack sparrow"));
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }

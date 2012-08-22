@@ -102,6 +102,17 @@ public class ResourceSchema extends PrismSchema {
 		}
 	}
 
+	public ObjectClassComplexTypeDefinition findAccountDefinition(String intent) {
+		if (intent == null) {
+			return findDefaultAccountDefinition();
+		}
+		for (ObjectClassComplexTypeDefinition attrContDef: getDefinitions(ObjectClassComplexTypeDefinition.class)) {
+			if (intent.equals(attrContDef.getIntent())) {
+				return attrContDef;
+			}
+		}
+		return null;
+	}
 
 	public ObjectClassComplexTypeDefinition findDefaultAccountDefinition() {
 		for (ObjectClassComplexTypeDefinition attrContDef: getDefinitions(ObjectClassComplexTypeDefinition.class)) {

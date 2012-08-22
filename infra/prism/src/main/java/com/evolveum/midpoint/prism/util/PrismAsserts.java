@@ -297,7 +297,7 @@ public class PrismAsserts {
 				}
 			}
 			if (!found) {
-				assert false : "Expected value '"+expectedValue+"' was not found in triple "+setName+"; values :"+tripleSet;
+				assert false : "Expected value '"+DebugUtil.valueAndClass(expectedValue)+"' was not found in triple "+setName+"; values :"+tripleSet;
 			}
 		}
 	}
@@ -341,7 +341,7 @@ public class PrismAsserts {
 		assert actual != null : message + ": null value";
 		assert MiscUtil.equals(expected.getOrig(), actual.getOrig()) : message+"; expected orig "+expected.getOrig()+ " but was " + actual.getOrig();
 		assert MiscUtil.equals(expected.getNorm(), actual.getNorm()) : message+"; expected norm "+expected.getNorm()+ " but was " + actual.getNorm();
-	}
+	} 
 
 	// Calendar asserts
 	

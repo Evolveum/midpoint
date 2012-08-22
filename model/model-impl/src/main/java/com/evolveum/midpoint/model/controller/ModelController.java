@@ -297,7 +297,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
-		LensContext<?, ?> context = LensUtil.objectDeltaToContext(deltas, prismContext);
+		LensContext<?, ?> context = LensUtil.objectDeltaToContext(deltas, provisioning, prismContext, result);
 		clockwork.run(context, task, result);
 		// TODO: ERROR HANDLING
 		result.computeStatus();
@@ -308,13 +308,17 @@ public class ModelController implements ModelService, ModelInteractionService {
 	 */
 	@Override
 	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result)
+			Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(deltas, prismContext);
-		projector.project(context, "preview", result);
+		OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
+		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(deltas, provisioning, prismContext, result);
 		
+		projector.project(context, "preview", result);
 		context.distributeResource();
-
+		
+		// TODO: ERROR HANDLING
+		result.computeStatus();
+		
 		return context;
 	}
 

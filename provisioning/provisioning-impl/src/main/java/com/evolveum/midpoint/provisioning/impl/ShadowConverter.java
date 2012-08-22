@@ -24,6 +24,7 @@ package com.evolveum.midpoint.provisioning.impl;
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -104,26 +106,10 @@ public class ShadowConverter {
 			T repoShadow, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
-		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
+		
+		ObjectClassComplexTypeDefinition objectClassDefinition = applyAttributesDefinition(repoShadow.asPrismObject(), resource);
 
-		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
-
-		QName objectClass = repoShadow.getObjectClass();
-		ObjectClassComplexTypeDefinition objectClassDefinition = schema
-				.findObjectClassDefinition(objectClass);
-
-		ResourceObjectShadowUtil.fixShadow(repoShadow.asPrismObject(), schema);
-
-		if (objectClassDefinition == null) {
-			// Unknown objectclass
-			SchemaException ex = new SchemaException("Object class " + objectClass
-					+ " defined in the repository shadow is not known in schema of resource "
-					+ ObjectTypeUtil.toShortString(resource));
-			parentResult.recordFatalError("Object class " + objectClass
-					+ " defined in the repository shadow is not known in resource schema", ex);
-			throw ex;
-		}
-
+	
 		// Let's get all the identifiers from the Shadow <attributes> part
 		Collection<? extends ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil
 				.getIdentifiers(repoShadow);
@@ -153,6 +139,8 @@ public class ShadowConverter {
 					+ objectClassDefinition + ": " + identifiers);
 		}
 
+		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
+		
 		T resourceShadow = fetchResourceObject(type, objectClassDefinition, identifiers, connector, resource,
 				parentResult);
 
@@ -183,25 +171,19 @@ public class ShadowConverter {
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
-		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-		ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resource, connector,
-				parentResult);
-		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 		PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow before conversion:\n{}", shadow.dump());
-		}
-		ResourceObjectShadowUtil.fixShadow(shadow, resourceSchema);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow after conversion:\n{}", shadow.dump());
-		}
+		applyAttributesDefinition(shadow, resource);
+		
+		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 
 		if (isProtectedShadow(resource, shadow)) {
 			LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
 			throw new SecurityViolationException("Cannot get protected shadow " + shadowType);
 		}
 
+		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
+		
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -209,7 +191,7 @@ public class ShadowConverter {
 						new Object[] { resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
 								SchemaDebugUtil.debugDump(additionalOperations) });
 			}
-
+			
 			resourceAttributesAfterAdd = connector.addObject(shadow, additionalOperations, parentResult);
 
 			if (LOGGER.isDebugEnabled()) {
@@ -242,64 +224,14 @@ public class ShadowConverter {
 		return shadowType;
 	}
 
-	// /**
-	// * Make sure that the shadow is UCF-ready. That means that is has
-	// ResourceAttributeContainer as <attributes>,
-	// * has definition, etc.
-	// */
-	// private void convertToUcfShadow(PrismObject<ResourceObjectShadowType>
-	// shadow, ResourceSchema resourceSchema) throws SchemaException {
-	// PrismContainer<?> attributesContainer =
-	// shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
-	// if (attributesContainer instanceof ResourceAttributeContainer) {
-	// if (attributesContainer.getDefinition() != null) {
-	// // Nothing to do. Everything is OK.
-	// return;
-	// } else {
-	// // TODO: maybe we can apply the definition?
-	// throw new
-	// SchemaException("No definition for attributes container in "+shadow);
-	// }
-	// }
-	// ObjectClassComplexTypeDefinition objectClassDefinition =
-	// determineObjectClassDefinition(shadow, resourceSchema);
-	// // We need to convert <attributes> to ResourceAttributeContainer
-	// ResourceAttributeContainer convertedContainer =
-	// ResourceAttributeContainer.convertFromContainer(attributesContainer,objectClassDefinition);
-	// shadow.getValue().replace(attributesContainer, convertedContainer);
-	// }
-	//
-	// private ObjectClassComplexTypeDefinition determineObjectClassDefinition(
-	// PrismObject<ResourceObjectShadowType> shadow, ResourceSchema
-	// resourceSchema) throws SchemaException {
-	// QName objectClassName = shadow.asObjectable().getObjectClass();
-	// if (objectClassName == null) {
-	// throw new SchemaException("No object class specified in shadow " +
-	// shadow);
-	// }
-	// ObjectClassComplexTypeDefinition objectClassDefinition =
-	// resourceSchema.findObjectClassDefinition(objectClassName);
-	// if (objectClassDefinition == null) {
-	// throw new
-	// SchemaException("No definition for object class "+objectClassName+" as specified in shadow "
-	// + shadow);
-	// }
-	// return objectClassDefinition;
-	// }
-
 	public void deleteShadow(ResourceType resource, ResourceObjectShadowType shadow,
 			Set<Operation> additionalOperations, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
-
-		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow
-				.getObjectClass());
-
-		ResourceObjectShadowUtil.fixShadow(shadow.asPrismObject(), schema);
-
+		ObjectClassComplexTypeDefinition objectClassDefinition = applyAttributesDefinition(shadow.asPrismObject(), resource);
+		
 		LOGGER.trace("Getting object identifiers");
 		Collection<? extends ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil
 				.getIdentifiers(shadow);
@@ -349,14 +281,9 @@ public class ShadowConverter {
 			Collection<? extends ItemDelta> objectChanges, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
-		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
-
-		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow
-				.getObjectClass());
-
-		ResourceObjectShadowUtil.fixShadow(shadow.asPrismObject(), schema);
+		ObjectClassComplexTypeDefinition objectClassDefinition = applyAttributesDefinition(shadow.asPrismObject(), resource);
+		
 		ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil
 				.getObjectClassDefinition(shadow);
 
@@ -390,6 +317,7 @@ public class ShadowConverter {
 
 		getAttributeChanges(objectChanges, operations, objectClassDefinition);
 
+		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 	
 		Set<PropertyModificationOperation> sideEffectChanges = null;
 		try {
@@ -441,7 +369,7 @@ public class ShadowConverter {
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 //		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
-		ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resourceType, null, parentResult);
+		ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resourceType, parentResult);
 		// This is a HACK. It should not work only for default account, but also
 		// for other objectclasses (FIXME)
 		ObjectClassComplexTypeDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
@@ -524,7 +452,7 @@ public class ShadowConverter {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, parentResult);
 		ObjectClassComplexTypeDefinition rod = schema.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resource),
 				"AccountObjectClass"));
 
@@ -566,15 +494,6 @@ public class ShadowConverter {
 			throw new SecurityViolationException("Cannot get protected resource object "
 					+ objectClassDefinition + ": " + identifiers);
 		}
-
-		// Set<ResourceObjectAttribute> roIdentifiers = new
-		// HashSet<ResourceObjectAttribute>();
-		// for (Property p : identifiers) {
-		// ResourceObjectAttribute roa = new
-		// ResourceObjectAttribute(p.getName(), p.getDefinition(),
-		// p.getValues());
-		// roIdentifiers.add(roa);
-		// }
 
 		try {
 			PrismObject<T> resourceObject = connector.fetchObject(type, objectClassDefinition, identifiers,
@@ -808,5 +727,89 @@ public class ShadowConverter {
 		}
 		return ResourceObjectPattern.matches(attributes, protectedAccountPatterns);
 	}
+	
+	public <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
+			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException {
+		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(discriminator, resource);
+		return applyAttributesDefinition(delta, objectClassDefinition, resource);
+	}
+	
+	public <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
+			PrismObject<T> shadow, ResourceType resource) throws SchemaException {
+		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
+		return applyAttributesDefinition(delta, objectClassDefinition, resource);
+	}
 
+	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
+			ObjectClassComplexTypeDefinition objectClassDefinition, ResourceType resource) throws SchemaException {
+		if (delta.isAdd()) {
+			applyAttributesDefinition(delta.getObjectToAdd(), resource);
+		} else if (delta.isModify()) {
+			PropertyPath attributesPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES);
+			for(ItemDelta modification: delta.getModifications()) {
+				if (modification.getDefinition() == null && attributesPath.equals(modification.getParentPath())) {
+					QName attributeName = modification.getName();
+					ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
+					if (attributeDefinition == null) {
+						throw new SchemaException("No definition for attribute "+attributeName+" in object delta "+delta);
+					}
+					modification.applyDefinition(attributeDefinition);
+				}
+			}
+		}
+
+		return objectClassDefinition;
+	}
+
+	public <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(
+			PrismObject<T> shadow, ResourceType resource) throws SchemaException {
+		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
+
+		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer != null) {
+			if (attributesContainer instanceof ResourceAttributeContainer) {
+				if (attributesContainer.getDefinition() == null) {
+					ResourceAttributeContainerDefinition definition = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES,
+							objectClassDefinition, objectClassDefinition.getPrismContext());
+					attributesContainer.applyDefinition(definition);
+				}
+			} else {
+				// We need to convert <attributes> to ResourceAttributeContainer
+				ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(
+						attributesContainer, objectClassDefinition);
+				shadow.getValue().replace(attributesContainer, convertedContainer);
+			}
+		}
+
+		return objectClassDefinition;
+	}
+
+	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(PrismObject<T> shadow, ResourceType resource) throws SchemaException {
+		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		QName objectClass = shadow.asObjectable().getObjectClass();
+		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(objectClass);
+
+		if (objectClassDefinition == null) {
+			// Unknown objectclass
+			throw new SchemaException("Object class " + objectClass
+					+ " defined in the repository shadow is not known in schema of " + resource);
+		}
+		
+		return objectClassDefinition;
+	}
+	
+	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(
+			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException {
+		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findAccountDefinition(discriminator.getIntent());
+
+		if (objectClassDefinition == null) {
+			// Unknown objectclass
+			throw new SchemaException("Account type " + discriminator.getIntent()
+					+ " is not known in schema of " + resource);
+		}
+		
+		return objectClassDefinition;
+	}
+	
 }

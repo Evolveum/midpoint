@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.ChangeExecutor;
+import com.evolveum.midpoint.model.ModelCompiletimeConfig;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.lens.projector.Projector;
@@ -72,6 +73,9 @@ public class Clockwork {
 	}
 
 	public HookOperationMode run(LensContext context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		if (ModelCompiletimeConfig.CONSISTENCY_CHECKS) {
+			context.checkConsistence();
+		}
 		while (context.getState() != ModelState.FINAL) {
             HookOperationMode mode = click(context, task, result);
             if (mode != HookOperationMode.FOREGROUND) {

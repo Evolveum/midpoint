@@ -213,7 +213,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     	}
     	if (primaryDelta != null) {
     		try {
-    			primaryDelta.checkConsistence();
+    			primaryDelta.checkConsistence(false, true, true);
     		} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" primary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			} catch (IllegalStateException e) {
@@ -224,7 +224,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     		try {
 	    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
 	    		boolean requireOid = primaryDelta == null;
-	    		secondaryDelta.checkConsistence(requireOid, true);
+	    		secondaryDelta.checkConsistence(requireOid, true, true);
     		} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" secondary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			} catch (IllegalStateException e) {
@@ -239,7 +239,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	
 	protected void checkConsistence(PrismObject<O> object, String elementDesc, String contextDesc) {
     	try {
-    		object.checkConsistence();
+    		object.checkConsistence(true);
     	} catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException(e.getMessage()+"; in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 		} catch (IllegalStateException e) {

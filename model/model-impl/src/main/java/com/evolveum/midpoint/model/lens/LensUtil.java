@@ -27,8 +27,8 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.ModelCompiletimeConfig;
-import com.evolveum.midpoint.model.api.ShadowProjectionObjectDelta;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -130,7 +131,8 @@ public class LensUtil {
 	}
 	
 	public static <F extends ObjectType, P extends ObjectType> LensContext<F, P> objectDeltaToContext(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, PrismContext prismContext) {
+			Collection<ObjectDelta<? extends ObjectType>> deltas, ProvisioningService provisioningService, 
+			PrismContext prismContext, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ObjectDelta<F> focusDelta = null;
 		Collection<ObjectDelta<P>> projectionDeltas = new ArrayList<ObjectDelta<P>>(deltas.size());
 		Class<F> focusClass = null;
@@ -140,6 +142,10 @@ public class LensUtil {
 			Class<? extends ObjectType> typeClass = delta.getObjectTypeClass();
 			Validate.notNull(typeClass, "Object type class is null in "+delta);
 			if (isFocalClass(typeClass)) {
+				if (ModelCompiletimeConfig.CONSISTENCY_CHECKS) {
+					// Focus delta has to be complete with all the definition already in place
+					delta.checkConsistence(false, true, true);
+				}
 				focusClass = (Class<F>) typeClass;
 				projectionClass = checkProjectionClass(projectionClass, (Class<P>) getProjectionClass(focusClass));
 				Validate.notNull(projectionClass, "No projection class for focus "+focusClass);
@@ -160,18 +166,26 @@ public class LensUtil {
 		for (ObjectDelta<P> projectionDelta: projectionDeltas) {
 			LensProjectionContext<P> projectionContext = context.createProjectionContext();
 			projectionContext.setPrimaryDelta(projectionDelta);
-			if (projectionDelta instanceof ShadowProjectionObjectDelta) {
-				ShadowProjectionObjectDelta<P> shadowDelta = (ShadowProjectionObjectDelta<P>)projectionDelta;
-				ResourceShadowDiscriminator ri = new ResourceShadowDiscriminator(shadowDelta.getResourceOid(), shadowDelta.getIntent());
-				projectionContext.setResourceShadowDiscriminator(ri);
+			if (!projectionDelta.hasCompleteDefinition()) {
+				// We are little bit more liberal regarding projection deltas. 
+				if (ResourceObjectShadowType.class.isAssignableFrom(projectionClass)) {
+					// If the deltas represent shadows we tolerate missing attribute definitions.
+					// We try to add the definitions by calling provisioning
+					provisioningService.applyDefinition((ObjectDelta<? extends ResourceObjectShadowType>)projectionDelta, result);
+				} else {
+					// This check will fail giving a better information what's wrong then just throwing an exception here.
+					projectionDelta.checkConsistence(false, true, true);
+				}
+			}
+			if (projectionDelta instanceof ShadowDiscriminatorObjectDelta) {
+				ShadowDiscriminatorObjectDelta<P> shadowDelta = (ShadowDiscriminatorObjectDelta<P>)projectionDelta;
+				projectionContext.setResourceShadowDiscriminator(shadowDelta.getDiscriminator());
 			}
 		}
 
 		context.setFresh(false);
 		
-		if (ModelCompiletimeConfig.CONSISTENCY_CHECKS) {
-			context.checkConsistence();
-		}
+		if (ModelCompiletimeConfig.CONSISTENCY_CHECKS) context.checkConsistence();
 		
 		return context;
 	}

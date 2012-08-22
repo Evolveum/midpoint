@@ -320,6 +320,23 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 		}
     }
 	
+	/**
+	 * Returns true if the object and all contained prisms have proper definition.
+	 */
+	@Override
+	public boolean hasCompleteDefinition() {
+		if (getDefinition() == null) {
+			return false;
+		}
+		for (PrismContainerValue<V> cval: getValues()) {
+			if (!cval.hasCompleteDefinition()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	
 	public Item<?> findItem(QName itemQName) {
     	try {
 			return findCreateItem(itemQName, Item.class, false);

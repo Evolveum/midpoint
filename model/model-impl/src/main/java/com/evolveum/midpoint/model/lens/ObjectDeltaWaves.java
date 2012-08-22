@@ -91,7 +91,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 				continue;
 			}
 			try {
-				delta.checkConsistence(requireOid, true);
+				delta.checkConsistence(requireOid, true, true);
 			} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
 			} catch (IllegalStateException e) {

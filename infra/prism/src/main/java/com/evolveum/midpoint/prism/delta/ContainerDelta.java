@@ -94,7 +94,36 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		}
 		super.applyDefinition(definition);
 	}
-    
+	
+	@Override
+	public boolean hasCompleteDefinition() {
+		if (!super.hasCompleteDefinition()) {
+			return false;
+		}
+		if (!hasCompleteDefinition(getValuesToAdd())) {
+			return false;
+		}
+		if (!hasCompleteDefinition(getValuesToDelete())) {
+			return false;
+		}
+		if (!hasCompleteDefinition(getValuesToReplace())) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean hasCompleteDefinition(Collection<PrismContainerValue<V>> values) {
+		if (values == null) {
+			return true;
+		}
+		for (PrismContainerValue<V> value: values) {
+			if (!value.hasCompleteDefinition()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	@Override
 	public Class<V> getCompileTimeClass() {
 		if (getDefinition() != null) {

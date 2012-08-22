@@ -45,11 +45,11 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.ShadowProjectionObjectDelta;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -724,7 +724,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, true);
-        ShadowProjectionObjectDelta<AccountShadowType> accountDelta = ShadowProjectionObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        ShadowDiscriminatorObjectDelta<AccountShadowType> accountDelta = ShadowDiscriminatorObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
         		RESOURCE_DUMMY_OID, null, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, prismContext, "Cpt. Jack Sparrow");
         deltas.add(accountDelta);
         deltas.add(accountAssignmentUserDelta);

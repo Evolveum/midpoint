@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -116,6 +117,12 @@ public class PrismTestUtil {
     
     public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException {
     	return getPrismContext().getPrismDomProcessor().parseObjects(file);
+    }
+    
+    public static <T extends Objectable> ObjectDelta<T> parseDelta(File file) throws SchemaException {
+    	// TODO
+//    	return getPrismContext().getPrismDomProcessor().parseObject(file);
+    	return null;
     }
 
     // ==========================
