@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines an CSV File resource
+using an Identity Connector Framework CSVFile REMOTE connector running in a 
+connector server.
+
+-->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+	xmlns:my="http://myself.me/schemas/whatever"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
+
+
+	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe">
+    
+    	<!-- Resource name. It will be displayed in GUI.  -->
+		<name>Remote Localhost CSVfile</name>
+     
+     	<!-- Reference to the ICF Flatfile connector. OID is "virtual" for now. -->
+		<connectorRef type="ConnectorType">
+			<filter>
+		        <q:equal>
+		          <q:value>
+		              <name>ICF org.forgerock.openicf.csvfile.CSVFileConnector @ICF Connector server on localhost:8759</name>
+		          </q:value>
+		        </q:equal>
+		      </filter>
+		</connectorRef>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<c:configuration>
+	
+            <!-- Configuration specific for the CSVfile connector -->
+			<icfc:configurationProperties xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector">
+				<icfccsvfile:filePath>/var/tmp/midpoint-flatfile-remote.csv</icfccsvfile:filePath>
+				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+				<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
+				<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+				<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+				<icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
+				<icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
+<!--				<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute>-->
+<!--				<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>-->
+			</icfc:configurationProperties>
+		
+			<!-- Generic ICF configuration -->
+
+		</c:configuration>
+
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+		<c:schemaHandling>
+
+            <!-- Definition of default account type.
+                 This is now the only account type that midPoint can work with. -->
+			<c:accountType>
+				<name>default</name>
+                <!-- Readable name for the account type -->
+				<displayName>Default Account</displayName>
+				<default>true</default>
+
+                <!-- Reference to the Resource Schema (see above) specifying
+                     object class for this account type -->
+				<c:objectClass>ri:AccountObjectClass</c:objectClass>
+				<c:attribute>
+					<ref>icfs:uid</ref>
+
+                    <!-- Readable name for the attribute. This will be used in GUI -->
+					<c:displayName>Entry UUID</c:displayName>
+
+                    <!-- Access limitation for this attribute.
+                         Entry UUID is created by the directory server itelf
+                         and it is immutable. We can only read it. -->
+				</c:attribute>
+				<c:attribute>
+					<ref>icfs:name</ref>
+
+                    <!-- Readable name for the attribute. This will be used in GUI -->
+					<c:displayName>Name</c:displayName>
+
+                    <!-- Access limitation for this attribute.
+                          -->
+				</c:attribute>
+				<credentials>
+					<password>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</password>
+				</credentials>
+				<activation>
+					<enabled>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</enabled>
+				</activation>
+			</c:accountType>
+		</c:schemaHandling>
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+			<cap:activation>
+				<cap:enableDisable>
+					<cap:attribute>ri:disabled</cap:attribute>
+					<cap:enableValue>false</cap:enableValue>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:enableDisable>
+			</cap:activation>
+			<cap:testConnection/>
+		</capabilities>
+	</resource>
+
+
+</objects>

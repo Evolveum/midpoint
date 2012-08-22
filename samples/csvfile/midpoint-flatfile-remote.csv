@@ -1,0 +1,3 @@
+"id","firstname","lastname","disabled","password"
+"ruser01","RFirstname","RLastname","false","secret"
+"ruser02","RTest","RLastname","false","secret"

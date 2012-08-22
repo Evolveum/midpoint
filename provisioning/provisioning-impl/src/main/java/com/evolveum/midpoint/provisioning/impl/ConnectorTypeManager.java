@@ -146,18 +146,26 @@ public class ConnectorTypeManager {
 
 	public ConnectorType getConnectorType(ResourceType resource, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		if (resource.getConnector() != null) {
-			return resource.getConnector();
+		ConnectorType connectorType = resource.getConnector();
+		if (resource.getConnector() == null) {
+			if (resource.getConnectorRef() == null || resource.getConnectorRef().getOid() == null) {
+				result.recordFatalError("Connector reference missing in the resource "
+						+ ObjectTypeUtil.toShortString(resource));
+				throw new ObjectNotFoundException("Connector reference missing in the resource "
+						+ ObjectTypeUtil.toShortString(resource));
+			}
+			String connOid = resource.getConnectorRef().getOid();
+			PrismObject<ConnectorType> connectorPrism = repositoryService.getObject(ConnectorType.class, connOid, result);
+			connectorType = connectorPrism.asObjectable();
+			resource.setConnector(connectorType);
 		}
-		if (resource.getConnectorRef() == null || resource.getConnectorRef().getOid() == null) {
-			result.recordFatalError("Connector reference missing in the resource "
-					+ ObjectTypeUtil.toShortString(resource));
-			throw new ObjectNotFoundException("Connector reference missing in the resource "
-					+ ObjectTypeUtil.toShortString(resource));
+		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() != null) {
+			// We need to resolve the connector host
+			String connectorHostOid = connectorType.getConnectorHostRef().getOid();
+			PrismObject<ConnectorHostType> connectorHost = repositoryService.getObject(ConnectorHostType.class, connectorHostOid, result);
+			connectorType.setConnectorHost(connectorHost.asObjectable());
 		}
-		String connOid = resource.getConnectorRef().getOid();
-		PrismObject<ConnectorType> connectorPrism = repositoryService.getObject(ConnectorType.class, connOid, result);
-		return connectorPrism.asObjectable();
+		return connectorType;
 	}
 
 	public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
@@ -197,6 +205,9 @@ public class ConnectorTypeManager {
 		Set<ConnectorType> foundConnectors;
 		try {
 			foundConnectors = connectorFactory.listConnectors(hostType, result);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Got {} connectors from {}: {}", new Object[] { foundConnectors.size(), hostType, foundConnectors });
+			}
 		} catch (CommunicationException ex) {
 			result.recordFatalError("Discovery failed: " + ex.getMessage(), ex);
 			throw new CommunicationException("Discovery failed: " + ex.getMessage(), ex);
