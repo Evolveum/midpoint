@@ -22,11 +22,12 @@
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class AccountOwnerChangeDto {
+public class AccountOwnerChangeDto implements Serializable {
 
     private String accountOid;
     private QName accountType;
