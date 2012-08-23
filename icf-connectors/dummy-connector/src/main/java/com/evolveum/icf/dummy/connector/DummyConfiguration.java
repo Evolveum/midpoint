@@ -21,6 +21,7 @@
 package com.evolveum.icf.dummy.connector;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 
@@ -34,9 +35,15 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
 public class DummyConfiguration extends AbstractConfiguration {
 
     private static final Log log = Log.getLog(DummyConfiguration.class);
-    // Example of exposed configuration properties.
-    private String instanceId;
 
+    private String instanceId;
+    private String uselessString;
+    private GuardedString uselessGuardedString;
+
+    /**
+     * Defines name of the dummy resource instance. There may be several dummy resource running in
+     * parallel. This ID selects one of them. If not set a default instance will be selected.
+     */
     @ConfigurationProperty(displayMessageKey = "UI_INSTANCE_ID",
     		helpMessageKey = "UI_INSTANCE_ID_HELP")
     public String getInstanceId() {
@@ -48,6 +55,34 @@ public class DummyConfiguration extends AbstractConfiguration {
     }
     
     /**
+     * Useless string-value configuration variable. It is used for testing the configuration schema
+     * and things like that.
+     */
+    @ConfigurationProperty(displayMessageKey = "UI_INSTANCE_USELESS_STRING",
+    		helpMessageKey = "UI_INSTANCE_USELESS_STRING_HELP")
+    public String getUselessString() {
+		return uselessString;
+	}
+
+	public void setUselessString(String uselessString) {
+		this.uselessString = uselessString;
+	}
+
+	/**
+     * Useless GuardedString-value configuration variable. It is used for testing the configuration schema
+     * and things like that.
+     */
+	@ConfigurationProperty(displayMessageKey = "UI_INSTANCE_USELESS_GUARDED_STRING",
+    		helpMessageKey = "UI_INSTANCE_USELESS_GUARDED_STRING_HELP")
+    public GuardedString getUselessGuardedString() {
+		return uselessGuardedString;
+	}
+
+	public void setUselessGuardedString(GuardedString uselessGuardedString) {
+		this.uselessGuardedString = uselessGuardedString;
+	}
+	
+	/**
      * {@inheritDoc}
      */
     @Override
@@ -58,5 +93,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 
         log.info("end");
     }
+
+	
 }
  

@@ -68,6 +68,12 @@ public class DummyResource {
 	private int latestSyncToken;
 	private boolean tolerateDuplicateValues = false;
 	
+	// Following two properties are just copied from the connector
+	// configuration and can be checked later. They are otherwise
+	// completely useless.
+	private String uselessString;
+	private String uselessGuardedString;
+	
 	private static Map<String, DummyResource> instances = new HashMap<String, DummyResource>();
 	
 	DummyResource() {
@@ -110,6 +116,22 @@ public class DummyResource {
 
 	public void setTolerateDuplicateValues(boolean tolerateDuplicateValues) {
 		this.tolerateDuplicateValues = tolerateDuplicateValues;
+	}
+
+	public String getUselessString() {
+		return uselessString;
+	}
+
+	public void setUselessString(String uselessString) {
+		this.uselessString = uselessString;
+	}
+
+	public String getUselessGuardedString() {
+		return uselessGuardedString;
+	}
+
+	public void setUselessGuardedString(String uselessGuardedString) {
+		this.uselessGuardedString = uselessGuardedString;
 	}
 
 	public DummyObjectClass getAccountObjectClass() {

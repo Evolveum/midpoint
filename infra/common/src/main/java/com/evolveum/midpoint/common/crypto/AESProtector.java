@@ -34,6 +34,7 @@ import org.apache.xml.security.utils.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3._2000._09.xmldsig.KeyInfoType;
 import org.w3._2001._04.xmlenc.EncryptedDataType;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -247,6 +248,15 @@ public class AESProtector implements Protector {
     public Element decrypt(ProtectedStringType protectedString) throws EncryptionException {
         Validate.notNull(protectedString, "Protected string must not be null.");
         EncryptedDataType encrypted = protectedString.getEncryptedData();
+        String clearValue = protectedString.getClearValue();
+        if (encrypted == null && clearValue != null) {
+        	// Return clear value if there is one and there is no encrypted value
+        	Document document = DOMUtil.getDocument();
+        	Element element = DOMUtil.createElement(document, ProtectedStringType.F_CLEAR_VALUE);
+        	element.setTextContent(clearValue);
+            document.appendChild(element);
+            return element;
+        }
         Validate.notNull(encrypted, "Encrypted data must not be null.");
 
         if (encrypted.getCipherData() == null

@@ -29,14 +29,16 @@
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Dummy Resource</name>
-	<connectorRef oid="will-be-supplied-by-the-test-code"/>
+	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-dddddddddddd"/>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd</namespace>
 	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance -->
-			<icfi:uselessString>Shiver me timbers!</icfi:uselessString>
+			<icfi:uselessString> <!-- Type of the uselessString is overridden to ProtectedString in connector schema -->      <!-- Also add some whitespace -->  
+				<clearValue>Shiver me timbers!</clearValue>
+			</icfi:uselessString>
 			<icfi:uselessGuardedString>       <!-- Add some whitespace -->  
 				<clearValue>Dead men tell no tales</clearValue>
 			</icfi:uselessGuardedString>

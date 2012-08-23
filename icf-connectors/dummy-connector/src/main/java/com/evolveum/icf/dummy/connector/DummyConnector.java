@@ -121,6 +121,19 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         }
         resource = DummyResource.getInstance(instanceName);
         
+        resource.setUselessString(this.configuration.getUselessString());
+        GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
+        if (uselessGuardedString == null) {
+        	resource.setUselessGuardedString(null);
+        } else {
+        	uselessGuardedString.access(new GuardedString.Accessor() {
+    			@Override
+    			public void access(char[] chars) {
+    				resource.setUselessGuardedString(new String(chars));
+    			}
+        	});
+        }
+        
         log.info("Dummy resource instance {0}", resource);
     }
 

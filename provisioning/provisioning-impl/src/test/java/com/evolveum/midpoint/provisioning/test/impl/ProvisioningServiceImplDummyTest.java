@@ -349,6 +349,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 			assertNotNull("No definition for configuration property "+confProp, confPropDef);
 			assertFalse("Configuration property "+confProp+" is raw", confProp.isRaw());
 		}
+		
+		// The useless configuration variables should be reflected to the resource now
+		assertEquals("Wrong useless string", "Shiver me timbers!", dummyResource.getUselessString());
+		assertEquals("Wrong guarded useless string", "Dead men tell no tales", dummyResource.getUselessGuardedString());
 	}
 
 	@Test

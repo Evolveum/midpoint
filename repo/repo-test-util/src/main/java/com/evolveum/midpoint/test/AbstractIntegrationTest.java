@@ -123,6 +123,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	abstract public void initSystem(OperationResult initResult) throws Exception;
 
+	@Deprecated
 	protected PrismObject<ObjectType> addObjectFromFile(String filePath, OperationResult result) throws Exception {
 		return addObjectFromFile(filePath, ObjectType.class, result);
 	}

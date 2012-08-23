@@ -2261,6 +2261,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return ((PolyStringType)midPointRealValue).getOrig();
 		} else if (expectedType.equals(File.class) && midPointRealValue instanceof String) {
 			return new File((String)midPointRealValue);
+		} else if (expectedType.equals(String.class) && midPointRealValue instanceof ProtectedStringType) {
+			try {
+				return protector.decryptString((ProtectedStringType)midPointRealValue);
+			} catch (EncryptionException e) {
+				throw new ConfigurationException(e);
+			}
 		} else {
 			return midPointRealValue;
 		}
