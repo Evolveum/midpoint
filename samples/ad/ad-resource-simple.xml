@@ -34,12 +34,13 @@ This resource definition contains only the very basic definitions for midPoint t
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaea"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" 
 	xmlns:my="http://myself.me/schemas/whatever"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
 
-	<resource>
+	<resource oid='ef2bc95b-76e0-48e2-86d6-3d4f02d3eaea'>
     
     	<!-- Resource name. It will be displayed in GUI.  -->
 		<name>Basic Active Directory</name>
@@ -60,12 +61,11 @@ This resource definition contains only the very basic definitions for midPoint t
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<configuration
-			xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+		<configuration>
 
-            <!-- Configuration specific for the LDAP connector -->
-			<icfc:configurationProperties>
+            <!-- Configuration specific for the Active Directory connector -->
+			<icfc:configurationProperties
+			xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector">
 				<icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
 				<icfcad:DirectoryAdminPassword>
 					<clearValue>secret</clearValue>
@@ -73,9 +73,11 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfcad:ObjectClass>User</icfcad:ObjectClass>
 				<icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
 				<icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
-				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
+				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName><!-- This is the hostname of AD server as seen from the ConnectorServer instance! -->
 				<icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
 				<icfcad:DomainName>example.com</icfcad:DomainName>
+  				<icfcad:SyncGlobalCatalogServer>null</icfcad:SyncGlobalCatalogServer>
+				<icfcad:SyncDomainController>null</icfcad:SyncDomainController>
 			</icfc:configurationProperties>
 
 		</configuration>
