@@ -33,8 +33,12 @@ This resource definition contains only the very basic definitions for midPoint t
 -->
 
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:my="http://myself.me/schemas/whatever"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
 
@@ -59,12 +63,11 @@ This resource definition contains only the very basic definitions for midPoint t
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<configuration
-			xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+		<configuration>
 
-            <!-- Configuration specific for the LDAP connector -->
-			<icfc:configurationProperties>
+            <!-- Configuration specific for the Active Directory connector -->
+			<icfc:configurationProperties
+			xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector">
 				<icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
 				<icfcad:DirectoryAdminPassword>
 					<clearValue>secret</clearValue>
@@ -72,9 +75,11 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfcad:ObjectClass>User</icfcad:ObjectClass>
 				<icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
 				<icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
-				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
+				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName><!-- This is the hostname of AD server as seen from the ConnectorServer instance! -->
 				<icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
 				<icfcad:DomainName>example.com</icfcad:DomainName>
+  				<icfcad:SyncGlobalCatalogServer>null</icfcad:SyncGlobalCatalogServer>
+				<icfcad:SyncDomainController>null</icfcad:SyncDomainController>
 			</icfc:configurationProperties>
 
 		</configuration>
@@ -145,7 +150,7 @@ This resource definition contains only the very basic definitions for midPoint t
 						<expression>
 							<code>
 								concat('cn=',
-								$user/givenName, ' ', $user/familyName, $c:iterationToken, ',cn=Users,dc=example,dc=com')
+								$c:user/c:givenName/t:orig, ' ', $c:user/c:familyName/t:orig, $c:iterationToken, ',cn=Users,dc=example,dc=com')
 							</code>
 						</expression>
 					</outbound>
@@ -155,6 +160,12 @@ This resource definition contains only the very basic definitions for midPoint t
 					<outbound>
 						<initial>true</initial>
 						<value>Created by IDM</value>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:mail</ref>
+					<outbound>
+						<path>$user/emailAddress</path>
 					</outbound>
 				</attribute>
 				<credentials>
@@ -174,6 +185,9 @@ This resource definition contains only the very basic definitions for midPoint t
 				<iteration>
 					<maxIterations>5</maxIterations>
 				</iteration>
+		<protected>
+                <icfs:name>cn=Administrator,cn=Users,dc=example,dc=com</icfs:name>
+            </protected>
 			</accountType>
 		</schemaHandling>
 		<scripts>
