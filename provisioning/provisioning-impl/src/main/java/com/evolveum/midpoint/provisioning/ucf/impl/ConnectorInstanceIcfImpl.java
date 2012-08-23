@@ -1351,8 +1351,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			connectionResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
 					"Operation not supported by the connector", ex);
 			// Do not rethrow. Recording the status is just OK.
-		} catch (Exception ex) {
-			processIcfException(ex, connectionResult);
+		} catch (Exception icfEx) {
+			Exception midPointEx = processIcfException(icfEx, connectionResult);
+			connectionResult.recordFatalError(midPointEx);
 		}
 	}
 
