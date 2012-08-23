@@ -36,6 +36,7 @@ This resource definition contains only the very basic definitions for midPoint t
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
@@ -43,7 +44,7 @@ This resource definition contains only the very basic definitions for midPoint t
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
 
         <!-- Resource name. It will be displayed in GUI.  -->
-        <name>Active Directory Advanced</name>
+        <name>Active Directory Advanced Sync</name>
 
         <!-- Reference to the ICF AD connector. OID is "virtual" for now. -->
         <connectorRef type="ConnectorType">
@@ -61,22 +62,21 @@ This resource definition contains only the very basic definitions for midPoint t
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-        <configuration
-                xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector"
-                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+        <configuration>
 
-            <!-- Configuration specific for the LDAP connector -->
-            <icfcad:configurationProperties>
+            <!-- Configuration specific for the Active Directory connector -->
+            <icfcad:configurationProperties
+                xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector">
                 <icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
-                <icfcad:DirectoryAdminPassword>
-			<clearValue>secret</clearValue>
-		</icfcad:DirectoryAdminPassword>
+                <icfcad:DirectoryAdminPassword>secret</icfcad:DirectoryAdminPassword><!-- clearValue does not work yet -->
                 <icfcad:ObjectClass>User</icfcad:ObjectClass>
                 <icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
                 <icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
-                <icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
+		<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName><!-- This is the hostname of AD server as seen from the ConnectorServer instance! -->
                 <icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
                 <icfcad:DomainName>example.com</icfcad:DomainName>
+  		<icfcad:SyncGlobalCatalogServer>localhost</icfcad:SyncGlobalCatalogServer><!-- hostname of DC to look up for changes when synchronizing -->
+		<icfcad:SyncDomainController>localhost</icfcad:SyncDomainController><!-- hostname of DC to look up for changes when synchronizing -->
             </icfcad:configurationProperties>
 
         </configuration>
@@ -121,8 +121,7 @@ This resource definition contains only the very basic definitions for midPoint t
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $i:user/i:givenName
+                            $c:user/c:givenName
                         </target>
                     </inbound>
                 </attribute>
@@ -135,8 +134,7 @@ This resource definition contains only the very basic definitions for midPoint t
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $i:user/i:familyName
+                            $c:user/c:familyName
                         </target>
                     </inbound>
                 </attribute>
@@ -150,28 +148,19 @@ This resource definition contains only the very basic definitions for midPoint t
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $i:user/i:name
+                            $c:user/c:name
                         </target>
                     </inbound>
                 </attribute>
 
                 <attribute>
                     <ref>ri:mail</ref>
-                    <displayName>Email address</displayName>
-                    <!-- FIXME if eMailAddress is null, create crashes
-                         <outbound default="true">
-                             <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
-                                 <code>
-                                     declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                                     $i:user/i:eMailAddress
-                                 </code>
-                             </expression>
-                         </outbound>-->
+                    <outbound>
+			<path>$user/emailAddress</path>
+                         </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $i:user/i:eMailAddress
+                            $c:user/c:emailAddress
                         </target>
                     </inbound>
                 </attribute>
@@ -188,7 +177,7 @@ This resource definition contains only the very basic definitions for midPoint t
                         <expression>
                             <code>
 				concat('cn=',
-				$user/givenName, ' ', $user/familyName, $c:iterationToken, ',cn=Users,dc=example,dc=com')
+				$c:user/c:givenName/t:orig, ' ', $c:user/c:familyName/t:orig, $c:iterationToken, ',cn=Users,dc=example,dc=com')
                             </code>
                         </expression>
                     </outbound>
@@ -210,6 +199,9 @@ This resource definition contains only the very basic definitions for midPoint t
 		<iteration>
 			<maxIterations>5</maxIterations>
 		</iteration>
+		<protected>
+                	<icfs:name>cn=Administrator,cn=Users,dc=example,dc=com</icfs:name>
+            	</protected>
             </accountType>
         </schemaHandling>
         <!--
@@ -348,6 +340,35 @@ This resource definition contains only the very basic definitions for midPoint t
 			</objectSynchronization>
         </synchronization>
     </resource>
+    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
+        <name>Default User Template2</name>
+
+        <description>
+            Alternative User Template Object.
+            This object is used when creating a new account, to set it up as needed.
+        </description>
+
+        <propertyConstruction>
+            <property>fullName</property>
+            <description>
+                Property construction.
+                Defines how properties of user object are set up.
+                This specific definition sets a full name as a concatenation
+                of givenName and familyName.
+            </description>
+            <valueConstruction>
+                <initial>true</initial>
+                <expression>
+
+                    <code>
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+                        concat($i:user/i:givenName,' ',$i:user/i:familyName)
+                    </code>
+                </expression>
+            </valueConstruction>
+        </propertyConstruction>
+
+    </userTemplate>
 
     <task oid="91919191-76e0-59e2-86d6-444f02d3ffff">
         <name>Synchronization: Active Directory</name>
