@@ -67,8 +67,10 @@ public class PageAdminUsers extends PageAdmin {
                 return false;
             }
         }));
-
+        items.add(new BottomMenuItem("pageAdminUsers.orgStruct", PageOrgStruct.class));
+        
         return items;
+        
     }
 
     private boolean isEditingUser() {
