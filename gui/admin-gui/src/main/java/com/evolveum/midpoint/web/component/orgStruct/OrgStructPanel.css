@@ -22,38 +22,41 @@
 	padding: 10px;
 }
 
-div.wicket-tree-table {
-	border: 0px;
-	border-top: 1px solid #bbbbbb;
-	line-height: 30px;
-}
-
-div.wicket-tree-table div.row,div.wicket-tree-table div.row-selected {
-	background: none;
-	border-bottom: 1px solid #f2f2f2;
-}
-
-div.wicket-tree-table div.header {
-	display: none;
-}
-
-div.wicket-tree-table span.junction,
-div.wicket-tree-table span.junction-last,
-div.wicket-tree-table span.plus,
-div.wicket-tree-table span.minus,
-div.wicket-tree-table span.corner,
-div.wicket-tree-table span.indent-line,
-div.wicket-tree-table span.icon,
-div.wicket-tree-table div.row,
-div.wicket-tree-table div.row-selected,
-div.wicket-tree-table div.a_,
-div.wicket-tree-table span.b_,
-div.wicket-tree-table span.b_ span.c_ {
+span.tree-content a {
+	font-weight: bold;
 	font-size: 13px;
-	height: 30px;
 }
 
-.wicket-tree-table-body .row:hover {
-	background: #f2f2f2;
-	border-color: #FFFFFF;
+a.tree-junction-expanded {
+    height: 30px;
+}
+
+.tree-folder-open, .tree-folder-closed {
+	background-image: url("orgUnit.png");
+}
+
+.tree-node, .tree-node a, span.tree-junction {
+	height: 25px;
+}
+
+span.tree-content {
+    padding: 4px 3px;
+}
+
+span.tree-content a.tree-folder-other:hover {
+	text-decoration: none;
+}
+
+span.tree-content a.folder_boss {
+	background-image: url("boss.png");
+	color: #e54444;
+}
+
+span.tree-content a.folder_manager {
+	background-image: url("manager.png");
+	color: #2dc63f;
+}
+
+span.tree-content a.folder_user {
+	background-image: url("user.png");
 }

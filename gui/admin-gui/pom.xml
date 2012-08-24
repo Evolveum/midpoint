@@ -103,6 +103,16 @@
             <name>repo</name>
             <url>http://repo.evolveum.com/repo</url>
         </repository>
+        <repository> 
+                <id>wicket-tree</id> 
+                <name>Wicket-tree Repository</name> 
+                <url>http://wicket-tree.googlecode.com/svn/repo</url> 
+        </repository>
+        <repository> 
+                <id>wicket-dnd</id> 
+                <name>Wicket-dnd Repository</name> 
+                <url>http://wicket-dnd.googlecode.com/svn/repo</url> 
+        </repository>
     </repositories>
     <dependencies>
         <!-- MIDPOINT LOCALIZATION -->
@@ -295,6 +305,16 @@
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+                <groupId>wicket-tree</groupId>
+                <artifactId>wicket-tree</artifactId>
+                <version>0.5.0</version>
+        </dependency>
+        <dependency>
+                <groupId>wicket-dnd</groupId>
+                <artifactId>wicket-dnd</artifactId>
+                <version>0.5.0</version>
         </dependency>
     </dependencies>
     <profiles>
