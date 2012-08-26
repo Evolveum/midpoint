@@ -239,11 +239,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         @Override
         public boolean accept(File parent, String name) {
-            if (name.endsWith("class")) {
-                return false;
+            if (name.endsWith("png")) {
+                return true;
             }
 
-            return true;
+            return false;
         }
     }
 }

@@ -33,6 +33,7 @@ import org.apache.wicket.request.resource.ResourceReference;
  */
 public class ImagePanel extends Panel {
 
+    //todo AttributeModifier in IModel??? why? not a good idea, it's wicket component AttributeModifier has already IModel parameter....
     public ImagePanel(String id, IModel<ResourceReference> model, IModel<String> titleModel, IModel<AttributeModifier> attribute) {
         super(id);
         Validate.notNull(model, "Resource reference model must not be null.");
