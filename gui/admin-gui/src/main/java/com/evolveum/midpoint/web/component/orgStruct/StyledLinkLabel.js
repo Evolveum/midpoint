@@ -18,45 +18,7 @@
  *
  * Portions Copyrighted 2012 [name of copyright owner]
  */
-.tab-panel {
-	padding: 10px;
-}
 
-span.tree-content a {
-	font-weight: bold;
-	font-size: 13px;
-}
-
-a.tree-junction-expanded {
-    height: 30px;
-}
-
-.tree-folder-open, .tree-folder-closed {
-	background-image: url("OrgUnit.png");
-}
-
-.tree-node, .tree-node a, span.tree-junction {
-	height: 25px;
-}
-
-span.tree-content {
-    padding: 4px 3px;
-}
-
-span.tree-content a.tree-folder-other:hover {
-	text-decoration: none;
-}
-
-span.tree-content a.folder_boss {
-	background-image: url("Boss.png");
-	color: #e54444;
-}
-
-span.tree-content a.folder_manager {
-	background-image: url("Manager.png");
-	color: #2dc63f;
-}
-
-span.tree-content a.folder_user {
-	background-image: url("User.png");
+function initMenuButtons() {
+	alert("aaa");
 }

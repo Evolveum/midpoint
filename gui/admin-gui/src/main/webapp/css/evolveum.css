@@ -793,3 +793,38 @@ div.wupb-uploadStatus {
 .helpPaddingRight {
 	padding-right: 40px;
 }
+
+div.tabPanel div.tab-row ul {
+    height: 25px;
+    margin: 0;
+    padding-left: 10px;
+    border-bottom: 1px solid #333333;
+}
+div.tabPanel div.tab-row li {
+    display: inline;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+div.tabPanel div.tab-row a:link, div.tabPanel div.tab-row a:visited {
+    background: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    color: #000000;
+    float: left;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 14px;
+    margin-right: 4px;
+    padding: 5px 10px;
+    text-decoration: none;
+    border-bottom: #333333;
+}
+div.tabPanel div.tab-row li.selected a:link, div.tabPanel div.tab-row a.active:visited {
+    background: #333333;
+    border-bottom: 1px solid #333333;
+    color: #FFFFFF;
+}
+div.tabPanel div.tab-row a:hover {
+    background: #f3f3f3;
+    cursor: pointer;
+}

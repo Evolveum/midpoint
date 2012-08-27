@@ -1,18 +1,24 @@
 /*
- * Copyright 2009 Sven Meier
+ * Copyright (c) 2012 Evolveum
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
+
 package com.evolveum.midpoint.web.component.orgStruct;
 
 import java.io.Serializable;
@@ -29,24 +35,10 @@ import wickettree.ITreeProvider;
 import wickettree.util.IntermediateTreeProvider;
 
 /**
- * A provider of {@link NodeDto}s.
- * 
- * For simplicity all foos are kept as class members, in a real world scenario
- * these would be fetched from a database. If {@link NodeDto}s were
- * {@link Serializable} you could of course just keep references in instance
- * variables.
- * 
- * @see #model(NodeDto)
- * 
- * @author Sven Meier
+ * @author mserbak
  */
-public class NodeProvider implements ITreeProvider<NodeDto> {
+public class OrgStructProvider implements ITreeProvider<NodeDto> {
 
-	private static final long serialVersionUID = 1L;
-
-	/**
-	 * All root {@link NodeDto}s.
-	 */
 	private static List<NodeDto> roots = new ArrayList<NodeDto>();
 
 	/**
@@ -98,7 +90,7 @@ public class NodeProvider implements ITreeProvider<NodeDto> {
 
 	private boolean intermediate;
 
-	public NodeProvider() {
+	public OrgStructProvider() {
 		this(false);
 	}
 
@@ -106,7 +98,7 @@ public class NodeProvider implements ITreeProvider<NodeDto> {
 	 * @param intermediate
 	 *            are intermediate children allowed.
 	 */
-	public NodeProvider(boolean intermediate) {
+	public OrgStructProvider(boolean intermediate) {
 		this.intermediate = intermediate;
 	}
 
