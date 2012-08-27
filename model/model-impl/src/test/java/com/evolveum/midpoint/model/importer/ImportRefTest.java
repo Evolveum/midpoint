@@ -24,6 +24,8 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -120,13 +122,15 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import has failed (result)", result, 2);
 
 		// Check import of user
-		Document doc = DOMUtil.getDocument();
-		Element filter = QueryUtil.createAndFilter(doc,
-				QueryUtil.createTypeFilter(doc, ObjectTypes.USER.getObjectTypeUri()),
-				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "jack"));
+//		Document doc = DOMUtil.getDocument();
+//		Element filter = QueryUtil.createAndFilter(doc,
+//				QueryUtil.createTypeFilter(doc, ObjectTypes.USER.getObjectTypeUri()),
+//				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "jack"));
 
-		QueryType query = new QueryType();
-		query.setFilter(filter);
+		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "jack");
+		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+//		QueryType query = new QueryType();
+//		query.setFilter(filter);
 
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 

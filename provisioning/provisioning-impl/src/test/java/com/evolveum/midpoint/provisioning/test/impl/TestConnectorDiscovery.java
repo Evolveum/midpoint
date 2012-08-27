@@ -21,6 +21,9 @@ package com.evolveum.midpoint.provisioning.test.impl;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -143,17 +146,22 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 				+ ".testSearchConnector");
 		
 		Document doc = DOMUtil.getDocument();
-		Element filter = QueryUtil
-				.createAndFilter(
-						doc,
-						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_FRAMEWORK,
-								ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
-						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE,
-								LDAP_CONNECTOR_TYPE));
-	
-		QueryType query = new QueryType();
-		query.setFilter(filter);
-		System.out.println("Query:\n"+DOMUtil.serializeDOMToString(query.getFilter())+"\n--");
+//		Element filter = QueryUtil
+//				.createAndFilter(
+//						doc,
+//						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_FRAMEWORK,
+//								ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
+//						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE,
+//								LDAP_CONNECTOR_TYPE));
+//	
+//		QueryType query = new QueryType();
+//		query.setFilter(filter);
+		AndFilter filter = AndFilter.createAnd(
+				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
+				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, LDAP_CONNECTOR_TYPE));
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		
+		System.out.println("Query:\n"+query.dump());
 
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null,
 				result);

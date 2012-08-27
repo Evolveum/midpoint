@@ -23,11 +23,11 @@
 <query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
        xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
 
-    <or xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+<!--     <or xmlns="http://prism.evolveum.com/xml/ns/public/query-2"> -->
         <substring>
             <value>
                 <c:fullName xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">cpt jack sparrow</c:fullName>
             </value>
         </substring>
-    </or>
+<!--     </or> -->
 </query>

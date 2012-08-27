@@ -35,11 +35,13 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -525,7 +527,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 						currentShadow.getOid(), SchemaDebugUtil.prettyPrint(query) });
 			}
 			PagingType paging = new PagingType();
-			users = repositoryService.searchObjects(UserType.class, query, paging, result);
+			ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
+			users = repositoryService.searchObjects(UserType.class, q, paging, result);
 
 			if (users == null) {
 				users = new ArrayList<PrismObject<UserType>>();
@@ -578,12 +581,13 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 			Document document = DOMUtil.getDocument();
 
-			Element and = document.createElementNS(SchemaConstants.NS_QUERY, "and");
-			document.appendChild(and);
-			and.appendChild(QueryUtil.createTypeFilter(document, ObjectTypes.USER.getObjectTypeUri()));
+//			Element and = document.createElementNS(SchemaConstants.NS_QUERY, "and");
+//			document.appendChild(and);
+//			and.appendChild(QueryUtil.createTypeFilter(document, ObjectTypes.USER.getObjectTypeUri()));
 			Element equal = null;
 			if (SchemaConstants.NS_QUERY.equals(filter.getNamespaceURI()) && "equal".equals(filter.getLocalName())) {
 				equal = (Element) document.adoptNode(filter.cloneNode(true));
+				document.appendChild(equal);
 
 				Element path = findChildElement(equal, SchemaConstants.NS_QUERY, "path");
 				if (path != null) {
@@ -623,12 +627,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 							currentShadow.getOid(), expressionResult });
 					attribute.setTextContent(expressionResult);
 					value.appendChild(attribute);
-					and.appendChild(equal);
+//					and.appendChild(equal);
 				} else {
 					LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
 				}
 			}
-			filter = and;
+			filter = equal;
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Transforming filter to:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
 			}

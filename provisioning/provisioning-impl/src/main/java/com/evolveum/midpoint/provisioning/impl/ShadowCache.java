@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
@@ -623,7 +624,7 @@ public class ShadowCache {
 	private List<PrismObject<AccountShadowType>> searchAccountByIdenifiers(Change change, OperationResult parentResult)
 			throws SchemaException {
 
-		QueryType query = ShadowCacheUtil.createSearchShadowQuery(change.getIdentifiers(), prismContext, parentResult);
+		ObjectQuery query = ShadowCacheUtil.createSearchShadowQuery(change.getIdentifiers(), prismContext, parentResult);
 
 		List<PrismObject<AccountShadowType>> accountList = null;
 		try {

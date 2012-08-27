@@ -74,10 +74,11 @@
     <xsd:complexType name="FilterType">
         <xsd:annotation>
             <xsd:appinfo>
-                <jaxb:dom/>
+                 <jaxb:dom/> 
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:complexType>
+
 
     <xsd:element name="query" type="tns:QueryType"/>
 
@@ -89,12 +90,15 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="tns:filter"/>
+            <xsd:element ref="tns:filter"/> 
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:element name="filter" type="tns:FilterType"/>
-
+    
+    
+    
+    
     <xsd:complexType name="UriFilterType">
         <xsd:complexContent>
             <xsd:extension base="tns:FilterType">
@@ -124,7 +128,7 @@
                         Use "and" or "or" clauses if needed.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <xjc:dom/>
+<!--                         <xjc:dom/> -->
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:any>
@@ -210,6 +214,11 @@
 		is always string respectively. But we don't know how to constrain it now 
 		and we do not have the time to find out. Therefore it should be OK for now. -->
     <xsd:element name="substring" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
+
+<xsd:element name="org" substitutionGroup="tns:filter" type="tns:PropertyComplexValueFilterType"/>
+<xsd:element name="orgRef" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
+<xsd:element name="maxDepth" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
+<xsd:element name="minDepth" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
 
     <xsd:element name="present" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType"/>
     <xsd:element name="true" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType"/>

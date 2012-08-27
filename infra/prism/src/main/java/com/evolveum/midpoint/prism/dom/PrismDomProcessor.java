@@ -298,7 +298,7 @@ public class PrismDomProcessor {
 		return null;
 	}
 
-	private <T extends Containerable> Collection<? extends Item> parsePrismContainerItems(List<Element> childElements, 
+	public <T extends Containerable> Collection<? extends Item> parsePrismContainerItems(List<Element> childElements, 
 			PrismContainerDefinition<T> containerDefinition) throws SchemaException {
 		return parsePrismContainerItems(childElements, containerDefinition, null);
 	}

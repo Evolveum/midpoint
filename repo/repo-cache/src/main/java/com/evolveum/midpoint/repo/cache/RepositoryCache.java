@@ -21,6 +21,7 @@ package com.evolveum.midpoint.repo.cache;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
@@ -215,6 +216,7 @@ public class RepositoryCache implements RepositoryService {
 		return objects;
 	}
 
+	@Deprecated
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult parentResult) throws SchemaException {
@@ -230,7 +232,28 @@ public class RepositoryCache implements RepositoryService {
 	}
 	
 	@Override
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+			PagingType paging, OperationResult parentResult) throws SchemaException {
+		// Cannot satisfy from cache, pass down to repository
+		List<PrismObject<T>> objects = repository.searchObjects(type, query, paging, parentResult);
+		Map<String, PrismObject<ObjectType>> cache = getCache();
+		if (cache != null) {
+			for (PrismObject<T> object : objects) {
+				cache.put(object.getOid(), (PrismObject<ObjectType>) object);
+			}
+		}
+		return objects;
+	}
+	
+	@Deprecated
+	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
+    		throws SchemaException {
+		return repository.countObjects(type, query, parentResult);
+	}
+	
+	@Override
+	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
     		throws SchemaException {
 		return repository.countObjects(type, query, parentResult);
 	}

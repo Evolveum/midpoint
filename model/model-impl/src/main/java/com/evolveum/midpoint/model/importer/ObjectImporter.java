@@ -27,8 +27,12 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -257,7 +261,10 @@ public class ObjectImporter {
             // The conflict was obviously name. As we have no explicit OID in the object to import
             // it is pretty safe to try to delete the conflicting object
             // look for an object by name and type and delete it
-            QueryType query = QueryUtil.createNameQuery(object.asObjectable());
+//            QueryType query = QueryUtil.createNameQuery(object.asObjectable());
+			ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(object.getCompileTimeClass(),
+					prismContext, ObjectType.F_NAME, object.asObjectable().getName()));
+			
             List<PrismObject<? extends ObjectType>> objects = (List) repository.searchObjects(object.getCompileTimeClass(),
             		query, null, objectResult);
             if (objects.size() != 1) {
@@ -470,6 +477,7 @@ public class ObjectImporter {
             }
         }
         Element filter = refVal.getFilter();
+        
         if (!StringUtils.isBlank(refVal.getOid())) {
             // We have OID
             if (filter != null) {
@@ -519,15 +527,26 @@ public class ObjectImporter {
             return;
         }
         // No OID and we have filter. Let's check the filter a bit
-        LOGGER.trace("Resolving using filter {}", DOMUtil.serializeDOMToString(filter));
-        NodeList childNodes = filter.getChildNodes();
-        if (childNodes.getLength() == 0) {
+        
+        ObjectFilter objFilter =  null;
+        try{
+        	PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+        	objFilter = QueryConvertor.parseFilter(objDef, filter);
+        } catch (SchemaException ex){
+        	LOGGER.error("Failed to convert object filter from filter: "+ DOMUtil.printDom(filter) + " Reason: "+ ex.getMessage(), ex);
+        	throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);
+        }
+        
+        LOGGER.trace("Resolving using filter {}", objFilter.dump());
+//        NodeList childNodes = filter.getChildNodes();
+//        if (childNodes.getLength() == 0) {
+        if (objFilter == null){
             result.recordFatalError("OID not specified and filter is empty for property " + refName);
             return;
         }
-        // Let's do resolving
-        QueryType query = new QueryType();
-        query.setFilter(filter);
+//        // Let's do resolving
+//        QueryType queryType = new QueryType();
+//        queryType.setFilter(filter);
         List<PrismObject<? extends ObjectType>> objects = null;
         QName objectType = refVal.getTargetType();
         if (objectType == null) {
@@ -535,7 +554,7 @@ public class ObjectImporter {
             return;
         }
         try {
-
+        	ObjectQuery query = ObjectQuery.createObjectQuery(objFilter);
             objects = (List)repository.searchObjects(type, query, null, result);
 
         } catch (SchemaException e) {

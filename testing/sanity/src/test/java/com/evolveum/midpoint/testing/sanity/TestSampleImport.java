@@ -23,6 +23,8 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -130,7 +132,8 @@ public class TestSampleImport extends AbstractIntegrationTest {
 		display("Result after good import", result);
 		assertSuccessOrWarning("Import has failed (result)", result,1);
 
-		QueryType query = QueryUtil.createNameQuery(objectName);
+		ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(type, prismContext, ObjectType.F_NAME, objectName));
+//		QueryType query = QueryUtil.createNameQuery(objectName);
 		
 		List<PrismObject<T>> objects = repositoryService.searchObjects(type, query, null, result);
 		for (PrismObject<T> o : objects) {

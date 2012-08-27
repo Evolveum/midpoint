@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -359,7 +360,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
 
 		// WHEN
-		cc.search(AccountShadowType.class, accountDefinition, null, handler, result);
+		cc.search(AccountShadowType.class, accountDefinition, new ObjectQuery(), handler, result);
 
 		// THEN
 		assertEquals("Unexpected number of search results", 1, searchResults.size());

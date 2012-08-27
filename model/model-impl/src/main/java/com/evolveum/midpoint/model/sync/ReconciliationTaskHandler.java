@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -222,7 +224,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		handler.setProcessShortName("reconciliation");
 		handler.setStopOnError(false);
 
-		QueryType query = createAccountSearchQuery(resource, refinedAccountDefinition);
+		ObjectQuery query = createAccountSearchQuery(resource, refinedAccountDefinition);
 
 		provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, opResult);
 
@@ -367,10 +369,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 	}
 
-	private QueryType createAccountSearchQuery(ResourceType resource,
+	private ObjectQuery createAccountSearchQuery(ResourceType resource,
 			RefinedAccountDefinition refinedAccountDefinition) throws SchemaException {
 		QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
-		return QueryUtil.createResourceAndAccountQuery(resource, objectClass, null);
+		return ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
 	}
 
 	@Override

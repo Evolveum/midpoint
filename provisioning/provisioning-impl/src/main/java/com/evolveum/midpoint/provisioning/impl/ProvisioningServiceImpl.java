@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.text.html.HTML.Attribute;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -44,11 +45,17 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -59,6 +66,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -504,13 +512,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			OperationResult parentResult) {
 
 		try {
-			return searchObjects(objectType, null, paging, parentResult);
+			return searchObjects(objectType, new ObjectQuery(), paging, parentResult);
 		} catch (Exception e) {
 			throw new SystemException(e.getMessage(), e);
 		}
 
 	}
 
+	@Deprecated
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -546,6 +555,42 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return objListType;
 	}
 
+	@Override
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, PagingType paging,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjects");
+		result.addParam("objectType", type);
+		result.addParam("paging", paging);
+		result.addParam("query", query);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+
+		if (!ResourceObjectShadowType.class.isAssignableFrom(type)) {
+			List<PrismObject<T>> objects = searchRepoObjects(type, query, paging, result);
+			result.computeStatus();
+			result.recordSuccessIfUnknown();
+			return objects;
+		}
+
+		final List<PrismObject<T>> objListType = new ArrayList<PrismObject<T>>();
+
+		final ResultHandler<T> handler = new ResultHandler<T>() {
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+				return objListType.add(object);
+			}
+		};
+
+		searchObjectsIterative(type, query, paging, handler, result);
+		// TODO: better error handling
+		result.computeStatus();
+		return objListType;
+	}
+
+	@Deprecated
 	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult result) throws SchemaException {
 
@@ -630,7 +675,128 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
+	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query,
+			PagingType paging, OperationResult result) throws SchemaException {
+
+		List<PrismObject<T>> objListType = null;
+
+		// TODO: should searching connectors trigger rediscovery?
+
+		objListType = getCacheRepositoryService().searchObjects(type, query, paging, result);
+
+		if (ResourceType.class.equals(type)) {
+			List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
+			for (PrismObject<T> obj : objListType) {
+				OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
+						+ ".searchObjects.object");
+				PrismObject<ResourceType> resource = (PrismObject<ResourceType>) obj;
+				ResourceType completeResource;
+
+				try {
+
+					completeResource = getResourceTypeManager().completeResource(resource.asObjectable(), null,
+							objResult);
+					newObjListType.add(completeResource.asPrismObject());
+					// TODO: what do to with objResult??
+
+				} catch (ObjectNotFoundException e) {
+					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
+							resource, e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
+
+				} catch (SchemaException e) {
+					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
+							resource, e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
+
+				} catch (CommunicationException e) {
+					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
+							resource, e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
+
+				} catch (ConfigurationException e) {
+					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
+							resource, e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
+
+				} catch (RuntimeException e) {
+					// FIXME: Strictly speaking, the runtime exception should
+					// not be handled here.
+					// The runtime exceptions should be considered fatal anyway
+					// ... but some of the
+					// ICF exceptions are still translated to system exceptions.
+					// So this provides
+					// a better robustness now.
+					LOGGER.error("System error while completing {}: {}. Using non-complete resource.", new Object[] {
+							resource, e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
+				}
+			}
+			return newObjListType;
+		}
+
+		return objListType;
+
+	}
+
+	@Deprecated
 	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
+
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".countObjects");
+		result.addParam("objectType", type);
+		result.addParam("query", query);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+
+		if (!ResourceObjectShadowType.class.isAssignableFrom(type)) {
+			int count = getCacheRepositoryService().countObjects(type, query, parentResult);
+			result.computeStatus();
+			result.recordSuccessIfUnknown();
+			return count;
+		}
+
+		final Holder<Integer> countHolder = new Holder<Integer>(0);
+
+		final ResultHandler<T> handler = new ResultHandler<T>() {
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+				int count = countHolder.getValue();
+				count++;
+				countHolder.setValue(count);
+				return true;
+			}
+		};
+
+		searchObjectsIterative(type, query, null, handler, result);
+		// TODO: better error handling
+		result.computeStatus();
+		return countHolder.getValue();
+	}
+
+	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -887,6 +1053,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return objectList;
 	}
 
+	@Deprecated
 	@Override
 	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query, PagingType paging,
 			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
@@ -1029,6 +1196,204 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				resource.asObjectable(), resourceAttributesFilter, shadowHandler, null, result);
 		result.recordSuccess();
 	}
+
+	@Override
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, PagingType paging,
+			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+		Validate.notNull(parentResult, "Operation result must not be null.");
+		Validate.notNull(handler, "Handler must not be null.");
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Start to search object. Query {}", query.dump());
+		}
+
+		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".searchObjectsIterative");
+		result.addParam("query", query);
+		result.addParam("paging", paging);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+
+		ObjectFilter filter = null;
+		if (query != null) {
+			filter = query.getFilter();
+		}
+//		 NodeList list = null;
+//		 if (filter != null) {
+//		 list = filter.getChildNodes();
+//		 }
+		String resourceOid = null;
+		QName objectClass = null;
+		List<ObjectFilter> attributeFilter = null;
+//		List<NodeList> attributeFilter = new ArrayList<NodeList>();
+
+		ObjectQuery attributeQuery = null;
+		
+		
+		if (filter instanceof AndFilter){
+			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getCondition();
+			resourceOid = getResourceOidFromFilter(conditions);
+			objectClass = getObjectClassFromFilter(conditions);
+			attributeFilter = getAttributeQuery(conditions);
+			if (attributeFilter.size() > 1){
+				attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
+			}
+			
+			if (attributeFilter.size() < 1){
+				LOGGER.trace("No attribute filter defined in the query.");
+			}
+			
+			if (attributeFilter.size() == 1){
+				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.get(0));
+			}
+			
+			
+		}
+		LOGGER.trace("**PROVISIONING: Search objects on resource with oid {}", resourceOid);
+		
+		
+		if (resourceOid == null) {
+			throw new IllegalArgumentException("Resource not defined in a search query");
+		}
+		if (objectClass == null) {
+			throw new IllegalArgumentException("Objectclass not defined in a search query");
+		}
+
+		PrismObject<ResourceType> resource = null;
+		try {
+			// Don't use repository. Repository resource will not have properly
+			// set capabilities
+			resource = getObject(ResourceType.class, resourceOid, null, result);
+
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError("Resource with oid " + resourceOid + "not found. Reason: " + e);
+			throw new ObjectNotFoundException(e.getMessage(), e);
+		} catch (ConfigurationException e) {
+			result.recordFatalError("Configuration error regarding resource with oid " + resourceOid + ". Reason: " + e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			result.recordFatalError("Security violation: " + e);
+			throw e;
+		}
+
+//		List<ResourceAttribute> resourceAttributesFilter = createResourceAttributeFilter(attributeFilter, resource,
+//				objectClass);
+
+		final ShadowHandler shadowHandler = new ShadowHandler() {
+
+			@Override
+			public boolean handle(ResourceObjectShadowType shadowType) {
+				if (shadowType == null) {
+					throw new IllegalArgumentException("Null shadow in call to handler");
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("searchObjectsIterative: processing shadow: {}",
+							SchemaDebugUtil.prettyPrint(shadowType));
+				}
+
+				OperationResult accountResult = result.createSubresult(ProvisioningService.class.getName()
+						+ ".searchObjectsIterative.handle");
+
+				boolean doContinue = handler.handle(shadowType.asPrismObject(), accountResult);
+				accountResult.computeStatus();
+
+				if (!accountResult.isSuccess()) {
+					Collection<? extends ItemDelta> shadowModificationType = PropertyDelta
+							.createModificationReplacePropertyCollection(ResourceObjectShadowType.F_RESULT,
+									getResourceObjectShadowDefinition(), accountResult.createOperationResultType());
+					try {
+						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowType.getOid(),
+								shadowModificationType, result);
+					} catch (ObjectNotFoundException ex) {
+						result.recordFatalError("Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
+								+ " shadow failed: Not found: " + ex.getMessage(), ex);
+					} catch (ObjectAlreadyExistsException ex) {
+						result.recordFatalError("Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
+								+ " shadow failed: Already exists: " + ex.getMessage(), ex);
+					} catch (SchemaException ex) {
+						result.recordFatalError("Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
+								+ " shadow failed: Schema error: " + ex.getMessage(), ex);
+					}
+				}
+
+				return doContinue;
+			}
+		};
+
+		getResourceTypeManager().searchObjectsIterative((Class<? extends ResourceObjectShadowType>) type, objectClass,
+				resource.asObjectable(), attributeQuery, shadowHandler, null, result);
+		result.recordSuccess();
+	}
+	
+	private String getResourceOidFromFilter(List<? extends ObjectFilter> conditions) throws SchemaException{
+			
+			for (ObjectFilter f : conditions){
+				if (f instanceof EqualsFilter && ResourceObjectShadowType.F_RESOURCE_REF.equals(((EqualsFilter) f).getDefinition().getName())){
+					List<PrismValue> values = ((EqualsFilter) f).getValues();
+					if (values.size() > 1){
+						throw new SchemaException("More than one resource references defined in the search query.");
+					}
+					if (values.size() < 1){
+						throw new SchemaException("Search query does not have specified resource reference.");
+					}
+					return ((PrismReferenceValue)values.get(0)).getOid();
+				}
+			}
+			
+			return null;
+		
+		
+//		throw new UnsupportedOperationException("Expected and filter, but got: " + filter.getClass());
+		
+	}
+	
+private QName getObjectClassFromFilter(List<? extends ObjectFilter> conditions) throws SchemaException{
+		
+			for (ObjectFilter f : conditions){
+				if (f instanceof EqualsFilter && ResourceObjectShadowType.F_OBJECT_CLASS.equals(((EqualsFilter) f).getDefinition().getName())){
+					List<PrismValue> values = ((EqualsFilter) f).getValues();
+					if (values.size() > 1){
+						throw new SchemaException("More than one object class defined in the search query.");
+					}
+					if (values.size() < 1){
+						throw new SchemaException("Search query does not have specified object class.");
+					}
+					
+					return (QName) ((PrismPropertyValue)values.get(0)).getValue();
+				}
+			}
+			
+			return null;
+		
+		
+//		throw new UnsupportedOperationException("Expected and filter, but got: " + filter.getClass());
+		
+	}
+
+private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions) throws SchemaException{
+	
+	List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
+	
+		for (ObjectFilter f : conditions){
+			if (f instanceof EqualsFilter){
+				if (ResourceObjectShadowType.F_OBJECT_CLASS.equals(((EqualsFilter) f).getDefinition().getName())){
+					continue;
+				}
+				if (ResourceObjectShadowType.F_RESOURCE_REF.equals(((EqualsFilter) f).getDefinition().getName())){
+					continue;
+				}
+			}
+			
+			attributeFilter.add(f);
+		}
+		
+		return attributeFilter;
+	
+	
+//	throw new UnsupportedOperationException("Expected and filter, but got: " + filter.getClass());
+	
+}
 
 
 	private List<ResourceAttribute> createResourceAttributeFilter(List<NodeList> attributeFilter,

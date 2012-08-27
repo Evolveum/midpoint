@@ -28,6 +28,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -1030,6 +1033,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
         QueryType query = QueryUtil.createResourceAndAccountQuery(resourceTypeOpenDjrepo, objectClass, null);
+        ObjectQuery q = QueryConvertor.createObjectQuery(AccountShadowType.class, query, prismContext);
 
         final Collection<ObjectType> objects = new HashSet<ObjectType>();
 
@@ -1064,7 +1068,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // WHEN
 
-        provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, result);
+        provisioningService.searchObjectsIterative(AccountShadowType.class, q, null, handler, result);
 
         // THEN
 
@@ -2236,7 +2240,7 @@ public class TestSanity extends AbstractIntegrationTest {
         final OperationResult result = task.getResult();
 
         // WHEN
-        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
 
         // THEN
         assertNotNull("listObjects returned null list", resources);
@@ -3123,7 +3127,8 @@ public class TestSanity extends AbstractIntegrationTest {
         assertNotNull("Pasword was not set on create", guybrushPassword);
 
 
-        QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
+//        QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
+        ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, ELAINE_NAME));
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, repoResult);
         assertEquals("Wrong number of Elaines", 1, users.size());
         repoUser = users.get(0).asObjectable();

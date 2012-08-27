@@ -39,14 +39,14 @@
 		<name>Sample Resource</name>
 		<connectorRef type="ConnectorType">
 		  <filter>
-		      <q:and>
-		        <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType"/>
+<!-- 		      <q:and> -->
+<!-- 		        <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType"/> -->
 		        <q:equal>
 		          <q:value>
 		              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
 		          </q:value>
 		        </q:equal>
-		      </q:and>
+<!-- 		      </q:and> -->
 	      </filter>
 		</connectorRef>
 		<namespace>http://foo.bar.com/</namespace>

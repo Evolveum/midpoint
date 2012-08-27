@@ -24,6 +24,8 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -203,18 +205,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected PrismObject<ConnectorType> findConnectorByType(String connectorType, OperationResult result)
 			throws SchemaException {
-		Document doc = DOMUtil.getDocument();
+//		Document doc = DOMUtil.getDocument();
+//
+//		Element connectorTypeElement = doc.createElementNS(
+//				SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE.getNamespaceURI(),
+//				SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE.getLocalPart());
+//		connectorTypeElement.setTextContent(connectorType);
+//
+//		// We have all the data, we can construct the filter now
+//		Element filter = QueryUtil.createEqualFilter(doc, null, connectorTypeElement);
 
-		Element connectorTypeElement = doc.createElementNS(
-				SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE.getNamespaceURI(),
-				SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE.getLocalPart());
-		connectorTypeElement.setTextContent(connectorType);
-
-		// We have all the data, we can construct the filter now
-		Element filter = QueryUtil.createEqualFilter(doc, null, connectorTypeElement);
-
-		QueryType query = new QueryType();
-		query.setFilter(filter);
+		EqualsFilter equal = EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, connectorType);
+		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+//		
+//		QueryType query = new QueryType();
+//		query.setFilter(filter);
 
 //		System.out.println("Query:\n"+DOMUtil.serializeDOMToString(query.getFilter())+"\n--");
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null,

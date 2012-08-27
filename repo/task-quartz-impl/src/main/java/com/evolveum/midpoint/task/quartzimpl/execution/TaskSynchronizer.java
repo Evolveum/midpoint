@@ -22,6 +22,7 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -96,7 +97,7 @@ public class TaskSynchronizer {
         PagingType paging = new PagingType();
         List<PrismObject<TaskType>> tasks;
         try {
-            tasks = getRepositoryService().searchObjects(TaskType.class, null, paging, result);
+            tasks = getRepositoryService().searchObjects(TaskType.class, new ObjectQuery(), paging, result);
         } catch(Exception e) {
             LoggingUtils.logException(LOGGER, "Synchronization cannot be done, because tasks cannot be listed from the repository.", e);
             return false;

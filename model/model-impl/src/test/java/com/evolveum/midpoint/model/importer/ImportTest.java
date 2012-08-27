@@ -24,6 +24,8 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -41,6 +43,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -198,6 +201,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test003ImportUsers() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
+		
 		displayTestTile(this,"test003ImportUsers");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
@@ -226,12 +230,15 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedData());
 
 		// Check import with generated OID
-		Document doc = DOMUtil.getDocument();
-		Element filter = QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "guybrush");
+//		Document doc = DOMUtil.getDocument();
+//		Element filter = QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "guybrush");
+//
+//		QueryType query = new QueryType();
+//		query.setFilter(filter);
 
-		QueryType query = new QueryType();
-		query.setFilter(filter);
-
+		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
+		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+		
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
 		assertNotNull(users);
@@ -243,7 +250,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		PrismAsserts.assertEqualsPolyString("wrong givenName", "Guybrush", guybrush.getGivenName());
 		PrismAsserts.assertEqualsPolyString("wrong familyName", "Threepwood", guybrush.getFamilyName());
 		PrismAsserts.assertEqualsPolyString("wrong fullName", "Guybrush Threepwood", guybrush.getFullName());
-
+		
 	}
 
 	// Import the same thing again. Watch how it burns :-)
@@ -294,7 +301,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		
@@ -352,7 +359,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		

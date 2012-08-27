@@ -30,14 +30,14 @@
 	<name>Embedded Test Derby</name>
 	<connectorRef type="ConnectorType">
 		<filter>
-			<q:and>
-		        <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType"/>
+<!-- 			<q:and> -->
+<!-- 		        <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType"/> -->
 		        <q:equal>
 		          <q:value>
 		              <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
 		          </q:value>
 		        </q:equal>
-		    </q:and>
+<!-- 		    </q:and> -->
 	    </filter>
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab</namespace>

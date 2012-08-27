@@ -21,8 +21,11 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
-
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -48,158 +51,156 @@ import java.util.Map;
  */
 public class QueryInterpreter {
 
-    private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreter.class);
-    private PrismContext prismContext;
-    //query context stuff
-    private Class<? extends ObjectType> type;
-    private Map<PropertyPath, Criteria> criterions = new HashMap<PropertyPath, Criteria>();
-    private Map<PropertyPath, String> aliases = new HashMap<PropertyPath, String>();
+	private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreter.class);
+	private PrismContext prismContext;
+	// query context stuff
+	private Class<? extends ObjectType> type;
+	private Map<PropertyPath, Criteria> criterions = new HashMap<PropertyPath, Criteria>();
+	private Map<PropertyPath, String> aliases = new HashMap<PropertyPath, String>();
 
-    public QueryInterpreter(Session session, Class<? extends ObjectType> type, PrismContext prismContext) {
-        this.prismContext = prismContext;
-        this.type = type;
+	public QueryInterpreter(Session session, Class<? extends ObjectType> type, PrismContext prismContext) {
+		this.prismContext = prismContext;
+		this.type = type;
 
-        String alias = createAlias(ObjectTypes.getObjectType(type).getQName());
-        Criteria criteria = session.createCriteria
-                (ClassMapper.getHQLTypeClass(type), alias);
-        setCriteria(null, criteria);
-        setAlias(null, alias);
-    }
+		String alias = createAlias(ObjectTypes.getObjectType(type).getQName());
+		Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type), alias);
+		setCriteria(null, criteria);
+		setAlias(null, alias);
+	}
 
-    public Criteria interpret(Element filter) throws QueryException {
-        Validate.notNull(filter, "Element filter must not be null.");
+	public Criteria interpret(ObjectFilter filter) throws QueryException {
+		Validate.notNull(filter, "Element filter must not be null.");
 
-        LOGGER.debug("Interpreting query '{}', query on trace level.",
-                new Object[]{DOMUtil.getQNameWithoutPrefix(filter)});
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Query filter:\n{}", new Object[]{DOMUtil.printDom(filter).toString()});
-        }
+		LOGGER.debug("Interpreting query '{}', query on trace level.", new Object[] { filter.getClass() });
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Query filter:\n{}", new Object[] { filter.dump() });
+		}
 
-        try {
-            Criterion criterion = interpret(filter, false);
+		try {
+			Criterion criterion = interpret(filter, false);
 
-            Criteria criteria = getCriteria(null);
-            criteria.add(criterion);
+			Criteria criteria = getCriteria(null);
+			criteria.add(criterion);
 
-            return criteria;
-        } catch (QueryException ex) {
-            LOGGER.trace(ex.getMessage(), ex);
-            throw ex;
-        } catch (Exception ex) {
-            LOGGER.trace(ex.getMessage(), ex);
-            throw new QueryException(ex.getMessage(), ex);
-        }
-    }
+			return criteria;
+		} catch (QueryException ex) {
+			LOGGER.trace(ex.getMessage(), ex);
+			throw ex;
+		} catch (Exception ex) {
+			LOGGER.trace(ex.getMessage(), ex);
+			throw new QueryException(ex.getMessage(), ex);
+		}
+	}
 
-    public Criterion interpret(Element filter, boolean pushNot) throws QueryException {
-        //todo fix operation choosing and initialization...
-        Op operation = new LogicalOp(this);
-        if (operation.canHandle(filter)) {
-            return operation.interpret(filter, pushNot);
-        }
-        operation = new SimpleOp(this);
-        if (operation.canHandle(filter)) {
-            return operation.interpret(filter, pushNot);
-        }
-        
-        operation = new TreeOp(this);
-        if (operation.canHandle(filter)) {
-            return operation.interpret(filter, pushNot);
-        }
+	public Criterion interpret(ObjectFilter filter, boolean pushNot) throws QueryException {
+		// todo fix operation choosing and initialization...
 
-        throw new QueryException("Unsupported query filter '"
-                + DOMUtil.getQNameWithoutPrefix(filter) + "'.");
-    }
+		Op operation = getOpType(filter);
+		return operation.interpret(filter, pushNot);
 
-    public Class<? extends ObjectType> getType() {
-        return type;
-    }
+	}
 
-    public PrismContext getPrismContext() {
-        return prismContext;
-    }
+	private Op getOpType(ObjectFilter filter) throws QueryException {
+		if (LogicalFilter.class.isAssignableFrom(filter.getClass())) {
+			return new LogicalOp(this);
+		}
+		if (ValueFilter.class.isAssignableFrom(filter.getClass())) {
+			return new SimpleOp(this);
+		}
+		if (OrgFilter.class.isAssignableFrom(filter.getClass())) {
+			return new TreeOp(this);
+		}
+		throw new QueryException("Unsupported query filter '" + filter.getClass().getSimpleName() + "'.");
+	}
 
-    public ItemDefinition findDefinition(Element path, QName name) {
-        LOGGER.trace("Looking for '{}' definition on path '{}'", new Object[]{name,
-                (path != null ? DOMUtil.serializeDOMToString(path) : null)
-        });
-        SchemaRegistry registry = prismContext.getSchemaRegistry();
-        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(type);
+	public Class<? extends ObjectType> getType() {
+		return type;
+	}
 
-        PropertyPath propertyPath = createPropertyPath(path);
-        if (propertyPath == null) {
-            propertyPath = new PropertyPath();
-        }
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
 
-        List<PropertyPathSegment> segments = propertyPath.getSegments();
-        segments.add(new PropertyPathSegment(name));
-        propertyPath = new PropertyPath(segments);
-        LOGGER.trace("Checking item definition on path {}", new Object[]{propertyPath});
-        ItemDefinition def =  objectDef.findItemDefinition(propertyPath);
-        if (def != null) {
-            return def;
-        }
+	public ItemDefinition findDefinition(Element path, QName name) {
+		LOGGER.trace("Looking for '{}' definition on path '{}'",
+				new Object[] { name, (path != null ? DOMUtil.serializeDOMToString(path) : null) });
+		SchemaRegistry registry = prismContext.getSchemaRegistry();
+		PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(type);
 
-        LOGGER.trace("Definition not found, checking global definitions.");
-        ItemDefinition definition = registry.findItemDefinitionByElementName(name);
-        LOGGER.trace("Found definition {}",definition);
-        return definition;
-    }
+		PropertyPath propertyPath = createPropertyPath(path);
+		if (propertyPath == null) {
+			propertyPath = new PropertyPath();
+		}
 
-    public PropertyPath createPropertyPath(Element path) {
-        PropertyPath propertyPath = null;
-        if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
-            propertyPath = new XPathHolder(path).toPropertyPath();
-        }
+		List<PropertyPathSegment> segments = propertyPath.getSegments();
+		segments.add(new PropertyPathSegment(name));
+		propertyPath = new PropertyPath(segments);
+		LOGGER.trace("Checking item definition on path {}", new Object[] { propertyPath });
+		ItemDefinition def = objectDef.findItemDefinition(propertyPath);
+		if (def != null) {
+			return def;
+		}
 
-        return propertyPath;
-    }
+		LOGGER.trace("Definition not found, checking global definitions.");
+		ItemDefinition definition = registry.findItemDefinitionByElementName(name);
+		LOGGER.trace("Found definition {}", definition);
+		return definition;
+	}
 
-    public String createAlias(QName qname) {
-        String prefix = Character.toString(qname.getLocalPart().charAt(0)).toLowerCase();
-        int index = 1;
+	public PropertyPath createPropertyPath(Element path) {
+		PropertyPath propertyPath = null;
+		if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
+			propertyPath = new XPathHolder(path).toPropertyPath();
+		}
 
-        String alias = prefix;
-        while (hasAlias(alias)) {
-            alias = prefix + Integer.toString(index);
-            index++;
+		return propertyPath;
+	}
 
-            if (index > 20) {
-                throw new IllegalStateException("Alias index for segment '" + qname
-                        + "' is more than 20? Should not happen.");
-            }
-        }
+	public String createAlias(QName qname) {
+		String prefix = Character.toString(qname.getLocalPart().charAt(0)).toLowerCase();
+		int index = 1;
 
-        return alias;
-    }
+		String alias = prefix;
+		while (hasAlias(alias)) {
+			alias = prefix + Integer.toString(index);
+			index++;
 
-    public Criteria getCriteria(PropertyPath path) {
-        return criterions.get(path);
-    }
+			if (index > 20) {
+				throw new IllegalStateException("Alias index for segment '" + qname
+						+ "' is more than 20? Should not happen.");
+			}
+		}
 
-    public void setCriteria(PropertyPath path, Criteria criteria) {
-        Validate.notNull(criteria, "Criteria must not be null.");
-        if (criterions.containsKey(path)) {
-            throw new IllegalArgumentException("Already has criteria with this path '" + path + "'");
-        }
+		return alias;
+	}
 
-        criterions.put(path, criteria);
-    }
+	public Criteria getCriteria(PropertyPath path) {
+		return criterions.get(path);
+	}
 
-    public String getAlias(PropertyPath path) {
-        return aliases.get(path);
-    }
+	public void setCriteria(PropertyPath path, Criteria criteria) {
+		Validate.notNull(criteria, "Criteria must not be null.");
+		if (criterions.containsKey(path)) {
+			throw new IllegalArgumentException("Already has criteria with this path '" + path + "'");
+		}
 
-    public void setAlias(PropertyPath path, String alias) {
-        Validate.notNull(alias, "Alias must not be null.");
-        if (aliases.containsValue(alias)) {
-            throw new IllegalArgumentException("Already has alias '" + alias + "' with this path '" + path + "'.");
-        }
+		criterions.put(path, criteria);
+	}
 
-        aliases.put(path, alias);
-    }
+	public String getAlias(PropertyPath path) {
+		return aliases.get(path);
+	}
 
-    public boolean hasAlias(String alias) {
-        return aliases.containsValue(alias);
-    }
+	public void setAlias(PropertyPath path, String alias) {
+		Validate.notNull(alias, "Alias must not be null.");
+		if (aliases.containsValue(alias)) {
+			throw new IllegalArgumentException("Already has alias '" + alias + "' with this path '" + path + "'.");
+		}
+
+		aliases.put(path, alias);
+	}
+
+	public boolean hasAlias(String alias) {
+		return aliases.containsValue(alias);
+	}
 }

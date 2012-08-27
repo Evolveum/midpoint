@@ -21,13 +21,17 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -83,7 +87,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(o, opResult);
 		}
 
-		List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, null, null, opResult);
+		List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, new ObjectQuery(), null, opResult);
 		AssertJUnit.assertNotNull(orgTypes);
 		AssertJUnit.assertEquals(9, orgTypes.size());
 
@@ -106,7 +110,10 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertEquals(1, pRoot.getOrgType().size());
 		AssertJUnit.assertEquals("project", pRoot.getOrgType().get(0));
 
-		QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
+//		QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
+		ObjectQuery query = new ObjectQuery();
+		PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+		query.setFilter(EqualsFilter.createEquals(null, userObjectDef, UserType.F_NAME, ELAINE_NAME));
 
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
 
@@ -317,13 +324,17 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 					o.getDescendant().toJAXB(prismContext), o.getDepth() });
 		}
 
-		// File file = new File(TEST_DIR + "/query-org-struct.xml");
-		Document document = DOMUtil.parseFile(new File(QUERY_ORG_STRUCT_USER_UNBOUNDED));
-		Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
-		QueryType query = QueryUtil.createQuery(filter);
+		// File file = new File(TEST_DIR + "/query-org-struct.xml")
+		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(QUERY_ORG_STRUCT_USER_UNBOUNDED), QueryType.class);
+//		Document document = DOMUtil.parseFile(new File(QUERY_ORG_STRUCT_USER_UNBOUNDED));
+//		Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
+//		QueryType query = QueryUtil.createQuery(filter);
 
 		// List<>
-		List<PrismObject<UserType>> resultss = repositoryService.searchObjects(UserType.class, query, null,
+		
+		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
+		
+		List<PrismObject<UserType>> resultss = repositoryService.searchObjects(UserType.class, objectQuery, null,
 				parentResult);
 		for (PrismObject<UserType> u : resultss) {
 
@@ -347,12 +358,14 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		}
 
 		// File file = new File(TEST_DIR + "/query-org-struct.xml");
-		Document document = DOMUtil.parseFile(new File(QUERY_ORG_STRUCT_ORG_DEPTH));
-		Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
-		QueryType query = QueryUtil.createQuery(filter);
+//		Document document = DOMUtil.parseFile(new File(QUERY_ORG_STRUCT_ORG_DEPTH));
+//		Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
+//		QueryType query = QueryUtil.createQuery(filter);
+		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(QUERY_ORG_STRUCT_ORG_DEPTH), QueryType.class);
 
+		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 		// List<>
-		List<PrismObject<OrgType>> resultss = repositoryService.searchObjects(OrgType.class, query, null, parentResult);
+		List<PrismObject<OrgType>> resultss = repositoryService.searchObjects(OrgType.class, objectQuery, null, parentResult);
 		for (PrismObject<OrgType> u : resultss) {
 
 			LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));

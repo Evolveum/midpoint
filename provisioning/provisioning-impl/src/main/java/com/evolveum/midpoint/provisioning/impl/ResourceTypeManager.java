@@ -5,6 +5,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -515,10 +516,19 @@ public class ResourceTypeManager {
 
 	}
 
+	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type,
+			final QName objectClass, final ResourceType resourceType,
+			List<ResourceAttribute> query, final ShadowHandler handler,
+			final DiscoveryHandler discoveryHandler, final OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+	
+		throw new UnsupportedOperationException("not supported operation: search objects iterative.");
+	}
+	
 	// TODO: maybe this method should be placed in another class...
 	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type,
 			final QName objectClass, final ResourceType resourceType,
-			List<ResourceAttribute> resourceAttributesFilter, final ShadowHandler handler,
+			ObjectQuery query, final ShadowHandler handler,
 			final DiscoveryHandler discoveryHandler, final OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
@@ -529,13 +539,13 @@ public class ResourceTypeManager {
 		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClass,
 				ObjectTypeUtil.toShortString(resourceType));
 
-		searchObjects(type, objectClass, resourceType, resourceAttributesFilter, handler, discoveryHandler,
+		searchObjects(type, objectClass, resourceType, query, handler, discoveryHandler,
 				true, parentResult);
 
 	}
 
 	private <T extends ResourceObjectShadowType> void searchObjects(final Class<T> type, QName objectClass,
-			final ResourceType resourceType, List<ResourceAttribute> resourceAttributesFilter,
+			final ResourceType resourceType, ObjectQuery query,
 			final ShadowHandler handler, final DiscoveryHandler discoveryHandler,
 			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException {
@@ -643,20 +653,20 @@ public class ResourceTypeManager {
 
 		try {
 			// TODO: refactor
-			QueryType query = null;
-			if (resourceAttributesFilter != null) {
-				if (resourceAttributesFilter.size() > 1) {
-					throw new UnsupportedOperationException(
-							"Now it is only supported to search accounts according to only one shadow attribute.");
-				}
-
-				if (!resourceAttributesFilter.isEmpty()) {
-					Element filter = QueryUtil.createEqualFilter(DOMUtil.getDocument(), null,
-							resourceAttributesFilter.get(0).getName(),
-							(String) resourceAttributesFilter.get(0).getRealValue());
-					query = QueryUtil.createQuery(filter);
-				}
-			}
+//			QueryType query = null;
+//			if (resourceAttributesFilter != null) {
+//				if (resourceAttributesFilter.size() > 1) {
+//					throw new UnsupportedOperationException(
+//							"Now it is only supported to search accounts according to only one shadow attribute.");
+//				}
+//
+//				if (!resourceAttributesFilter.isEmpty()) {
+//					Element filter = QueryUtil.createEqualFilter(DOMUtil.getDocument(), null,
+//							resourceAttributesFilter.get(0).getName(),
+//							(String) resourceAttributesFilter.get(0).getRealValue());
+//					query = QueryUtil.createQuery(filter);
+//				}
+//			}
 
 			connector.search(type, objectClassDef, query, resultHandler, parentResult);
 		} catch (GenericFrameworkException e) {
@@ -686,11 +696,11 @@ public class ResourceTypeManager {
 	private <T extends ResourceObjectShadowType> T lookupShadowInRepository(Class<T> type, T resourceShadow,
 			ResourceType resource, OperationResult parentResult) throws SchemaException {
 
-		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext,
+		ObjectQuery query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext,
 				parentResult);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter:\n{}",
-					DOMUtil.serializeDOMToString(query.getFilter()));
+					query.dump());
 		}
 		PagingType paging = new PagingType();
 

@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -191,8 +192,14 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
+	@Deprecated
 	public <T extends ResourceObjectShadowType> void search(Class<T> type,
 			ObjectClassComplexTypeDefinition objectClassDefinition, QueryType query,
+			ResultHandler<T> handler, OperationResult parentResult) 
+			throws CommunicationException, GenericFrameworkException, SchemaException;
+
+	public <T extends ResourceObjectShadowType> void search(Class<T> type,
+			ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
 			ResultHandler<T> handler, OperationResult parentResult) 
 			throws CommunicationException, GenericFrameworkException, SchemaException;
 

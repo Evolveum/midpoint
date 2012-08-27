@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DOMUtil;
 import org.hibernate.criterion.Criterion;
 import org.w3c.dom.Element;
@@ -39,32 +40,11 @@ abstract class Op {
         this.interpreter = interpreter;
     }
 
-    public boolean canHandle(Element filter) {
-        if (canHandle() == null || filter == null) {
-            return false;
-        }
-
-        for (QName qname : canHandle()) {
-            if (DOMUtil.isElementName(filter, qname)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected void validate(Element filter) throws QueryException {
-        if (!canHandle(filter)) {
-            throw new QueryException("Can't handle filter '" + DOMUtil.getQNameWithoutPrefix(filter)
-                    + "', only: " + Arrays.toString(canHandle()));
-        }
-    }
 
     protected QueryInterpreter getInterpreter() {
         return interpreter;
     }
 
-    protected abstract QName[] canHandle();
-
-    public abstract Criterion interpret(Element filter, boolean pushNot) throws QueryException;
+       
+    public abstract Criterion interpret(ObjectFilter filter, boolean pushNot) throws QueryException;
 }

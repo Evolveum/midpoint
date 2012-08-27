@@ -8,6 +8,9 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 
@@ -25,26 +28,39 @@ public class TreeOp extends Op {
 		// TODO Auto-generated constructor stub
 	}
 
-	@Override
-	protected QName[] canHandle() {
-		return new QName[] { new QName(SchemaConstantsGenerated.NS_QUERY, "org") };
-	}
-
-	@Override
-	public Criterion interpret(Element filter, boolean pushNot) throws QueryException {
+	// TODO: implement
+	public Criterion interpret(ObjectFilter filter, boolean pushNot) throws QueryException {
 
 		updateCriteria();
 
-		Element orgRef = DOMUtil.getChildElement(filter, new QName(SchemaConstantsGenerated.NS_QUERY, "orgRef"));
-		String orgRefOid = orgRef.getAttribute("oid");
+		OrgFilter org = null;
+		if (filter instanceof OrgFilter) {
+			org = (OrgFilter) filter;
+		}
 
-		Element maxDepth = DOMUtil.getChildElement(filter, new QName(SchemaConstantsGenerated.NS_QUERY, "maxDepth"));
-		
-		if (maxDepth == null || ("unbounded").equals(maxDepth.getTextContent())) {
+		if (org.getOrgRef() == null) {
+			throw new QueryException("No organization reference defined in the search query.");
+		}
+
+		if (org.getOrgRef().getOid() == null) {
+			throw new QueryException("No oid specified in organization refernece " + org.getOrgRef().dump());
+		}
+
+		String orgRefOid = org.getOrgRef().getOid();
+
+		Integer maxDepth = null;
+		if (org.getMaxDepth() != null && !("unbounded").equals(org.getMaxDepth())) {
+			try {
+				maxDepth = Integer.valueOf(org.getMaxDepth());
+			} catch (NumberFormatException ex) {
+				throw new QueryException("Bad value specified for max depth in search query. Expected integer value.");
+			}
+		}
+
+		if (maxDepth == null) {
 			return Restrictions.eq(ANCESTOR_OID, orgRefOid);
 		} else {
-			Integer depth = Integer.valueOf(maxDepth.getTextContent());
-			return Restrictions.and(Restrictions.eq(ANCESTOR_OID, orgRefOid), Restrictions.lt(DEPTH, depth));
+			return Restrictions.and(Restrictions.eq(ANCESTOR_OID, orgRefOid), Restrictions.lt(DEPTH, maxDepth));
 		}
 
 	}

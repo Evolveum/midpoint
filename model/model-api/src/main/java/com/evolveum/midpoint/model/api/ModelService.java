@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -521,10 +522,19 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
+	@Deprecated
 	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
 			Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 	
+	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, PagingType paging,
+			Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+	
+
+	@Deprecated
 	<T extends ObjectType> int countObjects(Class<T> type, QueryType query, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+
+	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
 	/**

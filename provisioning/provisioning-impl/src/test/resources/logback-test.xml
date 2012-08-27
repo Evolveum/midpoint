@@ -27,8 +27,9 @@
 			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
 		</encoder>
 	</appender>
-    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
+    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="ERROR"/>
 	<logger name="com.evolveum.midpoint" level="TRACE" />
+	<logger name="com.evolveum.midpoint.provisioning.impl" level="ALL" />
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
 	<logger name="PROFILING" level="TRACE" />
 	<root level="INFO">

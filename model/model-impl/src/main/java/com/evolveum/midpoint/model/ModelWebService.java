@@ -25,7 +25,9 @@ import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -152,8 +154,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			Task task = createTaskInstance(SEARCH_OBJECTS);
 			setTaskOwner(task);
 			operationResult = task.getResult();
+			ObjectQuery q = QueryConvertor.createObjectQuery(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, prismContext);
 			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(
-					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, paging,
+					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), q, paging,
 					task, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();

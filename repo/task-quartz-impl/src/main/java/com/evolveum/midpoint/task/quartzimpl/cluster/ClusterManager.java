@@ -23,6 +23,7 @@ package com.evolveum.midpoint.task.quartzimpl.cluster;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Node;
@@ -210,7 +211,7 @@ public class ClusterManager {
 
     public List<PrismObject<NodeType>> getAllNodes(OperationResult result) {
         try {
-            return getRepositoryService().searchObjects(NodeType.class, null, new PagingType(), result);
+            return getRepositoryService().searchObjects(NodeType.class, new ObjectQuery(), new PagingType(), result);
         } catch (SchemaException e) {       // should not occur
             throw new SystemException("Cannot get the list of nodes from the repository", e);
         }

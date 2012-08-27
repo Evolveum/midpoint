@@ -33,7 +33,7 @@
    <!-- Query filter example -->
 
     <q:and>
-        <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#AccountShadowType"/>
+<!--         <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#AccountShadowType"/> -->
         <q:equal>
             <q:value>
                 <i:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>

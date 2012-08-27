@@ -27,6 +27,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -343,9 +344,13 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
+	@Deprecated
     public List<Task> searchTasks(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
+	public List<Task> searchTasks(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
+	@Deprecated
     int countTasks(QueryType query, OperationResult result) throws SchemaException;
+	int countTasks(ObjectQuery query, OperationResult result) throws SchemaException;
 
     /**
      * Returns relevant nodes (w.r.t query and paging specification).
@@ -358,9 +363,13 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
+	@Deprecated
     List<Node> searchNodes(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
+	List<Node> searchNodes(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
+	@Deprecated
     int countNodes(QueryType query, OperationResult result) throws SchemaException;
+	int countNodes(ObjectQuery query, OperationResult result) throws SchemaException;
 	
 	/**
 	 * Register a handler for a specified handler URI.

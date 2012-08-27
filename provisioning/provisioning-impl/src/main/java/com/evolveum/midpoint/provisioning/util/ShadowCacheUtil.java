@@ -23,6 +23,10 @@ package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -111,7 +115,8 @@ public class ShadowCacheUtil {
 		// if the shadow doesn't have defined simulated activation capability
 		if (resourceShadow.getActivation() != null || ResourceTypeUtil.hasActivationCapability(resource)) {
 			ActivationType activationType = completeActivation(resourceShadow, resource, parentResult);
-			LOGGER.trace("Determined activation: {}", activationType == null ? "null activationType" : activationType.isEnabled());
+			LOGGER.trace("Determined activation: {}",
+					activationType == null ? "null activationType" : activationType.isEnabled());
 			repoShadow.setActivation(activationType);
 		} else {
 			repoShadow.setActivation(null);
@@ -127,8 +132,8 @@ public class ShadowCacheUtil {
 		return repoShadow;
 	}
 
-	private static boolean isSimulatedActivationAttribute(ResourceAttribute attribute,
-			ResourceObjectShadowType shadow, ResourceType resource) {
+	private static boolean isSimulatedActivationAttribute(ResourceAttribute attribute, ResourceObjectShadowType shadow,
+			ResourceType resource) {
 		if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 
 			ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
@@ -140,8 +145,7 @@ public class ShadowCacheUtil {
 				return false;
 			}
 
-			ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
-					.getAttributesContainer(shadow);
+			ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 			ResourceAttribute activationProperty = attributesContainer.findAttribute(activationCapability
 					.getEnableDisable().getAttribute());
 
@@ -171,15 +175,14 @@ public class ShadowCacheUtil {
 		if (shadow.getResult() != null) {
 			shadow.setResult(null);
 		}
-		
-		if (shadow instanceof AccountShadowType){
-			if (((AccountShadowType) shadow).getCredentials() != null){
-				((AccountShadowType)shadow).setCredentials(null);
+
+		if (shadow instanceof AccountShadowType) {
+			if (((AccountShadowType) shadow).getCredentials() != null) {
+				((AccountShadowType) shadow).setCredentials(null);
 			}
 		}
-		
-		ResourceAttributeContainer normalizedContainer = ResourceObjectShadowUtil
-				.getAttributesContainer(shadow);
+
+		ResourceAttributeContainer normalizedContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 		ResourceAttributeContainer oldContainer = normalizedContainer.clone();
 
 		normalizedContainer.clear();
@@ -225,8 +228,7 @@ public class ShadowCacheUtil {
 		// LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
-				.getAttributesContainer(shadow);
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 
 		// List<Object> values =
 		// ResourceObjectShadowUtil.getAttributeValues(shadow,
@@ -248,8 +250,7 @@ public class ShadowCacheUtil {
 		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
 		LOGGER.debug(
 				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
-				new Object[] {
-						SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
+				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
 						ObjectTypeUtil.toShortString(resource), values,
 						activation == null ? "null" : activation.isEnabled() });
 		return activation;
@@ -266,8 +267,7 @@ public class ShadowCacheUtil {
 		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
 		LOGGER.debug(
 				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
-				new Object[] {
-						SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
+				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
 						ObjectTypeUtil.toShortString(resource), values,
 						activation == null ? "null" : activation.isEnabled() });
 		return activation;
@@ -300,14 +300,11 @@ public class ShadowCacheUtil {
 			}
 
 			// No activation information.
-			LOGGER.warn(
-					"The {} does not provide definition for null value of simulated activation attribute",
+			LOGGER.warn("The {} does not provide definition for null value of simulated activation attribute",
 					ObjectTypeUtil.toShortString(resource));
 			if (parentResult != null) {
-				parentResult
-						.recordPartialError("The "
-								+ ObjectTypeUtil.toShortString(resource)
-								+ " has native activation capability but noes not provide value for DISABLE attribute");
+				parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
+						+ " has native activation capability but noes not provide value for DISABLE attribute");
 			}
 
 			return null;
@@ -317,9 +314,8 @@ public class ShadowCacheUtil {
 				LOGGER.warn("The {} provides {} values for DISABLE attribute, expecting just one value",
 						disableValues.size(), ObjectTypeUtil.toShortString(resource));
 				if (parentResult != null) {
-					parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
-							+ " provides " + disableValues.size()
-							+ " values for DISABLE attribute, expecting just one value");
+					parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource) + " provides "
+							+ disableValues.size() + " values for DISABLE attribute, expecting just one value");
 				}
 			}
 			Object disableObj = activationValues.iterator().next();
@@ -372,8 +368,7 @@ public class ShadowCacheUtil {
 	}
 
 	public static String determineShadowName(ResourceObjectShadowType shadow) throws SchemaException {
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
-				.getAttributesContainer(shadow);
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 		if (attributesContainer.getNamingAttribute() == null) {
 			// No naming attribute defined. Try to fall back to identifiers.
 			Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
@@ -390,8 +385,8 @@ public class ShadowCacheUtil {
 					}
 				}
 			} else {
-				return attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME)
-						.getValue(String.class).getValue();
+				return attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME).getValue(String.class)
+						.getValue();
 			}
 			// Identifier is not usable as name
 			// TODO: better identification of a problem
@@ -404,17 +399,16 @@ public class ShadowCacheUtil {
 	/**
 	 * Create a copy of a shadow that is suitable for repository storage.
 	 */
-	public static <T extends ResourceObjectShadowType> T createRepositoryShadow(T shadowType,
-			ResourceType resource) throws SchemaException {
-		
+	public static <T extends ResourceObjectShadowType> T createRepositoryShadow(T shadowType, ResourceType resource)
+			throws SchemaException {
+
 		PrismObject<T> shadow = shadowType.asPrismObject();
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
-				.getAttributesContainer(shadow);
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 
 		PrismObject<T> repoShadow = shadow.clone();
 		ResourceAttributeContainer repoAttributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(repoShadow);
-		
+
 		// Clean all repoShadow attributes and add only those that should be
 		// there
 		repoAttributesContainer.clear();
@@ -422,7 +416,7 @@ public class ShadowCacheUtil {
 		for (PrismProperty<?> p : identifiers) {
 			repoAttributesContainer.add(p.clone());
 		}
-		
+
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = attributesContainer.getSecondaryIdentifiers();
 		for (PrismProperty<?> p : secondaryIdentifiers) {
 			repoAttributesContainer.add(p.clone());
@@ -459,42 +453,64 @@ public class ShadowCacheUtil {
 		return repoShadowType;
 	}
 
-	public static QueryType createSearchShadowQuery(Collection<ResourceAttribute<?>> identifiers,
+	public static ObjectQuery createSearchShadowQuery(Collection<ResourceAttribute<?>> identifiers,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
-		XPathHolder xpath = createXpathHolder();
-		Document doc = DOMUtil.getDocument();
-		List<Object> values = new ArrayList<Object>();
+		// XPathHolder xpath = createXpathHolder();
+		// Document doc = DOMUtil.getDocument();
+		// List<Object> values = new ArrayList<Object>();
+		//
+		// for (PrismProperty<?> identifier : identifiers) {
+		// List<Element> elements =
+		// prismContext.getPrismDomProcessor().serializeItemToDom(identifier,
+		// doc);
+		// values.addAll(elements);
+		// }
+		//
+		// // TODO: fix for more than one identifier..The create equal filter
+		// must
+		// // be fixed first..
+		// if (values.size() > 1) {
+		// throw new
+		// UnsupportedOperationException("More than one identifier not supported yet.");
+		// }
+		//
+		// Object identifier = values.get(0);
 
+		List<EqualsFilter> conditions = new ArrayList<EqualsFilter>();
 		for (PrismProperty<?> identifier : identifiers) {
-			List<Element> elements = prismContext.getPrismDomProcessor().serializeItemToDom(identifier, doc);
-			values.addAll(elements);
+			EqualsFilter filter = EqualsFilter.createEqual(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES),
+					identifier.getDefinition(), identifier.getValue());
+			conditions.add(filter);
 		}
 
-		// TODO: fix for more than one identifier..The create equal filter must
-		// be fixed first..
-		if (values.size() > 1) {
-			throw new UnsupportedOperationException("More than one identifier not supported yet.");
+		if (conditions.size() < 1) {
+			throw new SchemaException("Identifier not specifier. Cannot create search query by identifier.");
 		}
 
-		Object identifier = values.get(0);
-
-		Element filter;
-		try {
-			filter = QueryUtil.createEqualFilter(doc, xpath, identifier);
-		} catch (SchemaException e) {
-			parentResult.recordFatalError(e);
-			throw e;
+		ObjectFilter filter = null;
+		if (conditions.size() > 1) {
+			filter = AndFilter.createAnd(conditions);
+		} else {
+			filter = conditions.get(0);
 		}
 
-		QueryType query = new QueryType();
-		query.setFilter(filter);
+		// Element filter;
+		// try {
+		// filter = QueryUtil.createEqualFilter(doc, xpath, identifier);
+		// } catch (SchemaException e) {
+		// parentResult.recordFatalError(e);
+		// throw e;
+		// }
+//
+//		QueryType query = new QueryType();
+//		query.setFilter(filter);
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return query;
 	}
 
-	public static QueryType createSearchShadowQuery(ResourceObjectShadowType resourceShadow,
-			ResourceType resource, PrismContext prismContext, OperationResult parentResult)
-			throws SchemaException {
-		XPathHolder xpath = createXpathHolder();
+	public static ObjectQuery createSearchShadowQuery(ResourceObjectShadowType resourceShadow, ResourceType resource,
+			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+		// XPathHolder xpath = createXpathHolder();
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(resourceShadow);
 		PrismProperty identifier = attributesContainer.getIdentifier();
@@ -513,28 +529,88 @@ public class ShadowCacheUtil {
 		}
 
 		// We have all the data, we can construct the filter now
-		Document doc = DOMUtil.getDocument();
-		Element filter;
-		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(identifier,
-				doc);
+		// Document doc = DOMUtil.getDocument();
+		// Element filter;
+		// List<Element> identifierElements =
+		// prismContext.getPrismDomProcessor().serializeItemToDom(identifier,
+		// doc);
+		ObjectFilter filter = null;
 		try {
-			filter = QueryUtil.createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
-					SchemaConstants.I_RESOURCE_REF, resource.getOid()), QueryUtil
-					.createEqualFilterFromElements(doc, xpath, identifierElements, resourceShadow
-							.asPrismObject().getPrismContext()));
+			// filter = QueryUtil.createAndFilter(doc,
+			// QueryUtil.createEqualRefFilter(doc, null,
+			// SchemaConstants.I_RESOURCE_REF, resource.getOid()), QueryUtil
+			// .createEqualFilterFromElements(doc, xpath, identifierElements,
+			// resourceShadow
+			// .asPrismObject().getPrismContext()));
+			filter = AndFilter.createAnd(EqualsFilter.createReferenceEqual(AccountShadowType.class,
+					AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
+					new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(),
+					identifier.getValues()));
 		} catch (SchemaException e) {
 			// LOGGER.error("Schema error while creating search filter: {}",
 			// e.getMessage(), e);
 			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
 		}
 
-		QueryType query = new QueryType();
-		query.setFilter(filter);
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
 		// LOGGER.trace("created query " + DOMUtil.printDom(filter));
 
 		return query;
 	}
+
+	// @Deprecated
+	// public static QueryType createSearchShadowQuery(ResourceObjectShadowType
+	// resourceShadow,
+	// ResourceType resource, PrismContext prismContext, OperationResult
+	// parentResult)
+	// throws SchemaException {
+	// XPathHolder xpath = createXpathHolder();
+	// ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+	// .getAttributesContainer(resourceShadow);
+	// PrismProperty identifier = attributesContainer.getIdentifier();
+	//
+	// Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();
+	// // Only one value is supported for an identifier
+	// if (idValues.size() > 1) {
+	// // LOGGER.error("More than one identifier value is not supported");
+	// // TODO: This should probably be switched to checked exception later
+	// throw new
+	// IllegalArgumentException("More than one identifier value is not supported");
+	// }
+	// if (idValues.size() < 1) {
+	// // LOGGER.error("The identifier has no value");
+	// // TODO: This should probably be switched to checked exception later
+	// throw new IllegalArgumentException("The identifier has no value");
+	// }
+	//
+	// // We have all the data, we can construct the filter now
+	// Document doc = DOMUtil.getDocument();
+	// Element filter;
+	// List<Element> identifierElements =
+	// prismContext.getPrismDomProcessor().serializeItemToDom(identifier,
+	// doc);
+	// try {
+	// filter = QueryUtil.createAndFilter(doc,
+	// QueryUtil.createEqualRefFilter(doc, null,
+	// SchemaConstants.I_RESOURCE_REF, resource.getOid()), QueryUtil
+	// .createEqualFilterFromElements(doc, xpath, identifierElements,
+	// resourceShadow
+	// .asPrismObject().getPrismContext()));
+	// } catch (SchemaException e) {
+	// // LOGGER.error("Schema error while creating search filter: {}",
+	// // e.getMessage(), e);
+	// throw new SchemaException("Schema error while creating search filter: " +
+	// e.getMessage(), e);
+	// }
+	//
+	// QueryType query = new QueryType();
+	// query.setFilter(filter);
+	//
+	// // LOGGER.trace("created query " + DOMUtil.printDom(filter));
+	//
+	// return query;
+	// }
 
 	private static XPathHolder createXpathHolder() {
 		XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
@@ -546,8 +622,7 @@ public class ShadowCacheUtil {
 
 	public static PrismObjectDefinition<ResourceObjectShadowType> getResourceObjectShadowDefinition(
 			PrismContext prismContext) {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(
-				ResourceObjectShadowType.class);
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
 	}
 
 }

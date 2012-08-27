@@ -413,6 +413,29 @@ public class RAnyConverter {
         }
     }
 
+    
+    public static <T extends ObjectType> String getAnySetType(ItemDefinition definition) throws
+    SchemaException {
+QName typeName = definition.getTypeName();
+
+ValueType valueType = getValueType(typeName);
+switch (valueType) {
+    case DATE:
+        return "dates";
+    case LONG:
+        return "longs";
+    case STRING:
+    default:
+        boolean indexed = definition == null ? isIndexable(typeName) : isIndexable(definition);
+        if (indexed) {
+            return "strings";
+        } else {
+            return "clobs";
+        }
+}
+}
+
+    
     /**
      * This method provides transformation of {@link Element} value to its object form, e.g. <value>1</value> to
      * {@link Integer} number 1. It's based on element definition from schema registry or xsi:type attribute

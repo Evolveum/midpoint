@@ -21,6 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.UnaryLogicalFilter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,6 +36,8 @@ import org.hibernate.criterion.*;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,81 +45,90 @@ import java.util.List;
  */
 public class LogicalOp extends Op {
 
-    private static enum Operation {AND, OR, NOT}
+	private static enum Operation {
+		AND, OR, NOT
+	}
 
-    private static final Trace LOGGER = TraceManager.getTrace(LogicalOp.class);
+	private static final Trace LOGGER = TraceManager.getTrace(LogicalOp.class);
 
-    public LogicalOp(QueryInterpreter interpreter) {
-        super(interpreter);
-    }
+	public LogicalOp(QueryInterpreter interpreter) {
+		super(interpreter);
+	}
 
-    @Override
-    public Criterion interpret(Element filterPart, boolean pushNot) throws QueryException {
-        LOGGER.debug("Interpreting '{}', pushNot '{}'",
-                new Object[]{DOMUtil.getQNameWithoutPrefix(filterPart), pushNot});
-        validate(filterPart);
+	@Override
+	public Criterion interpret(ObjectFilter filterPart, boolean pushNot) throws QueryException {
+		LOGGER.debug("Interpreting '{}', pushNot '{}'", new Object[] { filterPart.getClass().getSimpleName(), pushNot });
+		// validate(filterPart);
 
-        Operation operation = getOperationType(filterPart);
-        List<Element> elements = DOMUtil.listChildElements(filterPart);
-        LOGGER.debug("It's {} with {} sub elements.", new Object[]{operation, elements.size()});
+		Operation operation = getOperationType(filterPart);
 
-        switch (elements.size()) {
-            case 0:
-                throw new QueryException("Can't have logical filter '"
-                        + DOMUtil.getQNameWithoutPrefix(filterPart) + "' without filter children.");
-            case 1:
-                boolean newPushNot = pushNot;
-                if (Operation.NOT.equals(operation)) {
-                    newPushNot = !newPushNot;
-                }
-                return getInterpreter().interpret(elements.get(0), newPushNot);
-            default:
-                switch (operation) {
-                    case NOT:
-                        throw new QueryException("Can't create filter NOT (unary) with more than one element.");
-                    case AND:
-                        Conjunction conjunction = Restrictions.conjunction();
-                        updateJunction(elements, pushNot, conjunction);
+		checkFilterConsistence(filterPart);
+		switch (operation) {
+		case NOT:
+			boolean newPushNot = !pushNot;
+			NotFilter notFilter = (NotFilter) filterPart;
+			return getInterpreter().interpret(notFilter.getFilter(), newPushNot);
+		case AND:
+			Conjunction conjunction = Restrictions.conjunction();
+			AndFilter andFilter = (AndFilter) filterPart;
+			updateJunction(andFilter.getCondition(), pushNot, conjunction);
+			return conjunction;
+		case OR:
+			Disjunction disjunction = Restrictions.disjunction();
+			OrFilter orFilter = (OrFilter) filterPart;
+			updateJunction(orFilter.getCondition(), pushNot, disjunction);
 
-                        return conjunction;
-                    case OR:
-                        Disjunction disjunction = Restrictions.disjunction();
-                        updateJunction(elements, pushNot, disjunction);
+			return disjunction;
+		}
 
-                        return disjunction;
-                }
-        }
+		throw new QueryException("Unknown state in logical filter.");
+	}
 
-        throw new QueryException("Unknown state in logical filter.");
-    }
+	public void checkFilterConsistence(ObjectFilter filterPart) throws QueryException {
+		if (filterPart instanceof AndFilter || filterPart instanceof OrFilter) {
+			NaryLogicalFilter nAryFilter = (NaryLogicalFilter) filterPart;
+			if (nAryFilter.getCondition().size() < 2) {
+				throw new QueryException("Logical filter (and, or) must have specisied two conditions at least.");
+			}
+		}
+		if (filterPart instanceof NotFilter) {
+			NotFilter notFilter = (NotFilter) filterPart;
+			if (notFilter.getFilter() == null) {
+				throw new QueryException("Logical filter (not) must have sepcified condition.");
+			}
+		}
+	}
 
-    private Junction updateJunction(List<Element> elements, boolean pushNot, Junction junction) throws QueryException {
-        for (Element element : elements) {
-            if (SchemaConstantsGenerated.Q_TYPE.equals(DOMUtil.getQNameWithoutPrefix(element))) {
-                LOGGER.debug("Unsupported (unused) element '" + SchemaConstantsGenerated.Q_TYPE
-                        + "' in logical filter in query.");
-                continue;
-            }
-            junction.add(getInterpreter().interpret(element, pushNot));
-        }
+	
+	private Junction updateJunction(List<? extends ObjectFilter> conditions, boolean pushNot, Junction junction)
+			throws QueryException {
+		for (ObjectFilter condition : conditions) {
+			// if
+			// (SchemaConstantsGenerated.Q_TYPE.equals(DOMUtil.getQNameWithoutPrefix(element)))
+			// {
+			// LOGGER.debug("Unsupported (unused) element '" +
+			// SchemaConstantsGenerated.Q_TYPE
+			// + "' in logical filter in query.");
+			// continue;
+			// }
+			junction.add(getInterpreter().interpret(condition, pushNot));
+		}
 
-        return junction;
-    }
+		return junction;
+	}
 
-    private Operation getOperationType(Element filterPart) throws QueryException {
-        if (DOMUtil.isElementName(filterPart, SchemaConstantsGenerated.Q_AND)) {
-            return Operation.AND;
-        } else if (DOMUtil.isElementName(filterPart, SchemaConstantsGenerated.Q_OR)) {
-            return Operation.OR;
-        } else if (DOMUtil.isElementName(filterPart, SchemaConstantsGenerated.Q_OR)) {
-            return Operation.NOT;
-        }
+	private Operation getOperationType(ObjectFilter filterPart) throws QueryException {
+		if (filterPart instanceof AndFilter) {
+			return Operation.AND;
+		} else if (filterPart instanceof OrFilter) {
+			return Operation.OR;
+		} else if (filterPart instanceof NotFilter) {
+			return Operation.NOT;
+		}
 
-        throw new QueryException("Unknown filter type '" + DOMUtil.getQNameWithoutPrefix(filterPart) + "'.");
-    }
+		throw new QueryException("Unknown filter type '" + filterPart.getClass().getSimpleName() + "'.");
+	}
 
-    @Override
-    protected QName[] canHandle() {
-        return new QName[]{SchemaConstantsGenerated.Q_AND, SchemaConstantsGenerated.Q_OR, SchemaConstantsGenerated.Q_NOT};
-    }
+
+	
 }

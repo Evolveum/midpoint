@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -246,9 +247,18 @@ public interface RepositoryService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
+	
+	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query, PagingType paging, OperationResult parentResult)
+			throws SchemaException;
+
+	@Deprecated
 	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException;
 
+	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
+			throws SchemaException;
+		
+	@Deprecated
 	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
 		throws SchemaException;
 	

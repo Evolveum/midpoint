@@ -25,6 +25,9 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -34,6 +37,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -795,16 +799,21 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	
 	@Test
     public void test016SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, Exception {
         displayTestTile("test016SearchAccountsIterative");
 
         // GIVEN
+        try{
         OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName() + ".test016SearchAccountsIterative");
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
         QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
-        QueryType query = QueryUtil.createResourceAndAccountQuery(resource.asObjectable(), objectClass, null);
+//        QueryType query = QueryUtil.createResourceAndAccountQuery(resource.asObjectable(), objectClass, null);
 
+        AndFilter and = AndFilter.createAnd(EqualsFilter.createReferenceEqual(AccountShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resource.getOid()),
+        		EqualsFilter.createEqual(AccountShadowType.class, prismContext, ResourceObjectShadowType.F_OBJECT_CLASS, objectClass));
+        ObjectQuery query = ObjectQuery.createObjectQuery(and);
+        
         final Collection<ObjectType> objects = new HashSet<ObjectType>();
 
         ResultHandler handler = new ResultHandler<ObjectType>() {
@@ -839,11 +848,17 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
         // WHEN
 
+      
         provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, result);
-
+        
+        display("Count", objects.size());
+        } catch(Exception ex){
+        	LOGGER.info("ERROR: {}", ex.getMessage(), ex);
+        	throw ex;
+        }
         // THEN
 
-        display("Count", objects.size());
+        
     }
 
 	@Test
@@ -928,8 +943,10 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			final List<AccountShadowType> objectTypeList = new ArrayList<AccountShadowType>();
 
-			QueryType query = PrismTestUtil.unmarshalObject(new File(
+			QueryType queryType = PrismTestUtil.unmarshalObject(new File(
 					"src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.class);
+			ObjectQuery query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
+			
 			provisioningService.searchObjectsIterative(AccountShadowType.class, query, new PagingType(), 
 					new ResultHandler<AccountShadowType>() {
 
@@ -983,8 +1000,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 			assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
-			QueryType query = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"), 
+			QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"), 
 					QueryType.class);
+			ObjectQuery query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
 
 			List<PrismObject<AccountShadowType>> objListType = 
 				provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), result);

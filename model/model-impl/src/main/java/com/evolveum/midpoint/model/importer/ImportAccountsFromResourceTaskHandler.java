@@ -25,12 +25,14 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -266,7 +268,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         try {
 
             provisioning.searchObjectsIterative(AccountShadowType.class,
-            		QueryUtil.createResourceAndAccountQuery(resource, objectclass, null), null, handler, opResult);
+            		ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectclass, prismContext), null, handler, opResult);
 
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("Import: Object not found: {}", ex.getMessage(), ex);

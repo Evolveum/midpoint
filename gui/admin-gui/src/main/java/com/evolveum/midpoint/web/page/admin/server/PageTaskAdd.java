@@ -49,6 +49,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -375,7 +376,7 @@ public class PageTaskAdd extends PageAdminTasks {
 		List<TaskAddResourcesDto> resourceList = new ArrayList<TaskAddResourcesDto>();
 
 		try {
-			resources = getModelService().searchObjects(ResourceType.class, null, null, task, result);
+			resources = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
 			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get resource list.", ex);

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -586,6 +587,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     /*
      * Gets nodes from repository and adds runtime information to them (taken from ClusterStatusInformation).
      */
+    @Deprecated
     @Override
     public List<Node> searchNodes(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
 
@@ -627,12 +629,61 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return retval;
     }
 
+    @Deprecated
     @Override
     public int countNodes(QueryType query, OperationResult result) throws SchemaException {
         return repositoryService.countObjects(NodeType.class, query, result);
     }
+    
+    @Override
+    public int countNodes(ObjectQuery query, OperationResult result) throws SchemaException {
+        return repositoryService.countObjects(NodeType.class, query, result);
+    }
 
+    @Override
+    public List<Node> searchNodes(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
 
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "searchNodes");
+        result.addParam("query", query);
+        result.addParam("paging", paging);
+        result.addParam("clusterStatusInformation", clusterStatusInformation);
+
+        if (clusterStatusInformation == null) {
+            clusterStatusInformation = executionManager.getClusterStatusInformation(true, result);
+        }
+
+        List<PrismObject<NodeType>> nodesInRepository;
+        try {
+            nodesInRepository = repositoryService.searchObjects(NodeType.class, query, paging, result);
+        } catch (SchemaException e) {
+            result.recordFatalError("Couldn't get nodes from repository: " + e.getMessage());
+            throw e;
+        }
+
+        List<Node> retval = new ArrayList<Node>();
+        for (PrismObject<NodeType> nodeInRepository : nodesInRepository) {
+            Node node = new Node(nodeInRepository);
+            Node nodeRuntimeInfo = clusterStatusInformation.findNodeById(node.getNodeIdentifier());
+            if (nodeRuntimeInfo != null) {
+                node.setNodeExecutionStatus(nodeRuntimeInfo.getNodeExecutionStatus());
+                node.setNodeErrorStatus(nodeRuntimeInfo.getNodeErrorStatus());
+                node.setConnectionError(nodeRuntimeInfo.getConnectionError());
+            } else {
+                // node is in repo, but no information on it is present in CSI
+                // (should not occur except for some temporary conditions, because CSI contains info on all nodes from repo)
+                node.setNodeExecutionStatus(NodeExecutionStatus.COMMUNICATION_ERROR);
+                node.setConnectionError("Node not known at this moment");       // TODO localize this message
+            }
+            retval.add(node);
+        }
+        LOGGER.trace("searchNodes returning " + retval);
+        result.computeStatus();
+        return retval;
+    }
+
+   
+
+    @Deprecated
     @Override
     public List<Task> searchTasks(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
 
@@ -668,9 +719,50 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return retval;
     }
 
+    @Override
+    public List<Task> searchTasks(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
 
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "searchTasks");
+        result.addParam("query", query);
+        result.addParam("paging", paging);
+        result.addParam("clusterStatusInformation", clusterStatusInformation);
+
+        if (clusterStatusInformation == null) {
+            clusterStatusInformation = getExecutionManager().getClusterStatusInformation(true, result);
+        }
+
+        List<PrismObject<TaskType>> tasksInRepository;
+        try {
+            tasksInRepository = repositoryService.searchObjects(TaskType.class, query, paging, result);
+        } catch (SchemaException e) {
+            result.recordFatalError("Couldn't get tasks from repository: " + e.getMessage());
+            throw e;
+        }
+
+        List<Task> retval = new ArrayList<Task>();
+        for (PrismObject<TaskType> taskInRepository : tasksInRepository) {
+            Task task = createTaskInstance(taskInRepository, result);
+            Node runsAt = clusterStatusInformation.findNodeInfoForTask(task.getOid());
+            if (runsAt != null) {
+                ((TaskQuartzImpl) task).setCurrentlyExecutesAt(runsAt);
+            } else {
+                ((TaskQuartzImpl) task).setCurrentlyExecutesAt(null);
+            }
+            retval.add(task);
+        }
+        result.computeStatus();
+        return retval;
+    }
+
+
+    @Deprecated
     @Override
     public int countTasks(QueryType query, OperationResult result) throws SchemaException {
+        return repositoryService.countObjects(TaskType.class, query, result);
+    }
+    
+    @Override
+    public int countTasks(ObjectQuery query, OperationResult result) throws SchemaException {
         return repositoryService.countObjects(TaskType.class, query, result);
     }
 
