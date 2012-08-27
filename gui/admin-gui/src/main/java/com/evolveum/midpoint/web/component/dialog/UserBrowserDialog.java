@@ -22,8 +22,13 @@
 package com.evolveum.midpoint.web.component.dialog;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -74,8 +79,10 @@ public class UserBrowserDialog extends ModalWindow {
     private static final Trace LOGGER = TraceManager.getTrace(UserBrowserDialog.class);
     private IModel<UserBrowserDto> model;
     private boolean initialized;
+    private Class clazz;
+    private PrismContext prismContext;
 
-    public UserBrowserDialog(String id) {
+    public UserBrowserDialog(String id, PrismContext prismContext) {
         super(id);
 
         setTitle(createStringResource("userBrowserDialog.title"));
@@ -228,7 +235,7 @@ public class UserBrowserDialog extends ModalWindow {
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
-        QueryType query = createQuery();
+        ObjectQuery query = createQuery();
         target.add(getPageBase().getFeedbackPanel());
 
         TablePanel panel = getTable();
@@ -245,37 +252,36 @@ public class UserBrowserDialog extends ModalWindow {
         return (TablePanel) getContent().get("mainForm:table");
     }
 
-    private QueryType createQuery() {
+    private ObjectQuery createQuery() {
         UserBrowserDto dto = model.getObject();
-        QueryType query = null;
+        ObjectQuery query = null;
         if (StringUtils.isEmpty(dto.getSearchText())) {
             return null;
         }
 
         try {
             Document document = DOMUtil.getDocument();
-            List<Element> elements = new ArrayList<Element>();
+            List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
             if (dto.isName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null, ObjectType.F_NAME, dto.getSearchText()));
+                filters.add(SubstringFilter.createSubstring(ObjectType.class, prismContext, ObjectType.F_NAME, dto.getSearchText()));
             }
 
             PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
             String normalizedString = normalizer.normalize(dto.getSearchText());
 
             if (dto.isFamilyName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FAMILY_NAME, normalizedString));
+                filters.add(SubstringFilter.createSubstring(clazz, prismContext, UserType.F_FAMILY_NAME, normalizedString));
             }
             if (dto.isFullName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_FULL_NAME, normalizedString));
+                filters.add(SubstringFilter.createSubstring(clazz, prismContext, UserType.F_FULL_NAME, normalizedString));
             }
             if (dto.isGivenName()) {
-                elements.add(QueryUtil.createSubstringFilter(document, null, UserType.F_GIVEN_NAME, normalizedString));
+                filters.add(SubstringFilter.createSubstring(clazz, prismContext, UserType.F_GIVEN_NAME, normalizedString));
             }
 
-            if (!elements.isEmpty()) {
-                query = new QueryType();
-                query.setFilter(QueryUtil.createOrFilter(document, elements.toArray(new Element[elements.size()])));
+            if (!filters.isEmpty()) {
+                query = new ObjectQuery().createObjectQuery(OrFilter.createOr(filters));
             }
         } catch (Exception ex) {
             error(getString("userBrowserDialog.message.queryError") + " " + ex.getMessage());

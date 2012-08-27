@@ -49,4 +49,3 @@ function initOptionPanel(isHideContent){
 		$(this).css("backgroundColor", "#c9c9c9");
 	});
 }
-

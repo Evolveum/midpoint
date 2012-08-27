@@ -23,8 +23,12 @@ package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -86,14 +90,14 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
             PagingType paging = createPaging(first, count);
             Task task = getPage().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
 
-            QueryType baseQuery = QueryUtil.createResourceAndAccountQuery(resourceOid.getObject(), objectClass.getObject(), null);
-            QueryType query = getQuery();
+            ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndAccountQuery(resourceOid.getObject(), objectClass.getObject(), null);
+            ObjectQuery query = getQuery();
             if (query != null) {
-                Element baseFilter = baseQuery.getFilter();
-                Element filter = query.getFilter();
+                ObjectFilter baseFilter = baseQuery.getFilter();
+                ObjectFilter filter = query.getFilter();
 
-                query = new QueryType();
-                Element andFilter = QueryUtil.createAndFilter(filter.getOwnerDocument(), baseFilter, filter);
+                query = new ObjectQuery();
+                ObjectFilter andFilter = AndFilter.createAnd(baseFilter, filter);
                 query.setFilter(andFilter);
             } else {
                 query = baseQuery;

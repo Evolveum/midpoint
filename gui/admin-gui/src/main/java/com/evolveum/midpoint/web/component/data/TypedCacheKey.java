@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 import java.io.Serializable;
@@ -30,10 +31,10 @@ import java.io.Serializable;
  */
 public class TypedCacheKey implements Serializable {
 
-    private QueryType query;
+    private ObjectQuery query;
     private Class type;
 
-    public TypedCacheKey(QueryType query, Class type) {
+    public TypedCacheKey(ObjectQuery query, Class type) {
         this.query = query;
         this.type = type;
     }

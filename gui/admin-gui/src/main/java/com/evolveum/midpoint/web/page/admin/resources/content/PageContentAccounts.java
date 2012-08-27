@@ -28,6 +28,10 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
@@ -135,7 +139,7 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void initDialog() {
-        UserBrowserDialog dialog = new UserBrowserDialog(MODAL_ID_OWNER_CHANGE) {
+        UserBrowserDialog dialog = new UserBrowserDialog(MODAL_ID_OWNER_CHANGE, getPrismContext()) {
 
             @Override
             public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {
@@ -356,7 +360,7 @@ public class PageContentAccounts extends PageAdminResources {
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
         model.reset();
-
+        target.appendJavaScript("init()");
         target.add(get("mainForm:option"));
         searchPerformed(target);
     }
@@ -367,7 +371,7 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
-        QueryType query = createQuery();
+    	ObjectQuery query = createQuery();
 
         TablePanel panel = getTable();
         DataTable table = panel.getDataTable();
@@ -379,17 +383,17 @@ public class PageContentAccounts extends PageAdminResources {
         target.add(getFeedbackPanel());
     }
 
-    private QueryType createQuery() {
+    private ObjectQuery createQuery() {
         AccountContentSearchDto dto = model.getObject();
         if (StringUtils.isEmpty(dto.getSearchText())) {
             return null;
         }
 
         try {
-            QueryType query = new QueryType();
+        	ObjectQuery query = new ObjectQuery();
             Document document = DOMUtil.getDocument();
 
-            List<Element> conditions = new ArrayList<Element>();
+            List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
             if (dto.isIdentifiers()) {
                 ObjectClassComplexTypeDefinition def = getAccountDefinition();
                 List<ResourceAttributeDefinition> identifiers = new ArrayList<ResourceAttributeDefinition>();
@@ -401,20 +405,19 @@ public class PageContentAccounts extends PageAdminResources {
 //                }
                 XPathHolder attributes = new XPathHolder(Arrays.asList(new XPathSegment(SchemaConstants.I_ATTRIBUTES)));
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(QueryUtil.createSubstringFilter(document, attributes, attrDef.getName(), dto.getSearchText()));
+                    conditions.add(SubstringFilter.createSubstring(attrDef.getClass(), getPrismContext(), attrDef.getName(), dto.getSearchText()));
                 }
             }
 
             if (dto.isName()) {
-                conditions.add(QueryUtil.createSubstringFilter(document, null, ObjectType.F_NAME, dto.getSearchText()));
+                conditions.add(SubstringFilter.createSubstring(ObjectType.class, getPrismContext(), ObjectType.F_NAME, dto.getSearchText()));
             }
 
             if (!conditions.isEmpty()) {
-                query = new QueryType();
                 if (conditions.size() > 1) {
-                    query.setFilter(QueryUtil.createOrFilter(document, conditions.toArray(new Element[conditions.size()])));
+                	query.createObjectQuery(OrFilter.createOr(conditions)); 
                 } else {
-                    query.setFilter(conditions.get(0));
+                	query.createObjectQuery(conditions.get(0));
                 }
             }
 

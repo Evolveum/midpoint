@@ -22,6 +22,10 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.NodeExecutionStatus;
@@ -1047,22 +1051,21 @@ public class PageTasks extends PageAdminTasks {
 
     private void searchFilterPerformed(AjaxRequestTarget target, IModel<TaskDtoExecutionStatusFilter> status,
             IModel<String> category) {
-        QueryType query = null;
+        ObjectQuery query = null;
         try {
             Document document = DOMUtil.getDocument();
-            List<Element> elements = new ArrayList<Element>();
+            List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
             if (status.getObject() != null) {
-                Element filter = status.getObject().createFilter(document);
+                ObjectFilter filter = status.getObject().createFilter(TaskType.class, getPrismContext());
                 if (filter != null) {
-                    elements.add(filter);
+                    filters.add(filter);
                 }
             }
             if (category.getObject() != null && !ALL_CATEGORIES.equals(category.getObject())) {
-                elements.add(QueryUtil.createEqualFilter(document, null, TaskType.F_CATEGORY, category.getObject()));
+                filters.add(EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_CATEGORY, category.getObject()));
             }
-            if (!elements.isEmpty()) {
-                query = new QueryType();
-                query.setFilter(QueryUtil.createAndFilter(document, elements.toArray(new Element[elements.size()])));
+            if (!filters.isEmpty()) {
+                query = new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
             }
         } catch (Exception ex) {
             error(getString("pageTasks.message.couldntCreateQuery") + " " + ex.getMessage());

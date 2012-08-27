@@ -21,19 +21,12 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.wf.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -41,11 +34,18 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.wf.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 
 /**
  * @author lazyman
@@ -55,7 +55,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
     private PageBase page;
     private List<T> availableData;
-    private QueryType query;
+    private ObjectQuery query;
 
     // after this amount of time cached size will be removed
     // from cache and replaced by new value, time in seconds
@@ -111,11 +111,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return page;
     }
 
-    public QueryType getQuery() {
+    public ObjectQuery getQuery() {
         return query;
     }
 
-    public void setQuery(QueryType query) {
+    public void setQuery(ObjectQuery query) {
         this.query = query;
     }
 

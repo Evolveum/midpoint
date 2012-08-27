@@ -22,6 +22,9 @@
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -43,13 +46,13 @@ public enum TaskDtoExecutionStatusFilter {
     SUSPENDED,
     CLOSED;
 
-    public Element createFilter(Document document) throws SchemaException {
+    public ObjectFilter createFilter(Class clazz, PrismContext prismContext) throws SchemaException {
         switch(this) {
             case ALL: return null;
-            case RUNNING_OR_RUNNABLE: return QueryUtil.createEqualFilter(document, null, TaskType.F_EXECUTION_STATUS, TaskExecutionStatus.RUNNABLE.name());
-            case WAITING: return QueryUtil.createEqualFilter(document, null, TaskType.F_EXECUTION_STATUS, TaskExecutionStatus.WAITING.name());
-            case SUSPENDED: return QueryUtil.createEqualFilter(document, null, TaskType.F_EXECUTION_STATUS, TaskExecutionStatus.SUSPENDED.name());
-            case CLOSED: return QueryUtil.createEqualFilter(document, null, TaskType.F_EXECUTION_STATUS, TaskExecutionStatus.CLOSED.name());
+            case RUNNING_OR_RUNNABLE: return EqualsFilter.createEqual(clazz, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatus.RUNNABLE.name());
+            case WAITING: return EqualsFilter.createEqual(clazz, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatus.WAITING.name());
+            case SUSPENDED: return EqualsFilter.createEqual(clazz, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatus.SUSPENDED.name());
+            case CLOSED: return EqualsFilter.createEqual(clazz, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatus.CLOSED.name());
             default: throw new SystemException("Unknown value for TaskDtoExecutionStatusFilter: " + this);
         }
     }

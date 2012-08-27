@@ -23,6 +23,9 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -202,6 +205,7 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 model.setObject(null);
+                target.appendJavaScript("init()");
                 target.add(PageDebugList.this.get("mainForm:option"));
                 listObjectsPerformed(target, model.getObject(), choice.getObject());
             }
@@ -298,9 +302,8 @@ public class PageDebugList extends PageAdminConfiguration {
         RepositoryObjectDataProvider provider = getTableDataProvider();
         if (StringUtils.isNotEmpty(nameText)) {
             try {
-                Document document = DOMUtil.getDocument();
-                Element substring = QueryUtil.createSubstringFilter(document, null, ObjectType.F_NAME, nameText);
-                QueryType query = new QueryType();
+                ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.class, getPrismContext(), ObjectType.F_NAME, nameText);
+                ObjectQuery query = new ObjectQuery();
                 query.setFilter(substring);
                 provider.setQuery(query);
             } catch (Exception ex) {
