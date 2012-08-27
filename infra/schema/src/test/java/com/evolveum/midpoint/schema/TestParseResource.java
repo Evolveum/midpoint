@@ -308,9 +308,8 @@ public class TestParseResource {
     	PrismReferenceValue connectorRefVal = connectorRef.getValue();
     	assertNotNull("No connectorRef value", connectorRefVal);
     	assertEquals("Wrong type in connectorRef value", ConnectorType.COMPLEX_TYPE, connectorRefVal.getTargetType());
-    	// TODO: MID-650
-//    	Element filter = connectorRefVal.getFilter();
-//    	assertNotNull("No filter in connectorRef value", filter);
+    	Element filter = connectorRefVal.getFilter();
+    	assertNotNull("No filter in connectorRef value", filter);
 				
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ResourceConfigurationType.COMPLEX_TYPE, 1, 1);
@@ -335,11 +334,10 @@ public class TestParseResource {
 		ObjectReferenceType connectorRef = resourceType.getConnectorRef();
 		assertNotNull("No connectorRef (JAXB)", connectorRef);
 		assertEquals("Wrong type in connectorRef (JAXB)", ConnectorType.COMPLEX_TYPE, connectorRef.getType());
-		// TODO: MID-650
-//    	Filter filter = connectorRef.getFilter();
-//    	assertNotNull("No filter in connectorRef (JAXB)", filter);
-//    	Element filterElement = filter.getFilter();
-//    	assertNotNull("No filter element in connectorRef (JAXB)", filterElement);
+		ObjectReferenceType.Filter filter = connectorRef.getFilter();
+    	assertNotNull("No filter in connectorRef (JAXB)", filter);
+    	Element filterElement = filter.getFilter();
+    	assertNotNull("No filter element in connectorRef (JAXB)", filterElement);
 		
 		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
 		assertNotNull("No schema handling (JAXB)", schemaHandling);

@@ -159,7 +159,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
             PrismObject<ObjectType> oldObject = dto.getObject();
             PrismObject<ObjectType> newObject = domProcessor.parseObject(editor.getModel().getObject());
-            ObjectDelta<ObjectType> delta = oldObject.diff(newObject);
+            ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
 
             MidPointApplication application = PageDebugView.this.getMidpointApplication();
             RepositoryService repository = application.getRepository();
