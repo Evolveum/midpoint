@@ -257,6 +257,8 @@ public class FeedbackMessagePanel extends Panel {
                 return "messages-info-content";
             case SUCCESS:
                 return "messages-succ-content";
+            case EXPECTED_ERROR:
+            	return "messages-exp-content";
             case UNKNOWN:
             case WARNING:
             default:
@@ -312,6 +314,9 @@ public class FeedbackMessagePanel extends Panel {
                 break;
             case SUCCESS:
                 resourceKey = "feedbackMessagePanel.message.success";
+                break;
+            case EXPECTED_ERROR:
+                resourceKey = "feedbackMessagePanel.message.expectedError";
                 break;
             case UNKNOWN:
             default:

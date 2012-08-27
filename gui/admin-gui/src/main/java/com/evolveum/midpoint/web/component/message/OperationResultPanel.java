@@ -206,6 +206,8 @@ public class OperationResultPanel extends Panel {
                         return "messages-info-details-section";
                     case SUCCESS:
                         return "messages-succ-details-section";
+                    case EXPECTED_ERROR:
+                        return "messages-exp-details-section";
                     case UNKNOWN:
                     case WARNING:
                     default:
@@ -232,6 +234,8 @@ public class OperationResultPanel extends Panel {
                     	return "info";
                     case SUCCESS:
                     	return "success";
+                    case EXPECTED_ERROR:
+                    	return "expectedError";
                     case UNKNOWN:
                     	return "unknown";
                     case WARNING:
@@ -261,6 +265,8 @@ public class OperationResultPanel extends Panel {
                         return "messages-info-details-bold-arrow";
                     case SUCCESS:
                         return "messages-succ-details-bold-arrow";
+                    case EXPECTED_ERROR:
+                        return "messages-exp-details-bold-arrow";
                     case UNKNOWN:
                     case WARNING:
                     default:

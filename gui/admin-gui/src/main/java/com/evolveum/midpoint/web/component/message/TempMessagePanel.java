@@ -182,6 +182,7 @@ public class TempMessagePanel extends Panel {
             case NOT_APPLICABLE:
                 return "messages-info-content";
             case SUCCESS:
+            case EXPECTED_ERROR:
                 return "messages-succ-content";
             case UNKNOWN:
             case WARNING:
@@ -238,6 +239,9 @@ public class TempMessagePanel extends Panel {
                 break;
             case SUCCESS:
                 resourceKey = "tempMessagePanel.message.success";
+                break;
+            case EXPECTED_ERROR:
+                resourceKey = "tempMessagePanel.message.expectedError";
                 break;
             case UNKNOWN:
             default:

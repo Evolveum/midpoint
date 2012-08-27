@@ -431,6 +431,89 @@ ul.messagesTop .messages-info-details-section .arrow-down {
 	background-position: 0px -32px;
 }
 
+ul.messagesTop .messages-exp {
+	color: #4F8A10;
+	border: 1px solid #4F8A10;
+	padding: 0px;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+	background: #DFF2BF;
+	display: block;
+}
+
+ul.messagesTop .messages-topExp {
+	padding: 10px 5px 10px 40px;
+	font-weight: bold;
+	background-image: url(messages-exp-icon.png);
+	background-repeat: no-repeat;
+	background-position: 12px center;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+}
+
+ul.messagesTop .messages-exp .selected {
+	background-color: #d1eba6;
+	-moz-border-radius-bottomright: 0px;
+	border-bottom-right-radius: 0px;
+	-moz-border-radius-bottomleft: 0px;
+	border-bottom-left-radius: 0px;
+}
+
+ul.messagesTop .messages-topExp-arrow {
+	background-image: url(messages-succ-arrow.png);
+	background-repeat: no-repeat;
+	display: inline-block;
+    height: 16px;
+    width: 16px;
+    float: right;
+    top: 50%;
+}
+
+ul.messagesTop .messages-topExp .arrow-down {
+	background-position: 0px -32px;
+}
+
+ul.messagesTop .messages-topExp .arrow-up {
+	background-position: 0px 0px;
+}
+
+ul.messagesTop .messages-exp-details-section {
+	padding: 2px 0 1px 25px;
+	font-size: 12px;
+	background-image: url(messages-exp-icon.png);
+	background-repeat: no-repeat;
+	background-position: 9px 1px;
+	color: #4F8A10;
+	margin-top: 5px;
+}
+
+ul.messagesTop .messages-exp .selected-section {
+	background-color: #ecfcd2; 
+}
+
+ul.messagesTop .messages-exp-details-bold-arrow {
+	background-image: url(messages-succ-arrow.png);
+	background-repeat: no-repeat;
+	display: inline-block;
+    height: 16px;
+    width: 16px;
+    float: left;
+    margin: 0px 5px;
+}
+
+ul.messagesTop .messages-exp-details-section .arrow-right {
+	background-position: 0px -16px;
+}
+
+ul.messagesTop .messages-exp-details-section .arrow-down {
+	background-position: 0px -32px;
+}
+
+
 div.messages-topException {
 	font-size: 12px;
 	display: inline-block;
@@ -453,7 +536,8 @@ ul.messagesTop p, ul.tempMessagesTop p {
 ul.tempMessagesTop .messages-error .messages-error-content, 
 ul.tempMessagesTop .messages-succ .messages-succ-content, 
 ul.tempMessagesTop .messages-warn .messages-warn-content, 
-ul.tempMessagesTop .messages-info .messages-info-content {
+ul.tempMessagesTop .messages-info .messages-info-content,
+ul.tempMessagesTop .messages-exp .messages-exp-content {
 	padding: 0 5px 10px 20px;
 	-moz-border-radius: 4px; 
 	-webkit-border-radius: 4px; 
@@ -465,7 +549,8 @@ ul.tempMessagesTop .messages-info .messages-info-content {
 ul.tempMessagesTop .messages-topError,
 ul.tempMessagesTop .messages-topWarn,
 ul.tempMessagesTop .messages-topSucc,
-ul.tempMessagesTop .messages-topInfo {
+ul.tempMessagesTop .messages-topInfo,
+ul.tempMessagesTop .messages-topExp {
 	padding: 10px 5px 10px 20px;
 	font-weight: bold;
 }
@@ -506,6 +591,18 @@ ul.tempMessagesTop .messages-succ {
 	background-color: #D1EBA6;
 }
 
+ul.tempMessagesTop .messages-exp {
+	color: #4F8A10;
+	border: 1px solid #4F8A10;
+	padding: 0px;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px;
+	display: block;
+	background-color: #D1EBA6;
+}
+
 ul.tempMessagesTop .messages-info {
 	color: #6966f2;
 	border: 1px solid #6966f2;
@@ -521,7 +618,8 @@ ul.tempMessagesTop .messages-info {
 ul.tempMessagesTop .messages-error,
 ul.tempMessagesTop .messages-warn,
 ul.tempMessagesTop .messages-succ,
-ul.tempMessagesTop .messages-info {
+ul.tempMessagesTop .messages-info,
+ul.tempMessagesTop .messages-exp {
 	-webkit-box-shadow: 0 3px 7px -3px #000000;
 	-moz-box-shadow: 0 3px 7px -3px #000000;
 	box-shadow: 0 3px 7px -3px #000000;	
