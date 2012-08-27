@@ -362,7 +362,6 @@ public class PageUsers extends PageAdminUsers {
 		}
 
 		try {
-			Document document = DOMUtil.getDocument();
 			List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
 			if (dto.isName()) {
@@ -375,20 +374,22 @@ public class PageUsers extends PageAdminUsers {
 
 			if (dto.isFamilyName()) {
 				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-						UserType.F_FAMILY_NAME, dto.getSearchText()));
+						UserType.F_FAMILY_NAME, normalizedString));
 			}
 			if (dto.isFullName()) {
 				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-						UserType.F_FULL_NAME, dto.getSearchText()));
+						UserType.F_FULL_NAME, normalizedString));
 			}
 			if (dto.isGivenName()) {
 				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-						UserType.F_GIVEN_NAME, dto.getSearchText()));
+						UserType.F_GIVEN_NAME, normalizedString));
 			}
 
-			if (!filters.isEmpty()) {
-				query = new ObjectQuery().createObjectQuery(OrFilter.createOr(filters));
-			}
+            if (filters.size() == 1) {
+                query = ObjectQuery.createObjectQuery(filters.get(0));
+            } else if (filters.size() > 1) {
+                query = ObjectQuery.createObjectQuery(OrFilter.createOr(filters));
+            }
 		} catch (Exception ex) {
 			error(getString("pageUsers.message.queryError") + " " + ex.getMessage());
 			LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);

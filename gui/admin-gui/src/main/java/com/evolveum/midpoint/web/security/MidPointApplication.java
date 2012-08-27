@@ -152,11 +152,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/config", PageLogging.class, encoder));
         mount(new MountedMapper("/admin/config/debug", PageDebugView.class, new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));
         mount(new MountedMapper("/admin/config/debugs", PageDebugList.class, encoder));
-        mount(new MountedMapper("/admin/config/importObject", PageImportObject.class, encoder));
+        mount(new MountedMapper("/admin/config/import", PageImportObject.class, encoder));
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
         
-        mount(new MountedMapper("/admin/about/aboutMidPoint", PageAbout.class, encoder));
-        mount(new MountedMapper("/admin/about/aboutSystem", PageSystem.class, encoder));
+        mount(new MountedMapper("/admin/about/midPoint", PageAbout.class, encoder));
+        mount(new MountedMapper("/admin/about/system", PageSystem.class, encoder));
 
         //todo design error pages...
         //error pages
