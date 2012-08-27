@@ -248,7 +248,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
      */
     public PrismValue findValue(PrismValue value, boolean ignoreMetadata) {
         for (PrismValue myVal : getValues()) {
-            if (myVal.equals(value, ignoreMetadata)) {
+            if (myVal.equalsComplex(value, ignoreMetadata, false)) {
                 return myVal;
             }
         }
@@ -345,7 +345,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	Iterator<V> iterator = values.iterator();
     	while (iterator.hasNext()) {
     		V val = iterator.next();
-    		if (val.equalsRealValue(newValue)) {
+    		if (val.representsSameValue(newValue) || val.equalsRealValue(newValue)) {
     			iterator.remove();
     			changed = true;
     		}
@@ -379,7 +379,8 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return elements;
     }
         
-    protected void diffInternal(Item<V> other, PropertyPath pathPrefix, Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+    protected void diffInternal(Item<V> other, PropertyPath pathPrefix, Collection<? extends ItemDelta> deltas, 
+    		boolean ignoreMetadata, boolean isLiteral) {
     	PropertyPath deltaPath = getPath(pathPrefix);
     	ItemDelta delta = null;
     	if (deltaPath != null && !deltaPath.isEmpty()) {
@@ -404,11 +405,12 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     				if (thisValue.representsSameValue(otherValue) || delta == null) {
     					found = true;
     					// Matching IDs, look inside to figure out internal deltas
-    					thisValue.diffMatchingRepresentation(otherValue, thisValue.getPath(pathPrefix), deltas, ignoreMetadata);
+    					thisValue.diffMatchingRepresentation(otherValue, thisValue.getPath(pathPrefix), deltas, 
+    							ignoreMetadata, isLiteral);
     					// No need to process this value again
     					iterator.remove();
     					break;
-    				} else if (thisValue.equals(otherValue, ignoreMetadata)) {
+    				} else if (thisValue.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
     					found = true;
     					// same values. No delta
     					// No need to process this value again

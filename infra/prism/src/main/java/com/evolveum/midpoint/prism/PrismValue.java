@@ -148,24 +148,6 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 	public boolean representsSameValue(PrismValue other) {
 		return false;
 	}
-
-	public boolean equals(PrismValue otherValue, boolean ignoreMetadata) {
-		return equals(this, otherValue, ignoreMetadata);
-	}
-	
-	public boolean equals(PrismValue thisValue, PrismValue otherValue, boolean ignoreMetadata) {
-		if (ignoreMetadata) {
-			return equalsRealValue(thisValue, otherValue);
-		} else {
-			return equals(thisValue, otherValue);
-		}
-	}
-	
-	public boolean equalsRealValue(PrismValue otherValue) {
-		return equalsRealValue(this, otherValue);
-	}
-	
-	public abstract boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue);
 	
 	public static <V extends PrismValue> boolean containsRealValue(Collection<V> collection, V value) {
 		if (collection == null) {
@@ -229,6 +211,48 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		return result;
 	}
 	
+	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
+		// parent is not considered at all. it is not relevant.
+		if (!ignoreMetadata) {
+			if (source == null) {
+				if (other.source != null)
+					return false;
+			} else if (!source.equals(other.source))
+				return false;
+			if (type != other.type)
+				return false;
+		}
+		return true;
+	}
+	
+	public boolean equals(PrismValue otherValue, boolean ignoreMetadata) {
+		return equalsComplex(otherValue, ignoreMetadata, false);
+	}
+	
+	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
+		if (thisValue == null && otherValue == null) {
+			return true;
+		}
+		if (thisValue == null || otherValue == null) {
+			return false;
+		}
+		return thisValue.equalsComplex(otherValue, false, false);
+	}
+	
+	public boolean equalsRealValue(PrismValue otherValue) {
+		return equalsComplex(otherValue, true, false);
+	}
+	
+	public boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue) {
+		if (thisValue == null && otherValue == null) {
+			return true;
+		}
+		if (thisValue == null || otherValue == null) {
+			return false;
+		}
+		return thisValue.equalsComplex(otherValue, true, false);
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -238,23 +262,11 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		if (getClass() != obj.getClass())
 			return false;
 		PrismValue other = (PrismValue) obj;
-		return equals(this, other);
+		return equalsComplex(other, false, false);
 	}
 	
-	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
-		// parent is not considered at all. it is not relevant.
-		if (source == null) {
-			if (otherValue.source != null)
-				return false;
-		} else if (!source.equals(otherValue.source))
-			return false;
-		if (type != otherValue.type)
-			return false;
-		return true;
-	}
-
 	void diffMatchingRepresentation(PrismValue otherValue, PropertyPath pathPrefix,
-			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		// Nothing to do by default
 	}
 

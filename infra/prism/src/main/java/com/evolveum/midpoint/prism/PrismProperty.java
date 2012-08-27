@@ -333,12 +333,12 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
 	}
     
     public PropertyDelta<V> diff(PrismProperty<V> other, PropertyPath pathPrefix) {
-    	return diff(other, pathPrefix, true);
+    	return diff(other, pathPrefix, true, false);
     }
     
-    public PropertyDelta<V> diff(PrismProperty<V> other, PropertyPath pathPrefix, boolean ignoreMetadata) {
+    public PropertyDelta<V> diff(PrismProperty<V> other, PropertyPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
     	List<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
-    	diffInternal(other, pathPrefix, deltas, ignoreMetadata);
+    	diffInternal(other, pathPrefix, deltas, ignoreMetadata, isLiteral);
     	if (deltas.isEmpty()) {
     		return null;
     	}

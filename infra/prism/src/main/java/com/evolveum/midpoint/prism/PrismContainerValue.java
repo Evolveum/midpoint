@@ -638,25 +638,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	protected Element createDomElement() {
 		return new ElementPrismContainerImpl<T>(this);
 	}
-
-	public boolean equivalent(PrismContainerValue<?> other) {
-        return equalsRealValue(other);
-    }
-    
-	@Override
-	public boolean equalsRealValue(PrismValue thisValue, PrismValue value) {
-		if (value instanceof PrismContainerValue && thisValue instanceof PrismContainerValue) {
-			return equalsRealValue((PrismContainerValue<T>)thisValue, (PrismContainerValue<T>)value);
-		} else {
-			return false;
-		}
-	}
-	
-	public boolean equalsRealValue(PrismContainerValue<T> thisValue, PrismContainerValue<T> otherValue) {
-		// Ignore ID. ID is considered to be meta-data.
-		return equalsItems(thisValue, otherValue, true);
-	}
-	
+    	
 	@Override
 	public boolean representsSameValue(PrismValue other) {
 		if (other instanceof PrismContainerValue) {
@@ -694,16 +676,16 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
 	@Override
 	void diffMatchingRepresentation(PrismValue otherValue, PropertyPath pathPrefix,
-			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		if (otherValue instanceof PrismContainerValue) {
-			diffRepresentation((PrismContainerValue)otherValue, pathPrefix, deltas, ignoreMetadata);
+			diffRepresentation((PrismContainerValue)otherValue, pathPrefix, deltas, ignoreMetadata, isLiteral);
 		} else {
 			throw new IllegalStateException("Comparing incompatible values "+this+" - "+otherValue);
 		}		
 	}
 	
 	void diffRepresentation(PrismContainerValue<T> otherValue, PropertyPath pathPrefix,
-			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		PrismContainerValue<T> thisValue = this;
 		if (this.rawElements != null || otherValue.rawElements != null) {
 			try {
@@ -718,7 +700,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 						"during a compare: "+e.getMessage(),e);
 			}
 		} 
-		diffItems(thisValue, otherValue, pathPrefix, deltas, ignoreMetadata);
+		diffItems(thisValue, otherValue, pathPrefix, deltas, ignoreMetadata, isLiteral);
 	}
 	
 	@Override
@@ -752,27 +734,15 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		Collection<? extends Item<?>> parsedItems = domProcessor.parseContainerItems(definition, rawElements);
 		return parsedItems;
 	}
-	
-	boolean equalsItems(PrismContainerValue<T> other, boolean ignoreMetadata) {
-		return equalsItems(this, other, ignoreMetadata);
-	}
-	
-	boolean equalsItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, boolean ignoreMetadata) {
-		Collection<? extends ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>();
-		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
-		// we only care whether some deltas are returned or not.
-		diffItems(thisValue, other, PropertyPath.EMPTY_PATH, deltas, ignoreMetadata);
-		return deltas.isEmpty();
-	}
-	
+		
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void diffItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, PropertyPath pathPrefix,
-			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		
 		for (Item<?> thisItem: thisValue.getItems()) {
 			Item otherItem = other.findItem(thisItem.getName());
 			// The "delete" delta will also result from the following diff
-			thisItem.diffInternal(otherItem, pathPrefix, deltas, ignoreMetadata);
+			thisItem.diffInternal(otherItem, pathPrefix, deltas, ignoreMetadata, isLiteral);
 		}
 		
 		for (Item otherItem: other.getItems()) {
@@ -914,14 +884,50 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((items == null) ? 0 : MiscUtil.unorderedCollectionHashcode(items));
-		return result;
+	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
+		if (other == null || !(other instanceof PrismContainerValue<?>)) {
+			return false;
+		}
+		return equalsComplex((PrismContainerValue<?>)other, ignoreMetadata, isLiteral);
+	}
+		
+	public boolean equalsComplex(PrismContainerValue<?> other, boolean ignoreMetadata, boolean isLiteral) {
+		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
+			return false;
+		}
+		if (!ignoreMetadata) {
+			if (this.id == null) {
+				if (other.id != null)
+					return false;
+			} else if (!this.id.equals(other.id))
+				return false;
+		}
+		if (this.items == null) {
+			if (other.items != null)
+				return false;
+		} else if (!this.equalsItems(this, (PrismContainerValue<T>) other, ignoreMetadata, isLiteral)) {
+			return false;
+		}
+		return true;
+	}
+	
+	boolean equalsItems(PrismContainerValue<T> other, boolean ignoreMetadata, boolean isLiteral) {
+		return equalsItems(this, other, ignoreMetadata, isLiteral);
+	}
+	
+	boolean equalsItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, 
+			boolean ignoreMetadata, boolean isLiteral) {
+		Collection<? extends ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>();
+		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
+		// we only care whether some deltas are returned or not.
+		diffItems(thisValue, other, PropertyPath.EMPTY_PATH, deltas, ignoreMetadata, isLiteral);
+		return deltas.isEmpty();
 	}
 
+	public boolean equivalent(PrismContainerValue<?> other) {
+        return equalsRealValue(other);
+    }
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -931,31 +937,18 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		if (getClass() != obj.getClass())
 			return false;
 		PrismContainerValue<?> other = (PrismContainerValue<?>) obj;
-		return equals(this, other);
+		return equalsComplex(other, false, false);
 	}
 	
-	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
-		if (thisValue instanceof PrismContainerValue && otherValue instanceof PrismContainerValue) {
-			return equals((PrismContainerValue)thisValue, (PrismContainerValue)otherValue);
-		}
-		return false;
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((items == null) ? 0 : MiscUtil.unorderedCollectionHashcode(items));
+		return result;
 	}
-	
-	public boolean equals(PrismContainerValue<T> thisValue, PrismContainerValue<T> otherValue) {
-		if (thisValue.id == null) {
-			if (otherValue.id != null)
-				return false;
-		} else if (!thisValue.id.equals(otherValue.id))
-			return false;
-		if (thisValue.items == null) {
-			if (otherValue.items != null)
-				return false;
-		} else if (!this.equalsItems(thisValue, (PrismContainerValue<T>) otherValue, false)) {
-			return false;
-		}
-		return true;
-	}
-
+		
 	@Override
     public String toString() {
 		StringBuilder sb = new StringBuilder();

@@ -207,12 +207,28 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
-		result = prime * result + ((targetType == null) ? 0 : targetType.hashCode());
-		return result;
+	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
+		if (other == null || !(other instanceof PrismReferenceValue)) {
+			return false;
+		}
+		return equalsComplex((PrismReferenceValue)other, ignoreMetadata, isLiteral);
+	}
+
+	public boolean equalsComplex(PrismReferenceValue other, boolean ignoreMetadata, boolean isLiteral) {
+		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
+			return false;
+		}
+		if (this.oid == null) {
+			if (other.oid != null)
+				return false;
+		} else if (!this.oid.equals(other.oid))
+			return false;
+		if (this.targetType == null) {
+			if (other.targetType != null)
+				return false;
+		} else if (!this.targetType.equals(other.targetType))
+			return false;
+		return true;
 	}
 
 	@Override
@@ -224,55 +240,18 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		if (getClass() != obj.getClass())
 			return false;
 		PrismReferenceValue other = (PrismReferenceValue) obj;
-		return equals(this, other);
-	}
-	
-	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
-		if (thisValue instanceof PrismReferenceValue && otherValue instanceof PrismReferenceValue) {
-			return equals((PrismReferenceValue)thisValue, (PrismReferenceValue)otherValue);
-		}
-		return false;
-	}
-	
-	public boolean equals(PrismReferenceValue thisValue, PrismReferenceValue otherValue) {
-		if (thisValue.oid == null) {
-			if (otherValue.oid != null)
-				return false;
-		} else if (!thisValue.oid.equals(otherValue.oid))
-			return false;
-		if (thisValue.targetType == null) {
-			if (otherValue.targetType != null)
-				return false;
-		} else if (!thisValue.targetType.equals(otherValue.targetType))
-			return false;
-		return true;
+		return equalsComplex(other, false, false);
 	}
 	
 	@Override
-	public boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue) {
-		if (thisValue instanceof PrismReferenceValue && otherValue instanceof PrismReferenceValue) {
-			return equalsRealValue((PrismReferenceValue)thisValue, (PrismReferenceValue)otherValue);
-		} else {
-			return false;
-		}
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
+		result = prime * result + ((targetType == null) ? 0 : targetType.hashCode());
+		return result;
 	}
-
-	public boolean equalsRealValue(PrismReferenceValue thisValue, PrismReferenceValue otherValue) {
-        if (otherValue == null) {
-            return false;
-        }
-        
-        String valueToCompare = otherValue.getOid();
-        if (valueToCompare == null && thisValue.getOid() == null) {
-        	return true;
-        }
-        if (valueToCompare == null || thisValue.getOid() == null) {
-        	return false;
-        }
-
-        return thisValue.getOid().equals(otherValue.getOid());
-    }
-	
+		
 	@Override
 	public boolean representsSameValue(PrismValue other) {
 		if (other instanceof PrismPropertyValue) {

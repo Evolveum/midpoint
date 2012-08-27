@@ -36,6 +36,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -432,6 +434,67 @@ public class TestParseDiffPatch {
         resourceDelta.assertDefinitions(true);
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
+	}
+	
+	@Test
+	public void testResourceNsChange() throws SchemaException, SAXException, IOException, JAXBException {
+		System.out.println("===[ testResourceNsChange ]===");
+
+		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after-ns-change.xml"));
+
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+
+        // WHEN
+
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter);
+
+        // THEN
+
+        System.out.println("DELTA:");
+        System.out.println(resourceDelta.dump());
+
+        resourceDelta.checkConsistence();
+        resourceDelta.assertDefinitions(true);
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+
+        if (!resourceDelta.isEmpty()) {
+        	AssertJUnit.fail("The delta is not empty; it is "+resourceDelta);
+        }
+        
+        // "post" sanity 
+        assertTrue("equals does not work", resourceBefore.equals(resourceAfter));
+        assertTrue("equivalent does not work", resourceBefore.equivalent(resourceAfter));
+	}
+	
+	@Test
+	public void testResourceNsChangeLiteral() throws SchemaException, SAXException, IOException, JAXBException {
+		System.out.println("===[ testResourceNsChangeLiteral ]===");
+
+		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after-ns-change.xml"));
+
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+
+        // WHEN
+
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, true, true);
+
+        // THEN
+
+        System.out.println("DELTA:");
+        System.out.println(resourceDelta.dump());
+
+        resourceDelta.checkConsistence();
+        resourceDelta.assertDefinitions(true);
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+
+        assertFalse("The delta is empty", resourceDelta.isEmpty());
+        
 	}
 
     private void assertXmlPolyMod(ObjectModificationType objectModificationType, QName propertyName,

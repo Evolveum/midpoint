@@ -206,25 +206,6 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		return pvalCol;
 	}
 
-    @Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		if (value != null && value instanceof Element) {
-			// We need special handling here. We haven't found out the proper way now.
-			// so we just do not include this in the hashcode now.
-		} else {
-			result = prime * result + ((value == null) ? 0 : value.hashCode());
-		}
-		return result;
-	}  
-
-	@Override
-	public boolean equals(PrismValue otherValue, boolean ignoreMetadata) {
-		
-		return equals(this, otherValue, ignoreMetadata);
-	}
-
 	/**
 	 * Takes the definition from the definitionSource parameter and uses it to parse raw elements in origValue.
 	 * It returns a new parsed value without touching the original value.
@@ -249,70 +230,30 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
+	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
+		if (other == null || !(other instanceof PrismPropertyValue)) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PrismPropertyValue other = (PrismPropertyValue) obj;
-		return equals(this, other);
+		}
+		return equalsComplex((PrismPropertyValue<?>)other, ignoreMetadata, isLiteral);
 	}
 	
-	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
-		if (thisValue instanceof PrismPropertyValue && otherValue instanceof PrismPropertyValue) {
-			return equals((PrismPropertyValue)thisValue, (PrismPropertyValue)otherValue);
-		}
-		return false;
-	}
-	
-	public boolean equals(PrismPropertyValue<T> thisValue, PrismPropertyValue<T> otherValue) {
-		if (thisValue == null && otherValue == null) {
-			return true;
-		}
-		if (thisValue == null || otherValue == null) {
+	public boolean equalsComplex(PrismPropertyValue<?> other, boolean ignoreMetadata, boolean isLiteral) {
+		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
 			return false;
 		}
-		if (!thisValue.equalsRealValue(otherValue)) {
-			return false;
-		}
-		// This compares meta-data
-		return super.equals(thisValue, otherValue);
-	}
-
-	private boolean compareRealValues(T thisValue, Object otherValue) {
-		if (thisValue instanceof Element && 
-				otherValue instanceof Element) {
-			return DOMUtil.compareElement((Element)thisValue, (Element)otherValue, false);
-		}
-		return thisValue.equals(otherValue);
-	}
-
-	@Override
-	public boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue) {
-		if (otherValue instanceof PrismPropertyValue && thisValue instanceof PrismPropertyValue) {
-			return equalsRealValue((PrismPropertyValue<T>)thisValue, (PrismPropertyValue<T>)otherValue);
-		} else {
-			return false;
-		}
-	}
-	
-	public boolean equalsRealValue(PrismPropertyValue<T> thisValue, PrismPropertyValue<T> otherValue) {
-        if (otherValue == null) {
-            return false;
+		
+        if (this.rawElement != null && other.rawElement != null) {
+        	return equalsRawElements((PrismPropertyValue<T>)other);
         }
         
-        if (thisValue.rawElement != null && otherValue.rawElement != null) {
-        	return equalsRawElements(otherValue);
-        }
-        
-		if (this.rawElement != null || otherValue.rawElement != null) {
+        PrismPropertyValue<T> otherProcessed = (PrismPropertyValue<T>) other;
+		PrismPropertyValue<T> thisProcessed = this;
+		if (this.rawElement != null || other.rawElement != null) {
 			try {
 				if (this.rawElement == null) {
-					otherValue = parseRawElementToNewValue(otherValue, this);
-				} else if (otherValue.rawElement == null) {
-					thisValue = parseRawElementToNewValue(this, otherValue);
+					otherProcessed = parseRawElementToNewValue((PrismPropertyValue<T>) other, this);
+				} else if (other.rawElement == null) {
+					thisProcessed = parseRawElementToNewValue(this, (PrismPropertyValue<T>) other);
 				}
 			} catch (SchemaException e) {
 				// TODO: Maybe just return false?
@@ -321,8 +262,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			}
 		}
         
-        T otherRealValue = otherValue.getValue();
-        T thisRealValue = thisValue.getValue();
+        T otherRealValue = otherProcessed.getValue();
+        T thisRealValue = thisProcessed.getValue();
         if (otherRealValue == null && thisRealValue == null) {
         	return true;
         }
@@ -330,9 +271,13 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         	return false;
         }
 
-        return compareRealValues(thisRealValue, otherRealValue);
-    }
-
+		if (thisRealValue instanceof Element && 
+				otherRealValue instanceof Element) {
+			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+		}
+		return thisRealValue.equals(otherRealValue);
+	}
+	
 	private boolean equalsRawElements(PrismPropertyValue<T> other) {
 		if (this.rawElement instanceof Element && other.rawElement instanceof Element) {
 			return DOMUtil.compareElement((Element)this.rawElement, (Element)other.rawElement, false);
@@ -340,6 +285,31 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		return this.rawElement.equals(other.rawElement);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PrismPropertyValue other = (PrismPropertyValue) obj;
+		return equalsComplex(other, false, false);
+	}
+	
+    @Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		if (value != null && value instanceof Element) {
+			// We need special handling here. We haven't found out the proper way now.
+			// so we just do not include this in the hashcode now.
+		} else {
+			result = prime * result + ((value == null) ? 0 : value.hashCode());
+		}
+		return result;
+	}  
+	
 	@Override
     public String debugDump() {
         return toString();

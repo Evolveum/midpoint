@@ -213,10 +213,10 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	public ObjectDelta<T> diff(PrismObject<T> other) {
-		return diff(other, true);
+		return diff(other, true, false);
 	}
 
-	public ObjectDelta<T> diff(PrismObject<T> other, boolean ignoreMetadata) {
+	public ObjectDelta<T> diff(PrismObject<T> other, boolean ignoreMetadata, boolean isLiteral) {
 		if (other == null) {
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.DELETE);
 			objectDelta.setOid(getOid());
@@ -227,7 +227,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		objectDelta.setOid(getOid());
 
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
-		diffInternal(other, null, itemDeltas, ignoreMetadata);
+		diffInternal(other, null, itemDeltas, ignoreMetadata, isLiteral);
 		objectDelta.addModifications(itemDeltas);
 
 		return objectDelta;
@@ -340,7 +340,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 				return false;
 		} else if (!oid.equals(other.oid))
 			return false;
-		ObjectDelta<T> delta = diff(other, true);
+		ObjectDelta<T> delta = diff(other, true, false);
 		return delta.isEmpty();
 	}
 	
