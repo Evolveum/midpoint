@@ -62,11 +62,17 @@ public class LogicalOp extends Op {
 
 		Operation operation = getOperationType(filterPart);
 
-		checkFilterConsistence(filterPart);
+		if (!checkNaryFilterConsistence(filterPart)){
+			return getInterpreter().interpret(((NaryLogicalFilter)filterPart).getCondition().get(0), pushNot);
+		}
+		
 		switch (operation) {
 		case NOT:
 			boolean newPushNot = !pushNot;
 			NotFilter notFilter = (NotFilter) filterPart;
+			if (notFilter.getFilter() == null) {
+				throw new QueryException("Logical filter (not) must have sepcified condition.");
+			}
 			return getInterpreter().interpret(notFilter.getFilter(), newPushNot);
 		case AND:
 			Conjunction conjunction = Restrictions.conjunction();
@@ -84,19 +90,16 @@ public class LogicalOp extends Op {
 		throw new QueryException("Unknown state in logical filter.");
 	}
 
-	public void checkFilterConsistence(ObjectFilter filterPart) throws QueryException {
+	public boolean checkNaryFilterConsistence(ObjectFilter filterPart) throws QueryException {
 		if (filterPart instanceof AndFilter || filterPart instanceof OrFilter) {
 			NaryLogicalFilter nAryFilter = (NaryLogicalFilter) filterPart;
-			if (nAryFilter.getCondition().size() < 2) {
-				throw new QueryException("Logical filter (and, or) must have specisied two conditions at least.");
+			if (nAryFilter.getCondition().size() == 1) {
+//				throw new QueryException("Logical filter (and, or) must have specisied two conditions at least.");
+				LOGGER.debug("Logical filter (and, or) must have specisied two conditions at least. Removing logical filter and processing simple condition.");
+				return false;
 			}
 		}
-		if (filterPart instanceof NotFilter) {
-			NotFilter notFilter = (NotFilter) filterPart;
-			if (notFilter.getFilter() == null) {
-				throw new QueryException("Logical filter (not) must have sepcified condition.");
-			}
-		}
+		return true;
 	}
 
 	

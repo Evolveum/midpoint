@@ -23,11 +23,11 @@
         xmlns="http://prism.evolveum.com/xml/ns/public/query-2"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-<!-- 	<and> -->
+	<and>
 		<equal>
 			<value>
 				<c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
 			</value>
 		</equal>
-<!-- 	</and> -->
+	</and>
 </object>
