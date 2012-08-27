@@ -163,7 +163,7 @@ public abstract class PageBase extends WebPage {
         return cacheRepositoryService;
     }
 
-    protected PrismContext getPrismContext() {
+    public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
     }
 

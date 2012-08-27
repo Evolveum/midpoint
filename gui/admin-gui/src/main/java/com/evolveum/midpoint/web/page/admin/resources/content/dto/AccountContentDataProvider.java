@@ -90,7 +90,8 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
             PagingType paging = createPaging(first, count);
             Task task = getPage().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
 
-            ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndAccountQuery(resourceOid.getObject(), objectClass.getObject(), null);
+            ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndAccountQuery(resourceOid.getObject(),
+                    objectClass.getObject(), getPage().getPrismContext());
             ObjectQuery query = getQuery();
             if (query != null) {
                 ObjectFilter baseFilter = baseQuery.getFilter();
