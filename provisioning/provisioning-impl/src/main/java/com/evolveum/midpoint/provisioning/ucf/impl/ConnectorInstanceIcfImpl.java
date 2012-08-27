@@ -243,7 +243,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
 			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
 
-			QName propXsdType = icfTypeToXsdType(icfProperty.getType());
+			QName propXsdType = icfTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
 			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[] { this,
 					icfPropertyName, icfProperty.getType(), propXsdType });
 			PrismPropertyDefinition propertyDefinifion = configPropertiesTypeDef.createPropertyDefinition(
@@ -289,20 +289,22 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return mpSchema;
 	}
 
-	private QName icfTypeToXsdType(Class<?> type) {
+	private QName icfTypeToXsdType(Class<?> type, boolean isConfidential) {
 		// For arrays we are only interested in the component type
 		if (isMultivaluedType(type)) {
 			type = type.getComponentType();
 		}
 		QName propXsdType = null;
-		if (GuardedString.class.equals(type)) {
+		if (GuardedString.class.equals(type) || 
+				(String.class.equals(type) && isConfidential)) {
 			// GuardedString is a special case. It is a ICF-specific
 			// type
 			// implementing Potemkin-like security. Use a temporary
 			// "nonsense" type for now, so this will fail in tests and
 			// will be fixed later
 			propXsdType = SchemaConstants.R_PROTECTED_STRING_TYPE;
-		} else if (GuardedByteArray.class.equals(type)) {
+		} else if (GuardedByteArray.class.equals(type) || 
+				(Byte.class.equals(type) && isConfidential)) {
 			// GuardedString is a special case. It is a ICF-specific
 			// type
 			// implementing Potemkin-like security. Use a temporary
@@ -481,7 +483,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 
 				QName attrXsdName = convertAttributeNameToQName(attributeInfo.getName());
-				QName attrXsdType = icfTypeToXsdType(attributeInfo.getType());
+				QName attrXsdType = icfTypeToXsdType(attributeInfo.getType(), false);
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint
 				// way how to express attribute schema.
