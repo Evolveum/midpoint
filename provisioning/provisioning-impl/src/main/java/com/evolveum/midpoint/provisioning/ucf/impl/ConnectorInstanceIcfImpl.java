@@ -103,6 +103,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	Protector protector;
 	PrismContext prismContext;
 
+	private boolean initialized = false;
 	private ResourceSchema resourceSchema = null;
 	private PrismSchema connectorSchema;
 	Set<Object> capabilities = null;
@@ -360,6 +361,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfSchema = icfConnectorFacade.schema();
 
 			icfResult.recordSuccess();
+		} catch (UnsupportedOperationException ex) {
+			// The connector does no support schema() operation.
+			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Connector does not support schema");
+			resourceSchema = null;
+			initialized = true;
+			return;
 		} catch (Exception ex) {
 			// conditions.
 			// Therefore this kind of heavy artillery is necessary.
@@ -388,6 +395,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		parseResourceSchema(icfSchema);
+		
+		initialized = true;
 
 		result.recordSuccess();
 	}
@@ -401,7 +410,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".getResourceSchema");
 		result.addContext("connector", connectorType);
 
-		if (resourceSchema == null) {
+		if (!initialized) {
 			// initialize the connector if it was not initialized yet
 			try {
 				initialize(result);
