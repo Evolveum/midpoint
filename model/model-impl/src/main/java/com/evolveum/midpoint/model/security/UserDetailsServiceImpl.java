@@ -35,8 +35,11 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -61,6 +64,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private static final Trace LOGGER = TraceManager.getTrace(UserDetailsServiceImpl.class);
     @Autowired(required = true)
     private transient RepositoryService repositoryService;
+    @Autowired
+    private PrismContext prismContext;
 
     @Override
     public PrincipalUser getUser(String principal) {
@@ -86,9 +91,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     private PrincipalUser findByUsername(String username) throws SchemaException, ObjectNotFoundException {
-        QueryType query = new QueryType();
-        query.setFilter(createQuery(username));
-        LOGGER.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
+//        QueryType query = new QueryType();
+//        query.setFilter(createQuery(username));
+    	ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, username));
+        LOGGER.trace("Looking for user, query:\n" + query.dump());
 
         List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, new PagingType(),
                 new OperationResult("Find by username"));
@@ -132,9 +138,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 //        return user;
     }
 
-    private Element createQuery(String username) throws SchemaException {
-        return QueryUtil.createEqualFilter(DOMUtil.getDocument(), null, ObjectType.F_NAME, username);
-    }
+//    private Element createQuery(String username) throws SchemaException {
+//        return QueryUtil.createEqualFilter(DOMUtil.getDocument(), null, ObjectType.F_NAME, username);
+//    }
 
     private PrincipalUser save(PrincipalUser person) throws RepositoryException {
         try {
