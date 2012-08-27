@@ -60,6 +60,13 @@ public enum OperationResultStatus {
 	FATAL_ERROR,
 	
 	/**
+	 * The operation didn't finish correctly but that was expected and handled. It is
+	 * equivalent to success for all practical cases except for displaying the result. But using
+	 * success status for this situation might be misleading.
+	 */
+	EXPECTED_ERROR,
+	
+	/**
 	 * Result does not make any sense for the operation. This is useful in cases that the
 	 * operation is not supported (e.g. an optional part of the interface).
 	 * This is different than UNKNOWN, as in this case we really know that it result is not

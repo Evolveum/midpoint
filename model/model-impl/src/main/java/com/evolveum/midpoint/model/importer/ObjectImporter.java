@@ -219,6 +219,7 @@ public class ObjectImporter {
         } catch (ObjectAlreadyExistsException e) {
             if (BooleanUtils.isTrue(options.isOverwrite())) {
                 // Try to delete conflicting object
+            	result.muteLastSubresultError();
                 String deletedOid = deleteObject(object, repository, result);
                 if (deletedOid != null) {
                     if (object.canRepresent(TaskType.class))

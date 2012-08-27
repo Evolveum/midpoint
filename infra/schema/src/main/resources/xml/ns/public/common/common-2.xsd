@@ -4793,6 +4793,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="expected_error">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPECTED_ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="not_applicable">
                 <xsd:annotation>
                     <xsd:appinfo>

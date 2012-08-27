@@ -298,7 +298,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		// THEN
 		result.computeStatus();
 		display("Result after import with overwrite", result);
-		assertSuccess("Import failed (result)", result,1);
+		assertSuccess("Import failed (result)", result);
 
 		// list all users
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);

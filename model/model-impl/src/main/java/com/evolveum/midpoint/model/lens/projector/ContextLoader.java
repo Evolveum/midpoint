@@ -366,6 +366,7 @@ public class ContextLoader {
 							throw e;
 						} else {
 							// New account (with OID)
+							result.muteLastSubresultError();
 							account = refVal.getObject();
 							if (!account.hasCompleteDefinition()) {
 								provisioningService.applyDefinition(account, result);

@@ -330,6 +330,10 @@ public class OperationResult implements Serializable, Dumpable {
 	public boolean isPartialError() {
 		return (status == OperationResultStatus.PARTIAL_ERROR);
 	}
+	
+	public boolean isExpectedError() {
+		return (status == OperationResultStatus.EXPECTED_ERROR);
+	}
 
 	/**
 	 * Computes operation result status based on subtask status and sets an
@@ -409,6 +413,7 @@ public class OperationResult implements Serializable, Dumpable {
 				return;
 			}
 			if (sub.getStatus() != OperationResultStatus.SUCCESS
+					&& sub.getStatus() != OperationResultStatus.EXPECTED_ERROR
 					&& sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allSuccess = false;
 			}
@@ -584,6 +589,23 @@ public class OperationResult implements Serializable, Dumpable {
 
 	public void recordFatalError(Throwable cause) {
 		recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
+	}
+	
+	/**
+	 * If the operation is an error then it will switch the status to EXPECTED_ERROR.
+	 * This is used if the error is expected and properly handled.
+	 */
+	public void muteError() {
+		if (isError()) {
+			status = OperationResultStatus.EXPECTED_ERROR;
+		}
+	}
+	
+	public void muteLastSubresultError() {
+		OperationResult lastSubresult = getLastSubresult();
+		if (lastSubresult != null) {
+			lastSubresult.muteError();
+		}
 	}
 
 	public void recordPartialError(Throwable cause) {
