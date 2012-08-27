@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines an MySQLUser resource
+using an Identity Connector Framework MySQLUser connector.
+
+This resource definition contains only the very basic definitions for midPoint to work.
+
+-->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e200"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:my="http://myself.me/schemas/whatever"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
+
+	<resource oid='ef2bc95b-76e0-48e2-86d6-3d4f02d3e200'>
+    
+    	<!-- Resource name. It will be displayed in GUI.  -->
+		<name>Localhost MySQLUser Simple</name>
+     
+     	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
+		<connectorRef type="ConnectorType">
+			<filter>
+		        <q:equal>
+		          <q:value>
+		              <connectorType>org.identityconnectors.mysqluser.MySQLUserConnector</connectorType>
+		          </q:value>
+		        </q:equal>
+		   </filter>
+		</connectorRef>
+
+        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e200</namespace>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<configuration
+			xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.mysqluser/org.identityconnectors.mysqluser.MySQLUserConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+
+            <!-- Configuration specific for the MySQL connector -->
+			<icfc:configurationProperties>
+				<icfi:driver>com.mysql.jdbc.Driver</icfi:driver>
+				<icfi:port>3306</icfi:port>
+				<icfi:host>localhost</icfi:host>
+				<icfi:user>midpointadmin</icfi:user>
+				<icfi:password><clearValue>secret</clearValue></icfi:password>
+				<icfi:usermodel>prototypeuser</icfi:usermodel>
+			</icfc:configurationProperties>
+		
+		</configuration>
+
+        <!-- Resource schema definition.
+             It defines all the object classes that are available to midPoint
+             (accounts, groups, ...).
+
+             This should be direct mapping of ICF schema (and therefore also
+             MySQL schema). This is not supposed to be customized during deployment.
+			 
+			 The <schema> element is missing. That tells midPoint to generate it from
+			 the resource on the first use of this resource definition.
+		 -->
+
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+             
+             There is no <schemaHandling> here. That means that the default setting
+             from the generated schema will be used. It means that nothing will be 
+             automatically synchronized, but accounts can be created and modified manually
+             from the midPoint GUI.
+        -->
+
+	</resource>
+
+</objects>
