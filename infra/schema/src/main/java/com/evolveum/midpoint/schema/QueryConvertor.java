@@ -84,8 +84,6 @@ public class QueryConvertor {
 
 	private static Element createFilterType(ObjectFilter filter, Document doc) {
 
-		// Document doc = DOMUtil.getDocument();
-
 		if (filter instanceof AndFilter) {
 			return createAndFilterType((AndFilter) filter, doc);
 		}
@@ -112,8 +110,6 @@ public class QueryConvertor {
 
 	private static Element createAndFilterType(AndFilter filter, Document doc) {
 
-		// Document doc = DOMUtil.getDocument();
-
 		Element and = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_AND);
 
 		for (ObjectFilter of : filter.getCondition()) {
@@ -125,8 +121,6 @@ public class QueryConvertor {
 
 	private static Element createOrFilterType(OrFilter filter, Document doc) {
 
-		// Document doc = DOMUtil.getDocument();
-
 		Element or = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_OR);
 		for (ObjectFilter of : filter.getCondition()) {
 			Element element = createFilterType(of, doc);
@@ -136,7 +130,6 @@ public class QueryConvertor {
 	}
 
 	private static Element createNotFilterType(NotFilter filter, Document doc) {
-		// Document doc = DOMUtil.getDocument();
 
 		Element not = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_NOT);
 
@@ -147,7 +140,6 @@ public class QueryConvertor {
 
 	private static Element createEqualsFilterType(EqualsFilter filter, Document doc) {
 
-		// Document doc = DOMUtil.getDocument();
 		Element equal = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_EQUAL);
 		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
 		equal.appendChild(value);
@@ -246,15 +238,13 @@ public class QueryConvertor {
 			return createNotFilter(pcd, filter);
 		}
 
-		throw new UnsupportedOperationException("Unsupported query filter " + QNameUtil.getNodeQName(filter));
+		throw new UnsupportedOperationException("Unsupported query filter " + DOMUtil.printDom(filter));
 
 	}
 
 	private static AndFilter createAndFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {
-		NodeList filters = filter.getChildNodes();
 		List<ObjectFilter> objectFilters = new ArrayList<ObjectFilter>();
 		for (Element node : DOMUtil.listChildElements(filter)) {
-//			Node node = filters.item(i);
 			ObjectFilter objectFilter = parseFilter(pcd, node);
 			objectFilters.add(objectFilter);
 		}
@@ -263,10 +253,8 @@ public class QueryConvertor {
 	}
 
 	private static OrFilter createOrFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {
-		NodeList filters = filter.getChildNodes();
 		List<ObjectFilter> objectFilters = new ArrayList<ObjectFilter>();
 		for (Element node : DOMUtil.listChildElements(filter)) {
-//			Node node = filters.item(i);
 			ObjectFilter objectFilter = parseFilter(pcd, node);
 			objectFilters.add(objectFilter);
 		}
@@ -274,55 +262,35 @@ public class QueryConvertor {
 	}
 
 	private static NotFilter createNotFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {
-		NodeList filters = filter.getChildNodes();
+//		NodeList filters = filter.getChildNodes();
+		List<Element> filters = DOMUtil.listChildElements(filter);
 
-		if (filters.getLength() < 1) {
+		if (filters.size() < 1) {
 			throw new SchemaException("NOT filter does not contain any values specified");
 		}
 
-		if (filters.getLength() > 1) {
+		if (filters.size() > 1) {
 			throw new SchemaException(
 					"NOT filter can have only one value specified. For more value use OR/AND filter as a parent.");
 		}
 
-		ObjectFilter objectFilter = parseFilter(pcd, filters.item(0));
+		ObjectFilter objectFilter = parseFilter(pcd, filters.get(0));
 		return NotFilter.createNot(objectFilter);
 	}
 
 	private static EqualsFilter createEqualFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {
-		NodeList filters = filter.getChildNodes();
-
+		
 		PropertyPath path = getPath((Element) filter);
 
 		List<Element> values = getValues(filter);
-		// for (int i = 0; i < filters.getLength() - 1; i++) {
-		// Node node = filters.item(i);
-		// if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_VALUE, node)) {
-		// values = DOMUtil.listChildElements(node);
-		// }
-		//
-		// }
+	
 
 		Item item = getItem(values, pcd, path);
 		ItemDefinition itemDef = item.getDefinition();
 		if (itemDef == null) {
-			// if (pcd.isRuntimeSchema()) {
-			//
-			// } else {
 			throw new SchemaException("Item definition for property " + item.getName() + " in container definition " + pcd
 					+ " not found.");
-			// }
 		}
-//		List<String> realValues = new ArrayList<String>();
-//		for (Element value : values) {
-//			// Node value = values.item(i);
-//			if (itemDef instanceof PrismReferenceDefinition) {
-//				realValues.add(value.getAttribute("oid"));
-//			} else if (DOMUtil.XSD_QNAME.equals(itemDef.getTypeName())){
-//				Xml
-//				realValues.add(value.getTextContent());
-//			}
-//		}
 
 		if (item.getValues().size() < 1) {
 			throw new IllegalStateException("No values to search specified for item " + itemDef);
@@ -330,7 +298,7 @@ public class QueryConvertor {
 
 		if (itemDef.isSingleValue()) {
 			if (item.getValues().size() > 1) {
-				throw new IllegalStateException("Single value property should have specified only one value.");
+				throw new IllegalStateException("Single value property "+itemDef.getName()+"should have specified only one value.");
 			}
 
 			if (itemDef instanceof PrismReferenceDefinition) {
@@ -354,29 +322,24 @@ public class QueryConvertor {
 
 	private static Item getItem(List<Element> values, PrismContainerDefinition pcd,
 			PropertyPath path) throws SchemaException {
-		QName propetyName = QNameUtil.getNodeQName(values.get(0));
-		ItemDefinition itemDef = null;
+		
 		if (path != null) {
 			pcd = pcd.findContainerDefinition(path);
-			// itemDef = pcd.findItemDefinition(new PropertyPath(path,
-			// propetyName));
 		}
-		// else {
-//		itemDef = pcd.findItemDefinition(propetyName);
-		// }
+
+		Collection<Item> items = pcd.getPrismContext().getPrismDomProcessor().parsePrismContainerItems(values, pcd);
+
+		if (items.size() > 1) {
+			throw new SchemaException("Expected presence of a single item (path " + path
+					+ ") in a object modification, but found " + items.size() + " instead");
+		}
+		if (items.size() < 1) {
+			throw new SchemaException("Expected presence of a value (path " + path
+					+ ") in a object modification, but found nothing");
+		}
+
 		
-			Collection<Item> items = pcd.getPrismContext().getPrismDomProcessor().parsePrismContainerItems(values, pcd);
-
-			if (items.size() > 1) {
-
-			}
-			if (items.size() < 1) {
-
-			}
-			Item item = items.iterator().next();
-			return item;
-//			itemDef = item.getDefinition();
-		
+		return  items.iterator().next();
 		
 	}
 

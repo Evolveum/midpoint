@@ -2,6 +2,8 @@ package com.evolveum.midpoint.schema.util;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -13,6 +15,9 @@ public class ObjectQueryUtil {
 
 	
 	public static ObjectQuery createResourceAndAccountQuery(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
+		Validate.notNull(resourceOid, "Resource where to search must not be null.");
+		Validate.notNull(objectClass, "Object class to search must not be null.");
+		Validate.notNull(prismContext, "Prism context must not be null.");
 		AndFilter and = AndFilter.createAnd(
 				EqualsFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceOid), 
 				EqualsFilter.createEqual(
