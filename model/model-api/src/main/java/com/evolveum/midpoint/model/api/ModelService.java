@@ -522,17 +522,9 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	@Deprecated
-	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
-			Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
-	
 	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, PagingType paging,
 			Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 	
-
-	@Deprecated
-	<T extends ObjectType> int countObjects(Class<T> type, QueryType query, Task task, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException;

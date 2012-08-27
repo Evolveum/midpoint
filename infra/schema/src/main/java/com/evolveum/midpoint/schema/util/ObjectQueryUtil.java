@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
 public class ObjectQueryUtil {
 
@@ -23,6 +24,11 @@ public class ObjectQueryUtil {
 				EqualsFilter.createEqual(
 				AccountShadowType.class, prismContext, AccountShadowType.F_OBJECT_CLASS, objectClass));
 		return ObjectQuery.createObjectQuery(and);
+	}
+	
+	public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, PrismContext prismContext, String name) throws SchemaException{
+		EqualsFilter equal = EqualsFilter.createEqual(clazz, prismContext, ObjectType.F_NAME, name);
+		return ObjectQuery.createObjectQuery(equal);
 	}
 	
 }

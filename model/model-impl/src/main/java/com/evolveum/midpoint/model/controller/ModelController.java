@@ -524,68 +524,68 @@ public class ModelController implements ModelService, ModelInteractionService {
 		return list;
 	}
 
-	@Deprecated
-	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
-			PagingType paging, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		Validate.notNull(type, "Object type must not be null.");
-		Validate.notNull(result, "Result type must not be null.");
-		ModelUtils.validatePaging(paging);
-
-		RepositoryCache.enter();
-
-		List<PrismObject<T>> list = null;
-
-		try {
-			if (paging == null) {
-				LOGGER.trace("Searching objects with null paging (query in TRACE).");
-			} else {
-				LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
-						new Object[] { paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(),
-								paging.getOrderBy() });
-			}
-
-			boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
-			String operationName = searchInProvisioning ? SEARCH_OBJECTS_IN_PROVISIONING
-					: SEARCH_OBJECTS_IN_REPOSITORY;
-			OperationResult subResult = result.createSubresult(operationName);
-			subResult.addParams(new String[] { "query", "paging", "searchInProvisioning" }, query, paging,
-					searchInProvisioning);
-
-			try {
-				if (searchInProvisioning) {
-					list = provisioning.searchObjects(type, query, paging, subResult);
-				} else {
-					list = cacheRepositoryService.searchObjects(type, query, paging, subResult);
-				}
-				subResult.recordSuccess();
-			} catch (Exception ex) {
-				String message;
-				if (!searchInProvisioning) {
-					message = "Couldn't search objects in repository";
-				} else {
-					message = "Couldn't search objects in provisioning";
-				}
-				LoggingUtils.logException(LOGGER, message, ex);
-				subResult.recordFatalError(message, ex);
-			} finally {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(subResult.dump(false));
-				}
-			}
-
-			if (list == null) {
-				list = new ArrayList<PrismObject<T>>();
-			}
-			
-			updateDefinitions(list, result);
-
-		} finally {
-			RepositoryCache.exit();
-		}
-
-		return list;
-	}
+//	@Deprecated
+//	@Override
+//	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
+//			PagingType paging, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+//		Validate.notNull(type, "Object type must not be null.");
+//		Validate.notNull(result, "Result type must not be null.");
+//		ModelUtils.validatePaging(paging);
+//
+//		RepositoryCache.enter();
+//
+//		List<PrismObject<T>> list = null;
+//
+//		try {
+//			if (paging == null) {
+//				LOGGER.trace("Searching objects with null paging (query in TRACE).");
+//			} else {
+//				LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
+//						new Object[] { paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(),
+//								paging.getOrderBy() });
+//			}
+//
+//			boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
+//			String operationName = searchInProvisioning ? SEARCH_OBJECTS_IN_PROVISIONING
+//					: SEARCH_OBJECTS_IN_REPOSITORY;
+//			OperationResult subResult = result.createSubresult(operationName);
+//			subResult.addParams(new String[] { "query", "paging", "searchInProvisioning" }, query, paging,
+//					searchInProvisioning);
+//
+//			try {
+//				if (searchInProvisioning) {
+//					list = provisioning.searchObjects(type, query, paging, subResult);
+//				} else {
+//					list = cacheRepositoryService.searchObjects(type, query, paging, subResult);
+//				}
+//				subResult.recordSuccess();
+//			} catch (Exception ex) {
+//				String message;
+//				if (!searchInProvisioning) {
+//					message = "Couldn't search objects in repository";
+//				} else {
+//					message = "Couldn't search objects in provisioning";
+//				}
+//				LoggingUtils.logException(LOGGER, message, ex);
+//				subResult.recordFatalError(message, ex);
+//			} finally {
+//				if (LOGGER.isTraceEnabled()) {
+//					LOGGER.trace(subResult.dump(false));
+//				}
+//			}
+//
+//			if (list == null) {
+//				list = new ArrayList<PrismObject<T>>();
+//			}
+//			
+//			updateDefinitions(list, result);
+//
+//		} finally {
+//			RepositoryCache.exit();
+//		}
+//
+//		return list;
+//	}
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
@@ -649,22 +649,6 @@ public class ModelController implements ModelService, ModelInteractionService {
 		return list;
 	}
 
-	@Deprecated
-	@Override
-	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query,
-			Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-		// TODO: implement properly
-
-		try {
-			if (ObjectTypes.isObjectTypeManagedByProvisioning(type)) {
-				return provisioning.countObjects(type, query, parentResult);
-			} else {
-				return cacheRepositoryService.countObjects(type, query, parentResult);
-			}
-		} catch (Exception ex) {
-			throw new SystemException(ex.getMessage(), ex);
-		}
-	}
 
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,

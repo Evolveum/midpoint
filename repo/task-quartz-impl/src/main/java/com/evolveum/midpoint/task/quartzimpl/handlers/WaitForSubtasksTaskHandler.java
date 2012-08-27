@@ -26,6 +26,9 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -78,16 +81,20 @@ public class WaitForSubtasksTaskHandler implements TaskHandler {
 
         LOGGER.info("WaitForSubtasksTaskHandler run starting; in task " + task.getName());
 
-        Document document = DOMUtil.getDocument();
-        Element filter = null;
+//        Document document = DOMUtil.getDocument();
+//        Element filter = null;
+        ObjectFilter filter = null;
         try {
-            filter = QueryUtil.createEqualFilter(document, null, TaskType.F_PARENT, task.getTaskIdentifier());
+//            filter = QueryUtil.createEqualFilter(document, null, TaskType.F_PARENT, task.getTaskIdentifier());
+        	filter = EqualsFilter.createEqual(TaskType.class, taskManagerImpl.getPrismContext(), TaskType.F_PARENT, task.getTaskIdentifier());
         } catch (SchemaException e) {
             throw new SystemException("Cannot create filter for task identifier attribute due to schema exception", e);
         }
-        QueryType query = new QueryType();
-        query.setFilter(filter);
+//        QueryType query = new QueryType();
+//        query.setFilter(filter);
 
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        
         List<PrismObject<TaskType>> subtasks = null;
         try {
             subtasks = taskManagerImpl.getRepositoryService().searchObjects(TaskType.class, query, new PagingType(), opResult);

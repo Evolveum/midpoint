@@ -502,34 +502,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		updateTaskExclusivity(oid, TaskExclusivityStatusType.RELEASED, subResult);
 	}
 
-	@Deprecated
-	@Override
-	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult result) {
-		Validate.notNull(type, "Object type must not be null.");
-		Validate.notNull(result, "Operation result must not be null.");
-
-		LOGGER.debug("Counting objects of type '{}', query (on trace level).", new Object[] { type });
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Full query\n{}", new Object[] { (query == null ? "undefined" : getPrismContext()
-					.silentMarshalObject(query, LOGGER)) });
-		}
-
-		OperationResult subResult = result.createSubresult(COUNT_OBJECTS);
-		subResult.addParam("type", type.getName());
-		subResult.addParam("query", query);
-
-		final String operation = "counting";
-		int attempt = 1;
-
-		while (true) {
-			try {
-				return countObjectsAttempt(type, query, subResult);
-			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
-			}
-		}
-	}
-	
+		
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult result) {
 		Validate.notNull(type, "Object type must not be null.");
@@ -594,46 +567,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		return count;
 	}
 
-	
-	@Deprecated
-	private <T extends ObjectType> int countObjectsAttempt(Class<T> type, QueryType query, OperationResult result) {
-		int count = 0;
-
-		Session session = null;
-		try {
-			session = beginTransaction();
-			LOGGER.debug("Updating query criteria.");
-			Criteria criteria;
-			if (query != null && query.getFilter() != null) {
-				QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
-//				criteria = interpreter.interpret(query.getFilter());
-			} else {
-				criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-			}
-//			criteria.setProjection(Projections.rowCount());
-
-			LOGGER.debug("Selecting total count.");
-//			Long longCount = (Long) criteria.uniqueResult();
-//			count = longCount.intValue();
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (Exception ex) {
-			handleGeneralException(ex, session, result);
-		} finally {
-			cleanupSessionAndResult(session, result);
-		}
-
-		return count;
-	}
-
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, PagingType paging,
+		public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, PagingType paging,
 			OperationResult result) throws SchemaException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -716,91 +650,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	}
 
 	
-	@Deprecated
-	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
-			OperationResult result) throws SchemaException {
-
-		Validate.notNull(type, "Object type must not be null.");
-		Validate.notNull(result, "Operation result must not be null.");
-
-		LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}.", new Object[] {
-				type.getSimpleName(), (paging == null ? "undefined" : paging.getOffset()),
-				(paging == null ? "undefined" : paging.getMaxSize()) });
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[] {
-					(query == null ? "undefined" : getPrismContext().silentMarshalObject(query, LOGGER)),
-					(paging == null ? "undefined" : getPrismContext().silentMarshalObject(paging, LOGGER)) });
-		}
-
-		OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
-		subResult.addParam("type", type.getName());
-		subResult.addParam("query", query);
-		subResult.addParam("paging", paging);
-
-		final String operation = "searching";
-		int attempt = 1;
-		while (true) {
-			try {
-				return searchObjectsAttempt(type, query, paging, subResult);
-			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
-			}
-		}
-	}
-
-	@Deprecated
-	private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, QueryType query,
-			PagingType paging, OperationResult result) throws SchemaException {
-
-		List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
-		Session session = null;
-		try {
-			session = beginTransaction();
-			LOGGER.debug("Updating query criteria.");
-			Criteria criteria = null;
-			if (query != null && query.getFilter() != null) {
-				QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
-//				criteria = interpreter.interpret(query.getFilter());
-			} else {
-				criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-			}
-
-			criteria = updatePagingAndSorting(criteria, type, paging);
-
-			List<RObject> objects = criteria.list();
-			LOGGER.debug("Found {} objects, translating to JAXB.",
-					new Object[] { (objects != null ? objects.size() : 0) });
-
-			for (RObject object : objects) {
-				ObjectType objectType = object.toJAXB(getPrismContext());
-				PrismObject<T> prismObject = objectType.asPrismObject();
-				validateObjectType(prismObject, type);
-				list.add(prismObject);
-			}
-
-			session.getTransaction().commit();
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (Exception ex) {
-			if (ex instanceof SchemaException) {
-				throw (SchemaException) ex;
-			}
-			handleGeneralException(ex, session, result);
-		} finally {
-			cleanupSessionAndResult(session, result);
-		}
-
-		return list;
-	}
-
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException,
@@ -948,8 +797,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	}
 
 	private List<RObject> deleteTransitiveHierarchy(RObject rObjectToModify, Session session) throws SchemaException, DtoTranslationException {
-		
-		
 		List<RObject> descendants = session.createCriteria(ROrgClosure.class)
 				.setProjection(Projections.property("descendant")).add(Restrictions.eq("ancestor", rObjectToModify))
 				.list();

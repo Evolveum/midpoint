@@ -344,12 +344,8 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-	@Deprecated
-    public List<Task> searchTasks(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 	public List<Task> searchTasks(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
-	@Deprecated
-    int countTasks(QueryType query, OperationResult result) throws SchemaException;
 	int countTasks(ObjectQuery query, OperationResult result) throws SchemaException;
 
     /**
@@ -363,12 +359,9 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-	@Deprecated
-    List<Node> searchNodes(QueryType query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 	List<Node> searchNodes(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
-	@Deprecated
-    int countNodes(QueryType query, OperationResult result) throws SchemaException;
+	
 	int countNodes(ObjectQuery query, OperationResult result) throws SchemaException;
 	
 	/**

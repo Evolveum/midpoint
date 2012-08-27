@@ -4,7 +4,12 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -16,6 +21,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -80,7 +86,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		change.setResource(shadow.getResource().asPrismObject());
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 
-		QueryType query = createQueryByIcfName(shadow);
+		ObjectQuery query = createQueryByIcfName(shadow);
 		final List<PrismObject<AccountShadowType>> foundAccount = getExistingAccount(query, parentResult);
 
 		if (!foundAccount.isEmpty() && foundAccount.size() == 1) {
@@ -96,19 +102,19 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 	}
 
-	private QueryType createQueryByIcfName(ResourceObjectShadowType shadow) throws SchemaException {
+	private ObjectQuery createQueryByIcfName(ResourceObjectShadowType shadow) throws SchemaException {
 		// TODO: error handling
-		Document doc = DOMUtil.getDocument();
-		XPathHolder holder = ObjectTypeUtil.createXPathHolder(SchemaConstants.I_ATTRIBUTES);
 		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue().findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-		Element nameFilter = QueryUtil.createEqualFilter(doc, holder, nameProperty.getName(), (String) nameProperty.getValue().getValue());
-		Element resourceFilter = QueryUtil.createEqualRefFilter(doc, null, ResourceObjectShadowType.F_RESOURCE_REF, shadow.getResourceRef().getOid());
-		Element objectClassFilter = QueryUtil.createEqualFilter(doc, null, ResourceObjectShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
-		Element filter = QueryUtil.createAndFilter(doc, new Element[]{nameFilter, resourceFilter, objectClassFilter});
-		return QueryUtil.createQuery(filter);
+		EqualsFilter nameFilter = EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), nameProperty.getDefinition(), nameProperty.getValues());
+		EqualsFilter resourceRefFilter = EqualsFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
+		EqualsFilter objectClassFilter = EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
+		
+		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(nameFilter, resourceRefFilter, objectClassFilter));
+		
+		return query;
 	}
 
-	private List<PrismObject<AccountShadowType>> getExistingAccount(QueryType query,
+	private List<PrismObject<AccountShadowType>> getExistingAccount(ObjectQuery query,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			ConfigurationException, SchemaException, SecurityViolationException {
 		final List<PrismObject<AccountShadowType>> foundAccount = new ArrayList<PrismObject<AccountShadowType>>();

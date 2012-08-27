@@ -251,17 +251,10 @@ public interface RepositoryService {
 	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query, PagingType paging, OperationResult parentResult)
 			throws SchemaException;
 
-	@Deprecated
-	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
-			throws SchemaException;
-
+	
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException;
 		
-	@Deprecated
-	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
-		throws SchemaException;
-	
 	/**
 	 * <p>Modifies object using relative change description.</p>
 	 * Must fail if user with
