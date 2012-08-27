@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines an Solaris resource
+using an Identity Connector Framework Solaris connector.
+
+This resource definition contains also definition to enable synchronization and
+especially an expression that is using a lookup of value from an configuration
+object.
+
+-->
+
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d420db"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+	xmlns:my="http://myself.me/schemas/whatever"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
+
+	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db">
+    
+    	<!-- Resource name. It will be displayed in GUI.  -->
+		<c:name>Localhost ScriptedSQL</c:name>
+     
+     	<!-- Reference to the ICF DatabaseTable connector. OID is "virtual" for now. -->
+		<connectorRef type="ConnectorType">
+			<filter>
+		        <q:equal>
+		          <q:value>
+		              <connectorType>org.forgerock.openicf.scriptedsql.ScriptedSQLConnector</connectorType>
+		          </q:value>
+		        </q:equal>
+		      </filter>
+		</connectorRef>
+
+        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d420db</c:namespace>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<c:configuration>
+
+            <!-- Configuration specific for the DBTable connector -->
+			<icfc:configurationProperties
+			   xmlns:icscscriptedsql="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.scriptedsql/org.forgerock.openicf.scriptedsql.ScriptedSQLConnector">
+				<icscscriptedsql:port>33060</icscscriptedsql:port>
+				<icscscriptedsql:quoting></icscscriptedsql:quoting>
+				<icscscriptedsql:host>localhost</icscscriptedsql:host>
+				<icscscriptedsql:user>mdp_scriptedsql</icscscriptedsql:user>
+				<icscscriptedsql:password><clearValue>secret</clearValue></icscscriptedsql:password>
+				<icscscriptedsql:database>mdp_scriptedsql</icscscriptedsql:database>
+				<icscscriptedsql:clearTextPasswordToScript>true</icscscriptedsql:clearTextPasswordToScript>
+				<icscscriptedsql:scriptingLanguage>GROOVY</icscscriptedsql:scriptingLanguage>
+<!--
+				<icscscriptedsql:createScript></icscscriptedsql:createScript>
+				<icscscriptedsql:updateScript></icscscriptedsql:updateScript>
+				<icscscriptedsql:deleteScript></icscscriptedsql:deleteScript>
+				<icscscriptedsql:searchScript></icscscriptedsql:searchScript>
+				<icscscriptedsql:testScript></icscscriptedsql:testScript>
+				<icscscriptedsql:syncScript></icscscriptedsql:syncScript>
+-->
+
+				<icscscriptedsql:createScriptFileName>/opt/midpoint-configuration/icf-connectors/CreateScript.groovy</icscscriptedsql:createScriptFileName>
+				<icscscriptedsql:updateScriptFileName>/opt/midpoint-configuration/icf-connectors/UpdateScript.groovy</icscscriptedsql:updateScriptFileName>
+				<icscscriptedsql:deleteScriptFileName>/opt/midpoint-configuration/icf-connectors/DeleteScript.groovy</icscscriptedsql:deleteScriptFileName>
+				<icscscriptedsql:searchScriptFileName>/opt/midpoint-configuration/icf-connectors/SearchScript.groovy</icscscriptedsql:searchScriptFileName>
+				<icscscriptedsql:testScriptFileName>/opt/midpoint-configuration/icf-connectors/TestScript.groovy</icscscriptedsql:testScriptFileName>
+				<icscscriptedsql:syncScriptFileName>/opt/midpoint-configuration/icf-connectors/SyncScript.groovy</icscscriptedsql:syncScriptFileName>
+
+				<icscscriptedsql:validConnectionQuery></icscscriptedsql:validConnectionQuery>
+				<icscscriptedsql:jndiProperties></icscscriptedsql:jndiProperties>
+
+				<icscscriptedsql:jdbcDriver>com.mysql.jdbc.Driver</icscscriptedsql:jdbcDriver>
+				<icscscriptedsql:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d?useUnicode=true&amp;characterEncoding=utf8&amp;connectionCollation=utf8_bin</icscscriptedsql:jdbcUrlTemplate>
+				<icscscriptedsql:enableEmptyString>true</icscscriptedsql:enableEmptyString>
+				<icscscriptedsql:rethrowAllSQLExceptions>true</icscscriptedsql:rethrowAllSQLExceptions>
+				<icscscriptedsql:nativeTimestamps>false</icscscriptedsql:nativeTimestamps>
+				<icscscriptedsql:allNative>false</icscscriptedsql:allNative>
+				<icscscriptedsql:changeLogColumn>timestamp</icscscriptedsql:changeLogColumn>
+				<!--<icscscriptedsql:datasource></icscscriptedsql:datasource>-->
+			</icfc:configurationProperties>
+		
+			<!-- Generic ICF configuration -->
+
+
+		</c:configuration>
+
+      <schema>
+		<!-- Storing schema here and don't letting midpoint to generate it. ScriptedSQL does not support getting schema... -->
+	  <definition>
+		<xsd:schema elementFormDefault="qualified"
+			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d420db"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
+			
+			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
+			<xsd:complexType name="AccountObjectClass">
+				<xsd:annotation>
+					<xsd:appinfo>
+						 <ra:resourceObject/>
+	                     <ra:identifier>icfs:uid</ra:identifier>
+						 <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+	                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+	                     <ra:account/>
+	                     <ra:default/>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element ref="icfs:name" />
+					<xsd:element minOccurs="0" ref="icfs:uid" />
+					<xsd:element minOccurs="0" ref="icfs:password" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="firstname" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="fullname" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="lastname" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="email" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="organization" type="xsd:string" />
+<!-- timestamp ??? -->
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	  </definition>
+	</schema>
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+
+
+	</c:resource>
+
+
+</c:objects>
