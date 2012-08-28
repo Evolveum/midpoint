@@ -329,11 +329,11 @@ public class AssignmentProcessor {
 	public <F extends ObjectType, P extends ObjectType> void processOrgAssignments(LensContext<F,P> context, 
 			OperationResult result) throws SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
+		DeltaSetTriple<Assignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		if (focusContext == null || evaluatedAssignmentTriple == null) {
 			return;
 		}
 		
-		DeltaSetTriple<Assignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(UserType.F_ORG_REF);
 		PropertyPath orgRefPath = new PropertyPath(UserType.F_ORG_REF);
