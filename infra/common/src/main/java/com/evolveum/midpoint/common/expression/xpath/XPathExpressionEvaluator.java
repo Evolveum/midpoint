@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -187,13 +189,16 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         if (type.equals(String.class)) {
             return XPathConstants.STRING;
         }
-        if (type.equals(Double.class)) {
+        if (type.equals(Double.class) || type.equals(double.class)) {
             return XPathConstants.NUMBER;
         }
-        if (type.equals(Integer.class)) {
+        if (type.equals(Integer.class) || type.equals(int.class)) {
             return XPathConstants.NUMBER;
         }
-        if (type.equals(Boolean.class)) {
+        if (type.equals(Long.class) || type.equals(long.class)) {
+            return XPathConstants.NUMBER;
+        }
+        if (type.equals(Boolean.class) || type.equals(boolean.class)) {
             return XPathConstants.BOOLEAN;
         }
         if (type.equals(NodeList.class)) {
@@ -202,7 +207,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         if (type.equals(Node.class)) {
             return XPathConstants.NODE;
         }
-        if (type.equals(PolyString.class)) {
+        if (type.equals(PolyString.class) || type.equals(PolyStringType.class)) {
         	return XPathConstants.STRING;
         }
         throw new ExpressionEvaluationException("Unsupported return type " + type);
