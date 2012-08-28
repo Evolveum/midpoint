@@ -2728,7 +2728,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Listing of shadows is not supported by the provisioning. So we need
         // to look directly into repository
-        List<PrismObject<AccountShadowType>> sobjects = repositoryService.listObjects(AccountShadowType.class, null,
+        List<PrismObject<AccountShadowType>> sobjects = repositoryService.searchObjects(AccountShadowType.class, null, null,
                 result);
         result.computeStatus();
         assertSuccess("listObjects has failed", result);

@@ -195,7 +195,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 		while (true) {
 			paging.setOffset(offset);
 			paging.setMaxSize(SEARCH_MAX_SIZE);
-			List<PrismObject<UserType>> users = repositoryService.listObjects(UserType.class, paging, result);
+			List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, null, paging, result);
 			if (users == null || users.isEmpty()) {
 				break;
 			}

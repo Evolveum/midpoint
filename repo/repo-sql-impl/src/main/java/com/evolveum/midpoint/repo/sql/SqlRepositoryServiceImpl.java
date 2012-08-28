@@ -160,16 +160,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		return objectType;
 	}
 
-	@Deprecated
-	@Override
-	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
-			OperationResult result) {
-		try {
-			return searchObjects(type, new ObjectQuery(), paging, result);
-		} catch (SchemaException ex) {
-			throw new SystemException(ex.getMessage(), ex);
-		}
-	}
 
 	@Override
 	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)

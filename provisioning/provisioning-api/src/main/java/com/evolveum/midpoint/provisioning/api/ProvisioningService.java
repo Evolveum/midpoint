@@ -209,36 +209,10 @@ public interface ProvisioningService {
 	 */
 	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
-	/**
-	 * Returns all objects of specified type that are available to the
-	 * implementation.
-	 * 
-	 * This can be considered as a simplified search operation.
-	 * 
-	 * Returns empty list if object type is correct but there are no objects of
-	 * that type.
-	 * 
-	 * Should fail if object type is wrong.
-	 * 
-	 * @param objectType
-	 * @param paging
-	 *            paging specification to limit operation result (optional)
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @return all objects of specified type (subject to paging)
-	 * 
-	 * @throws IllegalArgumentException
-	 *             wrong object type
-	 * @throws GenericConnectorException
-	 *             unknown connector framework error
-	 */
-	@Deprecated
-	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
-			OperationResult parentResult);
 
 	/**
 	 * Search for objects. Searches through all object types. Returns a list of
-	 * objects that match search criteria.
+	 * objects that match search criteria. 
 	 * 
 	 * Returns empty list if object type is correct but there are no objects of
 	 * that type.

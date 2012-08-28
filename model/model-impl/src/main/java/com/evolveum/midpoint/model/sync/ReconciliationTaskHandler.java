@@ -239,8 +239,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 //				AccountShadowType.F_FAILED_OPERATION_TYPE, "!=null"));
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".RepoReconciliation");
 		opResult.addParam("reconciled", true);
-		List<PrismObject<AccountShadowType>> shadows = repositoryService.listObjects(
-				AccountShadowType.class, new PagingType(), opResult);
+		List<PrismObject<AccountShadowType>> shadows = repositoryService.searchObjects(
+				AccountShadowType.class, null, new PagingType(), opResult);
 
 		for (PrismObject<AccountShadowType> shadow : shadows) {
 

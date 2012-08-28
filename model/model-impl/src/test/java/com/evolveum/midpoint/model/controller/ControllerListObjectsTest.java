@@ -18,6 +18,7 @@
 package com.evolveum.midpoint.model.controller;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -81,17 +82,17 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullClassType() throws Exception {
-		controller.listObjects(null, null, null, null);
+		controller.searchObjects(null, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.listObjects(UserType.class, null, null, null);
+		controller.searchObjects(UserType.class, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.listObjects(UserType.class, PagingTypeFactory.createListAllPaging(), null, null);
+		controller.searchObjects(UserType.class, null, PagingTypeFactory.createListAllPaging(), null, null);
 	}
 
 	@Test
@@ -100,15 +101,15 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 		final List<PrismObject<UserType>> expectedUserList = MiscSchemaUtil.toList(UserType.class,
 				PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user-list.xml"), ObjectListType.class));
 
-		when(repository.listObjects(eq(UserType.class), any(PagingType.class), any(OperationResult.class)))
+		when(repository.searchObjects(eq(UserType.class), any(ObjectQuery.class), any(PagingType.class), any(OperationResult.class)))
 				.thenReturn(expectedUserList);
 
 		Task task = taskManager.createTaskInstance("List Users");
 		try {
-			final List<PrismObject<UserType>> returnedUserList = controller.listObjects(UserType.class, new PagingType(),
+			final List<PrismObject<UserType>> returnedUserList = controller.searchObjects(UserType.class, new ObjectQuery(), new PagingType(),
 					task, task.getResult());
 
-			verify(repository, times(1)).listObjects(eq(ObjectTypes.USER.getClassDefinition()),
+			verify(repository, times(1)).searchObjects(eq(ObjectTypes.USER.getClassDefinition()), any(ObjectQuery.class),
 					any(PagingType.class), any(OperationResult.class));
 			testObjectList((List)expectedUserList, (List)returnedUserList);
 		} finally {

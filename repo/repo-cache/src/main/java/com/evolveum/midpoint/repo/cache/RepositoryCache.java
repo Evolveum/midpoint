@@ -202,26 +202,11 @@ public class RepositoryCache implements RepositoryService {
 		return oid;
 	}
 
-	@Override
-	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
-			OperationResult parentResult) {
-		// Cannot satisfy from cache, pass down to repository
-		List<PrismObject<T>> objects = repository.listObjects(type, paging, parentResult);
-		Map<String, PrismObject<ObjectType>> cache = getCache();
-		if (cache != null) {
-			for (PrismObject<T> object : objects) {
-				cache.put(object.getOid(), (PrismObject<ObjectType>) object);
-			}
-		}
-		return objects;
-	}
-
-//	@Deprecated
 //	@Override
-//	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
-//			PagingType paging, OperationResult parentResult) throws SchemaException {
+//	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
+//			OperationResult parentResult) {
 //		// Cannot satisfy from cache, pass down to repository
-//		List<PrismObject<T>> objects = repository.searchObjects(type, query, paging, parentResult);
+//		List<PrismObject<T>> objects = repository.listObjects(type, paging, parentResult);
 //		Map<String, PrismObject<ObjectType>> cache = getCache();
 //		if (cache != null) {
 //			for (PrismObject<T> object : objects) {
@@ -230,6 +215,7 @@ public class RepositoryCache implements RepositoryService {
 //		}
 //		return objects;
 //	}
+
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
@@ -245,13 +231,6 @@ public class RepositoryCache implements RepositoryService {
 		return objects;
 	}
 	
-//	@Deprecated
-//	@Override
-//	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
-//			throws SchemaException {
-//		return repository.countObjects(type, query, parentResult);
-//	}
-//
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException {

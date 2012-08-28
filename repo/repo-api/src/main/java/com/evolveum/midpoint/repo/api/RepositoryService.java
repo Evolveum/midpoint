@@ -194,33 +194,10 @@ public interface RepositoryService {
 	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException;
 
-	/**
-	 * <p>Returns all objects of specified type in the repository.</p>
-	 * <p>
-	 * This can be considered as a simplified search operation.
-	 * </p><p>
-	 * Returns empty list if object type is correct but there are no objects of
-	 * that type. The ordering of the results is not significant and may be arbitrary
-	 * unless sorting in the paging is used.
-	 * </p><p>
-	 * Should fail if object type is wrong.
-	 * </p>
-	 * 
-	 * @param type
-	 * @param paging
-	 *            paging specification to limit operation result (optional)
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @return all objects of specified type (subject to paging)
-	 * 
-	 * @throws IllegalArgumentException
-	 *             wrong object type
-	 */
-	@Deprecated
-	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging, OperationResult parentResult);
-
+	
 	/**
 	 * <p>Search for objects in the repository.</p>
+	 * <p>If no search criteria specified, list objects of specified type is returned.</p>
 	 * <p>
 	 * Searches through all object types.
 	 * Returns a list of objects that match search criteria.

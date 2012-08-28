@@ -128,8 +128,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			Task task = createTaskInstance(LIST_OBJECTS);
 			setTaskOwner(task);
 			operationResult = task.getResult();
-			List<PrismObject<? extends ObjectType>> list = (List)model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
-					.getClassDefinition(), paging, task, operationResult);
+			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(ObjectTypes.getObjectTypeFromUri(objectType)
+					.getClassDefinition(), null, paging, task, operationResult);
 			handleOperationResult(operationResult, result);
 
 			ObjectListType listType = new ObjectListType();

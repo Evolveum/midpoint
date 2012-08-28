@@ -506,19 +506,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		task.savePendingModifications(result);
 		return processedChanges;
 	}
-
-	@Override
-	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
-			OperationResult parentResult) {
-
-		try {
-			return searchObjects(objectType, new ObjectQuery(), paging, parentResult);
-		} catch (Exception e) {
-			throw new SystemException(e.getMessage(), e);
-		}
-
-	}
-
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, PagingType paging,

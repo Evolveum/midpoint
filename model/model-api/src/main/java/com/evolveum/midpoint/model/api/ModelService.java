@@ -485,8 +485,6 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 */
-	@Deprecated
-	<T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging, Task task, OperationResult result);
 
 	/**
 	 * <p>

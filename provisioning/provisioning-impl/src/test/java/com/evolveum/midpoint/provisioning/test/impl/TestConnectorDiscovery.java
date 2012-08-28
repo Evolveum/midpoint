@@ -90,7 +90,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".test001Connectors");
 		
-		List<PrismObject<ConnectorType>> connectors = repositoryService.listObjects(ConnectorType.class, null, result);
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, null, null, result);
 		
 		assertFalse("No connector found",connectors.isEmpty());
 		display("Found "+connectors.size()+" discovered connector");
@@ -109,12 +109,12 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	}
 		
 	@Test
-	public void testListConnectors(){
+	public void testListConnectors() throws Exception{
 		displayTestTile("testListConnectors");
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".listConnectorsTest");
 		
-		List<PrismObject<ConnectorType>> connectors = provisioningService.listObjects(ConnectorType.class, new PagingType(), result);
+		List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, new PagingType(), result);
 		assertNotNull(connectors);
 		
 		for (PrismObject<ConnectorType> connector : connectors){
