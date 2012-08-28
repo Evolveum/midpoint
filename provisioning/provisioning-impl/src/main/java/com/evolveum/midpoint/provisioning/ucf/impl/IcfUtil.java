@@ -26,6 +26,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -253,8 +254,14 @@ class IcfUtil {
 	public static String dump(Set<Attribute> attributes) {
 		StringBuilder sb = new StringBuilder();
 		for (Attribute attr : attributes) {
-			sb.append(attr.toString());
-			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, 1);
+			sb.append(attr.getClass().getSimpleName()).append("(");
+			sb.append("name=").append(attr.getName());
+			sb.append(", value=").append(attr.getValue());
+			if (attr.getValue() != null) {
+				sb.append(", type=").append(attr.getValue().getClass().getSimpleName());
+			}
+			sb.append(")\n");
 		}
 		return sb.toString();
 	}
