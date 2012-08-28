@@ -298,7 +298,7 @@ public class TestSanity extends AbstractIntegrationTest {
     // It will be called only once
     public void initSystem(OperationResult initResult) throws Exception {
         LOGGER.trace("initSystem");
-        addObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
+        addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 
         // This should discover the connectors
         LOGGER.trace("initSystem: trying modelService.postInit()");
@@ -308,10 +308,10 @@ public class TestSanity extends AbstractIntegrationTest {
         // We need to add config after calling postInit() so it will not be applied.
         // we want original logging configuration from the test logback config file, not
         // the one from the system config.
-        addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
 
         // Add broken connector before importing resources
-        addObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
+        addObjectFromFile(CONNECTOR_BROKEN_FILENAME, ConnectorType.class, initResult);
 
         // Need to import instead of add, so the (dynamic) connector reference
         // will be resolved
@@ -320,12 +320,12 @@ public class TestSanity extends AbstractIntegrationTest {
         importObjectFromFile(RESOURCE_DERBY_FILENAME, initResult);
         importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
-        addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
-        addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
-        addObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
-        addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
-        addObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
-        addObjectFromFile(ROLE_JUDGE_FILENAME, initResult);
+        addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
+        addObjectFromFile(USER_TEMPLATE_FILENAME, UserTemplateType.class, initResult);
+        addObjectFromFile(ROLE_SAILOR_FILENAME, RoleType.class, initResult);
+        addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
+        addObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
+        addObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
     }
 
     /**
@@ -2282,7 +2282,7 @@ public class TestSanity extends AbstractIntegrationTest {
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test100Synchronization");
 
-        addObjectFromFile(TASK_OPENDJ_SYNC_FILENAME, result);
+        addObjectFromFile(TASK_OPENDJ_SYNC_FILENAME, TaskType.class, result);
 
 
         // We need to wait for a sync interval, so the task scanner has a chance
@@ -3000,7 +3000,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Add reconciliation task. This will trigger reconciliation
 
-        addObjectFromFile(TASK_OPENDJ_RECON_FILENAME, result);
+        addObjectFromFile(TASK_OPENDJ_RECON_FILENAME, TaskType.class, result);
 
 
         // We need to wait for a sync interval, so the task scanner has a chance

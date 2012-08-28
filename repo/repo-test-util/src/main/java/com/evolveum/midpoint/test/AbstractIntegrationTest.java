@@ -125,10 +125,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	abstract public void initSystem(OperationResult initResult) throws Exception;
 
-	@Deprecated
-	protected PrismObject<ObjectType> addObjectFromFile(String filePath, OperationResult result) throws Exception {
-		return addObjectFromFile(filePath, ObjectType.class, result);
-	}
+//	@Deprecated
+//	protected PrismObject<ObjectType> addObjectFromFile(String filePath, OperationResult result) throws Exception {
+//		return addObjectFromFile(filePath, ObjectType.class, result);
+//	}
 
 	protected <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, Class<T> type,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException {

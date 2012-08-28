@@ -163,7 +163,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		provisioningService.postInit(initResult);
 		PrismObject<ResourceType> resource = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, LDAP_CONNECTOR_TYPE, initResult);
 //		addObjectFromFile(FILENAME_ACCOUNT1);
-		addObjectFromFile(FILENAME_ACCOUNT_BAD,initResult);
+		addObjectFromFile(FILENAME_ACCOUNT_BAD, AccountShadowType.class, initResult);
 	}
 	
 	@BeforeClass

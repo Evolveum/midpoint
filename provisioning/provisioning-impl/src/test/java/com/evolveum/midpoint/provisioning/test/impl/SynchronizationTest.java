@@ -29,9 +29,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
 		"classpath:application-context-provisioning-test.xml",
@@ -92,9 +94,9 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		assertNotNull(manager);
-		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ, initResult).asObjectable();
+		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ, ResourceType.class, initResult).asObjectable();
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry
-		addObjectFromFile(FILENAME_USER_ADMIN, initResult);
+		addObjectFromFile(FILENAME_USER_ADMIN, UserType.class, initResult);
 		assertNotNull(provisioningService);
 	}
 
@@ -106,8 +108,8 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 
 		try {
 
-			addObjectFromFile(FILENAME_SYNC_TASK, result);
-			addObjectFromFile(FILENAME_LDAP_CONNECTOR, result);
+			addObjectFromFile(FILENAME_SYNC_TASK, TaskType.class, result);
+			addObjectFromFile(FILENAME_LDAP_CONNECTOR, ConnectorType.class, result);
 
 			// create add change in embeded LDAP
 			LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_FILENAME);

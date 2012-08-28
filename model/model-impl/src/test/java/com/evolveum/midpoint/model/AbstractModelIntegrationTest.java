@@ -125,6 +125,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
@@ -303,15 +304,15 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 		// System Configuration
 		try {
-			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
+			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
 		
 		// User Templates
-		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
-		addObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, initResult);
+		addObjectFromFile(USER_TEMPLATE_FILENAME, UserTemplateType.class, initResult);
+		addObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, UserTemplateType.class, initResult);
 
 		// Connectors
 		addObjectFromFile(CONNECTOR_LDAP_FILENAME, ConnectorType.class, initResult);
@@ -329,8 +330,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		resourceDummyBlueType = resourceDummyBlue.asObjectable();
 
 		// Accounts
-		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, initResult);
+		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, AccountShadowType.class, initResult);
 		
 		// Users
 		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();

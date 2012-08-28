@@ -171,7 +171,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
 		dummyResource.addAccount(dummyAccountDaemon);
 
-		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, initResult);
+		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, AccountShadowType.class, initResult);
 	}
 
 	@Test

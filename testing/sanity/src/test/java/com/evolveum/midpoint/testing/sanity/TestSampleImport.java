@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -92,7 +93,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 //		schemaRegistry.loadPrismSchemasFromDirectory(new File(SCHEMA_DIRECTORY_NAME));
 		
 		// Necessary to avoid warnings about missing user in task owner references
-		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
+		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 		
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");
