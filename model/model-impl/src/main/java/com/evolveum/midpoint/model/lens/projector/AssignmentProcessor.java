@@ -38,6 +38,7 @@ import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -62,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -166,8 +168,8 @@ public class AssignmentProcessor {
             source = focusContext.getObjectNew().asObjectable();
         }
         
-        Collection<Assignment> evaluatedAssignmentsZero = new ArrayList<Assignment>();
-        Collection<Assignment> evaluatedAssignmentsPlus = new ArrayList<Assignment>();
+        DeltaSetTriple<Assignment> evaluatedAssignmentTriple = new DeltaSetTriple<Assignment>();
+        context.setEvaluatedAssignmentTriple(evaluatedAssignmentTriple);
         
         Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
         for (PrismContainerValue<AssignmentType> propertyValue : allAssignments) {
@@ -195,24 +197,25 @@ public class AssignmentProcessor {
                 	if (containsRealValue(assignmentsOld, propertyValue)) {
                 		// Phantom add: adding assignment that is already there
                         collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
-                        evaluatedAssignmentsZero.add(evaluatedAssignment);
+                        evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
                 	}
                     collectToAccountMap(context, plusAccountMap, evaluatedAssignment, result);
-                    evaluatedAssignmentsPlus.add(evaluatedAssignment);
+                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
                 }
                 if (assignmentDelta.isValueToDelete(propertyValue)) {
                     collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
+                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
                 }
 
             } else {
                 // No change in assignment
                 collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
-                evaluatedAssignmentsZero.add(evaluatedAssignment);
+                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
             }
         }
         
-        checkExclusions(context, evaluatedAssignmentsZero, evaluatedAssignmentsPlus);
-        checkExclusions(context, evaluatedAssignmentsPlus, evaluatedAssignmentsPlus);
+        checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
+        checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
         
         if (LOGGER.isTraceEnabled()) {
             // Dump the maps
@@ -321,6 +324,41 @@ public class AssignmentProcessor {
 			}
 		}
 		return false;
+	}
+	
+	public <F extends ObjectType, P extends ObjectType> void processOrgAssignments(LensContext<F,P> context, 
+			OperationResult result) throws SchemaException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return;
+		}
+		
+		DeltaSetTriple<Assignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(UserType.F_ORG_REF);
+		PropertyPath orgRefPath = new PropertyPath(UserType.F_ORG_REF);
+		
+		// Plus
+		for (Assignment assignment: evaluatedAssignmentTriple.getPlusSet()) {
+			Collection<PrismObject<OrgType>> orgs = assignment.getOrgs();
+			for (PrismObject<OrgType> org: orgs) {
+				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
+				orgRefDelta.addValueToAdd(PrismReferenceValue.createFromTarget(org));
+				focusContext.swallowToWaveSecondaryDelta(orgRefDelta);
+			}
+		}
+		
+		// Minus
+		for (Assignment assignment: evaluatedAssignmentTriple.getMinusSet()) {
+			Collection<PrismObject<OrgType>> orgs = assignment.getOrgs();
+			for (PrismObject<OrgType> org: orgs) {
+				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
+				orgRefDelta.addValueToDelete(PrismReferenceValue.createFromTarget(org));
+				focusContext.swallowToWaveSecondaryDelta(orgRefDelta);
+			}
+		}
+		
+		// TODO: zero set if reconciliation?
 	}
 
 	public void processAssignmentsAccountValues(LensProjectionContext<AccountShadowType> accountContext, OperationResult result) throws SchemaException,

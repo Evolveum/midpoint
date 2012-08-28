@@ -33,6 +33,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -58,13 +59,15 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
 	private LensFocusContext<F> focusContext;
 	private Collection<LensProjectionContext<P>> projectionContexts = new ArrayList<LensProjectionContext<P>>();
-	
+
+	private Class<F> focusClass;
+	private Class<P> projectionClass;
+
 	transient private UserTemplateType userTemplate;
 	transient private AccountSynchronizationSettingsType accountSynchronizationSettings;
 	transient private PasswordPolicyType globalPasswordPolicy;
-	
-	private Class<F> focusClass;
-	private Class<P> projectionClass;
+
+	transient private DeltaSetTriple<Assignment> evaluatedAssignmentTriple;
 	
 	/**
      * True if we want to reconcile all accounts in this context.
@@ -259,6 +262,14 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		this.doReconciliationForAllProjections = doReconciliationForAllProjections;
 	}
 	
+	public DeltaSetTriple<Assignment> getEvaluatedAssignmentTriple() {
+		return evaluatedAssignmentTriple;
+	}
+
+	public void setEvaluatedAssignmentTriple(DeltaSetTriple<Assignment> evaluatedAssignmentTriple) {
+		this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
+	}
+
 	/**
      * Returns all changes, user and all accounts. Both primary and secondary changes are returned, but
      * these are not merged.

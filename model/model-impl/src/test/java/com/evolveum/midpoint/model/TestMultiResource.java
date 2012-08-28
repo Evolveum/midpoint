@@ -125,7 +125,7 @@ public class TestMultiResource extends AbstractModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
         
         // THEN
-        assertHasRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
+        assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
         
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "The Great Voodoo Master");

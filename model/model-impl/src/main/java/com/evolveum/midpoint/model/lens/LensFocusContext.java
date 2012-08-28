@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -91,7 +92,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         this.secondaryDeltas.set(getWave(), secondaryDelta);
     }
     
-    public void swallowToWaveSecondaryDelta(PropertyDelta<?> propDelta) throws SchemaException {
+    public void swallowToWaveSecondaryDelta(ItemDelta<?> propDelta) throws SchemaException {
 		ObjectDelta<O> secondaryDelta = getWaveSecondaryDelta();
 		if (secondaryDelta == null) {
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY);        

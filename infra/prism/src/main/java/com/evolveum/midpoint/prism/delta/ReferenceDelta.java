@@ -233,5 +233,4 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
     	return modifications;
     }
 
-
 }

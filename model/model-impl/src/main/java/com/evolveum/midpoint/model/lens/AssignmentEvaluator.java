@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -218,6 +219,8 @@ public class AssignmentEvaluator {
 		assignmentPathSegment.setTarget(target);
 		if (target instanceof RoleType) {
 			evaluateRole(assignment, assignmentPathSegment, (RoleType)target, source, sourceDescription, assignmentPath, result);
+		} else if (target instanceof OrgType) {
+			assignment.addOrg(target.asPrismObject());
 		} else {
 			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(target)+" in "+sourceDescription);
 		}

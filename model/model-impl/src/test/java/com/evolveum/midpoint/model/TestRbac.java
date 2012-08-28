@@ -106,7 +106,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
-        assertHasRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Caribbean");
@@ -129,7 +129,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
         
         // THEN
-        assertHasRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
@@ -148,7 +148,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
-        assertHasNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, task, result);
         assertNoDummyAccount("jack");
 	}
 
@@ -185,7 +185,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
-        assertHasRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");

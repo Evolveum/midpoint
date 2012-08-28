@@ -120,6 +120,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
@@ -221,6 +222,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "fullname");
 	protected static final PropertyPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = new PropertyPath(
 			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME);
+	
+	protected static final String ORG_MONKEY_ISLAND_FILENAME = COMMON_DIR_NAME + "/org-monkey-island.xml";
+	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
 	
 	protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
 
@@ -342,7 +346,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
 		addObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
 		addObjectFromFile(ROLE_DUMMIES_FILENAME, RoleType.class, initResult);
-
+		
+		// Orgstruct
+		addObjectsFromFile(ORG_MONKEY_ISLAND_FILENAME, OrgType.class, initResult);
+		
 	}
 	
 	private void extendDummySchema(DummyResource dummyResource) {
@@ -734,27 +741,41 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
-	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-	PolicyViolationException, SecurityViolationException {
-		modifyUserRoleAssignment(userOid, roleOid, task, true, result);
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, task, true, result);
 	}
 	
 	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 	PolicyViolationException, SecurityViolationException {
-		modifyUserRoleAssignment(userOid, roleOid, task, false, result);
+		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, task, false, result);
 	}
 	
-	protected void modifyUserRoleAssignment(String userOid, String roleOid, Task task, boolean add, OperationResult result) 
+	protected void assignOrg(String userOid, String orgOid, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, task, true, result);
+	}
+
+	protected void unassignOrg(String userOid, String orgOid, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, task, false, result);
+	}
+	
+	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, Task task, boolean add, OperationResult result) 
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<UserType> userDelta = createRoleAssignmentUserDelta(userOid, roleOid, add);
+		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, roleOid, refType, add);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);;
 		modelService.executeChanges(deltas, task, result);		
 	}
 	
-	protected ContainerDelta<AssignmentType> createRoleAssignmentModification(String roleOid, boolean add) throws SchemaException {
+	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
 		if (add) {
@@ -764,13 +785,13 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		}
 		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 		targetRef.getValue().setOid(roleOid);
-		targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);
+		targetRef.getValue().setTargetType(refType);
 		return assignmentDelta;
 	}
 	
-	protected ObjectDelta<UserType> createRoleAssignmentUserDelta(String userOid, String roleOid, boolean add) throws SchemaException {
+	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, boolean add) throws SchemaException {
 		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
-		modifications.add((createRoleAssignmentModification(roleOid, add)));
+		modifications.add((createAssignmentModification(roleOid, refType, add)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class);
 		return userDelta;
 	}
@@ -836,49 +857,93 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
         }
 	}
 	
-	protected void assertHasRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	protected void assertAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
-		assertHasRole(user, roleOid);
+		assertAssignedRole(user, roleOid);
 	}
 	
-	protected void assertHasRole(PrismObject<UserType> user, String roleOid) {
+	protected void assertAssignedRole(PrismObject<UserType> user, String roleOid) {
+		assertAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
+	}
+
+	protected void assertAssignedOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		assertAssignedOrg(user, orgOid);
+	}
+	
+	protected void assertAssignedOrg(PrismObject<UserType> user, String orgOid) {
+		assertAssigned(user, orgOid, OrgType.COMPLEX_TYPE);
+	}
+	
+	protected void assertHasOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		assertAssignedOrg(user, orgOid);
+	}
+	
+	protected void assertHasOrg(PrismObject<UserType> user, String orgOid) {
+		for (ObjectReferenceType orgRef: user.asObjectable().getOrgRef()) {
+			if (orgOid.equals(orgRef.getOid())) {
+				return;
+			}
+		}
+		AssertJUnit.fail(user + " does not have org " + orgOid);
+	}
+	
+	protected void assertHasNoOrg(PrismObject<UserType> user) {
+		assertTrue(user + " does have orgs "+user.asObjectable().getOrgRef()+" while not expecting them", user.asObjectable().getOrgRef().isEmpty());
+	}
+
+	protected void assertAssigned(PrismObject<UserType> user, String targetOid, QName refType) {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
 			if (targetRef != null) {
-				if (RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
-					if (roleOid.equals(targetRef.getOid())) {
+				if (refType.equals(targetRef.getType())) {
+					if (targetOid.equals(targetRef.getOid())) {
 						return;
 					}
 				}
 			}
 		}
-		AssertJUnit.fail(user + " does not have role "+roleOid);
+		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid);
 	}
 	
-	protected void assertHasNoRole(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	protected void assertAssignedNoOrg(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
-		assertHasNoRole(user);
+		assertAssignedNoOrg(user);
 	}
 	
-	protected void assertHasNoRole(PrismObject<UserType> user) {
+	protected void assertAssignedNoOrg(PrismObject<UserType> user) {
+		assertAssignedNo(user, OrgType.COMPLEX_TYPE);
+	}
+	
+	protected void assertAssignedNoRole(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		assertAssignedNoRole(user);
+	}
+	
+	protected void assertAssignedNoRole(PrismObject<UserType> user) {
+		assertAssignedNo(user, RoleType.COMPLEX_TYPE);
+	}
+		
+	protected void assertAssignedNo(PrismObject<UserType> user, QName refType) {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
 			if (targetRef != null) {
-				if (RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
+				if (refType.equals(targetRef.getType())) {
 					AssertJUnit.fail(user+" has role "+targetRef.getOid()+" while expected no roles");
 				}
 			}
 		}
 	}
 	
-	protected void assertHasAccountAssignment(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	protected void assertAssignedAccount(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
-		assertHasAccountAssignment(user, resourceOid);
+		assertAssignedAccount(user, resourceOid);
 	}
 	
-	protected void assertHasAccountAssignment(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
+	protected void assertAssignedAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			AccountConstructionType accountConstruction = assignmentType.getAccountConstruction();
@@ -891,7 +956,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		AssertJUnit.fail(user.toString()+" does not have account assignment for resource "+resourceOid);
 	}
 	
-	protected void assertHasNoAccountAssignment(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
+	protected void assertAssignedNoAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			AccountConstructionType accountConstruction = assignmentType.getAccountConstruction();

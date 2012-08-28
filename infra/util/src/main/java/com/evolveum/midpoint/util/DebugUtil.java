@@ -113,9 +113,13 @@ public class DebugUtil implements ObjectFormatter {
 		}
 	}
 	
-	public static void debugDumpWithLabel(StringBuilder sb, String label, DebugDumpable dd, int indent) {
+	public static void debugDumpLabel(StringBuilder sb, String label, int indent) {
 		indentDebugDump(sb, indent);
 		sb.append(label).append(":");
+	}
+	
+	public static void debugDumpWithLabel(StringBuilder sb, String label, DebugDumpable dd, int indent) {
+		debugDumpLabel(sb, label, indent);
 		if (dd == null) {
 			sb.append(" null");
 		} else {
@@ -125,8 +129,7 @@ public class DebugUtil implements ObjectFormatter {
 	}
 	
 	public static <K, V extends DebugDumpable> void debugDumpWithLabel(StringBuilder sb, String label, Map<K, V> map, int indent) {
-		indentDebugDump(sb, indent);
-		sb.append(label).append(":");
+		debugDumpLabel(sb, label, indent);
 		if (map == null) {
 			sb.append(" null");
 		} else {
@@ -136,8 +139,7 @@ public class DebugUtil implements ObjectFormatter {
 	}
 	
 	public static void debugDumpWithLabelToString(StringBuilder sb, String label, Object object, int indent) {
-		indentDebugDump(sb, indent);
-		sb.append(label).append(":");
+		debugDumpLabel(sb, label, indent);
 		if (object == null) {
 			sb.append(" null");
 		} else {

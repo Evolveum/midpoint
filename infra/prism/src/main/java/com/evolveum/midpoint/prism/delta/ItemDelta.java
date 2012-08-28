@@ -208,6 +208,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (valuesToAdd == null) {
 			valuesToAdd = newValueCollection();
 		}
+		if (valuesToAdd.contains(newValue)) {
+			return;
+		}
 		valuesToAdd.add(newValue);
 		newValue.setParent(this);
 		newValue.recompute();
@@ -232,6 +235,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		if (valuesToDelete == null) {
 			valuesToDelete = newValueCollection();
+		}
+		if (valuesToDelete.contains(newValue)) {
+			return;
 		}
 		valuesToDelete.add(newValue);
 		newValue.setParent(this);

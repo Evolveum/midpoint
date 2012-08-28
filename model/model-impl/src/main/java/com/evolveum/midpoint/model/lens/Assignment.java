@@ -22,11 +22,14 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 
 /**
@@ -36,9 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 public class Assignment implements DebugDumpable, Dumpable {
 
 	private Collection<AccountConstruction> accountConstructions;
+	private Collection<PrismObject<OrgType>> orgs;
 
 	public Assignment() {
 		accountConstructions = new ArrayList<AccountConstruction>();
+		orgs = new ArrayList<PrismObject<OrgType>>();
 	}
 	
 	public Collection<AccountConstruction> getAccountConstructions() {
@@ -47,6 +52,14 @@ public class Assignment implements DebugDumpable, Dumpable {
 
 	public void addAccountConstruction(AccountConstruction accpuntContruction) {
 		accountConstructions.add(accpuntContruction);
+	}
+	
+	public Collection<PrismObject<OrgType>> getOrgs() {
+		return orgs;
+	}
+
+	public void addOrg(PrismObject<OrgType> org) {
+		orgs.add(org);
 	}
 
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -70,20 +83,30 @@ public class Assignment implements DebugDumpable, Dumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		for (int i=0;i<indent;i++) {
-			sb.append(INDENT_STRING);
-		}
-		sb.append("Assignment");
-		for (AccountConstruction ac: accountConstructions) {
+		DebugUtil.debugDumpLabel(sb, "Assignment", indent);
+		if (!accountConstructions.isEmpty()) {
 			sb.append("\n");
-			sb.append(ac.debugDump(indent+1));
+			DebugUtil.debugDumpLabel(sb, "Accounts", indent+1);
+			for (AccountConstruction ac: accountConstructions) {
+				sb.append("\n");
+				sb.append(ac.debugDump(indent+2));
+			}
+		}
+		if (!orgs.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpLabel(sb, "Orgs", indent+1);
+			for (PrismObject<OrgType> org: orgs) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent+2);
+				sb.append(org.toString());
+			}
 		}
 		return sb.toString();
 	}
 
 	@Override
 	public String toString() {
-		return "Assignment(" + accountConstructions + ")";
+		return "Assignment(acc=" + accountConstructions + "; org="+orgs+")";
 	}
 	
 }

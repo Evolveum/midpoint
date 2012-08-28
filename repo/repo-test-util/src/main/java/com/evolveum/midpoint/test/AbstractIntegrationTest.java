@@ -20,8 +20,8 @@
  */
 package com.evolveum.midpoint.test;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -43,7 +43,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -137,10 +136,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.addParam("file", filePath);
 		LOGGER.trace("addObjectFromFile: {}", filePath);
 		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(new File(filePath), type);
-		System.out.println("obj: " + object.getName());
-		// OperationResult result = new
-		// OperationResult(AbstractIntegrationTest.class.getName() +
-		// ".addObjectFromFile");
+		addObject(type, object, result);
+		result.recordSuccess();
+		return object;
+	}
+		
+	protected <T extends ObjectType> void addObject(Class<T> type, PrismObject<T> object,
+			OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		if (object.canRepresent(TaskType.class)) {
 			Assert.assertNotNull(taskManager, "Task manager is not initialized");
 			try {
@@ -164,8 +166,20 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				throw ex;
 			}
 		}
+	}
+	
+	protected <T extends ObjectType> List<PrismObject<T>> addObjectsFromFile(String filePath, Class<T> type,
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException {
+		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
+				+ ".addObjectsFromFile");
+		result.addParam("file", filePath);
+		LOGGER.trace("addObjectsFromFile: {}", filePath);
+		List<PrismObject<T>> objects = (List) PrismTestUtil.parseObjects(new File(filePath));
+		for (PrismObject<T> object: objects) {
+			addObject(type, object, result);
+		}
 		result.recordSuccess();
-		return object;
+		return objects;
 	}
 	
 	protected <T extends ObjectType> T parseObjectTypeFromFile(String fileName, Class<T> clazz) throws SchemaException {

@@ -120,6 +120,7 @@ public class Projector {
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
 		        assignmentProcessor.processAssignmentsProjections(context, result);
+		        assignmentProcessor.processOrgAssignments(context, result);
 		        context.recompute();
 		        sortAccountsToWaves(context);
 		        maxWaves = context.getMaxWave() + 2;

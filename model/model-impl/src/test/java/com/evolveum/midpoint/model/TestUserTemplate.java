@@ -141,8 +141,8 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack, "Jackie Sparrow", "Jackie", "Sparrow");
         
-        assertHasAccountAssignment(userJack, RESOURCE_DUMMY_BLUE_OID);
-        assertHasNoRole(userJack);
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedNoRole(userJack);
         
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
@@ -169,8 +169,8 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 		// THEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         
-        assertHasAccountAssignment(userJack, RESOURCE_DUMMY_BLUE_OID);
-        assertHasRole(userJack, ROLE_PIRATE_OID);
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userJack, ROLE_PIRATE_OID);
         
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
