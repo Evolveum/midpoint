@@ -37,7 +37,7 @@ public class Node<T> extends StyledLinkLabel<T> {
 	private AbstractTree<T> tree;
 
 	public Node(String id, AbstractTree<T> tree, IModel<T> model) {
-		super(id, model);
+		super(id, tree, model);
 
 		this.tree = tree;
 	}
@@ -65,6 +65,7 @@ public class Node<T> extends StyledLinkLabel<T> {
 		} else {
 			tree.expand(t);
 		}
+		target.appendJavaScript("initMenuButtons()");
 	}
 
 	/**
@@ -135,12 +136,6 @@ public class Node<T> extends StyledLinkLabel<T> {
 		return "selected";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.evolveum.midpoint.web.component.orgStruct.StyledLinkLabel#
-	 * getButtonStyleClass()
-	 */
 
 	protected String getButtonStyle(T t) {
 		String buttonStyleClass;

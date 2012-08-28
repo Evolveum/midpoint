@@ -21,12 +21,17 @@
 
 <body>
 
-<wicket:panel>
-	<a wicket:id="link">
-		<span class="tree-label" wicket:id="label">[label]</span>
-	</a>
-	<div class="treeButtonMenu" wicket:id="treeButton"/>
-</wicket:panel>
+	<wicket:panel>
+		<a wicket:id="link"> <span class="tree-label" wicket:id="label">[label]</span></a>
+		<div class="treeButtonMenu" wicket:id="treeButton" />
+		<div class="menuPanel" wicket:id="menuPanel">
+			<table>
+				<tr wicket:id="menu">
+					<td><span class="orgUnitMenuItem" wicket:id="menuItem" /></td>
+				</tr>
+			</table>
+		</div>
+	</wicket:panel>
 
 </body>
 

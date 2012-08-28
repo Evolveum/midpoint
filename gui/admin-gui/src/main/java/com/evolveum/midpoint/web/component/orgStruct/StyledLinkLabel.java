@@ -20,6 +20,9 @@
  */
 package com.evolveum.midpoint.web.component.orgStruct;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -30,22 +33,30 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
+import wickettree.AbstractTree;
+
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+
 /**
  * @author mserbak
  */
-public abstract class StyledLinkLabel<T> extends Panel {
+public abstract class StyledLinkLabel<NodeDto> extends Panel {
 	private static final StyleBehavior STYLE_CLASS = new StyleBehavior();
 	private static final ButtonStyleBehavior BUTTON_STYLE_CLASS = new ButtonStyleBehavior();
 
-	private static final long serialVersionUID = 1L;
+	private AbstractTree<NodeDto> tree;
 
-	public StyledLinkLabel(String id, IModel<T> model) {
+	public StyledLinkLabel(String id, AbstractTree<NodeDto> tree, IModel<NodeDto> model) {
 		super(id, model);
-
+		this.tree = tree;
 		MarkupContainer link = newLinkComponent("link", model);
 		link.add(STYLE_CLASS);
 		add(link);
@@ -53,31 +64,23 @@ public abstract class StyledLinkLabel<T> extends Panel {
 		link.add(newLabelComponent("label", model));
 
 		WebMarkupContainer treeButton = new WebMarkupContainer("treeButton");
+		treeButton.setOutputMarkupId(true);
 		add(treeButton);
-
 		treeButton.add(BUTTON_STYLE_CLASS);
+		
+		createMenu(treeButton.getMarkupId(), model);
 	}
 
 	@SuppressWarnings("unchecked")
-	public IModel<T> getModel() {
-		return (IModel<T>) getDefaultModel();
+	public IModel<NodeDto> getModel() {
+		return (IModel<NodeDto>) getDefaultModel();
 	}
 
-	public T getModelObject() {
+	public NodeDto getModelObject() {
 		return getModel().getObject();
 	}
 
-	/**
-	 * Hook method to create a new link component.
-	 * 
-	 * This default implementation returns an {@link AjaxFallbackLink} which
-	 * invokes {@link #onClick(AjaxRequestTarget)} only if
-	 * {@link #isClickable()} returns <code>true</code>.
-	 * 
-	 * @see #isClickable()
-	 * @see #onClick(AjaxRequestTarget)
-	 */
-	protected MarkupContainer newLinkComponent(String id, IModel<T> model) {
+	protected MarkupContainer newLinkComponent(String id, IModel<NodeDto> model) {
 		return new AjaxFallbackLink<Void>(id) {
 			private static final long serialVersionUID = 1L;
 
@@ -93,64 +96,25 @@ public abstract class StyledLinkLabel<T> extends Panel {
 		};
 	}
 
-	/**
-	 * Hook method to create a new label component.
-	 * 
-	 * @param id
-	 * @param model
-	 * @return created component
-	 * 
-	 * @see #newLabelModel(IModel)
-	 */
-	protected Component newLabelComponent(String id, IModel<T> model) {
+	protected Component newLabelComponent(String id, IModel<NodeDto> model) {
 		return new Label(id, newLabelModel(model));
 	}
 
-	/**
-	 * Create the model for the label, defaults to the model itself.
-	 * 
-	 * @param model
-	 * @return wrapping model
-	 */
-	protected IModel<?> newLabelModel(IModel<T> model) {
+	protected IModel<?> newLabelModel(IModel<NodeDto> model) {
 		return model;
 	}
 
-	/**
-	 * Get a style class for the link.
-	 */
 	protected abstract String getStyleClass();
 
-	/**
-	 * Get a style class for the button.
-	 */
 	protected abstract String getButtonStyleClass();
 
-	/**
-	 * Clicking is disabled by default, override this method if you want your
-	 * link to be enabled.
-	 * 
-	 * @see #newLinkComponent(String, IModel)
-	 * @see #isClickable()
-	 */
 	protected boolean isClickable() {
 		return false;
 	}
 
-	/**
-	 * Hook method to be notified of a click on the link.
-	 * 
-	 * @param target
-	 * 
-	 * @see #newLinkComponent(String, IModel)
-	 * @see #isClickable()
-	 */
 	protected void onClick(AjaxRequestTarget target) {
 	}
 
-	/**
-	 * Behavior to add a style class attribute to a contained link.
-	 */
 	private static class StyleBehavior extends Behavior {
 
 		@Override
@@ -164,9 +128,6 @@ public abstract class StyledLinkLabel<T> extends Panel {
 		}
 	}
 
-	/**
-	 * Behavior to add a style class attribute to a contained button.
-	 */
 	private static class ButtonStyleBehavior extends Behavior {
 
 		@Override
@@ -187,6 +148,45 @@ public abstract class StyledLinkLabel<T> extends Panel {
 		response.renderCSSReference(new PackageResourceReference(OrgStructPanel.class, "StyledLinkLabel.css"));
 		response.renderJavaScriptReference(new PackageResourceReference(OrgStructPanel.class,
 				"StyledLinkLabel.js"));
-		response.renderOnLoadJavaScript("initOrgStruct()");
+		response.renderOnLoadJavaScript("initMenuButtons()");
 	}
+	
+	private void createMenu(String id, IModel<NodeDto> model) {
+		WebMarkupContainer panel = new WebMarkupContainer("menuPanel");
+        ListView<String> menu = new ListView<String>("menu", createMenuItemModel(model)) {
+
+            @Override
+            protected void populateItem(ListItem<String> item) {
+                item.add(new Label("menuItem", item.getModel()));
+            }
+        };
+        panel.add(menu);
+        add(panel);
+        panel.setMarkupId(id + "_panel");
+    }
+	
+	private IModel<List<String>> createMenuItemModel (final IModel<NodeDto> model) {
+        return new LoadableModel<List<String>>(false) {
+
+            @Override
+            protected List<String> load() {
+            	List<String> list = new ArrayList<String>();
+            	NodeDto dto = model.getObject();
+            	if (tree.getProvider().hasChildren(dto)) {
+            		list.add("Edit");
+            		list.add("Rename");
+            		list.add("Create sub-unit");
+            		list.add("Delete / Deprecate");
+        		} else {
+        			list.add("Edit");
+        			list.add("Move");
+            		list.add("Rename");
+            		list.add("Enable");
+            		list.add("Disable");
+            		list.add("Change attributes");
+        		}
+            	return list;
+            }
+        };
+    }
 }

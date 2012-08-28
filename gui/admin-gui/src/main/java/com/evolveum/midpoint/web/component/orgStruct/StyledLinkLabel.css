@@ -27,7 +27,32 @@
 	display: inline;
 }
 
-.treeButtonMenu:hover {
+.menuPanel {
+	display: none;
+	margin: 8px 0 0 23px;
+	position: absolute;
+	background: white;
+	padding: 10px 0px;
+	border: 1px solid #7e7e7e;
+	border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	-moz-box-shadow: 2px 2px 3px -1px rgba(0, 0, 0, 8);
+	-webkit-box-shadow: 2px 2px 3px -1px rgba(0, 0, 0, 8);
+    box-shadow: 2px 2px 3px -1px rgba(0, 0, 0, 0.8);
+}
+.menuPanel table {
+	padding: 0px;
+	border-collapse: collapse;
+}
+
+.menuPanel table td {
+	font-size: 13px;
+    padding: 2px 15px;
+	color: #606060;
+}
+
+.treeButtonMenu:hover, .menuPanel table td:hover {
 	cursor: pointer;
 }
 
@@ -47,4 +72,8 @@
 
 .treeButtonMenu.userButton:hover {
 	background-image: url("OrgUserButtonOver.png");
+}
+
+.content {
+	padding: 0 55px 100px;
 }
