@@ -1023,13 +1023,60 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
+			//do not delete the account to search, it will be used in the next test
+//			try {
+//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_SEARCH_OID, result);
+//			} catch (Exception ex) {
+//			}
+		}
+	}
+
+	@Test
+	public void testSearchObjectsCompexFilter() throws Exception {
+		displayTestTile("testSearchObjects");
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".searchObjectsTest");
+
+		try {
+//			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_SEARCH, AccountShadowType.class); 
+//				//unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
+//
+//			System.out.println(SchemaDebugUtil.prettyPrint(object));
+//			System.out.println(object.asPrismObject().dump());
+
+//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+//			assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
+
+			QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-complex-filter.xml"), 
+					QueryType.class);
+			ObjectQuery query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
+
+			List<PrismObject<AccountShadowType>> objListType = 
+				provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), result);
+			
+			for (PrismObject<AccountShadowType> objType : objListType) {
+				if (objType == null) {
+					System.out.println("Object not found in repository.");
+				} else {
+					System.out.println("found object: " + objType.asObjectable().getName());
+				}
+			}
+		} finally {
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
+			} catch (Exception ex) {
+			}
 			try {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_SEARCH_OID, result);
 			} catch (Exception ex) {
 			}
 		}
 	}
-
 	
 	public void testAddObjectObjectAlreadyExist() throws Exception{
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()

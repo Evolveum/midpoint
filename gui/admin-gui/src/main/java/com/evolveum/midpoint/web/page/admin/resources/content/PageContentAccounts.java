@@ -25,13 +25,17 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
@@ -40,6 +44,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -390,12 +395,15 @@ public class PageContentAccounts extends PageAdminResources {
         }
 
         try {
-        	ObjectQuery query = new ObjectQuery();
-            Document document = DOMUtil.getDocument();
+        	ObjectQuery query = null;//new ObjectQuery();
+//            Document document = DOMUtil.getDocument();
 
             List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
+            ObjectClassComplexTypeDefinition def = getAccountDefinition();
+            PrismObject<ResourceType> resource = resourceModel.getObject();
+//            query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), def.getTypeName(), getPrismContext());
             if (dto.isIdentifiers()) {
-                ObjectClassComplexTypeDefinition def = getAccountDefinition();
+                
                 List<ResourceAttributeDefinition> identifiers = new ArrayList<ResourceAttributeDefinition>();
                 if (def.getIdentifiers() != null) {
                     identifiers.addAll(def.getIdentifiers());
@@ -403,9 +411,9 @@ public class PageContentAccounts extends PageAdminResources {
 //                if (def.getSecondaryIdentifiers() != null) {
 //                    identifiers.addAll(def.getIdentifiers());
 //                }
-                XPathHolder attributes = new XPathHolder(Arrays.asList(new XPathSegment(SchemaConstants.I_ATTRIBUTES)));
+//                XPathHolder attributes = new XPathHolder(Arrays.asList(new XPathSegment(SchemaConstants.I_ATTRIBUTES)));
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(SubstringFilter.createSubstring(attrDef.getClass(), getPrismContext(), attrDef.getName(), dto.getSearchText()));
+                    conditions.add(SubstringFilter.createSubstring(new PropertyPath(AccountShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
                 }
             }
 
@@ -415,9 +423,9 @@ public class PageContentAccounts extends PageAdminResources {
 
             if (!conditions.isEmpty()) {
                 if (conditions.size() > 1) {
-                	query.createObjectQuery(OrFilter.createOr(conditions)); 
+                	query = ObjectQuery.createObjectQuery(OrFilter.createOr(conditions)); 
                 } else {
-                	query.createObjectQuery(conditions.get(0));
+                	query = ObjectQuery.createObjectQuery(conditions.get(0));
                 }
             }
 

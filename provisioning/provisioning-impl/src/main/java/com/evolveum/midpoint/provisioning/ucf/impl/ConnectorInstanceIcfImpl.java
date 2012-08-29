@@ -31,6 +31,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.query.FilterInterpreter;
+import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -65,6 +67,7 @@ import org.identityconnectors.framework.api.operations.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
+import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1371,106 +1374,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-//	@Deprecated
-//	@Override
-//	public <T extends ResourceObjectShadowType> void search(Class<T> type,
-//			ObjectClassComplexTypeDefinition objectClassDefinition, QueryType query,
-//			final ResultHandler<T> handler, OperationResult parentResult) throws CommunicationException,
-//			GenericFrameworkException, SchemaException {
-//
-//		// Result type for this operation
-//		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-//				+ ".search");
-//		result.addParam("objectClass", objectClassDefinition);
-//		result.addContext("connector", connectorType);
-//
-//		if (objectClassDefinition == null) {
-//			result.recordFatalError("Object class not defined");
-//			throw new IllegalArgumentException("objectClass not defined");
-//		}
-//
-//		ObjectClass icfObjectClass = objectClassToIcf(objectClassDefinition);
-//		if (icfObjectClass == null) {
-//			IllegalArgumentException ex = new IllegalArgumentException(
-//					"Unable to detemine object class from QName " + objectClassDefinition
-//							+ " while attempting to search objects by "
-//							+ ObjectTypeUtil.toShortString(connectorType));
-//			result.recordFatalError("Unable to detemine object class", ex);
-//			throw ex;
-//		}
-//		final PrismObjectDefinition<T> objectDefinition = toShadowDefinition(objectClassDefinition);
-//
-//		ResultsHandler icfHandler = new ResultsHandler() {
-//			@Override
-//			public boolean handle(ConnectorObject connectorObject) {
-//				// Convert ICF-specific connector object to a generic
-//				// ResourceObject
-//				PrismObject<T> resourceObject;
-//				try {
-//					resourceObject = convertToResourceObject(connectorObject, objectDefinition, true);
-//				} catch (SchemaException e) {
-//					throw new IntermediateException(e);
-//				}
-//
-//				// .. and pass it to the handler
-//				boolean cont = handler.handle(resourceObject);
-//				if (!cont) {
-//					result.recordPartialError("Stopped on request from the handler");
-//				}
-//				return cont;
-//			}
-//		};
-//
-//		// Connector operation cannot create result for itself, so we need to
-//		// create result for it
-//		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".search");
-//		icfResult.addParam("objectClass", icfObjectClass);
-//		icfResult.addContext("connector", icfConnectorFacade.getClass());
-//
-//		try {
-//
-//			Attribute connectorAttribute = null;
-//			if (query != null) {
-//				Element filter = query.getFilter();
-//				if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_EQUAL, filter)) {
-//					if (filter.getChildNodes().getLength() > 1) {
-//						throw new UnsupportedOperationException("Support for only one attribute filter.");
-//					}
-//					Node node = filter.getFirstChild();
-//					if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_VALUE, node)) {
-//						String icfAttrName = convertAttributeNameToIcf(QNameUtil.getNodeQName(node.getFirstChild()),
-//								parentResult);
-//						Object value = convertValueToIcf(node.getFirstChild().getTextContent(), QNameUtil.getNodeQName(node.getFirstChild()));
-//						connectorAttribute = AttributeBuilder.build(icfAttrName, value);
-//					}
-//				}
-//
-//			}
-//			EqualsFilter equalsFilter = null;
-//			if (connectorAttribute != null) {
-//				equalsFilter = new EqualsFilter(connectorAttribute);
-//			}
-//			icfConnectorFacade.search(icfObjectClass, equalsFilter, icfHandler, null);
-//
-//			icfResult.recordSuccess();
-//		} catch (IntermediateException inex) {
-//			SchemaException ex = (SchemaException) inex.getCause();
-//			throw ex;
-//		} catch (Exception ex) {
-//			// ICF interface does not specify exceptions or other error
-//			// conditions.
-//			// Therefore this kind of heavy artillery is necessary.
-//			// TODO maybe we can try to catch at least some specific exceptions
-//			icfResult.recordFatalError(ex);
-//			result.recordFatalError("ICF invocation failed");
-//			// This is fatal. No point in continuing.
-//			throw new GenericFrameworkException(ex);
-//		}
-//
-//		if (result.isUnknown()) {
-//			result.recordSuccess();
-//		}
-//	}
 
 	@Override
 	public <T extends ResourceObjectShadowType> void search(Class<T> type,
@@ -1529,29 +1432,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 
-			//TODO : translation between connector filter and midpoint filter
-//			Attribute connectorAttribute = null;
-//			if (query != null) {
-//				Element filter = query.getFilter();
-//				if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_EQUAL, filter)) {
-//					if (filter.getChildNodes().getLength() > 1) {
-//						throw new UnsupportedOperationException("Support for only one attribute filter.");
-//					}
-//					Node node = filter.getFirstChild();
-//					if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_VALUE, node)) {
-//						String icfAttrName = convertAttributeNameToIcf(QNameUtil.getNodeQName(node.getFirstChild()),
-//								parentResult);
-//						Object value = convertValueToIcf(node.getFirstChild().getTextContent(), QNameUtil.getNodeQName(node.getFirstChild()));
-//						connectorAttribute = AttributeBuilder.build(icfAttrName, value);
-//					}
-//				}
-//
-//			}
-			EqualsFilter equalsFilter = null;
-//			if (connectorAttribute != null) {
-//				equalsFilter = new EqualsFilter(connectorAttribute);
-//			}
-			icfConnectorFacade.search(icfObjectClass, equalsFilter, icfHandler, null);
+			Filter filter = null;
+			if (query != null && query.getFilter() != null) {
+				// TODO : translation between connector filter and midpoint
+				// filter
+				FilterInterpreter interpreter = new FilterInterpreter(getSchemaNamespace());
+				LOGGER.trace("Start to convert filter: {}", query.getFilter().dump());
+				filter = interpreter.interpret(query.getFilter());
+
+				LOGGER.trace("ICF filter: {}", filter.toString());
+			}
+			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, null);
 
 			icfResult.recordSuccess();
 		} catch (IntermediateException inex) {
@@ -1590,30 +1481,30 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return attrXsdName;
 	}
 
-	private String convertAttributeNameToIcf(QName attrQName, OperationResult parentResult)
-			throws SchemaException {
-		// Attribute QNames in the resource instance namespace are converted
-		// "as is"
-		if (attrQName.getNamespaceURI().equals(getSchemaNamespace())) {
-			return attrQName.getLocalPart();
-		}
-
-		// Other namespace are special cases
-
-		if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(attrQName)) {
-			return Name.NAME;
-		}
-
-		if (ConnectorFactoryIcfImpl.ICFS_UID.equals(attrQName)) {
-			// UID is strictly speaking not an attribute. But it acts as an
-			// attribute e.g. in create operation. Therefore we need to map it.
-			return Uid.NAME;
-		}
-
-		// No mapping available
-
-		throw new SchemaException("No mapping from QName " + attrQName + " to an ICF attribute name");
-	}
+//	private String convertAttributeNameToIcf(QName attrQName, OperationResult parentResult)
+//			throws SchemaException {
+//		// Attribute QNames in the resource instance namespace are converted
+//		// "as is"
+//		if (attrQName.getNamespaceURI().equals(getSchemaNamespace())) {
+//			return attrQName.getLocalPart();
+//		}
+//
+//		// Other namespace are special cases
+//
+//		if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(attrQName)) {
+//			return Name.NAME;
+//		}
+//
+//		if (ConnectorFactoryIcfImpl.ICFS_UID.equals(attrQName)) {
+//			// UID is strictly speaking not an attribute. But it acts as an
+//			// attribute e.g. in create operation. Therefore we need to map it.
+//			return Uid.NAME;
+//		}
+//
+//		// No mapping available
+//
+//		throw new SchemaException("No mapping from QName " + attrQName + " to an ICF attribute name");
+//	}
 
 	/**
 	 * Maps ICF native objectclass name to a midPoint QName objctclass name.
@@ -1893,11 +1784,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		for (ResourceAttribute<?> attribute : resourceAttributes) {
 
-			String attrName = convertAttributeNameToIcf(attribute.getName(), parentResult);
+			String attrName = UcfUtil.convertAttributeNameToIcf(attribute.getName(), getSchemaNamespace(), parentResult);
 
 			Set<Object> convertedAttributeValues = new HashSet<Object>();
 			for (PrismPropertyValue<?> value : attribute.getValues()) {
-				convertedAttributeValues.add(convertValueToIcf(value, attribute.getName()));
+				convertedAttributeValues.add(UcfUtil.convertValueToIcf(value, protector, attribute.getName()));
 			}
 
 			Attribute connectorAttribute = AttributeBuilder.build(attrName, convertedAttributeValues);
@@ -1907,21 +1798,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return attributes;
 	}
 
-	private Object convertValueToIcf(Object value, QName propName) throws SchemaException {
-		if (value == null) {
-			return null;
-		}
-
-		if (value instanceof PrismPropertyValue) {
-			return convertValueToIcf(((PrismPropertyValue) value).getValue(), propName);
-		}
-
-		if (value instanceof ProtectedStringType) {
-			ProtectedStringType ps = (ProtectedStringType) value;
-			return toGuardedString(ps, propName.toString());
-		}
-		return value;
-	}
+//	private Object convertValueToIcf(Object value, QName propName) throws SchemaException {
+//		if (value == null) {
+//			return null;
+//		}
+//
+//		if (value instanceof PrismPropertyValue) {
+//			return convertValueToIcf(((PrismPropertyValue) value).getValue(), propName);
+//		}
+//
+//		if (value instanceof ProtectedStringType) {
+//			ProtectedStringType ps = (ProtectedStringType) value;
+//			return toGuardedString(ps, propName.toString());
+//		}
+//		return value;
+//	}
 
 	private Object convertValueFromIcf(Object icfValue, QName propName) {
 		if (icfValue == null) {

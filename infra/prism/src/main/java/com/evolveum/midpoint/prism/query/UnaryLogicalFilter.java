@@ -15,20 +15,22 @@ public abstract class UnaryLogicalFilter extends LogicalFilter {
 	}
 
 	public ObjectFilter getFilter() {
-		if (getCondition().isEmpty()) {
+		if (condition == null) {
 			return null;
 		}
-		if (getCondition().size() == 1) {
-			return getCondition().get(0);
+		if (condition.isEmpty()) {
+			return null;
+		}
+		if (condition.size() == 1) {
+			return condition.get(0);
 		}
 		throw new IllegalStateException("Unary logical filter can contains only one value, but contains "
-				+ getCondition().size());
+				+ condition.size());
 	}
 	
 	public void setFilter(ObjectFilter filter){
-		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
-		conditions.add(filter);
-		setCondition(conditions);
+		condition = new ArrayList<ObjectFilter>();
+		condition.add(filter);
 	}
 
 }

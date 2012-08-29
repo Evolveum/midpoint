@@ -476,7 +476,7 @@ public class ShadowCacheUtil {
 		//
 		// Object identifier = values.get(0);
 
-		List<EqualsFilter> conditions = new ArrayList<EqualsFilter>();
+		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
 		for (PrismProperty<?> identifier : identifiers) {
 			EqualsFilter filter = EqualsFilter.createEqual(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES),
 					identifier.getDefinition(), identifier.getValue());

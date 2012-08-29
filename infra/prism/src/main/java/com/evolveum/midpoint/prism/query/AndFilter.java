@@ -9,7 +9,7 @@ import com.evolveum.midpoint.util.Dumpable;
 public class AndFilter extends NaryLogicalFilter{
 	
 	
-	public AndFilter(List<? extends ObjectFilter> condition) {
+	public AndFilter(List<ObjectFilter> condition) {
 		super(condition);
 
 	}
@@ -24,7 +24,7 @@ public class AndFilter extends NaryLogicalFilter{
 		return new AndFilter(filters);
 	}
 	
-	public static AndFilter createAnd(List<? extends ObjectFilter> conditions){
+	public static AndFilter createAnd(List<ObjectFilter> conditions){
 		return new AndFilter(conditions);
 	}
 	

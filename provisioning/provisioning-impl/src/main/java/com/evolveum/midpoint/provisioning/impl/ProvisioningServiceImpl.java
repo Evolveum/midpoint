@@ -54,8 +54,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -950,7 +953,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 //		 }
 		String resourceOid = null;
 		QName objectClass = null;
-		List<ObjectFilter> attributeFilter = null;
+		List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
 //		List<NodeList> attributeFilter = new ArrayList<NodeList>();
 
 		ObjectQuery attributeQuery = null;
@@ -960,7 +963,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getCondition();
 			resourceOid = getResourceOidFromFilter(conditions);
 			objectClass = getObjectClassFromFilter(conditions);
-			attributeFilter = getAttributeQuery(conditions);
+			attributeFilter = getAttributeQuery(conditions, attributeFilter);
 			if (attributeFilter.size() > 1){
 				attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
 			}
@@ -1064,6 +1067,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					}
 					return ((PrismReferenceValue)values.get(0)).getOid();
 				}
+				if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())){
+					return getResourceOidFromFilter(((NaryLogicalFilter) f).getCondition());
+				}
 			}
 			
 			return null;
@@ -1087,6 +1093,9 @@ private QName getObjectClassFromFilter(List<? extends ObjectFilter> conditions) 
 					
 					return (QName) ((PrismPropertyValue)values.get(0)).getValue();
 				}
+				if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())){
+					return getObjectClassFromFilter(((NaryLogicalFilter) f).getCondition());
+				}
 			}
 			
 			return null;
@@ -1096,9 +1105,9 @@ private QName getObjectClassFromFilter(List<? extends ObjectFilter> conditions) 
 		
 	}
 
-private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions) throws SchemaException{
+private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions, List<ObjectFilter> attributeFilter) throws SchemaException{
 	
-	List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
+//	List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
 	
 		for (ObjectFilter f : conditions){
 			if (f instanceof EqualsFilter){
@@ -1108,9 +1117,14 @@ private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> condit
 				if (ResourceObjectShadowType.F_RESOURCE_REF.equals(((EqualsFilter) f).getDefinition().getName())){
 					continue;
 				}
+				
+				attributeFilter.add(f);
+			} else if (f instanceof NaryLogicalFilter){
+				attributeFilter = getAttributeQuery(((NaryLogicalFilter) f).getCondition(), attributeFilter);
+			} else if (f instanceof SubstringFilter){
+				attributeFilter.add(f);
 			}
 			
-			attributeFilter.add(f);
 		}
 		
 		return attributeFilter;

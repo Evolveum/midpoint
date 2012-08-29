@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.prism.query;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class NaryLogicalFilter extends LogicalFilter{
@@ -8,10 +9,22 @@ public class NaryLogicalFilter extends LogicalFilter{
 		super();
 	}
 	
-	public NaryLogicalFilter(List<? extends ObjectFilter> conditions) {
+	public NaryLogicalFilter(List<ObjectFilter> conditions) {
 		super();
 		setCondition(conditions);
 	}
+	
+	public List<ObjectFilter> getCondition() {
+		if (condition == null){
+			condition = new ArrayList<ObjectFilter>();
+		}
+		return condition;
+	}
+	
+	public void setCondition(List<ObjectFilter> condition) {
+		this.condition = condition;
+	}
+
 
 	@Override
 	public String dump() {

@@ -5,24 +5,14 @@ import java.util.List;
 
 public abstract class LogicalFilter extends ObjectFilter{
 	
-	private List<? extends ObjectFilter> condition;
+	protected List<ObjectFilter> condition;
 	
 	public LogicalFilter(){
 
 	}
 	
 	
-	public List<? extends ObjectFilter> getCondition() {
-		if (condition == null){
-			condition = new ArrayList<ObjectFilter>();
-		}
-		return condition;
-	}
 	
-	public void setCondition(List<? extends ObjectFilter> condition) {
-		this.condition = condition;
-	}
-
 
 //	@Override
 //	public String dump() {

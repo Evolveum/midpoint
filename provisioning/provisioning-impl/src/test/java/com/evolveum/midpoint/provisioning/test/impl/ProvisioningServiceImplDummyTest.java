@@ -803,8 +803,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				ResourceObjectShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext,
 				RESOURCE_DUMMY_OID), EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext,
 				ResourceObjectShadowType.F_OBJECT_CLASS, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
-						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME)), EqualsFilter.createEqual(
-				ResourceObjectShadowType.class, prismContext, ResourceObjectShadowType.F_NAME, "will")));
+						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME))));
+		//, EqualsFilter.createEqual(
+			//	ResourceObjectShadowType.class, prismContext, new QName(resource.asObjectable().getNamespace(), "uid"), "will")));
 
 		final List<AccountShadowType> foundObjects = new ArrayList<AccountShadowType>();
 		ResultHandler<AccountShadowType> handler = new ResultHandler<AccountShadowType>() {

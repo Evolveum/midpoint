@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+<q:query xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+	xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
+   http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-2.xsd'
+	xmlns:foo="http://foo.com/" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
+
+   <!-- Query filter example -->
+
+    <q:and>
+        <q:equal>
+            <q:value>
+                <i:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+            </q:value>
+        </q:equal>
+        <q:equal>
+            <q:value>
+                <i:objectClass>ri:AccountObjectClass</i:objectClass>
+            </q:value>
+        </q:equal>
+        <q:equal>
+        <q:path>c:attributes</q:path>
+            <q:value>
+                <icfs:name>uid=will123,ou=People,dc=example,dc=com</icfs:name>
+            </q:value>
+        </q:equal>
+        <q:equal>
+        <q:path>c:attributes</q:path>
+            <q:value>
+                <ri:cn xsi:type="xsd:string">Will Turner</ri:cn>
+            </q:value>
+        </q:equal>
+        <q:equal>
+        <q:path>c:attributes</q:path>
+            <q:value>
+                <ri:givenName xsi:type="xsd:string">Will</ri:givenName>
+            </q:value>
+        </q:equal>
+        <q:equal>
+        <q:path>c:attributes</q:path>
+            <q:value>
+                <ri:sn xsi:type="xsd:string">Turner</ri:sn>
+            </q:value>
+        </q:equal>
+    </q:and>
+</q:query>

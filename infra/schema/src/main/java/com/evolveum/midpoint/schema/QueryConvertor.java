@@ -327,7 +327,10 @@ public class QueryConvertor {
 			pcd = pcd.findContainerDefinition(path);
 		}
 
-		Collection<Item> items = pcd.getPrismContext().getPrismDomProcessor().parsePrismContainerItems(values, pcd);
+		List<Object> objects = new ArrayList<Object>();
+		objects.addAll(values);
+		
+		Collection<Item> items = pcd.getPrismContext().getPrismDomProcessor().parseContainerItems(pcd, objects);
 
 		if (items.size() > 1) {
 			throw new SchemaException("Expected presence of a single item (path " + path

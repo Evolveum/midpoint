@@ -8,7 +8,7 @@ import com.evolveum.midpoint.util.Dumpable;
 
 public class OrFilter extends NaryLogicalFilter {
 
-	public OrFilter(List<? extends ObjectFilter> condition) {
+	public OrFilter(List<ObjectFilter> condition) {
 		super(condition);
 	}
 
