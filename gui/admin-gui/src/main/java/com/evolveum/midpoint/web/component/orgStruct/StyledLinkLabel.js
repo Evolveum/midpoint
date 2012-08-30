@@ -21,12 +21,10 @@
 
 var cssInPanel = {
 	'background' : '#e3e3e3',
-	'color' : '#000000'
 };
 
 var cssOutPanel = {
 	'background' : '#FFFFFF',
-	'color' : '#606060'
 };
 
 function initMenuButtons() {

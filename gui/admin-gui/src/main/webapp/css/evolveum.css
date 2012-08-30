@@ -805,7 +805,7 @@ div.tabPanel div.tab-row li {
     margin: 0;
     padding: 0;
 }
-div.tabPanel div.tab-row a:link {
+div.tabPanel div.tab-row a {
     background: #FFFFFF;
     border: 1px solid #CCCCCC;
     color: #000000;
@@ -818,7 +818,7 @@ div.tabPanel div.tab-row a:link {
     text-decoration: none;
     border-bottom: #333333;
 }
-div.tabPanel div.tab-row li.selected a:link {
+div.tabPanel div.tab-row li.selected a {
     background: #333333;
     color: #FFFFFF;
 }
