@@ -447,7 +447,7 @@ input:focus, .button:focus, select:focus, option:focus {
 	left: 60px;
 	width: auto;
 	display: block;
-	z-index: 2;
+	z-index: 4;
 	bottom: 5px;
 }
 
@@ -805,7 +805,7 @@ div.tabPanel div.tab-row li {
     margin: 0;
     padding: 0;
 }
-div.tabPanel div.tab-row a:link, div.tabPanel div.tab-row a:visited {
+div.tabPanel div.tab-row a:link {
     background: #FFFFFF;
     border: 1px solid #CCCCCC;
     color: #000000;
@@ -818,9 +818,8 @@ div.tabPanel div.tab-row a:link, div.tabPanel div.tab-row a:visited {
     text-decoration: none;
     border-bottom: #333333;
 }
-div.tabPanel div.tab-row li.selected a:link, div.tabPanel div.tab-row a.active:visited {
+div.tabPanel div.tab-row li.selected a:link {
     background: #333333;
-    border-bottom: 1px solid #333333;
     color: #FFFFFF;
 }
 div.tabPanel div.tab-row a:hover {
