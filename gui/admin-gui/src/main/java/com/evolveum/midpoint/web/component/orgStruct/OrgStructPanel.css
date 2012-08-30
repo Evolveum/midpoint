@@ -22,8 +22,7 @@
 	padding: 10px;
 }
 
-span.tree-content a {
-	font-weight: bold;
+.tree-node span.tree-content a {
 	font-size: 13px;
 }
 
@@ -33,14 +32,20 @@ a.tree-junction-expanded {
 
 .tree-folder-open, .tree-folder-closed {
 	background-image: url("OrgUnit.png");
+	font-weight: bold;
 }
 
 .tree-node, .tree-node a, span.tree-junction {
-	height: 25px;
+	height: 30px;
 }
 
 span.tree-content {
-    padding: 4px 3px;
+    padding: 7px 3px;
+    border-bottom: 1px solid #F2F2F2;
+}
+
+span.tree-content:hover {
+    background: #F2F2F2;
 }
 
 span.tree-content a.tree-folder-other:hover {
@@ -50,11 +55,17 @@ span.tree-content a.tree-folder-other:hover {
 span.tree-content a.folder_boss {
 	background-image: url("Boss.png");
 	color: #e54444;
+	text-decoration: underline;
+}
+
+span.tree-content a.folder_boss:hover {
+	text-decoration: underline;
 }
 
 span.tree-content a.folder_manager {
 	background-image: url("Manager.png");
-	color: #2dc63f;
+	/* color: #2dc63f; */
+	color: #e54444;
 }
 
 span.tree-content a.folder_user {
