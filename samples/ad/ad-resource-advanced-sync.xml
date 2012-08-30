@@ -164,6 +164,19 @@ This resource definition contains only the very basic definitions for midPoint t
                         </target>
                     </inbound>
                 </attribute>
+		<attribute><!-- This attribute must be set to
+other than "false". We will set it to "true" to expire the password
+immediately (after create). Note there is no "initial" attribute, because the
+current implementation of forms would set the __PASSWORD_EXPIRED__ = false by
+default, which is not what we want. But it works, because it is set to "true"
+on the create, and on the update of other attributes, this attribute is not
+changed, so this outbound will not be processed.
+Please note that AD itself does not support changing the _PASSWORD_EXPIRED__
+to "false". The only way of resetting the flag is to change user's password.
+-->
+			<ref>ri:__PASSWORD_EXPIRED__</ref>
+			<value>true</value>
+		</attribute>
 
                 <attribute>
                     <ref>icfs:name</ref>
