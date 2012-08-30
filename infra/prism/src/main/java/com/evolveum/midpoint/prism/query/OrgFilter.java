@@ -23,6 +23,10 @@ public class OrgFilter extends ObjectFilter {
 		return new OrgFilter(new PrismReferenceValue(orgRef), minDepth, maxDepth);
 	}
 
+	public static OrgFilter createOrg(String orgRef) {
+		return new OrgFilter(new PrismReferenceValue(orgRef), null, null);
+	}
+	
 	public PrismReferenceValue getOrgRef() {
 		return orgRef;
 	}
