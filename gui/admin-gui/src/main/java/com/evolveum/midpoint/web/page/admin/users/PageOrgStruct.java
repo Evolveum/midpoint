@@ -32,39 +32,87 @@ import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.orgStruct.OrgStructPanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 
 /**
  * @author mserbak
- *
+ * 
  */
 public class PageOrgStruct extends PageAdmin {
 
+	private static final String DOT_CLASS = PageOrgStruct.class.getName() + ".";
+	private static final String OPERATION_LOAD_ORGUNIT = DOT_CLASS + "load org unit";
+	private IModel<OrgStructDto> model;
+
 	public PageOrgStruct() {
+		model = new LoadableModel<OrgStructDto>(false) {
+
+            @Override
+            protected OrgStructDto load() {
+                return loadOrgUnit();
+            }
+        };
 		initLayout();
 	}
-	
+
 	private void initLayout() {
 		List<ITab> tabs = new ArrayList<ITab>();
-		tabs.add(new TabPanel(new Model<String>("First tab"), new Model<String>("Test 1")));
-		tabs.add(new TabPanel(new Model<String>("Second tab"), new Model<String>("Test 2")));
-		tabs.add(new TabPanel(new Model<String>("Third tab"), new Model<String>("Test 3")));
-		
+		tabs.add(new TabPanel(model));
 		add(new TabbedPanel("tabPanel", tabs));
+
 	}
-	
-	private class TabPanel extends AbstractTab {
-		IModel<String> context;
-		public TabPanel(IModel<String> title, IModel<String> context) {
-			super(title);
-			this.context = context;
-		}
+
+	private OrgStructDto loadOrgUnit() {
+		Task task = createSimpleTask(OPERATION_LOAD_ORGUNIT);
+		OperationResult result = new OperationResult(OPERATION_LOAD_ORGUNIT);
 		
+		OrgStructDto newOrgModel = null;
+		List<PrismObject<ObjectType>> orgUnitList;
+		// TODO: remove hardcoded org struct oid
+		OrgFilter orgFilter = OrgFilter.createOrg("00000000-8888-6666-0000-100000000001");
+		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
+
+		try {
+			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
+			newOrgModel = new OrgStructDto(orgUnitList);
+			result.recordSuccess();
+		} catch (Exception ex) {
+			result.recordFatalError("Unable to load org unit", ex);
+		}
+
+		if (!result.isSuccess()) {
+			showResult(result);
+		}
+		return newOrgModel;
+	}
+
+	private class TabPanel extends AbstractTab {
+		private IModel<OrgStructDto> model;
+		public TabPanel(IModel<OrgStructDto> model) {
+			super(model.getObject().getTitle());
+			this.model = model;
+		}
+
 		@Override
 		public WebMarkupContainer getPanel(String id) {
-			return new OrgStructPanel(id, context);
+			return new OrgStructPanel(id, model);
 		}
-		
+
 	}
 }

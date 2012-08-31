@@ -30,7 +30,7 @@ a.tree-junction-expanded {
     height: 30px;
 }
 
-.tree-folder-open, .tree-folder-closed {
+.tree-folder-open, .tree-folder-closed, span.tree-content a.folder {
 	background-image: url("OrgUnit.png");
 	font-weight: bold;
 }

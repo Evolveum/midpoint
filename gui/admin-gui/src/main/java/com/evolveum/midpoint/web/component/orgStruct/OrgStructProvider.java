@@ -23,13 +23,21 @@ package com.evolveum.midpoint.web.component.orgStruct;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 import wickettree.ITreeProvider;
 import wickettree.util.IntermediateTreeProvider;
@@ -38,60 +46,69 @@ import wickettree.util.IntermediateTreeProvider;
  * @author mserbak
  */
 public class OrgStructProvider implements ITreeProvider<NodeDto> {
-
-	private static List<NodeDto> roots = new ArrayList<NodeDto>();
-
-	/**
-	 * Initialize roots.
-	 */
-	static {
-		NodeDto root = new NodeDto("Root Dir");
-		{
-			NodeDto sub1 = new NodeDto(root, "Subdir 1");
-			{
-				new NodeDto(sub1, "Janko Hrasko (joslcarl)", NodeType.BOSS);
-				new NodeDto(sub1, "Janko Hrasko (joslcarl)");
-			}
-			NodeDto sub2 = new NodeDto(root, "Subdir 2");
-			{
-				new NodeDto(sub2, "ABA");
-				NodeDto sub2_1 = new NodeDto(sub2, "Subdir 2_1");
-				{
-					new NodeDto(sub2_1, "Josua L. Carlton (joslcarl)", NodeType.BOSS);
-					new NodeDto(sub2_1, "Josua L. Carlton (joslcarl)", NodeType.MANAGER);
-					new NodeDto(sub2_1, "Josua L. Carlton (joslcarl)", NodeType.MANAGER);
-					new NodeDto(sub2_1, "Josua L. Carlton (joslcarl)", NodeType.MANAGER);
-					new NodeDto(sub2_1, "Josua L. Carlton (joslcarl)");
-					new NodeDto(sub2_1, "Josua L. Carlton (joslcarl)");
-					new NodeDto(sub2_1, "Josua L. Carlton (joslcarl)");
-					new NodeDto(sub2_1, "Josua L. Carlton (joslcarl)");
-				}
-				
-				NodeDto sub2_2 = new NodeDto(sub2, "Subdir 2_2");
-				{
-					NodeDto sub2_2_1 = new NodeDto(sub2_2, "Subdir 2_2_1");
-					{
-						new NodeDto(sub2_2_1, "Jozko Mrkvicka (janci)", NodeType.BOSS);
-						new NodeDto(sub2_2_1, "Jozko Mrkvicka (janci)", NodeType.MANAGER);
-						new NodeDto(sub2_2_1, "Jozko Mrkvicka (janci)", NodeType.MANAGER);
-					}
-					new NodeDto(sub2_2, "Jana Janova (jana)", NodeType.BOSS);
-					new NodeDto(sub2_2, "Jana Janova (jana)", NodeType.MANAGER);
-					new NodeDto(sub2_2, "Jana Janova (jana)");
-					new NodeDto(sub2_2, "Jana Janova (jana)");
-				}
-				new NodeDto(sub2, "Lajci Dlhy (jDlhy)", NodeType.BOSS);
-				new NodeDto(sub2, "Lajci Dlhy (jDlhy)");
-			}
-
-		}
-		roots.add(root);
-	}
-
 	private boolean intermediate;
+	private List<NodeDto> roots = new ArrayList<NodeDto>();
+	List<NodeDto> nodes = new ArrayList<NodeDto>();
+	private NodeDto root = null;
+	private IModel<OrgStructDto> model;
+
+	public OrgStructProvider(IModel<OrgStructDto> model) {
+		this(false);
+		this.model = model;
+		initNodes(model);
+		// roots.addAll(initNodes(model));
+	}
 
 	public OrgStructProvider() {
 		this(false);
+	}
+
+	private void initNodes(IModel<OrgStructDto> model) {
+		OrgStructDto orgStruct = model.getObject();
+
+		for (OrgType orgUnit : orgStruct.getOrgUnitList()) {
+			if (root == null) {
+				root = new NodeDto(orgUnit.getDisplayName().toString(), orgUnit.getOid(), NodeType.FOLDER);
+				continue;
+			}
+			createOrgUnit(orgUnit);
+		}
+		
+		for (UserType user : orgStruct.getUserList()) {
+			createUserUnit(user);
+		}
+		
+		roots.add(root);
+
+		// NodeDto sub1 = new NodeDto("Subdir 1", "");
+		// nodes.add(sub1);
+		//
+		// NodeDto sub2 = new NodeDto("Subdir 2", "");
+		// {
+		// new NodeDto(sub2, "ABA", "");
+		// new NodeDto(sub2, "Subdir 2_1", "");
+		// }
+		// nodes.add(sub2);
+	}
+
+	private void createOrgUnit(OrgType unit) {
+		List<NodeDto> list = new ArrayList<NodeDto>();
+		for (NodeDto parent : getParentFromOrgRef(unit.getOrgRef())) {
+			// TODO: what if orgUnit has more that one orgRef ????
+
+			NodeDto org = new NodeDto(parent, unit.getDisplayName().toString(), unit.getOid(),
+					NodeType.FOLDER);
+			nodes.add(org);
+		}
+	}
+	
+	private void createUserUnit(UserType unit) {
+		List<NodeDto> list = new ArrayList<NodeDto>();
+		for (NodeDto parent : getParentFromOrgRef(unit.getOrgRef())) {
+			// TODO: what if user has more that one orgRef ????
+			
+			new NodeDto(parent, unit.getFullName().toString(), unit.getOid(), parent.getType());
+		}
 	}
 
 	/**
@@ -112,16 +129,16 @@ public class OrgStructProvider implements ITreeProvider<NodeDto> {
 		return roots.iterator();
 	}
 
-	public boolean hasChildren(NodeDto foo) {
-		return foo.getParent() == null || !foo.getFoos().isEmpty();
+	public boolean hasChildren(NodeDto node) {
+		return node.getParent() == null || !node.getNodes().isEmpty();
 	}
 
-	public Iterator<NodeDto> getChildren(final NodeDto foo) {
+	public Iterator<NodeDto> getChildren(final NodeDto node) {
 		if (intermediate) {
-			if (!foo.isLoaded()) {
+			if (!node.isLoaded()) {
 				asynchronuous(new Runnable() {
 					public void run() {
-						foo.setLoaded(true);
+						node.setLoaded(true);
 					}
 				});
 
@@ -130,7 +147,44 @@ public class OrgStructProvider implements ITreeProvider<NodeDto> {
 			}
 		}
 
-		return foo.getFoos().iterator();
+		return node.getNodes().iterator();
+	}
+
+	private List<NodeDto> getParentFromOrgRef(List<ObjectReferenceType> orgRefList) {
+		List<NodeDto> list = new ArrayList<NodeDto>();
+		for (ObjectReferenceType orgRef : orgRefList) {
+			if (root.getOid().equals(orgRef.getOid())) {
+				list.add(root);
+				continue;
+			}
+			for (NodeDto node : nodes) {
+				if (node.getOid().equals(orgRef.getOid())) {
+					NodeType type = getRelation(orgRef);
+					if(type != null) {
+						//node.setType(type);
+						list.add(node);
+					} else {
+						list.add(node);
+					}
+				}
+			}
+		}
+		return list;
+	}
+	
+	private NodeType getRelation(ObjectReferenceType orgRef) {
+		if(orgRef.getRelation() == null) {
+			return null;
+		}
+		String relation = orgRef.getRelation().getLocalPart();
+		
+		if(relation.equals("manager")) {
+			return NodeType.BOSS;
+		} else if(relation.equals("member")) {
+			return NodeType.MANAGER;
+		} else {
+			return NodeType.USER;
+		}
 	}
 
 	/**
@@ -140,41 +194,41 @@ public class OrgStructProvider implements ITreeProvider<NodeDto> {
 		runnable.run();
 	}
 
-	public static void resetLoaded() {
-		for (NodeDto foo : roots) {
-			resetLoaded(foo);
+	public void resetLoaded() {
+		for (NodeDto node : roots) {
+			resetLoaded(node);
 		}
 	}
 
-	private static void resetLoaded(NodeDto foo) {
-		foo.setLoaded(false);
+	private static void resetLoaded(NodeDto node) {
+		node.setLoaded(false);
 
-		for (NodeDto child : foo.getFoos()) {
+		for (NodeDto child : node.getNodes()) {
 			resetLoaded(child);
 		}
 	}
 
 	/**
-	 * Creates a {@link FooModel}.
+	 * Creates a {@link NodeModel}.
 	 */
-	public IModel<NodeDto> model(NodeDto foo) {
-		return new FooModel(foo);
+	public IModel<NodeDto> model(NodeDto node) {
+		return new NodeModel(node);
 	}
 
 	/**
 	 * Get a {@link NodeDto} by its id.
 	 */
-	public static NodeDto get(String id) {
+	public NodeDto get(String id) {
 		return get(roots, id);
 	}
 
-	private static NodeDto get(List<NodeDto> foos, String id) {
-		for (NodeDto foo : foos) {
-			if (foo.getId().equals(id)) {
-				return foo;
+	private NodeDto get(List<NodeDto> nodes, String id) {
+		for (NodeDto node : nodes) {
+			if (node.getId().equals(id)) {
+				return node;
 			}
 
-			NodeDto temp = get(foo.getFoos(), id);
+			NodeDto temp = get(node.getNodes(), id);
 			if (temp != null) {
 				return temp;
 			}
@@ -186,21 +240,21 @@ public class OrgStructProvider implements ITreeProvider<NodeDto> {
 	/**
 	 * A {@link Model} which uses an id to load its {@link NodeDto}.
 	 * 
-	 * If {@link NodeDto}s were {@link Serializable} you could just use a standard
-	 * {@link Model}.
+	 * If {@link NodeDto}s were {@link Serializable} you could just use a
+	 * standard {@link Model}.
 	 * 
 	 * @see #equals(Object)
 	 * @see #hashCode()
 	 */
-	private static class FooModel extends LoadableDetachableModel<NodeDto> {
+	private class NodeModel extends LoadableDetachableModel<NodeDto> {
 		private static final long serialVersionUID = 1L;
 
 		private String id;
 
-		public FooModel(NodeDto foo) {
-			super(foo);
+		public NodeModel(NodeDto node) {
+			super(node);
 
-			id = foo.getId();
+			id = node.getId();
 		}
 
 		@Override
@@ -208,20 +262,14 @@ public class OrgStructProvider implements ITreeProvider<NodeDto> {
 			return get(id);
 		}
 
-		/**
-		 * Important! Models must be identifyable by their contained object.
-		 */
 		@Override
 		public boolean equals(Object obj) {
-			if (obj instanceof FooModel) {
-				return ((FooModel) obj).id.equals(this.id);
+			if (obj instanceof NodeModel) {
+				return ((NodeModel) obj).id.equals(this.id);
 			}
 			return false;
 		}
 
-		/**
-		 * Important! Models must be identifyable by their contained object.
-		 */
 		@Override
 		public int hashCode() {
 			return id.hashCode();

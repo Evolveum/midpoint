@@ -29,6 +29,9 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
+
 import wickettree.AbstractTree;
 import wickettree.NestedTree;
 
@@ -38,8 +41,8 @@ import wickettree.NestedTree;
 public class OrgStructPanel extends OptionalTree {
 	private NestedTree<NodeDto> tree;
 
-	public OrgStructPanel(String id, final IModel<String> model) {
-		super(id);
+	public OrgStructPanel(String id, IModel<OrgStructDto> model) {
+		super(id, model);
 	}
 
 	@Override

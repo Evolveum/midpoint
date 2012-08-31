@@ -21,33 +21,24 @@
 
 package com.evolveum.midpoint.web.component.orgStruct;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 
 import wickettree.AbstractTree;
-import wickettree.content.Folder;
 
 /**
  * @author mserbak
  */
 public class BookmarkableFolderContent extends Content {
 
-	private static final long serialVersionUID = 1L;
-
 	public BookmarkableFolderContent(final AbstractTree<NodeDto> tree) {
-		String id = tree.getRequest().getRequestParameters().getParameterValue("foo").toString();
-		if (id != null) {
-			NodeDto foo = OrgStructProvider.get(id);
-			while (foo != null) {
-				tree.getModel().getObject().add(foo);
-				foo = foo.getParent();
-			}
-		}
 	}
 
 	@Override
@@ -60,7 +51,7 @@ public class BookmarkableFolderContent extends Content {
 				NodeDto node = model.getObject();
 
 				if (tree.getProvider().hasChildren(node)) {
-					return super.newLinkComponent(id, model);		
+					return super.newLinkComponent(id, model);
 				} else {
 					return new LabeledWebMarkupContainer(id, model) {
 					};
@@ -70,6 +61,8 @@ public class BookmarkableFolderContent extends Content {
 			@Override
 			protected String getOtherStyleClass(NodeDto user) {
 				switch (user.getType()) {
+					case FOLDER:
+						return "tree-folder-other folder";
 					case BOSS:
 						return "tree-folder-other folder_boss";
 					case MANAGER:
@@ -78,6 +71,44 @@ public class BookmarkableFolderContent extends Content {
 					default:
 						return "tree-folder-other folder_user";
 				}
+			}
+
+			@Override
+			protected IModel<List<String>> createMenuItemModel(final IModel<NodeDto> model) {
+				return new LoadableModel<List<String>>() {
+
+					@Override
+					protected List<String> load() {
+						List<String> list = new ArrayList<String>();
+						NodeDto dto = model.getObject();
+						if (NodeType.FOLDER.equals(dto.getType())) {
+							list.add("Edit");
+							list.add("Rename");
+							list.add("Create sub-unit");
+							list.add("Delete / Deprecate");
+						} else {
+							list.add("Edit");
+							list.add("Move");
+							list.add("Rename");
+							list.add("Enable");
+							list.add("Disable");
+							list.add("Change attributes");
+						}
+						return list;
+					}
+				};
+			}
+
+			@Override
+			protected String getButtonStyle(NodeDto t) {
+				String buttonStyleClass;
+
+				if (NodeType.FOLDER.equals(t.getType())) {
+					buttonStyleClass = "treeButtonMenu orgUnitButton";
+				} else {
+					buttonStyleClass = "treeButtonMenu userButton";
+				}
+				return buttonStyleClass;
 			}
 		};
 	}

@@ -30,6 +30,8 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
+
 import wickettree.AbstractTree;
 import wickettree.theme.HumanTheme;
 import wickettree.theme.WindowsTheme;
@@ -40,13 +42,15 @@ import wickettree.util.ProviderSubset;
  * 
  */
 abstract class OptionalTree extends Panel{
-	private OrgStructProvider provider = new OrgStructProvider();
+	private OrgStructProvider provider;
 	private AbstractTree<NodeDto> tree;
-	private Set<NodeDto> state = new ProviderSubset<NodeDto>(provider);
+	private Set<NodeDto> state;
 	private Content content;
 
-	protected OptionalTree(String id) {
+	protected OptionalTree(String id, IModel<OrgStructDto> model) {
 		super(id);
+		this.provider = new OrgStructProvider(model);
+		this.state = new ProviderSubset<NodeDto>(provider);
 		tree = createTree(provider, newStateModel());
 		tree.add(new Behavior() {
 			@Override

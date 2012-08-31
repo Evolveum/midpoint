@@ -21,128 +21,85 @@
 package com.evolveum.midpoint.web.component.orgStruct;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * @author mserbak
  */
-public class NodeDto
-{
+public class NodeDto {
 
 	private static final long serialVersionUID = 1L;
 
 	private String id;
-	private String bar;
-	private String baz;
-	private boolean quux;
+	private String oid;
 	private boolean loaded;
 	private NodeDto parent;
 	private NodeType type = NodeType.USER;
 
-	private List<NodeDto> foos = new ArrayList<NodeDto>();
+	private List<NodeDto> nodes = new ArrayList<NodeDto>();
 
-	public NodeDto(String id){
+	public NodeDto(String id, String oid, NodeType type) {
 		this.id = id;
-		this.bar = id.toLowerCase() + "Bar";
-		this.baz = id.toLowerCase() + "Baz";
-	}
-	
-	public NodeDto(NodeDto parent, String name)
-	{
-		this(parent, name, null);
-	}
-	
-	public NodeDto(NodeDto parent, String name, NodeType type){
-		this(name);
-		
-		if(type != null) {
+		this.oid = oid;
+		if (type != null) {
 			this.type = type;
 		}
-		this.parent = parent;
-		this.parent.foos.add(this);
 	}
 
-	
-	
+	public NodeDto(NodeDto parent, String name, String oid) {
+		this(parent, name, oid, null);
+	}
+
+	public NodeDto(NodeDto parent, String name, String oid, NodeType type) {
+		this(name, oid, type);
+		this.parent = parent;
+		this.parent.nodes.add(this);
+	}
+
 	public NodeType getType() {
 		return type;
 	}
 	
-	public NodeDto getParent()
-	{
+	public void setType(NodeType type) {
+		this.type = type;
+	}
+
+	public NodeDto getParent() {
 		return parent;
 	}
 
-	public String getId()
-	{
+	public String getId() {
 		return id;
 	}
 
-	public String getBar()
-	{
-		return bar;
+	public String getOid() {
+		return oid;
 	}
 
-	public String getBaz()
-	{
-		return baz;
+	public List<NodeDto> getNodes() {
+		return Collections.unmodifiableList(nodes);
 	}
-
-	public void setBar(String bar)
-	{
-		this.bar = bar;
+	
+	public void setNodes(List<NodeDto> nodes) {
+		this.nodes = nodes;
 	}
-
-	public void setBaz(String baz)
-	{
-		this.baz = baz;
-	}
-
-	public void setQuux(boolean quux)
-	{
-		this.quux = quux;
-
-		if (quux)
-		{
-			// set quux on all descendants
-			for (NodeDto foo : foos)
-			{
-				foo.setQuux(true);
-			}
-		}
-		else
-		{
-			// clear quux on all ancestors
-			if (parent != null)
-			{
-				parent.setQuux(false);
-			}
-		}
-	}
-
-	public boolean getQuux()
-	{
-		return quux;
-	}
-
-	public List<NodeDto> getFoos()
-	{
-		return Collections.unmodifiableList(foos);
+	
+	public void addNode(NodeDto node) {
+		nodes.add(node);
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return id;
 	}
-	
+
 	public boolean isLoaded() {
 		return loaded;
 	}
-	
-	public void setLoaded(boolean loaded)
-	{
+
+	public void setLoaded(boolean loaded) {
 		this.loaded = loaded;
 	}
 }

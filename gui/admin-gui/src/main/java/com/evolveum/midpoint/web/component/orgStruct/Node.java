@@ -20,23 +20,28 @@
  */
 package com.evolveum.midpoint.web.component.orgStruct;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+
 import wickettree.AbstractTree;
-import wickettree.ITreeProvider;
 import wickettree.AbstractTree.State;
+import wickettree.ITreeProvider;
 
 /**
  * @author mserbak
  */
-public class Node<T> extends StyledLinkLabel<T> {
+public class Node<NodeDto> extends StyledLinkLabel<NodeDto> {
 
 	private static final long serialVersionUID = 1L;
 
-	private AbstractTree<T> tree;
+	private AbstractTree<NodeDto> tree;
 
-	public Node(String id, AbstractTree<T> tree, IModel<T> model) {
+	public Node(String id, AbstractTree<NodeDto> tree, IModel<NodeDto> model) {
 		super(id, tree, model);
 
 		this.tree = tree;
@@ -49,7 +54,7 @@ public class Node<T> extends StyledLinkLabel<T> {
 	 */
 	@Override
 	protected boolean isClickable() {
-		T t = getModelObject();
+		NodeDto t = getModelObject();
 
 		return tree.getProvider().hasChildren(t);
 	}
@@ -59,7 +64,7 @@ public class Node<T> extends StyledLinkLabel<T> {
 	 */
 	@Override
 	protected void onClick(AjaxRequestTarget target) {
-		T t = getModelObject();
+		NodeDto t = getModelObject();
 		if (tree.getState(t) == State.EXPANDED) {
 			tree.collapse(t);
 		} else {
@@ -82,7 +87,8 @@ public class Node<T> extends StyledLinkLabel<T> {
 	 */
 	@Override
 	protected String getStyleClass() {
-		T t = getModelObject();
+
+		NodeDto t = getModelObject();
 
 		String styleClass;
 		if (tree.getProvider().hasChildren(t)) {
@@ -115,7 +121,7 @@ public class Node<T> extends StyledLinkLabel<T> {
 	/**
 	 * Get a style class for anything other than closed or open folders.
 	 */
-	protected String getOtherStyleClass(T t) {
+	protected String getOtherStyleClass(NodeDto t) {
 		return "tree-folder-other";
 	}
 
@@ -136,21 +142,13 @@ public class Node<T> extends StyledLinkLabel<T> {
 		return "selected";
 	}
 
-
-	protected String getButtonStyle(T t) {
-		String buttonStyleClass;
-		
-		if (tree.getProvider().hasChildren(t)) {
-			buttonStyleClass = "treeButtonMenu orgUnitButton";
-		} else {
-			buttonStyleClass = "treeButtonMenu userButton";
-		}
-		return buttonStyleClass;
+	protected String getButtonStyle(NodeDto t) {
+		return null;
 	}
 
 	@Override
 	protected String getButtonStyleClass() {
-		T t = getModelObject();
+		NodeDto t = getModelObject();
 		return getButtonStyle(t);
 	}
 }

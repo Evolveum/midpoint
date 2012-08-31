@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.component.orgStruct;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,7 +32,6 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -43,7 +41,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import wickettree.AbstractTree;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 
 /**
  * @author mserbak
@@ -165,28 +162,7 @@ public abstract class StyledLinkLabel<NodeDto> extends Panel {
         panel.setMarkupId(id + "_panel");
     }
 	
-	private IModel<List<String>> createMenuItemModel (final IModel<NodeDto> model) {
-        return new LoadableModel<List<String>>(false) {
-
-            @Override
-            protected List<String> load() {
-            	List<String> list = new ArrayList<String>();
-            	NodeDto dto = model.getObject();
-            	if (tree.getProvider().hasChildren(dto)) {
-            		list.add("Edit");
-            		list.add("Rename");
-            		list.add("Create sub-unit");
-            		list.add("Delete / Deprecate");
-        		} else {
-        			list.add("Edit");
-        			list.add("Move");
-            		list.add("Rename");
-            		list.add("Enable");
-            		list.add("Disable");
-            		list.add("Change attributes");
-        		}
-            	return list;
-            }
-        };
-    }
+	protected IModel<List<String>> createMenuItemModel(IModel<NodeDto> model) {
+		return null;
+	}
 }
