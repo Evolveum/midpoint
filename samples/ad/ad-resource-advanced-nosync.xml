@@ -177,7 +177,9 @@ Please note that AD itself does not support changing the _PASSWORD_EXPIRED__
 to "false". The only way of resetting the flag is to change user's password.
 -->
 					<ref>ri:__PASSWORD_EXPIRED__</ref>
-					<value>true</value>
+					<outbound>
+						<value>true</value>
+					</outbound>
 				</attribute>
 				<credentials>
 				    <password>
