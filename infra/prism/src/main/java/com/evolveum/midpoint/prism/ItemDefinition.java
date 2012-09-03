@@ -293,7 +293,18 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		sb.append(DebugUtil.prettyPrint(getName()));
 		sb.append(" (");
 		sb.append(DebugUtil.prettyPrint(getTypeName()));
-		sb.append(")[");
+		sb.append(")");
+		debugDumpShortToString(sb);
+		return sb.toString();
+	}
+	
+	/**
+	 * Used in debugDumping items. Does not need to have name in it as item already has it. Does not need
+	 * to have class as that is just too much info that is almost anytime pretty obvious anyway.
+	 */
+	void debugDumpShortToString(StringBuilder sb) {
+		sb.append(DebugUtil.prettyPrint(getTypeName()));
+		sb.append("[");
 		sb.append(minOccurs);
 		sb.append(",");
 		sb.append(maxOccurs);
@@ -305,7 +316,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 			sb.append(",dyn");
 		}
 		extendToString(sb);
-		return sb.toString();
 	}
 	
 	protected void extendToString(StringBuilder sb) {

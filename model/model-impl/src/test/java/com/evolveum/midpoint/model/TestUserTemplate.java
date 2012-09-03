@@ -148,7 +148,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
 	}
 	
-	@Test(enabled = false) // WORK IN PROGRESS
+	@Test
     public void test101ModifyUserEmployeeType() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
@@ -168,12 +168,13 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 
 		// THEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
         
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 2, userJackType.getAccountRef().size());
 	}
 	
 }

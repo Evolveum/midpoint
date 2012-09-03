@@ -57,14 +57,12 @@
         <valueConstruction>
             <value>
             	<assignment>
-					<accountConstruction>
-						<resourceRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
-					</accountConstruction>
+					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
 				</assignment>
             </value>
             <condition>
             	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>user.getEmployeeType() == "PIRATE"</code>
+            	<code>user.getEmployeeType().any{ it == "PIRATE" }</code>
             </condition>
         </valueConstruction>
     </propertyConstruction>
