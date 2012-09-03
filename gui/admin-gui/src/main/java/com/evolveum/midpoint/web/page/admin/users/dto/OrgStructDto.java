@@ -68,7 +68,7 @@ public class OrgStructDto implements Serializable {
 	}
 
 	public IModel<String> getTitle() {
-		if(!orgUnitList.isEmpty()) {
+		if(orgUnitList == null || !orgUnitList.isEmpty()) {
 			String title = orgUnitList.get(0).getLocality().toString();
 			return new Model<String>(title);
 		}
