@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.extensions.markup.html.tabs.TabbedPanel;
@@ -98,6 +99,11 @@ public class PageOrgStruct extends PageAdmin {
 
 		if (!result.isSuccess()) {
 			showResult(result);
+		}
+		
+		if(newOrgModel.getOrgUnitList() == null) {
+			getSession().error(getString("pageOrgStruct.message.noOrgStructDefined"));
+			throw new RestartResponseException(PageUsers.class);
 		}
 		return newOrgModel;
 	}
