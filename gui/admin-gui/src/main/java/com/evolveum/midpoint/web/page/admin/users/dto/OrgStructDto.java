@@ -64,13 +64,15 @@ public class OrgStructDto implements Serializable {
 				UserType user = (UserType) nodeObject;
 				userList.add(user);
 			}
-			continue;
 		}
 	}
 
 	public IModel<String> getTitle() {
-		String title = orgUnitList.get(0).getLocality().toString();
-		return new Model<String>(title);
+		if(!orgUnitList.isEmpty()) {
+			String title = orgUnitList.get(0).getLocality().toString();
+			return new Model<String>(title);
+		}
+		return new Model<String>("");
 	}
 
 	public List<OrgType> getOrgUnitList() {
