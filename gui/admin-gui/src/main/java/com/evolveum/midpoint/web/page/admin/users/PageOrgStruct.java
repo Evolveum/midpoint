@@ -101,7 +101,7 @@ public class PageOrgStruct extends PageAdmin {
 			showResult(result);
 		}
 		
-		if(newOrgModel.getOrgUnitList() == null) {
+		if(newOrgModel.getOrgUnitDtoList() == null) {
 			getSession().error(getString("pageOrgStruct.message.noOrgStructDefined"));
 			throw new RestartResponseException(PageUsers.class);
 		}

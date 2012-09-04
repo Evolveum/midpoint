@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+
 /**
  * @author mserbak
  */
@@ -37,20 +39,26 @@ public class NodeDto implements Serializable {
 	private NodeDto parent;
 	private String displayName;
 	private NodeType type = NodeType.USER;
+	private List<ObjectReferenceType> orgRefs;
 
 	private List<NodeDto> nodes = new ArrayList<NodeDto>();
 	
 	public NodeDto(NodeDto parent, String displayName, String oid) {
-		this(parent, displayName, oid, null);
-	}
-
-	public NodeDto(NodeDto parent, String displayName, String oid, NodeType type) {
-		if (type != null) {
-			this.type = type;
-		}
 		this.oid = oid;
 		this.displayName = displayName;
 		this.parent = parent;
+	}
+
+	public NodeDto(NodeDto parent, String displayName, String oid, NodeType type) {
+		this(parent, displayName, oid);
+		if (type != null) {
+			this.type = type;
+		}
+	}
+	
+	public NodeDto(NodeDto parent, String displayName, String oid, List<ObjectReferenceType> orgRefs) {
+		this(parent, displayName, oid);
+		this.orgRefs = orgRefs;
 	}
 
 	public NodeType getType() {
@@ -67,6 +75,10 @@ public class NodeDto implements Serializable {
 	
 	public void setParent(NodeDto parent) {
 		this.parent = parent;
+	}
+	
+	public List<ObjectReferenceType> getOrgRefs() {
+		return orgRefs;
 	}
 	
 	public String getDisplayName() {

@@ -54,10 +54,7 @@ public class OrgStructProvider implements ITreeProvider<NodeDto> {
 
 	private void initNodes(IModel<OrgStructDto> model) {
 		OrgStructDto orgStruct = model.getObject();
-		
-		OrgType orgUnit = orgStruct.getOrgUnitList().get(0);
-		NodeDto root = new NodeDto(null, orgUnit.getDisplayName().toString(), orgUnit.getOid(), NodeType.FOLDER);
-		roots.add(root);
+		roots.add(orgStruct.getOrgUnitDtoList().get(0));
 	}
 
 	public OrgStructProvider(boolean intermediate) {

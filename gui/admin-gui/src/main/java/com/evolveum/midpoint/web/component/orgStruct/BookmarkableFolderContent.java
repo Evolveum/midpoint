@@ -109,15 +109,18 @@ public class BookmarkableFolderContent extends Content {
 		OrgStructDto orgUnit = loadOrgUnit(parent.getOid());
 		List<NodeDto> listNodes = new ArrayList<NodeDto>();
 
-		if (orgUnit.getOrgUnitList() != null && !orgUnit.getOrgUnitList().isEmpty()) {
-			for (OrgType org : orgUnit.getOrgUnitList()) {
-				listNodes.add(createOrgUnit(parent, org));
+		if (orgUnit.getOrgUnitDtoList() != null && !orgUnit.getOrgUnitDtoList().isEmpty()) {
+			for (NodeDto org : orgUnit.getOrgUnitDtoList()) {
+				org.setParent(parent);
+				listNodes.add(org);
 			}
 		}
 
-		if (orgUnit.getUserList() != null && !orgUnit.getUserList().isEmpty()) {
-			for (UserType org : orgUnit.getUserList()) {
-				listNodes.add(createUserUnit(parent, org));
+		if (orgUnit.getUserDtoList() != null && !orgUnit.getUserDtoList().isEmpty()) {
+			for (NodeDto user : orgUnit.getUserDtoList()) {
+				user.setParent(parent);
+				user.setType(OrgStructDto.getRelation(parent, user.getOrgRefs()));
+				listNodes.add(user);
 			}
 		}
 		return listNodes;
@@ -147,43 +150,12 @@ public class BookmarkableFolderContent extends Content {
 			showResult(result);
 		}
 
-		if (newOrgModel.getOrgUnitList() == null) {
+		if (newOrgModel.getOrgUnitDtoList() == null) {
 			result.recordFatalError("pageOrgStruct.message.noOrgStructDefined");
 			showResult(result);
 		}
 		return newOrgModel;
 	}
 
-	private NodeDto createOrgUnit(NodeDto parent, OrgType unit) {
-		return new NodeDto(parent, unit.getDisplayName().toString(), unit.getOid(), NodeType.FOLDER);
-	}
-
-	private NodeDto createUserUnit(NodeDto parent, UserType unit) {
-		NodeType type = getRelation(parent, unit.getOrgRef());
-		return new NodeDto(parent, unit.getFullName().toString(), unit.getOid(), type);
-	}
-
-	private NodeType getRelation(NodeDto parent, List<ObjectReferenceType> orgRefList) {
-		ObjectReferenceType orgRef = null;
-
-		for (ObjectReferenceType orgRefType : orgRefList) {
-			if (orgRefType.getOid().equals(parent.getOid())) {
-				orgRef = orgRefType;
-				break;
-			}
-		}
-
-		if (orgRef.getRelation() == null) {
-			return null;
-		}
-		String relation = orgRef.getRelation().getLocalPart();
-
-		if (relation.equals("manager")) {
-			return NodeType.BOSS;
-		} else if (relation.equals("member")) {
-			return NodeType.MANAGER;
-		} else {
-			return NodeType.USER;
-		}
-	}
+	
 }
