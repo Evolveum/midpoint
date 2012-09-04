@@ -4,6 +4,7 @@ import javax.xml.namespace.QName;
 
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
@@ -60,7 +61,12 @@ public class TreeOp extends Op {
 		if (maxDepth == null) {
 			return Restrictions.eq(ANCESTOR_OID, orgRefOid);
 		} else {
-			return Restrictions.and(Restrictions.eq(ANCESTOR_OID, orgRefOid), Restrictions.lt(DEPTH, maxDepth));
+			Conjunction conjunction = Restrictions.conjunction();
+			conjunction.add(Restrictions.eq(ANCESTOR_OID, orgRefOid));
+			conjunction.add(Restrictions.le(DEPTH, maxDepth));
+			conjunction.add(Restrictions.gt(DEPTH, 0));
+			return conjunction;
+//			return Restrictions.and(Restrictions.eq(ANCESTOR_OID, orgRefOid), Restrictions.le(DEPTH, maxDepth));
 		}
 
 	}

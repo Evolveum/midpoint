@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -332,11 +334,12 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 
 		// List<>
 		
-		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
+//		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
+		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg("00000000-8888-6666-0000-100000000001"));
 		
-		List<PrismObject<UserType>> resultss = repositoryService.searchObjects(UserType.class, objectQuery, null,
+		List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, null,
 				parentResult);
-		for (PrismObject<UserType> u : resultss) {
+		for (PrismObject<ObjectType> u : resultss) {
 
 			LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
 
@@ -361,12 +364,12 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 //		Document document = DOMUtil.parseFile(new File(QUERY_ORG_STRUCT_ORG_DEPTH));
 //		Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
 //		QueryType query = QueryUtil.createQuery(filter);
-		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(QUERY_ORG_STRUCT_ORG_DEPTH), QueryType.class);
-
-		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
+//		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(QUERY_ORG_STRUCT_ORG_DEPTH), QueryType.class);
+		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg("00000000-8888-6666-0000-100000000001", null, "1"));
+//		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 		// List<>
-		List<PrismObject<OrgType>> resultss = repositoryService.searchObjects(OrgType.class, objectQuery, null, parentResult);
-		for (PrismObject<OrgType> u : resultss) {
+		List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
+		for (PrismObject<ObjectType> u : resultss) {
 
 			LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
 
