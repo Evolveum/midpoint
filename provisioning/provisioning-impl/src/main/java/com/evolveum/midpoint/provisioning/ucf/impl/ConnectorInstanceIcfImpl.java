@@ -1884,7 +1884,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (SyncDeltaType.DELETE.equals(icfDelta.getDeltaType())) {
 				LOGGER.debug("START creating delta of type DELETE");
 				ObjectDelta<ResourceObjectShadowType> objectDelta = new ObjectDelta<ResourceObjectShadowType>(
-						ResourceObjectShadowType.class, ChangeType.DELETE);
+						ResourceObjectShadowType.class, ChangeType.DELETE, prismContext);
 				ResourceAttribute uidAttribute = createUidAttribute(
 						icfDelta.getUid(),
 						getUidDefinition(objClassDefinition

@@ -218,12 +218,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 
 	public ObjectDelta<T> diff(PrismObject<T> other, boolean ignoreMetadata, boolean isLiteral) {
 		if (other == null) {
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.DELETE);
+			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());
 			objectDelta.setOid(getOid());
 			return objectDelta;
 		}
 		// This must be a modify
-		ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.MODIFY);
+		ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.MODIFY, getPrismContext());
 		objectDelta.setOid(getOid());
 
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
@@ -234,7 +234,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	public ObjectDelta<T> createDelta(ChangeType changeType) {
-		ObjectDelta<T> delta = new ObjectDelta<T>(getCompileTimeClass(), changeType);
+		ObjectDelta<T> delta = new ObjectDelta<T>(getCompileTimeClass(), changeType, getPrismContext());
 		delta.setOid(getOid());
 		return delta;
 	}

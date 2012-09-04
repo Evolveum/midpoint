@@ -41,8 +41,8 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> extends Object
 
 	private ResourceShadowDiscriminator discriminator;
 	
-	public ShadowDiscriminatorObjectDelta(Class<T> objectTypeClass, ChangeType changeType) {
-		super(objectTypeClass, changeType);
+	public ShadowDiscriminatorObjectDelta(Class<T> objectTypeClass, ChangeType changeType, PrismContext prismContext) {
+		super(objectTypeClass, changeType, prismContext);
 	}
 	
 	public ResourceShadowDiscriminator getDiscriminator() {
@@ -66,9 +66,9 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> extends Object
      */
     public static <O extends Objectable, X> ShadowDiscriminatorObjectDelta<O> createModificationReplaceProperty(Class<O> type, 
     		String resourceOid, String intent, PropertyPath propertyPath, PrismContext prismContext, X... propertyValues) {
-    	ShadowDiscriminatorObjectDelta<O> objectDelta = new ShadowDiscriminatorObjectDelta<O>(type, ChangeType.MODIFY);
+    	ShadowDiscriminatorObjectDelta<O> objectDelta = new ShadowDiscriminatorObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setDiscriminator(new ResourceShadowDiscriminator(resourceOid, intent));
-    	fillInModificationReplaceProperty(type, objectDelta, propertyPath, prismContext, propertyValues);
+    	fillInModificationReplaceProperty(objectDelta, propertyPath, propertyValues);
     	return objectDelta;
     }
 

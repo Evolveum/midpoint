@@ -223,7 +223,7 @@ public class ModifyUserAction extends BaseAction {
     	LensFocusContext<UserType> focusContext = context.getFocusContext();
         ObjectDelta<UserType> userDelta = focusContext.getSecondaryDelta(0);
         if (userDelta == null) {
-            userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
+            userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, getPrismContext());
             userDelta.setOid(focusContext.getObjectOld().getOid());
             focusContext.setSecondaryDelta(userDelta, 0);
         }

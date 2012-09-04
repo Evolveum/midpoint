@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.PropertyValueWithOrigin;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -76,6 +77,9 @@ public class ConsolidationProcessor {
 
     public static final String PROCESS_CONSOLIDATION = ConsolidationProcessor.class.getName() + ".consolidateValues";
     private static final Trace LOGGER = TraceManager.getTrace(ConsolidationProcessor.class);
+    
+    @Autowired(required=true)
+    PrismContext prismContext;
 
     /**
      * Converts delta set triples to a secondary account deltas.
@@ -132,7 +136,7 @@ public class ConsolidationProcessor {
     	accCtx.setSqueezedAttributes(squeezedAttributes);
         
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
-        ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
+        ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY, prismContext);
         objectDelta.setOid(accCtx.getOid());
 
         RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
@@ -245,7 +249,8 @@ public class ConsolidationProcessor {
             accountSecondaryDelta.merge(modifyDelta);
         } else {
             if (accCtx.getPrimaryDelta() == null || !accCtx.getPrimaryDelta().isAdd()) {
-                ObjectDelta<AccountShadowType> addDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
+                ObjectDelta<AccountShadowType> addDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class,
+                		ChangeType.ADD, prismContext);
                 RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
 
                 if (rAccount == null) {
@@ -279,7 +284,8 @@ public class ConsolidationProcessor {
 
     private void consolidateValuesDeleteAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
             OperationResult result) {
-        ObjectDelta<AccountShadowType> deleteDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
+        ObjectDelta<AccountShadowType> deleteDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class,
+        		ChangeType.DELETE, prismContext);
         String oid = accCtx.getOid();
         if (oid == null) {
         	throw new IllegalStateException("Internal error: account context OID is null during attempt to create delete secondary delta; context="+context);

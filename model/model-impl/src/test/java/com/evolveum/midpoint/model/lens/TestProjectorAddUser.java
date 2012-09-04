@@ -149,7 +149,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, PrismTestUtil.getPrismContext());
 		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
 
-		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
+		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD, prismContext);
 		objectDelta.setObjectToAdd(user);
 		
 		focusContext.setObjectOld(null);

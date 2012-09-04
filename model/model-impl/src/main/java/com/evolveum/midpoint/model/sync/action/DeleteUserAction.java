@@ -84,7 +84,7 @@ public class DeleteUserAction extends BaseAction {
             PrismObject<UserType> oldUser = userType.asPrismObject();
             focusContext.setObjectOld(oldUser);
             //set object delta with delete
-            ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.DELETE);
+            ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.DELETE, getPrismContext());
             userDelta.setOid(oldUser.getOid());
             focusContext.setSecondaryDelta(userDelta, 0);
 

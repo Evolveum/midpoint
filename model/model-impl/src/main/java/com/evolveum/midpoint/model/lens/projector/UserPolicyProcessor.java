@@ -195,7 +195,7 @@ public class UserPolicyProcessor {
 				if (!userPrimaryDelta.containsModification(itemDelta)) {
 					if (!itemDelta.isEmpty()) {
 						if (userSecondaryDelta == null) {
-							userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
+							userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, prismContext);
 							focusContext.setWaveSecondaryDelta(userSecondaryDelta);
 						}
 						userSecondaryDelta.addModification(itemDelta);	

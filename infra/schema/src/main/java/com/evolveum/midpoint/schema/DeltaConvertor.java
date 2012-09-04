@@ -75,7 +75,7 @@ public class DeltaConvertor {
 
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
             PrismObjectDefinition<T> objDef) throws SchemaException {
-        ObjectDelta<T> objectDelta = new ObjectDelta<T>(objDef.getCompileTimeClass(), ChangeType.MODIFY);
+        ObjectDelta<T> objectDelta = new ObjectDelta<T>(objDef.getCompileTimeClass(), ChangeType.MODIFY, objDef.getPrismContext());
         objectDelta.setOid(objectModification.getOid());
 
         for (ItemDeltaType propMod : objectModification.getModification()) {

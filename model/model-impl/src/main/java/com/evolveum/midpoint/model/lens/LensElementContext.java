@@ -74,6 +74,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return objectTypeClass;
 	}
 	
+	public PrismContext getPrismContext() {
+		return lensContext.getPrismContext();
+	}
+	
 	@Override
 	public PrismObject<O> getObjectOld() {
 		return objectOld;
@@ -129,7 +133,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	
 	public void addToSecondaryDelta(PropertyDelta accountPasswordDelta) throws SchemaException {
         if (secondaryDelta == null) {
-            secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY);
+            secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
             secondaryDelta.setOid(oid);
         }
         secondaryDelta.swallow(accountPasswordDelta);

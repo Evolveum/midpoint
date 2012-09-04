@@ -446,7 +446,7 @@ public class ShadowCache {
 				if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
 					if (newShadow instanceof AccountShadowType) {
 						ObjectDelta<AccountShadowType> objDelta = new ObjectDelta<AccountShadowType>(
-								AccountShadowType.class, ChangeType.DELETE);
+								AccountShadowType.class, ChangeType.DELETE, prismContext);
 						change.setObjectDelta(objDelta);
 					}
 					change.getObjectDelta().setOid(newShadow.getOid());
@@ -490,7 +490,7 @@ public class ShadowCache {
 
 		if (modifications != null) {
 			ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createModifyDelta(shadow.getOid(),
-					modifications, shadow.getClass());
+					modifications, shadow.getClass(), prismContext);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Storing delta to shadow:\n{}", objectDelta.dump());
 			}

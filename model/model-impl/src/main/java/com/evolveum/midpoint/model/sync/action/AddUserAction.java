@@ -95,7 +95,7 @@ public class AddUserAction extends BaseAction {
 //                context.setUserTypeOld(user);
 
                 //we set secondary delta to create user when executing changes
-                ObjectDelta<UserType> delta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
+                ObjectDelta<UserType> delta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD, getPrismContext());
                 delta.setObjectToAdd(oldUser);
                 focusContext.setSecondaryDelta(delta, 0);
 

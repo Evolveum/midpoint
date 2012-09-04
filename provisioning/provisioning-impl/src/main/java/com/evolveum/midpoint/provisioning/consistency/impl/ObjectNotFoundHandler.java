@@ -118,7 +118,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				// shadow.getOid(), parentResult);
 
 				ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(
-						AccountShadowType.class, ChangeType.DELETE);
+						AccountShadowType.class, ChangeType.DELETE, shadow.asPrismObject().getPrismContext());
 				objectDelta.setOid(shadow.getOid());
 				change.setObjectDelta(objectDelta);
 				change.setResource(shadow.getResource().asPrismObject());

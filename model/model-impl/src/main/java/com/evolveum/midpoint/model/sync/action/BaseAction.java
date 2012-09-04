@@ -235,7 +235,7 @@ public abstract class BaseAction implements Action {
 
         ObjectDelta<AccountShadowType> accDelta = accContext.getSecondaryDelta();
         if (accDelta == null) {
-            accDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
+            accDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY, prismContext);
             accDelta.setOid(accContext.getOid());
             accContext.setSecondaryDelta(accDelta);
         }

@@ -62,7 +62,7 @@
             </value>
             <condition>
             	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>user.getEmployeeType().any{ it == "PIRATE" }</code>
+            	<code>user.getEmployeeType().contains("PIRATE")</code>
             </condition>
         </valueConstruction>
     </propertyConstruction>

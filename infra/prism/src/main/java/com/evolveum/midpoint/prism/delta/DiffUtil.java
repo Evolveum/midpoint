@@ -41,13 +41,22 @@ public class DiffUtil {
 			if (newObject == null) {
 				return null;
 			}
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(newObject.getCompileTimeClass(), ChangeType.ADD);
+			ObjectDelta<T> objectDelta = new ObjectDelta<T>(newObject.getCompileTimeClass(), ChangeType.ADD, getPrismContext(oldObject, newObject));
 			objectDelta.setOid(newObject.getOid());
 			objectDelta.setObjectToAdd(newObject);
 			return objectDelta;
 		} else {
 			return oldObject.diff(newObject);
 		}
+	}
+	
+	private static <T extends Objectable> PrismContext getPrismContext(PrismObject<T>... objects) {
+		for (PrismObject<T> object: objects) {
+			if (object != null) {
+				return object.getPrismContext();
+			}
+		}
+		return null;
 	}
 
 	public static <T extends Objectable> ObjectDelta<T> diff(T oldObjectType, T newObjectType, Class<T> type, 

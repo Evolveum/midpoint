@@ -792,7 +792,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, boolean add) throws SchemaException {
 		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
 		modifications.add((createAssignmentModification(roleOid, refType, add)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class);
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		return userDelta;
 	}
 	
@@ -816,7 +816,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected ObjectDelta<UserType> createAccountAssignmentUserDelta(String userOid, String resourceOid, boolean add) throws SchemaException {
 		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
 		modifications.add((createAccountAssignmentModification(resourceOid, add)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class);
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		return userDelta;
 	}
 	

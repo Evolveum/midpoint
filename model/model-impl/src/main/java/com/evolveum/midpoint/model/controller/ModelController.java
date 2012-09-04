@@ -355,7 +355,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		try {
 
 			auditRecord.setTarget(object);
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(object.getCompileTimeClass(), ChangeType.ADD);
+			ObjectDelta<T> objectDelta = new ObjectDelta<T>(object.getCompileTimeClass(), ChangeType.ADD, prismContext);
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Entering addObject with {}", object);
@@ -456,7 +456,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		UserType userType = user.asObjectable();
 		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
 
-		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
+		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD, prismContext);
 		userDelta.setObjectToAdd(user);
 
 		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
@@ -660,7 +660,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 					}
 				}
 				
-				objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type);
+				objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
 				objectDelta.checkConsistence();
 				
 				if (objectDelta.hasItemDelta(SchemaConstants.PATH_PASSWORD_VALUE) && accountDefinition != null
@@ -787,7 +787,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
 		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
 
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class);
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class, prismContext);
 
 		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
 		focusContext.setObjectOld(null);
@@ -833,7 +833,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		try {
 			auditRecord.setTarget(object);
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE);
+			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE, prismContext);
 			objectDelta.setOid(oid);
 			auditRecord.addDelta(objectDelta);
 			auditService.audit(auditRecord, task);

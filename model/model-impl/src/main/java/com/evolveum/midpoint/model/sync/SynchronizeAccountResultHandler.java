@@ -160,7 +160,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 				// pretending that it has
 				// not existed before, so we will not provide it.
 				ObjectDelta<AccountShadowType> shadowDelta = new ObjectDelta<AccountShadowType>(
-						AccountShadowType.class, ChangeType.ADD);
+						AccountShadowType.class, ChangeType.ADD, accountShadow.getPrismContext());
 				//PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
 				PrismObject<AccountShadowType> shadowToAdd = newShadowType.asPrismObject();
 				shadowDelta.setObjectToAdd(shadowToAdd);

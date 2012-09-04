@@ -95,7 +95,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public void swallowToWaveSecondaryDelta(ItemDelta<?> propDelta) throws SchemaException {
 		ObjectDelta<O> secondaryDelta = getWaveSecondaryDelta();
 		if (secondaryDelta == null) {
-            secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY);        
+            secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());        
             secondaryDelta.setOid(getOid());
             setWaveSecondaryDelta(secondaryDelta);
         }
