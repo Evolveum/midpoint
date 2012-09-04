@@ -294,7 +294,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	// It will be called only once
 	public void initSystem(OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
-		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
+		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");
@@ -306,7 +306,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		// we want original logging configuration from the test logback config
 		// file, not
 		// the one from the system config.
-		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
+		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
 
 		// Add broken connector before importing resources
 		// addObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
@@ -318,11 +318,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		// importObjectFromFile(RESOURCE_DERBY_FILENAME, initResult);
 		// importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
-		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
-		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
+		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
+		addObjectFromFile(USER_TEMPLATE_FILENAME, UserTemplateType.class, initResult);
 		// addObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
 		// addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
-		addObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
+		addObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
 	}
 
 	/**
@@ -651,7 +651,10 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		Task task = taskManager.createTaskInstance();
 		// WHEN
-		String oid = modelService.addObject(user, task, result);
+		ObjectDelta delta = ObjectDelta.createAddDelta(user);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(delta);
+		modelService.executeChanges(deltas, task, result);
+//		String oid = modelService.addObject(user, task, result);
 
 		// THEN
 
@@ -660,9 +663,15 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		// SchemaConstants.C_RESULT);
 		// assertSuccess("addObject has failed", result);
 
-		AssertJUnit.assertEquals(userOid, oid);
+//		AssertJUnit.assertEquals(userOid, oid);
 
 		return userType;
+	}
+
+	private Collection<ObjectDelta<? extends ObjectType>> createDeltaCollection(ObjectDelta delta) {
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		deltas.add(delta);
+		return deltas;
 	}
 
 	/**
@@ -859,7 +868,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		provisioningService.addObject(shadow.asPrismObject(), null, secondResult);
 
-		addObjectFromFile(USER_DENIELS_FILENAME, secondResult);
+		addObjectFromFile(USER_DENIELS_FILENAME, UserType.class, secondResult);
 
 		// GIVEN
 		// result =
@@ -901,8 +910,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		display("Jack's account: ", jackUserAccount.dump());
 		
 		Task task = taskManager.createTaskInstance();
-		modelService.modifyObject(UserType.class, USER_JACK2_OID, delta.getModifications(), task,
-				parentResult);
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_JACK2_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, task, parentResult);
+//		modelService.modifyObject(UserType.class, USER_JACK2_OID, delta.getModifications(), task,
+//				parentResult);
 
 		// modifyUserAddAccount(REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_LINKED_OPENDJ_FILENAME);
 
@@ -960,8 +972,12 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
-		modelService
-				.modifyObject(UserType.class, USER_WILL_OID, delta.getModifications(), task, parentResult);
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_WILL_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, task, parentResult);
+//		modelService
+//				.modifyObject(UserType.class, USER_WILL_OID, delta.getModifications(), task, parentResult);
 
 		user = repositoryService.getObject(UserType.class, USER_WILL_OID, parentResult);
 		assertNotNull(user);
@@ -1001,10 +1017,16 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
-		modelService.modifyObject(UserType.class, USER_GUYBRUSH_OID, delta.getModifications(), task,
-				parentResult);
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_GUYBRUSH_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, task, parentResult);
+//		modelService.modifyObject(UserType.class, USER_GUYBRUSH_OID, delta.getModifications(), task,
+//				parentResult);
 
-		modelService.deleteObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, task, parentResult);
+//		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, prismContext);
+//		deltas = createDeltaCollection(modifyDelta);
+//		modelService.executeChanges(deltas, task, parentResult);
+//		modelService.deleteObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, task, parentResult);
 
 		try {
 			repositoryService.getObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
@@ -1048,8 +1070,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
-		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
-				task, parentResult);
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(ACCOUNT_GUYBRUSH_OID, delta.getModifications(), AccountShadowType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, task, parentResult);
+//		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
+//				task, parentResult);
 
 		try {
 			repositoryService.getObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
@@ -1098,8 +1123,12 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
-		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
-				task, parentResult);
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(ACCOUNT_GUYBRUSH_OID, delta.getModifications(), AccountShadowType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, task, parentResult);
+//		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
+//				task, parentResult);
 
 		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
 				USER_GUYBRUSH_OID, parentResult);
@@ -1139,7 +1168,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	public void test020addObjectCommunicationProblem() throws Exception {
 		displayTestTile("test020 add object - communication problem");
 		OperationResult result = new OperationResult("add object communication error.");
-		addObjectFromFile(USER_E_FILENAME, result);
+		addObjectFromFile(USER_E_FILENAME, UserType.class, result);
 
 		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_E_OID, result);
 		assertNotNull(addedUser);
@@ -1154,7 +1183,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
-		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_E_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, task, result);
+//		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
 
 		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
 				USER_E_OID, result);
@@ -1201,8 +1234,12 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
-		modelService.modifyObject(AccountShadowType.class, accountRefs.get(0).getOid(),
-				delta.getModifications(), task, result);
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(accountRefs.get(0).getOid(), delta.getModifications(), AccountShadowType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, task, result);
+//		modelService.modifyObject(AccountShadowType.class, accountRefs.get(0).getOid(),
+//				delta.getModifications(), task, result);
 
 		String accountOid = accountRefs.get(0).getOid();
 		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
@@ -1242,8 +1279,12 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
-		modelService.modifyObject(AccountShadowType.class, accountRefOid, delta.getModifications(), task,
-				parentResult);
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(accountRefOid, delta.getModifications(), AccountShadowType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, task, parentResult);
+//		modelService.modifyObject(AccountShadowType.class, accountRefOid, delta.getModifications(), task,
+//				parentResult);
 
 		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountRefOid,
 				parentResult).asObjectable();
@@ -1276,15 +1317,22 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
-		modelService.modifyObject(UserType.class, USER_DENIELS_OID, delta.getModifications(), task,
-				parentResult);
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_DENIELS_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, task, parentResult);
+//		
+//		modelService.modifyObject(UserType.class, USER_DENIELS_OID, delta.getModifications(), task,
+//				parentResult);
 
 		UserType userJackAftermodify = repositoryService.getObject(UserType.class, USER_DENIELS_OID,
 				parentResult).asObjectable();
 		assertNotNull(userJack);
 //		 assertEquals(0, userJack.getAccountRef().size());
 
-		modelService.deleteObject(AccountShadowType.class, ACCOUNT_DENIELS_OID, task, parentResult);
+		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, ACCOUNT_DENIELS_OID, prismContext);
+		deltas = createDeltaCollection(deleteDelta);
+		modelService.executeChanges(deltas, task, parentResult);
+//		modelService.deleteObject(AccountShadowType.class, ACCOUNT_DENIELS_OID, task, parentResult);
 
 		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class,
 				ACCOUNT_DENIELS_OID, parentResult).asObjectable();
@@ -1319,7 +1367,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		openDJController.start();
 		assertTrue(EmbeddedUtils.isRunning());
 
-		addObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, result);
+		addObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
 
 		// We need to wait for a sync interval, so the task scanner has a chance
 		// to pick up this
