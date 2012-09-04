@@ -38,22 +38,17 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
-import wickettree.AbstractTree;
-
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 
 /**
  * @author mserbak
  */
-public abstract class StyledLinkLabel<NodeDto> extends Panel {
+public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
 	private static final StyleBehavior STYLE_CLASS = new StyleBehavior();
 	private static final ButtonStyleBehavior BUTTON_STYLE_CLASS = new ButtonStyleBehavior();
 
-	private AbstractTree<NodeDto> tree;
-
-	public StyledLinkLabel(String id, AbstractTree<NodeDto> tree, IModel<NodeDto> model) {
+	public StyledLinkLabel(String id, IModel<T> model) {
 		super(id, model);
-		this.tree = tree;
 		MarkupContainer link = newLinkComponent("link", model);
 		link.add(STYLE_CLASS);
 		add(link);
@@ -73,11 +68,11 @@ public abstract class StyledLinkLabel<NodeDto> extends Panel {
 		return (IModel<NodeDto>) getDefaultModel();
 	}
 
-	public NodeDto getModelObject() {
-		return getModel().getObject();
+	public T getModelObject() {
+		return (T) getModel().getObject();
 	}
 
-	protected MarkupContainer newLinkComponent(String id, IModel<NodeDto> model) {
+	protected MarkupContainer newLinkComponent(String id, IModel<T> model) {
 		return new AjaxFallbackLink<Void>(id) {
 			private static final long serialVersionUID = 1L;
 
@@ -93,12 +88,20 @@ public abstract class StyledLinkLabel<NodeDto> extends Panel {
 		};
 	}
 
-	protected Component newLabelComponent(String id, IModel<NodeDto> model) {
+	protected Component newLabelComponent(String id, IModel<T> model) {
 		return new Label(id, newLabelModel(model));
 	}
 
-	protected IModel<?> newLabelModel(IModel<NodeDto> model) {
-		return model;
+	protected IModel<String> newLabelModel(final IModel<T> model) {
+		return new LoadableModel<String>() {
+
+			@Override
+			protected String load() {
+				NodeDto dto = model.getObject();
+				return dto.getDisplayName();
+			}
+			
+		};
 	}
 
 	protected abstract String getStyleClass();
@@ -106,7 +109,8 @@ public abstract class StyledLinkLabel<NodeDto> extends Panel {
 	protected abstract String getButtonStyleClass();
 
 	protected boolean isClickable() {
-		return false;
+		NodeDto t = getModelObject();
+		return t.getType().equals(NodeType.FOLDER);
 	}
 
 	protected void onClick(AjaxRequestTarget target) {
@@ -148,7 +152,7 @@ public abstract class StyledLinkLabel<NodeDto> extends Panel {
 		response.renderOnLoadJavaScript("initMenuButtons()");
 	}
 	
-	private void createMenu(String id, IModel<NodeDto> model) {
+	private void createMenu(String id, IModel<T> model) {
 		WebMarkupContainer panel = new WebMarkupContainer("menuPanel");
         ListView<String> menu = new ListView<String>("menu", createMenuItemModel(model)) {
 
@@ -162,7 +166,28 @@ public abstract class StyledLinkLabel<NodeDto> extends Panel {
         panel.setMarkupId(id + "_panel");
     }
 	
-	protected IModel<List<String>> createMenuItemModel(IModel<NodeDto> model) {
-		return null;
+	protected IModel<List<String>> createMenuItemModel(final IModel<T> model) {
+		return new LoadableModel<List<String>>() {
+
+			@Override
+			protected List<String> load() {
+				List<String> list = new ArrayList<String>();
+				NodeDto dto = model.getObject();
+				if (NodeType.FOLDER.equals(dto.getType())) {
+					list.add("Edit");
+					list.add("Rename");
+					list.add("Create sub-unit");
+					list.add("Delete / Deprecate");
+				} else {
+					list.add("Edit");
+					list.add("Move");
+					list.add("Rename");
+					list.add("Enable");
+					list.add("Disable");
+					list.add("Change attributes");
+				}
+				return list;
+			}
+		};
 	}
 }

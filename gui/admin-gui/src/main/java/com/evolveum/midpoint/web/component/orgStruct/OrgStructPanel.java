@@ -61,7 +61,7 @@ public class OrgStructPanel extends OptionalTree {
 			@Override
 			protected Component newContentComponent(String id, IModel<NodeDto> model) {
 				return OrgStructPanel.this.newContentComponent(id, model);
-			}
+			}			
 		};
 		return tree;
 	}

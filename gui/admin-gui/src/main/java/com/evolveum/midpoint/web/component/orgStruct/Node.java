@@ -20,109 +20,33 @@
  */
 package com.evolveum.midpoint.web.component.orgStruct;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-
-import wickettree.AbstractTree;
-import wickettree.AbstractTree.State;
-import wickettree.ITreeProvider;
 
 /**
  * @author mserbak
  */
-public class Node<NodeDto> extends StyledLinkLabel<NodeDto> {
+public class Node<T extends NodeDto> extends StyledLinkLabel<T> {
 
-	private static final long serialVersionUID = 1L;
-
-	private AbstractTree<NodeDto> tree;
-
-	public Node(String id, AbstractTree<NodeDto> tree, IModel<NodeDto> model) {
-		super(id, tree, model);
-
-		this.tree = tree;
+	public Node(String id, IModel<T> model) {
+		super(id, model);
 	}
 
-	/**
-	 * Clickable if node can be expanded/collapsed, i.e. has children.
-	 * 
-	 * @see ITreeProvider#hasChildren(Object)
-	 */
-	@Override
-	protected boolean isClickable() {
-		NodeDto t = getModelObject();
-
-		return tree.getProvider().hasChildren(t);
-	}
-
-	/**
-	 * Toggle the node's {@link State} on click.
-	 */
-	@Override
-	protected void onClick(AjaxRequestTarget target) {
-		NodeDto t = getModelObject();
-		if (tree.getState(t) == State.EXPANDED) {
-			tree.collapse(t);
-		} else {
-			tree.expand(t);
-		}
-		target.appendJavaScript("initMenuButtons()");
-	}
-
-	/**
-	 * Delegates to others methods depending wether the given model is a folder,
-	 * expanded, collapsed or selected.
-	 * 
-	 * @see ITreeProvider#hasChildren(Object)
-	 * @see AbstractTree#getState(Object)
-	 * @see #isSelected()
-	 * @see #getOpenStyleClass()
-	 * @see #getClosedStyleClass()
-	 * @see #getOtherStyleClass(Object)
-	 * @see #getSelectedStyleClass()
-	 */
-	@Override
-	protected String getStyleClass() {
-
-		NodeDto t = getModelObject();
-
-		String styleClass;
-		if (tree.getProvider().hasChildren(t)) {
-			if (tree.getState(t) == State.EXPANDED) {
-				styleClass = getOpenStyleClass();
-			} else {
-				styleClass = getClosedStyleClass();
-			}
-		} else {
-			styleClass = getOtherStyleClass(t);
-		}
-
-		if (isSelected()) {
-			styleClass += " " + getSelectedStyleClass();
-		}
-
-		return styleClass;
-	}
-
-	/**
-	 * Optional attribute which decides if an additional "selected" style class
-	 * should be rendered.
-	 * 
-	 * @return defaults to <code>false</code>
-	 */
 	protected boolean isSelected() {
 		return false;
 	}
 
-	/**
-	 * Get a style class for anything other than closed or open folders.
-	 */
-	protected String getOtherStyleClass(NodeDto t) {
-		return "tree-folder-other";
+	protected String getOtherStyleClass(T t) {
+		switch (t.getType()) {
+			case FOLDER:
+				return "tree-folder-other folder";
+			case BOSS:
+				return "tree-folder-other folder_boss";
+			case MANAGER:
+				return "tree-folder-other folder_manager";
+			case USER:
+			default:
+				return "tree-folder-other folder_user";
+		}
 	}
 
 	protected String getClosedStyleClass() {
@@ -133,22 +57,29 @@ public class Node<NodeDto> extends StyledLinkLabel<NodeDto> {
 		return "tree-folder-open";
 	}
 
-	/**
-	 * Get a style class to render for a selected folder.
-	 * 
-	 * @see #isSelected()
-	 */
 	protected String getSelectedStyleClass() {
 		return "selected";
 	}
 
-	protected String getButtonStyle(NodeDto t) {
-		return null;
+	protected String getButtonStyle(T t) {
+		String buttonStyleClass;
+
+		if (NodeType.FOLDER.equals(t.getType())) {
+			buttonStyleClass = "treeButtonMenu orgUnitButton";
+		} else {
+			buttonStyleClass = "treeButtonMenu userButton";
+		}
+		return buttonStyleClass;
 	}
 
 	@Override
 	protected String getButtonStyleClass() {
-		NodeDto t = getModelObject();
+		T t = getModelObject();
 		return getButtonStyle(t);
+	}
+
+	@Override
+	protected String getStyleClass() {
+		return null;
 	}
 }

@@ -20,42 +20,37 @@
  */
 package com.evolveum.midpoint.web.component.orgStruct;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * @author mserbak
  */
-public class NodeDto {
+public class NodeDto implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private String id;
 	private String oid;
 	private boolean loaded;
 	private NodeDto parent;
+	private String displayName;
 	private NodeType type = NodeType.USER;
 
 	private List<NodeDto> nodes = new ArrayList<NodeDto>();
+	
+	public NodeDto(NodeDto parent, String displayName, String oid) {
+		this(parent, displayName, oid, null);
+	}
 
-	public NodeDto(String id, String oid, NodeType type) {
-		this.id = id;
-		this.oid = oid;
+	public NodeDto(NodeDto parent, String displayName, String oid, NodeType type) {
 		if (type != null) {
 			this.type = type;
 		}
-	}
-
-	public NodeDto(NodeDto parent, String name, String oid) {
-		this(parent, name, oid, null);
-	}
-
-	public NodeDto(NodeDto parent, String name, String oid, NodeType type) {
-		this(name, oid, type);
+		this.oid = oid;
+		this.displayName = displayName;
 		this.parent = parent;
-		this.parent.nodes.add(this);
 	}
 
 	public NodeType getType() {
@@ -69,9 +64,13 @@ public class NodeDto {
 	public NodeDto getParent() {
 		return parent;
 	}
-
-	public String getId() {
-		return id;
+	
+	public void setParent(NodeDto parent) {
+		this.parent = parent;
+	}
+	
+	public String getDisplayName() {
+		return displayName;
 	}
 
 	public String getOid() {
@@ -89,10 +88,14 @@ public class NodeDto {
 	public void addNode(NodeDto node) {
 		nodes.add(node);
 	}
-
-	@Override
-	public String toString() {
-		return id;
+	
+	public NodeDto getNodeFromOid(String oid) {
+		for (NodeDto node : nodes) {
+			if(node.getOid().equals(oid)) {
+				return node;
+			}
+		}
+		return null;
 	}
 
 	public boolean isLoaded() {
@@ -102,4 +105,40 @@ public class NodeDto {
 	public void setLoaded(boolean loaded) {
 		this.loaded = loaded;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
+		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NodeDto other = (NodeDto) obj;
+		if (oid == null) {
+			if (other.oid != null)
+				return false;
+		} else if (!oid.equals(other.oid))
+			return false;
+		if (parent == null) {
+			if (other.parent != null)
+				return false;
+		} else if (!parent.equals(other.parent))
+			return false;
+		if (type != other.type)
+			return false;
+		return true;
+	}
+	
+	
 }

@@ -58,4 +58,4 @@ function initMenuButtons() {
 	}).mouseleave(function() {
 		$(this).css(cssOutPanel);
 	});
-}
+};

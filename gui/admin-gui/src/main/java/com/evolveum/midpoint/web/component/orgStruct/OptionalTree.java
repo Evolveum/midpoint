@@ -78,10 +78,6 @@ abstract class OptionalTree extends Panel{
 		};
 	}
 
-	public AbstractTree<NodeDto> getTree() {
-		return tree;
-	}
-
 	protected Component newContentComponent(String id, IModel<NodeDto> model) {
 		return content.newContentComponent(id, tree, model);
 	}

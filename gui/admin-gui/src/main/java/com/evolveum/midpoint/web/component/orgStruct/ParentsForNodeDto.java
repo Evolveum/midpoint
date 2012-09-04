@@ -20,20 +20,24 @@
  */
 package com.evolveum.midpoint.web.component.orgStruct;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.model.IDetachable;
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-
-import wickettree.AbstractTree;
 
 /**
  * @author mserbak
  */
-public abstract class Content extends PageAdmin implements IDetachable
-{
-	public abstract Component newContentComponent(String id, AbstractTree<NodeDto> tree,
-			IModel<NodeDto> model);
+public class ParentsForNodeDto {
+	private NodeDto parent;
+	private NodeType type;
 
+	public ParentsForNodeDto(NodeDto parent, NodeType type) {
+		this.parent = parent;
+		this.type = type;
+	}
+
+	public NodeDto getParent() {
+		return parent;
+	}
+
+	public NodeType getType() {
+		return type;
+	}
 }

@@ -86,7 +86,7 @@ public class PageOrgStruct extends PageAdmin {
 		OrgStructDto newOrgModel = null;
 		List<PrismObject<ObjectType>> orgUnitList;
 		// TODO: remove hardcoded org struct oid
-		OrgFilter orgFilter = OrgFilter.createOrg("00000000-8888-6666-0000-100000000001");
+		OrgFilter orgFilter = OrgFilter.createOrg("00000000-8888-6666-0000-100000000001", null, "1");
 		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
 
 		try {

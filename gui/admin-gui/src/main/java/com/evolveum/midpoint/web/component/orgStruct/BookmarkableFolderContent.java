@@ -26,32 +26,44 @@ import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-
 import wickettree.AbstractTree;
+import wickettree.AbstractTree.State;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * @author mserbak
  */
 public class BookmarkableFolderContent extends Content {
+	private static final String DOT_CLASS = BookmarkableFolderContent.class.getName() + ".";
+	private static final String OPERATION_LOAD_ORGUNIT = DOT_CLASS + "load org unit";
 
 	public BookmarkableFolderContent(final AbstractTree<NodeDto> tree) {
 	}
 
 	@Override
 	public Component newContentComponent(String id, final AbstractTree<NodeDto> tree, IModel<NodeDto> model) {
-		return new Node<NodeDto>(id, tree, model) {
-			private static final long serialVersionUID = 1L;
+		return new Node<NodeDto>(id, model) {
 
 			@Override
 			protected MarkupContainer newLinkComponent(String id, IModel<NodeDto> model) {
-				NodeDto node = model.getObject();
-
+				final NodeDto node = model.getObject();
 				if (tree.getProvider().hasChildren(node)) {
 					return super.newLinkComponent(id, model);
+					
 				} else {
 					return new LabeledWebMarkupContainer(id, model) {
 					};
@@ -59,57 +71,119 @@ public class BookmarkableFolderContent extends Content {
 			}
 
 			@Override
-			protected String getOtherStyleClass(NodeDto user) {
-				switch (user.getType()) {
-					case FOLDER:
-						return "tree-folder-other folder";
-					case BOSS:
-						return "tree-folder-other folder_boss";
-					case MANAGER:
-						return "tree-folder-other folder_manager";
-					case USER:
-					default:
-						return "tree-folder-other folder_user";
-				}
-			}
-
-			@Override
-			protected IModel<List<String>> createMenuItemModel(final IModel<NodeDto> model) {
-				return new LoadableModel<List<String>>() {
-
-					@Override
-					protected List<String> load() {
-						List<String> list = new ArrayList<String>();
-						NodeDto dto = model.getObject();
-						if (NodeType.FOLDER.equals(dto.getType())) {
-							list.add("Edit");
-							list.add("Rename");
-							list.add("Create sub-unit");
-							list.add("Delete / Deprecate");
-						} else {
-							list.add("Edit");
-							list.add("Move");
-							list.add("Rename");
-							list.add("Enable");
-							list.add("Disable");
-							list.add("Change attributes");
-						}
-						return list;
-					}
-				};
-			}
-
-			@Override
-			protected String getButtonStyle(NodeDto t) {
-				String buttonStyleClass;
-
-				if (NodeType.FOLDER.equals(t.getType())) {
-					buttonStyleClass = "treeButtonMenu orgUnitButton";
+			protected void onClick(AjaxRequestTarget target) {
+				NodeDto t = getModelObject();
+				if (tree.getState(t) == State.EXPANDED) {
+					tree.collapse(t);
 				} else {
-					buttonStyleClass = "treeButtonMenu userButton";
+					t.setNodes(getNodes(t));
+					tree.expand(t);
 				}
-				return buttonStyleClass;
+				target.appendJavaScript("initMenuButtons()");
+			}
+
+			@Override
+			protected String getStyleClass() {
+				NodeDto t = getModelObject();
+				String styleClass;
+				if (tree.getProvider().hasChildren(t)) {
+					if (tree.getState(t) == State.EXPANDED) {
+						styleClass = getOpenStyleClass();
+					} else {
+						styleClass = getClosedStyleClass();
+					}
+				} else {
+					styleClass = getOtherStyleClass(t);
+				}
+
+				if (isSelected()) {
+					styleClass += " " + getSelectedStyleClass();
+				}
+
+				return styleClass;
 			}
 		};
+	}
+	
+	private List<NodeDto> getNodes(NodeDto parent) {
+		OrgStructDto orgUnit = loadOrgUnit(parent.getOid());
+		List<NodeDto> listNodes = new ArrayList<NodeDto>();
+
+		if (orgUnit.getOrgUnitList() != null && !orgUnit.getOrgUnitList().isEmpty()) {
+			for (OrgType org : orgUnit.getOrgUnitList()) {
+				listNodes.add(createOrgUnit(parent, org));
+			}
+		}
+
+		if (orgUnit.getUserList() != null && !orgUnit.getUserList().isEmpty()) {
+			for (UserType org : orgUnit.getUserList()) {
+				listNodes.add(createUserUnit(parent, org));
+			}
+		}
+		return listNodes;
+	}
+
+	private OrgStructDto loadOrgUnit(String oid) {
+		Task task = createSimpleTask(OPERATION_LOAD_ORGUNIT);
+		OperationResult result = new OperationResult(OPERATION_LOAD_ORGUNIT);
+
+		OrgStructDto newOrgModel = null;
+		List<PrismObject<ObjectType>> orgUnitList;
+
+		OrgFilter orgFilter = OrgFilter.createOrg(oid, null, "2");
+		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
+
+		try {
+			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
+			orgUnitList = orgUnitList.subList(1, orgUnitList.size());
+			//TODO: hack
+			newOrgModel = new OrgStructDto(orgUnitList);
+			result.recordSuccess();
+		} catch (Exception ex) {
+			result.recordFatalError("Unable to load org unit", ex);
+		}
+
+		if (!result.isSuccess()) {
+			showResult(result);
+		}
+
+		if (newOrgModel.getOrgUnitList() == null) {
+			result.recordFatalError("pageOrgStruct.message.noOrgStructDefined");
+			showResult(result);
+		}
+		return newOrgModel;
+	}
+
+	private NodeDto createOrgUnit(NodeDto parent, OrgType unit) {
+		return new NodeDto(parent, unit.getDisplayName().toString(), unit.getOid(), NodeType.FOLDER);
+	}
+
+	private NodeDto createUserUnit(NodeDto parent, UserType unit) {
+		NodeType type = getRelation(parent, unit.getOrgRef());
+		return new NodeDto(parent, unit.getFullName().toString(), unit.getOid(), type);
+	}
+
+	private NodeType getRelation(NodeDto parent, List<ObjectReferenceType> orgRefList) {
+		ObjectReferenceType orgRef = null;
+
+		for (ObjectReferenceType orgRefType : orgRefList) {
+			if (orgRefType.getOid().equals(parent.getOid())) {
+				orgRef = orgRefType;
+				break;
+			}
+		}
+
+		if (orgRef.getRelation() == null) {
+			return null;
+		}
+		String relation = orgRef.getRelation().getLocalPart();
+
+		if (relation.equals("manager")) {
+			return NodeType.BOSS;
+		} else if (relation.equals("member")) {
+			return NodeType.MANAGER;
+		} else {
+			return NodeType.USER;
+		}
 	}
 }
