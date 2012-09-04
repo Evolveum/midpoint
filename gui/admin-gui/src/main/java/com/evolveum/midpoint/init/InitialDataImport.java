@@ -102,8 +102,7 @@ public class InitialDataImport {
                     continue;
                 }
 
-                ObjectDelta delta = new ObjectDelta(object.getClass(), ChangeType.ADD);
-                delta.setObjectToAdd(object.asPrismObject());
+                ObjectDelta delta = ObjectDelta.createAddDelta(object.asPrismObject());
                 model.executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
                 result.recordSuccess();
             } catch (Exception ex) {

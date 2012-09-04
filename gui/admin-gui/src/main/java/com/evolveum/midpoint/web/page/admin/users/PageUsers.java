@@ -431,7 +431,7 @@ public class PageUsers extends PageAdminUsers {
 			Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
 			try {
-				delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid());
+				delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), getPrismContext());
 				deltas.add(delta);
 				changes = getModelInteractionService().previewChanges(deltas, result);
 			} catch (Exception ex) {
@@ -466,7 +466,7 @@ public class PageUsers extends PageAdminUsers {
 				Task task = createSimpleTask(OPERATION_DELETE_USER);
 				UserType user = bean.getValue();
 
-				ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE);
+				ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE, getPrismContext());
 				delta.setOid(user.getOid());
 
 				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, subResult);
@@ -518,7 +518,7 @@ public class PageUsers extends PageAdminUsers {
 				delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling,
 						SourceType.USER_ACTION, null)));
 
-				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
+				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
 				objectDelta.addModification(delta);
 
 				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), task,

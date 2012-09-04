@@ -268,7 +268,7 @@ public class ObjectWrapper implements Serializable {
 			return createAddingObjectDelta();
 		}
 
-		ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY);
+		ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
 		delta.setOid(object.getOid());
 
 		List<ContainerWrapper> containers = getContainers();
@@ -417,8 +417,7 @@ public class ObjectWrapper implements Serializable {
 		// cleanup empty containers
 		cleanupEmptyContainers(object);
 
-		ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.ADD);
-		delta.setObjectToAdd(object);
+		ObjectDelta delta = ObjectDelta.createAddDelta(object);
 
 		return delta;
 	}

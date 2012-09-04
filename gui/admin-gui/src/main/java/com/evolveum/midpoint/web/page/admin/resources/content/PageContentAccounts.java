@@ -516,7 +516,7 @@ public class PageContentAccounts extends PageAdminResources {
 
             ObjectDelta delta;
             if (user != null) {
-                delta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
+                delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
                 deltas.add(delta);
                 delta.setOid(user.getOid());
                 PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
@@ -526,7 +526,7 @@ public class PageContentAccounts extends PageAdminResources {
             }
 
             if (StringUtils.isNotEmpty(dto.getOldOwnerOid())) {
-                delta = new ObjectDelta(UserType.class, ChangeType.MODIFY);
+                delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
                 deltas.add(delta);
                 delta.setOid(dto.getOldOwnerOid());
                 PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());

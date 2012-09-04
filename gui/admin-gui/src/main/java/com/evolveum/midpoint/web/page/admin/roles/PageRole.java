@@ -202,8 +202,7 @@ public class PageRole extends PageAdminRoles {
                 PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
                 PrismObject<RoleType> newRole = domProcessor.parseObject(dto.getXml(), RoleType.class);
 
-                ObjectDelta delta = new ObjectDelta(RoleType.class, ChangeType.ADD);
-                delta.setObjectToAdd(newRole);
+                ObjectDelta delta = ObjectDelta.createAddDelta(newRole);
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
             } else {
                 //we're editing existing role

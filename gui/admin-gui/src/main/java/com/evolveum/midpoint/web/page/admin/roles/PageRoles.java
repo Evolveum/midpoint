@@ -164,8 +164,7 @@ public class PageRoles extends PageAdminRoles {
             try {
                 Task task = createSimpleTask(OPERATION_DELETE_ROLES);
 
-                ObjectDelta delta = new ObjectDelta(RoleType.class, ChangeType.DELETE);
-                delta.setOid(role.getOid());
+                ObjectDelta delta = ObjectDelta.createDeleteDelta(RoleType.class, role.getOid(), getPrismContext());
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete role.", ex);
