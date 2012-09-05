@@ -103,12 +103,12 @@ public class TestSampleImport extends AbstractIntegrationTest {
 	
 	@Test
 	public void importOpenDJBasic() throws FileNotFoundException, SchemaException {
-		importSample(new File(SAMPLE_DIRECTORY_NAME + "opendj/opendj-localhost-basic.xml"), ResourceType.class, "Basic Localhost OpenDJ");
+		importSample(new File(SAMPLE_DIRECTORY_NAME + "resources/opendj/opendj-localhost-basic.xml"), ResourceType.class, "Basic Localhost OpenDJ");
 	}
 	
 	@Test
 	public void importOpenDJAdvanced() throws FileNotFoundException, SchemaException {
-		importSample(new File(SAMPLE_DIRECTORY_NAME + "opendj/opendj-localhost-resource-sync-advanced.xml"), ResourceType.class, "Localhost OpenDJ");
+		importSample(new File(SAMPLE_DIRECTORY_NAME + "resources/opendj/opendj-localhost-resource-sync-advanced.xml"), ResourceType.class, "Localhost OpenDJ");
 	}
 
 	// Connector not part of the build, therefore this fails
