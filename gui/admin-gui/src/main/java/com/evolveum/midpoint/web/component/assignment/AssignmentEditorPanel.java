@@ -51,7 +51,8 @@ import java.util.List;
  */
 public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
-    private static final String MODAL_ID_BROWSER = "browsePopup";
+    private static final String MODAL_ID_BROWSER_TARGET = "browseTargetPopup";
+    private static final String MODAL_ID_BROWSER_RESOURCE = "browseResourcePopup";
 
     private static final String ID_TARGET_CONTAINER = "targetContainer";
     private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
@@ -96,11 +97,24 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 //        TextArea extension = new TextArea(ID_EXTENSION, new PropertyModel(model, AssignmentEditorDto.F_EXTENSION));
 //        assignmentForm.add(extension);
 
-        initBrowserDialog();
+        ModalWindow targetDialog = createDialog(MODAL_ID_BROWSER_TARGET);
+//        targetDialog.setContent() //todo implement panel
+        add(targetDialog);
+
+        final ModalWindow resourceDialog = createDialog(MODAL_ID_BROWSER_RESOURCE);
+        resourceDialog.setContent(new ResourceListPanel(resourceDialog.getContentId()) {
+
+            @Override
+            public void resourceSelectedPerformed(AjaxRequestTarget target, ResourceType resource) {
+                resourceDialog.close(target);
+                AssignmentEditorPanel.this.resourceSelectedPerformed(target, resource);
+            }
+        });
+        add(resourceDialog);
     }
 
-    private void initBrowserDialog() {
-        final ModalWindow modal = new ModalWindow(MODAL_ID_BROWSER);
+    private ModalWindow createDialog(String id) {
+        final ModalWindow modal = new ModalWindow(id);
         add(modal);
 
         modal.setResizable(false);
@@ -137,7 +151,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             }
         });
 
-
+        return modal;
     }
 
     private VisibleEnableBehaviour createContainerVisibleBehaviour(final UserAssignmentDto.Type type) {
@@ -215,10 +229,16 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     private void browseTargetPerformed(AjaxRequestTarget target) {
-        //todo implement
+        ModalWindow window = (ModalWindow) get(MODAL_ID_BROWSER_TARGET);
+        window.show(target);
     }
 
     private void browseResourcePerformed(AjaxRequestTarget target) {
+        ModalWindow window = (ModalWindow) get(MODAL_ID_BROWSER_RESOURCE);
+        window.show(target);
+    }
+
+    private void resourceSelectedPerformed(AjaxRequestTarget target, ResourceType resource) {
         //todo implement
     }
 

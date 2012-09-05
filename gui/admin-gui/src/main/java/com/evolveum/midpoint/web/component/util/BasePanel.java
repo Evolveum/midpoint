@@ -38,7 +38,6 @@ public abstract class BasePanel<T> extends Panel {
     public BasePanel(String id, IModel<T> model) {
         super(id);
 
-        Validate.notNull("Model must not be null.");
         this.model = model;
     }
 
