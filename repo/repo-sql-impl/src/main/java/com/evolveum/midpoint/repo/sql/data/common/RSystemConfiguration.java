@@ -21,6 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -33,9 +37,12 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
 /**
@@ -50,6 +57,7 @@ public class RSystemConfiguration extends RObject {
     private String name;
     private String globalAccountSynchronizationSettings;
     private REmbeddedReference globalPasswordPolicyRef;
+    private Set<REmbeddedReference> orgRootRef;
     private String modelHooks;
     private String logging;
     private RObjectReference defaultUserTemplateRef;
@@ -64,6 +72,20 @@ public class RSystemConfiguration extends RObject {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public REmbeddedReference getGlobalPasswordPolicyRef() {
 		return globalPasswordPolicyRef;
+	}
+    
+    @ElementCollection
+    @ForeignKey(name = "fk_org_unit")
+    @CollectionTable(name = "m_org_sys_config", joinColumns = {
+            @JoinColumn(name = "org_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "org_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<REmbeddedReference> getOrgRootRef() {
+		if (orgRootRef == null){
+			orgRootRef = new HashSet<REmbeddedReference>();
+		}
+    	return orgRootRef;
 	}
     
     @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
@@ -113,6 +135,10 @@ public class RSystemConfiguration extends RObject {
 		this.globalPasswordPolicyRef = globalPasswordPolicyRef;
 	}
     
+    public void setOrgRootRef(Set<REmbeddedReference> orgRootRef) {
+		this.orgRootRef = orgRootRef;
+	}
+    
     public void setLogging(String logging) {
         this.logging = logging;
     }
@@ -138,6 +164,8 @@ public class RSystemConfiguration extends RObject {
             return false;
         if (globalAccountSynchronizationSettings != null ? !globalAccountSynchronizationSettings.equals(that.globalAccountSynchronizationSettings) : that.globalAccountSynchronizationSettings != null)
             return false;
+        if (orgRootRef != null ? !orgRootRef.equals(that.orgRootRef) : that.orgRootRef != null)
+            return false;
         if (logging != null ? !logging.equals(that.logging) : that.logging != null) return false;
         if (modelHooks != null ? !modelHooks.equals(that.modelHooks) : that.modelHooks != null) return false;
 
@@ -150,6 +178,7 @@ public class RSystemConfiguration extends RObject {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (globalAccountSynchronizationSettings != null ? globalAccountSynchronizationSettings.hashCode() : 0);
         result = 31 * result + (globalPasswordPolicyRef != null ? globalPasswordPolicyRef.hashCode() : 0);
+        result = 31 * result + (orgRootRef != null ? orgRootRef.hashCode() : 0);
         result = 31 * result + (modelHooks != null ? modelHooks.hashCode() : 0);
         result = 31 * result + (logging != null ? logging.hashCode() : 0);
         result = 31 * result + (connectorFramework != null ? connectorFramework.hashCode() : 0);
@@ -167,6 +196,12 @@ public class RSystemConfiguration extends RObject {
         
         if (repo.getGlobalPasswordPolicyRef() != null) {
             jaxb.setGlobalPasswordPolicyRef(repo.getGlobalPasswordPolicyRef().toJAXB(prismContext));
+        }
+        
+        if (repo.getOrgRootRef() != null) {
+            for (REmbeddedReference ref : repo.getOrgRootRef()){
+            	jaxb.getOrgRootRef().add(ref.toJAXB(prismContext));
+            }
         }
 
         try {
@@ -204,6 +239,15 @@ public class RSystemConfiguration extends RObject {
         
         repo.setGlobalPasswordPolicyRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getGlobalPasswordPolicyRef(), prismContext));
 
+        if (jaxb.getOrgRoot() != null) {
+            LOGGER.warn("Root organization from system configuration type won't be saved. It should be " +
+                    "translated to root organization reference.");
+        }
+		if (jaxb.getOrgRootRef() != null) {
+			for (ObjectReferenceType ref : jaxb.getOrgRootRef()) {
+				repo.getOrgRootRef().add(RUtil.jaxbRefToEmbeddedRepoRef(ref, prismContext));
+			}
+		}
         try {
             repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework(), prismContext));
             repo.setGlobalAccountSynchronizationSettings(RUtil.toRepo(jaxb.getGlobalAccountSynchronizationSettings(), prismContext));

@@ -276,18 +276,28 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		PrismObject<SystemConfigurationType> repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, result);
 //		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicy());
 		LOGGER.info("System config from repo: {}", repoSystemConfig.dump());
-		AssertJUnit.assertNull("global password policy not null", repoSystemConfig.asObjectable().getGlobalPasswordPolicyRef());
-		
-		ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(), PrismReferenceValue.createFromTarget(repoPasswordPolicy));
+		AssertJUnit.assertNull("global password policy not null", repoSystemConfig.asObjectable()
+				.getGlobalPasswordPolicyRef());
+
+		ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(
+				SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(),
+				PrismReferenceValue.createFromTarget(repoPasswordPolicy));
 		List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
 		refDeltas.add(refDelta);
 		repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
 		repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, result);
 		LOGGER.info("system config after modify: {}", repoSystemConfig.dump());
-		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicyRef());
-		AssertJUnit.assertNull("default user template not null", repoSystemConfig.asObjectable().getDefaultUserTemplateRef());
-		
-		
+		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable()
+				.getGlobalPasswordPolicyRef());
+		AssertJUnit.assertNull("default user template not null", repoSystemConfig.asObjectable()
+				.getDefaultUserTemplateRef());
+
+		AssertJUnit.assertNotNull("org root ref is null.", repoSystemConfig.asObjectable().getOrgRootRef());
+		AssertJUnit.assertEquals(2, repoSystemConfig.asObjectable().getOrgRootRef().size());
+		AssertJUnit.assertEquals("10000000-0000-0000-0000-000000000003", repoSystemConfig.asObjectable()
+				.getOrgRootRef().get(0).getOid());
+		AssertJUnit.assertEquals("20000000-0000-0000-0000-000000000003", repoSystemConfig.asObjectable()
+				.getOrgRootRef().get(1).getOid());
 	}
 
 	
