@@ -235,13 +235,16 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
 		// find accounts
+		LOGGER.debug("Start repository reconciliation");
 //		QueryType query = QueryUtil.createQuery(QueryUtil.createEqualFilter(DOMUtil.getDocument(), null,
 //				AccountShadowType.F_FAILED_OPERATION_TYPE, "!=null"));
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".RepoReconciliation");
 		opResult.addParam("reconciled", true);
+		LOGGER.debug("Start repository reconciliation");
 		List<PrismObject<AccountShadowType>> shadows = repositoryService.searchObjects(
-				AccountShadowType.class, null, new PagingType(), opResult);
+				AccountShadowType.class, new ObjectQuery(), new PagingType(), opResult);
 
+		LOGGER.debug("Found {} accounts that were not successfully proccessed.", shadows.size());
 		for (PrismObject<AccountShadowType> shadow : shadows) {
 
 			// if (shadow.asObjectable().getAttemptNumber().intValue() >
@@ -275,7 +278,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
 			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.ADD)) {
+			LOGGER.debug("Trying to re-add account {}", ObjectTypeUtil.toShortString(shadow));
 			addObject(shadow.asPrismObject(), parentResult);
+			LOGGER.debug("Re-adding account was successful.");
 			return;
 
 		}
@@ -284,12 +289,16 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
 					shadowDelta.getModification(), shadow.asPrismObject().getDefinition());
 
+			LOGGER.debug("Trying to re-modify account {}", ObjectTypeUtil.toShortString(shadow));
 			modifyObject(shadow.getOid(), modifications, parentResult);
+			LOGGER.debug("Re-modifying account was successful.");
 			return;
 		}
 
 		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.DELETE)) {
+			LOGGER.debug("Trying to re-delete account {}", ObjectTypeUtil.toShortString(shadow));
 			deleteObject(shadow.getOid(), parentResult);
+			LOGGER.debug("Re-deleting account was successful.");
 			return;
 		}
 	}

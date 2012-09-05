@@ -188,12 +188,12 @@ public class ShadowCacheUtil {
 		normalizedContainer.clear();
 		Collection<ResourceAttribute<?>> identifiers = oldContainer.getIdentifiers();
 		for (PrismProperty<?> p : identifiers) {
-			normalizedContainer.getValue().add(p);
+			normalizedContainer.getValue().add(p.clone());
 		}
 
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = oldContainer.getSecondaryIdentifiers();
 		for (PrismProperty<?> p : secondaryIdentifiers) {
-			normalizedContainer.getValue().add(p);
+			normalizedContainer.getValue().add(p.clone());
 		}
 
 	}
