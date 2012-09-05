@@ -40,64 +40,51 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 /**
  * @author mserbak
  */
-public class OrgStructDto implements Serializable {
-	private List<OrgType> orgUnitList;
-	private List<UserType> userList;
+public class OrgStructDto<T extends ObjectType> implements Serializable {
+	private List<NodeDto> orgUnitList;
+	private List<NodeDto> userList;
 
-	public OrgStructDto(List<PrismObject<ObjectType>> orgUnitList) {
+	public OrgStructDto(List<PrismObject<T>> orgUnitList) {
 		Validate.notNull(orgUnitList);
 		initNodes(orgUnitList);
 	}
 
-	private void initNodes(List<PrismObject<ObjectType>> list) {
-		for (PrismObject<ObjectType> node : list) {
+	private void initNodes(List<PrismObject<T>> list) {
+		for (PrismObject<T> node : list) {
 			ObjectType nodeObject = node.asObjectable();
 
 			if (nodeObject instanceof OrgType) {
 				if (orgUnitList == null) {
-					orgUnitList = new ArrayList<OrgType>();
+					orgUnitList = new ArrayList<NodeDto>();
 				}
 				OrgType org = (OrgType) nodeObject;
-				orgUnitList.add(org);
+				orgUnitList.add(new NodeDto(null, org.getDisplayName().toString(), org.getOid(),
+						NodeType.FOLDER));
 
 			} else if (nodeObject instanceof UserType) {
 				if (userList == null) {
-					userList = new ArrayList<UserType>();
+					userList = new ArrayList<NodeDto>();
 				}
 				UserType user = (UserType) nodeObject;
-				userList.add(user);
+				userList.add(new NodeDto(null, user.getFullName().toString(), user.getOid(), user.getOrgRef()));
 			}
 		}
 	}
 
 	public IModel<String> getTitle() {
 		if (orgUnitList != null && !orgUnitList.isEmpty()) {
-			String title = orgUnitList.get(0).getLocality().toString();
+			String title = orgUnitList.get(0).getDisplayName().toString();
 			return new Model<String>(title);
 		}
 		return new Model<String>("");
 	}
 
 	public List<NodeDto> getOrgUnitDtoList() {
-		List<NodeDto> list = new ArrayList<NodeDto>();
-		if(orgUnitList == null || orgUnitList.isEmpty()) {
-			return list;
-		}
-		for (OrgType orgUnit : orgUnitList) {
-			list.add(new NodeDto(null, orgUnit.getDisplayName().toString(), orgUnit.getOid(), NodeType.FOLDER));
-		}
-		return list;
+		return orgUnitList;
 	}
 
 	public List<NodeDto> getUserDtoList() {
-		List<NodeDto> list = new ArrayList<NodeDto>();
-		if(userList == null || userList.isEmpty()) {
-			return list;
-		}
-		for (UserType user : userList) {
-			list.add(new NodeDto(null, user.getFullName().toString(), user.getOid(), user.getOrgRef()));
-		}
-		return list;
+		return userList;
 	}
 
 	public static NodeType getRelation(NodeDto parent, List<ObjectReferenceType> orgRefList) {

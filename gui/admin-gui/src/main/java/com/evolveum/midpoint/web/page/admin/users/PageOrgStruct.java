@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 
 /**
@@ -59,13 +61,12 @@ public class PageOrgStruct extends PageAdmin {
 
 	private static final String DOT_CLASS = PageOrgStruct.class.getName() + ".";
 	private static final String OPERATION_LOAD_ORGUNIT = DOT_CLASS + "load org unit";
-	private IModel<OrgStructDto> model;
+	private IModel<List<PrismObject<OrgType>>> roots;
 
 	public PageOrgStruct() {
-		model = new LoadableModel<OrgStructDto>(false) {
-
+		roots = new LoadableModel<List<PrismObject<OrgType>>>(false) {
 			@Override
-			protected OrgStructDto load() {
+			protected List<PrismObject<OrgType>> load() {
 				return loadOrgUnit();
 			}
 		};
@@ -74,24 +75,26 @@ public class PageOrgStruct extends PageAdmin {
 
 	private void initLayout() {
 		List<ITab> tabs = new ArrayList<ITab>();
-		tabs.add(new TabPanel(model));
+		for (PrismObject<OrgType> root : roots.getObject()) {
+			tabs.add(new TabPanel(new Model<OrgStructDto>(getOrgStructDtoFromPrism(root))));
+		}
 		add(new TabbedPanel("tabPanel", tabs));
-
 	}
 
-	private OrgStructDto loadOrgUnit() {
+	private OrgStructDto getOrgStructDtoFromPrism(PrismObject<OrgType> root) {
+		List<PrismObject<OrgType>> orgUnitList = new ArrayList<PrismObject<OrgType>>();
+		orgUnitList.add(root);
+		return new OrgStructDto<OrgType>(orgUnitList);
+	}
+
+	private List<PrismObject<OrgType>> loadOrgUnit() {
 		Task task = createSimpleTask(OPERATION_LOAD_ORGUNIT);
 		OperationResult result = new OperationResult(OPERATION_LOAD_ORGUNIT);
 
-		OrgStructDto newOrgModel = null;
-		List<PrismObject<ObjectType>> orgUnitList;
-		// TODO: remove hardcoded org struct oid
-		OrgFilter orgFilter = OrgFilter.createOrg("00000000-8888-6666-0000-100000000001", null, "1");
-		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
-
+		List<PrismObject<OrgType>> orgUnitList = null;
 		try {
-			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
-			newOrgModel = new OrgStructDto(orgUnitList);
+			ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(getPrismContext());
+			orgUnitList = getModelService().searchObjects(OrgType.class, query, null, task, result);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recordFatalError("Unable to load org unit", ex);
@@ -101,15 +104,16 @@ public class PageOrgStruct extends PageAdmin {
 			showResult(result);
 		}
 
-		if (newOrgModel.getOrgUnitDtoList() == null || newOrgModel.getOrgUnitDtoList().isEmpty()) {
+		if (orgUnitList == null || orgUnitList.isEmpty()) {
 			getSession().error(getString("pageOrgStruct.message.noOrgStructDefined"));
 			throw new RestartResponseException(PageUsers.class);
 		}
-		return newOrgModel;
+		return orgUnitList;
 	}
 
 	private class TabPanel extends AbstractTab {
 		private IModel<OrgStructDto> model;
+
 		public TabPanel(IModel<OrgStructDto> model) {
 			super(model.getObject().getTitle());
 			this.model = model;

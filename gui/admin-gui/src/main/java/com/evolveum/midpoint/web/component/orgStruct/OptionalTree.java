@@ -58,7 +58,7 @@ abstract class OptionalTree extends Panel{
 				response.renderCSSReference(new WindowsTheme());
 			}
 		});
-		content = new BookmarkableFolderContent(tree);
+		content = new BookmarkableFolderContent();
 		add(tree);
 	}
 

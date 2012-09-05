@@ -51,7 +51,7 @@ public class BookmarkableFolderContent extends Content {
 	private static final String DOT_CLASS = BookmarkableFolderContent.class.getName() + ".";
 	private static final String OPERATION_LOAD_ORGUNIT = DOT_CLASS + "load org unit";
 
-	public BookmarkableFolderContent(final AbstractTree<NodeDto> tree) {
+	public BookmarkableFolderContent() {
 	}
 
 	@Override
@@ -110,14 +110,16 @@ public class BookmarkableFolderContent extends Content {
 		List<NodeDto> listNodes = new ArrayList<NodeDto>();
 
 		if (orgUnit.getOrgUnitDtoList() != null && !orgUnit.getOrgUnitDtoList().isEmpty()) {
-			for (NodeDto org : orgUnit.getOrgUnitDtoList()) {
+			for (Object orgObject : orgUnit.getOrgUnitDtoList()) {
+				NodeDto org = (NodeDto) orgObject;
 				org.setParent(parent);
 				listNodes.add(org);
 			}
 		}
 
 		if (orgUnit.getUserDtoList() != null && !orgUnit.getUserDtoList().isEmpty()) {
-			for (NodeDto user : orgUnit.getUserDtoList()) {
+			for (Object userObject : orgUnit.getUserDtoList()) {
+				NodeDto user = (NodeDto) userObject;
 				user.setParent(parent);
 				user.setType(OrgStructDto.getRelation(parent, user.getOrgRefs()));
 				listNodes.add(user);
@@ -131,16 +133,14 @@ public class BookmarkableFolderContent extends Content {
 		OperationResult result = new OperationResult(OPERATION_LOAD_ORGUNIT);
 
 		OrgStructDto newOrgModel = null;
-		List<PrismObject<ObjectType>> orgUnitList;
+		 List<PrismObject<ObjectType>> orgUnitList;
 
-		OrgFilter orgFilter = OrgFilter.createOrg(oid, null, "2");
+		OrgFilter orgFilter = OrgFilter.createOrg(oid, null, "1");
 		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
 
 		try {
 			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
-			orgUnitList = orgUnitList.subList(1, orgUnitList.size());
-			//TODO: hack
-			newOrgModel = new OrgStructDto(orgUnitList);
+			newOrgModel = new OrgStructDto<ObjectType>(orgUnitList);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recordFatalError("Unable to load org unit", ex);
