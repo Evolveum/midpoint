@@ -50,7 +50,8 @@ public abstract class RObject extends RContainer {
 	@QueryEntity(any = true)
 	private RAnyContainer extension;
 	private long version;
-	private Set<REmbeddedReference> orgRefs;
+	@QueryAttribute(multiValue = true)
+	private Set<REmbeddedReference> orgRef;
 	private Set<ROrgClosure> descendants;
 	private Set<ROrgClosure> ancestors;
 
@@ -60,8 +61,8 @@ public abstract class RObject extends RContainer {
 			@JoinColumn(name = "user_oid", referencedColumnName = "oid"),
 			@JoinColumn(name = "user_id", referencedColumnName = "id") })
 	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
-	public Set<REmbeddedReference> getOrgRefs() {
-		return orgRefs;
+	public Set<REmbeddedReference> getOrgRef() {
+		return orgRef;
 	}
 
 	@OneToOne(optional = true, orphanRemoval = true)
@@ -116,8 +117,8 @@ public abstract class RObject extends RContainer {
 		this.version = version;
 	}
 
-	public void setOrgRefs(Set<REmbeddedReference> orgRefs) {
-		this.orgRefs = orgRefs;
+	public void setOrgRef(Set<REmbeddedReference> orgRefs) {
+		this.orgRef = orgRefs;
 	}
 
 	@Override
@@ -165,8 +166,8 @@ public abstract class RObject extends RContainer {
 			RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
 		}
 
-		if (repo.getOrgRefs() != null) {
-			for (REmbeddedReference orgRef : repo.getOrgRefs()) {
+		if (repo.getOrgRef() != null) {
+			for (REmbeddedReference orgRef : repo.getOrgRef()) {
 				jaxb.getOrgRef().add(orgRef.toJAXB(prismContext));
 			}
 		}
@@ -196,10 +197,10 @@ public abstract class RObject extends RContainer {
 		}
 
 		if (!jaxb.getOrgRef().isEmpty()) {
-			repo.setOrgRefs(new HashSet<REmbeddedReference>());
+			repo.setOrgRef(new HashSet<REmbeddedReference>());
 		}
 		for (ObjectReferenceType orgRef : jaxb.getOrgRef()) {
-			repo.getOrgRefs().add(RUtil.jaxbRefToEmbeddedRepoRef(orgRef, prismContext));
+			repo.getOrgRef().add(RUtil.jaxbRefToEmbeddedRepoRef(orgRef, prismContext));
 		}
 		
 	}

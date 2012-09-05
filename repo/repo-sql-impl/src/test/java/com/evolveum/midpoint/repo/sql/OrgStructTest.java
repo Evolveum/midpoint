@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -373,6 +374,41 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 
 			LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
 
+		}
+
+	}
+
+	@Test
+	public void test007searchRootOrg() throws Exception {
+		LOGGER.info("===[ SEARCH ROOT QUERY ]===");
+		OperationResult parentResult = new OperationResult("search root org struct");
+		Session session = factory.openSession();
+
+		List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
+		LOGGER.info("==============CLOSURE TABLE==========");
+		for (ROrgClosure o : results) {
+			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
+					o.getDescendant().toJAXB(prismContext), o.getDepth() });
+		}
+
+		// File file = new File(TEST_DIR + "/query-org-struct.xml");
+//		Document document = DOMUtil.parseFile(new File(QUERY_ORG_STRUCT_ORG_DEPTH));
+//		Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
+//		QueryType query = QueryUtil.createQuery(filter);
+//		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(QUERY_ORG_STRUCT_ORG_DEPTH), QueryType.class);
+		try{
+		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(EqualsFilter.createReferenceEqual(OrgType.class, OrgType.F_ORG_REF, prismContext, null));
+//		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
+		// List<>
+		List<PrismObject<OrgType>> resultss = repositoryService.searchObjects(OrgType.class, objectQuery, null, parentResult);
+		for (PrismObject<OrgType> u : resultss) {
+
+			LOGGER.info("ROOT ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
+
+		}
+		}catch(Exception ex){
+			LOGGER.info("ERROR: {}", ex.getMessage(), ex);
+			throw ex;
 		}
 
 	}

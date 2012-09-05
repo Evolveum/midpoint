@@ -169,7 +169,7 @@ public class SimpleOp extends Op {
 			LOGGER.trace("Value updated to type '{}'", new Object[] { (testedValue == null ? null : testedValue
 					.getClass().getName()) });
 
-			criterion = createBaseCriteria(filter, pushNot, conditionItem.getQueryableItem(), testedValue);
+			criterion = createBaseCriteria(filter, pushNot, conditionItem, testedValue);
 
 		}
 
@@ -183,16 +183,23 @@ public class SimpleOp extends Op {
 		return criterion;
 	}
 
-	private Criterion createBaseCriteria(ObjectFilter filter, boolean pushNot, String name, Object testedValue)
+	private Criterion createBaseCriteria(ObjectFilter filter, boolean pushNot, SimpleItem item, Object testedValue)
 			throws QueryException {
 		// will be used later to support other filters than <equal>
+		String name = item.getQueryableItem();
 		Operation operation = getOperationType(filter);
 		switch (operation) {
 		case EQUAL:
 			if (pushNot) {
+				if (testedValue == null){
+					return (item.isMultiValue ? Restrictions.isNotEmpty(name):Restrictions.isNotNull(name));
+				}
 				return Restrictions.ne(name, testedValue);
 			} else {
-				return Restrictions.eq(name, testedValue);
+				if (testedValue == null){
+					return (item.isMultiValue ? Restrictions.isEmpty(name):Restrictions.isNull(name));
+				}
+				return (testedValue == null ? Restrictions.isEmpty(name):Restrictions.eq(name, testedValue));
 			}
 		case SUBSTRING:
 			if (pushNot) {
@@ -232,7 +239,7 @@ public class SimpleOp extends Op {
 			boolean pushNot) throws QueryException {
 
 		QName type = refValue.getTargetType();
-		Criterion criterion = createBaseCriteria(filter, pushNot, conditionItem.getQueryableItem(), refValue.getOid());
+		Criterion criterion = createBaseCriteria(filter, pushNot, conditionItem, refValue.getOid());
 
 		// if reference type is available for reference, we're add another QName
 		// criterion for object type
@@ -294,6 +301,7 @@ public class SimpleOp extends Op {
 			if (!attrDef.isIndexed()) {
 				LOGGER.debug("You're probably querying by attribute ('" + attrDef + "') which is not indexed.");
 			}
+			
 			if (attrDef.isReference()) {
 				PropertyPath propPath = path;
 				String realName = attrDef.getRealName();
@@ -318,6 +326,7 @@ public class SimpleOp extends Op {
 			item.isPolyString = attrDef.isPolyString();
 			item.isEnum = attrDef.isEnumerated();
 			item.enumType = attrDef.getClassType();
+			item.isMultiValue = attrDef.isMultiValue();
 		}
 
 		return item;
@@ -421,6 +430,7 @@ public class SimpleOp extends Op {
 		boolean isReference;
 		boolean isEnum;
 		boolean isPolyString;
+		boolean isMultiValue;
 		// if condition item is enum type, then this is enum class
 		Class<?> enumType;
 

@@ -42,4 +42,6 @@ public @interface QueryAttribute {
     boolean enumerated() default false;
 
     boolean polyString() default false;
+    
+    boolean multiValue() default false;
 }

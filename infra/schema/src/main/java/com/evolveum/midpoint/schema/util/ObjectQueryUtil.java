@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 
 public class ObjectQueryUtil {
 
@@ -31,4 +32,9 @@ public class ObjectQueryUtil {
 		return ObjectQuery.createObjectQuery(equal);
 	}
 	
+	public static ObjectQuery createRootOrgQuery(PrismContext prismContext) throws SchemaException {
+		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(EqualsFilter.createReferenceEqual(OrgType.class,
+				OrgType.F_ORG_REF, prismContext, null));
+		return objectQuery;
+	}
 }

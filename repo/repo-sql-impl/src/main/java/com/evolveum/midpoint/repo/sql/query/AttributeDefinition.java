@@ -34,6 +34,7 @@ public class AttributeDefinition extends Definition implements DebugDumpable {
     private boolean reference;
     private boolean enumerated;
     private boolean polyString;
+    private boolean multiValue;
     private Class<?> classType;
 
     public Class<?> getClassType() {
@@ -75,6 +76,14 @@ public class AttributeDefinition extends Definition implements DebugDumpable {
     public void setIndexed(boolean indexed) {
         this.indexed = indexed;
     }
+    
+    public void setMultiValue(boolean multiValue) {
+		this.multiValue = multiValue;
+	}
+    
+    public boolean isMultiValue() {
+		return multiValue;
+	}
 
     @Override
     public Definition findDefinition(QName qname) {

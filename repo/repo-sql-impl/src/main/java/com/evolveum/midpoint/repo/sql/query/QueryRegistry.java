@@ -131,6 +131,7 @@ public class QueryRegistry {
             attrDef.setIndexed(isFieldIndexed(field));
             attrDef.setEnumerated(queryAttribute.enumerated());
             attrDef.setPolyString(queryAttribute.polyString());
+            attrDef.setMultiValue(queryAttribute.multiValue());
             if (queryAttribute.enumerated()) {
                 attrDef.setClassType(field.getType());
             }
