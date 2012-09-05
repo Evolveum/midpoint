@@ -57,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
  * @author mserbak
  * 
  */
-public class PageOrgStruct extends PageAdmin {
+public class PageOrgStruct extends PageAdminUsers {
 
 	private static final String DOT_CLASS = PageOrgStruct.class.getName() + ".";
 	private static final String OPERATION_LOAD_ORGUNIT = DOT_CLASS + "load org unit";

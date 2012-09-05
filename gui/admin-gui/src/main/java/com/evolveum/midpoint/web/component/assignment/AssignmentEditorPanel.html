@@ -22,25 +22,25 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div wicket:id="browsePopup" />
+
     <div>
         <span><wicket:message key="AssignmentEditorPanel.description"/></span>
         <input type="text" wicket:id="description"/>
     </div>
 
     <div wicket:id="targetContainer">
-        <div>
-            <wicket:message key="AssignmentEditorPanel.target"/>
-        </div>
-        <div wicket:id="targetName"/>
-        <a wicket:id="browseTarget"/>
+        <span><wicket:message key="AssignmentEditorPanel.target"/></span>
+        <span wicket:id="targetName"/>
+
+        <a wicket:id="browseTarget" style="margin-left: 10px;"/>
     </div>
 
     <div wicket:id="constructionContainer">
-        <div>
-            <wicket:message key="AssignmentEditorPanel.resource"/>
-        </div>
-        <div wicket:id="resourceName"/>
-        <a wicket:id="browseResource"/>
+        <span><wicket:message key="AssignmentEditorPanel.resource"/></span>
+        <span wicket:id="resourceName"/>
+
+        <a wicket:id="browseResource" style="margin-left: 10px;"/>
 
         <div wicket:id="attributes">
             <div wicket:id="attribute">

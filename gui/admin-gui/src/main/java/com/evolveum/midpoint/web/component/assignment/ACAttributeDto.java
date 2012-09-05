@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
 
@@ -29,6 +31,10 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class ACAttributeDto implements Serializable {
+
+    public static final String F_NAME = "name";
+    public static final String F_VALUE = "value";
+    public static final String F_EXPRESSION = "expression";
 
     private PrismPropertyDefinition definition;
     private String value;
@@ -39,6 +45,8 @@ public class ACAttributeDto implements Serializable {
     }
 
     public ACAttributeDto(PrismPropertyDefinition definition, String value, String expression) {
+        Validate.notNull(definition, "Prism property definition must not be null.");
+
         this.definition = definition;
         this.expression = expression;
         this.value = value;
@@ -46,6 +54,10 @@ public class ACAttributeDto implements Serializable {
 
     public PrismPropertyDefinition getDefinition() {
         return definition;
+    }
+
+    public String getName() {
+        return definition.getDisplayName(); //todo better impl
     }
 
     public String getExpression() {
@@ -62,5 +74,9 @@ public class ACAttributeDto implements Serializable {
 
     public void setExpression(String expression) {
         this.expression = expression;
+    }
+
+    public boolean isExpressionUsed() {
+        return StringUtils.isNotEmpty(expression);
     }
 }

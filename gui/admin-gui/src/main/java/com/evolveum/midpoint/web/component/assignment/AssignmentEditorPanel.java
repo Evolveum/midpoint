@@ -29,7 +29,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AbstractAjaxBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
@@ -47,6 +51,8 @@ import java.util.List;
  */
 public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
+    private static final String MODAL_ID_BROWSER = "browsePopup";
+
     private static final String ID_TARGET_CONTAINER = "targetContainer";
     private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
 
@@ -61,7 +67,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXTENSION = "extension";
-    private boolean initialized;
+    private static final String ID_ACTIVATION = "activation";
 
     public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
         super(id, model);
@@ -81,7 +87,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         WebMarkupContainer constructionContainer = new WebMarkupContainer(ID_CONSTRUCTION_CONTAINER);
         constructionContainer.setOutputMarkupId(true);
-        targetContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION));
+        constructionContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION));
         add(constructionContainer);
 
         initConstructionContainer(constructionContainer);
@@ -89,6 +95,49 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         //todo extension and activation
 //        TextArea extension = new TextArea(ID_EXTENSION, new PropertyModel(model, AssignmentEditorDto.F_EXTENSION));
 //        assignmentForm.add(extension);
+
+        initBrowserDialog();
+    }
+
+    private void initBrowserDialog() {
+        final ModalWindow modal = new ModalWindow(MODAL_ID_BROWSER);
+        add(modal);
+
+        modal.setResizable(false);
+        modal.setTitle(getString("AssignmentEditorPanel.browser.title"));
+        modal.setCookieName(AssignmentEditorPanel.class.getSimpleName() + ((int) (Math.random() * 100)));
+
+        modal.setInitialWidth(1100);
+        modal.setWidthUnit("px");
+
+        modal.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+
+            @Override
+            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+                return true;
+            }
+        });
+
+        modal.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+
+            @Override
+            public void onClose(AjaxRequestTarget target) {
+                modal.close(target);
+            }
+        });
+
+        modal.add(new AbstractAjaxBehavior() {
+            @Override
+            public void onRequest() {
+            }
+
+            @Override
+            public void renderHead(Component component, IHeaderResponse response) {
+                response.renderOnDomReadyJavaScript("Wicket.Window.unloadConfirmation = false;");
+            }
+        });
+
+
     }
 
     private VisibleEnableBehaviour createContainerVisibleBehaviour(final UserAssignmentDto.Type type) {

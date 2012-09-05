@@ -21,13 +21,22 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.BasePanel;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
  */
 public class ACAttributePanel extends BasePanel<ACAttributeDto> {
+
+    private static final String ID_ATTRIBUTE_LABEL = "attributeLabel";
+    private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
+    private static final String ID_SHOW_EXPR_EDITOR = "showExprEditor";
 
     public ACAttributePanel(String id, IModel<ACAttributeDto> model) {
         super(id, model);
@@ -35,6 +44,24 @@ public class ACAttributePanel extends BasePanel<ACAttributeDto> {
 
     @Override
     protected void initLayout() {
-        //todo
+        Label attributeLabel = new Label(ID_ATTRIBUTE_LABEL, new PropertyModel(getModel(), ACAttributeDto.F_NAME));
+        add(attributeLabel);
+
+        TextField attributeValue = new TextField(ID_ATTRIBUTE_VALUE, new PropertyModel(getModel(), ACAttributeDto.F_VALUE));
+        add(attributeValue);
+
+        AjaxLinkButton showExprEditor = new AjaxLinkButton(ID_SHOW_EXPR_EDITOR,
+                createStringResource("ACAttributePanel.button.showExprEditor")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showExprEditorPerformed(target);
+            }
+        };
+        add(showExprEditor);
+    }
+
+    private void showExprEditorPerformed(AjaxRequestTarget target) {
+        //todo implement
     }
 }

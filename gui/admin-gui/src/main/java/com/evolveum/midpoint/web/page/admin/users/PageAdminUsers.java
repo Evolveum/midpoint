@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.util.PageVisibleDisabledBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import org.apache.commons.lang.StringUtils;
@@ -67,7 +68,8 @@ public class PageAdminUsers extends PageAdmin {
                 return false;
             }
         }));
-        items.add(new BottomMenuItem("pageAdminUsers.orgStruct", PageOrgStruct.class));
+        items.add(new BottomMenuItem("pageAdminUsers.orgStruct", PageOrgStruct.class,
+                new PageVisibleDisabledBehaviour(this, PageOrgStruct.class)));
         
         return items;
         
