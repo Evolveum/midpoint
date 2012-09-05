@@ -27,7 +27,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -41,6 +43,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -49,6 +52,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
@@ -136,10 +140,14 @@ public class PageUser extends PageAdminUsers {
 	private static final String MODAL_ID_CONFIRM_DELETE_ACCOUNT = "confirmDeleteAccountPopup";
 	private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
+    private static final String ID_ASSIGNMENT_EDITOR_WRAPPER = "assignmentEditorWrapper";
+    private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
+
 	private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 	private IModel<ObjectWrapper> userModel;
 	private IModel<List<UserAccountDto>> accountsModel;
 	private IModel<List<UserAssignmentDto>> assignmentsModel;
+    private IModel<AssignmentEditorDto> assignmentEditorModel = new Model<AssignmentEditorDto>();
 
 	public PageUser() {
 		userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -448,99 +456,119 @@ public class PageUser extends PageAdminUsers {
 		return list;
 	}
 
+    private List<IColumn> initAssignmentColumns() {
+        List<IColumn> columns = new ArrayList<IColumn>();
+        columns.add(new CheckBoxHeaderColumn());
+        columns.add(new IconColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.type")) {
+
+            @Override
+            protected IModel<ResourceReference> createIconModel(final IModel<UserAssignmentDto> rowModel) {
+                return new AbstractReadOnlyModel<ResourceReference>() {
+
+                    @Override
+                    public ResourceReference getObject() {
+                        UserAssignmentDto dto = rowModel.getObject();
+                        switch (dto.getType()) {
+                            case ROLE:
+                                return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
+                            case OTHER:
+                            default:
+                                return new SharedResourceReference(ImgResources.class, ImgResources.DRIVE);
+                        }
+                    }
+                };
+            }
+
+            @Override
+            protected IModel<AttributeModifier> createAttribute(final IModel<UserAssignmentDto> rowModel) {
+                return new AbstractReadOnlyModel<AttributeModifier>() {
+
+                    @Override
+                    public AttributeModifier getObject() {
+                        UserAssignmentDto dto = rowModel.getObject();
+
+                        //todo wtf, not good, don't add attribute modifiers like that, they have already model
+                        if (UserDtoStatus.DELETE.equals(dto.getStatus())) {
+                            return new AttributeModifier("class", "deletedValue");
+                        }
+                        return new AttributeModifier("", "");
+                    }
+                };
+            }
+
+        });
+        columns.add(new PropertyColumn(createStringResource("pageUser.assignment.name"), "name", "name"));
+        columns.add(new AbstractColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.active")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<UserAssignmentDto>> cellItem, String componentId,
+                                     final IModel<UserAssignmentDto> rowModel) {
+                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return createAssignmentActivationText(rowModel);
+                    }
+                }));
+            }
+        });
+
+        return columns;
+    }
+
 	private void initAssignments(AccordionItem assignments) {
-		List<IColumn> columns = new ArrayList<IColumn>();
-		columns.add(new CheckBoxHeaderColumn());
-		columns.add(new IconColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.type")) {
-
-			@Override
-			protected IModel<ResourceReference> createIconModel(final IModel<UserAssignmentDto> rowModel) {
-				return new AbstractReadOnlyModel<ResourceReference>() {
-
-					@Override
-					public ResourceReference getObject() {
-						UserAssignmentDto dto = rowModel.getObject();
-						switch (dto.getType()) {
-							case ROLE:
-								return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
-							case OTHER:
-							default:
-								return new SharedResourceReference(ImgResources.class, ImgResources.DRIVE);
-						}
-					}
-				};
-			}
-
-			@Override
-			protected IModel<AttributeModifier> createAttribute(final IModel<UserAssignmentDto> rowModel) {
-				return new AbstractReadOnlyModel<AttributeModifier>() {
-
-					@Override
-					public AttributeModifier getObject() {
-						UserAssignmentDto dto = rowModel.getObject();
-
-						if (UserDtoStatus.DELETE.equals(dto.getStatus())) {
-							return new AttributeModifier("class", "deletedValue");
-						}
-						return new AttributeModifier("", "");
-					}
-				};
-			}
-
-		});
-		columns.add(new PropertyColumn(createStringResource("pageUser.assignment.name"), "name", "name"));
-		columns.add(new AbstractColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.active")) {
-
-			@Override
-			public void populateItem(Item<ICellPopulator<UserAssignmentDto>> cellItem, String componentId,
-					final IModel<UserAssignmentDto> rowModel) {
-				cellItem.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-					@Override
-					public Object getObject() {
-						UserAssignmentDto dto = rowModel.getObject();
-						ActivationType activation = dto.getActivation();
-						if (activation == null) {
-							return "-";
-						}
-
-						Boolean enabled = activation.isEnabled();
-						String strEnabled;
-						if (enabled != null) {
-							if (enabled) {
-								strEnabled = PageUser.this.getString("pageUser.assignment.activation.active");
-							} else {
-								strEnabled = PageUser.this
-										.getString("pageUser.assignment.activation.inactive");
-							}
-						} else {
-							strEnabled = PageUser.this.getString("pageUser.assignment.activation.undefined");
-						}
-
-						if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-							return PageUser.this.getString("pageUser.assignment.activation.enabledFromTo",
-									strEnabled, MiscUtil.asDate(activation.getValidFrom()),
-									MiscUtil.asDate(activation.getValidTo()));
-						} else if (activation.getValidFrom() != null) {
-							return PageUser.this.getString("pageUser.assignment.activation.enabledFrom",
-									strEnabled, MiscUtil.asDate(activation.getValidFrom()));
-						} else if (activation.getValidTo() != null) {
-							return PageUser.this.getString("pageUser.assignment.activation.enabledTo",
-									strEnabled, MiscUtil.asDate(activation.getValidTo()));
-						}
-
-						return "-";
-					}
-				}));
-			}
-		});
+        List<IColumn> columns = initAssignmentColumns();
 
 		ISortableDataProvider provider = new ListDataProvider(this, assignmentsModel);
 		TablePanel assignmentTable = new TablePanel("assignmentTable", provider, columns);
 		assignmentTable.setShowPaging(false);
 
 		assignments.getBodyContainer().add(assignmentTable);
+
+        WebMarkupContainer assignmentEditorWrapper = new WebMarkupContainer(ID_ASSIGNMENT_EDITOR_WRAPPER);
+        assignmentEditorWrapper.setOutputMarkupId(true);
+        assignments.getBodyContainer().add(assignmentEditorWrapper);
+
+        AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR, assignmentEditorModel);
+        assignmentEditor.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return assignmentEditorModel.getObject() != null;
+            }
+        });
+        assignmentEditorWrapper.add(assignmentEditor);
 	}
+
+    private String createAssignmentActivationText(IModel<UserAssignmentDto> rowModel) {
+        UserAssignmentDto dto = rowModel.getObject();
+        ActivationType activation = dto.getActivation();
+        if (activation == null) {
+            return "-";
+        }
+
+        Boolean enabled = activation.isEnabled();
+        String strEnabled;
+        if (enabled != null) {
+            strEnabled = enabled ? getString("pageUser.assignment.activation.active") :
+                    getString("pageUser.assignment.activation.inactive");
+        } else {
+            strEnabled = getString("pageUser.assignment.activation.undefined");
+        }
+
+        if (activation.getValidFrom() != null && activation.getValidTo() != null) {
+            return getString("pageUser.assignment.activation.enabledFromTo", strEnabled,
+                    MiscUtil.asDate(activation.getValidFrom()), MiscUtil.asDate(activation.getValidTo()));
+        } else if (activation.getValidFrom() != null) {
+            return getString("pageUser.assignment.activation.enabledFrom", strEnabled,
+                    MiscUtil.asDate(activation.getValidFrom()));
+        } else if (activation.getValidTo() != null) {
+            return getString("pageUser.assignment.activation.enabledTo",strEnabled,
+                    MiscUtil.asDate(activation.getValidTo()));
+        }
+
+        return "-";
+    }
 
 	private void initButtons(Form mainForm) {
 		AjaxSubmitLinkButton save = new AjaxSubmitLinkButton("save", ButtonType.POSITIVE,
@@ -625,6 +653,16 @@ public class PageUser extends PageAdminUsers {
 			}
 		};
 		mainForm.add(deleteRole);
+
+        AjaxLinkButton addAssignment = new AjaxLinkButton("addAssignment", ButtonType.POSITIVE,
+                createStringResource("pageUser.button.addAssignment")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addAssignmentPerformed(target);
+            }
+        };
+        mainForm.add(addAssignment);
 	}
 
 	private void initAccountButtons(Form mainForm) {
@@ -1039,7 +1077,7 @@ public class PageUser extends PageAdminUsers {
 					break;
 					// TODO: add delete state. Add there delete state as well as
 					// support for add/delete containers (e.g. delete credentials)
-				
+
 				default:
 					error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
 			}
@@ -1293,4 +1331,13 @@ public class PageUser extends PageAdminUsers {
 			// TODO: implement unlock
 		}
 	}
+
+    private void addAssignmentPerformed(AjaxRequestTarget target) {
+        //todo reimplement, 1/ add to table 2/ update editor model 3/ refresh  view
+        assignmentEditorModel.setObject(new AssignmentEditorDto());
+
+        AccordionItem item = getAssignmentAccordionItem();
+        WebMarkupContainer wrapper = (WebMarkupContainer) item.getBodyContainer().get(ID_ASSIGNMENT_EDITOR_WRAPPER);
+        target.add(wrapper);
+    }
 }
