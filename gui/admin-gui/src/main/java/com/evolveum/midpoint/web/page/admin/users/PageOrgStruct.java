@@ -64,11 +64,11 @@ public class PageOrgStruct extends PageAdmin {
 	public PageOrgStruct() {
 		model = new LoadableModel<OrgStructDto>(false) {
 
-            @Override
-            protected OrgStructDto load() {
-                return loadOrgUnit();
-            }
-        };
+			@Override
+			protected OrgStructDto load() {
+				return loadOrgUnit();
+			}
+		};
 		initLayout();
 	}
 
@@ -82,7 +82,7 @@ public class PageOrgStruct extends PageAdmin {
 	private OrgStructDto loadOrgUnit() {
 		Task task = createSimpleTask(OPERATION_LOAD_ORGUNIT);
 		OperationResult result = new OperationResult(OPERATION_LOAD_ORGUNIT);
-		
+
 		OrgStructDto newOrgModel = null;
 		List<PrismObject<ObjectType>> orgUnitList;
 		// TODO: remove hardcoded org struct oid
@@ -100,8 +100,8 @@ public class PageOrgStruct extends PageAdmin {
 		if (!result.isSuccess()) {
 			showResult(result);
 		}
-		
-		if(newOrgModel.getOrgUnitDtoList() == null) {
+
+		if (newOrgModel.getOrgUnitDtoList() == null || newOrgModel.getOrgUnitDtoList().isEmpty()) {
 			getSession().error(getString("pageOrgStruct.message.noOrgStructDefined"));
 			throw new RestartResponseException(PageUsers.class);
 		}
