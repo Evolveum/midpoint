@@ -231,7 +231,6 @@ public class PageHome extends PageAdmin {
 		List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
 			String name = null;
-			UserAssignmentDto.Type type = UserAssignmentDto.Type.OTHER;
 			AccountConstructionType accountConstruction = assignment.getAccountConstruction();
 			if (accountConstruction == null) {
 				continue;
@@ -274,14 +273,13 @@ public class PageHome extends PageAdmin {
 		List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
 			String name = null;
-			UserAssignmentDto.Type type = UserAssignmentDto.Type.OTHER;
+			UserAssignmentDto.Type type = UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION;
 			if (assignment.getTarget() != null) {
 				ObjectType target = assignment.getTarget();
 				name = target.getName();
-				if (target instanceof RoleType) {
-					type = UserAssignmentDto.Type.ROLE;
-				}
+                type = UserAssignmentDto.Type.TARGET;
 			} else if (assignment.getTargetRef() != null) {
+                type = UserAssignmentDto.Type.TARGET;
 				ObjectReferenceType ref = assignment.getTargetRef();
 				OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
 				subResult.addParam("targetRef", ref.getOid());
@@ -299,11 +297,6 @@ public class PageHome extends PageAdmin {
 				if (target != null) {
 					name = WebMiscUtil.getName(target);
 				}
-
-				if (target != null && RoleType.class.isAssignableFrom(target.getCompileTimeClass())) {
-					type = UserAssignmentDto.Type.ROLE;
-				}
-
 			}
 			list.add(new SimpleAssignmentDto(name, type, assignment.getActivation()));
 		}

@@ -22,9 +22,9 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ExtensionType;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
 
@@ -36,38 +36,35 @@ public class AssignmentEditorDto implements Serializable {
     public static final String F_DESCRIPTION = "description";
     public static final String F_EXTENSION = "extension";
 
-    private AccountConstructionType accountConstruction;
-    private PrismObject<ResourceType> resource;
+    private UserAssignmentDto assignmentDto;
 
-    public AccountConstructionType getAccountConstruction() {
-        if (accountConstruction == null) {
-            accountConstruction = new AccountConstructionType();
-        }
-        return accountConstruction;
+    public AssignmentEditorDto(UserAssignmentDto assignmentDto) {
+        Validate.notNull(assignmentDto, "Assignment dto must not be null.");
+        this.assignmentDto = assignmentDto;
     }
 
-    public void setAccountConstruction(AccountConstructionType accountConstruction) {
-        this.accountConstruction = accountConstruction;
+    public UserAssignmentDto.Type getType() {
+        return assignmentDto.getType();
     }
 
     public String getDescription() {
-        return getAccountConstruction().getDescription();
+        return null;
     }
 
     public void setDescription(String description) {
-        getAccountConstruction().setDescription(description);
+
     }
 
     public PrismObject<ResourceType> getResource() {
-        return resource;
+        //todo implement
+        return null;
     }
 
     public void setResource(PrismObject<ResourceType> resource) {
-        this.resource = resource;
+
     }
 
     public String getExtension() {
-        ExtensionType extension = getAccountConstruction().getExtension();
         return "not implemented yet...";
     }
 

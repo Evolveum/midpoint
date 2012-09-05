@@ -34,7 +34,7 @@ import org.apache.commons.lang.Validate;
 public class UserAssignmentDto extends Selectable {
 
     public static enum Type {
-        ROLE, OTHER
+        TARGET, ACCOUNT_CONSTRUCTION
     }
 
     private String name;

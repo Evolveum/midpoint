@@ -21,8 +21,20 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.web.component.util.BasePanel;
+import org.apache.wicket.model.IModel;
+
 /**
  * @author lazyman
  */
-public class ACAttributePanel {
+public class ACAttributePanel extends BasePanel<ACAttributeDto> {
+
+    public ACAttributePanel(String id, IModel<ACAttributeDto> model) {
+        super(id, model);
+    }
+
+    @Override
+    protected void initLayout() {
+        //todo
+    }
 }

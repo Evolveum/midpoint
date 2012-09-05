@@ -23,85 +23,150 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
-public class AssignmentEditorPanel extends Panel {
+public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
-    private static final String ID_ASSIGNMENT_FORM = "assignmentForm";
+    private static final String ID_TARGET_CONTAINER = "targetContainer";
+    private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
+
+    private static final String ID_TARGET_NAME = "targetName";
+    private static final String ID_BROWSE_TARGET = "browseTarget";
+
     private static final String ID_RESOURCE_NAME = "resourceName";
     private static final String ID_BROWSE_RESOURCE = "browseResource";
+    private static final String ID_ATTRIBUTES = "attributes";
+    private static final String ID_ATTRIBUTE = "attribute";
+    private static final String ID_AC_ATTRIBUTE = "acAttribute";
+
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXTENSION = "extension";
     private boolean initialized;
 
-    private IModel<AssignmentEditorDto> model;
-
     public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
-        super(id);
-
-        Validate.notNull(model, "Assignment dto model must not be null.");
-        this.model = model;
+        super(id, model);
     }
 
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
+    protected void initLayout() {
+        TextField description = new TextField(ID_DESCRIPTION,
+                new PropertyModel(getModel(), AssignmentEditorDto.F_DESCRIPTION));
+        add(description);
 
-        if (initialized) {
-            return;
-        }
+        WebMarkupContainer targetContainer = new WebMarkupContainer(ID_TARGET_CONTAINER);
+        targetContainer.setOutputMarkupId(true);
+        targetContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.TARGET));
+        add(targetContainer);
 
-        initLayout();
-        initialized = true;
+        initTargetContainer(targetContainer);
+
+        WebMarkupContainer constructionContainer = new WebMarkupContainer(ID_CONSTRUCTION_CONTAINER);
+        constructionContainer.setOutputMarkupId(true);
+        targetContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION));
+        add(constructionContainer);
+
+        initConstructionContainer(constructionContainer);
+
+        //todo extension and activation
+//        TextArea extension = new TextArea(ID_EXTENSION, new PropertyModel(model, AssignmentEditorDto.F_EXTENSION));
+//        assignmentForm.add(extension);
     }
 
-    private void initLayout() {
-        Form assignmentForm = new Form(ID_ASSIGNMENT_FORM);
-        add(assignmentForm);
+    private VisibleEnableBehaviour createContainerVisibleBehaviour(final UserAssignmentDto.Type type) {
+        return new VisibleEnableBehaviour() {
 
+            @Override
+            public boolean isVisible() {
+                AssignmentEditorDto dto = getModel().getObject();
+                if (type.equals(dto.getType())) {
+                    return true;
+                }
+
+                return false;
+            }
+        };
+    }
+
+    private void initConstructionContainer(WebMarkupContainer constructionContainer) {
         Label resourceName = new Label(ID_RESOURCE_NAME, createResourceNameModel());
         resourceName.setOutputMarkupId(true);
-        assignmentForm.add(resourceName);
+        constructionContainer.add(resourceName);
 
         AjaxLinkButton browseResource = new AjaxLinkButton(ID_BROWSE_RESOURCE,
-                createStringResource("AssignmentEditorPanel.button.browseResource")) {
+                createStringResource("AssignmentEditorPanel.button.browse")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 browseResourcePerformed(target);
             }
         };
-        assignmentForm.add(browseResource);
+        constructionContainer.add(browseResource);
 
-        TextField description = new TextField(ID_DESCRIPTION,
-                new PropertyModel(model, AssignmentEditorDto.F_DESCRIPTION));
-        assignmentForm.add(description);
+        WebMarkupContainer attributes = new WebMarkupContainer(ID_ATTRIBUTES);
+        attributes.setOutputMarkupId(true);
+        constructionContainer.add(attributes);
 
-//        TextArea extension = new TextArea(ID_EXTENSION, new PropertyModel(model, AssignmentEditorDto.F_EXTENSION));
-//        assignmentForm.add(extension);
+        ListView<ACAttributeDto> attribute = new ListView<ACAttributeDto>(ID_ATTRIBUTE,
+                new LoadableModel<List<ACAttributeDto>>(false) {
+
+                    @Override
+                    protected List<ACAttributeDto> load() {
+                        return loadAttributes();
+                    }
+                }) {
+
+            @Override
+            protected void populateItem(ListItem<ACAttributeDto> listItem) {
+                ACAttributePanel acAttribute = new ACAttributePanel(ID_AC_ATTRIBUTE, listItem.getModel());
+                acAttribute.setRenderBodyOnly(true);
+                listItem.add(acAttribute);
+            }
+        };
+        attributes.add(attribute);
     }
 
-    public String getString(String resourceKey, Object... objects) {
-        return createStringResource(resourceKey, objects).getString();
+    private void initTargetContainer(WebMarkupContainer targetContainer) {
+        Label targetName = new Label(ID_TARGET_NAME); //todo model
+        targetName.setOutputMarkupId(true);
+        targetContainer.add(targetName);
+
+        AjaxLinkButton browseResource = new AjaxLinkButton(ID_BROWSE_TARGET,
+                createStringResource("AssignmentEditorPanel.button.browse")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                browseTargetPerformed(target);
+            }
+        };
+        targetContainer.add(browseResource);
     }
 
-    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    private List<ACAttributeDto> loadAttributes() {
+        //todo implement
+        return new ArrayList<ACAttributeDto>();
+    }
+
+    private void browseTargetPerformed(AjaxRequestTarget target) {
+        //todo implement
     }
 
     private void browseResourcePerformed(AjaxRequestTarget target) {
@@ -113,7 +178,7 @@ public class AssignmentEditorPanel extends Panel {
 
             @Override
             public Object getObject() {
-                AssignmentEditorDto dto = model.getObject();
+                AssignmentEditorDto dto = getModel().getObject();
                 PrismObject<ResourceType> resource = dto.getResource();
                 if (resource == null) {
                     return null;

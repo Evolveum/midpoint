@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -140,8 +141,11 @@ public class PageUser extends PageAdminUsers {
 	private static final String MODAL_ID_CONFIRM_DELETE_ACCOUNT = "confirmDeleteAccountPopup";
 	private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_ACCORDION = "accordion";
     private static final String ID_ASSIGNMENT_EDITOR_WRAPPER = "assignmentEditorWrapper";
     private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
+    private static final String ID_ASSIGNMENT_TABLE = "assignmentTable";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 	private IModel<ObjectWrapper> userModel;
@@ -214,7 +218,7 @@ public class PageUser extends PageAdminUsers {
 	}
 
 	private void initLayout() {
-		Form mainForm = new Form("mainForm");
+		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
 		PrismObjectPanel userForm = new PrismObjectPanel("userForm", userModel, new PackageResourceReference(
@@ -227,7 +231,7 @@ public class PageUser extends PageAdminUsers {
 		};
 		mainForm.add(userForm);
 
-		Accordion accordion = new Accordion("accordion");
+		Accordion accordion = new Accordion(ID_ACCORDION);
 		accordion.setMultipleSelect(true);
 		accordion.setExpanded(true);
 		mainForm.add(accordion);
@@ -323,7 +327,7 @@ public class PageUser extends PageAdminUsers {
 
 				PrismObjectPanel account = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
 						item.getModel(), "object"), new PackageResourceReference(ImgResources.class,
-						ImgResources.HDD_PRISM), (Form) PageUser.this.get("mainForm")) {
+						ImgResources.HDD_PRISM), (Form) PageUser.this.get(ID_MAIN_FORM)) {
 
 					@Override
 					protected Panel createOperationPanel(String id) {
@@ -350,12 +354,12 @@ public class PageUser extends PageAdminUsers {
 	}
 
 	private AccordionItem getAssignmentAccordionItem() {
-		Accordion accordion = (Accordion) get("mainForm:accordion");
+		Accordion accordion = (Accordion) get(ID_MAIN_FORM + ":" + ID_ACCORDION);
 		return (AccordionItem) accordion.getBodyContainer().get("assignmentsList");
 	}
 
 	private AccordionItem getAccountsAccordionItem() {
-		Accordion accordion = (Accordion) get("mainForm:accordion");
+		Accordion accordion = (Accordion) get(ID_MAIN_FORM + ":" + ID_ACCORDION);
 		return (AccordionItem) accordion.getBodyContainer().get("accountsDeltas");
 	}
 
@@ -419,14 +423,15 @@ public class PageUser extends PageAdminUsers {
 		List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
 			String name = null;
-			UserAssignmentDto.Type type = UserAssignmentDto.Type.OTHER;
+			UserAssignmentDto.Type type = UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION;
 			if (assignment.getTarget() != null) {
+                type = UserAssignmentDto.Type.TARGET;
+
 				ObjectType target = assignment.getTarget();
 				name = target.getName();
-				if (target instanceof RoleType) {
-					type = UserAssignmentDto.Type.ROLE;
-				}
 			} else if (assignment.getTargetRef() != null) {
+                type = UserAssignmentDto.Type.TARGET;
+
 				ObjectReferenceType ref = assignment.getTargetRef();
 				OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
 				subResult.addParam("targetRef", ref.getOid());
@@ -443,10 +448,6 @@ public class PageUser extends PageAdminUsers {
 
 				if (target != null) {
 					name = WebMiscUtil.getName(target);
-				}
-
-				if (target != null && RoleType.class.isAssignableFrom(target.getCompileTimeClass())) {
-					type = UserAssignmentDto.Type.ROLE;
 				}
 			}
 
@@ -469,9 +470,9 @@ public class PageUser extends PageAdminUsers {
                     public ResourceReference getObject() {
                         UserAssignmentDto dto = rowModel.getObject();
                         switch (dto.getType()) {
-                            case ROLE:
+                            case TARGET:
                                 return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
-                            case OTHER:
+                            case ACCOUNT_CONSTRUCTION:
                             default:
                                 return new SharedResourceReference(ImgResources.class, ImgResources.DRIVE);
                         }
@@ -497,7 +498,13 @@ public class PageUser extends PageAdminUsers {
             }
 
         });
-        columns.add(new PropertyColumn(createStringResource("pageUser.assignment.name"), "name", "name"));
+        columns.add(new LinkColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.name"), "name", "name") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<UserAssignmentDto> rowModel) {
+                assignmentEditPerformed(target, rowModel.getObject());
+            }
+        });
         columns.add(new AbstractColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.active")) {
 
             @Override
@@ -520,7 +527,8 @@ public class PageUser extends PageAdminUsers {
         List<IColumn> columns = initAssignmentColumns();
 
 		ISortableDataProvider provider = new ListDataProvider(this, assignmentsModel);
-		TablePanel assignmentTable = new TablePanel("assignmentTable", provider, columns);
+		TablePanel assignmentTable = new TablePanel(ID_ASSIGNMENT_TABLE, provider, columns);
+        assignmentTable.setOutputMarkupId(true);
 		assignmentTable.setShowPaging(false);
 
 		assignments.getBodyContainer().add(assignmentTable);
@@ -654,15 +662,15 @@ public class PageUser extends PageAdminUsers {
 		};
 		mainForm.add(deleteRole);
 
-        AjaxLinkButton addAssignment = new AjaxLinkButton("addAssignment", ButtonType.POSITIVE,
-                createStringResource("pageUser.button.addAssignment")) {
+        AjaxLinkButton addAccountConstructor = new AjaxLinkButton("addAccountConstructor", ButtonType.POSITIVE,
+                createStringResource("pageUser.button.addAccountConstructor")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addAssignmentPerformed(target);
+                addAccountConstructorPerformed(target);
             }
         };
-        mainForm.add(addAssignment);
+        mainForm.add(addAccountConstructor);
 	}
 
 	private void initAccountButtons(Form mainForm) {
@@ -938,7 +946,7 @@ public class PageUser extends PageAdminUsers {
 					}
 					break;
 				case MODIFY:
-					// will be implemented later
+					//todo will be implemented later
 					break;
 				default:
 					warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
@@ -1013,8 +1021,6 @@ public class PageUser extends PageAdminUsers {
 						result.recordSuccessIfUnknown();
 					}
 					break;
-				// delete state is where? wtf?? in next release add there delete
-				// state as well as
 				// support for add/delete containers (e.g. delete credentials)
 				default:
 					error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
@@ -1051,7 +1057,6 @@ public class PageUser extends PageAdminUsers {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 			}
-			Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
 			switch (userWrapper.getStatus()) {
 				case ADDING:
 					PrismContainer password = delta.getObjectToAdd().findContainer(
@@ -1075,7 +1080,6 @@ public class PageUser extends PageAdminUsers {
 					changes = getModelInteractionService().previewChanges(deltas, result);
 					result.recordSuccess();
 					break;
-					// TODO: add delete state. Add there delete state as well as
 					// support for add/delete containers (e.g. delete credentials)
 
 				default:
@@ -1181,7 +1185,7 @@ public class PageUser extends PageAdminUsers {
 				AssignmentType assignment = new AssignmentType();
 				assignment.setTargetRef(targetRef);
 
-				assignments.add(new UserAssignmentDto(role.getName(), UserAssignmentDto.Type.ROLE,
+				assignments.add(new UserAssignmentDto(role.getName(), UserAssignmentDto.Type.TARGET,
 						UserDtoStatus.ADD, assignment));
 				setResponsePage(getPage());
 			} catch (Exception ex) {
@@ -1332,12 +1336,25 @@ public class PageUser extends PageAdminUsers {
 		}
 	}
 
-    private void addAssignmentPerformed(AjaxRequestTarget target) {
-        //todo reimplement, 1/ add to table 2/ update editor model 3/ refresh  view
-        assignmentEditorModel.setObject(new AssignmentEditorDto());
+    private void assignmentEditPerformed(AjaxRequestTarget target, UserAssignmentDto assignmentDto) {
+        assignmentEditorModel.setObject(new AssignmentEditorDto(assignmentDto));
 
         AccordionItem item = getAssignmentAccordionItem();
-        WebMarkupContainer wrapper = (WebMarkupContainer) item.getBodyContainer().get(ID_ASSIGNMENT_EDITOR_WRAPPER);
+        Component wrapper = item.getBodyContainer().get(ID_ASSIGNMENT_EDITOR_WRAPPER);
         target.add(wrapper);
+    }
+
+    private void addAccountConstructorPerformed(AjaxRequestTarget target) {
+        List<UserAssignmentDto> assignmentDtoList = assignmentsModel.getObject();
+
+        UserAssignmentDto newDto = new UserAssignmentDto(null, UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION,
+                UserDtoStatus.ADD, new AssignmentType());
+        assignmentDtoList.add(newDto);
+
+        assignmentEditPerformed(target, newDto);
+
+        AccordionItem item = getAssignmentAccordionItem();
+        Component table = item.getBodyContainer().get(ID_ASSIGNMENT_TABLE);
+        target.add(table);
     }
 }
