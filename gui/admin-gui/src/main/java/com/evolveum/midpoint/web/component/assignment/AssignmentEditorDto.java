@@ -71,4 +71,8 @@ public class AssignmentEditorDto implements Serializable {
     public void setExtension(String extension) {
         //todo implement
     }
+
+    public void setType(UserAssignmentDto.Type type) {
+        assignmentDto.setType(type);
+    }
 }

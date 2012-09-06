@@ -640,7 +640,50 @@ public class PageUser extends PageAdminUsers {
 
 		initAccountButtons(mainForm);
 		initRoleButtons(mainForm);
+        initAssignButtons(mainForm);
 	}
+
+    private void initAssignButtons(Form mainForm) {
+        AjaxLinkButton addAccountAssign = new AjaxLinkButton("addAccountAssign", ButtonType.POSITIVE,
+                createStringResource("pageUser.button.addAccount")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addAccountAssignmentPerformed(target);
+            }
+        };
+        mainForm.add(addAccountAssign);
+
+        AjaxLinkButton addRoleAssign = new AjaxLinkButton("addRoleAssign", ButtonType.POSITIVE,
+                createStringResource("pageUser.button.addRole")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addRoleAssignmentPerformed(target);
+            }
+        };
+        mainForm.add(addRoleAssign);
+
+        AjaxLinkButton addOrgUnitAssign = new AjaxLinkButton("addOrgUnitAssign", ButtonType.POSITIVE,
+                createStringResource("pageUser.button.addOrgUnit")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addOrgUnitAssignmentPerformed(target);
+            }
+        };
+        mainForm.add(addOrgUnitAssign);
+
+        AjaxLinkButton unassign = new AjaxLinkButton("unassign", ButtonType.NEGATIVE,
+                createStringResource("pageUser.button.unassign")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                unassignPerformed(target);
+            }
+        };
+        mainForm.add(unassign);
+    }
 
 	private void initRoleButtons(Form mainForm) {
 		AjaxLinkButton addRole = new AjaxLinkButton("addRole", createStringResource("pageUser.button.add")) {
@@ -661,16 +704,6 @@ public class PageUser extends PageAdminUsers {
 			}
 		};
 		mainForm.add(deleteRole);
-
-        AjaxLinkButton addAccountConstructor = new AjaxLinkButton("addAccountConstructor", ButtonType.POSITIVE,
-                createStringResource("pageUser.button.addAccountConstructor")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                addAccountConstructorPerformed(target);
-            }
-        };
-        mainForm.add(addAccountConstructor);
 	}
 
 	private void initAccountButtons(Form mainForm) {
@@ -1344,7 +1377,13 @@ public class PageUser extends PageAdminUsers {
         target.add(wrapper);
     }
 
-    private void addAccountConstructorPerformed(AjaxRequestTarget target) {
+    private Component getAssignmentTable() {
+        AccordionItem item = getAssignmentAccordionItem();
+        return item.getBodyContainer().get(ID_ASSIGNMENT_TABLE);
+    }
+
+    private void addAccountAssignmentPerformed(AjaxRequestTarget target) {
+        //todo reimplement
         List<UserAssignmentDto> assignmentDtoList = assignmentsModel.getObject();
 
         UserAssignmentDto newDto = new UserAssignmentDto(null, UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION,
@@ -1353,8 +1392,24 @@ public class PageUser extends PageAdminUsers {
 
         assignmentEditPerformed(target, newDto);
 
-        AccordionItem item = getAssignmentAccordionItem();
-        Component table = item.getBodyContainer().get(ID_ASSIGNMENT_TABLE);
-        target.add(table);
+        target.add(getAssignmentTable());
+    }
+
+    private void addRoleAssignmentPerformed(AjaxRequestTarget target) {
+        //todo implement
+
+        target.add(getAssignmentTable());
+    }
+
+    private void addOrgUnitAssignmentPerformed(AjaxRequestTarget target) {
+        //todo implement
+
+        target.add(getAssignmentTable());
+    }
+
+    private void unassignPerformed(AjaxRequestTarget target) {
+        //todo implement
+
+        target.add(getAssignmentTable());
     }
 }

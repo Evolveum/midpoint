@@ -30,12 +30,16 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Radio;
+import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -54,6 +58,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String MODAL_ID_BROWSER_TARGET = "browseTargetPopup";
     private static final String MODAL_ID_BROWSER_RESOURCE = "browseResourcePopup";
 
+    private static final String ID_RADIO_GROUP = "radioGroup";
+    private static final String ID_TARGET_OPTION = "targetOption";
+    private static final String ID_CONSTRUCTION_OPTION = "constructionOption";
+
+    private static final String ID_CONTAINERS = "containers";
     private static final String ID_TARGET_CONTAINER = "targetContainer";
     private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
 
@@ -79,17 +88,40 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 new PropertyModel(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         add(description);
 
+        RadioGroup radioGroup = new RadioGroup(ID_RADIO_GROUP);
+        add(radioGroup);
+        Radio targetOption = new Radio(ID_TARGET_OPTION);
+        targetOption.add(new AjaxEventBehavior("onchange") {
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                showContainer(target, UserAssignmentDto.Type.TARGET);
+            }
+        });
+        radioGroup.add(targetOption);
+        Radio constructionOption = new Radio(ID_CONSTRUCTION_OPTION);
+        constructionOption.add(new AjaxEventBehavior("onchange") {
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                showContainer(target, UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION);
+            }
+        });
+        radioGroup.add(constructionOption);
+
+        WebMarkupContainer containers = new WebMarkupContainer(ID_CONTAINERS);
+        containers.setOutputMarkupId(true);
+        add(containers);
+
         WebMarkupContainer targetContainer = new WebMarkupContainer(ID_TARGET_CONTAINER);
-        targetContainer.setOutputMarkupId(true);
         targetContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.TARGET));
-        add(targetContainer);
+        containers.add(targetContainer);
 
         initTargetContainer(targetContainer);
 
         WebMarkupContainer constructionContainer = new WebMarkupContainer(ID_CONSTRUCTION_CONTAINER);
-        constructionContainer.setOutputMarkupId(true);
         constructionContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION));
-        add(constructionContainer);
+        containers.add(constructionContainer);
 
         initConstructionContainer(constructionContainer);
 
@@ -239,7 +271,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     private void resourceSelectedPerformed(AjaxRequestTarget target, ResourceType resource) {
+
         //todo implement
+    }
+
+    private void showContainer(AjaxRequestTarget target, UserAssignmentDto.Type type) {
+        //todo implement
+        getModel().getObject().setType(type);
+        target.add(get(ID_CONTAINERS));
     }
 
     private IModel createResourceNameModel() {
