@@ -275,6 +275,18 @@ public class OperationResult implements Serializable, Dumpable {
 	public void addSubresult(OperationResult subresult) {
 		getSubresults().add(subresult);
 	}
+	
+	public OperationResult findSubresult(String operation) {
+		if (subresults == null) {
+			return null;
+		}
+		for (OperationResult subResult: getSubresults()) {
+			if (operation.equals(subResult.getOperation())) {
+				return subResult;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Contains operation status as defined in {@link OperationResultStatus}

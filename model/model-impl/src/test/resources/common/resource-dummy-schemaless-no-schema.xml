@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2012 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2012 [name of copyright owner]     -->
+<!--                                                         -->
+
+<resource oid="ef2bc95b-76e0-59e2-86d6-9999dddd0000"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+        xmlns:ri=" 	http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
+								  
+	<name>Dummy Schemaless Resource</name>
+	<connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004" type="c:ConnectorType">
+		<filter>
+			<and>
+				<equal>
+					<value>
+						<connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
+					</value>
+				</equal>
+			</and>
+		</filter>
+	</connectorRef>
+	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>schemaless</icfi:instanceId>
+			<icfi:supportSchema>false</icfi:supportSchema> <!-- Disable schema support -->
+		</icfc:configurationProperties>
+
+	</configuration>
+	<!-- No schema. And it will NOT be generated. See what happens. -->
+	<!-- ... and no schemaHandling as well. -->
+</resource>

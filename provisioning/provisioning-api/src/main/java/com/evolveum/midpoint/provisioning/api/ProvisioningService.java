@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -70,34 +71,7 @@ import java.util.Set;
  * </p>
  */
 public interface ProvisioningService {
-	
-	/**
-	 * Prefix for all the "standardized" test resource tests.
-	 */
-	public static final String TEST_CONNECTION_OPERATION = ProvisioningService.class.getName()+".testResource";
-	/**
-	 * Check whether the configuration is valid e.g. well-formed XML, valid with regard to schema, etc.
-	 */
-	public static final String TEST_CONNECTION_CONNECTOR_VALIDATION_OPERATION = TEST_CONNECTION_OPERATION+".configurationValidation";
-	/**
-	 * Check whether the connector can be initialized.
-	 * E.g. connector classes can be loaded, it can process configuration, etc.
-	 */
-	public static final String TEST_CONNECTION_CONNECTOR_INIT_OPERATION = TEST_CONNECTION_OPERATION+".connectorInitialization";
-	/**
-	 * Check whether the connector can be initialized.
-	 * E.g. connector classes can be loaded, it can process configuration, etc.
-	 */
-	public static final String TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION = TEST_CONNECTION_OPERATION+".connectorConnection";
-	/**
-	 * Check whether the connector can fetch and process resource schema.
-	 */
-	public static final String TEST_CONNECTION_CONNECTOR_SCHEMA_OPERATION = TEST_CONNECTION_OPERATION+".connectorSchema";
-	/**
-	 * Check whether the connector can be used to fetch some mandatory objects (e.g. fetch a "root" user).
-	 */
-	public static final String TEST_CONNECTION_CONNECTOR_SANITY_OPERATION = TEST_CONNECTION_OPERATION+".connectorSanity";
-	
+		
 	/**
 	 * Returns object for provided OID.
 	 * 
@@ -351,6 +325,8 @@ public interface ProvisioningService {
 	 * provided arguments are wrong, in case of system error, system
 	 * misconfiguration, etc.
 	 * 
+	 * The operation codes in the return value are defined by ConnectorTestOperation enumeration class.
+	 * 
 	 * @param resourceOid
 	 *            OID of resource to test
 	 * @return results of executed tests
@@ -361,6 +337,8 @@ public interface ProvisioningService {
 	 *             wrong OID format
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
+	 *             
+	 * @see ConnectorTestOperation
 	 */
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
 

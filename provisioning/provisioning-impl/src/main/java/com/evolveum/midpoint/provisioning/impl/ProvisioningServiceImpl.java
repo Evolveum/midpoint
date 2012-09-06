@@ -68,6 +68,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
@@ -849,7 +850,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		LOGGER.trace("Start testing resource with oid {} ", resourceOid);
 
-		OperationResult parentResult = new OperationResult(TEST_CONNECTION_OPERATION);
+		OperationResult parentResult = new OperationResult(ConnectorTestOperation.TEST_CONNECTION.getOperation());
 		parentResult.addParam("resourceOid", resourceOid);
 		parentResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 

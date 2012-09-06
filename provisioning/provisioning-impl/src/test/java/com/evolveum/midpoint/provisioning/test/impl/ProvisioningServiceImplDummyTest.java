@@ -96,7 +96,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	private static final String TEST_DIR = "src/test/resources/impl/dummy/";
 
-	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/object/resource-dummy.xml";
+	private static final String FILENAME_RESOURCE_DUMMY = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-dummy.xml";
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 
 	private static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
@@ -119,7 +119,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	private static final String FILENAME_DISABLE_ACCOUNT = TEST_DIR + "modify-will-disable.xml";
 	private static final String FILENAME_MODIFY_ACCOUNT = TEST_DIR + "modify-will-fullname.xml";
 	private static final String FILENAME_SCRIPT_ADD = TEST_DIR + "script-add.xml";
-	private static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 
 	private static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
 
@@ -159,7 +158,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(FILENAME_RESOURCE_DUMMY, DUMMY_CONNECTOR_TYPE, initResult);
+		resource = addResourceFromFile(FILENAME_RESOURCE_DUMMY, ProvisioningTestUtil.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
 
 		dummyResource = DummyResource.getInstance();

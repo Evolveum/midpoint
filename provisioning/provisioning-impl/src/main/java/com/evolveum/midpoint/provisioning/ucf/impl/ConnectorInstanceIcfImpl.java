@@ -2125,6 +2125,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// of ICF configuration property
 				String propertyName = propertyQName.getLocalPart();
 				ConfigurationProperty property = configProps.getProperty(propertyName);
+				
+				if (property == null) {
+					throw new ConfigurationException("Unknown configuration property "+propertyName);
+				}
 
 				// Check (java) type of ICF configuration property,
 				// behave accordingly

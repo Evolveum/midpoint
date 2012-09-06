@@ -301,6 +301,11 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Schema schema() {
         log.info("schema::begin");
+        
+        if (!configuration.getSupportSchema()) {
+        	log.info("schema::unsupported operation");
+        	throw new UnsupportedOperationException();
+        }
 
         SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
         

@@ -21,21 +21,41 @@
 package com.evolveum.midpoint.schema.constants;
 
 /**
+ * Enumeration of standardized test connection opration codes as they are presented in the OperationResult.
  * 
  * @author lazyman
+ * @author Radovan Semancik
  * 
  */
 public enum ConnectorTestOperation {
+	
+	TEST_CONNECTION(ConnectorTestOperation.class.getName() + ".testConnection"),
 
+	/**
+	 * Check whether the configuration is valid e.g. well-formed XML, valid with regard to schema, etc.
+	 */
 	CONFIGURATION_VALIDATION(ConnectorTestOperation.class.getName() + ".configurationValidation"),
 
+	/**
+	 * Check whether the connector can be initialized.
+	 * E.g. connector classes can be loaded, it can process configuration, etc.
+	 */
 	CONNECTOR_INITIALIZATION(ConnectorTestOperation.class.getName() + ".connectorInitialization"),
 
+	/**
+	 * Check whether a connection to the resource can be established.
+	 */
 	CONNECTOR_CONNECTION(ConnectorTestOperation.class.getName() + ".connectorConnection"),
 
-	CONNECTOR_SANITY(ConnectorTestOperation.class.getName() + ".connectorSanity"),
-
+	/**
+	 * Check whether the connector can fetch and process resource schema.
+	 */
 	CONNECTOR_SCHEMA(ConnectorTestOperation.class.getName() + ".connectorSchema"),
+
+	/**
+	 * Check whether the connector can be used to fetch some mandatory objects (e.g. fetch a "root" user).
+	 */
+	CONNECTOR_SANITY(ConnectorTestOperation.class.getName() + ".connectorSanity"),
 
 	EXTRA_TEST(ConnectorTestOperation.class.getName() + ".extraTest");
 

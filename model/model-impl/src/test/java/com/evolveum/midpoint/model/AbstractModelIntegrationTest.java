@@ -170,6 +170,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String RESOURCE_DUMMY_BLUE_NAME = "blue";
 	protected static final String RESOURCE_DUMMY_BLUE_NAMESPACE = MidPointConstants.NS_RI;
 	
+	protected static final String RESOURCE_DUMMY_SCHEMALESS_FILENAME = COMMON_DIR_NAME + "/resource-dummy-schemaless-no-schema.xml";
+	protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
+	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAME = "schemaless";
+	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAMESPACE = MidPointConstants.NS_RI;
+	
 	protected static final String ROLE_ALPHA_FILENAME = COMMON_DIR_NAME + "/role-alpha.xml";
 	protected static final String ROLE_ALPHA_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
 
@@ -261,6 +266,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected PrismObject<ResourceType> resourceDummyRed;
 	protected ResourceType resourceDummyBlueType;
 	protected PrismObject<ResourceType> resourceDummyBlue;
+	protected ResourceType resourceDummySchemalessType;
+	protected PrismObject<ResourceType> resourceDummySchemaless;
 	
 	protected static DummyResource dummyResource;
 	protected static DummyResource dummyResourceRed;
@@ -332,6 +339,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		resourceDummyRedType = resourceDummyRed.asObjectable();
 		resourceDummyBlue = addObjectFromFile(RESOURCE_DUMMY_BLUE_FILENAME, ResourceType.class, initResult);
 		resourceDummyBlueType = resourceDummyBlue.asObjectable();
+		resourceDummySchemaless = addObjectFromFile(RESOURCE_DUMMY_SCHEMALESS_FILENAME, ResourceType.class, initResult);
+		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
 
 		// Accounts
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, AccountShadowType.class, initResult);

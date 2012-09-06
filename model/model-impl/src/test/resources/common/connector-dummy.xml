@@ -38,17 +38,43 @@
                      xmlns:qn915="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
             <xsd:complexType name="ConfigurationPropertiesType">
                <xsd:sequence>
+                  <xsd:element minOccurs="0" name="uselessString" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>UI_INSTANCE_USELESS_STRING</a:displayName>
+                           <a:help>UI_INSTANCE_USELESS_STRING</a:help>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
                   <xsd:element minOccurs="0" name="instanceId" type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>Instance identifier</a:displayName>
                            <a:help>Instance identifier</a:help>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="supportSchema" type="xsd:boolean">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>UI_SUPPORT_SCHEMA</a:displayName>
+                           <a:help>UI_SUPPORT_SCHEMA</a:help>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="uselessGuardedString" type="c:ProtectedStringType">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>UI_INSTANCE_USELESS_GUARDED_STRING</a:displayName>
+                           <a:help>UI_INSTANCE_USELESS_GUARDED_STRING</a:help>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>

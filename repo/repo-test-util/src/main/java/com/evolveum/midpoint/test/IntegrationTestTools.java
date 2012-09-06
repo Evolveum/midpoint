@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -71,6 +72,8 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeDefinition;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -120,6 +123,10 @@ public class IntegrationTestTools {
 
 	public static void assertSuccess(String message, OperationResult result) {
 		assertSuccess(message, result,-1);
+	}
+	
+	public static void assertFailure(String message, OperationResult result) {
+		assertTrue(message, result.isError());
 	}
 	
 	/**
@@ -173,6 +180,18 @@ public class IntegrationTestTools {
 		for (OperationResult subResult : partialResults) {
 			assertSuccess(message, subResult, originalResult, stopLevel, currentLevel + 1, warningOk);
 		}
+	}
+	
+	public static void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
+		OperationResult opResult = testResult.findSubresult(operation.getOperation());
+		assertNotNull("No result for "+operation, opResult);
+		assertSuccess("Test resource failed (result): "+operation, opResult);
+	}
+
+	public static void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
+		OperationResult opResult = testResult.findSubresult(operation.getOperation());
+		assertNotNull("No result for "+operation, opResult);
+		assertFailure("Test resource succeeded while expected failure (result): "+operation, opResult);
 	}
 
 	public static void assertNotEmpty(String message, String s) {

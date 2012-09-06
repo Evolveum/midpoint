@@ -37,6 +37,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private static final Log log = Log.getLog(DummyConfiguration.class);
 
     private String instanceId;
+    private boolean supportSchema = true;
     private String uselessString;
     private GuardedString uselessGuardedString;
 
@@ -54,6 +55,20 @@ public class DummyConfiguration extends AbstractConfiguration {
         this.instanceId = config;
     }
     
+    /**
+     * If set to false the connector will return UnsupportedOperationException when trying to
+     * get the schema.
+     */
+    @ConfigurationProperty(displayMessageKey = "UI_SUPPORT_SCHEMA",
+    		helpMessageKey = "UI_SUPPORT_SCHEMA_HELP")
+	public boolean getSupportSchema() {
+		return supportSchema;
+	}
+
+	public void setSupportSchema(boolean supportSchema) {
+		this.supportSchema = supportSchema;
+	}
+    		
     /**
      * Useless string-value configuration variable. It is used for testing the configuration schema
      * and things like that.

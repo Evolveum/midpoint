@@ -127,6 +127,7 @@
             <class name="com.evolveum.midpoint.model.TestMultiResource"/>
             <class name="com.evolveum.midpoint.model.TestUserTemplate"/>
             <class name="com.evolveum.midpoint.model.TestOrgStruct"/>
+            <class name="com.evolveum.midpoint.model.TestSchemalessResource"/>
         </classes>
     </test>
 </suite>
