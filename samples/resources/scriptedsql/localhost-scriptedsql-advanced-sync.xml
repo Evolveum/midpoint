@@ -102,8 +102,8 @@ object.
 				<icscscriptedsql:rethrowAllSQLExceptions>true</icscscriptedsql:rethrowAllSQLExceptions>
 				<icscscriptedsql:nativeTimestamps>false</icscscriptedsql:nativeTimestamps>
 				<icscscriptedsql:allNative>false</icscscriptedsql:allNative>
-				<icscscriptedsql:changeLogColumn>timestamp</icscscriptedsql:changeLogColumn>
-				<!--<icscscriptedsql:datasource></icscscriptedsql:datasource>-->
+				<!--<icscscriptedsql:changeLogColumn>timestamp</icscscriptedsql:changeLogColumn>-->
+				<icscscriptedsql:datasource></icscscriptedsql:datasource>
 			</icfc:configurationProperties>
 		
 			<!-- Generic ICF configuration -->

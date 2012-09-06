@@ -69,7 +69,7 @@ object.
             <!-- Configuration specific for the DBTable connector -->
 			<icfc:configurationProperties
 			   xmlns:icscscriptedsql="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.scriptedsql/org.forgerock.openicf.scriptedsql.ScriptedSQLConnector">
-				<icscscriptedsql:port>33060</icscscriptedsql:port>
+				<icscscriptedsql:port>3306</icscscriptedsql:port>
 				<icscscriptedsql:quoting></icscscriptedsql:quoting>
 				<icscscriptedsql:host>localhost</icscscriptedsql:host>
 				<icscscriptedsql:user>mdp_scriptedsql</icscscriptedsql:user>
@@ -102,8 +102,8 @@ object.
 				<icscscriptedsql:rethrowAllSQLExceptions>true</icscscriptedsql:rethrowAllSQLExceptions>
 				<icscscriptedsql:nativeTimestamps>false</icscscriptedsql:nativeTimestamps>
 				<icscscriptedsql:allNative>false</icscscriptedsql:allNative>
-				<icscscriptedsql:changeLogColumn>timestamp</icscscriptedsql:changeLogColumn>
-				<!--<icscscriptedsql:datasource></icscscriptedsql:datasource>-->
+				<!--<icscscriptedsql:changeLogColumn>timestamp</icscscriptedsql:changeLogColumn>-->
+				<icscscriptedsql:datasource></icscscriptedsql:datasource>
 			</icfc:configurationProperties>
 		
 			<!-- Generic ICF configuration -->
