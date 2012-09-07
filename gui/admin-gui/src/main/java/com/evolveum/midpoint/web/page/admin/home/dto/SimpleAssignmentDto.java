@@ -21,31 +21,31 @@
 
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
-import java.io.Serializable;
-
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto.Type;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 
+import java.io.Serializable;
+
 public class SimpleAssignmentDto implements Serializable {
-	private String assignmentName;
-	private Type type;
-	private ActivationType activation;
+    private String assignmentName;
+    private UserAssignmentDtoType type;
+    private ActivationType activation;
 
-	public SimpleAssignmentDto(String assignmentName, Type type, ActivationType activation) {
-		this.assignmentName = assignmentName;
-		this.type = type;
-		this.activation = activation;
-	}
+    public SimpleAssignmentDto(String assignmentName, UserAssignmentDtoType type, ActivationType activation) {
+        this.assignmentName = assignmentName;
+        this.type = type;
+        this.activation = activation;
+    }
 
-	public String getAssignmentName() {
-		return assignmentName;
-	}
+    public String getAssignmentName() {
+        return assignmentName;
+    }
 
-	public Type getType() {
-		return type;
-	}
+    public UserAssignmentDtoType getType() {
+        return type;
+    }
 
-	public ActivationType getActivation() {
-		return activation;
-	}
+    public ActivationType getActivation() {
+        return activation;
+    }
 }

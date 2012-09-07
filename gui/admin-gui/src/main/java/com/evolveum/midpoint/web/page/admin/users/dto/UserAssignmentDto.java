@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
-import com.evolveum.midpoint.common.valueconstruction.AsIsValueConstructor;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
@@ -33,16 +32,12 @@ import org.apache.commons.lang.Validate;
  */
 public class UserAssignmentDto extends Selectable {
 
-    public static enum Type {
-        TARGET, ACCOUNT_CONSTRUCTION
-    }
-
     private String name;
-    private Type type;
+    private UserAssignmentDtoType type;
     private UserDtoStatus status;
     private AssignmentType assignment;
 
-    public UserAssignmentDto(String name, Type type, UserDtoStatus status, AssignmentType assignment) {
+    public UserAssignmentDto(String name, UserAssignmentDtoType type, UserDtoStatus status, AssignmentType assignment) {
         Validate.notNull(status, "User dto status must not be null.");
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(assignment, "Assignment must not be null.");
@@ -73,12 +68,8 @@ public class UserAssignmentDto extends Selectable {
         this.status = status;
     }
 
-    public Type getType() {
+    public UserAssignmentDtoType getType() {
         return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
     }
 
     public AssignmentType createAssignment() {

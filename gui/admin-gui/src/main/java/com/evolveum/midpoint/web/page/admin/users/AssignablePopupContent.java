@@ -111,6 +111,10 @@ public class AssignablePopupContent extends BasePanel {
         this.type = type;
     }
 
+    public Class<? extends ObjectType> getType() {
+        return type;
+    }
+
     protected void addPerformed(AjaxRequestTarget target, List<UserAssignableDto> selected) {
 
     }

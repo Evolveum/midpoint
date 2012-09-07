@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -273,13 +274,12 @@ public class PageHome extends PageAdmin {
 		List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
 			String name = null;
-			UserAssignmentDto.Type type = UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION;
+			UserAssignmentDtoType type = UserAssignmentDtoType.ACCOUNT_CONSTRUCTION;
 			if (assignment.getTarget() != null) {
 				ObjectType target = assignment.getTarget();
 				name = target.getName();
-                type = UserAssignmentDto.Type.TARGET;
+                type = UserAssignmentDtoType.getType(target.getClass());
 			} else if (assignment.getTargetRef() != null) {
-                type = UserAssignmentDto.Type.TARGET;
 				ObjectReferenceType ref = assignment.getTargetRef();
 				OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
 				subResult.addParam("targetRef", ref.getOid());
@@ -296,6 +296,7 @@ public class PageHome extends PageAdmin {
 
 				if (target != null) {
 					name = WebMiscUtil.getName(target);
+                    type = UserAssignmentDtoType.getType(target.getCompileTimeClass());
 				}
 			}
 			list.add(new SimpleAssignmentDto(name, type, assignment.getActivation()));

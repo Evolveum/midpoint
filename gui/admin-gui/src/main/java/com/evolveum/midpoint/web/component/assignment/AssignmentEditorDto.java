@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.commons.lang.Validate;
 
@@ -43,7 +44,7 @@ public class AssignmentEditorDto implements Serializable {
         this.assignmentDto = assignmentDto;
     }
 
-    public UserAssignmentDto.Type getType() {
+    public UserAssignmentDtoType getType() {
         return assignmentDto.getType();
     }
 
@@ -72,7 +73,7 @@ public class AssignmentEditorDto implements Serializable {
         //todo implement
     }
 
-    public void setType(UserAssignmentDto.Type type) {
-        assignmentDto.setType(type);
+    public void setType(UserAssignmentDtoType type) {
+//        assignmentDto.setType(type);
     }
 }

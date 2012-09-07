@@ -25,14 +25,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.IHeaderResponse;
@@ -91,22 +88,22 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         RadioGroup radioGroup = new RadioGroup(ID_RADIO_GROUP);
         add(radioGroup);
         Radio targetOption = new Radio(ID_TARGET_OPTION);
-        targetOption.add(new AjaxEventBehavior("onchange") {
-
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                showContainer(target, UserAssignmentDto.Type.TARGET);
-            }
-        });
+//        targetOption.add(new AjaxEventBehavior("onchange") {
+//
+//            @Override
+//            protected void onEvent(AjaxRequestTarget target) {
+//                showContainer(target, UserAssignmentDtoType.TARGET);
+//            }
+//        });
         radioGroup.add(targetOption);
         Radio constructionOption = new Radio(ID_CONSTRUCTION_OPTION);
-        constructionOption.add(new AjaxEventBehavior("onchange") {
-
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                showContainer(target, UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION);
-            }
-        });
+//        constructionOption.add(new AjaxEventBehavior("onchange") {
+//
+//            @Override
+//            protected void onEvent(AjaxRequestTarget target) {
+//                showContainer(target, UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION);
+//            }
+//        });
         radioGroup.add(constructionOption);
 
         WebMarkupContainer containers = new WebMarkupContainer(ID_CONTAINERS);
@@ -114,13 +111,13 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         add(containers);
 
         WebMarkupContainer targetContainer = new WebMarkupContainer(ID_TARGET_CONTAINER);
-        targetContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.TARGET));
+//        targetContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.TARGET));
         containers.add(targetContainer);
 
         initTargetContainer(targetContainer);
 
         WebMarkupContainer constructionContainer = new WebMarkupContainer(ID_CONSTRUCTION_CONTAINER);
-        constructionContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION));
+//        constructionContainer.add(createContainerVisibleBehaviour(UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION));
         containers.add(constructionContainer);
 
         initConstructionContainer(constructionContainer);
@@ -185,21 +182,21 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         return modal;
     }
-
-    private VisibleEnableBehaviour createContainerVisibleBehaviour(final UserAssignmentDto.Type type) {
-        return new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                AssignmentEditorDto dto = getModel().getObject();
-                if (type.equals(dto.getType())) {
-                    return true;
-                }
-
-                return false;
-            }
-        };
-    }
+//
+//    private VisibleEnableBehaviour createContainerVisibleBehaviour(final UserAssignmentDto.Type type) {
+//        return new VisibleEnableBehaviour() {
+//
+//            @Override
+//            public boolean isVisible() {
+//                AssignmentEditorDto dto = getModel().getObject();
+//                if (type.equals(dto.getType())) {
+//                    return true;
+//                }
+//
+//                return false;
+//            }
+//        };
+//    }
 
     private void initConstructionContainer(WebMarkupContainer constructionContainer) {
         Label resourceName = new Label(ID_RESOURCE_NAME, createResourceNameModel());
@@ -275,11 +272,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         //todo implement
     }
 
-    private void showContainer(AjaxRequestTarget target, UserAssignmentDto.Type type) {
-        //todo implement
-        getModel().getObject().setType(type);
-        target.add(get(ID_CONTAINERS));
-    }
+//    private void showContainer(AjaxRequestTarget target, UserAssignmentDto.Type type) {
+//        //todo implement
+//        getModel().getObject().setType(type);
+//        target.add(get(ID_CONTAINERS));
+//    }
 
     private IModel createResourceNameModel() {
         return new AbstractReadOnlyModel() {

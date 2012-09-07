@@ -431,15 +431,12 @@ public class PageUser extends PageAdminUsers {
         List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
         for (AssignmentType assignment : assignments) {
             String name = null;
-            UserAssignmentDto.Type type = UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION;
+            UserAssignmentDtoType type = UserAssignmentDtoType.ACCOUNT_CONSTRUCTION;
             if (assignment.getTarget() != null) {
-                type = UserAssignmentDto.Type.TARGET;
-
                 ObjectType target = assignment.getTarget();
                 name = target.getName();
+                type = UserAssignmentDtoType.getType(target.getClass());
             } else if (assignment.getTargetRef() != null) {
-                type = UserAssignmentDto.Type.TARGET;
-
                 ObjectReferenceType ref = assignment.getTargetRef();
                 OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
                 subResult.addParam("targetRef", ref.getOid());
@@ -456,6 +453,7 @@ public class PageUser extends PageAdminUsers {
 
                 if (target != null) {
                     name = WebMiscUtil.getName(target);
+                    type = UserAssignmentDtoType.getType(target.getCompileTimeClass());
                 }
             }
 
@@ -478,7 +476,10 @@ public class PageUser extends PageAdminUsers {
                     public ResourceReference getObject() {
                         UserAssignmentDto dto = rowModel.getObject();
                         switch (dto.getType()) {
-                            case TARGET:
+                            case ROLE:
+                                return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
+                            case ORG_UNIT:
+                                //todo [miso] change picture to org. unit icon
                                 return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
                             case ACCOUNT_CONSTRUCTION:
                             default:
@@ -1180,16 +1181,18 @@ public class PageUser extends PageAdminUsers {
         List<UserAssignmentDto> assignments = assignmentsModel.getObject();
         for (UserAssignableDto role : newRoles) {
             try {
+                AssignablePopupContent content = (AssignablePopupContent) window.get(window.getContentId());
+                Class<? extends ObjectType> assignableType = content.getType();
+                UserAssignmentDtoType aType = UserAssignmentDtoType.getType(assignableType);
+
                 ObjectReferenceType targetRef = new ObjectReferenceType();
                 targetRef.setOid(role.getOid());
-                targetRef.setType(RoleType.COMPLEX_TYPE);
+                targetRef.setType(aType.getQname());
 
                 AssignmentType assignment = new AssignmentType();
                 assignment.setTargetRef(targetRef);
 
-                assignments.add(new UserAssignmentDto(role.getName(), UserAssignmentDto.Type.TARGET,
-                        UserDtoStatus.ADD, assignment));
-                setResponsePage(getPage());
+                assignments.add(new UserAssignmentDto(role.getName(), aType, UserDtoStatus.ADD, assignment));
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntAssignObject", role.getName(), ex.getMessage()));
                 LoggingUtils.logException(LOGGER, "Couldn't assign object", ex);
@@ -1338,19 +1341,6 @@ public class PageUser extends PageAdminUsers {
     private Component getAssignmentTable() {
         AccordionItem item = getAssignmentAccordionItem();
         return item.getBodyContainer().get(ID_ASSIGNMENT_TABLE);
-    }
-
-    private void addAccountAssignmentPerformed(AjaxRequestTarget target) {
-        //todo reimplement
-        List<UserAssignmentDto> assignmentDtoList = assignmentsModel.getObject();
-
-        UserAssignmentDto newDto = new UserAssignmentDto(null, UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION,
-                UserDtoStatus.ADD, new AssignmentType());
-        assignmentDtoList.add(newDto);
-
-        assignmentEditPerformed(target, newDto);
-
-        target.add(getAssignmentTable());
     }
 
     private void deleteAssignmentPerformed(AjaxRequestTarget target) {
