@@ -41,6 +41,7 @@ object.
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db">
@@ -111,6 +112,68 @@ object.
 
 		</c:configuration>
 
+      <schema>
+		<!-- Storing schema here and don't letting midpoint to generate it. ScriptedSQL does not support getting schema... -->
+	  <definition>
+		<xsd:schema elementFormDefault="qualified"
+			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d420db"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
+			
+			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
+			<xsd:complexType name="AccountObjectClass">
+				<xsd:annotation>
+					<xsd:appinfo>
+						 <ra:resourceObject/>
+	                     <ra:identifier>icfs:uid</ra:identifier>
+						 <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+	                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+	                     <ra:account/>
+	                     <ra:default/>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element ref="icfs:name" />
+					<xsd:element minOccurs="0" ref="icfs:uid" />
+					<xsd:element minOccurs="0" ref="icfs:password" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="firstname" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="fullname" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="lastname" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="email" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="organization" type="xsd:string" />
+<!-- timestamp ??? -->
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	  </definition>
+	</schema>
+	<!-- We need to specify nativeCapabilities as well as these are usually schema-derived -->
+	<nativeCapabilities>
+		<capabilities>
+	        <cap:script>
+	            <cap:host>
+	                <cap:type>resource</cap:type>
+	            </cap:host>
+	            <cap:host>
+	                <cap:type>connector</cap:type>
+	            </cap:host>
+	        </cap:script>
+	        <cap:testConnection/>
+	        <cap:liveSync/>
+	        <cap:credentials>
+	            <cap:password/>
+	        </cap:credentials>
+	        <cap:activation>
+	            <cap:enableDisable/>
+	        </cap:activation>
+    	</capabilities>
+	</nativeCapabilities>
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual

@@ -41,6 +41,7 @@ object.
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db">
@@ -152,6 +153,27 @@ object.
 		</xsd:schema>
 	  </definition>
 	</schema>
+	<!-- We need to specify nativeCapabilities as well as these are usually schema-derived -->
+	<nativeCapabilities>
+		<capabilities>
+	        <cap:script>
+	            <cap:host>
+	                <cap:type>resource</cap:type>
+	            </cap:host>
+	            <cap:host>
+	                <cap:type>connector</cap:type>
+	            </cap:host>
+	        </cap:script>
+	        <cap:testConnection/>
+	        <cap:liveSync/>
+	        <cap:credentials>
+	            <cap:password/>
+	        </cap:credentials>
+	        <cap:activation>
+	            <cap:enableDisable/>
+	        </cap:activation>
+    	</capabilities>
+	</nativeCapabilities>
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual
