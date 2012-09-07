@@ -27,15 +27,25 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.test.impl.ProvisioningServiceImplDummyTest;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -44,9 +54,11 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
@@ -106,8 +118,9 @@ public class ProvisioningTestUtil {
 	public static void assertIcfResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
 		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
+		assertNotNull("No object class definition for "+objectClassQname+" in resource schema", accountDefinition);
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultAccountDefinition();
-		assertTrue("Mismatched account definition", accountDefinition == accountDef);
+		assertTrue("Mismatched account definition: "+accountDefinition+" <-> "+accountDef, accountDefinition == accountDef);
 		
 		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
 		assertTrue("Object class " + objectClassQname + " is not account", accountDefinition.isAccountType());
@@ -176,6 +189,18 @@ public class ProvisioningTestUtil {
 		assertTrue("No fullname update", fullnameDef.canUpdate());
 		assertTrue("No fullname read", fullnameDef.canRead());
 		
+	}
+
+	public static void checkRepoShadow(PrismObject<AccountShadowType> repoShadow) {
+		AccountShadowType repoShadowType = repoShadow.asObjectable();
+		assertNotNull("No OID in repo shadow", repoShadowType.getOid());
+		assertNotNull("No name in repo shadow", repoShadowType.getName());
+		assertNotNull("No objectClass in repo shadow", repoShadowType.getObjectClass());
+		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
+		assertNotNull("No attributes in repo shadow", attributesContainer);
+		List<Item<?>> attributes = attributesContainer.getValue().getItems();
+		assertFalse("Empty attributes in repo shadow", attributes.isEmpty());
+		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
 	}
 
 }

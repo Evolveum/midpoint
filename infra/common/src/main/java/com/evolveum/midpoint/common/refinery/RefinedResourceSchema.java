@@ -216,7 +216,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		
 		ResourceSchema originalResourceSchema = getResourceSchema(resourceType, prismContext);
 		if (originalResourceSchema == null) {
-			throw new IllegalArgumentException("Cannot determine resource schema from " + resourceType.asPrismObject());
+			return null;
 		}
 		
 		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();

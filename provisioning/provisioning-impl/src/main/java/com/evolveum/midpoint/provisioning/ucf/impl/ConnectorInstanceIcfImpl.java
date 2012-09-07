@@ -616,7 +616,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".getCapabilities");
 		result.addContext("connector", connectorType);
 
-		if (capabilities == null) {
+		if (!initialized) {
 			// initialize the connector if it was not initialized yet
 			try {
 				initialize(result);

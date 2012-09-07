@@ -98,8 +98,7 @@ public interface ConnectorInstance {
 	 * The set of capabilities may depend on the connector configuration (e.g. if a "disable" or password attribute
 	 * was specified in the configuration or not).
 	 *
-	 * The schema is retrieved from the connector instance and therefore it may be out-of-date.
-	 * This must be called after a call to initialize() method.
+	 * It may return null. Such case means that the capabilities cannot be determined.
 	 *
 	 * @param parentResult
 	 * @return
@@ -117,8 +116,7 @@ public interface ConnectorInstance {
 	 * "parsed" format and it is in fact a bit stricter and richer midPoint
 	 * schema.
 	 * 
-	 * The schema is retrieved from the connector instance and therefore it may be out-of-date.
-	 * This must be called after a call to initialize() method.
+	 * It may return null. Such case means that the schema cannot be determined.
 	 * 
 	 * @see PrismSchema
 	 * 

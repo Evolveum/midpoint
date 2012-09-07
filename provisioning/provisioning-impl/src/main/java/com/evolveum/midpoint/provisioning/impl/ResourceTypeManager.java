@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -381,8 +382,19 @@ public class ResourceTypeManager {
 		}
 
 		if (schema == null || schema.isEmpty()) {
-			schemaResult.recordFatalError("Empty schema returned");
-			return;
+			// Resource does not support schema
+			// If there is a static schema in resource definition this may still be OK
+			try {
+				schema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+			} catch (SchemaException e) {
+				schemaResult.recordFatalError(e);
+				return;
+			}
+			
+			if (schema == null || schema.isEmpty()) {
+				schemaResult.recordFatalError("Connector does not support schema and no static schema available");
+				return;
+			}
 		}
 
 		// Invoke completeResource(). This will store the fetched schema to the
@@ -788,7 +800,9 @@ public class ResourceTypeManager {
 		}
 
 		CapabilitiesType capType = new CapabilitiesType();
-		capType.getAny().addAll(capabilities);
+		if (capabilities != null) {
+			capType.getAny().addAll(capabilities);
+		}
 		CachedCapabilitiesType cachedCapType = new CachedCapabilitiesType();
 		cachedCapType.setCapabilities(capType);
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();

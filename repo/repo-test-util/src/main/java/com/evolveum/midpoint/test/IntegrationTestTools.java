@@ -185,13 +185,20 @@ public class IntegrationTestTools {
 	public static void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
 		OperationResult opResult = testResult.findSubresult(operation.getOperation());
 		assertNotNull("No result for "+operation, opResult);
-		assertSuccess("Test resource failed (result): "+operation, opResult);
+		assertSuccess("Test resource failed (result): "+operation, opResult, 1);
 	}
 
 	public static void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
 		OperationResult opResult = testResult.findSubresult(operation.getOperation());
 		assertNotNull("No result for "+operation, opResult);
 		assertFailure("Test resource succeeded while expected failure (result): "+operation, opResult);
+	}
+	
+	public static void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
+		OperationResult opResult = testResult.findSubresult(operation.getOperation());
+		assertNotNull("No result for "+operation, opResult);
+		assertEquals("Test resource status is not 'not applicable', it is "+opResult.getStatus()+": "+operation, 
+				OperationResultStatus.NOT_APPLICABLE, opResult.getStatus());
 	}
 
 	public static void assertNotEmpty(String message, String s) {

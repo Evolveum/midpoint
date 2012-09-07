@@ -96,7 +96,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	private static final String TEST_DIR = "src/test/resources/impl/dummy/";
 
-	private static final String FILENAME_RESOURCE_DUMMY = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-dummy.xml";
+	private static final String RESOURCE_DUMMY_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-dummy.xml";
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 
 	private static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
@@ -158,7 +158,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(FILENAME_RESOURCE_DUMMY, ProvisioningTestUtil.DUMMY_CONNECTOR_TYPE, initResult);
+		resource = addResourceFromFile(RESOURCE_DUMMY_FILENAME, ProvisioningTestUtil.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
 
 		dummyResource = DummyResource.getInstance();
@@ -635,7 +635,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
-		checkRepoShadow(shadowFromRepo);
+		ProvisioningTestUtil.checkRepoShadow(shadowFromRepo);
 
 		checkConsistency(account.asPrismObject());
 	}
@@ -687,7 +687,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
-		checkRepoShadow(shadowFromRepo);
+		ProvisioningTestUtil.checkRepoShadow(shadowFromRepo);
 
 		checkConsistency(account.asPrismObject());
 	}
@@ -1460,19 +1460,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		}
 
 		// TODO: check result
-	}
-
-	private void checkRepoShadow(PrismObject<AccountShadowType> repoShadow) {
-		AccountShadowType repoShadowType = repoShadow.asObjectable();
-		assertNotNull("No OID in repo shadow", repoShadowType.getOid());
-		assertNotNull("No name in repo shadow", repoShadowType.getName());
-		assertNotNull("No objectClass in repo shadow", repoShadowType.getObjectClass());
-		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
-		assertNotNull("No attributes in repo shadow", attributesContainer);
-		List<Item<?>> attributes = attributesContainer.getValue().getItems();
-		assertFalse("Empty attributes in repo shadow", attributes.isEmpty());
-		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
-
 	}
 
 	private void checkConsistency(PrismObject object) throws SchemaException {

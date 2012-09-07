@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum -->
+<!-- -->
+<!-- The contents of this file are subject to the terms -->
+<!-- of the Common Development and Distribution License -->
+<!-- (the License). You may not use this file except in -->
+<!-- compliance with the License. -->
+<!-- -->
+<!-- You can obtain a copy of the License at -->
+<!-- http://www.opensource.org/licenses/cddl1 or -->
+<!-- CDDLv1.0.txt file in the source code distribution. -->
+<!-- See the License for the specific language governing -->
+<!-- permission and limitations under the License. -->
+<!-- -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by -->
+<!-- your own identifying information: -->
+<!-- -->
+<!-- Portions Copyrighted 2011 [name of copyright owner] -->
+<!-- -->
+
+<account oid="c0c010c0-d34d-b44f-f11d-33322212dddd"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
+	<name>will</name>
+	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddd0505" />
+	<objectClass>ri:AccountObjectClass</objectClass>
+	<attributes>
+		<icfs:name>will</icfs:name>
+		<ri:fullname>Will Turner</ri:fullname>
+	</attributes>
+	<credentials>
+		<password>
+			<protectedString>
+				<clearValue>3lizab3th</clearValue>
+			</protectedString>
+		</password>
+	</credentials>
+</account>
