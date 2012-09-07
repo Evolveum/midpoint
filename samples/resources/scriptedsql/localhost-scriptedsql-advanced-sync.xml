@@ -154,26 +154,6 @@ object.
 	  </definition>
 	</schema>
 	<!-- We need to specify nativeCapabilities as well as these are usually schema-derived -->
-	<nativeCapabilities>
-		<capabilities>
-	        <cap:script>
-	            <cap:host>
-	                <cap:type>resource</cap:type>
-	            </cap:host>
-	            <cap:host>
-	                <cap:type>connector</cap:type>
-	            </cap:host>
-	        </cap:script>
-	        <cap:testConnection/>
-	        <cap:liveSync/>
-	        <cap:credentials>
-	            <cap:password/>
-	        </cap:credentials>
-	        <cap:activation>
-	            <cap:enableDisable/>
-	        </cap:activation>
-    	</capabilities>
-	</nativeCapabilities>
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual
@@ -304,6 +284,26 @@ object.
 				</activation>
 			</accountType>
 		</schemaHandling>
+	<nativeCapabilities>
+		<capabilities>
+	        <cap:script>
+	            <cap:host>
+	                <cap:type>resource</cap:type>
+	            </cap:host>
+	            <cap:host>
+	                <cap:type>connector</cap:type>
+	            </cap:host>
+	        </cap:script>
+	        <cap:testConnection/>
+	        <cap:liveSync/>
+	        <cap:credentials>
+	            <cap:password/>
+	        </cap:credentials>
+	        <cap:activation>
+	            <cap:enableDisable/>
+	        </cap:activation>
+    	</capabilities>
+	</nativeCapabilities>
         <synchronization>
         	<objectSynchronization>
 	            <!--
