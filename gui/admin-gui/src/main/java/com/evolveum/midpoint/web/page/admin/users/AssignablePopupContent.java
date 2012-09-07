@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignableDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.apache.commons.lang.Validate;
@@ -82,8 +82,8 @@ public class AssignablePopupContent extends BasePanel {
         form.add(addButton);
     }
 
-    private List<UserRoleDto> getSelectedObjects() {
-        List<UserRoleDto> roles = new ArrayList<UserRoleDto>();
+    private List<UserAssignableDto> getSelectedObjects() {
+        List<UserAssignableDto> roles = new ArrayList<UserAssignableDto>();
 
         TablePanel table = (TablePanel) get(ID_ASSIGNABLE_FORM + ":" + ID_TABLE);
         ObjectDataProvider<? extends ObjectType> provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
@@ -93,7 +93,7 @@ public class AssignablePopupContent extends BasePanel {
             }
 
             ObjectType role = bean.getValue();
-            roles.add(new UserRoleDto(role.getOid(), role.getName(), role.getDescription()));
+            roles.add(new UserAssignableDto(role.getOid(), role.getName(), role.getDescription()));
         }
 
         return roles;
@@ -111,7 +111,7 @@ public class AssignablePopupContent extends BasePanel {
         this.type = type;
     }
 
-    protected void addPerformed(AjaxRequestTarget target, List<UserRoleDto> selected) {
+    protected void addPerformed(AjaxRequestTarget target, List<UserAssignableDto> selected) {
 
     }
 }

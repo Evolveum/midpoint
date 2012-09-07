@@ -26,13 +26,13 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 /**
  * @author lazyman
  */
-public class UserRoleDto extends Selectable {
+public class UserAssignableDto extends Selectable {
 
     private String oid;
     private String name;
     private String description;
 
-    public UserRoleDto(String oid, String name, String description) {
+    public UserAssignableDto(String oid, String name, String description) {
         this.description = description;
         this.name = name;
         this.oid = oid;

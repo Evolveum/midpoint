@@ -21,16 +21,43 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.accordion.Accordion;
+import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.dto.*;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -59,67 +86,10 @@ import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.SourceType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.accordion.Accordion;
-import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -269,16 +239,6 @@ public class PageUser extends PageAdminUsers {
         assignments.setOutputMarkupId(true);
         accordion.getBodyContainer().add(assignments);
         initAssignments(assignments);
-        WebMarkupContainer assignmentsButtonsPanel = new WebMarkupContainer("assignmentsButtons");
-        initAssignmentsButtons(assignmentsButtonsPanel);
-
-        assignmentsButtonsPanel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return getAssignmentsSize().getObject() > 0;
-            }
-        });
-        assignments.getBodyContainer().add(assignmentsButtonsPanel);
 
         AccordionItem orgUnits = new AccordionItem("orgUnitsList", new AbstractReadOnlyModel<String>() {
 
@@ -709,7 +669,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                unassignPerformed(target);
+                deleteAssignmentPerformed(target);
             }
         };
         mainForm.add(unassign);
@@ -772,18 +732,6 @@ public class PageUser extends PageAdminUsers {
             }
         };
         accountsPanel.add(unlockAccount);
-    }
-
-    private void initAssignmentsButtons(WebMarkupContainer assignmentsPanel) {
-        AjaxLinkButton deleteRole = new AjaxLinkButton("deleteRole", ButtonType.NEGATIVE,
-                createStringResource("pageUser.button.deleteRole")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteAssignmentsPerformed(target);
-            }
-        };
-        assignmentsPanel.add(deleteRole);
     }
 
     private ModalWindow createModalWindow(String id, IModel<String> title) {
@@ -850,7 +798,7 @@ public class PageUser extends PageAdminUsers {
         window.setContent(new AssignablePopupContent(window.getContentId()) {
 
             @Override
-            protected void addPerformed(AjaxRequestTarget target, List<UserRoleDto> roles) {
+            protected void addPerformed(AjaxRequestTarget target, List<UserAssignableDto> roles) {
                 addSelectedAssignablePerformed(target, roles);
             }
         });
@@ -1219,18 +1167,18 @@ public class PageUser extends PageAdminUsers {
         target.add(getAccountsAccordionItem());
     }
 
-    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<UserRoleDto> newRoles) {
+    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<UserAssignableDto> newRoles) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
         window.close(target);
 
         if (newRoles.isEmpty()) {
-            warn(getString("pageUser.message.noRoleSelected"));
+            warn(getString("pageUser.message.noAssignableSelected"));
             target.add(getFeedbackPanel());
             return;
         }
 
         List<UserAssignmentDto> assignments = assignmentsModel.getObject();
-        for (UserRoleDto role : newRoles) {
+        for (UserAssignableDto role : newRoles) {
             try {
                 ObjectReferenceType targetRef = new ObjectReferenceType();
                 targetRef.setOid(role.getOid());
@@ -1243,24 +1191,13 @@ public class PageUser extends PageAdminUsers {
                         UserDtoStatus.ADD, assignment));
                 setResponsePage(getPage());
             } catch (Exception ex) {
-                error(getString("pageUser.message.couldntAddRole", role.getName(), ex.getMessage()));
-                LoggingUtils.logException(LOGGER, "Couldn't add role", ex);
+                error(getString("pageUser.message.couldntAssignObject", role.getName(), ex.getMessage()));
+                LoggingUtils.logException(LOGGER, "Couldn't assign object", ex);
             }
         }
 
         target.add(getFeedbackPanel());
-        target.add(getAssignmentAccordionItem());
-    }
-
-    private void deleteAssignmentsPerformed(AjaxRequestTarget target) {
-        List<UserAssignmentDto> selected = getSelectedAssignments();
-        if (selected.isEmpty()) {
-            warn(getString("pageUser.message.noAssignmentSelected"));
-            target.add(getFeedbackPanel());
-            return;
-        }
-
-        showModalWindow(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT, target);
+        target.add(getAssignmentTable());
     }
 
     private void updateAccountActivation(AjaxRequestTarget target, List<UserAccountDto> accounts,
@@ -1339,8 +1276,7 @@ public class PageUser extends PageAdminUsers {
                 assignment.setSelected(false);
             }
         }
-        target.appendJavaScript("window.location.reload()");
-        target.add(getAssignmentAccordionItem());
+        target.add(getAssignmentTable());
     }
 
     private void unlinkAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
@@ -1417,21 +1353,14 @@ public class PageUser extends PageAdminUsers {
         target.add(getAssignmentTable());
     }
 
-    private void addRoleAssignmentPerformed(AjaxRequestTarget target) {
-        //todo implement
+    private void deleteAssignmentPerformed(AjaxRequestTarget target) {
+        List<UserAssignmentDto> selected = getSelectedAssignments();
+        if (selected.isEmpty()) {
+            warn(getString("pageUser.message.noAssignmentSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
 
-        target.add(getAssignmentTable());
-    }
-
-    private void addOrgUnitAssignmentPerformed(AjaxRequestTarget target) {
-        //todo implement
-
-        target.add(getAssignmentTable());
-    }
-
-    private void unassignPerformed(AjaxRequestTarget target) {
-        //todo implement
-
-        target.add(getAssignmentTable());
+        showModalWindow(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT, target);
     }
 }
