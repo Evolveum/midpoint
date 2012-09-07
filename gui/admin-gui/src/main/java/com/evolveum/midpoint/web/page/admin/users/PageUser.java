@@ -116,6 +116,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
@@ -138,20 +139,21 @@ public class PageUser extends PageAdminUsers {
 
 	private static final String MODAL_ID_RESOURCE = "resourcePopup";
 	private static final String MODAL_ID_ROLE = "rolePopup";
+	private static final String MODAL_ID_ORGUNIT = "orgUnitPopup";
 	private static final String MODAL_ID_CONFIRM_DELETE_ACCOUNT = "confirmDeleteAccountPopup";
 	private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_ACCORDION = "accordion";
-    private static final String ID_ASSIGNMENT_EDITOR_WRAPPER = "assignmentEditorWrapper";
-    private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
-    private static final String ID_ASSIGNMENT_TABLE = "assignmentTable";
+	private static final String ID_MAIN_FORM = "mainForm";
+	private static final String ID_ACCORDION = "accordion";
+	private static final String ID_ASSIGNMENT_EDITOR_WRAPPER = "assignmentEditorWrapper";
+	private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
+	private static final String ID_ASSIGNMENT_TABLE = "assignmentTable";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 	private IModel<ObjectWrapper> userModel;
 	private IModel<List<UserAccountDto>> accountsModel;
 	private IModel<List<UserAssignmentDto>> assignmentsModel;
-    private IModel<AssignmentEditorDto> assignmentEditorModel = new Model<AssignmentEditorDto>();
+	private IModel<AssignmentEditorDto> assignmentEditorModel = new Model<AssignmentEditorDto>();
 
 	public PageUser() {
 		userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -240,45 +242,94 @@ public class PageUser extends PageAdminUsers {
 
 			@Override
 			public String getObject() {
-				int size = 0;
-				for (UserAccountDto account : accountsModel.getObject()) {
-					if (!UserDtoStatus.DELETE.equals(account.getStatus())) {
-						size++;
-					}
-				}
-				return getString("pageUser.accounts", size);
+				return getString("pageUser.accounts", getAccountsSize().getObject());
 			}
 		});
 		accounts.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(accounts);
+
+		WebMarkupContainer accountsButtonsPanel = new WebMarkupContainer("accountsButtons");
+		accountsButtonsPanel.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return getAccountsSize().getObject() > 0;
+			}
+		});
+		accounts.getBodyContainer().add(accountsButtonsPanel);
+
+		initAccountButtons(accountsButtonsPanel);
 		initAccounts(accounts);
 
 		AccordionItem assignments = new AccordionItem("assignmentsList", new AbstractReadOnlyModel<String>() {
 
 			@Override
 			public String getObject() {
-				int size = 0;
-				for (UserAssignmentDto account : assignmentsModel.getObject()) {
-					if (!UserDtoStatus.DELETE.equals(account.getStatus())) {
-						size++;
-					}
-				}
-				return getString("pageUser.assignments", size);
+				return getString("pageUser.assignments", getAssignmentsSize().getObject());
 			}
 		});
 		assignments.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(assignments);
 		initAssignments(assignments);
+		WebMarkupContainer assignmentsButtonsPanel = new WebMarkupContainer("assignmentsButtons");
+		initAssignmentsButtons(assignmentsButtonsPanel);
+		
+		assignmentsButtonsPanel.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible() {
+				return getAssignmentsSize().getObject() > 0;
+			}
+		});
+		assignments.getBodyContainer().add(assignmentsButtonsPanel);
+		
+		AccordionItem orgUnits = new AccordionItem("orgUnitsList", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				return getString("pageUser.orgUnits", 0);
+			}
+		});
+		orgUnits.setOutputMarkupId(true);
+		accordion.getBodyContainer().add(orgUnits);
 
 		initButtons(mainForm);
 
 		initResourceModal();
 		initRoleModal();
+		initOrgUnitModal();
 		initConfirmationDialogs();
 	}
+	
+	private IModel<Integer> getAccountsSize() {
+		return new LoadableModel<Integer>() {
 
-	private Integer getSizeOfListObjects(IModel listObjects) {
-		return null;
+			@Override
+			protected Integer load() {
+				int accountsSize = 0;
+				for (UserAccountDto account : accountsModel.getObject()) {
+					if (!UserDtoStatus.DELETE.equals(account.getStatus())) {
+						accountsSize++;
+					}
+				}
+				return accountsSize;
+			}
+		};
+	}
+	
+	private IModel<Integer> getAssignmentsSize() {
+		return new LoadableModel<Integer>() {
+
+			@Override
+			protected Integer load() {
+				int assignmentsSize = 0;
+				for (UserAssignmentDto assign : assignmentsModel.getObject()) {
+					if (!UserDtoStatus.DELETE.equals(assign.getStatus())) {
+						assignmentsSize++;
+					}
+				}
+				return assignmentsSize;
+			}
+		};
 	}
 
 	private void initConfirmationDialogs() {
@@ -425,12 +476,12 @@ public class PageUser extends PageAdminUsers {
 			String name = null;
 			UserAssignmentDto.Type type = UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION;
 			if (assignment.getTarget() != null) {
-                type = UserAssignmentDto.Type.TARGET;
+				type = UserAssignmentDto.Type.TARGET;
 
 				ObjectType target = assignment.getTarget();
 				name = target.getName();
 			} else if (assignment.getTargetRef() != null) {
-                type = UserAssignmentDto.Type.TARGET;
+				type = UserAssignmentDto.Type.TARGET;
 
 				ObjectReferenceType ref = assignment.getTargetRef();
 				OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
@@ -457,126 +508,129 @@ public class PageUser extends PageAdminUsers {
 		return list;
 	}
 
-    private List<IColumn> initAssignmentColumns() {
-        List<IColumn> columns = new ArrayList<IColumn>();
-        columns.add(new CheckBoxHeaderColumn());
-        columns.add(new IconColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.type")) {
+	private List<IColumn> initAssignmentColumns() {
+		List<IColumn> columns = new ArrayList<IColumn>();
+		columns.add(new CheckBoxHeaderColumn());
+		columns.add(new IconColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.type")) {
 
-            @Override
-            protected IModel<ResourceReference> createIconModel(final IModel<UserAssignmentDto> rowModel) {
-                return new AbstractReadOnlyModel<ResourceReference>() {
+			@Override
+			protected IModel<ResourceReference> createIconModel(final IModel<UserAssignmentDto> rowModel) {
+				return new AbstractReadOnlyModel<ResourceReference>() {
 
-                    @Override
-                    public ResourceReference getObject() {
-                        UserAssignmentDto dto = rowModel.getObject();
-                        switch (dto.getType()) {
-                            case TARGET:
-                                return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
-                            case ACCOUNT_CONSTRUCTION:
-                            default:
-                                return new SharedResourceReference(ImgResources.class, ImgResources.DRIVE);
-                        }
-                    }
-                };
-            }
+					@Override
+					public ResourceReference getObject() {
+						UserAssignmentDto dto = rowModel.getObject();
+						switch (dto.getType()) {
+							case TARGET:
+								return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
+							case ACCOUNT_CONSTRUCTION:
+							default:
+								return new SharedResourceReference(ImgResources.class, ImgResources.DRIVE);
+						}
+					}
+				};
+			}
 
-            @Override
-            protected IModel<AttributeModifier> createAttribute(final IModel<UserAssignmentDto> rowModel) {
-                return new AbstractReadOnlyModel<AttributeModifier>() {
+			@Override
+			protected IModel<AttributeModifier> createAttribute(final IModel<UserAssignmentDto> rowModel) {
+				return new AbstractReadOnlyModel<AttributeModifier>() {
 
-                    @Override
-                    public AttributeModifier getObject() {
-                        UserAssignmentDto dto = rowModel.getObject();
+					@Override
+					public AttributeModifier getObject() {
+						UserAssignmentDto dto = rowModel.getObject();
 
-                        //todo wtf, not good, don't add attribute modifiers like that, they have already model
-                        if (UserDtoStatus.DELETE.equals(dto.getStatus())) {
-                            return new AttributeModifier("class", "deletedValue");
-                        }
-                        return new AttributeModifier("", "");
-                    }
-                };
-            }
+						// todo wtf, not good, don't add attribute modifiers
+						// like that, they have already model
+						if (UserDtoStatus.DELETE.equals(dto.getStatus())) {
+							return new AttributeModifier("class", "deletedValue");
+						}
+						return new AttributeModifier("", "");
+					}
+				};
+			}
 
-        });
-        columns.add(new LinkColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.name"), "name", "name") {
+		});
+		columns.add(new LinkColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.name"),
+				"name", "name") {
 
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<UserAssignmentDto> rowModel) {
-                assignmentEditPerformed(target, rowModel.getObject());
-            }
-        });
-        columns.add(new AbstractColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.active")) {
+			@Override
+			public void onClick(AjaxRequestTarget target, IModel<UserAssignmentDto> rowModel) {
+				assignmentEditPerformed(target, rowModel.getObject());
+			}
+		});
+		columns.add(new AbstractColumn<UserAssignmentDto>(createStringResource("pageUser.assignment.active")) {
 
-            @Override
-            public void populateItem(Item<ICellPopulator<UserAssignmentDto>> cellItem, String componentId,
-                                     final IModel<UserAssignmentDto> rowModel) {
-                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+			@Override
+			public void populateItem(Item<ICellPopulator<UserAssignmentDto>> cellItem, String componentId,
+					final IModel<UserAssignmentDto> rowModel) {
+				cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
 
-                    @Override
-                    public String getObject() {
-                        return createAssignmentActivationText(rowModel);
-                    }
-                }));
-            }
-        });
+					@Override
+					public String getObject() {
+						return createAssignmentActivationText(rowModel);
+					}
+				}));
+			}
+		});
 
-        return columns;
-    }
+		return columns;
+	}
 
 	private void initAssignments(AccordionItem assignments) {
-        List<IColumn> columns = initAssignmentColumns();
+		List<IColumn> columns = initAssignmentColumns();
 
 		ISortableDataProvider provider = new ListDataProvider(this, assignmentsModel);
 		TablePanel assignmentTable = new TablePanel(ID_ASSIGNMENT_TABLE, provider, columns);
-        assignmentTable.setOutputMarkupId(true);
+		assignmentTable.setOutputMarkupId(true);
 		assignmentTable.setShowPaging(false);
 
 		assignments.getBodyContainer().add(assignmentTable);
 
-        WebMarkupContainer assignmentEditorWrapper = new WebMarkupContainer(ID_ASSIGNMENT_EDITOR_WRAPPER);
-        assignmentEditorWrapper.setOutputMarkupId(true);
-        assignments.getBodyContainer().add(assignmentEditorWrapper);
+		WebMarkupContainer assignmentEditorWrapper = new WebMarkupContainer(ID_ASSIGNMENT_EDITOR_WRAPPER);
+		assignmentEditorWrapper.setOutputMarkupId(true);
+		assignments.getBodyContainer().add(assignmentEditorWrapper);
 
-        AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR, assignmentEditorModel);
-        assignmentEditor.add(new VisibleEnableBehaviour() {
+		AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR,
+				assignmentEditorModel);
+		assignmentEditor.add(new VisibleEnableBehaviour() {
 
-            @Override
-            public boolean isVisible() {
-                return assignmentEditorModel.getObject() != null;
-            }
-        });
-        assignmentEditorWrapper.add(assignmentEditor);
+			@Override
+			public boolean isVisible() {
+				return assignmentEditorModel.getObject() != null;
+			}
+		});
+		assignmentEditorWrapper.add(assignmentEditor);
 	}
 
-    private String createAssignmentActivationText(IModel<UserAssignmentDto> rowModel) {
-        UserAssignmentDto dto = rowModel.getObject();
-        ActivationType activation = dto.getActivation();
-        if (activation == null) {
-            return "-";
-        }
+	private String createAssignmentActivationText(IModel<UserAssignmentDto> rowModel) {
+		UserAssignmentDto dto = rowModel.getObject();
+		ActivationType activation = dto.getActivation();
+		if (activation == null) {
+			return "-";
+		}
 
-        Boolean enabled = activation.isEnabled();
-        String strEnabled;
-        if (enabled != null) {
-            strEnabled = enabled ? getString("pageUser.assignment.activation.active") :
-                    getString("pageUser.assignment.activation.inactive");
-        } else {
-            strEnabled = getString("pageUser.assignment.activation.undefined");
-        }
+		Boolean enabled = activation.isEnabled();
+		String strEnabled;
+		if (enabled != null) {
+			strEnabled = enabled ? getString("pageUser.assignment.activation.active")
+					: getString("pageUser.assignment.activation.inactive");
+		} else {
+			strEnabled = getString("pageUser.assignment.activation.undefined");
+		}
 
-        if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-            return getString("pageUser.assignment.activation.enabledFromTo", strEnabled,
-                    MiscUtil.asDate(activation.getValidFrom()), MiscUtil.asDate(activation.getValidTo()));
-        } else if (activation.getValidFrom() != null) {
-            return getString("pageUser.assignment.activation.enabledFrom", strEnabled,
-                    MiscUtil.asDate(activation.getValidFrom()));
-        } else if (activation.getValidTo() != null) {
-            return getString("pageUser.assignment.activation.enabledTo",strEnabled,
-                    MiscUtil.asDate(activation.getValidTo()));
-        }
+		if (activation.getValidFrom() != null && activation.getValidTo() != null) {
+			return getString("pageUser.assignment.activation.enabledFromTo", strEnabled,
+					MiscUtil.asDate(activation.getValidFrom()), MiscUtil.asDate(activation.getValidTo()));
+		} else if (activation.getValidFrom() != null) {
+			return getString("pageUser.assignment.activation.enabledFrom", strEnabled,
+					MiscUtil.asDate(activation.getValidFrom()));
+		} else if (activation.getValidTo() != null) {
+			return getString("pageUser.assignment.activation.enabledTo", strEnabled,
+					MiscUtil.asDate(activation.getValidTo()));
+		}
 
-        return "-";
-    }
+		return "-";
+	}
 
 	private void initButtons(Form mainForm) {
 		AjaxSubmitLinkButton save = new AjaxSubmitLinkButton("save", ButtonType.POSITIVE,
@@ -638,10 +692,9 @@ public class PageUser extends PageAdminUsers {
 		};
 		mainForm.add(back);
 
-		initAccountButtons(mainForm);
-		initRoleButtons(mainForm);
-        initAssignButtons(mainForm);
+		initAssignButtons(mainForm);
 	}
+
 
     private void initAssignButtons(Form mainForm) {
         AjaxLinkButton addAccountAssign = new AjaxLinkButton("addAccountAssign", ButtonType.POSITIVE,
@@ -649,7 +702,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addAccountAssignmentPerformed(target);
+                //addAccountAssignmentPerformed(target);
             }
         };
         mainForm.add(addAccountAssign);
@@ -685,38 +738,7 @@ public class PageUser extends PageAdminUsers {
         mainForm.add(unassign);
     }
 
-	private void initRoleButtons(Form mainForm) {
-		AjaxLinkButton addRole = new AjaxLinkButton("addRole", createStringResource("pageUser.button.add")) {
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				showModalWindow(MODAL_ID_ROLE, target);
-			}
-		};
-		mainForm.add(addRole);
-
-		AjaxLinkButton deleteRole = new AjaxLinkButton("deleteRole", ButtonType.NEGATIVE,
-				createStringResource("pageUser.button.delete")) {
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				deleteAssignmentsPerformed(target);
-			}
-		};
-		mainForm.add(deleteRole);
-	}
-
-	private void initAccountButtons(Form mainForm) {
-		AjaxLinkButton addAccount = new AjaxLinkButton("addAccount",
-				createStringResource("pageUser.button.add")) {
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				showModalWindow(MODAL_ID_RESOURCE, target);
-			}
-		};
-		mainForm.add(addAccount);
-
+	private void initAccountButtons(WebMarkupContainer accountsPanel) {
 		AjaxLinkButton enableAccount = new AjaxLinkButton("enableAccount",
 				createStringResource("pageUser.button.enable")) {
 
@@ -725,7 +747,7 @@ public class PageUser extends PageAdminUsers {
 				updateAccountActivation(target, getSelectedAccounts(), true);
 			}
 		};
-		mainForm.add(enableAccount);
+		accountsPanel.add(enableAccount);
 
 		AjaxLinkButton disableAccount = new AjaxLinkButton("disableAccount",
 				createStringResource("pageUser.button.disable")) {
@@ -735,7 +757,7 @@ public class PageUser extends PageAdminUsers {
 				updateAccountActivation(target, getSelectedAccounts(), false);
 			}
 		};
-		mainForm.add(disableAccount);
+		accountsPanel.add(disableAccount);
 
 		AjaxLinkButton unlinkAccount = new AjaxLinkButton("unlinkAccount",
 				createStringResource("pageUser.button.unlink")) {
@@ -745,7 +767,7 @@ public class PageUser extends PageAdminUsers {
 				unlinkAccountPerformed(target, getSelectedAccounts());
 			}
 		};
-		mainForm.add(unlinkAccount);
+		accountsPanel.add(unlinkAccount);
 
 		AjaxLinkButton deleteAccount = new AjaxLinkButton("deleteAccount", ButtonType.NEGATIVE,
 				createStringResource("pageUser.button.delete")) {
@@ -755,7 +777,7 @@ public class PageUser extends PageAdminUsers {
 				deleteAccountPerformed(target);
 			}
 		};
-		mainForm.add(deleteAccount);
+		accountsPanel.add(deleteAccount);
 
 		AjaxLinkButton unlockAccount = new AjaxLinkButton("unlockAccount",
 				createStringResource("pageUser.button.unlock")) {
@@ -765,7 +787,19 @@ public class PageUser extends PageAdminUsers {
 				unlockAccountPerformed(target, getSelectedAccounts());
 			}
 		};
-		mainForm.add(unlockAccount);
+		accountsPanel.add(unlockAccount);
+	}
+	
+	private void initAssignmentsButtons(WebMarkupContainer assignmentsPanel) {
+		AjaxLinkButton deleteRole = new AjaxLinkButton("deleteRole", ButtonType.NEGATIVE,
+				createStringResource("pageUser.button.deleteRole")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				deleteAssignmentsPerformed(target);
+			}
+		};
+		assignmentsPanel.add(deleteRole);
 	}
 
 	private ModalWindow createModalWindow(String id, IModel<String> title) {
@@ -836,6 +870,19 @@ public class PageUser extends PageAdminUsers {
 		});
 		add(window);
 	}
+	
+	private void initOrgUnitModal() {
+		ModalWindow window = createModalWindow(MODAL_ID_ORGUNIT,
+				createStringResource("pageUser.title.selectOrgUnit"));
+		window.setContent(new OrgUnitPopup(window.getContentId(), this) {
+
+			@Override
+			protected void addPerformed(AjaxRequestTarget target, List orgUnits) {
+				//addSelectedRolePerformed(target, roles);
+			}
+		});
+		add(window);
+	}
 
 	private boolean isEditingUser() {
 		StringValue userOid = getPageParameters().get(PageUser.PARAM_USER_ID);
@@ -869,7 +916,7 @@ public class PageUser extends PageAdminUsers {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Modifying account:\n{}", new Object[] { delta.debugDump(3) });
 				}
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, subResult);
+				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, subResult);
 				subResult.recomputeStatus();
 			} catch (Exception ex) {
 				if (subResult != null) {
@@ -979,7 +1026,7 @@ public class PageUser extends PageAdminUsers {
 					}
 					break;
 				case MODIFY:
-					//todo will be implemented later
+					// todo will be implemented later
 					break;
 				default:
 					warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
@@ -1049,7 +1096,8 @@ public class PageUser extends PageAdminUsers {
 					}
 
 					if (!delta.isEmpty()) {
-                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
+						getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task,
+								result);
 					} else {
 						result.recordSuccessIfUnknown();
 					}
@@ -1113,7 +1161,7 @@ public class PageUser extends PageAdminUsers {
 					changes = getModelInteractionService().previewChanges(deltas, result);
 					result.recordSuccess();
 					break;
-					// support for add/delete containers (e.g. delete credentials)
+				// support for add/delete containers (e.g. delete credentials)
 
 				default:
 					error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
@@ -1369,13 +1417,14 @@ public class PageUser extends PageAdminUsers {
 		}
 	}
 
-    private void assignmentEditPerformed(AjaxRequestTarget target, UserAssignmentDto assignmentDto) {
-        assignmentEditorModel.setObject(new AssignmentEditorDto(assignmentDto));
+	private void assignmentEditPerformed(AjaxRequestTarget target, UserAssignmentDto assignmentDto) {
+		assignmentEditorModel.setObject(new AssignmentEditorDto(assignmentDto));
 
-        AccordionItem item = getAssignmentAccordionItem();
-        Component wrapper = item.getBodyContainer().get(ID_ASSIGNMENT_EDITOR_WRAPPER);
-        target.add(wrapper);
-    }
+		AccordionItem item = getAssignmentAccordionItem();
+		Component wrapper = item.getBodyContainer().get(ID_ASSIGNMENT_EDITOR_WRAPPER);
+		target.add(wrapper);
+	}
+
 
     private Component getAssignmentTable() {
         AccordionItem item = getAssignmentAccordionItem();
@@ -1386,12 +1435,13 @@ public class PageUser extends PageAdminUsers {
         //todo reimplement
         List<UserAssignmentDto> assignmentDtoList = assignmentsModel.getObject();
 
-        UserAssignmentDto newDto = new UserAssignmentDto(null, UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION,
-                UserDtoStatus.ADD, new AssignmentType());
-        assignmentDtoList.add(newDto);
+		UserAssignmentDto newDto = new UserAssignmentDto(null, UserAssignmentDto.Type.ACCOUNT_CONSTRUCTION,
+				UserDtoStatus.ADD, new AssignmentType());
+		assignmentDtoList.add(newDto);
 
-        assignmentEditPerformed(target, newDto);
+		assignmentEditPerformed(target, newDto);
 
+		AccordionItem item = getAssignmentAccordionItem();
         target.add(getAssignmentTable());
     }
 

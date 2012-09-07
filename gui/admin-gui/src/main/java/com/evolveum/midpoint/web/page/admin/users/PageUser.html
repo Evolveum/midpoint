@@ -25,6 +25,7 @@
 <wicket:extend>
 	<div wicket:id="resourcePopup" />
 	<div wicket:id="rolePopup" />
+	<div wicket:id="orgUnitPopup" />
 	<div wicket:id="confirmDeleteAccountPopup"/>
     <div wicket:id="confirmDeleteAssignmentPopup"/>
 
@@ -37,6 +38,13 @@
                 <td style="vertical-align: top;">
                     <div wicket:id="accordion">
                         <li wicket:id="accountsDeltas">
+                        	<div wicket:id="accountsButtons" style="text-align: center;">
+								<a wicket:id="enableAccount" />
+								<a wicket:id="disableAccount" />
+								<a wicket:id="unlockAccount" />
+								<a wicket:id="unlinkAccount" />
+								<a wicket:id="deleteAccount" />
+                        	</div>
                             <div wicket:id="accountList">
                                 <div wicket:id="account" />
                             </div>
@@ -45,8 +53,12 @@
                             <div wicket:id="assignmentEditorWrapper">
                                 <div wicket:id="assignmentEditor" />
                             </div>
-
+							<div wicket:id="assignmentsButtons" style="text-align: center;">
+								<a wicket:id="deleteRole" />
+                        	</div>
                             <div wicket:id="assignmentTable" />
+                        </li>
+                        <li wicket:id="orgUnitsList">
                         </li>
                     </div>
                 </td>
@@ -62,21 +74,6 @@
             <!--<a wicket:id="recalculate"/>-->
             <!--<a wicket:id="refresh"/>-->
 			</div>
-			
-			<div class="operatingFormBlock">
-	            <span class="operatingFormText"><wicket:message key="pageUser.button.label.account"/></span>
-	            <a wicket:id="addAccount" />
-                <a wicket:id="enableAccount" />
-                <a wicket:id="disableAccount" />
-                <a wicket:id="unlockAccount" />
-                <a wicket:id="unlinkAccount" />
-                <a wicket:id="deleteAccount" />
-			</div>
-			<div class="operatingFormBlock">
-	            <span class="operatingFormText"><wicket:message key="pageUser.button.label.role"/></span>
-	            <a wicket:id="addRole" />
-	            <a wicket:id="deleteRole" />
-            </div>
 
             <div class="operatingFormBlock">
                 <span class="operatingFormText"><wicket:message key="pageUser.button.label.assign"/></span>
