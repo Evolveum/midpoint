@@ -59,6 +59,7 @@ public class AceEditor<T> extends TextArea<T> {
     }
 
     private String createOnLoadJavascript() {
+    	String helpButton = "<a class='helpButton' href='https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts' target='_blank' title='Show keyboard shortcuts'></a>";
         StringBuilder script = new StringBuilder();
         script.append("if ($('#").append(editorId).append("').length == 0) {");
         script.append("$(\"<div id='").append(editorId).append("'></div>\").insertAfter($('#")
@@ -78,7 +79,7 @@ public class AceEditor<T> extends TextArea<T> {
         script.append("$('#").append(getMarkupId()).append("').trigger('onBlur'); });");
 
         script.append(" }");
-
+        
         script.append("if(").append(isReadonly()).append(") {");
         script.append("$('.ace_scroller').css('background','#F4F4F4');");
         script.append(" } else {");
@@ -86,6 +87,7 @@ public class AceEditor<T> extends TextArea<T> {
         script.append(" }");
         script.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
         script.append(setFocus(isReadonly()));
+        script.append("$('#" + editorId + "').append(\"" + helpButton + "\")");
         return script.toString();
     }
 

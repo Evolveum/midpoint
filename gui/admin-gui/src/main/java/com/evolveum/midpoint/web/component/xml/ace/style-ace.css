@@ -4,6 +4,20 @@
 	border: 1px solid #BBBBBB;
 }
 
+.ace_editor a.helpButton {
+	position: absolute; 
+	right: 0px;
+	bottom: 0px;
+	width: 16px; 
+	height: 16px; 
+	background-image: url('Help.png');
+	text-decoration: none;
+}
+
+.ace_editor a.helpButton:hover {
+	text-decoration: none;
+}
+
 .ace_editor {
     position: absolute; 
     width: 100%; 
