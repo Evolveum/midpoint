@@ -25,76 +25,93 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserRoleDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class RolesPopup extends Panel {
+public class AssignablePopupContent extends BasePanel {
 
-    public RolesPopup(String id, PageBase page) {
-        super(id);
+    private static final String ID_ASSIGNABLE_FORM = "assignableForm";
+    private static final String ID_TABLE = "table";
+    private static final String ID_ADD = "add";
 
-        initLayout(page);
+    private Class<? extends ObjectType> type = RoleType.class;
+
+    public AssignablePopupContent(String id) {
+        super(id, null);
     }
 
-    private void initLayout(PageBase page) {
-        Form rolesForm = new Form("rolesForm");
+    @Override
+    protected void initLayout() {
+        Form rolesForm = new Form(ID_ASSIGNABLE_FORM);
         add(rolesForm);
 
-        List<IColumn<RoleType>> columns = new ArrayList<IColumn<RoleType>>();
+        List<IColumn> columns = new ArrayList<IColumn>();
 
-        IColumn column = new CheckBoxHeaderColumn<RoleType>();
+        IColumn column = new CheckBoxHeaderColumn();
         columns.add(column);
 
-        columns.add(new PropertyColumn(new StringResourceModel("rolesPopup.name", this, null), "value.name"));
-        columns.add(new PropertyColumn(new StringResourceModel("rolesPopup.description", this, null), "value.description"));
+        columns.add(new PropertyColumn(createStringResource("assignablePopupContent.name"), "value.name"));
+        columns.add(new PropertyColumn(createStringResource("assignablePopupContent.description"), "value.description"));
 
-        TablePanel table = new TablePanel<RoleType>("table", new ObjectDataProvider(page, RoleType.class), columns);
+        TablePanel table = new TablePanel(ID_TABLE, new ObjectDataProvider(getPageBase(), type), columns);
         table.setOutputMarkupId(true);
         rolesForm.add(table);
         initButtons(rolesForm);
     }
 
     private void initButtons(Form form) {
-        AjaxLinkButton addButton = new AjaxLinkButton("add",
-                new StringResourceModel("rolesPopup.button.add", this, null)) {
+        AjaxLinkButton addButton = new AjaxLinkButton(ID_ADD,
+                createStringResource("assignablePopupContent.button.add")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addPerformed(target, getSelectedRoles());
+                addPerformed(target, getSelectedObjects());
             }
         };
         form.add(addButton);
     }
 
-    private List<UserRoleDto> getSelectedRoles() {
+    private List<UserRoleDto> getSelectedObjects() {
         List<UserRoleDto> roles = new ArrayList<UserRoleDto>();
 
-        TablePanel table = (TablePanel)get("rolesForm:table");
-        ObjectDataProvider<RoleType> provider = (ObjectDataProvider)table.getDataTable().getDataProvider();
-        for (SelectableBean<RoleType> bean : provider.getAvailableData()) {
+        TablePanel table = (TablePanel) get(ID_ASSIGNABLE_FORM + ":" + ID_TABLE);
+        ObjectDataProvider<? extends ObjectType> provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
+        for (SelectableBean<? extends ObjectType> bean : provider.getAvailableData()) {
             if (!bean.isSelected()) {
                 continue;
             }
 
-            RoleType role = bean.getValue();
+            ObjectType role = bean.getValue();
             roles.add(new UserRoleDto(role.getOid(), role.getName(), role.getDescription()));
         }
 
         return roles;
     }
 
-    protected void addPerformed(AjaxRequestTarget target, List<UserRoleDto> selectedRoles) {
+    public void setType(Class<? extends ObjectType> type) {
+        Validate.notNull(type, "Class must not be null.");
+
+        TablePanel table = (TablePanel) get(ID_ASSIGNABLE_FORM + ":" + ID_TABLE);
+        if (table != null) {
+            ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
+            provider.setType(type);
+        }
+
+        this.type = type;
+    }
+
+    protected void addPerformed(AjaxRequestTarget target, List<UserRoleDto> selected) {
 
     }
 }

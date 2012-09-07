@@ -117,4 +117,11 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
     protected void addCachedSize(Map<Serializable, CachedSize> cache, CachedSize newSize) {
         cache.put(new TypedCacheKey(getQuery(), type), newSize);
     }
+
+    public void setType(Class<T> type) {
+        Validate.notNull(type, "Class must not be null.");
+        this.type = type;
+
+        clearCache();
+    }
 }
