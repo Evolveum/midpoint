@@ -373,7 +373,7 @@ public class PageResources extends PageAdminResources {
                 Task task = createSimpleTask(OPERATION_DELETE_RESOURCES);
 
                 ObjectDelta<ResourceType> delta = ObjectDelta.createDeleteDelta(ResourceType.class, resource.getOid(), getPrismContext()); 
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete resource.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't delete resource", ex);

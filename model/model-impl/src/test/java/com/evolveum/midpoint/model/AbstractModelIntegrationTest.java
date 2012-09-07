@@ -781,7 +781,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 			PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, roleOid, refType, add);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);;
-		modelService.executeChanges(deltas, task, result);		
+		modelService.executeChanges(deltas, null, task, result);		
 	}
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, boolean add) throws SchemaException {

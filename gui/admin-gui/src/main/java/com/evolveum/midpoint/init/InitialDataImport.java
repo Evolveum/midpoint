@@ -103,7 +103,7 @@ public class InitialDataImport {
                 }
 
                 ObjectDelta delta = ObjectDelta.createAddDelta(object.asPrismObject());
-                model.executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
+                model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
                 result.recordSuccess();
             } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, file);

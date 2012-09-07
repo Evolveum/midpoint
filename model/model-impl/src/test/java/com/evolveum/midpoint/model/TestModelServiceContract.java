@@ -158,7 +158,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
         
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		// Check accountRef
@@ -376,7 +376,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -416,7 +416,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
         
 		// WHEN
-        modelService.executeChanges(deltas, task, result);
+        modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
         result.computeStatus();
@@ -459,7 +459,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -504,7 +504,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		        
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -542,7 +542,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
         
 		// WHEN
-        modelService.executeChanges(deltas, task, result);
+        modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
         result.computeStatus();
@@ -615,7 +615,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -655,7 +655,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         deltas.add(accountDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -694,7 +694,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -731,7 +731,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -769,7 +769,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -803,7 +803,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -843,7 +843,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -882,7 +882,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(passwordPolicyDelta);
         
 		// WHEN
-        modelService.executeChanges(deltas, task, result);
+        modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
         result.computeStatus();

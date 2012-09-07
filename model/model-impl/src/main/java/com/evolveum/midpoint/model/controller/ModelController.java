@@ -293,8 +293,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 	 * @see com.evolveum.midpoint.model.api.ModelService#executeChanges(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, Task task,
-			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+	public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, Collection<ObjectOperationOption> options,
+			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);

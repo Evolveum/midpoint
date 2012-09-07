@@ -469,7 +469,7 @@ public class PageUsers extends PageAdminUsers {
 				ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE, getPrismContext());
 				delta.setOid(user.getOid());
 
-				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, subResult);
+				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, subResult);
 				subResult.recordSuccess();
 			} catch (Exception ex) {
 				subResult.recomputeStatus();
@@ -521,7 +521,7 @@ public class PageUsers extends PageAdminUsers {
 				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
 				objectDelta.addModification(delta);
 
-				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), task,
+				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), null, task,
 						subResult);
 				subResult.recordSuccess();
 			} catch (Exception ex) {

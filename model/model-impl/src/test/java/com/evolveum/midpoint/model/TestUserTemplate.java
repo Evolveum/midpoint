@@ -135,7 +135,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
         deltas.add(userDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -166,7 +166,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
         deltas.add(userDelta);
                 
 		// WHEN
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);

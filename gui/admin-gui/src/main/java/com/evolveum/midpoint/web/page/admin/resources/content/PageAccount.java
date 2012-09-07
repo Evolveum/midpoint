@@ -197,7 +197,7 @@ public class PageAccount extends PageAdminResources {
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
             deltas.add(delta);
 
-            getModelService().executeChanges(deltas, task, result);
+            getModelService().executeChanges(deltas, null, task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save account.", ex);

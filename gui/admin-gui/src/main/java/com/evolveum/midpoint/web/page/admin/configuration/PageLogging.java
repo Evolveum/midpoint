@@ -918,7 +918,7 @@ public class PageLogging extends PageAdminConfiguration {
 				LOGGER.trace("Logging configuration delta:\n{}", delta.dump());
 			}
 
-            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
+            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
 			// finish editing for loggers and appenders
 			for (LoggerConfiguration logger : dto.getLoggers()) {
 				logger.setEditing(false);

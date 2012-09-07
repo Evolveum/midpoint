@@ -203,7 +203,7 @@ public class PageRole extends PageAdminRoles {
                 PrismObject<RoleType> newRole = domProcessor.parseObject(dto.getXml(), RoleType.class);
 
                 ObjectDelta delta = ObjectDelta.createAddDelta(newRole);
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
             } else {
                 //we're editing existing role
                 PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
@@ -212,7 +212,7 @@ public class PageRole extends PageAdminRoles {
 
                 ObjectDelta<RoleType> delta = oldRole.diff(newRole);
 
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), task, result);
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
             }
 
             result.recordSuccess();
