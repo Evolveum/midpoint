@@ -297,11 +297,68 @@ public class ModelController implements ModelService, ModelInteractionService {
 			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
+
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
-		LensContext<?, ?> context = LensUtil.objectDeltaToContext(deltas, provisioning, prismContext, result);
-		clockwork.run(context, task, result);
-		// TODO: ERROR HANDLING
-		result.computeStatus();
+
+		RepositoryCache.enter();
+		
+		try {
+		
+			if (ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
+				// Go directly to repository
+				for(ObjectDelta<? extends ObjectType> delta: deltas) {
+					if (delta.isAdd()) {
+						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), result);
+						delta.setOid(oid);
+					} else if (delta.isDelete()) {
+						cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(), result);
+					} else if (delta.isModify()) {
+						cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), 
+								delta.getModifications(), result);
+					} else {
+						throw new IllegalArgumentException("Wrong delta type "+delta.getChangeType()+" in "+delta);
+					}
+				}
+				
+			} else {
+				
+				// Normal processing
+				LensContext<?, ?> context = LensUtil.objectDeltaToContext(deltas, provisioning, prismContext, result);
+				clockwork.run(context, task, result);
+			}
+		
+			result.computeStatus();
+			
+		} catch (ObjectAlreadyExistsException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ExpressionEvaluationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (CommunicationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ConfigurationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (PolicyViolationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+		} finally {
+			RepositoryCache.exit();
+		}
 	}
 	
 	/* (non-Javadoc)
