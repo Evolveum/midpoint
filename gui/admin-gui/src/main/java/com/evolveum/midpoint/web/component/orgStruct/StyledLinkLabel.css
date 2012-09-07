@@ -52,7 +52,7 @@
 	color: #333333;
 }
 
-.treeButtonMenu:hover, .menuPanel table td:hover {
+.treeButtonMenu:hover {
 	cursor: pointer;
 }
 

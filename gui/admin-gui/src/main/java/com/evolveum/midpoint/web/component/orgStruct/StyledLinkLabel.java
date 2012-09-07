@@ -32,13 +32,16 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author mserbak
@@ -47,13 +50,14 @@ public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
 	private static final StyleBehavior STYLE_CLASS = new StyleBehavior();
 	private static final ButtonStyleBehavior BUTTON_STYLE_CLASS = new ButtonStyleBehavior();
 
-	public StyledLinkLabel(String id, IModel<T> model) {
+	public StyledLinkLabel(String id, final IModel<T> model) {
 		super(id, model);
 		MarkupContainer link = newLinkComponent("link", model);
 		link.add(STYLE_CLASS);
 		add(link);
-
-		link.add(newLabelComponent("label", model));
+		
+		Component label = newLabelComponent("label", model);
+		link.add(label);
 
 		WebMarkupContainer treeButton = new WebMarkupContainer("treeButton");
 		treeButton.setOutputMarkupId(true);
@@ -152,42 +156,36 @@ public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
 		response.renderOnLoadJavaScript("initMenuButtons()");
 	}
 	
-	private void createMenu(String id, IModel<T> model) {
-		WebMarkupContainer panel = new WebMarkupContainer("menuPanel");
-        ListView<String> menu = new ListView<String>("menu", createMenuItemModel(model)) {
-
-            @Override
-            protected void populateItem(ListItem<String> item) {
-                item.add(new Label("menuItem", item.getModel()));
-            }
-        };
-        panel.add(menu);
-        add(panel);
-        panel.setMarkupId(id + "_panel");
+	private void createMenu(String id, final IModel<T> model) {
+		WebMarkupContainer orgPanel = new WebMarkupContainer("orgUnitMenuPanel");
+		orgPanel.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible() {
+				NodeDto dto = model.getObject();
+				return NodeType.FOLDER.equals(dto.getType());
+			}
+		});
+		orgPanel.setMarkupId(id + "_panel");
+        add(orgPanel);
+        initOrgMenu(orgPanel);
+        
+        
+        WebMarkupContainer userPanel = new WebMarkupContainer("userMenuPanel");
+        userPanel.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible() {
+				NodeDto dto = model.getObject();
+				return !NodeType.FOLDER.equals(dto.getType());
+			}
+		});
+        userPanel.setMarkupId(id + "_panel");
+        add(userPanel);
+        initUserMenu(userPanel);
     }
 	
-	protected IModel<List<String>> createMenuItemModel(final IModel<T> model) {
-		return new LoadableModel<List<String>>() {
-
-			@Override
-			protected List<String> load() {
-				List<String> list = new ArrayList<String>();
-				NodeDto dto = model.getObject();
-				if (NodeType.FOLDER.equals(dto.getType())) {
-					list.add("Edit");
-					list.add("Rename");
-					list.add("Create sub-unit");
-					list.add("Delete / Deprecate");
-				} else {
-					list.add("Edit");
-					list.add("Move");
-					list.add("Rename");
-					list.add("Enable");
-					list.add("Disable");
-					list.add("Change attributes");
-				}
-				return list;
-			}
-		};
+	protected void initOrgMenu(WebMarkupContainer orgPanel) {
+	}
+	
+	protected void initUserMenu(WebMarkupContainer userPanel) {
 	}
 }

@@ -40,6 +40,7 @@ public class NodeDto implements Serializable {
 	private String displayName;
 	private NodeType type = NodeType.USER;
 	private List<ObjectReferenceType> orgRefs;
+	private boolean editable;
 
 	private List<NodeDto> nodes = new ArrayList<NodeDto>();
 	
@@ -81,6 +82,14 @@ public class NodeDto implements Serializable {
 		return orgRefs;
 	}
 	
+	public boolean isEditable() {
+		return editable;
+	}
+
+	public void setEditable(boolean editable) {
+		this.editable = editable;
+	}
+
 	public String getDisplayName() {
 		return displayName;
 	}

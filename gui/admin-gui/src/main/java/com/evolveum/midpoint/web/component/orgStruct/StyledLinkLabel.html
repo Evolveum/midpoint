@@ -23,13 +23,40 @@
 
 	<wicket:panel>
 		<a wicket:id="link"> <span class="tree-label" wicket:id="label">[label]</span>
-		<!-- <input type="text" wicket:id="input" size="50"/> -->
 		</a>
 		<div class="treeButtonMenu" wicket:id="treeButton" />
-		<div class="menuPanel" wicket:id="menuPanel">
+		<div class="menuPanel" wicket:id="orgUnitMenuPanel">
 			<table>
-				<tr wicket:id="menu">
-					<td><span class="orgUnitMenuItem" wicket:id="menuItem" /></td>
+				<tr>
+					<td><a class="orgUnitMenuItem" wicket:id="orgEdit"><wicket:message key ="styledLinkLabel.orgMenu.edit" /></a></td>
+				</tr>
+				<tr>
+					<td><a class="orgUnitMenuItem" wicket:id="orgRename"><wicket:message key ="styledLinkLabel.orgMenu.rename" /></a></td>
+				</tr>
+				<tr>
+					<td><a class="orgUnitMenuItem" wicket:id="orgCreateSub"><wicket:message key ="styledLinkLabel.orgMenu.createSub" /></a></td>
+				</tr>
+				<tr>
+					<td><a class="orgUnitMenuItem" wicket:id="orgDel"><wicket:message key ="styledLinkLabel.orgMenu.del" /></a></td>
+				</tr>
+			</table>
+		</div>
+		<div class="menuPanel" wicket:id="userMenuPanel">
+			<table>
+				<tr>
+					<td><a class="orgUnitMenuItem" wicket:id="userEdit"><wicket:message key ="styledLinkLabel.userMenu.edit" /></a></td>
+				</tr>
+				<tr>
+					<td><a class="orgUnitMenuItem" wicket:id="userRename"><wicket:message key ="styledLinkLabel.userMenu.rename" /></a></td>
+				</tr>
+				<tr>
+					<td><a class="orgUnitMenuItem" wicket:id="userEnable"><wicket:message key ="styledLinkLabel.userMenu.enable" /></a></td>
+				</tr>
+				<tr>
+					<td><a class="orgUnitMenuItem" wicket:id="userDisable"><wicket:message key ="styledLinkLabel.userMenu.disable" /></a></td>
+				</tr>
+				<tr>
+					<td><a class="orgUnitMenuItem" wicket:id="userChangeAttr"><wicket:message key ="styledLinkLabel.userMenu.changeAttr" /></a></td>
 				</tr>
 			</table>
 		</div>

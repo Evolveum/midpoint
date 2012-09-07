@@ -27,6 +27,8 @@ import java.util.List;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
@@ -55,7 +58,8 @@ public class BookmarkableFolderContent extends Content {
 	}
 
 	@Override
-	public Component newContentComponent(String id, final AbstractTree<NodeDto> tree, IModel<NodeDto> model) {
+	public Component newContentComponent(String id, final AbstractTree<NodeDto> tree,
+			final IModel<NodeDto> model) {
 		return new Node<NodeDto>(id, model) {
 
 			@Override
@@ -63,7 +67,7 @@ public class BookmarkableFolderContent extends Content {
 				final NodeDto node = model.getObject();
 				if (tree.getProvider().hasChildren(node)) {
 					return super.newLinkComponent(id, model);
-					
+
 				} else {
 					return new LabeledWebMarkupContainer(id, model) {
 					};
@@ -102,9 +106,98 @@ public class BookmarkableFolderContent extends Content {
 
 				return styleClass;
 			}
+
+			@Override
+			protected void initOrgMenu(WebMarkupContainer orgPanel) {
+				AjaxLink edit = new AjaxLink("orgEdit", 
+						createStringResource("styledLinkLabel.orgMenu.edit")) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+
+					}
+				};
+				orgPanel.add(edit);
+
+				AjaxLink rename = new AjaxLink("orgRename",
+						createStringResource("styledLinkLabel.orgMenu.rename")) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						//model.getObject().setEditable(!model.getObject().isEditable());
+					}
+				};
+				orgPanel.add(rename);
+
+				AjaxLink createSub = new AjaxLink("orgCreateSub",
+						createStringResource("styledLinkLabel.orgMenu.createSub")) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+
+					}
+				};
+				orgPanel.add(createSub);
+
+				AjaxLink del = new AjaxLink("orgDel", 
+						createStringResource("styledLinkLabel.orgMenu.del")) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+
+					}
+				};
+				orgPanel.add(del);
+			}
+			
+			@Override
+			protected void initUserMenu(WebMarkupContainer userPanel) {
+				AjaxLink edit = new AjaxLink("userEdit", 
+						createStringResource("styledLinkLabel.userMenu.edit")) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+
+					}
+				};
+				userPanel.add(edit);
+
+				AjaxLink rename = new AjaxLink("userRename",
+						createStringResource("styledLinkLabel.userMenu.rename")) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						
+					}
+				};
+				userPanel.add(rename);
+
+				AjaxLink enable = new AjaxLink("userEnable",
+						createStringResource("styledLinkLabel.userMenu.enable")) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+
+					}
+				};
+				userPanel.add(enable);
+
+				AjaxLink disable = new AjaxLink("userDisable", 
+						createStringResource("styledLinkLabel.userMenu.disable")) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+
+					}
+				};
+				userPanel.add(disable);
+				
+				AjaxLink changeAttr = new AjaxLink("userChangeAttr", 
+						createStringResource("styledLinkLabel.userMenu.changeAttr")) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+
+					}
+				};
+				userPanel.add(changeAttr);
+			}
+
 		};
+
 	}
-	
+
 	private List<NodeDto> getNodes(NodeDto parent) {
 		OrgStructDto orgUnit = loadOrgUnit(parent.getOid());
 		List<NodeDto> listNodes = new ArrayList<NodeDto>();
@@ -133,7 +226,7 @@ public class BookmarkableFolderContent extends Content {
 		OperationResult result = new OperationResult(OPERATION_LOAD_ORGUNIT);
 
 		OrgStructDto newOrgModel = null;
-		 List<PrismObject<ObjectType>> orgUnitList;
+		List<PrismObject<ObjectType>> orgUnitList;
 
 		OrgFilter orgFilter = OrgFilter.createOrg(oid, null, "1");
 		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
@@ -156,6 +249,4 @@ public class BookmarkableFolderContent extends Content {
 		}
 		return newOrgModel;
 	}
-
-	
 }
