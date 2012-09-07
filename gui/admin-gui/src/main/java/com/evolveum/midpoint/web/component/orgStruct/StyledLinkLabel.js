@@ -28,11 +28,13 @@ var cssOutPanel = {
 };
 
 function initMenuButtons() {
-	$("body").unbind("mousedown");
+	$(document).unbind("mousedown");
+	$(".treeButtonMenu").unbind("mouseup");
+	$(".menuPanel a").unbind("click");
 	
 	var panel = null;
 	var button = null;
-	$(".treeButtonMenu").mouseup(function(e) {
+	$(".treeButtonMenu").bind("mouseup", function(e) {
 		var id = $(this).attr("id");
 		panel = $("#" + id + "_panel");
 		button = $(this);
@@ -45,12 +47,18 @@ function initMenuButtons() {
 
 	});
 	
-	$("body").bind("mousedown", function(e) {
+	$(document).bind("mousedown", function(e) {
 		if (panel.has(e.target).length === 0) {
 			button.css("z-index", "0");
 			panel.css("z-index", "0");
 			panel.hide();
 		}
+	});
+	
+	$(".menuPanel a").bind("click", function() {
+		button.css("z-index", "0");
+		panel.css("z-index", "0");
+		panel.hide();
 	});
 
 	$(".menuPanel table td").mouseenter(function() {

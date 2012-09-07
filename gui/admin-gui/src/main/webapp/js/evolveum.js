@@ -111,6 +111,12 @@ function init() {
             e.target.value = e.target.defaultValue;
     });
     
+    $(".searchText").keypress(function(e) {
+        if(e.which == 13) {
+        	$(this).parent().find(".submitSearch").click();
+        }
+    });
+    
 }
 
 function showLeftMenu() {
