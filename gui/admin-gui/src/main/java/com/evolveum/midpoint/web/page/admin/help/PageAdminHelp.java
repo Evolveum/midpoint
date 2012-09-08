@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.PageDisabledVisibleBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -85,14 +86,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 /**
  * @author mserbak
  */
-public class PageAboutAdmin extends PageAdmin {
+public class PageAdminHelp extends PageAdmin {
 
 	@Override
 	public List<BottomMenuItem> getBottomMenuItems() {
 		List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-		items.add(new BottomMenuItem("pageAboutAdmin.about", PageAbout.class));
-		items.add(new BottomMenuItem("pageAboutAdmin.system", PageSystem.class));
+		items.add(new BottomMenuItem("pageAdminHelp.about", PageAbout.class,
+                new PageDisabledVisibleBehaviour(this, PageAbout.class)));
+		items.add(new BottomMenuItem("pageAdminHelp.system", PageSystem.class,
+                new PageDisabledVisibleBehaviour(this, PageSystem.class)));
+
 		return items;
 	}
 }

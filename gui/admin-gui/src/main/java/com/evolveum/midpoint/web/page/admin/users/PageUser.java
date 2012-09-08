@@ -116,6 +116,10 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_ASSIGNMENT_EDITOR_WRAPPER = "assignmentEditorWrapper";
     private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
     private static final String ID_ASSIGNMENT_TABLE = "assignmentTable";
+    private static final String ID_ASSIGNMENT_LIST = "assignmentList";
+    private static final String ID_USER_FORM = "userForm";
+    private static final String ID_ORG_UNIT_LIST = "orgUnitList";
+    private static final String ID_ACCOUNTS_DELTAS = "accountsDeltas";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
@@ -191,7 +195,7 @@ public class PageUser extends PageAdminUsers {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        PrismObjectPanel userForm = new PrismObjectPanel("userForm", userModel, new PackageResourceReference(
+        PrismObjectPanel userForm = new PrismObjectPanel(ID_USER_FORM, userModel, new PackageResourceReference(
                 ImgResources.class, ImgResources.USER_PRISM), mainForm) {
 
             @Override
@@ -206,7 +210,7 @@ public class PageUser extends PageAdminUsers {
         accordion.setExpanded(true);
         mainForm.add(accordion);
 
-        AccordionItem accounts = new AccordionItem("accountsDeltas", new AbstractReadOnlyModel<String>() {
+        AccordionItem accounts = new AccordionItem(ID_ACCOUNTS_DELTAS, new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
@@ -229,7 +233,7 @@ public class PageUser extends PageAdminUsers {
         initAccountButtons(accountsButtonsPanel);
         initAccounts(accounts);
 
-        AccordionItem assignments = new AccordionItem("assignmentsList", new AbstractReadOnlyModel<String>() {
+        AccordionItem assignments = new AccordionItem(ID_ASSIGNMENT_LIST, new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
@@ -240,7 +244,7 @@ public class PageUser extends PageAdminUsers {
         accordion.getBodyContainer().add(assignments);
         initAssignments(assignments);
 
-        AccordionItem orgUnits = new AccordionItem("orgUnitsList", new AbstractReadOnlyModel<String>() {
+        AccordionItem orgUnits = new AccordionItem(ID_ORG_UNIT_LIST, new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
@@ -363,12 +367,12 @@ public class PageUser extends PageAdminUsers {
 
     private AccordionItem getAssignmentAccordionItem() {
         Accordion accordion = (Accordion) get(ID_MAIN_FORM + ":" + ID_ACCORDION);
-        return (AccordionItem) accordion.getBodyContainer().get("assignmentsList");
+        return (AccordionItem) accordion.getBodyContainer().get(ID_ASSIGNMENT_LIST);
     }
 
     private AccordionItem getAccountsAccordionItem() {
         Accordion accordion = (Accordion) get(ID_MAIN_FORM + ":" + ID_ACCORDION);
-        return (AccordionItem) accordion.getBodyContainer().get("accountsDeltas");
+        return (AccordionItem) accordion.getBodyContainer().get(ID_ACCOUNTS_DELTAS);
     }
 
     private List<UserAccountDto> loadAccountWrappers() {
@@ -1328,7 +1332,6 @@ public class PageUser extends PageAdminUsers {
             // TODO: implement unlock
         }
     }
-
 
     private void assignmentEditPerformed(AjaxRequestTarget target, UserAssignmentDto assignmentDto) {
         assignmentEditorModel.setObject(new AssignmentEditorDto(assignmentDto));

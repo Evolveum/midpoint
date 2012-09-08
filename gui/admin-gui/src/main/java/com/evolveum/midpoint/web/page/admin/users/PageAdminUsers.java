@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.util.PageDisabledVisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import org.apache.commons.lang.StringUtils;
@@ -43,16 +44,12 @@ public class PageAdminUsers extends PageAdmin {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
         items.add(new BottomMenuItem("pageAdminUsers.listUsers", PageUsers.class));
-        items.add(new BottomMenuItem("pageAdminUsers.newUser", PageUser.class, new VisibleEnableBehaviour() {
+        items.add(new BottomMenuItem("pageAdminUsers.newUser", PageUser.class,
+                new PageDisabledVisibleBehaviour(this, PageUser.class) {
 
             @Override
             public boolean isVisible() {
                 return !isEditingUser();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return !(getPage() instanceof PageUser);
             }
         }));
         items.add(new BottomMenuItem("pageAdminUsers.editUser", PageUser.class, new VisibleEnableBehaviour() {
@@ -68,13 +65,7 @@ public class PageAdminUsers extends PageAdmin {
             }
         }));
         items.add(new BottomMenuItem("pageAdminUsers.orgStruct", PageOrgStruct.class,
-                new VisibleEnableBehaviour() {
-
-                    @Override
-                    public boolean isEnabled() {
-                        return !(PageAdminUsers.this.getPage() instanceof PageOrgStruct);
-                    }
-                }));
+                new PageDisabledVisibleBehaviour(this, PageOrgStruct.class)));
 
         return items;
 

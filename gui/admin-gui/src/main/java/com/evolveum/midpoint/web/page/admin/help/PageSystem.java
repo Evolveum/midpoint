@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -36,14 +35,13 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 /**
  * @author mserbak
  */
-public class PageSystem extends PageAboutAdmin {
+public class PageSystem extends PageAdminHelp {
 
-	private static final String[] properties = new String[] { "file.separator", "java.class.path",
+	private static final String[] PROPERTIES = new String[] { "file.separator", "java.class.path",
 			"java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
-			"os.name", "os.version", "path.separator" };
+			"os.name", "os.version", "path.separator", "user.dir", "user.home", "user.name" };
 
 	public PageSystem() {
-
 		Label revisionLabel = new Label("revision", createStringResource("pageSystem.midPointRevision"));
 		add(revisionLabel);
 		createSystemItemsList();
@@ -67,7 +65,7 @@ public class PageSystem extends PageAboutAdmin {
 			@Override
 			protected List<SystemItem> load() {
 				List<SystemItem> items = new ArrayList<SystemItem>();
-				for (String property : properties) {
+				for (String property : PROPERTIES) {
 					items.add(new SystemItem(property, System.getProperty(property)));
 				}
 				return items;

@@ -32,7 +32,6 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
-import com.evolveum.midpoint.web.page.admin.dto.DtoUtils;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
@@ -99,7 +98,7 @@ public class PageRole extends PageAdminRoles {
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
             String xml = domProcessor.serializeObjectToString(role);
 
-            dto = new ObjectViewDto(role.getOid(), DtoUtils.getName(role), role, xml);
+            dto = new ObjectViewDto(role.getOid(), WebMiscUtil.getName(role), role, xml);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError(ex.getMessage(), ex);

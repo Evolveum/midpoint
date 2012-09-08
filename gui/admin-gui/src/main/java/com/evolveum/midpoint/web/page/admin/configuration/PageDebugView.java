@@ -2,7 +2,6 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -12,9 +11,9 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
-import com.evolveum.midpoint.web.page.admin.dto.DtoUtils;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
@@ -63,7 +62,7 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismObject<ObjectType> object = repository.getObject(ObjectType.class, objectOid.toString(), result);
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
-            dto = new ObjectViewDto(object.getOid(), DtoUtils.getName(object), object, xml);
+            dto = new ObjectViewDto(object.getOid(), WebMiscUtil.getName(object), object, xml);
 
             result.recomputeStatus();
         } catch (Exception ex) {

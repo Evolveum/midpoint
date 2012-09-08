@@ -19,27 +19,27 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.dto;
+package com.evolveum.midpoint.web.component.util;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import org.apache.wicket.markup.html.WebPage;
 
 /**
+ * Behavior which disables component if actual page class equals to disabledPage defined by constructor parameter.
+ *
  * @author lazyman
  */
-public final class DtoUtils {
+public class PageDisabledVisibleBehaviour extends VisibleEnableBehaviour {
 
-    private DtoUtils() {
+    private WebPage page;
+    private Class<? extends WebPage> disabledPage;
+
+    public PageDisabledVisibleBehaviour(WebPage page, Class<? extends WebPage> disabledPage) {
+        this.disabledPage = disabledPage;
+        this.page = page;
     }
 
-    public static <T extends ObjectType> String getName(PrismObject<T> object) {
-        String name = null;
-        PrismProperty nameProperty = object.findProperty(ObjectType.F_NAME);
-        if (nameProperty != null) {
-            name = (String) nameProperty.getRealValue();
-        }
-
-        return name;
+    @Override
+    public boolean isEnabled() {
+        return !disabledPage.equals(page.getClass());
     }
 }
