@@ -86,7 +86,7 @@ object.
 				<icscscriptedsql:testScript></icscscriptedsql:testScript>
 				<icscscriptedsql:syncScript></icscscriptedsql:syncScript>
 -->
-<!--
+
 				<icscscriptedsql:createScriptFileName>/opt/midpoint-configuration/icf-connectors/CreateScript.groovy</icscscriptedsql:createScriptFileName>
 				<icscscriptedsql:updateScriptFileName>/opt/midpoint-configuration/icf-connectors/UpdateScript.groovy</icscscriptedsql:updateScriptFileName>
 				<icscscriptedsql:deleteScriptFileName>/opt/midpoint-configuration/icf-connectors/DeleteScript.groovy</icscscriptedsql:deleteScriptFileName>
@@ -95,7 +95,7 @@ object.
 				<icscscriptedsql:syncScriptFileName>/opt/midpoint-configuration/icf-connectors/SyncScript.groovy</icscscriptedsql:syncScriptFileName>
 
 				<icscscriptedsql:validConnectionQuery></icscscriptedsql:validConnectionQuery>
-				<icscscriptedsql:jndiProperties></icscscriptedsql:jndiProperties>-->
+				<icscscriptedsql:jndiProperties></icscscriptedsql:jndiProperties>
 
 				<icscscriptedsql:jdbcDriver>com.mysql.jdbc.Driver</icscscriptedsql:jdbcDriver>
 				<icscscriptedsql:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d?useUnicode=true&amp;characterEncoding=utf8&amp;connectionCollation=utf8_bin</icscscriptedsql:jdbcUrlTemplate>

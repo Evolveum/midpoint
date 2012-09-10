@@ -45,7 +45,7 @@ def sql = new Sql(connection);
 
 switch ( objectClass ) {
     case "__ACCOUNT__":
-    sql.execute("INSERT INTO Users (uid, firstname,lastname,fullname,email,organization) values (?,?,?,?,?;?)",
+    sql.execute("INSERT INTO Users (uid, firstname,lastname,fullname,email,organization) values (?,?,?,?,?,?)",
         [
             id,
             attributes.get("firstname").get(0),
