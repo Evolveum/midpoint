@@ -330,8 +330,14 @@ public class ModelController implements ModelService, ModelInteractionService {
 			result.computeStatus();
 			
 		} catch (ObjectAlreadyExistsException e) {
-			result.recordFatalError(e);
-			throw e;
+			try {
+				//TODO: log reset operation
+				executeChanges(deltas, options, task, parentResult);
+			} catch (SystemException ex){
+				throw e;
+			}
+			//result.recordFatalError(e);
+			//throw e;
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			throw e;
@@ -448,7 +454,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 				LOGGER.trace("Executing GENERIC change " + objectDelta);
 				Collection<ObjectDelta<T>> changes = MiscUtil.createCollection(objectDelta);
-				changeExecutor.executeChanges((Collection)changes, result);
+				changeExecutor.executeChanges((Collection)changes, task, result);
 
 				executePostChange(objectDelta, task, result);
 			}
@@ -762,7 +768,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 				changes.add(objectDelta);
 
 				try {
-					changeExecutor.executeChanges(changes, parentResult);
+					changeExecutor.executeChanges(changes, task, parentResult);
 
                     // todo: is objectDelta the correct holder of the modifications?
                     executePostChange(objectDelta, task, result);
@@ -929,7 +935,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 				changes = new HashSet<ObjectDelta<? extends ObjectType>>();
 				changes.add(objectDelta);
     			try {
-    				changeExecutor.executeChanges(changes, result);
+    				changeExecutor.executeChanges(changes, task, result);
                     executePostChange(changes, task, result);
 
     				auditRecord.clearDeltas();
